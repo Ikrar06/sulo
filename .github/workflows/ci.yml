@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      # Runs even before the project is scaffolded.
+      - name: Pemindai data pribadi
+        run: node scripts/check-leaks.mjs
+
+      # The steps below start working once package.json exists (after M0).
+      # Adjust action versions and the pnpm version during M1.
+      - uses: pnpm/action-setup@v4
+        if: hashFiles('package.json') != ''
+        with:
+          version: latest
+
+      - name: Install
+        if: hashFiles('package.json') != ''
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        if: hashFiles('package.json') != ''
+        run: pnpm typecheck
+
+      - name: Test
+        if: hashFiles('package.json') != ''
+        run: pnpm test
+
+      - name: Build
+        if: hashFiles('package.json') != ''
+        run: pnpm build

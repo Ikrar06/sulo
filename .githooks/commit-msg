@@ -1,0 +1,7 @@
+#!/bin/sh
+# Rejects commit messages that credit an AI assistant as co-author.
+# Enable once per clone: git config core.hooksPath .githooks
+if grep -qiE '^(co-authored-by:.*(claude|anthropic)|.*generated with \[?claude code)' "$1"; then
+  echo "Pesan commit memuat atribusi Claude. Hapus baris itu lalu commit ulang." >&2
+  exit 1
+fi

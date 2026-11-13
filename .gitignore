@@ -1,0 +1,12 @@
+node_modules/
+.output/
+.wxt/
+dist/
+*.log
+.env
+.env.*
+fixtures/raw/
+*.raw.json
+*.raw.html
+web-ext.config.ts
+.DS_Store
