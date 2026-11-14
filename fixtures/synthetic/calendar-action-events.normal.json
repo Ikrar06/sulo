@@ -1,0 +1,33 @@
+{
+  "events": [
+    {
+      "id": 101,
+      "name": "Tugas 1 is due",
+      "description": "<p>Lorem ipsum</p>",
+      "timestart": 1790000000,
+      "timesort": 1790000000,
+      "eventtype": "due",
+      "modulename": "assign",
+      "instance": 201,
+      "overdue": false,
+      "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+      "course": { "id": 401, "fullname": "Mata Kuliah A", "shortname": "MKA-001" },
+      "action": { "name": "Add submission", "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301&action=editsubmission", "itemcount": 1, "actionable": true }
+    },
+    {
+      "id": 102,
+      "name": "Diskusi 1 closes",
+      "timestart": 1790500000,
+      "timesort": 1790500000,
+      "eventtype": "close",
+      "modulename": "forum",
+      "instance": 202,
+      "overdue": true,
+      "url": "https://sikola-v2.unhas.ac.id/mod/forum/view.php?id=302",
+      "course": { "id": 402, "fullname": "Mata Kuliah B", "shortname": "MKB-002" },
+      "action": null
+    }
+  ],
+  "firstid": 101,
+  "lastid": 102
+}

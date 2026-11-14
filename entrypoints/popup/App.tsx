@@ -21,7 +21,7 @@ export default function App() {
   const [testing, setTesting] = useState(false);
 
   useEffect(() => {
-    void send<StatusResponse>({ type: 'status/get' }).then(setStatus);
+    void send<StatusResponse>({ type: 'popup/opened' }).then(setStatus);
   }, []);
 
   const onTest = async () => {
@@ -42,6 +42,12 @@ export default function App() {
         <h1 className="text-base font-semibold">{id.appName}</h1>
         <p className="text-xs text-muted-foreground">{id.unofficial}</p>
       </header>
+
+      {status?.disabledMessage !== null && status?.disabledMessage !== undefined && (
+        <p role="status" className="rounded-md border border-border p-2">
+          {status.disabledMessage || id.disabledRemotely}
+        </p>
+      )}
 
       {status && (
         <p className="text-foreground">{status.hasSesskey ? id.sesskeyAvailable : id.sesskeyMissing}</p>

@@ -1,21 +1,30 @@
 import type { ConnectionTestResult } from './messages';
+import { calls } from './moodle/calls';
 import type { BatchOutcome, MoodleClient } from './moodle/client';
-import { sessionTimeRemainingSchema } from './moodle/schemas';
-import type { SessionState, UserId } from './types';
+import { parseCall } from './moodle/schemas';
+import type { ClientRefusal, SessionState, UserId } from './types';
 
 export interface ConnectionTestOutcome {
   result: ConnectionTestResult;
-  /** null when the outcome says nothing about the session (e.g. refused). */
+  /** null when the outcome says nothing new about the session. */
   sessionState: SessionState | null;
   userId: UserId | null;
   dropSesskey: boolean;
 }
 
-// M0: one call that proves the session cookie reaches SIKOLA from the
-// service worker. Pure: the client is injected.
+const REFUSAL_RESULT: Record<ClientRefusal, ConnectionTestResult> = {
+  NO_SESSKEY: 'no_sesskey',
+  BUDGET_EXHAUSTED: 'budget_exhausted',
+  BACKING_OFF: 'backing_off',
+  SESSION_EXPIRED: 'session_expired',
+  DISABLED_REMOTELY: 'disabled_remotely',
+  NOT_ALLOWLISTED: 'parser_broken',
+};
+
+// One call that proves the session cookie reaches SIKOLA from the service
+// worker. Pure: the client is injected.
 export async function runConnectionTest(client: MoodleClient): Promise<ConnectionTestOutcome> {
-  const outcome = await client.callBatch([{ methodname: 'core_session_time_remaining', args: {} }]);
-  return interpret(outcome);
+  return interpret(await client.callBatch([calls.sessionTimeRemaining()]));
 }
 
 function interpret(outcome: BatchOutcome): ConnectionTestOutcome {
@@ -23,15 +32,13 @@ function interpret(outcome: BatchOutcome): ConnectionTestOutcome {
   switch (outcome.kind) {
     case 'ok': {
       const first = outcome.results[0];
-      if (!first?.ok) return { ...base, result: 'parser_broken' };
-      const parsed = sessionTimeRemainingSchema.safeParse(first.data);
-      if (!parsed.success) return { ...base, result: 'parser_broken' };
+      if (!first) return { ...base, result: 'parser_broken' };
+      const parsed = parseCall('core_session_time_remaining', first);
+      if (!parsed.ok) return { ...base, result: 'parser_broken' };
       return { result: 'ok', sessionState: 'OK', userId: parsed.data.userid, dropSesskey: false };
     }
     case 'refused':
-      if (outcome.reason === 'NO_SESSKEY') return { ...base, result: 'no_sesskey' };
-      if (outcome.reason === 'BUDGET_EXHAUSTED') return { ...base, result: 'budget_exhausted' };
-      return { ...base, result: 'parser_broken' };
+      return { ...base, result: REFUSAL_RESULT[outcome.reason] };
     case 'login_required':
       return { ...base, result: 'session_expired', sessionState: 'EXPIRED' };
     case 'invalid_sesskey':

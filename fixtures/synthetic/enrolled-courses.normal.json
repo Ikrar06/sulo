@@ -1,0 +1,7 @@
+{
+  "courses": [
+    { "id": 401, "fullname": "Mata Kuliah A", "shortname": "MKA-001", "startdate": 1786000000, "enddate": 1798000000, "isfavourite": false, "hidden": false, "viewurl": "https://sikola-v2.unhas.ac.id/course/view.php?id=401" },
+    { "id": 402, "fullname": "Mata Kuliah B", "shortname": "MKB-002", "startdate": 1770000000, "enddate": 0, "isfavourite": true, "hidden": false, "viewurl": "https://sikola-v2.unhas.ac.id/course/view.php?id=402" }
+  ],
+  "nextoffset": 2
+}

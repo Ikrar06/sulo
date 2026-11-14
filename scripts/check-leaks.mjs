@@ -6,45 +6,18 @@
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { LEAK_RULES } from './leak-rules.mjs';
 
 const ROOT = process.cwd();
 
 // docs/ holds example patterns on purpose. fixtures/raw/ is git-ignored local data.
 const SKIP_DIRS = new Set(['node_modules', '.git', '.output', '.wxt', 'dist', 'docs']);
-const SKIP_PATHS = ['fixtures/raw', 'scripts/check-leaks.mjs', 'pnpm-lock.yaml'];
-const TEXT_EXT = /\.(json|html?|ts|tsx|js|mjs|cjs|md|txt|css|ya?ml|csv|svg)$/i;
+const SKIP_PATHS = ['fixtures/raw', 'scripts/check-leaks.mjs', 'scripts/leak-rules.mjs', 'pnpm-lock.yaml'];
+const TEXT_EXT = /\.(json|html?|ts|tsx|mts|js|jsx|mjs|cjs|md|txt|css|ya?ml|csv|svg|ics)$/i;
 const MAX_BYTES = 2 * 1024 * 1024;
 
-const RULES = [
-  {
-    name: 'Alamat email Unhas',
-    re: /[A-Za-z0-9._%+-]+@(?:[a-z0-9-]+\.)*unhas\.ac\.id/gi,
-  },
-  {
-    name: 'Pola mirip NIM',
-    re: /\b[A-Z]\d{9}\b/g,
-    // Sanitized placeholders look like D000000001.
-    allow: (m) => /^[A-Z]0{6}\d{3}$/.test(m),
-  },
-  {
-    name: 'Sesskey di URL',
-    re: /sesskey=([A-Za-z0-9]{8,})/g,
-    allow: (m) => /sesskey=SESSKEY/.test(m),
-  },
-  {
-    name: 'Sesskey di JSON',
-    re: /"sesskey"\s*:\s*"([A-Za-z0-9]{8,})"/g,
-    allow: (m) => /"SESSKEY"/.test(m),
-  },
-  {
-    name: 'Cookie sesi Moodle',
-    re: /MoodleSession[A-Za-z0-9_]*\s*=\s*[A-Za-z0-9%]{8,}/g,
-  },
-  {
-    name: 'Token web service Moodle',
-    re: /\b(?:wstoken|token)=[a-f0-9]{32}\b/gi,
-  },
-];
+// Patterns live in scripts/leak-rules.mjs, shared with the in-extension scan.
+const RULES = LEAK_RULES;
 
 function walk(dir, out) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

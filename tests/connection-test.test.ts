@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { runConnectionTest } from '../lib/connection-test';
 import type { BatchOutcome, MoodleClient } from '../lib/moodle/client';
 
-const clientReturning = (outcome: BatchOutcome): MoodleClient => ({ callBatch: async () => outcome });
+const clientReturning = (outcome: BatchOutcome): MoodleClient => ({
+  callBatch: async () => outcome,
+  fetchPage: async () => ({ kind: 'network_error' }),
+});
 
 describe('runConnectionTest', () => {
   it('reports ok with the userid when the session is alive', async () => {

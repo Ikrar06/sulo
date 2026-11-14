@@ -1,0 +1,6 @@
+{
+  "notifications": [
+    { "id": 601, "useridfrom": 2, "useridto": 1, "subject": "Notifikasi 1", "component": "mod_assign", "eventtype": "assign_notification", "timecreated": 1789900000, "read": false, "deleted": false, "iconurl": "https://example.test/file", "customdata": "{\"notificationiconurl\":\"https://example.test/file\"}" }
+  ],
+  "unreadcount": 1
+}

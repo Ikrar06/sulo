@@ -17,5 +17,20 @@ export const SESSKEY_FALLBACK_POPUP_GAP_H = 6;
 export const STALE_WARNING_H = 6;
 export const COURSE_LIST_MIN_GAP_H = 24;
 
-/** Empty means the remote kill switch is skipped. */
+/**
+ * Backoff after consecutive failures (429, 5xx, timeout, network).
+ * Failure 1 waits 3 h, failure 2 waits 6 h, failure 3 waits 12 h,
+ * failure 4 and later wait 24 h each. One success resets the count.
+ */
+export const BACKOFF_STEPS_H = [3, 6, 12] as const;
+export const BACKOFF_MAX_H = 24;
+
+/** Remote kill switch. Empty URL means the feature is skipped. */
 export const REMOTE_CONFIG_URL = '';
+export const REMOTE_CONFIG_MIN_GAP_H = 24;
+
+// Calendar window and page sizes used by the sync batch.
+export const CALENDAR_LOOKBACK_DAYS = 14;
+export const CALENDAR_LOOKAHEAD_DAYS = 90;
+export const CALENDAR_LIMIT = 50;
+export const NOTIFICATIONS_LIMIT = 20;

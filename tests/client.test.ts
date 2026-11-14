@@ -93,12 +93,12 @@ describe('moodle client: serial queue', () => {
     const fetch = fakeFetch(() => {
       if (first) {
         first = false;
-        throw new TypeError('Failed to fetch');
+        return new Response('not json', { headers: { 'content-type': 'application/json' } });
       }
       return jsonResponse([{ error: false, data: {} }]);
     });
     const { client } = setup({ fetch });
-    expect(await client.callBatch([sessionCall])).toEqual({ kind: 'network_error' });
+    expect(await client.callBatch([sessionCall])).toEqual({ kind: 'bad_response', detail: 'invalid json' });
     expect((await client.callBatch([sessionCall])).kind).toBe('ok');
   });
 });
