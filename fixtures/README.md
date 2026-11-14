@@ -11,4 +11,9 @@ Jangan pernah menaruh respons mentah dari SIKOLA di sini, walau hanya sementara.
 
 Penamaan: `{fungsi-atau-halaman}.{kasus}.json` atau `.html`, misalnya `calendar-action-events.normal.json`, `courseformat-state.hidden-item.json`, `login-page.html`.
 
-Cara merekam: jalankan `pnpm dev`, buka SIKOLA dan login, lalu buka `chrome-extension://<id>/recorder.html` dan tekan "Rekam fixture". Pindahkan berkas dari folder Unduhan ke `fixtures/recorded/`, lalu jalankan `node scripts/check-leaks.mjs`.
+Cara merekam (memakai 2 request dari anggaran harian):
+
+1. `pnpm build:dev`, lalu di `chrome://extensions` muat `.output/chrome-mv3-dev` lewat "Load unpacked" di profil Chrome yang sudah login ke SIKOLA. Matikan dulu build produksi kalau terpasang, supaya tidak ada dua Sulo. (`pnpm dev` tidak cocok untuk ini karena membuka profil Chrome baru yang belum login.)
+2. Buka satu halaman SIKOLA supaya sesskey terdeteksi.
+3. Buka `chrome-extension://<id>/recorder.html` (id terlihat di kartu ekstensi), tekan "Rekam fixture".
+4. Pindahkan berkas `*.recorded.json` dari folder Unduhan ke `fixtures/recorded/`, lalu jalankan `node scripts/check-leaks.mjs`.
