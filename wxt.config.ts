@@ -27,10 +27,10 @@ export default defineConfig({
     },
   },
   manifest: {
-    name: 'Sulo untuk SIKOLA (tidak resmi)',
+    // Store title: product name and role only; the campus name stays in the description.
+    name: 'Sulo: pendamping akademik mahasiswa (tidak resmi)',
     short_name: 'Sulo',
-    description:
-      'Ekstensi tidak resmi untuk SIKOLA Unhas: tugas lintas course, pengingat tenggat, dan radar perubahan.',
+    description: 'Pendamping akademik untuk mahasiswa Unhas. Tidak resmi.',
     icons: ICONS,
     action: { default_icon: ICONS, default_title: 'Sulo' },
     permissions: ['storage', 'alarms', 'notifications', 'idle'],

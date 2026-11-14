@@ -2,7 +2,7 @@
   "name": "sulo",
   "version": "0.0.1",
   "private": true,
-  "description": "Ekstensi tidak resmi untuk SIKOLA: tugas lintas course, pengingat tenggat, radar perubahan.",
+  "description": "Pendamping akademik untuk mahasiswa Unhas. Tidak resmi.",
   "type": "module",
   "packageManager": "pnpm@10.28.1",
   "scripts": {

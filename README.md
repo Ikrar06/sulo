@@ -11,13 +11,15 @@
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
-Sulo is an unofficial browser extension for SIKOLA, the Moodle-based learning platform of Universitas Hasanuddin, that collects assignments across courses, reminds you of deadlines and shows what changed. It is not affiliated with or endorsed by Universitas Hasanuddin. The name means "torch" in Buginese and Makassarese.
+An unofficial academic companion for Universitas Hasanuddin students. Works with SIKOLA, with optional NEOSIA support.
+
+Sulo is not affiliated with or endorsed by Universitas Hasanuddin. The name means "torch" in Buginese and Makassarese. Today it reads assignments and deadlines from SIKOLA, the university's Moodle; the academic calendar and NEOSIA are planned.
 
 <!-- Screenshot of the popup goes here once the Today view (M2) is usable. -->
 
 ## Status
 
-Early development, limited trial. Sulo is installed manually by a small group of testers (at most 10) and is not on the Chrome Web Store. Publishing waits for permission from the SIKOLA administrators.
+Early development, limited trial. Only the SIKOLA part works today. Sulo is installed manually by a small group of testers (at most 10) and is not on the Chrome Web Store. Publishing waits for permission from the SIKOLA administrators.
 
 ## Features
 
@@ -35,6 +37,8 @@ Planned (see [docs/ROADMAP.md](docs/ROADMAP.md)):
 - Deadline reminders 3 days, 1 day and 3 hours before, with snooze.
 - Change radar: new, removed, renamed and hidden activities, due date changes, new grades, feedback and forum posts.
 - Dashboard with a change feed, a 14-day workload map and course management.
+- Academic calendar alongside your deadlines.
+- NEOSIA as an optional module, off by default and enabled only with explicit consent.
 
 ## Privacy and safety
 

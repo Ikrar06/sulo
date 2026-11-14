@@ -40,7 +40,7 @@ export default function App() {
     <main className="w-[380px] space-y-3 p-4 text-sm">
       <header>
         <h1 className="text-base font-semibold">{id.appName}</h1>
-        <p className="text-xs text-muted-foreground">{id.unofficial}</p>
+        <p className="text-xs text-muted-foreground">{id.tagline}</p>
       </header>
 
       {status?.disabledMessage !== null && status?.disabledMessage !== undefined && (
@@ -66,6 +66,8 @@ export default function App() {
       {status && (
         <p className="text-xs text-muted-foreground">{id.budget(status.budgetUsed, status.budgetLimit)}</p>
       )}
+
+      <footer className="border-t border-border pt-2 text-2xs text-muted-foreground">{id.disclaimer}</footer>
     </main>
   );
 }

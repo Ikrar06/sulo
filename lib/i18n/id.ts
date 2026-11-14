@@ -3,7 +3,9 @@ import type { ConnectionTestResult } from '../messages';
 // All UI text, in concise Indonesian. No exclamation marks (docs/UI.md).
 export const id = {
   appName: 'Sulo',
-  unofficial: 'Untuk SIKOLA, tidak resmi',
+  tagline: 'Pendamping akademik mahasiswa',
+  // Shown once per surface (popup footer, dashboard, consent screens).
+  disclaimer: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
   testConnection: 'Uji koneksi',
   testing: 'Menguji...',
   sesskeyAvailable: 'Sesi SIKOLA terdeteksi',
