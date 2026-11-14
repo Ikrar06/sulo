@@ -2,59 +2,184 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * Sulo design tokens. Single source of truth for color, type and radius.
+ * Components use these through Tailwind utilities and shadcn/ui variables;
+ * no color literals in components. Rationale and contrast values:
+ * docs/BRAND.md.
+ *
+ * Dark is the default. Light follows the system preference, and
+ * data-theme="light" | "dark" on <html> overrides it (manual setting, M5).
+ */
 
-/* shadcn/ui neutral theme. Dark mode follows the system preference. */
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+/* ---------- Fonts (bundled, Latin subset, OFL; see assets/fonts) ---------- */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/inter/inter-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/inter/inter-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./fonts/inter/inter-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./fonts/plus-jakarta-sans/plus-jakarta-sans-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+@custom-variant dark (&:is([data-theme="dark"] *, :root:not([data-theme="light"]) *));
+
+/* ---------- Brand (same in every theme, extracted from assets/brand) ---------- */
+
+:root {
+  --brand-amber: #ffa51f;
+  --brand-orange: #ff5a2a;
+  --brand-crimson: #e8204a;
+  --ink: #0b0b10;
+  /* Flame direction in the SVGs: top right (amber) to bottom left (crimson). */
+  --brand-flame: linear-gradient(208deg, var(--brand-amber) 0%, var(--brand-orange) 50%, var(--brand-crimson) 100%);
+  --radius: 0.625rem;
+}
+
+/* ---------- Dark (default) ---------- */
+
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0e;
+  --surface: #17171c;
+  --surface-raised: #1f1f25;
+  --border: #26262e;
+  --text: #f2f2f5;
+  --muted: #8a8a96;
+
+  /* Urgency: dot and text only, never backgrounds. Not brand hues. */
+  --urgency-overdue: #f87171;
+  --urgency-soon: #facc15;
+  --urgency-week: #60a5fa;
+  --urgency-normal: #8a8a96;
+
+  --danger: #f87171;
+}
+
+/* ---------- Light ---------- */
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #fafafb;
+    --surface: #ffffff;
+    --surface-raised: #f2f2f5;
+    --border: #e4e4ea;
+    --text: #111114;
+    --muted: #5f5f6b;
+    --urgency-overdue: #b91c1c;
+    --urgency-soon: #735c00;
+    --urgency-week: #1d4ed8;
+    --urgency-normal: #5f5f6b;
+    --danger: #b91c1c;
   }
 }
 
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fafafb;
+  --surface: #ffffff;
+  --surface-raised: #f2f2f5;
+  --border: #e4e4ea;
+  --text: #111114;
+  --muted: #5f5f6b;
+  --urgency-overdue: #b91c1c;
+  --urgency-soon: #735c00;
+  --urgency-week: #1d4ed8;
+  --urgency-normal: #5f5f6b;
+  --danger: #b91c1c;
+}
+
+/* ---------- shadcn/ui variables, mapped onto Sulo tokens ---------- */
+
+:root {
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  /* Primary button: brand orange with ink text (6.3:1). */
+  --primary: var(--brand-orange);
+  --primary-foreground: var(--ink);
+  --secondary: var(--surface-raised);
+  --secondary-foreground: var(--text);
+  --muted-foreground: var(--muted);
+  --accent: var(--surface-raised);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --input: var(--border);
+  --ring: var(--brand-amber);
+}
+
+/* ---------- Tailwind theme ---------- */
+
 @theme inline {
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Type scale sized for the 380 px popup. */
+  --text-2xs: 11px;
+  --text-2xs--line-height: 16px;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
+  --text-lg: 16px;
+  --text-lg--line-height: 22px;
+  --text-xl: 18px;
+  --text-xl--line-height: 24px;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-text: var(--text);
+  --color-brand-amber: var(--brand-amber);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-crimson: var(--brand-crimson);
+  --color-ink: var(--ink);
+  --color-urgency-overdue: var(--urgency-overdue);
+  --color-urgency-soon: var(--urgency-soon);
+  --color-urgency-week: var(--urgency-week);
+  --color-urgency-normal: var(--urgency-normal);
+
+  /* shadcn/ui names */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -65,7 +190,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
+  --color-muted: var(--surface-raised);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
@@ -75,12 +200,25 @@
   --color-ring: var(--ring);
 }
 
+@utility bg-brand-flame {
+  background-image: var(--brand-flame);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    font-family: var(--font-sans);
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-sm antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
   }
 }
 
@@ -89,6 +227,7 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
