@@ -45,8 +45,10 @@ Planned (see [docs/ROADMAP.md](docs/ROADMAP.md)):
 - **No password.** Sulo never asks for, reads or stores credentials. It uses the session you already have in the browser.
 - **Read only.** Only an allowlist of read-only Moodle functions can be called. Sulo never submits work, marks anything as read or keeps the session alive on its own.
 - **Local data.** Everything is stored in `chrome.storage` on your device. From M2 on, data is keyed by user id and cleared when a different account logs in.
-- **No telemetry.** No analytics and no third-party requests. The only non-SIKOLA request is a small, optional kill-switch file (data only, fetched at most once a day).
+- **No telemetry.** No analytics and no third-party requests. Apart from SIKOLA, Sulo only fetches public data from its own data repository (a kill-switch file now, the academic calendar later): data only, validated, at most once a day, with nothing that identifies the user.
 - **Small footprint.** At most 40 requests per day per installation, with a typical target of 5 to 10. Requests run one at a time, never during quiet hours (00.00 to 06.00) or while the computer is idle, and back off for 3 to 24 hours after server errors.
+- **Optional modules are off by default.** Planned modules such as NEOSIA must be turned on explicitly, never send requests of their own, and remove their data when turned off.
+- **No academic automation.** Sulo does not fill in course registration, surveys or attendance, and does not watch class quotas.
 - **Minimal permissions.** `storage`, `alarms`, `notifications`, `idle`, and access to `https://sikola-v2.unhas.ac.id/*` only.
 
 Details: [docs/ATURAN-REQUEST.md](docs/ATURAN-REQUEST.md) and [docs/PRIVASI.md](docs/PRIVASI.md).
@@ -119,7 +121,7 @@ docs/               architecture, request rules, roadmap, brand, testing
 
 ## Roadmap
 
-M0 scaffold and M1 request safety are done. Next are the Today view (M2), reminders and session handling (M3), the change radar (M4) and the dashboard (M5). See [docs/ROADMAP.md](docs/ROADMAP.md).
+M0 scaffold and M1 request safety are done. Next: Today view (M2), reminders (M3), change radar (M4), dashboard and academic calendar (M5a), calendar export (M5b), attendance and next-day prep (M6), the optional NEOSIA module (M7), a course registration planner (M8), and course status rules (M9). See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Documentation
 
@@ -131,6 +133,7 @@ Written in Indonesian.
 - [ROADMAP.md](docs/ROADMAP.md): milestones and done criteria
 - [UI.md](docs/UI.md): popup, dashboard and UI states
 - [BRAND.md](docs/BRAND.md): naming, assets, colors, typography, mascot
+- Planned modules: [KALENDER-AKADEMIK.md](docs/KALENDER-AKADEMIK.md), [NEOSIA.md](docs/NEOSIA.md), [PERSIAPAN-BESOK.md](docs/PERSIAPAN-BESOK.md), [PENYUSUN-JADWAL.md](docs/PENYUSUN-JADWAL.md), [ATURAN-AKADEMIK.md](docs/ATURAN-AKADEMIK.md)
 - [TESTING.md](docs/TESTING.md): test layers and fixture sanitization
 - [PRIVASI.md](docs/PRIVASI.md): privacy policy draft
 - [PASANG.md](docs/PASANG.md): install guide for testers

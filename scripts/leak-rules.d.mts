@@ -2,7 +2,10 @@ export interface LeakRule {
   name: string;
   re: RegExp;
   allow?: (match: string) => boolean;
+  onlyFixtures?: boolean;
 }
 
+export declare function ruleApplies(rule: Pick<LeakRule, 'onlyFixtures'>, relPath: string): boolean;
+
 export declare const LEAK_RULES: LeakRule[];
-export declare function findLeaks(text: string): string[];
+export declare function findLeaks(text: string, relPath?: string): string[];

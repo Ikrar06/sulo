@@ -6,7 +6,7 @@
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { LEAK_RULES } from './leak-rules.mjs';
+import { LEAK_RULES, ruleApplies } from './leak-rules.mjs';
 
 const ROOT = process.cwd();
 
@@ -41,9 +41,11 @@ const files = targets.length
 let findings = 0;
 for (const file of files) {
   if (statSync(file).size > MAX_BYTES) continue;
+  const rel = relative(ROOT, file).split(sep).join('/');
   const lines = readFileSync(file, 'utf8').split('\n');
   lines.forEach((line, i) => {
     for (const rule of RULES) {
+      if (!ruleApplies(rule, rel)) continue;
       rule.re.lastIndex = 0;
       for (const match of line.matchAll(rule.re)) {
         if (rule.allow && rule.allow(match[0])) continue;
