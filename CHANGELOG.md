@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- The Unhas academic calendar 2026/2027 is built in (from the official decree, checked against its PDF) and updated from Sulo's public data at most once a day. It will be shown in the dashboard; subscribable calendars for core S1 dates, graduation and national holidays are published with the public data.
+
 - "Delete all data" in the popup settings menu removes everything Sulo keeps in this browser, after a dialog that lists what goes and says nothing in SIKOLA is touched. Setup then starts again.
 
 - A full-screen setup page opens after installing: a short privacy notice next to an example of the task list, connecting SIKOLA (it notices when you log in, no reload needed), choosing your courses as clickable cards, and a final screen with your own task list and how to pin Sulo. Steps come from a list, so later modules can add optional steps that can be skipped.
