@@ -83,6 +83,13 @@
   --urgency-normal: #8a8a96;
 
   --danger: #f87171;
+
+  /* Data status (banners, borders, "perkiraan" labels). Not brand, not urgency. */
+  --status-stale: #a1a1aa;
+  --status-offline: #94a3b8;
+  --status-broken: #c4b5fd;
+  --status-estimate: #a1a1aa;
+  --status-disabled: #a1a1aa;
 }
 
 /* ---------- Light ---------- */
@@ -101,10 +108,16 @@
     --urgency-week: #1d4ed8;
     --urgency-normal: #5f5f6b;
     --danger: #b91c1c;
+    --status-stale: #52525b;
+    --status-offline: #475569;
+    --status-broken: #6d28d9;
+    --status-estimate: #52525b;
+    --status-disabled: #52525b;
   }
 }
 
-:root[data-theme="light"] {
+/* Any element can force a theme (the dev preview shows both side by side). */
+[data-theme="light"] {
   color-scheme: light;
   --bg: #fafafb;
   --surface: #ffffff;
@@ -117,11 +130,37 @@
   --urgency-week: #1d4ed8;
   --urgency-normal: #5f5f6b;
   --danger: #b91c1c;
+  --status-stale: #52525b;
+  --status-offline: #475569;
+  --status-broken: #6d28d9;
+  --status-estimate: #52525b;
+  --status-disabled: #52525b;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0b0e;
+  --surface: #17171c;
+  --surface-raised: #1f1f25;
+  --border: #26262e;
+  --text: #f2f2f5;
+  --muted: #8a8a96;
+  --urgency-overdue: #f87171;
+  --urgency-soon: #facc15;
+  --urgency-week: #60a5fa;
+  --urgency-normal: #8a8a96;
+  --danger: #f87171;
+  --status-stale: #a1a1aa;
+  --status-offline: #94a3b8;
+  --status-broken: #c4b5fd;
+  --status-estimate: #a1a1aa;
+  --status-disabled: #a1a1aa;
 }
 
 /* ---------- shadcn/ui variables, mapped onto Sulo tokens ---------- */
 
-:root {
+:root,
+[data-theme] {
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--surface);
@@ -178,6 +217,11 @@
   --color-urgency-soon: var(--urgency-soon);
   --color-urgency-week: var(--urgency-week);
   --color-urgency-normal: var(--urgency-normal);
+  --color-status-stale: var(--status-stale);
+  --color-status-offline: var(--status-offline);
+  --color-status-broken: var(--status-broken);
+  --color-status-estimate: var(--status-estimate);
+  --color-status-disabled: var(--status-disabled);
 
   /* shadcn/ui names */
   --color-background: var(--background);
