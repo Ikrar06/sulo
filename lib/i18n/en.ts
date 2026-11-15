@@ -1,0 +1,206 @@
+import type { Messages } from './id';
+
+// English UI text, same shape as id.ts. Same standard as the Indonesian:
+// casual, clear, for people who are not programmers (see glossary-en.md).
+// Unit names stay plural-aware ("1 hour", "2 hours").
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+export const en: Messages = {
+  intl: 'en-GB',
+  appName: 'Sulo',
+  tagline: 'Your study companion',
+  disclaimer: 'Sulo is not an official app and is not affiliated with Universitas Hasanuddin.',
+  disclaimerShort: 'Not an official Unhas app',
+  privacyLink: 'Privacy',
+  privacyLinkLong: 'Read the privacy policy',
+  unexpectedError: 'Something went wrong in Sulo. Close it and open it again.',
+
+  testConnection: 'Check connection',
+  testing: 'Checking...',
+  sesskeyAvailable: 'SIKOLA connected',
+  sesskeyMissing: 'Open SIKOLA first.',
+  budget: (used, limit) => `Checks today: ${used} of ${limit}`,
+  disabledRemotely: 'Sulo is taking a short break.',
+  staleData: (hours) => `Last updated ${plural(hours, 'hour', 'hours')} ago`,
+  result: {
+    ok: 'Connected to SIKOLA.',
+    no_sesskey: 'Open SIKOLA first, then try again.',
+    session_expired: 'Sign in to SIKOLA again so Sulo can update your tasks.',
+    invalid_sesskey: 'Reload the SIKOLA page, then try again.',
+    budget_exhausted: 'Sulo has checked often enough today. It will update again tomorrow.',
+    backing_off: 'SIKOLA is hard to reach right now. Sulo will try again later.',
+    disabled_remotely: 'Sulo is taking a short break.',
+    offline: "You're offline. Showing your last data.",
+    server_error: 'SIKOLA is having trouble. Sulo will try again later.',
+    parser_broken: "Sulo can't read SIKOLA properly yet. Try again later.",
+  },
+
+  popup: {
+    title: 'Today',
+    updatedAgo: (ago) => `Updated ${ago}`,
+    neverUpdated: 'Not updated yet',
+    updating: 'Updating...',
+    refresh: 'Update now',
+    manageCourses: 'Choose courses',
+    continueSetup: 'Continue setup',
+    notOnboardedTitle: 'Almost ready',
+    notOnboardedBody: 'Connect SIKOLA and pick your courses first.',
+    emptyTitle: 'All tasks done.',
+    emptyBody: 'Time for a break.',
+    done: 'Done',
+    openTask: (name) => `Open ${name} in SIKOLA`,
+    inactiveTasks: (n) => `${plural(n, 'task', 'tasks')} from courses you didn't pick`,
+    probablySubmitted: (n) => `${plural(n, 'task has', 'tasks have')} disappeared from SIKOLA, probably already submitted`,
+    reviewCourses: (n) => `${plural(n, 'new course', 'new courses')} found. Check your course choices.`,
+    review: 'Check',
+    groups: {
+      overdue: 'Overdue',
+      soon: 'Today and tomorrow',
+      week: 'This week',
+      later: 'Later',
+      undated: 'No due date',
+    },
+    copy: {
+      button: 'Copy list',
+      week: "This week's tasks",
+      all: 'Everything not yet submitted',
+      copied: (what) => `${what} copied`,
+      weekHeading: "This week's tasks",
+      allHeading: 'Tasks not yet submitted',
+      none: 'none',
+      noDue: 'no due date',
+    },
+    row: {
+      menu: (name) => `Options for ${name}`,
+      markDone: 'Mark as done',
+      addToCalendar: 'Add to Google Calendar',
+      calendarDetails: (course, url) => `${course} task on SIKOLA.\n${url}`,
+    },
+    settings: {
+      button: 'Settings',
+      manageCourses: 'Choose courses',
+      dueFormat: 'Due time format',
+      formats: {
+        both: 'Both',
+        remaining: 'Time left',
+        clock: 'Due time',
+        countdown: 'Countdown',
+      },
+      language: 'Language',
+    },
+    dev: {
+      title: 'Dev build info',
+      requests: (used, limit) => `Requests today: ${used} of ${limit}`,
+      withCourseList: (n) => `${n} of them included the course list`,
+      openMs: (ms) => `Popup open time: ${ms} ms`,
+      sources: {
+        background: 'Background',
+        popup: 'Popup',
+        manual: 'Update button',
+        onboarding: 'Setup',
+        'connection-test': 'Connection check',
+        'sesskey-fallback': 'Sesskey fallback',
+        recorder: 'Recorder',
+      },
+    },
+  },
+
+  time: {
+    minutes: (n) => plural(n, 'minute', 'minutes'),
+    hours: (n) => plural(n, 'hour', 'hours'),
+    days: (n) => plural(n, 'day', 'days'),
+    late: (amount) => `${amount} late`,
+    today: (clock) => `today ${clock}`,
+    tomorrow: (clock) => `tomorrow ${clock}`,
+    left: (amount) => `${amount} left`,
+    ago: (amount) => `${amount} ago`,
+    justNow: 'just now',
+    countdown: (hms) => `${hms} left`,
+    countdownDays: (days, hms) => `${plural(days, 'day', 'days')} ${hms}`,
+  },
+
+  banner: {
+    disabledFallback: 'Sulo is taking a short break.',
+    sessionExpired: 'Sign in to SIKOLA again so Sulo can update your tasks.',
+    openSikola: 'Open SIKOLA',
+    parserBroken: "Sulo can't read SIKOLA properly yet. Try again later.",
+    report: 'Copy info',
+    reportCopied: 'Info copied. Send it to the Sulo maintainer.',
+    budget: 'Sulo has checked often enough today. It will update again tomorrow.',
+    offline: "You're offline. Showing your last data.",
+    stale: (ago) => (ago === null ? "Your tasks haven't been updated yet." : `Last updated ${ago}.`),
+    refreshNow: 'Update',
+  },
+
+  onboarding: {
+    pageTitle: 'Welcome to Sulo',
+    stepLabel: (n, total) => `Step ${n} of ${total}`,
+    skip: 'Skip for now',
+    intro: {
+      title: 'All your coursework, in one place',
+      lead: 'Sulo gathers the tasks from all your courses on SIKOLA and reminds you before they are due.',
+      points: [
+        'Your data stays on your laptop.',
+        'No password needed.',
+        'Sulo only reads. It never changes anything on SIKOLA.',
+        'No ads, no tracking.',
+      ],
+      noticeUpdated: 'Something in this notice changed since you last read it.',
+      start: 'Start',
+      sampleLabel: 'Example view',
+    },
+    connect: {
+      title: 'Connect to SIKOLA',
+      lead: 'Open SIKOLA and sign in as usual. Sulo will recognise it right away.',
+      open: 'Open SIKOLA',
+      checking: 'Checking SIKOLA...',
+      waiting: 'Waiting for you to sign in to SIKOLA...',
+      connected: 'Connected',
+      loading: 'Getting your course list...',
+      retry: 'Try again',
+      failed: (reason) => reason,
+    },
+    courses: {
+      title: 'Your courses this semester',
+      lead: (n) =>
+        n === 0
+          ? "Sulo didn't find any running courses yet. Tick the ones you're taking this semester."
+          : `Sulo picked ${plural(n, 'running course', 'running courses')}. Untick any you're not taking.`,
+      search: 'Search courses',
+      current: (n) => `This semester (${n})`,
+      previous: (n) => `Previous semesters (${n})`,
+      none: 'No course with that name.',
+      next: (n) => `Continue with ${plural(n, 'course', 'courses')}`,
+    },
+    whatsNew: {
+      title: "What's new in Sulo",
+      noticeChanged: "Sulo's privacy notice changed. Please read it before you continue.",
+      ok: 'OK, continue',
+    },
+    done: {
+      title: 'Ready to go',
+      summary: (tasks) => (tasks === 0 ? "No tasks waiting yet. Sulo will let you know when something new shows up." : `${plural(tasks, 'task is', 'tasks are')} waiting.`),
+      pinTitle: 'Pin Sulo so it stays in sight',
+      pinSteps: ['Click the puzzle icon at the top right of your browser.', 'Click the pin next to Sulo.'],
+      open: 'See my tasks',
+      listLabel: 'Your tasks right now',
+      openFallback: 'Click the Sulo icon in the toolbar to see your tasks.',
+    },
+  },
+
+  privacyPage: {
+    updated: (date) => `Last updated: ${date}`,
+  },
+
+  recorder: {
+    title: 'Fixture recorder',
+    note: 'Dev build only. Uses 2 requests from the daily budget. Every response is sanitized before it is saved.',
+    start: 'Record fixtures',
+    recording: 'Recording...',
+    saved: (n) => `${n} files saved to Downloads. Keep them outside git, then run pnpm fixtures:compare.`,
+    failed: (reason) => `Recording failed: ${reason}`,
+    leak: (rules) => `Cancelled. Leak patterns remain after sanitizing: ${rules}. No files were saved.`,
+    schemaInvalid: (fn, issues) => `${fn}: schema mismatch (${issues} issues), recorded anyway`,
+  },
+};

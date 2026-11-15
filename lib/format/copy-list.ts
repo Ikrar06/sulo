@@ -1,21 +1,19 @@
-// Copyable task lists (docs/UI: "Salin daftar"). No links, grades or names
-// of people: only course label, task name and due date.
+// Copyable task lists ("Salin daftar"). One format: plain text that reads
+// well when pasted into WhatsApp (no asterisks, no Markdown). No links,
+// grades or names of people: only course name, task name and due date.
+// Times are always the due date and time, never a countdown.
 
+import { id, type Messages } from '../i18n/id';
 import type { Task, UnixSeconds } from '../types';
 import { calendarDaysBetween, formatDayDateTime } from './time';
 
 export type CopyScope = 'week' | 'all';
-export type CopyFormat = 'plain' | 'whatsapp' | 'markdown';
 
 export interface CopyItem {
-  courseLabel: string;
+  /** Course name without class letter, e.g. "Mekanika Fluida". */
+  courseName: string;
   task: Task;
 }
-
-const TITLES: Record<CopyScope, string> = {
-  week: 'Tugas minggu ini',
-  all: 'Tugas yang belum dikumpulkan',
-};
 
 /** "week": overdue plus due within 7 local days. "all": every pending task. */
 export function selectForCopy(items: readonly CopyItem[], scope: CopyScope, now: UnixSeconds, timeZone: string): CopyItem[] {
@@ -26,26 +24,14 @@ export function selectForCopy(items: readonly CopyItem[], scope: CopyScope, now:
   return [...inScope].sort((a, b) => (a.task.dueAt ?? Infinity) - (b.task.dueAt ?? Infinity));
 }
 
-function line(item: CopyItem, timeZone: string): string {
-  const due = item.task.dueAt === null ? 'tanpa tenggat' : formatDayDateTime(item.task.dueAt, timeZone);
-  return `${item.courseLabel} - ${item.task.name} (${due})`;
-}
-
-export function formatCopyList(
-  items: readonly CopyItem[],
-  scope: CopyScope,
-  format: CopyFormat,
-  now: UnixSeconds,
-  timeZone: string,
-): string {
+export function formatCopyList(items: readonly CopyItem[], scope: CopyScope, now: UnixSeconds, timeZone: string, m: Messages = id): string {
+  const c = m.popup.copy;
+  const title = scope === 'week' ? c.weekHeading : c.allHeading;
   const selected = selectForCopy(items, scope, now, timeZone);
-  const title = TITLES[scope];
-  if (selected.length === 0) return `${title}: tidak ada`;
-  const lines = selected.map((item, i) => {
-    const text = line(item, timeZone);
-    return format === 'markdown' ? `- ${text}` : `${i + 1}. ${text}`;
+  if (selected.length === 0) return `${title}: ${c.none}`;
+  const lines = selected.map(({ courseName, task }, i) => {
+    const due = task.dueAt === null ? c.noDue : formatDayDateTime(task.dueAt, timeZone, m);
+    return `${i + 1}. ${courseName} - ${task.name} (${due})`;
   });
-  const heading = format === 'whatsapp' ? `*${title}*` : format === 'markdown' ? `**${title}**` : title;
-  const separator = format === 'markdown' ? '\n\n' : '\n';
-  return `${heading}${separator}${lines.join('\n')}`;
+  return [title, ...lines].join('\n');
 }

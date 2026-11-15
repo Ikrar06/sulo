@@ -23,6 +23,7 @@
     "build": "wxt build",
     "build:dev": "wxt build --mode development",
     "zip": "wxt zip",
+    "zip:tester": "wxt zip --mode tester",
     "typecheck": "wxt prepare && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

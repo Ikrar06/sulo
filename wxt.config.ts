@@ -19,18 +19,24 @@ export default defineConfig({
     plugins: [tailwindcss()],
   }),
   hooks: {
+    // Dev-only pages exist only in development builds. The "tester" build
+    // (pnpm zip:tester) keeps the dev info panel in the popup (request counts
+    // per source) but, like production, leaves the recorder and preview out.
     'entrypoints:resolved': (wxt, entrypoints) => {
-      if (wxt.config.mode !== 'production') return;
+      if (wxt.config.mode === 'development') return;
       for (const entrypoint of entrypoints) {
         if (DEV_ONLY_ENTRYPOINTS.has(entrypoint.name)) entrypoint.skipped = true;
       }
     },
   },
   manifest: {
-    // Store title: product name and role only; the campus name stays in the description.
-    name: 'Sulo: pendamping akademik mahasiswa (tidak resmi)',
+    // Name and description come from public/_locales (en and id); Chrome picks
+    // the browser's language and falls back to English. Store title: product
+    // name and role only; the campus name stays in the description.
+    default_locale: 'en',
+    name: '__MSG_extName__',
     short_name: 'Sulo',
-    description: 'Pendamping akademik untuk mahasiswa Unhas. Tidak resmi.',
+    description: '__MSG_extDescription__',
     icons: ICONS,
     action: { default_icon: ICONS, default_title: 'Sulo' },
     permissions: ['storage', 'alarms', 'notifications', 'idle'],

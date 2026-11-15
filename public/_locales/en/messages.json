@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Sulo: academic companion for students (unofficial)",
+    "description": "Extension name in the store and on the extensions page. Product name and role only; the campus name is in the description."
+  },
+  "extDescription": {
+    "message": "Academic companion for Unhas students. Unofficial.",
+    "description": "Short extension description."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Sulo: pendamping akademik mahasiswa (tidak resmi)",
+    "description": "Nama ekstensi di toko dan di halaman ekstensi. Nama produk dan perannya saja; nama kampus ada di deskripsi."
+  },
+  "extDescription": {
+    "message": "Pendamping akademik untuk mahasiswa Unhas. Tidak resmi.",
+    "description": "Deskripsi singkat ekstensi."
+  }
+}
