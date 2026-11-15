@@ -82,6 +82,7 @@ export const id = {
       snoozeMorning: (clock: string) => `Besok pagi, ${clock}`,
       snoozedUntil: (when: string) => `Pengingat ditunda sampai ${when}`,
       unsnooze: 'Batalkan tunda',
+      back: 'Kembali',
       addToCalendar: 'Tambah ke Google Calendar',
       calendarDetails: (course: string, url: string) => `Tugas ${course} di SIKOLA.\n${url}`,
     },

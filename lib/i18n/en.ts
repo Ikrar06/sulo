@@ -79,6 +79,7 @@ export const en: Messages = {
       snoozeMorning: (clock) => `Tomorrow morning, ${clock}`,
       snoozedUntil: (when) => `Reminder snoozed until ${when}`,
       unsnooze: 'Cancel snooze',
+      back: 'Back',
       addToCalendar: 'Add to Google Calendar',
       calendarDetails: (course, url) => `${course} task on SIKOLA.\n${url}`,
     },

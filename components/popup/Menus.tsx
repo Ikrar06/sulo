@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '@/components/i18n';
-import { BellIcon, CalendarPlusIcon, CheckIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@/components/icons';
+import { BellIcon, CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,9 +10,6 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -21,6 +18,7 @@ import { LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n';
 import { DUE_FORMATS, type DueFormat } from '@/lib/prefs';
 import type { UnixSeconds } from '@/lib/types';
 import type { TaskRow } from '@/lib/view/popup-view';
+import { rowMenuNav, type RowMenuEvent, type RowMenuView } from './row-menu-nav';
 
 export interface SnoozeOption {
   label: string;
@@ -117,12 +115,60 @@ export interface RowMenuProps {
   onSnooze: (until: UnixSeconds | null) => void;
 }
 
-/** Per-task menu: mark as done, snooze the reminder, add to Google Calendar (a link the user opens). */
+/**
+ * Per-task menu: mark as done, snooze the reminder, add to Google Calendar
+ * (a link the user opens). Opens on click. "Tunda pengingat" drills down in
+ * place (same menu, same width) instead of opening a side submenu, which the
+ * 380 px popup could not fit. Navigation rules live in row-menu-nav.ts.
+ */
 export function RowMenu({ row, snoozeOptions, onDone, onAddToCalendar, onSnooze }: RowMenuProps) {
   const { m } = useI18n();
   const r = m.popup.row;
+  const [open, setOpen] = useState(false);
+  const [view, setView] = useState<RowMenuView>('main');
+  const contentRef = useRef<HTMLDivElement>(null);
+  const cameBack = useRef(false);
+
+  // After a view change, keep keyboard focus inside the menu: the first
+  // choice in the snooze view, or "Tunda pengingat" when coming back.
+  useEffect(() => {
+    if (!open) return;
+    const frame = requestAnimationFrame(() => {
+      const content = contentRef.current;
+      if (!content) return;
+      const target =
+        view === 'snooze'
+          ? content.querySelector<HTMLElement>('[role="menuitem"]')
+          : cameBack.current
+            ? content.querySelector<HTMLElement>('[data-snooze-entry]')
+            : null;
+      target?.focus();
+      cameBack.current = false;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [view, open]);
+
+  const apply = (event: RowMenuEvent) => {
+    const next = rowMenuNav(view, event);
+    if (next.view !== view) {
+      cameBack.current = next.view === 'main';
+      setView(next.view);
+    }
+    if (next.effect === 'close') setOpen(false);
+    return next;
+  };
+
+  const choices = snoozeOptions.filter((o) => row.dueAt !== null && o.until < row.dueAt);
+  const itemClass = 'gap-2 py-1.5';
+
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) apply({ type: 'open' });
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <Button
           size="icon-sm"
@@ -133,40 +179,86 @@ export function RowMenu({ row, snoozeOptions, onDone, onAddToCalendar, onSnooze 
           <MoreIcon className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuItem onSelect={onDone}>
-          <CheckIcon className="size-4" />
-          {r.markDone}
-        </DropdownMenuItem>
-        {row.dueAt !== null && (
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <ClockIcon className="size-4" />
-              {r.snooze}
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="w-48">
-              {snoozeOptions
-                .filter((o) => o.until < (row.dueAt as UnixSeconds))
-                .map((o) => (
-                  <DropdownMenuItem key={o.label} onSelect={() => onSnooze(o.until)}>
-                    {r.snoozeFor(o.label)}
-                  </DropdownMenuItem>
-                ))}
+      <DropdownMenuContent
+        ref={contentRef}
+        align="end"
+        side="bottom"
+        sideOffset={4}
+        collisionPadding={8}
+        className="w-56 rounded-lg border border-border bg-surface p-1 text-foreground shadow-none ring-0"
+        onEscapeKeyDown={(e) => {
+          // Escape in the snooze view goes back; the next one closes.
+          if (apply({ type: 'key', key: 'Escape', onSnoozeItem: false }).effect === 'keepOpen') e.preventDefault();
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+          const onSnoozeItem = (e.target as HTMLElement).hasAttribute('data-snooze-entry');
+          if (apply({ type: 'key', key: e.key, onSnoozeItem }).effect === 'keepOpen') e.preventDefault();
+        }}
+      >
+        <div
+          key={view}
+          className={`duration-150 animate-in fade-in-0 ${view === 'snooze' ? 'slide-in-from-right-2' : 'slide-in-from-left-2'}`}
+        >
+          {view === 'main' ? (
+            <>
+              <DropdownMenuItem className={itemClass} onSelect={onDone}>
+                <CheckIcon className="size-4" />
+                {r.markDone}
+              </DropdownMenuItem>
+              {row.dueAt !== null && (
+                <DropdownMenuItem
+                  className={itemClass}
+                  data-snooze-entry=""
+                  aria-haspopup="menu"
+                  aria-expanded={false}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    apply({ type: 'enterSnooze' });
+                  }}
+                >
+                  <ClockIcon className="size-4" />
+                  <span className="flex-1">{r.snooze}</span>
+                  {row.snoozedUntil !== null && <span aria-hidden="true" className="size-1.5 rounded-full bg-brand-amber" />}
+                  <ChevronRightIcon className="size-3.5 text-muted-foreground" />
+                </DropdownMenuItem>
+              )}
+              {row.dueAt !== null && (
+                <DropdownMenuItem className={itemClass} onSelect={onAddToCalendar}>
+                  <CalendarPlusIcon className="size-4" />
+                  {r.addToCalendar}
+                </DropdownMenuItem>
+              )}
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem
+                className={`${itemClass} text-muted-foreground`}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  apply({ type: 'back' });
+                }}
+              >
+                <ChevronLeftIcon className="size-4" />
+                {r.back}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {choices.map((o) => (
+                <DropdownMenuItem key={o.label} className={`${itemClass} pl-8`} onSelect={() => onSnooze(o.until)}>
+                  {r.snoozeFor(o.label)}
+                </DropdownMenuItem>
+              ))}
               {row.snoozedUntil !== null && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => onSnooze(null)}>{r.unsnooze}</DropdownMenuItem>
+                  <DropdownMenuItem className={`${itemClass} pl-8`} onSelect={() => onSnooze(null)}>
+                    {r.unsnooze}
+                  </DropdownMenuItem>
                 </>
               )}
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-        )}
-        {row.dueAt !== null && (
-          <DropdownMenuItem onSelect={onAddToCalendar}>
-            <CalendarPlusIcon className="size-4" />
-            {r.addToCalendar}
-          </DropdownMenuItem>
-        )}
+            </>
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
