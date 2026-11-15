@@ -41,6 +41,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Visual identity: colors, dark and light themes, bundled fonts, app icons, and static mascot expressions.
 - Documentation: architecture, request rules, privacy, brand guide, and plans for the academic calendar, the optional NEOSIA module, attendance and course registration planning.
 
+### Changed
+
+- Opening the popup never contacts SIKOLA or anything else: it shows your stored list and when it was last updated. Only "Perbarui" (update) checks right away.
+- Sulo checks a little after the browser starts and after you come back to your computer, but only when your list is more than an hour old, and never during quiet hours.
+- Fewer and smaller checks: tasks and notifications at most every 3 hours in the background, the course list once a day (also during setup), course pages every 6 hours, five at most. When the day's limit is close, Sulo skips the less important parts first.
+- Setup checks SIKOLA once and reuses a list from the last few minutes instead of asking again.
+- Sulo's checks no longer keep your SIKOLA session alive.
+- When you open a SIKOLA page that shows the login form, Sulo notices you are signed out right away, without checking.
+- After a SIKOLA problem, waits are spread out a little per installation, and problems with Sulo's public data never pause SIKOLA checks.
+
 ### Fixed
 
 - One course that cannot be opened no longer makes Sulo think you were logged out. Only the session check itself, or a login page at the top level, means the session ended. Courses with an access error are skipped for 24 hours and flagged after 3 failures in a row; server errors are retried at the next check, and when every course fails that way Sulo backs off from SIKOLA instead.
@@ -50,6 +60,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Security
 
+- Every request goes through one scheduler that knows exactly which sites Sulo may contact; requests to NEOSIA are always refused. Sulo's public data is fetched without cookies or extra headers, at most once a day.
 - The unused connection-test message was removed. Development-only tools (the fixture recorder and the reminder simulator) are excluded from production and tester builds, and a build check fails if any of it slips in.
 
 - A scan for personal or session data runs before every commit and in CI.
