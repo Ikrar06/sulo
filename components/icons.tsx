@@ -143,3 +143,25 @@ export const CalendarPlusIcon = (p: IconProps) => (
     <path d="M8 2.5v4M16 2.5v4M3 10h18M12 13.5v5M9.5 16h5" />
   </Icon>
 );
+
+export const BellOffIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M8.7 3.7A6 6 0 0 1 18 8.5c0 3.2.8 5.4 1.6 6.8" />
+    <path d="M17 17H4.5c1-1.4 1.5-3.8 1.5-8.5 0-.6.1-1.2.2-1.7" />
+    <path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+    <path d="m2 2 20 20" />
+  </Icon>
+);
+
+export const ChevronLeftIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m15 18-6-6 6-6" />
+  </Icon>
+);
+
+export const BellIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M6 8.5a6 6 0 0 1 12 0c0 4.7.5 7.1 1.5 8.5h-15c1-1.4 1.5-3.8 1.5-8.5" />
+    <path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+  </Icon>
+);

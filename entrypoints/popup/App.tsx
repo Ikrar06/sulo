@@ -11,7 +11,8 @@ import type { Message } from '@/lib/messages';
 import { DAILY_BUDGET, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { DEFAULT_PREFS, readPrefs, writePrefs, type DueFormat, type Prefs } from '@/lib/prefs';
 import { currentUser, readUser, writeUser } from '@/lib/storage';
-import { setDone } from '@/lib/tasks/local-state';
+import type { ReminderSettings } from '@/lib/reminders/settings';
+import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupView as View, type TaskRow } from '@/lib/view/popup-view';
 
@@ -44,10 +45,21 @@ export default function App({ startedAt }: { startedAt: number }) {
   const m = messagesFor(locale);
 
   const reload = useCallback(async () => {
-    const [input, stored] = await Promise.all([loadPopupInput(local, systemClock, timeZone), readPrefs(local)]);
+    const [input, stored, permission] = await Promise.all([
+      loadPopupInput(local, systemClock, timeZone),
+      readPrefs(local),
+      browser.notifications.getPermissionLevel().catch(() => 'granted' as const),
+    ]);
     setPrefs(stored);
     setNow(input.now);
-    setView(buildPopupView({ ...input, online: navigator.onLine, messages: messagesFor(resolveLocale(stored.locale, uiLanguage)) }));
+    setView(
+      buildPopupView({
+        ...input,
+        online: navigator.onLine,
+        messages: messagesFor(resolveLocale(stored.locale, uiLanguage)),
+        notificationsAllowed: permission !== 'denied',
+      }),
+    );
   }, []);
 
   useEffect(() => {
@@ -100,6 +112,13 @@ export default function App({ startedAt }: { startedAt: number }) {
     flash(m.popup.copy.copied(m.popup.copy[scope]));
   };
 
+  const onSnooze = async (eventId: number, until: number | null) => {
+    const userId = await currentUser(local);
+    if (userId === null) return;
+    const state = await readUser(local, userId, 'taskState');
+    await writeUser(local, userId, 'taskState', setSnooze(state, eventId, until));
+  };
+
   // A link opened by the user's click. Sulo sends nothing to Google.
   const onAddToCalendar = (row: TaskRow) => {
     if (row.dueAt === null) return;
@@ -126,6 +145,7 @@ export default function App({ startedAt }: { startedAt: number }) {
         now={now}
         timeZone={timeZone}
         dueFormat={prefs.dueFormat}
+        reminders={prefs.reminders}
         celebrate={celebrate}
         note={note}
         dev={isDev ? { openMs, budgetLimit: DAILY_BUDGET } : null}
@@ -140,6 +160,11 @@ export default function App({ startedAt }: { startedAt: number }) {
         onOpenPrivacy={() => void browser.tabs.create({ url: browser.runtime.getURL('/privacy.html') })}
         onSetDueFormat={(dueFormat: DueFormat) => void writePrefs(local, { dueFormat })}
         onSetLocale={(next: Locale) => void writePrefs(local, { locale: next })}
+        onSnooze={(eventId, until) => void onSnooze(eventId, until)}
+        onSetReminders={(reminders: ReminderSettings) => void writePrefs(local, { reminders })}
+        onTestNotification={async () => {
+          await send({ type: 'notify/test' });
+        }}
       />
     </I18nProvider>
   );

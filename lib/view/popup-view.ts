@@ -11,6 +11,7 @@ import type { DueFormat } from '../prefs';
 import { STALE_WARNING_H } from '../moodle/limits';
 import { isStale } from '../staleness';
 import type { SyncStatus, UserData } from '../storage';
+import { getTaskState } from '../tasks/local-state';
 import { badgeCount, GROUP_ORDER, groupTasks, pendingTasks, urgencyOf, type TaskGroupKey, type Urgency } from '../tasks/group';
 import type { BudgetState, RemoteConfig, SessionState, UnixSeconds } from '../types';
 
@@ -22,7 +23,9 @@ export type Banner =
   | { kind: 'parser_broken' }
   | { kind: 'budget_exhausted' }
   | { kind: 'offline' }
-  | { kind: 'stale'; lastSyncAt: UnixSeconds | null };
+  | { kind: 'stale'; lastSyncAt: UnixSeconds | null }
+  /** Lowest priority: notifications are blocked in Chrome, so reminders cannot show. */
+  | { kind: 'notifications_off' };
 
 export interface TaskRow {
   eventId: number;
@@ -45,6 +48,8 @@ export interface TaskRow {
   fullDate: string;
   /** At least 7 calendar days away: "Keduanya" shows only the date and time. */
   far: boolean;
+  /** Reminder snoozed until this time (only while still in the future). */
+  snoozedUntil: UnixSeconds | null;
 }
 
 export interface DueText {
@@ -108,6 +113,8 @@ export interface PopupInput {
   online?: boolean;
   /** Active dictionary; Indonesian when omitted (badge, tests). */
   messages?: Messages;
+  /** chrome.notifications permission; omitted means granted. */
+  notificationsAllowed?: boolean;
 }
 
 /** Offline: the browser says so, or the last request failed at the network level. */
@@ -124,6 +131,7 @@ function bannerFor(input: PopupInput, stale: boolean): Banner | null {
   }
   if (offline(input)) return { kind: 'offline' };
   if (stale && input.user?.sync.lastSyncAt) return { kind: 'stale', lastSyncAt: input.user.sync.lastSyncAt };
+  if (input.notificationsAllowed === false) return { kind: 'notifications_off' };
   return null;
 }
 
@@ -146,6 +154,10 @@ export function buildPopupView(input: PopupInput): PopupView {
   const grouped = groupTasks(pending, now, timeZone);
 
   const m = input.messages ?? id;
+  const snoozeOf = (eventId: number) => {
+    const until = getTaskState(state, eventId).snoozedUntil;
+    return until !== null && until > now ? until : null;
+  };
   const toRow = (t: (typeof pending)[number]): TaskRow => {
     const course = byId.get(t.courseId);
     return {
@@ -161,6 +173,7 @@ export function buildPopupView(input: PopupInput): PopupView {
       clock: t.dueAt === null ? '' : formatDueClock(t.dueAt, now, timeZone, m),
       fullDate: t.dueAt === null ? '' : formatFullDate(t.dueAt, timeZone, m),
       far: t.dueAt !== null && t.dueAt > now && calendarDaysBetween(now, t.dueAt, timeZone) >= 7,
+      snoozedUntil: snoozeOf(t.eventId),
     };
   };
 

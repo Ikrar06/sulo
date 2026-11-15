@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useI18n } from '@/components/i18n';
-import { CalendarPlusIcon, CheckIcon, CopyIcon, MoreIcon, SettingsIcon } from '@/components/icons';
+import { BellIcon, CalendarPlusIcon, CheckIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,13 +10,22 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CopyScope } from '@/lib/format/copy-list';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n';
 import { DUE_FORMATS, type DueFormat } from '@/lib/prefs';
+import type { UnixSeconds } from '@/lib/types';
 import type { TaskRow } from '@/lib/view/popup-view';
+
+export interface SnoozeOption {
+  label: string;
+  until: UnixSeconds;
+}
 
 function MenuButton({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -58,10 +67,11 @@ export interface SettingsMenuProps {
   onSetDueFormat: (format: DueFormat) => void;
   onSetLocale: (locale: Locale) => void;
   onManageCourses: () => void;
+  onOpenReminders: () => void;
 }
 
 /** Small settings menu for M2; the full settings page comes with the dashboard (M5a). */
-export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses }: SettingsMenuProps) {
+export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses, onOpenReminders }: SettingsMenuProps) {
   const { m, locale } = useI18n();
   const s = m.popup.settings;
   return (
@@ -71,6 +81,10 @@ export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageC
       </MenuButton>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onSelect={onManageCourses}>{s.manageCourses}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={onOpenReminders}>
+          <BellIcon className="size-4" />
+          {s.reminders}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{s.dueFormat}</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={dueFormat} onValueChange={(v) => onSetDueFormat(v as DueFormat)}>
@@ -94,8 +108,17 @@ export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageC
   );
 }
 
-/** Per-task menu: mark as done, add to Google Calendar (a link the user opens). */
-export function RowMenu({ row, onDone, onAddToCalendar }: { row: TaskRow; onDone: () => void; onAddToCalendar: () => void }) {
+export interface RowMenuProps {
+  row: TaskRow;
+  snoozeOptions: SnoozeOption[];
+  onDone: () => void;
+  onAddToCalendar: () => void;
+  /** null cancels the snooze. */
+  onSnooze: (until: UnixSeconds | null) => void;
+}
+
+/** Per-task menu: mark as done, snooze the reminder, add to Google Calendar (a link the user opens). */
+export function RowMenu({ row, snoozeOptions, onDone, onAddToCalendar, onSnooze }: RowMenuProps) {
   const { m } = useI18n();
   const r = m.popup.row;
   return (
@@ -115,6 +138,29 @@ export function RowMenu({ row, onDone, onAddToCalendar }: { row: TaskRow; onDone
           <CheckIcon className="size-4" />
           {r.markDone}
         </DropdownMenuItem>
+        {row.dueAt !== null && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <ClockIcon className="size-4" />
+              {r.snooze}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="w-48">
+              {snoozeOptions
+                .filter((o) => o.until < (row.dueAt as UnixSeconds))
+                .map((o) => (
+                  <DropdownMenuItem key={o.label} onSelect={() => onSnooze(o.until)}>
+                    {r.snoozeFor(o.label)}
+                  </DropdownMenuItem>
+                ))}
+              {row.snoozedUntil !== null && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => onSnooze(null)}>{r.unsnooze}</DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
         {row.dueAt !== null && (
           <DropdownMenuItem onSelect={onAddToCalendar}>
             <CalendarPlusIcon className="size-4" />

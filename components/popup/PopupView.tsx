@@ -1,17 +1,20 @@
-import { useRef, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '@/components/i18n';
 import { RefreshIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CopyScope } from '@/lib/format/copy-list';
-import { formatAgo } from '@/lib/format/time';
+import { formatAgo, formatClock } from '@/lib/format/time';
+import type { ReminderSettings } from '@/lib/reminders/settings';
+import { addDays, localParts, zonedToUnix } from '@/lib/reminders/zoned';
 import type { Locale } from '@/lib/i18n';
 import type { DueFormat } from '@/lib/prefs';
 import type { RequestSource, UnixSeconds } from '@/lib/types';
 import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-view';
 import { useCountdownTicker } from './countdown';
-import { CopyMenu, SettingsMenu } from './Menus';
+import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
+import { RemindersPanel } from './RemindersPanel';
 import { StatusLine } from './StatusLine';
 import { Group } from './TaskRows';
 
@@ -27,6 +30,9 @@ export interface PopupActions {
   onOpenPrivacy: () => void;
   onSetDueFormat: (format: DueFormat) => void;
   onSetLocale: (locale: Locale) => void;
+  onSnooze: (eventId: number, until: UnixSeconds | null) => void;
+  onSetReminders: (settings: ReminderSettings) => void;
+  onTestNotification: () => Promise<void>;
 }
 
 /** Inert actions for the onboarding example card and the dev preview. */
@@ -42,6 +48,9 @@ export const NO_ACTIONS: PopupActions = {
   onOpenPrivacy: () => {},
   onSetDueFormat: () => {},
   onSetLocale: () => {},
+  onSnooze: () => {},
+  onSetReminders: () => {},
+  onTestNotification: async () => {},
 };
 
 export interface PopupViewProps extends PopupActions {
@@ -49,6 +58,9 @@ export interface PopupViewProps extends PopupActions {
   now: UnixSeconds;
   timeZone: string;
   dueFormat: DueFormat;
+  reminders: ReminderSettings;
+  /** Open the reminder settings panel on first render (dev preview). */
+  initialPanel?: 'reminders';
   /** Increment to play the celebrate sequence (last task marked done). */
   celebrate?: number;
   note?: string | null;
@@ -112,8 +124,19 @@ export function PopupView(props: PopupViewProps) {
   const t = m.popup;
   const listRef = useRef<HTMLDivElement>(null);
   useCountdownTicker(listRef, props.dueFormat === 'countdown' && !props.sample, props.timeZone, m);
+  const [panel, setPanel] = useState<'list' | 'reminders'>(props.initialPanel ?? 'list');
   const celebrate = props.celebrate ?? 0;
-  const due = { format: props.dueFormat, now, timeZone: props.timeZone };
+  // Snooze choices: 1 hour, 3 hours, tomorrow morning at the chosen time.
+  const snoozeOptions = useMemo<SnoozeOption[]>(() => {
+    const tomorrow = zonedToUnix(addDays(localParts(now, props.timeZone).dateKey, 1), props.reminders.snoozeMorningMin, props.timeZone);
+    return [
+      { label: m.time.hours(1), until: now + 3600 },
+      { label: m.time.hours(3), until: now + 3 * 3600 },
+      { label: t.row.snoozeMorning(formatClock(tomorrow, props.timeZone, m)), until: tomorrow },
+    ];
+  }, [now, props.timeZone, props.reminders.snoozeMorningMin, m, t]);
+  const due = { format: props.dueFormat, now, timeZone: props.timeZone, snoozeOptions };
+  const openReminders = () => setPanel('reminders');
   const updated = view.syncing ? t.updating : view.lastSyncAt ? t.updatedAgo(formatAgo(view.lastSyncAt, now, m)) : t.neverUpdated;
   const empty = view.onboarded && view.groups.length === 0;
   const headerMascot: MascotState = empty && view.mascot === 'all-done' ? 'idle' : view.mascot;
@@ -121,6 +144,16 @@ export function PopupView(props: PopupViewProps) {
   return (
     <TooltipProvider delayDuration={450}>
       <div className="flex max-h-[560px] w-[380px] flex-col bg-background text-foreground">
+        {panel === 'reminders' ? (
+          <RemindersPanel
+            settings={props.reminders}
+            timeZone={props.timeZone}
+            onChange={props.onSetReminders}
+            onTest={props.onTestNotification}
+            onBack={() => setPanel('list')}
+          />
+        ) : (
+          <>
         <header className="flex items-center gap-2.5 px-3 pt-3 pb-2">
           {!props.sample && <Mascot state={headerMascot} size={36} celebrate={empty ? 0 : celebrate} still={props.mascotStill} />}
           <div className="min-w-0 flex-1">
@@ -138,6 +171,7 @@ export function PopupView(props: PopupViewProps) {
                 onSetDueFormat={props.onSetDueFormat}
                 onSetLocale={props.onSetLocale}
                 onManageCourses={() => props.onOpenOnboarding('#courses')}
+                onOpenReminders={openReminders}
               />
             </div>
           )}
@@ -145,7 +179,7 @@ export function PopupView(props: PopupViewProps) {
 
         <div ref={listRef} className="flex-1 overflow-y-auto pb-2">
           <div className="space-y-2 px-3">
-            {view.banner && <StatusLine banner={view.banner} now={now} actions={props} />}
+            {view.banner && <StatusLine banner={view.banner} now={now} actions={{ ...props, onOpenReminders: openReminders }} />}
             {props.note && (
               <p role="status" className="px-1 text-[12px] text-muted-foreground">
                 {props.note}
@@ -192,6 +226,9 @@ export function PopupView(props: PopupViewProps) {
           )}
           {props.dev && <DevPanel view={view} dev={props.dev} />}
         </div>
+
+          </>
+        )}
 
         {!props.sample && <footer className="flex items-center justify-between border-t border-border px-4 py-2 text-[11.5px] text-muted-foreground">
           <span>{m.disclaimerShort}</span>

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useI18n } from '@/components/i18n';
-import { AlertIcon, ClockIcon, KeyIcon, OfflineIcon, PauseIcon } from '@/components/icons';
+import { AlertIcon, BellOffIcon, ClockIcon, KeyIcon, OfflineIcon, PauseIcon } from '@/components/icons';
 import { formatAgo } from '@/lib/format/time';
 import type { UnixSeconds } from '@/lib/types';
 import type { Banner } from '@/lib/view/popup-view';
@@ -9,6 +9,7 @@ export interface StatusActions {
   onOpenSikola: () => void;
   onReport: () => void;
   onRefresh: () => void;
+  onOpenReminders: () => void;
 }
 
 /**
@@ -51,5 +52,7 @@ export function StatusLine({ banner, now, actions }: { banner: Banner; now: Unix
         b.refreshNow,
         actions.onRefresh,
       ]);
+    case 'notifications_off':
+      return line(<BellOffIcon className={`${icon} text-status-disabled`} />, b.notificationsOff, [b.notificationsHow, actions.onOpenReminders]);
   }
 }

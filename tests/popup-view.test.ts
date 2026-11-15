@@ -123,3 +123,10 @@ describe('buildPopupView', () => {
     expect(view.badge.text).toBe('23');
   });
 });
+
+describe('reminder signals in the popup', () => {
+  it('shows a blocked-notifications line only when nothing more important is shown', () => {
+    expect(buildPopupView(input({ notificationsAllowed: false })).banner).toEqual({ kind: 'notifications_off' });
+    expect(buildPopupView(input({ notificationsAllowed: false, session: 'EXPIRED' })).banner).toEqual({ kind: 'session_expired' });
+  });
+});

@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useI18n } from '@/components/i18n';
-import { ChevronDownIcon } from '@/components/icons';
+import { ChevronDownIcon, ClockIcon } from '@/components/icons';
+import { formatDueClock } from '@/lib/format/time';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DueFormat } from '@/lib/prefs';
 import type { Urgency } from '@/lib/tasks/group';
 import type { UnixSeconds } from '@/lib/types';
 import { dueText, type TaskGroupView, type TaskRow } from '@/lib/view/popup-view';
-import { RowMenu } from './Menus';
+import { RowMenu, type SnoozeOption } from './Menus';
 
 const URGENCY_TEXT: Record<Urgency, string> = {
   overdue: 'text-urgency-overdue',
@@ -22,12 +23,14 @@ export interface RowActions {
   onDone: (eventId: number) => void;
   onOpenTask: (url: string) => void;
   onAddToCalendar: (row: TaskRow) => void;
+  onSnooze: (eventId: number, until: UnixSeconds | null) => void;
 }
 
 export interface DueContext {
   format: DueFormat;
   now: UnixSeconds;
   timeZone: string;
+  snoozeOptions: SnoozeOption[];
 }
 
 /**
@@ -51,6 +54,12 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
         <span className="mt-1 flex items-center gap-1.5 text-[12px] leading-4 text-muted-foreground">
           <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${COURSE_DOT[row.courseColor] ?? COURSE_DOT[1]}`} />
           <span className="truncate">{row.courseName}</span>
+          {row.snoozedUntil !== null && (
+            <span className="flex shrink-0 items-center" title={m.popup.row.snoozedUntil(formatDueClock(row.snoozedUntil, due.now, due.timeZone, m))}>
+              <ClockIcon aria-hidden="true" className="size-3" />
+              <span className="sr-only">{m.popup.row.snoozedUntil(formatDueClock(row.snoozedUntil, due.now, due.timeZone, m))}</span>
+            </span>
+          )}
         </span>
       </button>
       <div className="flex shrink-0 flex-col items-end text-right">
@@ -69,7 +78,13 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
       </div>
       {/* Hover and focus reveal the row menu over the due time, like mail apps do. */}
       <div className="absolute top-1/2 right-2 -translate-y-1/2">
-        <RowMenu row={row} onDone={() => actions.onDone(row.eventId)} onAddToCalendar={() => actions.onAddToCalendar(row)} />
+        <RowMenu
+          row={row}
+          snoozeOptions={due.snoozeOptions}
+          onDone={() => actions.onDone(row.eventId)}
+          onAddToCalendar={() => actions.onAddToCalendar(row)}
+          onSnooze={(until) => actions.onSnooze(row.eventId, until)}
+        />
       </div>
     </li>
   );
