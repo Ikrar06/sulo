@@ -153,7 +153,7 @@ describe('runSync', () => {
   ])('maps %o', async (batch, expected) => {
     const store = memoryStore();
     expect(await run(fakeClient(() => batch), store)).toEqual(expected);
-    expect((store.dump()[SYNC_STATUS_KEY] as { lastOutcome: unknown; running: boolean })).toMatchObject({ lastOutcome: expected, running: false });
+    expect((store.dump()[SYNC_STATUS_KEY] as { lastOutcome: unknown })).toMatchObject({ lastOutcome: expected });
   });
 });
 
@@ -217,6 +217,78 @@ describe('jitterMinutes', () => {
       expect(outcome).toMatchObject({ status: 'parser_broken', where: 'core_courseformat_get_state' });
       expect(await readUser(store, 1, 'snapshots')).toEqual(before);
       expect(await readUser(store, 1, 'changes')).toEqual([]);
+    });
+  });
+
+  describe('course structure errors (by kind)', () => {
+    const NOW2 = NOW + 3600;
+    /** Answers everything normally, except get_state for the listed courses. */
+    const withStateErrors = (errors: Record<number, string>) =>
+      fakeClient((callList) => ({
+        kind: 'ok',
+        results: callList.map((c) => {
+          if (c.methodname === 'core_courseformat_get_state') {
+            const code = errors[c.args.courseid as number];
+            return code ? { ok: false, errorcode: code } : { ok: true, data: fx('courseformat-state.normal') };
+          }
+          if (c.methodname === 'core_session_time_remaining') return { ok: true, data: { userid: 1, timeremaining: 7200 } };
+          if (c.methodname === 'core_calendar_get_action_events_by_timesort') return { ok: true, data: fx('calendar-action-events.normal') };
+          if (c.methodname === 'message_popup_get_popup_notifications') return { ok: true, data: fx('popup-notifications.normal') };
+          return { ok: true, data: null };
+        }),
+      }));
+
+    async function learned() {
+      const store = memoryStore();
+      await run(fakeClient(), store, 'onboarding');
+      return store;
+    }
+
+    it('an access error skips that course for 24 hours and flags it after 3 in a row, without touching the session', async () => {
+      const store = await learned();
+      const client = withStateErrors({ 401: 'requireloginerror' });
+      const outcome = await runSync({ client, store, clock: fixedClock('2026-09-22', 11, NOW2), trigger: 'manual' });
+      expect(outcome.status).toBe('ok');
+      expect((store.dump()[SESSION_KEY] as { state: string }).state).toBe('OK');
+      expect((await readUser(store, 1, 'radar')).courseAccess?.['401']).toMatchObject({ failures: 1, flagged: false, lastErrorcode: 'requireloginerror' });
+      expect((await readUser(store, 1, 'stats')).courseAccessFailures).toBe(1);
+
+      // Within 24 hours the course is not asked again, even when 6 hours passed.
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 18, NOW2 + 7 * 3600), trigger: 'manual' });
+      const asked = client.batches.at(-1)!.calls.filter((c) => c.methodname === 'core_courseformat_get_state').map((c) => c.args.courseid);
+      expect(asked).not.toContain(401);
+
+      // After 24 hours it is tried again; the third failure in a row flags it.
+      await runSync({ client, store, clock: fixedClock('2026-09-23', 12, NOW2 + 25 * 3600), trigger: 'manual' });
+      await runSync({ client, store, clock: fixedClock('2026-09-24', 13, NOW2 + 50 * 3600), trigger: 'manual' });
+      expect((await readUser(store, 1, 'radar')).courseAccess?.['401']).toMatchObject({ failures: 3, flagged: true });
+    });
+
+    it('a server error is counted but retried at the next normal check and never flagged', async () => {
+      const store = await learned();
+      const client = withStateErrors({ 401: 'dmlreadexception' });
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 11, NOW2), trigger: 'manual' });
+      expect((await readUser(store, 1, 'radar')).courseAccess?.['401']).toBeUndefined();
+      expect((await readUser(store, 1, 'stats')).courseOtherFailures).toBe(1);
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 18, NOW2 + 6 * 3600 + 60), trigger: 'manual' });
+      const asked = client.batches.at(-1)!.calls.filter((c) => c.methodname === 'core_courseformat_get_state').map((c) => c.args.courseid);
+      expect(asked).toContain(401);
+    });
+
+    it('every structure failing with a server error counts as SIKOLA trouble (backoff), not per course', async () => {
+      const store = await learned();
+      const client = withStateErrors({ 401: 'dmlreadexception', 402: 'unknownerror', 403: 'generalexceptionmessage' });
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 11, NOW2), trigger: 'manual' });
+      expect((store.dump()['global:backoff'] as { failures: number }).failures).toBe(1);
+      expect((await readUser(store, 1, 'radar')).courseAccess ?? {}).toEqual({});
+    });
+
+    it('every sync batch carries the session call (it alone may end the session)', async () => {
+      const client = fakeClient();
+      const store = memoryStore();
+      await run(client, store, 'onboarding');
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 14, NOW + 4 * 3600), trigger: 'manual' });
+      for (const b of client.batches) expect(b.calls.map((c) => c.methodname)).toContain('core_session_time_remaining');
     });
   });
 });

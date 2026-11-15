@@ -94,7 +94,7 @@ async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[]
   );
   if (sent.kind !== 'response') return sent;
 
-  const outcome = await interpretBatch(sent.response, calls.length);
+  const outcome = await interpretBatch(sent.response, calls);
   if (outcome.kind === 'login_required') await writeSession(deps.store, deps.clock, 'EXPIRED');
   return outcome;
 }
@@ -163,7 +163,15 @@ function isRedirect(response: Response): boolean {
   return response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400);
 }
 
-async function interpretBatch(response: Response, expected: number): Promise<BatchOutcome> {
+/**
+ * Reads a batch response. The session counts as gone (login_required) or the
+ * sesskey as invalid only from the top level (redirect, HTML, top-level
+ * error) or from core_session_time_remaining itself. When that call
+ * succeeded, the session is valid whatever the other calls returned: an
+ * error on one course's get_state is that call's error, never a logout.
+ */
+export async function interpretBatch(response: Response, calls: readonly MoodleCall[]): Promise<BatchOutcome> {
+  const expected = calls.length;
   if (isRedirect(response)) return { kind: 'login_required' };
   if (!response.ok) return { kind: 'http_error', status: response.status };
 
@@ -188,10 +196,10 @@ async function interpretBatch(response: Response, expected: number): Promise<Bat
   const results: CallResult[] = parsed.data.map((item) =>
     item.error ? { ok: false, errorcode: item.exception.errorcode } : { ok: true, data: item.data },
   );
-  for (const r of results) {
-    if (!r.ok && (LOGIN_ERRORCODES.has(r.errorcode) || SESSKEY_ERRORCODES.has(r.errorcode))) {
-      return classifyError(r.errorcode);
-    }
+  const sessionIndex = calls.findIndex((c) => c.methodname === 'core_session_time_remaining');
+  const session = sessionIndex >= 0 ? results[sessionIndex] : undefined;
+  if (session && !session.ok && (LOGIN_ERRORCODES.has(session.errorcode) || SESSKEY_ERRORCODES.has(session.errorcode))) {
+    return classifyError(session.errorcode);
   }
   return { kind: 'ok', results };
 }

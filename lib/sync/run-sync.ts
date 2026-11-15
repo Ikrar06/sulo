@@ -9,6 +9,7 @@ import { calls, type MoodleCall } from '../moodle/calls';
 import type { BatchOutcome, CallResult, MoodleClient } from '../moodle/client';
 import { CALENDAR_LOOKBACK_DAYS, COURSE_LIST_MIN_GAP_H, POPUP_STALE_MIN, SIKOLA_ORIGIN } from '../moodle/limits';
 import { applyRadarResults, planRadarCalls } from '../radar/sync-step';
+import { recordFailure } from '../moodle/backoff';
 import { parseCall } from '../moodle/schemas';
 import { writeSession } from '../moodle/session';
 import { backgroundBlockReason, BACKGROUND_FRESH_MIN, type IdleState } from '../schedule';
@@ -34,14 +35,13 @@ export async function runSync(deps: SyncDeps): Promise<SyncOutcome> {
   const skip = await skipReason(deps, now);
   if (skip) return skip;
 
-  await setStatus(deps.store, { running: true });
   let outcome: SyncOutcome;
   try {
     outcome = await syncOnce(deps, now);
   } catch {
     outcome = { status: 'parser_broken', where: 'sync' };
   }
-  await setStatus(deps.store, { running: false, lastAttemptAt: now, lastOutcome: outcome });
+  await setStatus(deps.store, { lastAttemptAt: now, lastOutcome: outcome });
   return outcome;
 }
 
@@ -131,17 +131,19 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   // The radar only reads results for the user it planned for (a different
   // account was just wiped by switchUser and starts with its own baseline).
   if (knownUser === userId) {
-    broken.push(
-      ...(await applyRadarResults(deps.store, {
-        userId,
-        now,
-        origin: deps.origin ?? SIKOLA_ORIGIN,
-        plan: radarPlan,
-        results: radarResults,
-        previousTasks,
-        nextTasks: calendarMerged ? tasks : null,
-      })),
-    );
+    const radar = await applyRadarResults(deps.store, {
+      userId,
+      now,
+      origin: deps.origin ?? SIKOLA_ORIGIN,
+      plan: radarPlan,
+      results: radarResults,
+      previousTasks,
+      nextTasks: calendarMerged ? tasks : null,
+    });
+    broken.push(...radar.broken);
+    // Every course structure failed with a server error while the session
+    // call worked: SIKOLA itself is in trouble. One domain failure for backoff.
+    if (radar.sikolaTrouble) await recordFailure(deps.store, deps.clock, null);
   }
 
   const meta = await readUser(deps.store, userId, 'sync');

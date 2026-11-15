@@ -6,12 +6,13 @@ import { activeCourseIds } from '../courses/active-score';
 import { calls, type MoodleCall } from '../moodle/calls';
 import type { CallResult } from '../moodle/client';
 import { parseCall } from '../moodle/schemas';
-import { readUser, writeUser } from '../storage';
+import { readUser, writeUser, type CourseAccess } from '../storage';
 import type { Change, CourseRecord, KeyValueStore, Task, UnixSeconds, UserId } from '../types';
 import { diffCourse } from './diff';
 import { appendChanges } from './log';
 import { scanNotifications } from './notifications';
-import { pickCoursesToCheck } from './schedule';
+import { courseErrorKind } from './course-errors';
+import { ACCESS_FLAG_AFTER, pickCoursesToCheck } from './schedule';
 import { itemsFromState } from './snapshot';
 import { diffTasks } from './tasks-diff';
 
@@ -27,7 +28,8 @@ export async function planRadarCalls(store: KeyValueStore, userId: UserId | null
   if (userId === null) return { calls: [], courseIds: [], withNotifications: false };
   const radar = await readUser(store, userId, 'radar');
   const active = [...activeCourseIds(courses)];
-  const courseIds = pickCoursesToCheck(active, radar.stateCheckedAt, now);
+  const accessFailedAt = Object.fromEntries(Object.entries(radar.courseAccess ?? {}).map(([id, a]) => [id, a.lastFailedAt]));
+  const courseIds = pickCoursesToCheck(active, radar.stateCheckedAt, now, { accessFailedAt });
   return {
     calls: [calls.popupNotifications(userId), ...courseIds.map((id) => calls.courseformatState(id))],
     courseIds,
@@ -47,14 +49,24 @@ export interface RadarResults {
   nextTasks: readonly Task[] | null;
 }
 
-/** Applies the radar results; returns functions whose results failed validation. */
-export async function applyRadarResults(store: KeyValueStore, r: RadarResults): Promise<string[]> {
+export interface RadarOutcome {
+  /** Functions whose results failed validation. */
+  broken: string[];
+  /** Every get_state failed with a non-access error while the session call worked: SIKOLA trouble. */
+  sikolaTrouble: boolean;
+}
+
+/** Applies the radar results. */
+export async function applyRadarResults(store: KeyValueStore, r: RadarResults): Promise<RadarOutcome> {
   const broken: string[] = [];
   const radar = await readUser(store, r.userId, 'radar');
   const snapshots = { ...(await readUser(store, r.userId, 'snapshots')) };
+  const courseAccess: Record<string, CourseAccess> = { ...(radar.courseAccess ?? {}) };
   const changes: Change[] = [];
   let { notificationsLastId, calendarBaseline } = radar;
   const stateCheckedAt = { ...radar.stateCheckedAt };
+  let accessFailures = 0;
+  let otherFailures = 0;
 
   if (r.nextTasks) {
     changes.push(...diffTasks(r.previousTasks, r.nextTasks, !calendarBaseline));
@@ -75,18 +87,30 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
   }
 
   for (const courseId of r.plan.courseIds) {
+    const key = String(courseId);
     const result = r.results[index++];
-    stateCheckedAt[String(courseId)] = r.now;
+    stateCheckedAt[key] = r.now;
     const parsed = result ? parseCall('core_courseformat_get_state', result) : null;
     // Only a result that passed validation is diffed. A failed one is never
-    // read as "everything was removed"; a Moodle error for one course (no
-    // access, course gone) is skipped quietly.
-    if (!parsed?.ok) {
-      if (parsed && parsed.status === 'PARSER_BROKEN') broken.push('core_courseformat_get_state');
+    // read as "everything was removed".
+    if (!parsed) continue;
+    if (!parsed.ok) {
+      if (parsed.status === 'PARSER_BROKEN') {
+        broken.push('core_courseformat_get_state');
+      } else if (courseErrorKind(parsed.errorcode) === 'access') {
+        // Not reachable for this user: skip 24 hours; flag after 3 in a row.
+        const failures = (courseAccess[key]?.failures ?? 0) + 1;
+        courseAccess[key] = { failures, lastFailedAt: r.now, lastErrorcode: parsed.errorcode, flagged: failures >= ACCESS_FLAG_AFTER };
+        accessFailures += 1;
+      } else {
+        // Server trouble or unknown: retried at the next normal check.
+        otherFailures += 1;
+      }
       continue;
     }
-    const diff = diffCourse(snapshots[String(courseId)] ?? null, itemsFromState(parsed.data), { userId: r.userId, courseId, now: r.now });
-    snapshots[String(courseId)] = diff.next;
+    delete courseAccess[key];
+    const diff = diffCourse(snapshots[key] ?? null, itemsFromState(parsed.data), { userId: r.userId, courseId, now: r.now });
+    snapshots[key] = diff.next;
     changes.push(...diff.changes);
   }
 
@@ -94,7 +118,16 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
     const log = await readUser(store, r.userId, 'changes');
     await writeUser(store, r.userId, 'changes', appendChanges(log, changes, r.now));
   }
+  if (accessFailures > 0 || otherFailures > 0) {
+    const stats = await readUser(store, r.userId, 'stats');
+    await writeUser(store, r.userId, 'stats', {
+      ...stats,
+      courseAccessFailures: (stats.courseAccessFailures ?? 0) + accessFailures,
+      courseOtherFailures: (stats.courseOtherFailures ?? 0) + otherFailures,
+    });
+  }
   await writeUser(store, r.userId, 'snapshots', snapshots);
-  await writeUser(store, r.userId, 'radar', { stateCheckedAt, notificationsLastId, calendarBaseline });
-  return [...new Set(broken)];
+  await writeUser(store, r.userId, 'radar', { stateCheckedAt, notificationsLastId, calendarBaseline, courseAccess });
+  const sikolaTrouble = r.plan.courseIds.length > 0 && otherFailures === r.plan.courseIds.length;
+  return { broken: [...new Set(broken)], sikolaTrouble };
 }
