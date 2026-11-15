@@ -80,22 +80,24 @@ function manyTasksUser(): UserData {
   return { ...u, tasks };
 }
 
-export const POPUP_STATES: { title: string; view: PopupView }[] = [
-  { title: 'Normal (semua kelompok)', view: buildPopupView(input()) },
-  { title: 'Belum onboarding', view: buildPopupView(input({ user: null })) },
-  { title: 'Kosong (semua beres)', view: buildPopupView(input({ user: { ...baseUser(), tasks: [] } })) },
-  { title: 'Satu tugas', view: buildPopupView(input({ user: { ...baseUser(), tasks: baseUser().tasks.slice(1, 2) } })) },
-  { title: 'Lebih dari 30 tugas, nama panjang', view: buildPopupView(input({ user: manyTasksUser() })) },
-  { title: 'Sedang sinkron', view: buildPopupView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, running: true } })) },
-  { title: 'Sesi habis', view: buildPopupView(input({ session: 'EXPIRED' })) },
-  { title: 'Parser rusak', view: buildPopupView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'parser_broken', where: 'core_calendar_get_action_events_by_timesort' } } })) },
-  { title: 'Batas harian', view: buildPopupView(input({ budget: { date: '2026-09-22', used: DAILY_BUDGET } })) },
-  { title: 'Dimatikan dari jauh', view: buildPopupView(input({ remoteConfig: { ...DEFAULT_REMOTE_CONFIG, enabled: false, message: 'Sulo dijeda sementara atas permintaan pengelola.' } })) },
-  { title: 'Offline', view: buildPopupView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'offline' } } })) },
-  { title: 'Data basi', view: buildPopupView(input({ user: { ...baseUser(), sync: { lastSyncAt: NOW - 9 * HOUR, lastCourseListAt: null } } })) },
+const withView = (input: PopupInput): { input: PopupInput; view: PopupView } => ({ input, view: buildPopupView(input) });
+
+export const POPUP_STATES: { title: string; input: PopupInput; view: PopupView }[] = [
+  { title: 'Normal (semua kelompok)', ...withView(input()) },
+  { title: 'Belum onboarding', ...withView(input({ user: null })) },
+  { title: 'Kosong (semua beres)', ...withView(input({ user: { ...baseUser(), tasks: [] } })) },
+  { title: 'Satu tugas', ...withView(input({ user: { ...baseUser(), tasks: baseUser().tasks.slice(1, 2) } })) },
+  { title: 'Lebih dari 30 tugas, nama panjang', ...withView(input({ user: manyTasksUser() })) },
+  { title: 'Sedang sinkron', ...withView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, running: true } })) },
+  { title: 'Sesi habis', ...withView(input({ session: 'EXPIRED' })) },
+  { title: 'Parser rusak', ...withView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'parser_broken', where: 'core_calendar_get_action_events_by_timesort' } } })) },
+  { title: 'Batas harian', ...withView(input({ budget: { date: '2026-09-22', used: DAILY_BUDGET } })) },
+  { title: 'Dimatikan dari jauh', ...withView(input({ remoteConfig: { ...DEFAULT_REMOTE_CONFIG, enabled: false, message: 'Sulo dijeda sementara atas permintaan pengelola.' } })) },
+  { title: 'Offline', ...withView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'offline' } } })) },
+  { title: 'Data basi', ...withView(input({ user: { ...baseUser(), sync: { lastSyncAt: NOW - 9 * HOUR, lastCourseListAt: null } } })) },
   {
     title: 'Semester baru terdeteksi',
-    view: buildPopupView(input({ user: { ...baseUser(), onboarding: { completedAt: NOW - DAY, confirmedInProgress: [401], reviewSuggested: [402, 403] } } })),
+    ...withView(input({ user: { ...baseUser(), onboarding: { completedAt: NOW - DAY, confirmedInProgress: [401], reviewSuggested: [402, 403] } } })),
   },
 ];
 

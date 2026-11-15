@@ -1,6 +1,6 @@
 // Single source of the privacy policy. PRIVACY.md (English) is generated from
 // this file with `node scripts/build-privacy.ts`, and the in-extension page
-// (privacy.html) renders the Indonesian text. A test fails when PRIVACY.md
+// (privacy.html) renders the text in the user's language. A test fails when PRIVACY.md
 // does not match. Edit here, never in PRIVACY.md.
 // No imports: the build script runs this file with Node's type stripping.
 
@@ -131,6 +131,13 @@ export const PRIVACY_SECTIONS: Section[] = [
             en: "Sulo's public data repository on GitHub Pages (ikrar06.github.io/sulo-data), to fetch a small configuration file and, later, the academic calendar. These requests carry no information about you (no cookies, extra headers or parameters) and are made at most once a day per file. As with any website, GitHub can see your IP address when a file is fetched.",
           },
         ],
+      },
+      {
+        kind: 'p',
+        text: {
+          id: '"Tambah ke Google Calendar" di menu tugas hanya membuka halaman Google Calendar di tab baru, saat kamu mengekliknya. Halaman itu sudah berisi nama tugas, nama mata kuliah, tenggat, dan tautan ke tugas di SIKOLA. Sulo sendiri tidak mengirim apa pun ke Google dan tidak butuh login; kamu yang memutuskan menyimpannya di Google Calendar.',
+          en: '"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no login; you decide whether to save it in Google Calendar.',
+        },
       },
     ],
   },
