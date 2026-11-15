@@ -16,11 +16,13 @@ import { createMoodleClient } from '@/lib/moodle/client';
 import { DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { onSesskeyReceived, readSession, writeSession } from '@/lib/moodle/session';
 import { trySesskeyFallbackFromPopup } from '@/lib/moodle/sesskey-fallback';
+import { pendingWhatsNew, WHATS_NEW } from '@/lib/onboarding/whats-new';
 import { recordFixtures } from '@/lib/recorder';
 import { effectiveIntervalMinutes, readRemoteConfig, refreshRemoteConfig } from '@/lib/remote-config';
 import { BADGE_ALARM, BADGE_REFRESH_MIN, jitterMinutes, SYNC_ALARM, type IdleState } from '@/lib/schedule';
 import { isContentScriptOn, isExtensionPageSender } from '@/lib/sender';
 import { isValidSesskey } from '@/lib/sesskey';
+import { currentUser, NOTICE_KEY, NOTICE_VERSION, readUser } from '@/lib/storage';
 import { runSync } from '@/lib/sync/run-sync';
 import type { SyncOutcome, SyncTrigger } from '@/lib/types';
 import { loadPopupInput } from '@/lib/view/load';
@@ -148,7 +150,24 @@ export default defineBackground(() => {
   browser.runtime.onInstalled.addListener((details) => {
     void ensureAlarms();
     if (details.reason === 'install') void browser.tabs.create({ url: browser.runtime.getURL(ONBOARDING_PAGE) });
+    if (details.reason === 'update') void openWhatsNewIfNeeded();
   });
+
+  /**
+   * After an update, someone who finished onboarding never repeats it. Only
+   * when there is something new (or the privacy notice changed) do they see
+   * one short "Yang baru di Sulo" screen.
+   */
+  async function openWhatsNewIfNeeded(): Promise<void> {
+    const userId = await currentUser(local);
+    if (userId === null) return;
+    const completed = (await readUser(local, userId, 'onboarding')).completedAt !== null;
+    const read = (await local.get<{ version: number }>(NOTICE_KEY))?.version ?? 0;
+    if (!completed) return;
+    if (pendingWhatsNew(WHATS_NEW, read, completed).length > 0 || read < NOTICE_VERSION) {
+      await browser.tabs.create({ url: browser.runtime.getURL(`${ONBOARDING_PAGE}#whats-new`) });
+    }
+  }
 
   browser.runtime.onStartup.addListener(() => {
     void ensureAlarms();

@@ -39,6 +39,8 @@ export interface OnboardingState {
   confirmedInProgress: CourseId[];
   /** In-progress courses that appeared since: the popup offers a review. */
   reviewSuggested: CourseId[];
+  /** Optional onboarding steps the user skipped ("Lewati dulu"); offered again later. */
+  skippedSteps?: string[];
 }
 
 export interface UserData {
