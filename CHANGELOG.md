@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - "Add to Google Calendar" for each task opens a prefilled Google Calendar page in a new tab. Sulo sends nothing and needs no login or extra permission.
 - Mark tasks as done, open them in SIKOLA, and copy this week's or all pending tasks as plain text that reads well in WhatsApp.
 - Readable course names derived from SIKOLA's course names, with eight course colors that never sit next to the same color.
+- Deadline reminders 3 days, 1 day and 3 hours before (choose from 3 days, 1 day, 6 hours, 3 hours and 1 hour), in your language, with the mascot as icon. Each reminder comes once, also after a deadline changes. Reminders missed while the browser was closed arrive as one summary, quiet hours (22.00 to 06.00 by default) hold reminders until morning except the last one, and an optional morning summary lists the day's tasks. Reminders need no request to SIKOLA, so they keep working when the session has expired.
+- Snooze a reminder from the notification (1 hour) or from the task menu in the popup (1 hour, 3 hours, tomorrow morning). Snoozed tasks show a small clock.
+- A "Reminders" panel in the popup with a test notification and short help for turning on notifications in macOS and Windows. The popup says so when Sulo's notifications are blocked in Chrome.
+- When the SIKOLA session expires, one notification per event (and one more after 24 hours), and it recovers silently when you sign in again.
 - The toolbar badge counts overdue tasks plus those due within 24 hours, shows "!" when the SIKOLA session has expired, and turns gray when data is out of date.
 - A single status line for an expired session, a changed SIKOLA, the daily limit, being offline, out-of-date data and a remote pause. "Offline" appears only when the browser is offline or the last request failed at the network level.
 - An animated mascot: the flame sways as one piece, the face follows a beat behind, eyes blink and glance (and follow the cursor during setup), and each state has its own expression, including a smooth double jump when you finish your last task. It stays still when your system asks for reduced motion.
@@ -37,5 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Documentation: architecture, request rules, privacy, brand guide, and plans for the academic calendar, the optional NEOSIA module, attendance and course registration planning.
 
 ### Security
+
+- Development-only tools (the fixture recorder and the reminder simulator) are excluded from production and tester builds, and a build check fails if any of it slips in.
 
 - A scan for personal or session data runs before every commit and in CI.

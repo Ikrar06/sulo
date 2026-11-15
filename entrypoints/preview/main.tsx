@@ -11,12 +11,16 @@ import { I18nProvider } from '@/components/i18n';
 import { NO_ACTIONS, PopupView } from '@/components/popup/PopupView';
 import { messagesFor, type Locale } from '@/lib/i18n';
 import type { DueFormat } from '@/lib/prefs';
+import { DEFAULT_REMINDERS } from '@/lib/reminders/settings';
 import { buildPopupView } from '@/lib/view/popup-view';
 import { Button } from '@/components/ui/button';
 import { isCourseActive } from '@/lib/courses/active-score';
 import { id } from '@/lib/i18n/id';
 import type { CourseId, CourseRecord } from '@/lib/types';
 import type { MascotState } from '@/lib/view/popup-view';
+import { NotificationMock, RemindersSim } from './RemindersSim';
+import { noticeView } from '@/lib/reminders/text';
+import { courseAlias } from '@/lib/courses/display-name';
 import { manyCourses, NOW, POPUP_STATES, PREVIEW_COURSES, TZ } from './fixtures';
 import '@/assets/tailwind.css';
 import { installInputModality } from '@/lib/ui/input-modality';
@@ -164,7 +168,7 @@ function Overview() {
           {POPUP_STATES.map(({ title, view }) => (
             <div key={title} className="space-y-2">
               <h3 className="text-sm">{title}</h3>
-              <Themes>{() => <PopupView view={view} now={NOW} timeZone={TZ} dueFormat={dueFormat} {...NO_ACTIONS} dev={null} />}</Themes>
+              <Themes>{() => <PopupView view={view} now={NOW} timeZone={TZ} dueFormat={dueFormat} reminders={DEFAULT_REMINDERS} {...NO_ACTIONS} dev={null} />}</Themes>
             </div>
           ))}
         </div>
@@ -251,13 +255,39 @@ function MascotSheet() {
 }
 
 /** One popup, for measuring: records ms from navigation start to the first commit. */
+/** Example notifications in both languages, for review and screenshots. */
+function NotificationGallery() {
+  const input = POPUP_STATES[0]!.input;
+  const tasks = input.user!.tasks.filter((t) => t.dueAt !== null && t.dueAt > NOW).sort((a, b) => a.dueAt! - b.dueAt!);
+  const byId = new Map(input.user!.courses.map((c) => [c.id, c]));
+  const courseName = (t: (typeof tasks)[number]) => (byId.get(t.courseId) ? courseAlias(byId.get(t.courseId)!) : '');
+  const nearest = tasks[0]!;
+  return (
+    <main className="grid grid-cols-2 gap-6 p-6 text-foreground">
+      {(['id', 'en'] as Locale[]).map((l) => {
+        const m = messagesFor(l);
+        const ctx = { now: NOW, timeZone: TZ, m, courseName };
+        return (
+          <section key={l} className="space-y-3">
+            <h2 className="text-sm text-muted-foreground">{l === 'id' ? 'Bahasa Indonesia' : 'English'}</h2>
+            <NotificationMock view={noticeView({ kind: 'task', key: 'k', task: nearest, snoozed: false }, ctx)} />
+            <NotificationMock view={noticeView({ kind: 'summary', key: 'k', count: 3, nearest }, ctx)} />
+            <NotificationMock view={noticeView({ kind: 'morning', key: 'k', today: 1, week: 3, nearest }, ctx)} />
+            <NotificationMock view={noticeView({ kind: 'session', key: 'k', repeat: false }, ctx)} />
+          </section>
+        );
+      })}
+    </main>
+  );
+}
+
 function SinglePopup({ still, index = 0 }: { still: boolean; index?: number }) {
   useEffect(() => {
     (window as unknown as { __suloRenderMs?: number }).__suloRenderMs = Math.round(performance.now());
   }, []);
   return (
     <div className="w-[380px]">
-      <PopupView view={localized(index)} now={NOW} timeZone={TZ} dueFormat={dueFormat} {...NO_ACTIONS} dev={null} mascotStill={still} />
+      <PopupView initialPanel={params.get('panel') === 'reminders' ? 'reminders' : undefined} view={localized(index)} now={NOW} timeZone={TZ} dueFormat={dueFormat} reminders={DEFAULT_REMINDERS} {...NO_ACTIONS} dev={null} mascotStill={still} />
     </div>
   );
 }
@@ -297,7 +327,7 @@ function FormatGrid() {
                   now={NOW}
                   timeZone={TZ}
                   dueFormat={f}
-                  {...NO_ACTIONS}
+                  reminders={DEFAULT_REMINDERS} {...NO_ACTIONS}
                   dev={null}
                   mascotStill
                 />
@@ -311,6 +341,8 @@ function FormatGrid() {
 }
 
 function Route() {
+  if (params.has('reminders')) return <RemindersSim input={POPUP_STATES[0]!.input} start={NOW} />;
+  if (params.has('notifications')) return <NotificationGallery />;
   if (params.has('formats')) return <FormatGrid />;
   if (params.has('mascot')) return <MascotStage />;
   if (params.get('only') === 'popup') return <SinglePopup still={params.has('still')} />;
