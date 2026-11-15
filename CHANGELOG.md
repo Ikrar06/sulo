@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- "Delete all data" in the popup settings menu removes everything Sulo keeps in this browser, after a dialog that lists what goes and says nothing in SIKOLA is touched. Setup then starts again.
+
 - A full-screen setup page opens after installing: a short privacy notice next to an example of the task list, connecting SIKOLA (it notices when you log in, no reload needed), choosing your courses as clickable cards, and a final screen with your own task list and how to pin Sulo. Steps come from a list, so later modules can add optional steps that can be skipped.
 - A "What's new in Sulo" screen mechanism for people who already finished setup. It stays silent until there is something new.
 - Active courses are suggested from SIKOLA's "in progress" list, future end dates and upcoming deadlines. Your own choice always wins, and a new semester only triggers a suggestion to review, never a silent change.
@@ -43,6 +45,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Signing in to SIKOLA with another account no longer deletes your data right away. Sulo hides the previous account's tasks, stops checking and reminding, and asks: "Use this account" deletes the previous data and starts setup for the new one; "Later" keeps everything hidden until you sign in with the previous account again, which brings it all back.
+- Setup picks up where you left off. "Choose courses" opens "Your courses": the saved list without checking SIKOLA, a "Refresh list" button, and changes saved only when you click Save ("No changes" when nothing changed).
+- Older installations draw their background check minute again from the new 0 to 20 minute range.
 - Opening the popup never contacts SIKOLA or anything else: it shows your stored list and when it was last updated. Only "Perbarui" (update) checks right away.
 - Sulo checks a little after the browser starts and after you come back to your computer, but only when your list is more than an hour old, and never during quiet hours.
 - Fewer and smaller checks: tasks and notifications at most every 3 hours in the background, the course list once a day (also during setup), course pages every 6 hours, five at most. When the day's limit is close, Sulo skips the less important parts first.
