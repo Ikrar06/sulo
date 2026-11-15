@@ -20,7 +20,6 @@ const course = (id: number, name: string, active: boolean): CourseRecord => ({
   activeReasons: [],
   activePin: null,
   alias: null,
-  label: null,
   color: null,
 });
 
@@ -68,7 +67,7 @@ describe('buildPopupView', () => {
       ['soon', [11]],
       ['later', [13]],
     ]);
-    expect(view.groups[0]?.rows[0]).toMatchObject({ courseLabel: 'AS1', courseName: 'Analisa Struktur I A', urgency: 'overdue', remaining: 'terlambat 1 jam' });
+    expect(view.groups[0]?.rows[0]).toMatchObject({ courseColor: 1, courseName: 'Analisa Struktur I', urgency: 'overdue', remaining: 'terlambat 1 jam' });
     expect(view.groups.find((g) => g.key === 'later')?.collapsedByDefault).toBe(true);
     expect(view.inactiveCourseTaskCount).toBe(1);
     expect(view.probablySubmittedCount).toBe(1);
@@ -89,15 +88,21 @@ describe('buildPopupView', () => {
     [{ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'parser_broken' as const, where: 'x' } } }, { kind: 'parser_broken' }],
     [{ budget: { date: 'x', used: 40 } }, { kind: 'budget_exhausted' }],
     [{ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'offline' as const } } }, { kind: 'offline' }],
+    [{ online: false }, { kind: 'offline' }],
   ])('banner for %o', (patch, banner) => {
     expect(buildPopupView(input(patch)).banner).toEqual(banner);
   });
 
+  it('does not call a server error or a slow SIKOLA "offline"', () => {
+    const view = buildPopupView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'server_error' as const } } }));
+    expect(view.banner?.kind).not.toBe('offline');
+  });
+
   it('marks stale data, uses a neutral badge and the sleepy mascot', () => {
     const view = buildPopupView(input({ user: user({ sync: { lastSyncAt: NOW - 8 * HOUR, lastCourseListAt: null } }) }));
-    expect(view.banner).toEqual({ kind: 'stale', hours: 8 });
+    expect(view.banner).toEqual({ kind: 'stale', lastSyncAt: NOW - 8 * HOUR });
     expect(view.badge.tone).toBe('neutral');
-    expect(view.mascot).toBe('sleepy');
+    expect(view.mascot).toBe('stale');
   });
 
   it('shows "!" when the session expired', () => {

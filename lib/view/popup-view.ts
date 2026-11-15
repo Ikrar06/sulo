@@ -2,17 +2,19 @@
 // the badge and the dev preview all use the same logic.
 
 import { activeCourseIds } from '../courses/active-score';
-import { assignLabels } from '../courses/short-label';
-import { courseNameWithClass } from '../courses/display-name';
+import { assignCourseColors } from '../courses/colors';
+import { courseAlias } from '../courses/display-name';
 import type { CopyItem } from '../format/copy-list';
-import { formatFullDate, formatRemaining } from '../format/time';
+import { calendarDaysBetween, formatCountdown, formatDueClock, formatFullDate, formatLeft, formatRemaining } from '../format/time';
+import { id, type Messages } from '../i18n/id';
+import type { DueFormat } from '../prefs';
 import { STALE_WARNING_H } from '../moodle/limits';
 import { isStale } from '../staleness';
 import type { SyncStatus, UserData } from '../storage';
 import { badgeCount, GROUP_ORDER, groupTasks, pendingTasks, urgencyOf, type TaskGroupKey, type Urgency } from '../tasks/group';
 import type { BudgetState, RemoteConfig, SessionState, UnixSeconds } from '../types';
 
-export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgent' | 'sleepy' | 'dizzy' | 'onboarding';
+export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgent' | 'sleepy' | 'stale' | 'dizzy' | 'onboarding';
 
 export type Banner =
   | { kind: 'disabled_remotely'; message: string }
@@ -20,17 +22,54 @@ export type Banner =
   | { kind: 'parser_broken' }
   | { kind: 'budget_exhausted' }
   | { kind: 'offline' }
-  | { kind: 'stale'; hours: number | null };
+  | { kind: 'stale'; lastSyncAt: UnixSeconds | null };
 
 export interface TaskRow {
   eventId: number;
   name: string;
-  courseLabel: string;
+  /** Course name without class letter, as the row's second line. */
   courseName: string;
+  /** 1..8, the course dot color token. */
+  courseColor: number;
   url: string;
+  /** Urgency always follows the time left, whatever the display format. */
   urgency: Urgency;
+  dueAt: UnixSeconds | null;
+  /** "Sisa waktu": "5 jam", "besok 23.59". */
   remaining: string;
+  /** Duration for "Keduanya": "5 jam lagi". */
+  left: string;
+  /** "Jam tenggat": "Kamis 23.59". */
+  clock: string;
+  /** Tooltip: full date and time with the zone abbreviation. */
   fullDate: string;
+  /** At least 7 calendar days away: "Keduanya" shows only the date and time. */
+  far: boolean;
+}
+
+export interface DueText {
+  primary: string;
+  /** Second line under the primary text ("Keduanya"). */
+  secondary: string | null;
+  /** The primary text ticks every second (countdown, not yet overdue). */
+  ticking: boolean;
+}
+
+/** What a task row shows on the right, per the chosen format (text only). */
+export function dueText(row: TaskRow, format: DueFormat, now: UnixSeconds, timeZone: string, m: Messages = id): DueText {
+  if (row.dueAt === null) return { primary: row.remaining, secondary: null, ticking: false };
+  const overdue = row.dueAt < now;
+  switch (format) {
+    case 'remaining':
+      return { primary: row.remaining, secondary: null, ticking: false };
+    case 'clock':
+      return { primary: row.clock, secondary: null, ticking: false };
+    case 'countdown':
+      return { primary: formatCountdown(row.dueAt, now, timeZone, m), secondary: null, ticking: !overdue };
+    case 'both':
+      if (row.far) return { primary: row.clock, secondary: null, ticking: false };
+      return { primary: row.left, secondary: row.clock, ticking: false };
+  }
 }
 
 export interface TaskGroupView {
@@ -65,9 +104,17 @@ export interface PopupInput {
   budgetLimit: number;
   now: UnixSeconds;
   timeZone: string;
+  /** navigator.onLine at render time; omitted means online. */
+  online?: boolean;
+  /** Active dictionary; Indonesian when omitted (badge, tests). */
+  messages?: Messages;
 }
 
-function bannerFor(input: PopupInput, stale: boolean, hours: number | null): Banner | null {
+/** Offline: the browser says so, or the last request failed at the network level. */
+const offline = (input: PopupInput) =>
+  input.online === false || input.syncStatus.lastOutcome?.status === 'offline' || input.session === 'OFFLINE';
+
+function bannerFor(input: PopupInput, stale: boolean): Banner | null {
   if (!input.remoteConfig.enabled) return { kind: 'disabled_remotely', message: input.remoteConfig.message };
   if (input.session === 'EXPIRED') return { kind: 'session_expired' };
   const last = input.syncStatus.lastOutcome;
@@ -75,8 +122,8 @@ function bannerFor(input: PopupInput, stale: boolean, hours: number | null): Ban
   if (input.budget.used >= input.budgetLimit || (last?.status === 'skipped' && last.reason === 'BUDGET_EXHAUSTED')) {
     return { kind: 'budget_exhausted' };
   }
-  if (last?.status === 'offline' || input.session === 'OFFLINE') return { kind: 'offline' };
-  if (stale && input.user?.sync.lastSyncAt) return { kind: 'stale', hours };
+  if (offline(input)) return { kind: 'offline' };
+  if (stale && input.user?.sync.lastSyncAt) return { kind: 'stale', lastSyncAt: input.user.sync.lastSyncAt };
   return null;
 }
 
@@ -84,14 +131,13 @@ export function buildPopupView(input: PopupInput): PopupView {
   const { user, now, timeZone } = input;
   const lastSyncAt = user?.sync.lastSyncAt ?? null;
   const stale = isStale(lastSyncAt, now);
-  const hours = lastSyncAt ? Math.floor((now - lastSyncAt) / 3600) : null;
-  const banner = bannerFor(input, stale, hours);
+  const banner = bannerFor(input, stale);
   const onboarded = Boolean(user?.onboarding.completedAt);
 
   const courses = user?.courses ?? [];
   const active = activeCourseIds(courses);
   const activeCourses = courses.filter((c) => active.has(c.id));
-  const labels = assignLabels(activeCourses);
+  const colors = assignCourseColors(activeCourses);
   const byId = new Map(courses.map((c) => [c.id, c]));
 
   const tasks = user?.tasks ?? [];
@@ -99,17 +145,22 @@ export function buildPopupView(input: PopupInput): PopupView {
   const pending = pendingTasks(tasks, state, active);
   const grouped = groupTasks(pending, now, timeZone);
 
+  const m = input.messages ?? id;
   const toRow = (t: (typeof pending)[number]): TaskRow => {
     const course = byId.get(t.courseId);
     return {
       eventId: t.eventId,
       name: t.name,
-      courseLabel: labels.get(t.courseId) ?? '?',
-      courseName: course ? courseNameWithClass(course) : '',
+      courseName: course ? courseAlias(course) : '',
+      courseColor: colors.get(t.courseId) ?? 1,
       url: t.url,
       urgency: urgencyOf(t.dueAt, now),
-      remaining: t.dueAt === null ? 'tanpa tenggat' : formatRemaining(t.dueAt, now, timeZone),
-      fullDate: t.dueAt === null ? '' : formatFullDate(t.dueAt, timeZone),
+      dueAt: t.dueAt,
+      remaining: t.dueAt === null ? m.popup.copy.noDue : formatRemaining(t.dueAt, now, timeZone, m),
+      left: t.dueAt === null ? '' : formatLeft(t.dueAt, now, timeZone, m),
+      clock: t.dueAt === null ? '' : formatDueClock(t.dueAt, now, timeZone, m),
+      fullDate: t.dueAt === null ? '' : formatFullDate(t.dueAt, timeZone, m),
+      far: t.dueAt !== null && t.dueAt > now && calendarDaysBetween(now, t.dueAt, timeZone) >= 7,
     };
   };
 
@@ -127,7 +178,8 @@ export function buildPopupView(input: PopupInput): PopupView {
   if (!onboarded) mascot = 'onboarding';
   else if (input.syncStatus.running) mascot = 'syncing';
   else if (last?.status === 'parser_broken') mascot = 'dizzy';
-  else if (sessionExpired || stale || last?.status === 'offline') mascot = 'sleepy';
+  else if (sessionExpired) mascot = 'sleepy';
+  else if (stale || offline(input)) mascot = 'stale';
   else if (urgentCount > 0) mascot = 'urgent';
   else if (pending.length === 0 && lastSyncAt) mascot = 'all-done';
 
@@ -142,7 +194,10 @@ export function buildPopupView(input: PopupInput): PopupView {
     inactiveCourseTaskCount: tasks.filter((t) => t.missingSince === null && !active.has(t.courseId)).length,
     probablySubmittedCount: tasks.filter((t) => t.missingSince !== null).length,
     reviewSuggestedCount: user?.onboarding.reviewSuggested.length ?? 0,
-    copyItems: pending.map((task) => ({ courseLabel: labels.get(task.courseId) ?? '?', task })),
+    copyItems: pending.map((task) => {
+      const course = byId.get(task.courseId);
+      return { courseName: course ? courseAlias(course) : '', task };
+    }),
     badge: {
       text: sessionExpired ? '!' : urgentCount > 0 ? (urgentCount > 99 ? '99+' : String(urgentCount)) : '',
       tone: sessionExpired ? 'expired' : stale ? 'neutral' : 'urgent',

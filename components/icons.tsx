@@ -86,3 +86,60 @@ export const PinIcon = (p: IconProps) => (
     <path d="M9 10.76V4h6v6.76l2 2.24v2H7v-2z" />
   </Icon>
 );
+
+// Status line icons (popup). Line style, colored by status tokens.
+
+export const OfflineIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M2 2l20 20" />
+    <path d="M8.5 16.4a5 5 0 0 1 7 0" />
+    <path d="M5 12.9a10 10 0 0 1 5.2-2.8" />
+    <path d="M19 12.9a10 10 0 0 0-2.3-1.6" />
+    <path d="M2 8.8a15 15 0 0 1 4.2-2.7" />
+    <path d="M10.7 5.1a15 15 0 0 1 11.3 3.7" />
+    <path d="M12 20h.01" />
+  </Icon>
+);
+
+export const ClockIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </Icon>
+);
+
+export const PauseIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M10 9v6M14 9v6" />
+  </Icon>
+);
+
+export const AlertIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 8v4.5M12 16h.01" />
+  </Icon>
+);
+
+export const KeyIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="8" cy="15" r="4" />
+    <path d="m10.8 12.2 8.7-8.7M17 6l2.5 2.5M15 8l2 2" />
+  </Icon>
+);
+
+export const MoreIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="5" cy="12" r="1" />
+    <circle cx="12" cy="12" r="1" />
+    <circle cx="19" cy="12" r="1" />
+  </Icon>
+);
+
+export const CalendarPlusIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="4.5" width="18" height="16.5" rx="2" />
+    <path d="M8 2.5v4M16 2.5v4M3 10h18M12 13.5v5M9.5 16h5" />
+  </Icon>
+);
