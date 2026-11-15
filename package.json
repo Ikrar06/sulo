@@ -32,6 +32,9 @@
     "sanitize": "node scripts/sanitize.ts",
     "fixtures:compare": "node scripts/compare-fixture-shapes.mjs",
     "privacy": "node scripts/build-privacy.ts",
+    "calendar:build": "node scripts/calendar/build.ts",
+    "calendar:status": "node scripts/calendar/set-status.ts",
+    "calendar:publish": "node scripts/calendar/publish.ts",
     "notify-icons": "node scripts/build-notify-icons.mjs"
   },
   "dependencies": {

@@ -1,0 +1,182 @@
+{
+  "tahun_ajaran": "2026/2027",
+  "revisi": 1,
+  "diperbarui": "2026-11-16",
+  "diverifikasi_pada": "2026-11-16",
+  "berlaku_mulai": "2026-06-01",
+  "berlaku_sampai": "2027-06-30",
+  "semester_akhir_mulai": "2026-12-05",
+  "sumber": {
+    "judul": "Kalender Akademik Tahun Akademik 2026/2027, Universitas Hasanuddin (Direktorat Pendidikan)",
+    "sk": "Keputusan Rektor No. 08429/UN4.1/KEP/2026",
+    "pdf_url": "https://www.unhas.ac.id/wp-content/uploads/2026/10/kalender-akademik-unhas-2026-2027.pdf",
+    "pdf_sha256": "e778ecddb0833418d2a0547f0872fca09d6ed1ef4676880175904aea6bd8155b",
+    "halaman_url": "https://www.unhas.ac.id/kalender-akademik/?lang=id",
+    "ics_diunduh_pada": "2026-11-15"
+  },
+  "ubah": [
+    {
+      "judul_ics": "Libur semester",
+      "mulai_ics": "2027-06-28",
+      "alasan": "ICS hanya satu hari. PDF menandai 28 sampai 30 Jun karena kisi kalender berhenti di 30 Jun 2027; sebenarnya awal libur tanpa tanggal akhir.",
+      "set": {
+        "id": "2026-2027-libur-semester-setelah-akhir",
+        "selesai": null,
+        "ujung_terbuka": true,
+        "status_verifikasi": "cocok_pdf",
+        "catatan": "Awal libur semester. Tanggal akhirnya ada di kalender tahun ajaran berikutnya."
+      }
+    },
+    {
+      "judul_ics": "Libur semester",
+      "mulai_ics": "2026-12-07",
+      "alasan": "Judul \"Libur semester\" muncul lebih dari sekali; id dibuat eksplisit supaya stabil antarrevisi.",
+      "set": { "id": "2026-2027-libur-semester-setelah-awal" }
+    },
+    {
+      "judul_ics": "Wisuda Oktober 2026",
+      "mulai_ics": "2026-10-27",
+      "alasan": "Tabel di halaman Unhas menulis 26 sampai 27 Okt; tanya jawab di halaman yang sama dan PDF menulis 27 sampai 29 Okt. Dipakai versi PDF.",
+      "set": {
+        "nilai_lain": [
+          {
+            "mulai": "2026-10-26",
+            "selesai": "2026-10-27",
+            "sumber": "Tabel di halaman kalender akademik Unhas",
+            "catatan": "Berbeda dengan PDF dan bagian tanya jawab di halaman yang sama (27 sampai 29 Okt)."
+          }
+        ]
+      }
+    },
+    {
+      "judul_ics": "Evaluasi masa studi dan kelanjutan studi (angkatan dan jenjang yang dievaluasi tercantum di PDF)",
+      "mulai_ics": "2026-07-17",
+      "alasan": "Rincian per angkatan hanya ada di PDF. Teks Indonesia menyebut \"dan dokter hewan\" pada kelompok profesi; teks Inggris tidak.",
+      "set": {
+        "status_verifikasi": "perlu_cek",
+        "catatan": "Rincian per angkatan disalin dari PDF. Teks Indonesia menyebut dokter hewan Angkatan 2023-1, teks Inggris tidak. Rujuk PDF resmi.",
+        "rincian": [
+          "Evaluasi masa studi mahasiswa S1 Angkatan 2019 (Evaluasi 14 semester)",
+          "Evaluasi masa studi mahasiswa S2 Angkatan 2021-2 dan S3 Angkatan 2020-2 (Pernah Cuti)",
+          "Evaluasi masa studi mahasiswa S2 Angkatan 2022-1 (Evaluasi delapan semester), S2 Angkatan 2023-1 (evauasi enam semester) dan S3 Angkatan 2021-1 (Evaluasi sepuluh semester)",
+          "Evaluasi masa studi mahasiswa Profesi (Akuntansi, Insinyur, Arsitek, Apoteker, Ners, Fisioterapi) dan dokter hewan Angkatan 2023-1 (Evaluasi enam semester)",
+          "Evaluasi masa studi mahasiswa Profesi Dokter dan Dokter Gigi Angkatan 2021-1 (Evaluasi sepuluh semester)",
+          "Evaluasi kelanjutan studi mahasiswa S1 Angkatan 2024 (Evaluasi empat semester)",
+          "Evaluasi kelanjutan studi S2 dan S3 Angkatan 2025-1 (Evaluasi dua semester)"
+        ]
+      }
+    },
+    {
+      "judul_ics": "Batas akhir masa studi bagi angkatan yang dievaluasi (rincian di PDF)",
+      "mulai_ics": "2026-07-24",
+      "alasan": "Rincian per angkatan hanya ada di PDF; teks Indonesia dan Inggris sama.",
+      "set": {
+        "catatan": "Rincian per angkatan disalin dari PDF. Rujuk PDF resmi.",
+        "rincian": [
+          "Batas akhir masa studi mahasiswa S1 Angkatan 2019 (Evaluasi 14 Semester); S2 Angkatan 2021-2 (Pernah Cuti); S2 Angkatan 2022-1 (Evaluasi delapan semester); S2 Angkatan 2023-1 (Evaluasi enam semester); S3 Angkatan 2020-2 (Pernah Cuti); S3 Angkatan 2021-1 (Evaluasi sepuluh semester); Profesi (Akuntansi, Insinyur, Arsitek, Apoteker, Ners, dan Fisioterapi) Angkatan 2023-1 (Evaluasi enam semester); dan Profesi Dokter dan Dokter Gigi Angkatan 2021-1 (Evaluasi sepuluh semester)."
+        ]
+      }
+    },
+    {
+      "judul_ics": "Evaluasi masa studi dan kelanjutan studi (rincian di PDF)",
+      "mulai_ics": "2026-12-31",
+      "alasan": "Rincian per angkatan hanya ada di PDF. Teks Indonesia dan Inggris menyebut angkatan yang berbeda.",
+      "set": {
+        "status_verifikasi": "perlu_cek",
+        "catatan": "Rincian per angkatan disalin dari teks Indonesia di PDF. Teks Inggris menyebut angkatan lain (misalnya S3 2020-1 dan bukan 2021-1, S2 2021-2 dan 2023-2 dan bukan 2022-2). Rujuk PDF resmi.",
+        "rincian": [
+          "Evaluasi masa studi mahasiswa S1 Angkatan 2019 (Pernah Cuti)",
+          "Evaluasi masa studi mahasiswa S2 Angkatan 2022-1 dan 2023-1 serta S3 Angkatan 2021-1 (Pernah Cuti)",
+          "Evaluasi masa studi mahasiswa S2 Angkatan 2022-2 (Evaluasi delapan semester) dan S3 Angkatan 2021-2 (Evaluasi sepuluhsemester)",
+          "Evaluasi masa studi mahasiswa Profesi (Akuntansi, Insinyur, Arsitek, Apoteker, Ners, dan Fisioterapi) Angkatan 2023-1 (Pernah Cuti) dan Angkatan 2023-2 (Evaluasi enam semester)",
+          "Evaluasi masa studi mahasiswa Profesi Dokter dan Dokter Gigi Angkatan 2021-1 (Pernah Cuti) dan Angkatan 2021-2 (Evaluasi sepuluh semester)",
+          "Tunda Evaluasi kelanjutan studi mahasiswa S1 Angkatan 2024 (pernah cuti/mundur dari seluruh mata kuliah)",
+          "Evaluasi kelanjutan studi S2 dan S3 Angkatan 2025-2 (Evaluasi dua semester)"
+        ]
+      }
+    },
+    {
+      "judul_ics": "Batas akhir masa studi bagi angkatan yang dievaluasi (rincian di PDF)",
+      "mulai_ics": "2027-01-22",
+      "alasan": "Rincian per angkatan hanya ada di PDF. Angkatannya setahun lebih awal dari evaluasi 31 Des 2026 (misalnya S1 2018, bukan 2019).",
+      "set": {
+        "status_verifikasi": "perlu_cek",
+        "catatan": "Rincian per angkatan disalin dari PDF. Angkatan yang disebut tidak sama dengan evaluasi 31 Des 2026 (S1 2018 dan bukan 2019, S2 2021-1 dan 2021-2, S3 2020-1 dan 2020-2). Rujuk PDF resmi.",
+        "rincian": [
+          "Batas akhir masa studi mahasiswa S1 Angkatan 2018 (Pernah Cuti); S2 Angkatan 2021-1 (Pernah Cuti); S2 Angkatan 2021-2 (Evaluasi delapan semester); S3 Angkatan 2020-1 (Pernah Cuti); S3 Angkatan 2020-2 (Evaluasi sepuluh semester); Profesi (Akuntansi, Insinyur, Arsitek, Apoteker, Ners, dan Fisioterapi) Angkatan 2022-1 (Pernah Cuti) dan Angkatan 2022-2 (Evaluasi enam semester); dan Profesi Dokter dan Dokter Gigi Angkatan 2020-1 (Pernah Cuti) Angkatan 2020-2 (Evaluasi sepuluh semester)."
+        ]
+      }
+    }
+  ],
+  "tambah": [
+    {
+      "id": "2026-2027-libur-semester-sebelum-awal",
+      "semester": null,
+      "kategori": "libur",
+      "judul": "Libur semester",
+      "mulai": "2026-06-29",
+      "selesai": "2026-08-15",
+      "audiens": "mahasiswa",
+      "jenjang": ["semua"],
+      "status_verifikasi": "cocok_pdf",
+      "catatan": "Hanya ditandai warna di kisi kalender PDF.",
+      "alasan": "Hanya di PDF (warna sel kisi kalender)."
+    },
+    {
+      "id": "2026-2027-lain-kkn-reguler-jun-agu-2026",
+      "semester": null,
+      "kategori": "kkn",
+      "judul": "Penyelenggaraan Kuliah Kerja Nyata (KKN) Reguler",
+      "mulai": "2026-06-01",
+      "selesai": "2026-08-31",
+      "perkiraan": true,
+      "audiens": "mahasiswa",
+      "jenjang": ["semua"],
+      "status_verifikasi": "cocok_pdf",
+      "catatan": "PDF hanya menulis bulan (Jun-Agu).",
+      "alasan": "Hanya di PDF."
+    },
+    {
+      "id": "2026-2027-awal-dies-natalis-unhas",
+      "semester": "awal",
+      "kategori": "lainnya",
+      "judul": "Dies Natalis Unhas",
+      "mulai": "2026-09-10",
+      "selesai": "2026-09-10",
+      "audiens": "umum",
+      "jenjang": ["semua"],
+      "status_verifikasi": "cocok_pdf",
+      "alasan": "Hanya di PDF."
+    }
+  ],
+  "libur_nasional": [
+    { "id": "2026-2027-libur-2026-06-01-hari-lahir-pancasila", "nama": "Hari Lahir Pancasila", "mulai": "2026-06-01", "selesai": "2026-06-01", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2026-06-16-tahun-baru-islam", "nama": "Tahun Baru Islam 1448 H", "mulai": "2026-06-16", "selesai": "2026-06-16", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2026-08-17-hari-kemerdekaan", "nama": "Hari Kemerdekaan RI", "mulai": "2026-08-17", "selesai": "2026-08-17", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2026-08-25-maulid-nabi", "nama": "Maulid Nabi Muhammad SAW", "mulai": "2026-08-25", "selesai": "2026-08-25", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2026-12-24-cuti-bersama-natal", "nama": "Cuti bersama Hari Raya Natal", "mulai": "2026-12-24", "selesai": "2026-12-24", "jenis": "cuti_bersama", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2026-12-25-natal", "nama": "Hari Raya Natal", "mulai": "2026-12-25", "selesai": "2026-12-25", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-01-01-tahun-baru-masehi", "nama": "Tahun Baru Masehi 2027", "mulai": "2027-01-01", "selesai": "2027-01-01", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-01-05-isra-miraj", "nama": "Isra' Mi'raj Nabi Muhammad SAW", "mulai": "2027-01-05", "selesai": "2027-01-05", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-02-06-imlek", "nama": "Tahun Baru Imlek 2578", "mulai": "2027-02-06", "selesai": "2027-02-06", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-03-08-nyepi", "nama": "Hari Raya Nyepi (Tahun Baru Saka 1949)", "mulai": "2027-03-08", "selesai": "2027-03-08", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-03-10-idul-fitri", "nama": "Hari Raya Idul Fitri 1448 H", "mulai": "2027-03-10", "selesai": "2027-03-11", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf", "catatan": "PDF menulis \"10 Mar\" dua kali; kisi kalender menandai 10 dan 11 Mar. Dipakai 10 dan 11 Mar." },
+    { "id": "2026-2027-libur-2027-03-26-wafat-yesus-kristus", "nama": "Wafat Yesus Kristus", "mulai": "2027-03-26", "selesai": "2027-03-26", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-05-01-hari-buruh", "nama": "Hari Buruh Nasional", "mulai": "2027-05-01", "selesai": "2027-05-01", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-05-06-kenaikan-yesus-kristus", "nama": "Kenaikan Yesus Kristus", "mulai": "2027-05-06", "selesai": "2027-05-06", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-05-17-idul-adha", "nama": "Hari Raya Idul Adha 1448 H", "mulai": "2027-05-17", "selesai": "2027-05-17", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-05-20-waisak", "nama": "Hari Raya Waisak 2571", "mulai": "2027-05-20", "selesai": "2027-05-20", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-06-01-hari-lahir-pancasila", "nama": "Hari Lahir Pancasila", "mulai": "2027-06-01", "selesai": "2027-06-01", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" },
+    { "id": "2026-2027-libur-2027-06-06-tahun-baru-islam", "nama": "Tahun Baru Islam 1449 H", "mulai": "2027-06-06", "selesai": "2027-06-06", "jenis": "libur_nasional", "status_verifikasi": "cocok_pdf" }
+  ],
+  "pekan": {
+    "awal": {
+      "mulai_pekan_1": "2026-08-17",
+      "jumlah": 16,
+      "uts_pekan": 8,
+      "uas_pekan": 16,
+      "catatan": "Pekan 1 adalah minggu yang memuat kuliah perdana 18 Agu 2026. Cocok dengan pola \"Pekan 1 sampai 16\" di SIKOLA."
+    },
+    "akhir": null
+  }
+}
