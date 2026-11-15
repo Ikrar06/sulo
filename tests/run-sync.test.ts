@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { MoodleCall } from '../lib/moodle/calls';
 import type { BatchOutcome, MoodleClient, RequestOptions } from '../lib/moodle/client';
 import { SESSION_KEY } from '../lib/moodle/session';
-import { jitterMinutes, JITTER_KEY } from '../lib/schedule';
+import { ensureJitter, jitterMinutes, JITTER_KEY } from '../lib/schedule';
 import { readUser, switchUser, SYNC_STATUS_KEY, writeUser } from '../lib/storage';
 import { runSync } from '../lib/sync/run-sync';
 import type { SyncTrigger } from '../lib/types';
@@ -157,12 +157,74 @@ describe('runSync', () => {
     expect(client.batches).toHaveLength(0);
   });
 
-  it('wipes the previous account when another user signs in', async () => {
-    const store = memoryStore();
-    await switchUser(store, 99);
-    await writeUser(store, 99, 'tasks', []);
-    await run(fakeClient(undefined, 1), store, 'onboarding');
-    expect(Object.keys(store.dump()).filter((k) => k.startsWith('u:99:'))).toEqual([]);
+  // Replaces "wipes the previous account when another user signs in": since
+  // Stage 2 another account is hidden and asked about, never wiped at once.
+  describe('another account signs in (hidden, not wiped)', () => {
+    const MIN = 60;
+    async function oldAccount() {
+      const store = memoryStore();
+      await run(fakeClient(undefined, 99), store, 'onboarding');
+      await writeUser(store, 99, 'onboarding', { completedAt: NOW, confirmedInProgress: [], reviewSuggested: [] });
+      return store;
+    }
+    const at = (minutes: number) => fixedClock('2026-09-22', 11, NOW + minutes * MIN);
+
+    it('keeps the previous data, writes nothing from the batch and records the other account', async () => {
+      const store = await oldAccount();
+      const before = Object.fromEntries(Object.entries(store.dump()).filter(([k]) => k.startsWith('u:99:')));
+      const outcome = await runSync({ client: fakeClient(undefined, 1), store, clock: at(30), trigger: 'manual' });
+      expect(outcome).toEqual({ status: 'account_mismatch', userId: 1 });
+      expect(Object.fromEntries(Object.entries(store.dump()).filter(([k]) => k.startsWith('u:99:')))).toEqual(before);
+      expect(Object.keys(store.dump()).some((k) => k.startsWith('u:1:'))).toBe(false);
+      expect(store.dump()['global:currentUser']).toBe(99);
+      expect(store.dump()['global:accountPending']).toEqual({ userId: 1, detectedAt: NOW + 30 * MIN, lastCheckAt: NOW + 30 * MIN, deferredAt: null });
+    });
+
+    it('stops every automatic sync while mismatched, without a request', async () => {
+      const store = await oldAccount();
+      await runSync({ client: fakeClient(undefined, 1), store, clock: at(30), trigger: 'manual' });
+      const client = fakeClient(undefined, 1);
+      for (const trigger of ['background', 'startup', 'idle', 'onboarding'] as const) {
+        expect(await runSync({ client, store, clock: at(600), trigger, idleState: 'active' })).toEqual({ status: 'skipped', reason: 'ACCOUNT_MISMATCH' });
+      }
+      expect(client.batches).toHaveLength(0);
+    });
+
+    it('checks with the session call only: "Perbarui" always, a new sesskey once per 10 minutes', async () => {
+      const store = await oldAccount();
+      await runSync({ client: fakeClient(undefined, 1), store, clock: at(30), trigger: 'manual' });
+      const client = fakeClient(undefined, 1);
+      expect(await runSync({ client, store, clock: at(35), trigger: 'sesskey' })).toEqual({ status: 'skipped', reason: 'ACCOUNT_MISMATCH' });
+      expect(await runSync({ client, store, clock: at(41), trigger: 'sesskey' })).toEqual({ status: 'account_mismatch', userId: 1 });
+      expect(await runSync({ client, store, clock: at(42), trigger: 'manual' })).toEqual({ status: 'account_mismatch', userId: 1 });
+      expect(await runSync({ client, store, clock: at(43), trigger: 'sesskey' })).toEqual({ status: 'skipped', reason: 'ACCOUNT_MISMATCH' });
+      expect(client.batches.map((b) => b.calls.map((c) => c.methodname))).toEqual([['core_session_time_remaining'], ['core_session_time_remaining']]);
+      expect(client.batches.map((b) => b.options?.source)).toEqual(['sesskey', 'manual']);
+    });
+
+    it('the previous account coming back clears the mismatch; the next cycle syncs normally', async () => {
+      const store = await oldAccount();
+      await runSync({ client: fakeClient(undefined, 1), store, clock: at(30), trigger: 'manual' });
+      const back = fakeClient(undefined, 99);
+      expect(await runSync({ client: back, store, clock: at(50), trigger: 'manual' })).toEqual({ status: 'account_restored' });
+      expect(store.dump()['global:accountPending']).toBeUndefined();
+      expect(back.batches[0]!.calls).toHaveLength(1);
+      expect((await runSync({ client: back, store, clock: at(60), trigger: 'manual' })).status).toBe('ok');
+      expect(back.batches[1]!.calls.length).toBeGreaterThan(1);
+    });
+
+    it('a third account replaces the pending one', async () => {
+      const store = await oldAccount();
+      await runSync({ client: fakeClient(undefined, 1), store, clock: at(30), trigger: 'manual' });
+      expect(await runSync({ client: fakeClient(undefined, 7), store, clock: at(50), trigger: 'manual' })).toEqual({ status: 'account_mismatch', userId: 7 });
+      expect(store.dump()['global:accountPending']).toMatchObject({ userId: 7, detectedAt: NOW + 50 * MIN });
+    });
+
+    it('a new sesskey without a mismatch sends nothing', async () => {
+      const client = fakeClient();
+      expect(await runSync({ client, store: await oldAccount(), clock: at(30), trigger: 'sesskey' })).toEqual({ status: 'skipped', reason: 'NOT_NEEDED' });
+      expect(client.batches).toHaveLength(0);
+    });
   });
 
   it('flags a semester review instead of changing the user choice', async () => {
@@ -212,8 +274,17 @@ describe('jitterMinutes', () => {
     // Range 0..20 minutes since Stage 1 (was 0..10): 0.55 -> 11.
     expect(await jitterMinutes(store, () => 0.55)).toBe(11);
     expect(await jitterMinutes(store, () => 0.99)).toBe(11);
-    expect(store.dump()[JITTER_KEY]).toBe(11);
+    // Stored with its range since Stage 2 (was a bare number).
+    expect(store.dump()[JITTER_KEY]).toEqual({ minutes: 11, range: 20 });
     expect(await jitterMinutes(memoryStore(), () => 0.999)).toBe(20);
+  });
+
+  it('draws again when the stored value came from another range (older installs: 0..10)', async () => {
+    const legacy = memoryStore({ [JITTER_KEY]: 6 });
+    expect(await ensureJitter(legacy, () => 0.9)).toEqual({ minutes: 18, changed: true });
+    expect(await ensureJitter(legacy, () => 0.1)).toEqual({ minutes: 18, changed: false });
+    const oldRange = memoryStore({ [JITTER_KEY]: { minutes: 4, range: 10 } });
+    expect((await ensureJitter(oldRange, () => 0.5)).changed).toBe(true);
   });
 
   describe('radar (M4)', () => {

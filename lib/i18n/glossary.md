@@ -70,3 +70,15 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 - Pakai "diundur" dan "dimajukan", bukan "mundur" atau "maju".
 - Notifikasi nilai tidak pernah menyebut angka nilai atau isi komentar.
 - Panel: "Kabar terbaru", "3 kabar baru", "Tandai semua sudah dilihat", "Beri tahu aku tentang". Penanda baris: "Baru", "Tenggat berubah".
+
+## Akun dan data
+
+| Keadaan | Tulisan |
+|---|---|
+| Akun lain masuk ke SIKOLA | Judul "Akun SIKOLA berbeda terdeteksi". Tombol "Pakai akun ini" dan "Nanti, aku akan masuk dengan akun sebelumnya" |
+| Setelah "Nanti" | "Tugas akun sebelumnya disembunyikan" + "Masuk lagi ke SIKOLA dengan akun sebelumnya, lalu klik Perbarui." |
+| Hapus semua data | Judul "Hapus semua data Sulo?", tombol "Hapus semua data" dan "Batal" |
+| Atur mata kuliah | Judul "Mata kuliahmu", tombol "Segarkan daftar" dan "Simpan", lalu "Tidak ada perubahan" atau "Tersimpan" dengan "Kembali ke Sulo" |
+
+- Sebut apa yang terjadi pada data dengan kata sehari-hari: "disembunyikan", "dihapus", "tidak tersentuh". Jangan menyebut userid, storage, atau akun "aktif".
+- Setiap kalimat tentang penghapusan menyebut bahwa data di SIKOLA tidak tersentuh.

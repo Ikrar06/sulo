@@ -17,6 +17,9 @@ const buttonVariants = cva(
           "hover:bg-muted hover:text-foreground active:bg-[color-mix(in_oklch,var(--muted),var(--foreground)_10%)] aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-ring:ring-destructive dark:bg-destructive/20 dark:hover:bg-destructive/30",
+        /** Solid, for the one confirming action of a destructive dialog. */
+        "destructive-solid":
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80 focus-ring:ring-destructive",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

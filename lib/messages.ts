@@ -12,7 +12,14 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('status/get') }),
   z.object({ type: z.literal('popup/opened') }),
   /** The popup never syncs on open; only "Perbarui" (manual) and setup ask. */
-  z.object({ type: z.literal('sync/request'), trigger: z.enum(['manual', 'onboarding']) }),
+  /** forceCourseList: "Segarkan daftar" in "Mata kuliahmu" (the 24-hour TTL is skipped once). */
+  z.object({ type: z.literal('sync/request'), trigger: z.enum(['manual', 'onboarding']), forceCourseList: z.boolean().optional() }),
+  /** "Pakai akun ini": delete the previous account's data and set up the new one. */
+  z.object({ type: z.literal('account/useNew') }),
+  /** "Nanti, aku akan masuk dengan akun sebelumnya": keep everything hidden. */
+  z.object({ type: z.literal('account/defer') }),
+  /** "Hapus semua data" after its confirmation dialog. */
+  z.object({ type: z.literal('data/wipeAll') }),
   /** "Kirim notifikasi uji" in the reminder settings. */
   z.object({ type: z.literal('notify/test') }),
 ]);

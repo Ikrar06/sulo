@@ -39,7 +39,7 @@ export function StepIntro({ noticeOutdated, onContinue }: { noticeOutdated: bool
 
 export type ConnectStatus = 'checking' | 'need_login' | 'waiting' | 'connected' | 'failed';
 
-export function StepConnect(props: { status: ConnectStatus; failedReason?: string; onOpenSikola: () => void; onRetry: () => void }) {
+export function StepConnect(props: { status: ConnectStatus; failedReason?: string; onOpenSikola: () => void; onRetry: () => void; lead?: string }) {
   const { m } = useI18n();
   const t = m.onboarding;
   const { status } = props;
@@ -47,7 +47,7 @@ export function StepConnect(props: { status: ConnectStatus; failedReason?: strin
   return (
     <div className="space-y-7">
       <Title>{t.connect.title}</Title>
-      <Lead>{t.connect.lead}</Lead>
+      <Lead>{props.lead ?? t.connect.lead}</Lead>
       {/* Nothing is being checked before the user logs in, so no status then. */}
       <div role="status" className="flex min-h-12 items-center gap-3 text-[16px]">
         {status === 'need_login' ? null : status === 'connected' ? (

@@ -113,6 +113,8 @@ export const POPUP_STATES: { title: string; input: PopupInput; view: PopupView }
     title: 'Semester baru terdeteksi',
     ...withView(input({ user: { ...baseUser(), onboarding: { completedAt: NOW - DAY, confirmedInProgress: [401], reviewSuggested: [402, 403] } } })),
   },
+  { title: 'Akun lain terdeteksi', ...withView(input({ accountPending: { userId: 2, detectedAt: NOW, lastCheckAt: NOW, deferredAt: null } })) },
+  { title: 'Akun lain, setelah "Nanti"', ...withView(input({ accountPending: { userId: 2, detectedAt: NOW, lastCheckAt: NOW, deferredAt: NOW } })) },
 ];
 
 /** 50 courses with real-pattern names (invented), for the onboarding list. */

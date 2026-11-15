@@ -15,6 +15,8 @@ import { taskMarkers } from '../radar/log';
 import { getTaskState } from '../tasks/local-state';
 import { badgeCount, GROUP_ORDER, groupTasks, pendingTasks, urgencyOf, type TaskGroupKey, type Urgency } from '../tasks/group';
 import type { BudgetState, RemoteConfig, SessionState, UnixSeconds, ChangeLogEntry } from '../types';
+import type { AccountPending } from '../account/pending';
+import { accountStatus, decidePopupScreen, setupStatus, type PopupScreen } from '../account/state';
 
 export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgent' | 'sleepy' | 'stale' | 'dizzy' | 'onboarding';
 
@@ -88,6 +90,10 @@ export interface TaskGroupView {
 }
 
 export interface PopupView {
+  /** Which screen (lib/account/state.ts): setup, another account, or the list. */
+  screen: PopupScreen;
+  /** Another account: the user chose "Nanti" (a shorter note, same choices). */
+  mismatchDeferred: boolean;
   onboarded: boolean;
   banner: Banner | null;
   mascot: MascotState;
@@ -126,6 +132,8 @@ export interface PopupInput {
   syncing?: boolean;
   /** chrome.notifications permission; omitted means granted. */
   notificationsAllowed?: boolean;
+  /** Another SIKOLA account signed in (global:accountPending); omitted means none. */
+  accountPending?: AccountPending | null;
 }
 
 /** Offline: the browser says so, or the last request failed at the network level. */
@@ -147,6 +155,11 @@ function bannerFor(input: PopupInput, stale: boolean): Banner | null {
 }
 
 export function buildPopupView(input: PopupInput): PopupView {
+  const pendingAccount = input.accountPending ?? null;
+  const account = accountStatus({ hasUser: input.user !== null, session: input.session, pending: pendingAccount });
+  const screen = decidePopupScreen(account, setupStatus({ hasUser: input.user !== null, completedAt: input.user?.onboarding.completedAt ?? null }));
+  if (screen === 'mismatch') return mismatchView(input, pendingAccount?.deferredAt !== null && pendingAccount?.deferredAt !== undefined);
+
   const { user, now, timeZone } = input;
   const lastSyncAt = user?.sync.lastSyncAt ?? null;
   const stale = isStale(lastSyncAt, now);
@@ -211,6 +224,8 @@ export function buildPopupView(input: PopupInput): PopupView {
   else if (pending.length === 0 && lastSyncAt) mascot = 'all-done';
 
   return {
+    screen,
+    mismatchDeferred: false,
     onboarded,
     banner,
     mascot,
@@ -233,6 +248,34 @@ export function buildPopupView(input: PopupInput): PopupView {
     updatesUnseen: updates.filter((e) => !e.seen).length,
     updates,
     courseNames: Object.fromEntries(courses.map((c) => [String(c.id), courseAlias(c)])),
+  };
+}
+
+/**
+ * Another account is signed in: nothing of the stored account is shown (no
+ * tasks, counts, updates or course names). The badge reads "!" in the same
+ * color as an expired session; the popup explains.
+ */
+function mismatchView(input: PopupInput, deferred: boolean): PopupView {
+  return {
+    screen: 'mismatch',
+    mismatchDeferred: deferred,
+    onboarded: false,
+    banner: null,
+    mascot: 'sleepy',
+    syncing: input.syncing ?? false,
+    lastSyncAt: null,
+    groups: [],
+    pendingCount: 0,
+    inactiveCourseTaskCount: 0,
+    probablySubmittedCount: 0,
+    reviewSuggestedCount: 0,
+    copyItems: [],
+    badge: { text: '!', tone: 'expired' },
+    budget: input.budget,
+    updatesUnseen: 0,
+    updates: [],
+    courseNames: {},
   };
 }
 

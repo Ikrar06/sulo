@@ -13,16 +13,35 @@ export const BACKGROUND_FRESH_MIN = 60;
 
 export const JITTER_KEY = 'global:jitterMinutes';
 
+/** Stored with the range it was drawn from, so a new range re-draws it. */
+export interface StoredJitter {
+  minutes: number;
+  /** JITTER_MAX_MIN at the time of the draw. */
+  range: number;
+}
+
 /**
  * A fixed random offset per installation (0..JITTER_MAX_MIN), so installs do
- * not hit SIKOLA at the same minute. Stored once and reused.
+ * not hit SIKOLA at the same minute. Stored once and reused; drawn again when
+ * the range changed (older installs stored a bare number from 0..10).
+ * `changed` tells the caller to move the periodic alarm.
  */
+export async function ensureJitter(
+  store: KeyValueStore,
+  random: () => number = Math.random,
+  range: number = JITTER_MAX_MIN,
+): Promise<{ minutes: number; changed: boolean }> {
+  const stored = await store.get<StoredJitter | number>(JITTER_KEY);
+  if (typeof stored === 'object' && stored !== null && stored.range === range && Number.isInteger(stored.minutes)) {
+    return { minutes: stored.minutes, changed: false };
+  }
+  const minutes = Math.min(range, Math.floor(random() * (range + 1)));
+  await store.set<StoredJitter>(JITTER_KEY, { minutes, range });
+  return { minutes, changed: true };
+}
+
 export async function jitterMinutes(store: KeyValueStore, random: () => number = Math.random): Promise<number> {
-  const stored = await store.get<number>(JITTER_KEY);
-  if (typeof stored === 'number') return stored;
-  const value = Math.floor(random() * (JITTER_MAX_MIN + 1));
-  await store.set(JITTER_KEY, value);
-  return value;
+  return (await ensureJitter(store, random)).minutes;
 }
 
 /** Mirrors chrome.idle states without importing browser APIs. */

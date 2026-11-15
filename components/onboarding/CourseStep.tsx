@@ -36,10 +36,13 @@ const isCurrentSemester = (c: CourseRecord) => c.inProgress || c.activeScore >= 
 export interface StepCoursesProps {
   courses: CourseRecord[];
   onToggle: (id: CourseId, active: boolean) => void;
+  /** "Mata kuliahmu" (manage-courses mode) replaces the first-run title and lead. */
+  title?: string;
+  lead?: string;
 }
 
 /** The course step body. Its action bar is rendered by the shell (CoursesFooter). */
-export function StepCourses({ courses, onToggle }: StepCoursesProps) {
+export function StepCourses({ courses, onToggle, title, lead }: StepCoursesProps) {
   const { m } = useI18n();
   const t = m.onboarding;
   const [query, setQuery] = useState('');
@@ -67,9 +70,9 @@ export function StepCourses({ courses, onToggle }: StepCoursesProps) {
     <div className="space-y-6">
       <div className="flex items-end gap-4">
         <Mascot state="onboarding" size={72} followCursor grounded className="-mb-1 shrink-0" />
-        <Title>{t.courses.title}</Title>
+        <Title>{title ?? t.courses.title}</Title>
       </div>
-      <Lead>{t.courses.lead(suggested)}</Lead>
+      <Lead>{lead ?? t.courses.lead(suggested)}</Lead>
       <div className="relative max-w-[420px]">
         <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-muted-foreground" />
         <input

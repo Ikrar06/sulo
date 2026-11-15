@@ -8,6 +8,8 @@ import type { OnboardingState } from '@/lib/storage';
 export interface FlowContext {
   /** The user finished onboarding before (reopened from the popup). */
   completed: boolean;
+  /** switch-account starts at the connect step: the notice was already read. */
+  mode?: 'first-run' | 'switch-account';
 }
 
 export interface StepDef<Id extends string = string> {
@@ -21,7 +23,7 @@ export type M2StepId = 'intro' | 'connect' | 'courses' | 'done';
 
 /** M2: four required steps. */
 export const ONBOARDING_STEPS: readonly StepDef<M2StepId>[] = [
-  { id: 'intro', optional: false, show: () => true },
+  { id: 'intro', optional: false, show: (ctx) => ctx.mode !== 'switch-account' },
   { id: 'connect', optional: false, show: () => true },
   { id: 'courses', optional: false, show: () => true },
   { id: 'done', optional: false, show: () => true },

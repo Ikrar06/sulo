@@ -36,7 +36,9 @@ export type RequestSource =
   | 'sesskey-fallback'
   | 'recorder'
   /** Dev builds: the nosessionupdate check. */
-  | 'dev-probe';
+  | 'dev-probe'
+  /** A new sesskey arrived while another account is detected (session-only check). */
+  | 'sesskey';
 
 export interface BudgetState {
   /** Local date, YYYY-MM-DD. Budget resets when this changes. */
@@ -227,11 +229,15 @@ export interface ParseResult<T> {
 // ---------- Sync ----------
 
 /** The popup never triggers a sync (it only reads storage). */
-export type SyncTrigger = 'background' | 'startup' | 'idle' | 'manual' | 'onboarding';
+export type SyncTrigger = 'background' | 'startup' | 'idle' | 'manual' | 'onboarding' | 'sesskey';
 
 export type SyncOutcome =
   | { status: 'ok'; at: UnixSeconds; tasks: number; courseListFetched: boolean }
-  | { status: 'skipped'; reason: ClientRefusal | 'QUIET_HOURS' | 'IDLE' | 'FRESH' | 'BUSY' }
+  | { status: 'skipped'; reason: ClientRefusal | 'QUIET_HOURS' | 'IDLE' | 'FRESH' | 'BUSY' | 'ACCOUNT_MISMATCH' | 'NOT_NEEDED' }
+  /** Another SIKOLA account is signed in: its data was not written (docs/ARCHITECTURE.md section 5). */
+  | { status: 'account_mismatch'; userId: UserId }
+  /** The previous account is back: normal syncs resume at the next cycle. */
+  | { status: 'account_restored' }
   | { status: 'session_expired' }
   | { status: 'invalid_sesskey' }
   | { status: 'offline' }

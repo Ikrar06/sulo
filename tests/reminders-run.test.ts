@@ -53,6 +53,18 @@ describe('notification cycle', () => {
     expect(count).toBe(1);
   });
 
+  it('stays silent while another account is signed in, and resumes when it is resolved', async () => {
+    const store = setup();
+    await store.set('global:accountPending', { userId: 6, detectedAt: NOW, lastCheckAt: NOW, deferredAt: null });
+    let count = 0;
+    const notifier: Notifier = { show: async () => void (count += 1) };
+    expect(await runNotifyCycle({ store, now: NOW, timeZone: 'Asia/Makassar', uiLanguage: 'id', notifier })).toEqual({ nextAt: null, shown: 0 });
+    expect(count).toBe(0);
+    await store.remove('global:accountPending');
+    await runNotifyCycle({ store, now: NOW, timeZone: 'Asia/Makassar', uiLanguage: 'id', notifier });
+    expect(count).toBe(1);
+  });
+
   it('counts a failed notification and does not retry it', async () => {
     const store = setup();
     let attempts = 0;

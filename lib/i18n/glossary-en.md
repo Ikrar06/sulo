@@ -66,3 +66,15 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 - Say "moved later" and "moved earlier", not "postponed" or "brought forward".
 - Grade notifications never mention the grade or the comment.
 - Panel: "Latest updates", "3 new updates", "Mark all as seen", "Tell me about". Row markers: "New", "Due date changed".
+
+## Accounts and data
+
+| Situation | Text |
+|---|---|
+| Another account signs in to SIKOLA | Title "A different SIKOLA account was found". Buttons "Use this account" and "Later, I'll sign in with the previous account" |
+| After "Later" | "The previous account's tasks are hidden" + "Sign in to SIKOLA with the previous account again, then click Update." |
+| Delete all data | Title "Delete all Sulo data?", buttons "Delete all data" and "Cancel" |
+| Choose courses | Title "Your courses", buttons "Refresh list" and "Save", then "No changes" or "Saved" with "Back to Sulo" |
+
+- Say what happens to the data in everyday words: "hidden", "deleted", "not touched". Never mention user ids, storage or an "active" account.
+- Every sentence about deleting says that nothing in SIKOLA is touched.

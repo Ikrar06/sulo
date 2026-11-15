@@ -19,6 +19,8 @@ export const TASKS_TTL_MIN = 180;
 export const TTL_TOLERANCE_MIN = 10;
 /** Onboarding reuses data younger than this instead of a new request. */
 export const ONBOARDING_FRESH_MIN = 5;
+/** While another account is detected: at most one session-only check per this many minutes, except from "Perbarui". */
+export const MISMATCH_CHECK_GAP_MIN = 10;
 export const QUIET_HOURS = { startHour: 0, endHour: 6 } as const;
 export const IDLE_THRESHOLD_SEC = 300;
 export const MAX_STATE_CALLS_PER_BATCH = 10;

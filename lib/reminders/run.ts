@@ -14,6 +14,7 @@ import { messagesFor, resolveLocale } from '../i18n';
 import { readSession } from '../moodle/session';
 import { readPrefs } from '../prefs';
 import { currentUser, readUser, writeUserIfCurrent } from '../storage';
+import { readPending } from '../account/pending';
 import type { KeyValueStore, Task, UnixSeconds } from '../types';
 import { planReminders, type Notice } from './plan';
 import { noticeView, type NotificationView } from './text';
@@ -62,6 +63,9 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   const { store, now, timeZone } = deps;
   const userId = await currentUser(store);
   if (userId === null) return { nextAt: null, shown: 0 };
+  // Another account is signed in: the stored account's reminders stay silent
+  // until the user decides (lib/account/pending.ts).
+  if (await readPending(store)) return { nextAt: null, shown: 0 };
   const [prefs, session, tasks, taskState, courses, notified, changes] = await Promise.all([
     readPrefs(store),
     readSession(store),

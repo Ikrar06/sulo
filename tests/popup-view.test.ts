@@ -130,3 +130,32 @@ describe('reminder signals in the popup', () => {
     expect(buildPopupView(input({ notificationsAllowed: false, session: 'EXPIRED' })).banner).toEqual({ kind: 'session_expired' });
   });
 });
+
+describe('another SIKOLA account (mismatch)', () => {
+  const pending = { userId: 2, detectedAt: NOW, lastCheckAt: NOW, deferredAt: null };
+
+  it('hides everything of the stored account and shows the mismatch screen', () => {
+    const view = buildPopupView(input({ accountPending: pending }));
+    expect(view.screen).toBe('mismatch');
+    expect(view.groups).toEqual([]);
+    expect(view.copyItems).toEqual([]);
+    expect(view.updates).toEqual([]);
+    expect(view.courseNames).toEqual({});
+    expect(view.pendingCount).toBe(0);
+    expect(view.banner).toBeNull();
+    expect(view.mismatchDeferred).toBe(false);
+  });
+
+  it('shows "!" on the badge in the same color as an expired session', () => {
+    expect(buildPopupView(input({ accountPending: pending })).badge).toEqual({ text: '!', tone: 'expired' });
+    expect(buildPopupView(input({ session: 'EXPIRED' })).badge.tone).toBe('expired');
+  });
+
+  it('keeps the shorter note after "Nanti"', () => {
+    expect(buildPopupView(input({ accountPending: { ...pending, deferredAt: NOW } })).mismatchDeferred).toBe(true);
+  });
+
+  it('is the list again once resolved', () => {
+    expect(buildPopupView(input({ accountPending: null })).screen).toBe('main');
+  });
+});

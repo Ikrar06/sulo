@@ -18,7 +18,7 @@ import { onSesskeyReceived, readSession, writeSession } from '@/lib/moodle/sessi
 import { trySesskeyFallbackFromPopup as trySesskeyFallback } from '@/lib/moodle/sesskey-fallback';
 import { pendingWhatsNew, WHATS_NEW } from '@/lib/onboarding/whats-new';
 import { effectiveIntervalMinutes, readRemoteConfig, refreshRemoteConfig } from '@/lib/remote/remote-config';
-import { BADGE_ALARM, BADGE_REFRESH_MIN, jitterMinutes, SYNC_ALARM, type IdleState } from '@/lib/schedule';
+import { BADGE_ALARM, BADGE_REFRESH_MIN, ensureJitter, SYNC_ALARM, type IdleState } from '@/lib/schedule';
 import { isContentScriptOn, isExtensionPageSender } from '@/lib/sender';
 import { isValidSesskey } from '@/lib/sesskey';
 import { CURRENT_USER_KEY, currentUser, NOTICE_KEY, NOTICE_VERSION, pruneOrphanUserKeys, readUser, writeUser } from '@/lib/storage';
@@ -26,7 +26,9 @@ import { readPrefs } from '@/lib/prefs';
 import { changeUrl } from '@/lib/radar/describe';
 import { countPopupOpen } from '@/lib/radar/log';
 import { parseNotificationId, runNotifyCycle, type Notifier } from '@/lib/reminders/run';
-import { createSingleFlight } from '@/lib/sync/lock';
+import { createSingleFlight, isSyncRunning } from '@/lib/sync/lock';
+import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@/lib/account/pending';
+import { useNewAccount, wipeAllData } from '@/lib/account/actions';
 import { runSync } from '@/lib/sync/run-sync';
 import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { messagesFor, resolveLocale } from '@/lib/i18n';
@@ -38,7 +40,7 @@ const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
 const NOTIFY_ALARM = 'notify';
 /** Storage changes that can move the next reminder. Not notified or stats (written by the cycle itself). */
-const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser))$/;
+const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser|accountPending))$/;
 /** The popup opens on this panel once (a click on an update summary). */
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
@@ -97,8 +99,10 @@ export default defineBackground(() => {
     const config = await readRemoteConfig(local);
     const period = effectiveIntervalMinutes(config);
     const existing = await browser.alarms.get(SYNC_ALARM);
-    if (!existing || existing.periodInMinutes !== period) {
-      await browser.alarms.create(SYNC_ALARM, { delayInMinutes: 1 + (await jitterMinutes(local)), periodInMinutes: period });
+    // A re-drawn jitter (new range) moves the alarm to its new minute.
+    const jitter = await ensureJitter(local);
+    if (!existing || existing.periodInMinutes !== period || jitter.changed) {
+      await browser.alarms.create(SYNC_ALARM, { delayInMinutes: 1 + jitter.minutes, periodInMinutes: period });
     }
     if (!(await browser.alarms.get(BADGE_ALARM))) {
       await browser.alarms.create(BADGE_ALARM, { periodInMinutes: BADGE_REFRESH_MIN });
@@ -214,12 +218,18 @@ export default defineBackground(() => {
     if (fallback.kind === 'not_found') await writeSession(local, clock, 'EXPIRED');
   };
 
-  const syncOnceGuarded = async (trigger: SyncTrigger): Promise<SyncOutcome> => {
+  /** forceCourseList: "Segarkan daftar" (rides with this request only; no module state). */
+  interface SyncRequest {
+    trigger: SyncTrigger;
+    forceCourseList?: boolean;
+  }
+
+  const syncOnceGuarded = async ({ trigger, forceCourseList = false }: SyncRequest): Promise<SyncOutcome> => {
     await refreshConfig();
     const unattended = trigger === 'background' || CATCHUP_TRIGGERS.has(trigger);
     const idleState: IdleState | undefined = unattended ? ((await browser.idle.queryState(IDLE_THRESHOLD_SEC)) as IdleState) : undefined;
     await recoverSesskeyIfAllowed(trigger);
-    const outcome = await runSync({ client, store: local, clock, trigger, idleState });
+    const outcome = await runSync({ client, store: local, clock, trigger, idleState, forceCourseList });
     if (outcome.status === 'invalid_sesskey') await session.remove(SESSKEY_KEY);
     await updateBadge();
     return outcome;
@@ -227,7 +237,7 @@ export default defineBackground(() => {
 
   // One sync at a time: a second trigger (popup, button, alarm, setup) waits
   // for the running one instead of sending its own request (lib/sync/lock.ts).
-  const sync = createSingleFlight<SyncTrigger>({
+  const syncFlight = createSingleFlight<SyncRequest>({
     store: local,
     now: () => clock.now(),
     newId: () => crypto.randomUUID(),
@@ -235,6 +245,7 @@ export default defineBackground(() => {
     setInterval: (fn, ms) => setInterval(fn, ms),
     clearInterval: (handle) => clearInterval(handle as ReturnType<typeof setInterval>),
   });
+  const sync = (trigger: SyncTrigger, forceCourseList = false) => syncFlight({ trigger, forceCourseList });
 
   // ---------- Status, popup, tools ----------
 
@@ -260,6 +271,42 @@ export default defineBackground(() => {
     await browser.alarms.create(name, { delayInMinutes: Math.max(0.5, Math.random() * CATCHUP_DELAY_MAX_MIN) });
   };
 
+  const clearAllNotifications = async () => {
+    const shown = await browser.notifications.getAll();
+    await Promise.all(Object.keys(shown).map((id) => browser.notifications.clear(id)));
+  };
+
+  const openSetup = async (hash: string) => {
+    await browser.tabs.create({ url: browser.runtime.getURL(`${ONBOARDING_PAGE}${hash}`) });
+  };
+
+  const useNew = async () => {
+    const ok = await useNewAccount({ store: local, clearNotifications: clearAllNotifications, openSetup });
+    await updateBadge();
+    return { ok };
+  };
+
+  const deferAccount = async () => {
+    const pending = await readPending(local);
+    if (pending) await local.set<AccountPending>(ACCOUNT_PENDING_KEY, { ...pending, deferredAt: clock.now() });
+    return { ok: true };
+  };
+
+  const wipeAll = async () => {
+    await wipeAllData({
+      syncRunning: () => isSyncRunning(local, clock.now()),
+      sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
+      clearAlarms: async () => void (await browser.alarms.clearAll()),
+      clearNotifications: clearAllNotifications,
+      clearLocal: () => browser.storage.local.clear(),
+      clearSession: () => browser.storage.session.clear(),
+      ensureAlarms,
+      openSetup,
+    });
+    await updateBadge();
+    return { ok: true };
+  };
+
   /** The user opened a logged-out SIKOLA page: stop at once, without a request. */
   const onLoggedOutPage = async () => {
     await session.remove(SESSKEY_KEY);
@@ -275,7 +322,14 @@ export default defineBackground(() => {
       case 'popup/opened':
         return countOpen().then(status);
       case 'sync/request':
-        return sync(message.trigger);
+        // A request that arrives while a cycle runs shares that cycle's result.
+        return sync(message.trigger, message.forceCourseList ?? false);
+      case 'account/useNew':
+        return useNew();
+      case 'account/defer':
+        return deferAccount();
+      case 'data/wipeAll':
+        return wipeAll();
       case 'notify/test':
         return sendTestNotification();
       default:
@@ -333,7 +387,13 @@ export default defineBackground(() => {
   browser.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
     const keys = Object.keys(changes);
-    if (keys.some((k) => k.endsWith(':taskState') || k.endsWith(':courses') || k === 'global:session')) void updateBadge();
+    if (keys.some((k) => k.endsWith(':taskState') || k.endsWith(':courses') || k === 'global:session' || k === ACCOUNT_PENDING_KEY)) void updateBadge();
+    // Another account appeared (or a third one): the stored account's
+    // notifications leave the screen; reminders pause (runNotifyCycle).
+    const pendingChange = changes[ACCOUNT_PENDING_KEY];
+    if (pendingChange?.newValue && (pendingChange.newValue as AccountPending).userId !== (pendingChange.oldValue as AccountPending | undefined)?.userId) {
+      void clearAllNotifications();
+    }
     if ('global:remoteConfig' in changes) void ensureAlarms();
     if (keys.some((k) => REMINDER_INPUTS.test(k))) runReminders();
     const account = changes[CURRENT_USER_KEY];
@@ -346,8 +406,7 @@ export default defineBackground(() => {
    * behind by a late write are removed too.
    */
   const onAccountChanged = async () => {
-    const shown = await browser.notifications.getAll();
-    await Promise.all(Object.keys(shown).map((id) => browser.notifications.clear(id)));
+    await clearAllNotifications();
     await pruneOrphanUserKeys(local);
   };
 
@@ -369,7 +428,15 @@ export default defineBackground(() => {
 
     if (message.type === 'sesskey/found') {
       if (!isContentScriptOn(sender, extensionId, SIKOLA_ORIGIN)) return false;
-      void session.set(SESSKEY_KEY, message.sesskey).then(() => onSesskeyReceived(local, clock)).then(updateBadge);
+      // While another account is detected, a new sesskey may run one
+      // session-only check (at most every 10 minutes, lib/account/pending.ts).
+      void session
+        .set(SESSKEY_KEY, message.sesskey)
+        .then(() => onSesskeyReceived(local, clock))
+        .then(updateBadge)
+        .then(async () => {
+          if (await readPending(local)) await sync('sesskey');
+        });
       return false;
     }
     if (message.type === 'session/loggedOut') {

@@ -203,6 +203,9 @@ export default function App({ startedAt }: { startedAt: number }) {
         onSetReminders={(reminders: ReminderSettings) => void writePrefs(local, { reminders })}
         onSetUpdates={(updates: UpdateSettings) => void writePrefs(local, { updates })}
         onMarkAllSeen={() => void onMarkAllSeen()}
+        onUseNewAccount={() => void send({ type: 'account/useNew' }).then(() => window.close())}
+        onDeferAccount={() => void send({ type: 'account/defer' })}
+        onWipeAll={() => void send({ type: 'data/wipeAll' }).then(() => window.close())}
         onTestNotification={async () => {
           await send({ type: 'notify/test' });
         }}

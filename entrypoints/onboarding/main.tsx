@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { browser } from 'wxt/browser';
+import { AccountMismatch } from '@/components/onboarding/AccountMismatch';
 import { CoursesFooter, StepCourses } from '@/components/onboarding/CourseStep';
 import { ConnectIllustration, connectVisual } from '@/components/onboarding/illustrations';
+import { ManageFooter, ManageNoChanges, ManageSaved } from '@/components/onboarding/ManageCourses';
 import { SampleCard } from '@/components/onboarding/SampleCard';
 import { OnboardingShell } from '@/components/onboarding/Shell';
 import { StepConnect, StepDone, StepIntro, StepWhatsNew, type ConnectStatus } from '@/components/onboarding/Steps';
+import { ACCOUNT_PENDING_KEY, readPending } from '@/lib/account/pending';
+import { accountStatus, decideOnboardingMode, resumeStep, SETUP_PROGRESS_KEY, setupStatus, type OnboardingMode } from '@/lib/account/state';
 import { createBrowserStore } from '@/lib/browser-store';
 import { isCourseActive } from '@/lib/courses/active-score';
 import { systemClock } from '@/lib/clock';
@@ -15,8 +19,10 @@ import { messagesFor, resolveLocale, type Messages } from '@/lib/i18n';
 import { readPrefs } from '@/lib/prefs';
 import type { Message } from '@/lib/messages';
 import { SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { readSession } from '@/lib/moodle/session';
 import { isValidSesskey } from '@/lib/sesskey';
-import { CURRENT_USER_KEY, currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUser, writeUserIfCurrent } from '@/lib/storage';
+import { CURRENT_USER_KEY, currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUserIfCurrent } from '@/lib/storage';
+import { hasCourseChanges, mergeDraft, toggleDraft } from '@/lib/onboarding/course-draft';
 import { nextStep, ONBOARDING_STEPS, progressOf, visibleSteps, type M2StepId } from '@/lib/onboarding/flow';
 import { pendingWhatsNew, WHATS_NEW, type WhatsNewEntry } from '@/lib/onboarding/whats-new';
 import { loadPopupInput } from '@/lib/view/load';
@@ -25,24 +31,30 @@ import type { CourseId, CourseRecord, SyncOutcome } from '@/lib/types';
 import '@/assets/tailwind.css';
 import { installInputModality } from '@/lib/ui/input-modality';
 
-// Onboarding in a full tab. Opened on install, from the popup ("Lanjutkan
-// pengaturan"), at the course step with #courses ("Atur mata kuliah"), or as
-// "Yang baru di Sulo" with #whats-new after an update. The steps come from
-// lib/onboarding/flow.ts; this page only renders the current one.
+// The setup page in a full tab: one flow, four modes (lib/account/state.ts):
+// - first-run: resumes at the last step reached (global:setupProgress)
+// - manage-courses (#courses): "Mata kuliahmu", no progress dots, cached list
+//   plus "Segarkan daftar", saved only on "Simpan"
+// - switch-account (#switch-account): starts at the connect step
+// - whats-new: one short screen after an update
+// While another SIKOLA account is detected, it shows the same two choices as
+// the popup instead.
 
 // Focus rings for keyboard users only (see assets/tailwind.css).
 installInputModality(document, document.documentElement);
 
 const local = createBrowserStore(browser.storage.local);
 const session = createBrowserStore(browser.storage.session);
-type Screen = M2StepId | 'whats-new';
+type Screen = M2StepId | 'whats-new' | 'mismatch' | 'saved' | 'no-changes';
 /** How long the lit wire stays on screen before the course step. */
 const CONNECTED_PAUSE_MS = 900;
+/** "Tidak ada perubahan" stays this long before the tab closes. */
+const NO_CHANGES_MS = 1100;
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-const syncFromOnboarding = async (): Promise<SyncOutcome | null> => {
+const sendMessage = async <T,>(message: Message): Promise<T | null> => {
   try {
-    return ((await browser.runtime.sendMessage({ type: 'sync/request', trigger: 'onboarding' } satisfies Message)) as SyncOutcome) ?? null;
+    return ((await browser.runtime.sendMessage(message)) as T) ?? null;
   } catch {
     return null;
   }
@@ -70,15 +82,20 @@ const outcomeText = (o: SyncOutcome | null, m: Messages): string => {
 
 function App() {
   const { m } = useI18n();
+  const [mode, setMode] = useState<OnboardingMode | null>(null);
   const [screen, setScreen] = useState<Screen | null>(null);
   const [completed, setCompleted] = useState(false);
   const [noticeRead, setNoticeRead] = useState(0);
   const [whatsNew, setWhatsNew] = useState<WhatsNewEntry[]>([]);
   const [connect, setConnect] = useState<ConnectStatus>('checking');
   const [failedReason, setFailedReason] = useState('');
+  // The stored list and the draft the user edits; only "Simpan" writes.
+  const [storedCourses, setStoredCourses] = useState<CourseRecord[]>([]);
   const [courses, setCourses] = useState<CourseRecord[]>([]);
   const [ownView, setOwnView] = useState<PopupView | null>(null);
   const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [manageNote, setManageNote] = useState<string | null>(null);
   const [doneNote, setDoneNote] = useState<string | null>(null);
   // The account this tab works for, once its courses are loaded. Every write
   // checks it is still the active account (compare-and-set); otherwise the
@@ -87,48 +104,71 @@ function App() {
   const [accountChanged, setAccountChanged] = useState(false);
   const connecting = useRef(false);
 
-  const steps = visibleSteps(ONBOARDING_STEPS, { completed });
+  const steps = visibleSteps(ONBOARDING_STEPS, { completed, mode: mode === 'switch-account' ? 'switch-account' : 'first-run' });
   const goNext = (from: M2StepId) => setScreen(nextStep(steps, from));
 
   const loadCourses = useCallback(async () => {
     const userId = await currentUser(local);
     if (userId !== null) {
+      const list = await readUser(local, userId, 'courses');
       setOwnerId(userId);
-      setCourses(await readUser(local, userId, 'courses'));
+      setStoredCourses(list);
+      setCourses(list);
     }
   }, []);
 
-  // Another account became active (logged in on SIKOLA in another tab).
+  // Another account became active (logged in on SIKOLA in another tab), or
+  // another account was detected while this one is stored.
   useEffect(() => {
     const onChange = (changes: Record<string, { newValue?: unknown }>, area: string) => {
+      if (area !== 'local') return;
       const account = changes[CURRENT_USER_KEY];
-      if (area === 'local' && account && ownerId !== null && account.newValue !== ownerId) setAccountChanged(true);
+      if (account && ownerId !== null && account.newValue !== ownerId) setAccountChanged(true);
+      if (changes[ACCOUNT_PENDING_KEY]?.newValue) setScreen('mismatch');
     };
     browser.storage.onChanged.addListener(onChange);
     return () => browser.storage.onChanged.removeListener(onChange);
   }, [ownerId]);
 
-  // Where to start: #courses, "Yang baru", or the first step.
+  // Which mode, and where it starts.
   useEffect(() => {
     void (async () => {
       const read = (await local.get<{ version: number }>(NOTICE_KEY))?.version ?? 0;
       const userId = await currentUser(local);
       const done = userId !== null && (await readUser(local, userId, 'onboarding')).completedAt !== null;
       const hasCourses = userId !== null && (await readUser(local, userId, 'courses')).length > 0;
-      const pending = pendingWhatsNew(WHATS_NEW, read, done);
+      const entries = pendingWhatsNew(WHATS_NEW, read, done);
+      const account = accountStatus({ hasUser: userId !== null, session: (await readSession(local)).state, pending: await readPending(local) });
+      const next = decideOnboardingMode({
+        hash: location.hash,
+        account,
+        setup: setupStatus({ hasUser: userId !== null, completedAt: done ? 0 : null }),
+        hasCourses,
+        whatsNew: entries.length > 0 || read < NOTICE_VERSION,
+      });
       setNoticeRead(read);
       setCompleted(done);
-      setWhatsNew(pending);
-      if (location.hash === '#courses' && read >= NOTICE_VERSION && hasCourses) {
+      setWhatsNew(entries);
+      setMode(next);
+      if (next === 'mismatch') return setScreen('mismatch');
+      if (next === 'whats-new') return setScreen('whats-new');
+      if (next === 'switch-account') return setScreen('connect');
+      if (next === 'manage-courses') {
         await loadCourses();
-        setScreen('courses');
-      } else if (done && (pending.length > 0 || read < NOTICE_VERSION)) {
-        setScreen('whats-new');
-      } else {
-        setScreen('intro');
+        return setScreen('courses');
       }
+      const saved = (await local.get<{ step: M2StepId }>(SETUP_PROGRESS_KEY))?.step ?? null;
+      const start = resumeStep({ saved, noticeRead: read >= NOTICE_VERSION, hasUser: userId !== null, hasCourses });
+      if (start === 'courses') await loadCourses();
+      setScreen(start);
     })();
   }, [loadCourses]);
+
+  // First-run remembers the step it reached, so closing the tab resumes there.
+  useEffect(() => {
+    if (mode !== 'first-run' || (screen !== 'intro' && screen !== 'connect' && screen !== 'courses')) return;
+    void local.set(SETUP_PROGRESS_KEY, { step: screen });
+  }, [mode, screen]);
 
   // Setup is thrifty (docs/ATURAN-REQUEST.md): at most one automatic sync
   // per onboarding session, none after a success, and data younger than 5
@@ -151,10 +191,15 @@ function App() {
       }
       connecting.current = true;
       setConnect(key ? 'connected' : 'checking');
-      const [outcome] = await Promise.all([syncFromOnboarding(), new Promise((r) => window.setTimeout(r, key ? CONNECTED_PAUSE_MS : 0))]);
+      const [outcome] = await Promise.all([
+        sendMessage<SyncOutcome>({ type: 'sync/request', trigger: 'onboarding' }),
+        new Promise((r) => window.setTimeout(r, key ? CONNECTED_PAUSE_MS : 0)),
+      ]);
       connecting.current = false;
       const fresh = outcome?.status === 'skipped' && outcome.reason === 'FRESH';
-      if (outcome?.status === 'ok' || fresh) {
+      if (outcome?.status === 'account_mismatch') {
+        setScreen('mismatch');
+      } else if (outcome?.status === 'ok' || fresh) {
         synced.current = true;
         setConnect('connected');
         await loadCourses();
@@ -184,36 +229,66 @@ function App() {
     return () => browser.storage.onChanged.removeListener(onChange);
   }, [screen, tryConnect]);
 
-  const writeCourses = async (next: CourseRecord[]) => {
-    setCourses(next);
-    const userId = await currentUser(local);
-    if (ownerId !== null && !(await writeUserIfCurrent(local, ownerId, 'courses', next))) setAccountChanged(true);
-  };
+  const onToggle = (courseId: CourseId, active: boolean) => setCourses((draft) => toggleDraft(draft, courseId, active));
 
-  const onToggle = (courseId: CourseId, active: boolean) =>
-    void writeCourses(courses.map((c) => (c.id === courseId ? { ...c, activePin: active } : c)));
+  /** Writes the draft and the confirmation for the owner account only; false when the account changed. */
+  const saveChoice = async (): Promise<boolean> => {
+    if (ownerId === null) return false;
+    if (!(await writeUserIfCurrent(local, ownerId, 'courses', courses))) return false;
+    const onboarding = await readUser(local, ownerId, 'onboarding');
+    return writeUserIfCurrent(local, ownerId, 'onboarding', {
+      ...onboarding,
+      completedAt: onboarding.completedAt ?? Math.floor(Date.now() / 1000),
+      confirmedInProgress: courses.filter((c) => c.inProgress).map((c) => c.id),
+      reviewSuggested: [],
+    });
+  };
 
   const onSave = async () => {
     setSaving(true);
-    const userId = ownerId;
-    if (userId !== null) {
-      const onboarding = await readUser(local, userId, 'onboarding');
-      const saved = await writeUserIfCurrent(local, userId, 'onboarding', {
-        ...onboarding,
-        completedAt: onboarding.completedAt ?? Math.floor(Date.now() / 1000),
-        confirmedInProgress: courses.filter((c) => c.inProgress).map((c) => c.id),
-        reviewSuggested: [],
-      });
-      if (!saved) {
-        setSaving(false);
-        setAccountChanged(true);
-        return;
-      }
-      // The done step shows the user's own list in the same popup component.
-      setOwnView(buildPopupView(await loadPopupInput(local, systemClock, timeZone)));
+    if (!(await saveChoice())) {
+      setSaving(false);
+      setAccountChanged(true);
+      return;
     }
+    await local.remove(SETUP_PROGRESS_KEY);
+    // The done step shows the user's own list in the same popup component.
+    setOwnView(buildPopupView(await loadPopupInput(local, systemClock, timeZone)));
     setSaving(false);
     goNext('courses');
+  };
+
+  /** "Simpan" in "Mata kuliahmu": nothing changed closes the tab after a short note. */
+  const onManageSave = async () => {
+    if (!hasCourseChanges(storedCourses, courses)) {
+      setScreen('no-changes');
+      window.setTimeout(() => window.close(), NO_CHANGES_MS);
+      return;
+    }
+    setSaving(true);
+    const ok = await saveChoice();
+    setSaving(false);
+    if (!ok) return setAccountChanged(true);
+    setStoredCourses(courses);
+    setScreen('saved');
+  };
+
+  /** "Segarkan daftar": one sync that fetches the course list even within 24 hours. */
+  const onRefreshList = async () => {
+    setRefreshing(true);
+    setManageNote(null);
+    const outcome = await sendMessage<SyncOutcome>({ type: 'sync/request', trigger: 'onboarding', forceCourseList: true });
+    if (outcome?.status === 'ok' && ownerId !== null) {
+      const refreshed = await readUser(local, ownerId, 'courses');
+      setCourses(mergeDraft(refreshed, courses, storedCourses));
+      setStoredCourses(refreshed);
+      setManageNote(m.onboarding.manage.refreshed);
+    } else if (outcome?.status === 'account_mismatch') {
+      setScreen('mismatch');
+    } else {
+      setManageNote(outcomeText(outcome, m));
+    }
+    setRefreshing(false);
   };
 
   const onNoticeRead = async (then: Screen | null) => {
@@ -224,12 +299,12 @@ function App() {
 
   // chrome.action.openPopup() needs a user gesture and is not available in
   // every browser version. If it fails, tell the user where the icon is.
-  const onOpenPopup = async () => {
+  const onOpenPopup = async (setNote: (note: string) => void) => {
     try {
       await browser.action.openPopup();
       window.close();
     } catch {
-      setDoneNote(m.onboarding.done.openFallback);
+      setNote(m.onboarding.done.openFallback);
     }
   };
 
@@ -249,6 +324,17 @@ function App() {
     );
   }
 
+  if (screen === 'mismatch') {
+    return (
+      <OnboardingShell stepKey="mismatch">
+        <AccountMismatch
+          onUseNew={() => void sendMessage({ type: 'account/useNew' }).then(() => window.close())}
+          onDefer={() => void sendMessage({ type: 'account/defer' }).then(() => window.close())}
+        />
+      </OnboardingShell>
+    );
+  }
+
   if (screen === 'whats-new') {
     return (
       <OnboardingShell stepKey="whats-new">
@@ -257,6 +343,42 @@ function App() {
     );
   }
 
+  if (mode === 'manage-courses') {
+    if (screen === 'no-changes') {
+      return (
+        <OnboardingShell stepKey="no-changes">
+          <ManageNoChanges />
+        </OnboardingShell>
+      );
+    }
+    if (screen === 'saved') {
+      return (
+        <OnboardingShell stepKey="saved">
+          <ManageSaved note={manageNote} onBack={() => void onOpenPopup(setManageNote)} onClose={() => window.close()} />
+        </OnboardingShell>
+      );
+    }
+    return (
+      <OnboardingShell
+        stepKey="manage"
+        full
+        footer={
+          <ManageFooter
+            selected={courses.filter(isCourseActive).length}
+            saving={saving}
+            refreshing={refreshing}
+            note={manageNote}
+            onRefresh={() => void onRefreshList()}
+            onSave={() => void onManageSave()}
+          />
+        }
+      >
+        <StepCourses courses={courses} onToggle={onToggle} title={m.onboarding.manage.title} lead={m.onboarding.manage.lead} />
+      </OnboardingShell>
+    );
+  }
+
+  if (screen !== 'intro' && screen !== 'connect' && screen !== 'courses' && screen !== 'done') return null;
   const now = Math.floor(Date.now() / 1000);
   const visual = connectVisual(connect);
   const aside =
@@ -281,6 +403,7 @@ function App() {
         <StepConnect
           status={connect}
           failedReason={failedReason}
+          lead={mode === 'switch-account' ? m.onboarding.switchAccount.lead : undefined}
           onOpenSikola={() => {
             setConnect('waiting');
             void browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
@@ -289,7 +412,7 @@ function App() {
         />
       )}
       {screen === 'courses' && <StepCourses courses={courses} onToggle={onToggle} />}
-      {screen === 'done' && <StepDone tasks={ownView?.pendingCount ?? 0} note={doneNote} onOpen={() => void onOpenPopup()} />}
+      {screen === 'done' && <StepDone tasks={ownView?.pendingCount ?? 0} note={doneNote} onOpen={() => void onOpenPopup(setDoneNote)} />}
     </OnboardingShell>
   );
 }

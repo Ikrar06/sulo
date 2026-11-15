@@ -19,6 +19,7 @@ import { RemindersPanel } from './RemindersPanel';
 import { UpdatesPanel } from '@/components/updates/UpdatesPanel';
 import type { UpdateSettings } from '@/lib/radar/settings';
 import { StatusLine } from './StatusLine';
+import { MismatchScreen, WipeDialog } from './AccountScreens';
 import { Group } from './TaskRows';
 
 export interface PopupActions {
@@ -38,6 +39,11 @@ export interface PopupActions {
   onTestNotification: () => Promise<void>;
   onSetUpdates: (settings: UpdateSettings) => void;
   onMarkAllSeen: () => void;
+  /** Another account: "Pakai akun ini" and "Nanti". */
+  onUseNewAccount: () => void;
+  onDeferAccount: () => void;
+  /** "Hapus semua data", after the confirmation dialog. */
+  onWipeAll: () => void;
 }
 
 /** Inert actions for the onboarding example card and the dev preview. */
@@ -58,6 +64,9 @@ export const NO_ACTIONS: PopupActions = {
   onTestNotification: async () => {},
   onSetUpdates: () => {},
   onMarkAllSeen: () => {},
+  onUseNewAccount: () => {},
+  onDeferAccount: () => {},
+  onWipeAll: () => {},
 };
 
 export interface PopupViewProps extends PopupActions {
@@ -165,6 +174,12 @@ export function PopupView(props: PopupViewProps) {
   const listRef = useRef<HTMLDivElement>(null);
   useCountdownTicker(listRef, props.dueFormat === 'countdown' && !props.sample, props.timeZone, m);
   const [panel, setPanel] = useState<'list' | 'reminders' | 'updates'>(props.initialPanel ?? 'list');
+  const [wipeOpen, setWipeOpen] = useState(false);
+  const settingsRef = useRef<HTMLButtonElement>(null);
+  const mismatch = view.screen === 'mismatch';
+  // Opened after the menu has closed and returned focus to its button, so
+  // the dialog's own focus (on "Batal") is the one that stays.
+  const openWipe = () => window.setTimeout(() => setWipeOpen(true), 0);
   const celebrate = props.celebrate ?? 0;
   // Snooze choices: 1 hour, 3 hours, tomorrow morning at the chosen time.
   const snoozeOptions = useMemo<SnoozeOption[]>(() => {
@@ -177,7 +192,8 @@ export function PopupView(props: PopupViewProps) {
   }, [now, props.timeZone, props.reminders.snoozeMorningMin, m, t]);
   const due = { format: props.dueFormat, now, timeZone: props.timeZone, snoozeOptions };
   const openReminders = () => setPanel('reminders');
-  const updated = view.syncing ? t.updating : view.lastSyncAt ? t.updatedAgo(formatAgo(view.lastSyncAt, now, m)) : t.neverUpdated;
+  // Another account: the stored account's update time is hidden too.
+  const updated = view.screen === 'mismatch' ? '' : view.syncing ? t.updating : view.lastSyncAt ? t.updatedAgo(formatAgo(view.lastSyncAt, now, m)) : t.neverUpdated;
   const empty = view.onboarded && view.groups.length === 0;
   const headerMascot: MascotState = empty && view.mascot === 'all-done' ? 'idle' : view.mascot;
 
@@ -213,18 +229,20 @@ export function PopupView(props: PopupViewProps) {
             <h1 className="font-heading text-[17px] leading-5">{t.title}</h1>
             <p className="truncate text-[12px] leading-4 text-muted-foreground">{updated}</p>
           </div>
-          {view.onboarded && (
+          {(view.onboarded || mismatch) && (
             <div className="flex items-center">
               <IconButton label={t.refresh} onClick={props.onRefresh} disabled={view.syncing}>
                 <RefreshIcon className={`size-4 ${view.syncing ? 'motion-safe:animate-spin' : ''}`} />
               </IconButton>
-              <CopyMenu onCopy={props.onCopy} />
+              {!mismatch && <CopyMenu onCopy={props.onCopy} />}
               <SettingsMenu
                 dueFormat={props.dueFormat}
                 onSetDueFormat={props.onSetDueFormat}
                 onSetLocale={props.onSetLocale}
-                onManageCourses={() => props.onOpenOnboarding('#courses')}
-                onOpenReminders={openReminders}
+                onManageCourses={mismatch ? undefined : () => props.onOpenOnboarding('#courses')}
+                onOpenReminders={mismatch ? undefined : openReminders}
+                onWipe={openWipe}
+                triggerRef={settingsRef}
               />
             </div>
           )}
@@ -248,7 +266,9 @@ export function PopupView(props: PopupViewProps) {
             )}
           </div>
 
-          {!view.onboarded ? (
+          {mismatch ? (
+            <MismatchScreen deferred={view.mismatchDeferred} still={props.mascotStill} onUseNew={props.onUseNewAccount} onDefer={props.onDeferAccount} />
+          ) : !view.onboarded ? (
             <div className="flex flex-col items-center px-8 pt-4 pb-8 text-center">
               <Mascot state="onboarding" size={116} still={props.mascotStill} />
               <p className="mt-3 font-heading text-[17px]">{t.notOnboardedTitle}</p>
@@ -299,6 +319,7 @@ export function PopupView(props: PopupViewProps) {
           </>
         )}
 
+        <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={props.onWipeAll} returnFocusTo={() => settingsRef.current} />
         {!props.sample && <footer className="flex items-center justify-between border-t border-border px-4 py-2 text-[11.5px] text-muted-foreground">
           <span>{m.disclaimerShort}</span>
           <button type="button" className="underline-offset-2 hover:text-foreground hover:underline" onClick={props.onOpenPrivacy}>

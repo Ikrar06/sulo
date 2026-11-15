@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { useI18n } from '@/components/i18n';
 import { BellIcon, CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -25,12 +25,12 @@ export interface SnoozeOption {
   until: UnixSeconds;
 }
 
-function MenuButton({ label, children }: { label: string; children: ReactNode }) {
+function MenuButton({ label, children, triggerRef }: { label: string; children: ReactNode; triggerRef?: Ref<HTMLButtonElement> }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <DropdownMenuTrigger asChild>
-          <Button size="icon-sm" variant="ghost" aria-label={label}>
+          <Button ref={triggerRef} size="icon-sm" variant="ghost" aria-label={label}>
             {children}
           </Button>
         </DropdownMenuTrigger>
@@ -64,26 +64,33 @@ export interface SettingsMenuProps {
   dueFormat: DueFormat;
   onSetDueFormat: (format: DueFormat) => void;
   onSetLocale: (locale: Locale) => void;
-  onManageCourses: () => void;
-  onOpenReminders: () => void;
+  /** Omitted while another account is detected (its courses are hidden). */
+  onManageCourses?: () => void;
+  onOpenReminders?: () => void;
+  /** "Hapus semua data": opens the confirmation dialog. */
+  onWipe: () => void;
+  /** The ⚙ button, so the dialog can return focus to it when it closes. */
+  triggerRef?: Ref<HTMLButtonElement>;
 }
 
 /** Small settings menu for M2; the full settings page comes with the dashboard (M5a). */
-export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses, onOpenReminders }: SettingsMenuProps) {
+export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses, onOpenReminders, onWipe, triggerRef }: SettingsMenuProps) {
   const { m, locale } = useI18n();
   const s = m.popup.settings;
   return (
     <DropdownMenu>
-      <MenuButton label={s.button}>
+      <MenuButton label={s.button} triggerRef={triggerRef}>
         <SettingsIcon className="size-4" />
       </MenuButton>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onSelect={onManageCourses}>{s.manageCourses}</DropdownMenuItem>
-        <DropdownMenuItem onSelect={onOpenReminders}>
-          <BellIcon className="size-4" />
-          {s.reminders}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {onManageCourses && <DropdownMenuItem onSelect={onManageCourses}>{s.manageCourses}</DropdownMenuItem>}
+        {onOpenReminders && (
+          <DropdownMenuItem onSelect={onOpenReminders}>
+            <BellIcon className="size-4" />
+            {s.reminders}
+          </DropdownMenuItem>
+        )}
+        {(onManageCourses || onOpenReminders) && <DropdownMenuSeparator />}
         <DropdownMenuLabel>{s.dueFormat}</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={dueFormat} onValueChange={(v) => onSetDueFormat(v as DueFormat)}>
           {DUE_FORMATS.map((f) => (
@@ -101,6 +108,10 @@ export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageC
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onSelect={onWipe}>
+          {s.wipe}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

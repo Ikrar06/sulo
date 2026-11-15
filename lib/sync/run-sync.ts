@@ -20,6 +20,8 @@ import {
 import { applyRadarResults, planRadarCalls } from '../radar/sync-step';
 import { recordFailure } from '../moodle/backoff';
 import { planBatch } from './plan-batch';
+import { ACCOUNT_PENDING_KEY, mayCheckWhilePending, newPending, readPending, resolveCheck, type AccountPending } from '../account/pending';
+import { calls } from '../moodle/calls';
 import { parseCall } from '../moodle/schemas';
 import { writeSession } from '../moodle/session';
 import { backgroundBlockReason, type IdleState } from '../schedule';
@@ -44,12 +46,20 @@ export interface SyncDeps {
 
 export async function runSync(deps: SyncDeps): Promise<SyncOutcome> {
   const now = deps.clock.now();
+  const pending = await readPending(deps.store);
+  const known = await currentUser(deps.store);
+  if (pending && known !== null) return finish(deps, now, () => checkWhilePending(deps, known, pending, now));
+  if (deps.trigger === 'sesskey') return { status: 'skipped', reason: 'NOT_NEEDED' };
+
   const skip = await skipReason(deps, now);
   if (skip) return skip;
+  return finish(deps, now, () => syncOnce(deps, now));
+}
 
+async function finish(deps: SyncDeps, now: UnixSeconds, work: () => Promise<SyncOutcome>): Promise<SyncOutcome> {
   let outcome: SyncOutcome;
   try {
-    outcome = await syncOnce(deps, now);
+    outcome = await work();
   } catch {
     outcome = { status: 'parser_broken', where: 'sync' };
   }
@@ -76,6 +86,7 @@ export function freshForMinutes(trigger: SyncTrigger): number {
     case 'onboarding':
       return ONBOARDING_FRESH_MIN;
     case 'manual':
+    case 'sesskey':
       return 0;
   }
 }
@@ -85,7 +96,8 @@ async function skipReason(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome
     const block = backgroundBlockReason(deps.clock, deps.idleState ?? 'idle');
     if (block) return { status: 'skipped', reason: block };
   }
-  const freshFor = freshForMinutes(deps.trigger);
+  // "Segarkan daftar" is an explicit request for the list: never "fresh enough".
+  const freshFor = deps.forceCourseList ? 0 : freshForMinutes(deps.trigger);
   if (freshFor > 0) {
     const userId = await currentUser(deps.store);
     const meta = userId === null ? null : await readUser(deps.store, userId, 'sync');
@@ -94,6 +106,29 @@ async function skipReason(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome
     if (usable && meta?.lastSyncAt && now - meta.lastSyncAt < freshFor * 60) return { status: 'skipped', reason: 'FRESH' };
   }
   return null;
+}
+
+/**
+ * Another account is signed in. Only "Perbarui" (always) and a new sesskey
+ * (once per 10 minutes) may check, with a batch that holds the session call
+ * and nothing else. Its answer decides: previous account back, still the
+ * same other account, or a third one. No user data is read or written.
+ */
+async function checkWhilePending(deps: SyncDeps, current: UserId, pending: AccountPending, now: UnixSeconds): Promise<SyncOutcome> {
+  if (!mayCheckWhilePending(pending, deps.trigger, now)) return { status: 'skipped', reason: 'ACCOUNT_MISMATCH' };
+  const result = await deps.client.callBatch([calls.sessionTimeRemaining()], { source: deps.trigger });
+  if (result.kind !== 'ok') return transportOutcome(result);
+  const session = parseCall('core_session_time_remaining', result.results[0] ?? missing);
+  if (!session.ok) return { status: 'parser_broken', where: 'core_session_time_remaining' };
+
+  const check = resolveCheck(current, pending, session.data.userid, now);
+  if (check.kind === 'restored') {
+    await deps.store.remove(ACCOUNT_PENDING_KEY);
+    await writeSession(deps.store, deps.clock, 'OK', current);
+    return { status: 'account_restored' };
+  }
+  await deps.store.set(ACCOUNT_PENDING_KEY, check.next);
+  return { status: 'account_mismatch', userId: check.next.userId };
 }
 
 async function courseListState(deps: SyncDeps, now: UnixSeconds): Promise<{ due: boolean; missing: boolean }> {
@@ -127,6 +162,12 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   const session = parseCall('core_session_time_remaining', sessionResult ?? missing);
   if (!session.ok) return { status: 'parser_broken', where: 'core_session_time_remaining' };
   const userId: UserId = session.data.userid;
+  // Another account than the stored one: hide, do not wipe. Nothing from
+  // this batch is written; the user decides in the popup (lib/account).
+  if (knownUser !== null && knownUser !== userId) {
+    await deps.store.set(ACCOUNT_PENDING_KEY, newPending(userId, now));
+    return { status: 'account_mismatch', userId };
+  }
   await switchUser(deps.store, userId);
   await writeSession(deps.store, deps.clock, 'OK', userId);
 

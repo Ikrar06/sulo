@@ -85,6 +85,7 @@
   --urgency-normal: #8a8a96;
 
   --danger: #f87171;
+  --danger-foreground: var(--ink);
 
   /* Data status (banners, borders, "perkiraan" labels). Not brand, not urgency. */
   --status-stale: #a1a1aa;
@@ -121,6 +122,7 @@
     --urgency-week: #1d4ed8;
     --urgency-normal: #5f5f6b;
     --danger: #b91c1c;
+  --danger-foreground: #ffffff;
     --status-stale: #52525b;
     --status-offline: #475569;
     --status-broken: #6d28d9;
@@ -152,6 +154,7 @@
   --urgency-week: #1d4ed8;
   --urgency-normal: #5f5f6b;
   --danger: #b91c1c;
+  --danger-foreground: #ffffff;
   --status-stale: #52525b;
   --status-offline: #475569;
   --status-broken: #6d28d9;
@@ -181,6 +184,7 @@
   --urgency-week: #60a5fa;
   --urgency-normal: #8a8a96;
   --danger: #f87171;
+  --danger-foreground: var(--ink);
   --status-stale: #a1a1aa;
   --status-offline: #94a3b8;
   --status-broken: #c4b5fd;
@@ -217,6 +221,7 @@
   --accent: var(--surface-raised);
   --accent-foreground: var(--text);
   --destructive: var(--danger);
+  --destructive-foreground: var(--danger-foreground);
   --input: var(--border);
   --ring: var(--brand-amber);
 }
@@ -288,6 +293,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
