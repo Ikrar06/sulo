@@ -49,6 +49,8 @@ export interface PopupViewProps extends PopupActions {
   view: View;
   now: UnixSeconds;
   mascotOverride?: MascotState;
+  /** Static mascot (also automatic under prefers-reduced-motion). */
+  mascotStill?: boolean;
   copiedNote?: string | null;
   dev?: { openMs: number | null; budgetLimit: number } | null;
 }
@@ -207,7 +209,7 @@ export function PopupView(props: PopupViewProps) {
     <TooltipProvider delayDuration={400}>
       <div className="flex max-h-[560px] w-[380px] flex-col bg-background text-foreground">
         <header className="flex items-center gap-2 border-b border-border px-3 py-2">
-          <Mascot state={mascot} size={32} />
+          <Mascot state={mascot} size={32} still={props.mascotStill} />
           <div className="min-w-0 flex-1">
             <h1 className="text-lg leading-tight">{t.title}</h1>
             <p className="truncate text-2xs text-muted-foreground tabular-nums">{synced}</p>

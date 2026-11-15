@@ -16,3 +16,6 @@ CLAUDE.md
 .claude/
 PROMPT-PEMBUKA.md
 docs/
+
+# Local browser automation output
+.playwright-mcp/

@@ -46,7 +46,11 @@
 
 .sulo-mascot.is-sleepy .m-flame {
   transform: scale(0.95);
-  opacity: 0.72;
+}
+
+/* Only the fire dims; the face keeps its ink. */
+.sulo-mascot.is-sleepy .m-flame > path:not(.m-face) {
+  opacity: 0.6;
 }
 
 /* Motion, only when animated. */

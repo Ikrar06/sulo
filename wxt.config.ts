@@ -9,7 +9,7 @@ const ICONS = {
 };
 
 // Entry points that exist only in development builds.
-const DEV_ONLY_ENTRYPOINTS = new Set(['recorder']);
+const DEV_ONLY_ENTRYPOINTS = new Set(['recorder', 'preview']);
 
 // Permissions are deliberately minimal. Adding one needs an issue and the
 // maintainer's explicit approval first.

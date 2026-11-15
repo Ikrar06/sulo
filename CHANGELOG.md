@@ -8,7 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Browser extension for Chrome and Edge (Manifest V3) with a temporary popup that tests the connection to SIKOLA using the session already in the browser. No password is needed.
+- A setup page opens after installing: a short privacy notice, connecting SIKOLA (it notices when you log in, no reload needed), choosing your active courses, and a final summary.
+- Active courses are suggested from SIKOLA's "in progress" list, future end dates and upcoming deadlines. Your own choice always wins, and a new semester only triggers a suggestion to review, never a silent change.
+- The "Hari Ini" popup lists tasks from your active courses, including quiz deadlines: overdue, today and tomorrow, this week, later, and without a due date. Remaining time is always written out, with the full date in a tooltip.
+- Mark tasks as done, open them in SIKOLA, and copy this week's or all pending tasks as plain text, WhatsApp or Markdown.
+- Readable course names and short labels, derived from SIKOLA's course names.
+- The toolbar badge counts overdue tasks plus those due within 24 hours, shows "!" when the SIKOLA session has expired, and turns gray when data is out of date.
+- Clear messages for an expired session, a changed SIKOLA, the daily limit, being offline, out-of-date data and a remote pause.
+- An animated mascot that blinks, glances and changes expression with the state of your tasks, and stays still when your system asks for reduced motion.
+- The privacy policy is available inside the extension.
+- Data from one SIKOLA account is deleted when a different account logs in.
+- Browser extension for Chrome and Edge (Manifest V3). No password is needed: Sulo uses the SIKOLA session already in the browser.
 - Passive session detection. Sulo reads the session key already present on SIKOLA pages, without extra requests.
 - A single, safe path for all requests to SIKOLA:
   - only read-only functions are allowed
