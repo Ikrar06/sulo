@@ -29,7 +29,8 @@
     "check-leaks": "node scripts/check-leaks.mjs",
     "postinstall": "wxt prepare",
     "sanitize": "node scripts/sanitize.ts",
-    "fixtures:compare": "node scripts/compare-fixture-shapes.mjs"
+    "fixtures:compare": "node scripts/compare-fixture-shapes.mjs",
+    "privacy": "node scripts/build-privacy.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
