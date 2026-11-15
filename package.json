@@ -20,10 +20,10 @@
   },
   "scripts": {
     "dev": "wxt",
-    "build": "wxt build && node scripts/check-no-dev-code.mjs .output/chrome-mv3",
+    "build": "wxt build && node scripts/check-no-dev-code.mjs .output/chrome-mv3 --production",
     "build:dev": "wxt build --mode development",
     "zip": "wxt zip",
-    "zip:tester": "wxt zip --mode tester && node scripts/check-no-dev-code.mjs .output/chrome-mv3",
+    "zip:tester": "wxt zip --mode tester && node scripts/check-no-dev-code.mjs .output/chrome-mv3-tester",
     "typecheck": "wxt prepare && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

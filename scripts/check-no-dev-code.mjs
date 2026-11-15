@@ -1,15 +1,21 @@
 #!/usr/bin/env node
 // Fails when a build that is not a development build contains dev-only code:
-// the fixture recorder or the reminder simulator (lib/dev/). Runs after
-// `pnpm build` and `pnpm zip:tester`.
+// the fixture recorder, the reminder simulator or the session probe
+// (lib/dev/). Runs after `pnpm build` and `pnpm zip:tester`. With
+// --production it also fails on the request log, which only dev and tester
+// builds keep (lib/net/request-log.ts).
 //
-// Usage: node scripts/check-no-dev-code.mjs .output/chrome-mv3
+// Usage: node scripts/check-no-dev-code.mjs .output/chrome-mv3 [--production]
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const MARKERS = ['connection/test', 'runConnectionTest', 'dev/record', 'dev/notify/simulate', 'dev/notify/reset', 'dev/radar/inject', 'recordFixtures', 'installDevTools'];
-const root = process.argv[2];
+const MARKERS = ['connection/test', 'runConnectionTest', 'dev/record', 'dev/notify/simulate', 'dev/notify/reset', 'dev/radar/inject', 'dev/session/probe', 'recordFixtures', 'installDevTools'];
+const PRODUCTION_MARKERS = ['global:requestLog', 'createRequestLogger'];
+const args = process.argv.slice(2);
+const production = args.includes('--production');
+const root = args.find((a) => !a.startsWith('--'));
+const markers = production ? [...MARKERS, ...PRODUCTION_MARKERS] : MARKERS;
 if (!root) {
   console.error('check-no-dev-code: beri folder hasil build, misalnya .output/chrome-mv3');
   process.exit(2);
@@ -27,10 +33,10 @@ walk(root);
 
 const hits = files.flatMap((file) => {
   const text = readFileSync(file, 'utf8');
-  return MARKERS.filter((m) => text.includes(m)).map((m) => `${file}: ${m}`);
+  return markers.filter((m) => text.includes(m)).map((m) => `${file}: ${m}`);
 });
 if (hits.length > 0) {
   console.error(`check-no-dev-code: kode khusus dev ikut ke build ini:\n${hits.join('\n')}`);
   process.exit(1);
 }
-console.log(`Bersih dari kode dev: ${files.length} berkas diperiksa di ${root}.`);
+console.log(`Bersih dari kode dev${production ? ' dan log request' : ''}: ${files.length} berkas diperiksa di ${root}.`);
