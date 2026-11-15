@@ -44,8 +44,9 @@ function interpret(outcome: BatchOutcome): ConnectionTestOutcome {
     case 'invalid_sesskey':
       return { ...base, result: 'invalid_sesskey', dropSesskey: true };
     case 'network_error':
-    case 'timeout':
       return { ...base, result: 'offline', sessionState: 'OFFLINE' };
+    // A timeout means SIKOLA is slow, not that the user is offline.
+    case 'timeout':
     case 'http_error':
       return { ...base, result: 'server_error' };
     case 'bad_response':

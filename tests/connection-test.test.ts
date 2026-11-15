@@ -24,7 +24,8 @@ describe('runConnectionTest', () => {
   it.each<[BatchOutcome, string, string | null]>([
     [{ kind: 'login_required' }, 'session_expired', 'EXPIRED'],
     [{ kind: 'network_error' }, 'offline', 'OFFLINE'],
-    [{ kind: 'timeout' }, 'offline', 'OFFLINE'],
+    // A timeout means SIKOLA is slow, not that the user is offline.
+    [{ kind: 'timeout' }, 'server_error', null],
     [{ kind: 'http_error', status: 500 }, 'server_error', null],
     [{ kind: 'refused', reason: 'NO_SESSKEY' }, 'no_sesskey', null],
     [{ kind: 'refused', reason: 'BUDGET_EXHAUSTED' }, 'budget_exhausted', null],

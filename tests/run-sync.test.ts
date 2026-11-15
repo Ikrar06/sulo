@@ -135,6 +135,7 @@ describe('runSync', () => {
   it.each([
     [{ kind: 'login_required' } as BatchOutcome, { status: 'session_expired' }],
     [{ kind: 'network_error' } as BatchOutcome, { status: 'offline' }],
+    [{ kind: 'timeout' } as BatchOutcome, { status: 'server_error' }],
     [{ kind: 'refused', reason: 'BUDGET_EXHAUSTED' } as BatchOutcome, { status: 'skipped', reason: 'BUDGET_EXHAUSTED' }],
     [{ kind: 'invalid_sesskey' } as BatchOutcome, { status: 'invalid_sesskey' }],
   ])('maps %o', async (batch, expected) => {

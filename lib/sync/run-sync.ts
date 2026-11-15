@@ -156,9 +156,11 @@ function transportOutcome(result: Exclude<BatchOutcome, { kind: 'ok' }>): SyncOu
       return { status: 'session_expired' };
     case 'invalid_sesskey':
       return { status: 'invalid_sesskey' };
+    // Offline only when the request never reached the network. A timeout
+    // means SIKOLA is slow, which is a server problem, not the user's.
     case 'network_error':
-    case 'timeout':
       return { status: 'offline' };
+    case 'timeout':
     case 'http_error':
       return { status: 'server_error' };
     case 'bad_response':
