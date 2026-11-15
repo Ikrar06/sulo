@@ -42,6 +42,8 @@ export const BACKOFF_MAX_H = 24;
 /** Remote kill switch. Empty URL means the feature is skipped. */
 export const REMOTE_CONFIG_URL = 'https://ikrar06.github.io/sulo-data/config.json';
 export const REMOTE_CONFIG_MIN_GAP_H = 24;
+/** Academic calendar from the same public repository (lib/calendar/remote.ts), at most once a day. */
+export const CALENDAR_URL = 'https://ikrar06.github.io/sulo-data/calendar/latest.json';
 
 // Calendar window and page sizes used by the sync batch.
 export const CALENDAR_LOOKBACK_DAYS = 14;

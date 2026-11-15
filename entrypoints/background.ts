@@ -10,7 +10,8 @@ import {
 } from '@/lib/messages';
 import { readBudget } from '@/lib/moodle/budget';
 import { createMoodleClient } from '@/lib/moodle/client';
-import { CATCHUP_DELAY_MAX_MIN, DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { refreshCalendar } from '@/lib/calendar/remote';
+import { CALENDAR_URL, CATCHUP_DELAY_MAX_MIN, DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { createRequestLogger } from '@/lib/net/request-log';
 import { createScheduler } from '@/lib/net/scheduler';
 import { fetchSlotHour } from '@/lib/remote/fetch-public';
@@ -82,8 +83,13 @@ export default defineBackground(() => {
     getSesskey,
   });
 
-  const refreshConfig = async () =>
-    refreshRemoteConfig({ scheduler, store: local, clock, url: REMOTE_CONFIG_URL, fetchSlotHour: await fetchSlotHour(local) });
+  // Public data (kill switch, academic calendar): each file at most once a
+  // day, from the installation's fetch hour, ridden on a sync cycle.
+  const refreshConfig = async () => {
+    const slot = await fetchSlotHour(local);
+    await refreshRemoteConfig({ scheduler, store: local, clock, url: REMOTE_CONFIG_URL, fetchSlotHour: slot });
+    await refreshCalendar({ scheduler, store: local, clock, url: CALENDAR_URL, fetchSlotHour: slot }).catch(() => 'failed');
+  };
 
   // ---------- Badge ----------
 
