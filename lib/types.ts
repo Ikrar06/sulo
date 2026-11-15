@@ -19,10 +19,24 @@ export interface SessionInfo {
 
 // ---------- Request safety ----------
 
+/** What triggered a request to SIKOLA, for the per-source request counter. */
+export type RequestSource =
+  | 'background'
+  | 'popup'
+  | 'manual'
+  | 'onboarding'
+  | 'connection-test'
+  | 'sesskey-fallback'
+  | 'recorder';
+
 export interface BudgetState {
   /** Local date, YYYY-MM-DD. Budget resets when this changes. */
   date: string;
   used: number;
+  /** Requests per trigger today. */
+  bySource?: Partial<Record<RequestSource, number>>;
+  /** Requests today that also carried the daily course list. */
+  withCourseList?: number;
 }
 
 export interface BackoffState {
@@ -47,18 +61,36 @@ export type ClientRefusal =
 
 // ---------- Courses ----------
 
+export interface ParsedCourseName {
+  /** Course name without class letter, program and code. The full name when unmatched. */
+  name: string;
+  classLetter: string | null;
+  program: string | null;
+  /** 11-character course code in square brackets, e.g. 23D01234567. */
+  code: string | null;
+  matched: boolean;
+}
+
+export type ActiveReason = 'inprogress' | 'enddate_future' | 'upcoming_events' | 'past' | 'ended_long_ago';
+
 export interface CourseRecord {
   id: CourseId;
   fullname: string;
   shortname: string;
   startdate: UnixSeconds;
   enddate: UnixSeconds; // 0 when not set
-  isFavourite: boolean;
-  /** Computed by lib/semester.ts */
+  parsed: ParsedCourseName;
+  /** Classification flags from the last course list fetch. */
+  inProgress: boolean;
+  past: boolean;
+  /** Computed by lib/courses/active-score.ts, kept for review. */
   activeScore: number;
+  activeReasons: ActiveReason[];
   /** Manual pin. null means "follow the score". */
   activePin: boolean | null;
+  /** User overrides (dashboard, M5a). null means "use the default". */
   alias: string | null;
+  label: string | null;
   color: string | null;
 }
 
@@ -78,6 +110,8 @@ export interface Task {
   overdue: boolean;
   firstSeenAt: UnixSeconds;
   lastSeenAt: UnixSeconds;
+  /** Set when the task disappeared from the calendar: probably submitted. */
+  missingSince: UnixSeconds | null;
 }
 
 export interface TaskLocalState {
@@ -151,13 +185,15 @@ export interface ParseResult<T> {
 
 // ---------- Sync ----------
 
-export type SyncTrigger = 'alarm' | 'popup' | 'manual' | 'onboarding';
+export type SyncTrigger = 'background' | 'popup' | 'manual' | 'onboarding';
 
 export type SyncOutcome =
-  | { status: 'ok'; at: UnixSeconds; changes: number }
+  | { status: 'ok'; at: UnixSeconds; tasks: number; courseListFetched: boolean }
   | { status: 'skipped'; reason: ClientRefusal | 'QUIET_HOURS' | 'IDLE' | 'FRESH' }
   | { status: 'session_expired' }
+  | { status: 'invalid_sesskey' }
   | { status: 'offline' }
+  | { status: 'server_error' }
   | { status: 'parser_broken'; where: string };
 
 // ---------- Settings ----------
