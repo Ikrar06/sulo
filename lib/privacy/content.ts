@@ -128,8 +128,8 @@ export const PRIVACY_SECTIONS: Section[] = [
             en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00.00 to 06.00), and not while your computer is idle.',
           },
           {
-            id: 'Repo data publik Sulo di GitHub Pages (ikrar06.github.io/sulo-data), untuk mengambil berkas konfigurasi kecil, dan kelak kalender akademik. Permintaan ini tidak membawa informasi apa pun tentangmu (tanpa cookie, header tambahan, atau parameter) dan paling sering sekali sehari per berkas. Seperti situs mana pun, GitHub dapat melihat alamat IP-mu saat berkas diambil.',
-            en: "Sulo's public data repository on GitHub Pages (ikrar06.github.io/sulo-data), to fetch a small configuration file and, later, the academic calendar. These requests carry no information about you (no cookies, extra headers or parameters) and are made at most once a day per file. As with any website, GitHub can see your IP address when a file is fetched.",
+            id: 'Repo data publik Sulo di GitHub Pages (ikrar06.github.io/sulo-data), untuk mengambil berkas konfigurasi kecil dan data kalender akademik. Permintaan ini tidak membawa informasi apa pun tentangmu (tanpa cookie, header tambahan, atau parameter) dan paling sering sekali sehari per berkas. Seperti situs mana pun, GitHub dapat melihat alamat IP-mu saat berkas diambil.',
+            en: "Sulo's public data repository on GitHub Pages (ikrar06.github.io/sulo-data), to fetch a small configuration file and the academic calendar data. These requests carry no information about you (no cookies, extra headers or parameters) and are made at most once a day per file. As with any website, GitHub can see your IP address when a file is fetched.",
           },
         ],
       },
