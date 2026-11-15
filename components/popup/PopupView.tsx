@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '@/components/i18n';
-import { RefreshIcon } from '@/components/icons';
+import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -15,6 +15,8 @@ import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-v
 import { useCountdownTicker } from './countdown';
 import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
 import { RemindersPanel } from './RemindersPanel';
+import { UpdatesPanel } from '@/components/updates/UpdatesPanel';
+import type { UpdateSettings } from '@/lib/radar/settings';
 import { StatusLine } from './StatusLine';
 import { Group } from './TaskRows';
 
@@ -33,6 +35,8 @@ export interface PopupActions {
   onSnooze: (eventId: number, until: UnixSeconds | null) => void;
   onSetReminders: (settings: ReminderSettings) => void;
   onTestNotification: () => Promise<void>;
+  onSetUpdates: (settings: UpdateSettings) => void;
+  onMarkAllSeen: () => void;
 }
 
 /** Inert actions for the onboarding example card and the dev preview. */
@@ -51,6 +55,8 @@ export const NO_ACTIONS: PopupActions = {
   onSnooze: () => {},
   onSetReminders: () => {},
   onTestNotification: async () => {},
+  onSetUpdates: () => {},
+  onMarkAllSeen: () => {},
 };
 
 export interface PopupViewProps extends PopupActions {
@@ -60,7 +66,8 @@ export interface PopupViewProps extends PopupActions {
   dueFormat: DueFormat;
   reminders: ReminderSettings;
   /** Open the reminder settings panel on first render (dev preview). */
-  initialPanel?: 'reminders';
+  updatesSettings: UpdateSettings;
+  initialPanel?: 'reminders' | 'updates';
   /** Increment to play the celebrate sequence (last task marked done). */
   celebrate?: number;
   note?: string | null;
@@ -124,7 +131,7 @@ export function PopupView(props: PopupViewProps) {
   const t = m.popup;
   const listRef = useRef<HTMLDivElement>(null);
   useCountdownTicker(listRef, props.dueFormat === 'countdown' && !props.sample, props.timeZone, m);
-  const [panel, setPanel] = useState<'list' | 'reminders'>(props.initialPanel ?? 'list');
+  const [panel, setPanel] = useState<'list' | 'reminders' | 'updates'>(props.initialPanel ?? 'list');
   const celebrate = props.celebrate ?? 0;
   // Snooze choices: 1 hour, 3 hours, tomorrow morning at the chosen time.
   const snoozeOptions = useMemo<SnoozeOption[]>(() => {
@@ -150,6 +157,19 @@ export function PopupView(props: PopupViewProps) {
             timeZone={props.timeZone}
             onChange={props.onSetReminders}
             onTest={props.onTestNotification}
+            onBack={() => setPanel('list')}
+            onOpenUpdates={() => setPanel('updates')}
+          />
+        ) : panel === 'updates' ? (
+          <UpdatesPanel
+            entries={view.updates}
+            courseNames={view.courseNames}
+            now={now}
+            timeZone={props.timeZone}
+            settings={props.updatesSettings}
+            onOpen={props.onOpenTask}
+            onMarkAllSeen={props.onMarkAllSeen}
+            onChangeSettings={props.onSetUpdates}
             onBack={() => setPanel('list')}
           />
         ) : (
@@ -211,6 +231,22 @@ export function PopupView(props: PopupViewProps) {
               {view.groups.map((g) => (
                 <Group key={g.key} group={g} due={due} actions={props} />
               ))}
+            </div>
+          )}
+
+          {view.onboarded && !props.sample && (
+            <div className="px-1 pt-1">
+              <button
+                type="button"
+                onClick={() => setPanel('updates')}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus"
+              >
+                {view.updatesUnseen > 0 && <span aria-hidden="true" className="size-1.5 rounded-full bg-brand-amber" />}
+                <span className={`flex-1 ${view.updatesUnseen > 0 ? 'font-semibold' : 'text-muted-foreground'}`}>
+                  {view.updatesUnseen > 0 ? m.popup.updates.line(view.updatesUnseen) : m.popup.updates.lineNone}
+                </span>
+                <ChevronRightIcon className="size-3.5 text-muted-foreground" />
+              </button>
             </div>
           )}
 

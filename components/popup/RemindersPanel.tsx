@@ -19,6 +19,7 @@ export interface RemindersPanelProps {
   onChange: (next: ReminderSettings) => void;
   onTest: () => Promise<void>;
   onBack: () => void;
+  onOpenUpdates: () => void;
 }
 
 export function stageAmount(stage: StageMin, m: Messages): string {
@@ -69,7 +70,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack }: RemindersPanelProps) {
+export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, onOpenUpdates }: RemindersPanelProps) {
   const { m } = useI18n();
   const r = m.popup.reminders;
   const [tested, setTested] = useState(false);
@@ -161,6 +162,13 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack }:
             <li>{r.winSteps}</li>
           </ul>
           <p className="pt-1 text-[12px] leading-4 text-muted-foreground">{r.sessionNote}</p>
+          <button
+            type="button"
+            onClick={onOpenUpdates}
+            className="mt-1 rounded-sm text-left text-[12.5px] font-medium underline-offset-2 outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus"
+          >
+            {r.updatesLink}
+          </button>
         </Section>
       </div>
     </div>

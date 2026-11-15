@@ -12,6 +12,8 @@ import { DAILY_BUDGET, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { DEFAULT_PREFS, readPrefs, writePrefs, type DueFormat, type Prefs } from '@/lib/prefs';
 import { currentUser, readUser, writeUser } from '@/lib/storage';
 import type { ReminderSettings } from '@/lib/reminders/settings';
+import { markAllSeen } from '@/lib/radar/log';
+import type { UpdateSettings } from '@/lib/radar/settings';
 import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupView as View, type TaskRow } from '@/lib/view/popup-view';
@@ -19,6 +21,8 @@ import { buildPopupView, type PopupView as View, type TaskRow } from '@/lib/view
 // Popup container: renders instantly from stored data, then asks the service
 // worker to sync in the background (only if data is older than 15 minutes).
 
+/** Written by the background when an update summary is clicked. */
+const POPUP_PANEL_KEY = 'global:popupPanel';
 const local = createBrowserStore(browser.storage.local);
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const isDev = import.meta.env.MODE !== 'production';
@@ -39,6 +43,7 @@ export default function App({ startedAt }: { startedAt: number }) {
   const [celebrate, setCelebrate] = useState(0);
   const [note, setNote] = useState<string | null>(null);
   const [openMs, setOpenMs] = useState<number | null>(null);
+  const [startPanel, setStartPanel] = useState<'updates' | undefined>(undefined);
   const measured = useRef(false);
 
   const locale = resolveLocale(prefs.locale, uiLanguage);
@@ -50,6 +55,12 @@ export default function App({ startedAt }: { startedAt: number }) {
       readPrefs(local),
       browser.notifications.getPermissionLevel().catch(() => 'granted' as const),
     ]);
+    // A click on an update summary asks the popup to open on "Kabar terbaru" (once, within 2 minutes).
+    const request = await local.get<{ panel: string; at: number }>(POPUP_PANEL_KEY);
+    if (request) {
+      await local.remove(POPUP_PANEL_KEY);
+      if (request.panel === 'updates' && input.now - request.at < 120) setStartPanel('updates');
+    }
     setPrefs(stored);
     setNow(input.now);
     setView(
@@ -112,6 +123,12 @@ export default function App({ startedAt }: { startedAt: number }) {
     flash(m.popup.copy.copied(m.popup.copy[scope]));
   };
 
+  const onMarkAllSeen = async () => {
+    const userId = await currentUser(local);
+    if (userId === null) return;
+    await writeUser(local, userId, 'changes', markAllSeen(await readUser(local, userId, 'changes')));
+  };
+
   const onSnooze = async (eventId: number, until: number | null) => {
     const userId = await currentUser(local);
     if (userId === null) return;
@@ -146,6 +163,8 @@ export default function App({ startedAt }: { startedAt: number }) {
         timeZone={timeZone}
         dueFormat={prefs.dueFormat}
         reminders={prefs.reminders}
+        updatesSettings={prefs.updates}
+        initialPanel={startPanel}
         celebrate={celebrate}
         note={note}
         dev={isDev ? { openMs, budgetLimit: DAILY_BUDGET } : null}
@@ -162,6 +181,8 @@ export default function App({ startedAt }: { startedAt: number }) {
         onSetLocale={(next: Locale) => void writePrefs(local, { locale: next })}
         onSnooze={(eventId, until) => void onSnooze(eventId, until)}
         onSetReminders={(reminders: ReminderSettings) => void writePrefs(local, { reminders })}
+        onSetUpdates={(updates: UpdateSettings) => void writePrefs(local, { updates })}
+        onMarkAllSeen={() => void onMarkAllSeen()}
         onTestNotification={async () => {
           await send({ type: 'notify/test' });
         }}

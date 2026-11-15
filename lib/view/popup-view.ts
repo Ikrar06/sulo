@@ -11,9 +11,10 @@ import type { DueFormat } from '../prefs';
 import { STALE_WARNING_H } from '../moodle/limits';
 import { isStale } from '../staleness';
 import type { SyncStatus, UserData } from '../storage';
+import { taskMarkers } from '../radar/log';
 import { getTaskState } from '../tasks/local-state';
 import { badgeCount, GROUP_ORDER, groupTasks, pendingTasks, urgencyOf, type TaskGroupKey, type Urgency } from '../tasks/group';
-import type { BudgetState, RemoteConfig, SessionState, UnixSeconds } from '../types';
+import type { BudgetState, RemoteConfig, SessionState, UnixSeconds, ChangeLogEntry } from '../types';
 
 export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgent' | 'sleepy' | 'stale' | 'dizzy' | 'onboarding';
 
@@ -50,6 +51,8 @@ export interface TaskRow {
   far: boolean;
   /** Reminder snoozed until this time (only while still in the future). */
   snoozedUntil: UnixSeconds | null;
+  /** "Baru" (new task) or "Tenggat berubah": 24 hours or 3 popup opens. */
+  marker: 'new' | 'due_changed' | null;
 }
 
 export interface DueText {
@@ -98,6 +101,12 @@ export interface PopupView {
   copyItems: CopyItem[];
   badge: { text: string; tone: 'urgent' | 'neutral' | 'expired' };
   budget: BudgetState;
+  /** "Kabar terbaru" entries not yet seen. */
+  updatesUnseen: number;
+  /** The change log, newest first (for the "Kabar terbaru" panel). */
+  updates: ChangeLogEntry[];
+  /** Course names by id, for the panel and notifications. */
+  courseNames: Record<string, string>;
 }
 
 export interface PopupInput {
@@ -154,6 +163,8 @@ export function buildPopupView(input: PopupInput): PopupView {
   const grouped = groupTasks(pending, now, timeZone);
 
   const m = input.messages ?? id;
+  const updates = user?.changes ?? [];
+  const markers = taskMarkers(updates, now);
   const snoozeOf = (eventId: number) => {
     const until = getTaskState(state, eventId).snoozedUntil;
     return until !== null && until > now ? until : null;
@@ -174,6 +185,7 @@ export function buildPopupView(input: PopupInput): PopupView {
       fullDate: t.dueAt === null ? '' : formatFullDate(t.dueAt, timeZone, m),
       far: t.dueAt !== null && t.dueAt > now && calendarDaysBetween(now, t.dueAt, timeZone) >= 7,
       snoozedUntil: snoozeOf(t.eventId),
+      marker: markers.get(t.eventId) ?? null,
     };
   };
 
@@ -216,6 +228,9 @@ export function buildPopupView(input: PopupInput): PopupView {
       tone: sessionExpired ? 'expired' : stale ? 'neutral' : 'urgent',
     },
     budget: input.budget,
+    updatesUnseen: updates.filter((e) => !e.seen).length,
+    updates,
+    courseNames: Object.fromEntries(courses.map((c) => [String(c.id), courseAlias(c)])),
   };
 }
 

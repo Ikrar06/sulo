@@ -54,6 +54,11 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
         <span className="mt-1 flex items-center gap-1.5 text-[12px] leading-4 text-muted-foreground">
           <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${COURSE_DOT[row.courseColor] ?? COURSE_DOT[1]}`} />
           <span className="truncate">{row.courseName}</span>
+          {row.marker !== null && (
+            <span className="shrink-0 rounded-full border border-border px-1.5 text-[11px] leading-4 font-medium text-foreground">
+              {row.marker === 'new' ? m.popup.updates.markerNew : m.popup.updates.markerDue}
+            </span>
+          )}
           {row.snoozedUntil !== null && (
             <span className="flex shrink-0 items-center" title={m.popup.row.snoozedUntil(formatDueClock(row.snoozedUntil, due.now, due.timeZone, m))}>
               <ClockIcon aria-hidden="true" className="size-3" />
