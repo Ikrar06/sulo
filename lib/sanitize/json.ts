@@ -1,4 +1,4 @@
-// JSON sanitizer for Moodle responses (docs/TESTING.md, "Fixture tanpa data pribadi").
+// JSON sanitizer for Moodle responses: removes personal data from fixtures.
 // Pure and deterministic for a given input and options. Imports use explicit
 // .ts extensions so `node scripts/sanitize.ts` runs without a build step.
 //

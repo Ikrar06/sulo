@@ -17,8 +17,8 @@
 - [ ] `pnpm build` passes
 - [ ] `node scripts/check-leaks.mjs` passes
 - [ ] No real student data anywhere (fixtures, screenshots, logs, descriptions)
-- [ ] No new request to SIKOLA, no change to `docs/ATURAN-REQUEST.md` and no new permission, unless agreed in an issue
-- [ ] Documentation in `docs/` updated where behavior changed
+- [ ] No new request to SIKOLA, no change to the limits in `lib/moodle/limits.ts` and no new permission, unless agreed in an issue
+- [ ] README, CHANGELOG and code comments updated where behavior changed
 - [ ] UI text in Indonesian, code and comments in English
 
 ## How to test

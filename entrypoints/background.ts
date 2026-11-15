@@ -22,7 +22,7 @@ import { isValidSesskey } from '@/lib/sesskey';
 const SESSKEY_KEY = 'sesskey';
 
 // No state in module variables except the client, whose queue only orders
-// requests. All data lives in chrome.storage (CLAUDE.md, code conventions).
+// requests. All data lives in chrome.storage (project convention).
 export default defineBackground(() => {
   const local = createBrowserStore(browser.storage.local);
   const session = createBrowserStore(browser.storage.session);

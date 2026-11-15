@@ -1,7 +1,7 @@
 // Sesskey fallback: fetch /my/ and read the sesskey from the page config.
 // Only when the user opens the popup, at most once per
 // SESSKEY_FALLBACK_POPUP_GAP_H. There is no background fallback, because that
-// would fetch HTML without a user action (CLAUDE.md, hard rule 4).
+// would fetch HTML without a user action (project rule: no background HTML scraping).
 
 import type { Clock, KeyValueStore, UnixSeconds } from '../types';
 import { isValidSesskey } from '../sesskey';

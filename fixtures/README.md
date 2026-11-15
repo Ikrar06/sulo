@@ -1,12 +1,12 @@
 # Fixtures
 
-Folder ini hanya boleh berisi data yang sudah disanitasi sesuai `docs/TESTING.md`.
+Folder ini hanya boleh berisi data yang sudah disanitasi (lihat bagian "Data rules" di `CONTRIBUTING.md`).
 
-Jangan pernah menaruh respons mentah dari SIKOLA di sini, walau hanya sementara. Berkas mentah untuk keperluan lokal ditaruh di `fixtures/raw/`, yang sudah diabaikan git dan diblokir dari Claude Code lewat `.claude/settings.json`.
+Jangan pernah menaruh respons mentah dari SIKOLA di sini, walau hanya sementara. Berkas mentah untuk keperluan lokal ditaruh di `fixtures/raw/`, yang sudah diabaikan git.
 
 | Folder | Isi |
 |---|---|
-| `synthetic/` | Dibuat tangan, bentuknya mengikuti `docs/API-MOODLE.md`. Dipakai test skema sampai fixture rekaman tersedia |
+| `synthetic/` | Dibuat tangan, bentuknya mengikuti field SIKOLA yang sudah diverifikasi. Dipakai test skema sampai fixture rekaman tersedia |
 | `recorded/` | Hasil perekam fixture di build dev (sudah tersanitasi saat disimpan). Berkasnya `*.recorded.json` |
 
 Penamaan: `{fungsi-atau-halaman}.{kasus}.json` atau `.html`, misalnya `calendar-action-events.normal.json`, `courseformat-state.hidden-item.json`, `login-page.html`.

@@ -10,7 +10,7 @@ import { LEAK_RULES, ruleApplies } from './leak-rules.mjs';
 
 const ROOT = process.cwd();
 
-// docs/ holds example patterns on purpose. fixtures/raw/ is git-ignored local data.
+// docs/ (private, git-ignored) holds example patterns on purpose. fixtures/raw/ is git-ignored local data.
 const SKIP_DIRS = new Set(['node_modules', '.git', '.output', '.wxt', 'dist', 'docs']);
 const SKIP_PATHS = ['fixtures/raw', 'scripts/check-leaks.mjs', 'scripts/leak-rules.mjs', 'pnpm-lock.yaml'];
 const TEXT_EXT = /\.(json|html?|ts|tsx|mts|js|jsx|mjs|cjs|md|txt|css|ya?ml|csv|svg|ics)$/i;
@@ -58,7 +58,7 @@ for (const file of files) {
 }
 
 if (findings > 0) {
-  console.error(`\n${findings} temuan. Sanitasi dulu (lihat docs/TESTING.md) sebelum commit.`);
+  console.error(`\n${findings} temuan. Sanitasi dulu (lihat fixtures/README.md) sebelum commit.`);
   process.exit(1);
 }
 console.log(`Bersih: ${files.length} berkas diperiksa.`);

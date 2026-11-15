@@ -10,7 +10,7 @@ export function hoursSince(lastSyncAt: UnixSeconds | null, now: UnixSeconds): nu
 /**
  * Data is stale when the last sync is older than STALE_WARNING_H, or when
  * there has never been one. The UI must then say so instead of implying
- * that an empty list means "no tasks" (docs/ARCHITECTURE.md, section 5).
+ * that an empty list means "no tasks".
  */
 export function isStale(lastSyncAt: UnixSeconds | null, now: UnixSeconds, thresholdHours = STALE_WARNING_H): boolean {
   if (lastSyncAt === null || lastSyncAt <= 0) return true;

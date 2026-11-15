@@ -1,5 +1,5 @@
-// Request limits. Source of truth: docs/ATURAN-REQUEST.md.
-// Changing any value must be deliberate and mentioned in the commit message.
+// Request limits. Every value is a deliberate project limit: changing one needs
+// discussion in an issue first and must be mentioned in the commit message.
 
 export const SIKOLA_ORIGIN = 'https://sikola-v2.unhas.ac.id';
 

@@ -5,8 +5,8 @@
 /*
  * Sulo design tokens. Single source of truth for color, type and radius.
  * Components use these through Tailwind utilities and shadcn/ui variables;
- * no color literals in components. Rationale and contrast values:
- * docs/BRAND.md.
+ * no color literals in components. Urgency tokens are kept off brand hues
+ * and all pass WCAG AA contrast in both themes.
  *
  * Dark is the default. Light follows the system preference, and
  * data-theme="light" | "dark" on <html> overrides it (manual setting, M5).

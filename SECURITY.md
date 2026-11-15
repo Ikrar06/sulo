@@ -31,7 +31,7 @@ Please include:
 - Requests that break the documented limits: more requests than the daily budget, parallel requests to SIKOLA, background HTML scraping, or any request to NEOSIA.
 - Execution of code that comes from outside the extension, including through the remote configuration or data files.
 - A bypass of an allowlist: calling a Moodle function, fetching a page or capturing a NEOSIA endpoint that is not on the list.
-- Data that should be dropped (for example the fields listed in `docs/NEOSIA.md`) reaching storage, exports or logs.
+- Data that should be dropped reaching storage, exports or logs: notification bodies, or, once the NEOSIA module exists, identity and payment details.
 - Messages from web pages being trusted without validation, or rendered as HTML.
 
 Out of scope: problems in SIKOLA, NEOSIA or other university systems themselves (report those to the university), and issues that require a compromised browser or device.

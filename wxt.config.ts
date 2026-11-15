@@ -11,8 +11,8 @@ const ICONS = {
 // Entry points that exist only in development builds.
 const DEV_ONLY_ENTRYPOINTS = new Set(['recorder']);
 
-// Permissions are deliberately minimal. See docs/ARCHITECTURE.md section 10.
-// Adding a permission requires explicit approval (CLAUDE.md, hard rule 8).
+// Permissions are deliberately minimal. Adding one needs an issue and the
+// maintainer's explicit approval first.
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   vite: () => ({

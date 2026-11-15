@@ -3,7 +3,7 @@ import type { AllowedFunction } from './calls';
 import type { CallResult } from './client';
 
 // Fields Sulo uses are required; every other field passes through.
-// Field presence is confirmed (docs/API-MOODLE.md); exact value types are
+// Field presence was verified on an account with active courses; exact value types are
 // confirmed or corrected once recorded fixtures exist.
 
 // ---------- Transport ----------

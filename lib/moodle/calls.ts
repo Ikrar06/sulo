@@ -1,6 +1,5 @@
 // Allowlists for everything the client may request. Read-only only.
-// The client refuses any function or page not listed here
-// (docs/ATURAN-REQUEST.md, rule 7).
+// The client refuses any function or page not listed here.
 
 import type { CourseId, UnixSeconds, UserId } from '../types';
 import {

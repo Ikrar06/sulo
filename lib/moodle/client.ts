@@ -1,4 +1,4 @@
-// The single gateway for every request to SIKOLA (CLAUDE.md, hard rules 2 and 3).
+// The single gateway for every request to SIKOLA (project rules: one gateway, never parallel).
 // Pure module: fetch, storage, clock and sesskey are injected.
 //
 // Every request passes the same gates, in order: allowlist, remote kill

@@ -49,7 +49,7 @@ describe('sensitive NEOSIA field names', () => {
 
   it('are allowed outside fixtures (docs and code may name them)', () => {
     expect(findLeaks(sample, 'lib/neosia/allowlist.ts')).toEqual([]);
-    expect(ruleApplies({ onlyFixtures: true }, 'docs/NEOSIA.md')).toBe(false);
+    expect(ruleApplies({ onlyFixtures: true }, 'README.md')).toBe(false);
   });
 });
 

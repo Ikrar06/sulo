@@ -28,24 +28,32 @@ The second command enables two git hooks: a scan for personal or session data be
 
 To try the extension, open `chrome://extensions`, turn on Developer mode, choose "Load unpacked" and select the build folder.
 
+## Project rules
+
+These rules hold for every change, however small.
+
+1. **Read only.** No request may change data in SIKOLA: no submissions, no marking notifications as read, no keeping the session alive.
+2. **One gateway.** Every request to SIKOLA goes through `lib/moodle/client.ts`, which enforces the allowlist, the daily budget, the serial queue and backoff. No other code calls `fetch` against SIKOLA.
+3. **Never parallel.** Requests to SIKOLA run one at a time.
+4. **No background scraping.** HTML is fetched only when the user opens a view that needs it, and is then cached.
+5. **No disguise.** No changed user agent, no randomized patterns to avoid detection, no hidden requests.
+6. **No credentials.** Never ask for, read or store usernames or passwords.
+7. **No data leaves the browser.** No telemetry or analytics. The only non-SIKOLA requests go to the public data repository [Ikrar06/sulo-data](https://github.com/Ikrar06/sulo-data): data only, validated, at most once a day per file, carrying nothing that identifies the user.
+8. **Minimal permissions.** Adding a permission needs an issue and the maintainer's approval first.
+9. **Zero requests to NEOSIA.** The planned NEOSIA module only reads responses the NEOSIA app itself already requested, is off by default, and discards identity and payment details before anything leaves the page.
+10. **Sensitive academic data is hidden by default** and never included in exports.
+
 ## Code conventions
-
-The project rules live in [CLAUDE.md](CLAUDE.md) and in [docs/](docs/). Technical documents are written in Indonesian. Read at least:
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for components and data flow
-- [docs/ATURAN-REQUEST.md](docs/ATURAN-REQUEST.md) for request limits
-- [docs/TESTING.md](docs/TESTING.md) for tests and fixtures
-- [docs/BRAND.md](docs/BRAND.md) for naming, tokens and assets
-
-Rules worth stating here:
 
 - TypeScript strict. Identifiers and comments in English, UI text in Indonesian, collected in `lib/i18n/id.ts`.
 - `lib/moodle/` and `lib/radar/` never import browser APIs. Storage, clock and fetch are injected so the code runs in Vitest.
-- Every request to SIKOLA goes through `lib/moodle/client.ts`. No other code calls `fetch` against SIKOLA.
+- The service worker keeps no state in module variables. All state lives in storage.
 - Every Moodle response is validated with Zod. A validation failure is a parser problem, never empty data.
-- Logic never depends on translated interface text. Use codes and timestamps.
-- Times are stored as Unix seconds (UTC) and converted to local time only for display.
+- Logic never depends on interface text that Moodle translates (`formattedtime`, `activitystr`, `modname`, notification subjects, attendance labels). Identify kinds by codes (`modulename`, `module`, `component`, `eventtype`) and times by timestamps. If an HTML parser must use text, provide English and Indonesian variants with tests, and fall back to `unknown` for other languages.
+- Times are stored as Unix seconds (UTC) and converted to local time only for display, through `Intl`. Functions that compute "today" take an injected `Clock`.
+- Parsers and diff functions are pure and tested.
 - No color values in components. Use the tokens in `assets/tailwind.css`.
+- The product is "Sulo". SIKOLA and NEOSIA are named only as data sources.
 - Ask before adding a dependency, and say why and how large it is.
 
 ## Commit messages
@@ -65,7 +73,7 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`.
 1. Open an issue first for anything larger than a small fix.
 2. Keep each pull request focused on one change.
 3. Run `pnpm typecheck`, `pnpm test`, `pnpm build` and `node scripts/check-leaks.mjs` before pushing.
-4. Update the documents in `docs/` in the same pull request when behavior changes.
+4. Update the README, the changelog and code comments in the same pull request when behavior changes.
 5. Fill in the pull request template.
 
 Reviewers check that:
@@ -89,7 +97,7 @@ Fixtures must go through the sanitizer:
 
 ## Request rules
 
-Sulo runs without official permission from the university for now, so its footprint must stay small and explainable. A change that adds requests to SIKOLA, or changes any number in [docs/ATURAN-REQUEST.md](docs/ATURAN-REQUEST.md), needs to be discussed in an issue first. The same applies to any new manifest permission.
+Sulo runs without official permission from the university for now, so its footprint must stay small and explainable. A change that adds requests to SIKOLA, or changes any limit in `lib/moodle/limits.ts`, needs to be discussed in an issue first. The same applies to any new manifest permission.
 
 ## Changes that will not be accepted
 

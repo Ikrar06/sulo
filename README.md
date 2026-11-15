@@ -31,7 +31,7 @@ Working now:
 - Validation of all five Moodle web service responses with Zod. A mismatch is reported as a parser problem, never as empty data.
 - A fixture recorder and sanitizer for development, so tests run on realistic data without personal information.
 
-Planned (see [docs/ROADMAP.md](docs/ROADMAP.md)):
+Planned:
 
 - Today view: overdue, today and tomorrow, this week, later, no due date. Copy the list as plain text, WhatsApp or Markdown.
 - Deadline reminders 3 days, 1 day and 3 hours before, with snooze.
@@ -51,7 +51,7 @@ Planned (see [docs/ROADMAP.md](docs/ROADMAP.md)):
 - **No academic automation.** Sulo does not fill in course registration, surveys or attendance, and does not watch class quotas.
 - **Minimal permissions.** `storage`, `alarms`, `notifications`, `idle`, and access to `https://sikola-v2.unhas.ac.id/*` only.
 
-Full policy: [PRIVACY.md](PRIVACY.md). Technical rules (Indonesian): [docs/ATURAN-REQUEST.md](docs/ATURAN-REQUEST.md) and [docs/PRIVASI.md](docs/PRIVASI.md).
+Full policy: [PRIVACY.md](PRIVACY.md).
 
 ## Architecture
 
@@ -71,7 +71,7 @@ Full policy: [PRIVACY.md](PRIVACY.md). Technical rules (Indonesian): [docs/ATURA
                                    sikola-v2.unhas.ac.id (JSON batch)
 ```
 
-All requests to SIKOLA leave from the service worker through one client. Pages that need HTML ask the service worker for it and parse it themselves. `lib/moodle` and `lib/radar` never touch browser APIs; storage, clock and fetch are injected so they can be tested in Node. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+All requests to SIKOLA leave from the service worker through one client. Pages that need HTML ask the service worker for it and parse it themselves. `lib/moodle` and `lib/radar` never touch browser APIs; storage, clock and fetch are injected so they can be tested in Node.
 
 ## Tech stack
 
@@ -102,7 +102,7 @@ Load the extension in your own Chrome profile, where you are logged in to SIKOLA
 2. Open `chrome://extensions` and turn on Developer mode.
 3. Choose "Load unpacked" and select `.output/chrome-mv3` (or `.output/chrome-mv3-dev`).
 
-Testers follow [docs/PASANG.md](docs/PASANG.md) instead.
+Trial testers receive an installation guide directly from the maintainer.
 
 Asset scripts: `node scripts/build-mascot.mjs` rebuilds the static mascots. `sh scripts/build-icons.sh` rebuilds the 128 px icon and needs `rsvg-convert` (librsvg) installed locally.
 
@@ -117,27 +117,22 @@ public/icon/        extension icons
 tests/              Vitest suites
 fixtures/           sanitized test data only
 scripts/            leak scan, sanitizer, asset builders
-docs/               architecture, request rules, roadmap, brand, testing
 ```
 
 ## Roadmap
 
-M0 scaffold and M1 request safety are done. Next: Today view (M2), reminders (M3), change radar (M4), dashboard and academic calendar (M5a), calendar export (M5b), attendance and next-day prep (M6), the optional NEOSIA module (M7), a course registration planner (M8), and course status rules (M9). See [docs/ROADMAP.md](docs/ROADMAP.md).
+M0 scaffold and M1 request safety are done. Next: Today view (M2), reminders (M3), change radar (M4), dashboard and academic calendar (M5a), calendar export (M5b), attendance and next-day prep (M6), the optional NEOSIA module (M7), a course registration planner (M8), and course status rules (M9).
 
 ## Documentation
 
-Written in Indonesian.
+- [PRIVACY.md](PRIVACY.md): what Sulo reads, stores and never does
+- [CONTRIBUTING.md](CONTRIBUTING.md): setup, project rules and review
+- [SECURITY.md](SECURITY.md): reporting vulnerabilities
+- [CHANGELOG.md](CHANGELOG.md): notable changes
+- [TRADEMARK.md](TRADEMARK.md): use of the name, logo and mascot
+- [fixtures/README.md](fixtures/README.md): test data and how to record it safely
 
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md): components, data flow, storage, radar
-- [ATURAN-REQUEST.md](docs/ATURAN-REQUEST.md): request limits and rules
-- [API-MOODLE.md](docs/API-MOODLE.md): Moodle functions verified on SIKOLA
-- [ROADMAP.md](docs/ROADMAP.md): milestones and done criteria
-- [UI.md](docs/UI.md): popup, dashboard and UI states
-- [BRAND.md](docs/BRAND.md): naming, assets, colors, typography, mascot
-- Planned modules: [KALENDER-AKADEMIK.md](docs/KALENDER-AKADEMIK.md), [NEOSIA.md](docs/NEOSIA.md), [PERSIAPAN-BESOK.md](docs/PERSIAPAN-BESOK.md), [PENYUSUN-JADWAL.md](docs/PENYUSUN-JADWAL.md), [ATURAN-AKADEMIK.md](docs/ATURAN-AKADEMIK.md)
-- [TESTING.md](docs/TESTING.md): test layers and fixture sanitization
-- [PRIVASI.md](docs/PRIVASI.md): privacy policy draft
-- [PASANG.md](docs/PASANG.md): install guide for testers
+Internal design notes are kept private during the limited trial.
 
 ## Contributing
 

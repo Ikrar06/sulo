@@ -1,6 +1,6 @@
 import type { ConnectionTestResult } from '../messages';
 
-// All UI text, in concise Indonesian. No exclamation marks (docs/UI.md).
+// All UI text, in concise Indonesian. No exclamation marks.
 export const id = {
   appName: 'Sulo',
   tagline: 'Pendamping akademik mahasiswa',

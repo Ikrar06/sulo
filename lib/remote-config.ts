@@ -1,4 +1,4 @@
-// Remote kill switch (docs/ATURAN-REQUEST.md, "Konfigurasi jarak jauh").
+// Remote kill switch, served from the public repository Ikrar06/sulo-data.
 // Data only, never code. Not a SIKOLA request, so it does not use the
 // Moodle client or count against the daily budget.
 
