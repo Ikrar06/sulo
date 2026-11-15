@@ -6,9 +6,13 @@ import { messagesFor, resolveLocale, type Locale } from '@/lib/i18n';
 import { readPrefs } from '@/lib/prefs';
 import { PRIVACY_INTRO, PRIVACY_SECTIONS, PRIVACY_TITLE, PRIVACY_UPDATED, type Block } from '@/lib/privacy/content';
 import '@/assets/tailwind.css';
+import { installInputModality } from '@/lib/ui/input-modality';
 
 // In-extension privacy policy, rendered from the same source as PRIVACY.md,
 // in the user's language (stored choice, else the browser's).
+
+// Focus rings for keyboard users only (see assets/tailwind.css).
+installInputModality(document, document.documentElement);
 
 function BlockView({ block, lang }: { block: Block; lang: Locale }) {
   if (block.kind === 'p') return <p>{block.text[lang]}</p>;

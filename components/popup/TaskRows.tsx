@@ -40,12 +40,12 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
   const { m } = useI18n();
   const text = dueText(row, due.format, due.now, due.timeZone, m);
   return (
-    <li className="group relative flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-raised focus-within:bg-surface-raised">
+    <li className="group relative flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
       <button
         type="button"
         onClick={() => actions.onOpenTask(row.url)}
         aria-label={m.popup.openTask(row.name)}
-        className="min-w-0 flex-1 text-left outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-ring"
+        className="min-w-0 flex-1 text-left outline-none after:absolute after:inset-0 after:rounded-lg focus-ring:after:ring-2 focus-ring:after:ring-focus"
       >
         <span className="line-clamp-2 text-[14px] leading-[19px] font-semibold">{row.name}</span>
         <span className="mt-1 flex items-center gap-1.5 text-[12px] leading-4 text-muted-foreground">

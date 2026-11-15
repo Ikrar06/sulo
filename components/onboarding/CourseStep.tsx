@@ -74,7 +74,7 @@ export function StepCourses({ courses, onToggle }: StepCoursesProps) {
         <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-muted-foreground" />
         <input
           type="search"
-          className="h-12 w-full rounded-xl border border-border bg-background pr-4 pl-11 text-[16px] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
+          className="h-12 w-full rounded-xl border border-border bg-background pr-4 pl-11 text-[16px] outline-none placeholder:text-muted-foreground focus-visible:border-focus focus-visible:ring-3 focus-visible:ring-ring/40"
           placeholder={t.courses.search}
           aria-label={t.courses.search}
           value={query}

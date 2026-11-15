@@ -19,6 +19,7 @@ import type { CourseId, CourseRecord } from '@/lib/types';
 import type { MascotState } from '@/lib/view/popup-view';
 import { manyCourses, NOW, POPUP_STATES, PREVIEW_COURSES, TZ } from './fixtures';
 import '@/assets/tailwind.css';
+import { installInputModality } from '@/lib/ui/input-modality';
 
 // Dev-only preview (excluded from production builds), from synthetic fixtures.
 // Routes (query string):
@@ -27,6 +28,9 @@ import '@/assets/tailwind.css';
 //   ?popup=N&theme=dark|light            one popup state at 380 px, for screenshots
 //   ?onboarding=1..4[&connect=..][&many][&notice]&theme=..   one full-screen onboarding step
 //   ?mascots&theme=..                    every mascot state, large, for screenshots
+
+// Focus rings for keyboard users only (see assets/tailwind.css).
+installInputModality(document, document.documentElement);
 
 
 const params = new URLSearchParams(location.search);

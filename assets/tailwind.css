@@ -69,6 +69,8 @@
 
 :root {
   color-scheme: dark;
+  /* Keyboard focus ring: 2px solid, at least 3:1 against bg and surface. */
+  --focus: #ffb020;
   --bg: #0b0b0e;
   --surface: #17171c;
   --surface-raised: #1f1f25;
@@ -107,6 +109,7 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;
+    --focus: #b45309;
     --bg: #fafafb;
     --surface: #ffffff;
     --surface-raised: #f2f2f5;
@@ -137,6 +140,7 @@
 /* Any element can force a theme (the dev preview shows both side by side). */
 [data-theme="light"] {
   color-scheme: light;
+  --focus: #b45309;
   --bg: #fafafb;
   --surface: #ffffff;
   --surface-raised: #f2f2f5;
@@ -165,6 +169,7 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
+  --focus: #ffb020;
   --bg: #0b0b0e;
   --surface: #17171c;
   --surface-raised: #1f1f25;
@@ -286,15 +291,41 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-focus: var(--focus);
 }
 
 @utility bg-brand-flame {
   background-image: var(--brand-flame);
 }
 
+/*
+ * Focus: rings are for keyboard users only. lib/ui/input-modality.ts sets
+ * <html data-input="mouse|keyboard"> from the last input. Without the
+ * attribute (script not run yet) rings show, so keyboard users never lose
+ * them. Use these variants for every focus style, never plain `focus:`:
+ *   focus-ring:        this element has keyboard focus
+ *   has-focus-ring:    something inside has keyboard focus (cards, rows)
+ *   group-focus-ring:  something inside the nearest .group has keyboard focus
+ * Text fields keep plain `focus-visible:`; the ring helps while typing.
+ */
+@custom-variant focus-ring (&:focus-visible:where(:root:not([data-input="mouse"]) *));
+@custom-variant has-focus-ring (&:has(:focus-visible):where(:root:not([data-input="mouse"]) *));
+@custom-variant group-focus-ring (&:where(:root:not([data-input="mouse"]) .group:has(:focus-visible) *));
+
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+    /* No blue flash when a control is tapped. */
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Elements without their own focus style (plain links, summary, collapsible
+     triggers) get the same clear ring, keyboard only. */
+  :where(a, button, summary, label, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  :root[data-input="mouse"] :focus-visible:not(input, textarea, select) {
+    outline: none;
   }
   html {
     font-family: var(--font-sans);

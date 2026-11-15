@@ -28,7 +28,7 @@ export function StatusLine({ banner, now, actions }: { banner: Banner; now: Unix
         <button
           type="button"
           onClick={action[1]}
-          className="shrink-0 rounded-sm font-medium text-foreground underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+          className="shrink-0 rounded-sm font-medium text-foreground underline-offset-2 outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus"
         >
           {action[0]}
         </button>

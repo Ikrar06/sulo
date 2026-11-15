@@ -105,7 +105,7 @@ export function RowMenu({ row, onDone, onAddToCalendar }: { row: TaskRow; onDone
           size="icon-sm"
           variant="ghost"
           aria-label={r.menu(row.name)}
-          className="row-menu relative z-10 size-7 bg-surface-raised opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+          className="row-menu relative z-10 size-7 bg-surface-raised opacity-0 group-hover:opacity-100 group-focus-ring:opacity-100 focus-ring:opacity-100 data-[state=open]:opacity-100"
         >
           <MoreIcon className="size-4" />
         </Button>

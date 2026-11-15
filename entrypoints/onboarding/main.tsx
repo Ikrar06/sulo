@@ -22,11 +22,15 @@ import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupView } from '@/lib/view/popup-view';
 import type { CourseId, CourseRecord, SyncOutcome } from '@/lib/types';
 import '@/assets/tailwind.css';
+import { installInputModality } from '@/lib/ui/input-modality';
 
 // Onboarding in a full tab. Opened on install, from the popup ("Lanjutkan
 // pengaturan"), at the course step with #courses ("Atur mata kuliah"), or as
 // "Yang baru di Sulo" with #whats-new after an update. The steps come from
 // lib/onboarding/flow.ts; this page only renders the current one.
+
+// Focus rings for keyboard users only (see assets/tailwind.css).
+installInputModality(document, document.documentElement);
 
 const local = createBrowserStore(browser.storage.local);
 const session = createBrowserStore(browser.storage.session);

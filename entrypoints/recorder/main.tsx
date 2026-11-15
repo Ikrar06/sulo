@@ -5,9 +5,13 @@ import { Button } from '@/components/ui/button';
 import { id } from '@/lib/i18n/id';
 import type { Message, RecordResponse } from '@/lib/messages';
 import '@/assets/tailwind.css';
+import { installInputModality } from '@/lib/ui/input-modality';
 
 // Dev-only page (excluded from production builds in wxt.config.ts).
 // Saves sanitized fixtures with <a download>, so no "downloads" permission.
+
+// Focus rings for keyboard users only (see assets/tailwind.css).
+installInputModality(document, document.documentElement);
 
 function saveFile(filename: string, content: string): void {
   const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
