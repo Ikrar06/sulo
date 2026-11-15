@@ -107,20 +107,26 @@ export const courseformatStateSchema = z
   .pipe(courseformatStateObject);
 
 /**
- * Sulo keeps only id, subject, component, eventtype, timecreated and read
- * from notifications. Message bodies (text, fullmessage*, smallmessage,
- * contexturl, customdata) may hold grades or lecturer comments and are
- * never stored.
+ * Notifications: Sulo keeps only id, subject, component, eventtype,
+ * timecreated, read and a filtered contexturl (docs/PRIVASI.md). Message
+ * bodies (text, fullmessage*, smallmessage) may hold grades or lecturer
+ * comments and never pass validation.
  */
 export const popupNotificationsSchema = z.looseObject({
   notifications: z.array(
-    z.looseObject({
+    // z.object (not looseObject, not strict): Moodle always sends more fields;
+    // they are dropped here without an error, so message bodies never leave
+    // validation. customdata is read once for the course id (lib/radar/
+    // notifications.ts) and then discarded.
+    z.object({
       id,
       subject: z.string(),
       component: z.string(),
       eventtype: z.string(),
       timecreated: unix,
       read: z.boolean(),
+      contexturl: z.string().nullable().optional(),
+      customdata: z.string().nullable().optional(),
     }),
   ),
   unreadcount: z.number().int().nonnegative(),

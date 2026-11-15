@@ -135,6 +135,8 @@ export interface SnapshotItem {
   name: string;
   sectionId: number;
   visible: boolean;
+  /** False when access restrictions hide it from this user. */
+  uservisible: boolean;
   url: string | null;
   firstSeenAt: UnixSeconds;
   /** Consecutive syncs in which this item was absent. */
@@ -149,25 +151,43 @@ export interface CourseSnapshot {
   items: Record<string, SnapshotItem>; // keyed by cmId as string
 }
 
+/** A Moodle notification reduced to the fields Sulo may keep (docs/PRIVASI.md). */
+export interface KeptNotification {
+  id: number;
+  subject: string;
+  component: string;
+  eventtype: string;
+  timecreated: UnixSeconds;
+  read: boolean;
+  /** Filtered: SIKOLA only, allowlisted path, id parameters only; else null. */
+  contexturl: string | null;
+}
+
 export type Change =
-  | { kind: 'added'; courseId: CourseId; cmId: CmId; module: string; name: string }
+  | { kind: 'added'; courseId: CourseId; cmId: CmId; module: string; name: string; url: string | null }
   | { kind: 'removed'; courseId: CourseId; cmId: CmId; module: string; name: string }
-  | { kind: 'renamed'; courseId: CourseId; cmId: CmId; from: string; to: string }
-  | { kind: 'hidden'; courseId: CourseId; cmId: CmId; name: string }
-  | { kind: 'shown'; courseId: CourseId; cmId: CmId; name: string }
-  | { kind: 'due_changed'; courseId: CourseId; eventId: number; name: string; from: UnixSeconds | null; to: UnixSeconds | null }
-  | { kind: 'task_added'; courseId: CourseId; eventId: number; name: string; dueAt: UnixSeconds | null }
-  | { kind: 'graded'; courseId: CourseId | null; notificationId: number; subject: string }
-  | { kind: 'feedback'; courseId: CourseId | null; notificationId: number; subject: string }
-  | { kind: 'forum_post'; courseId: CourseId | null; notificationId: number; subject: string };
+  | { kind: 'renamed'; courseId: CourseId; cmId: CmId; module: string; from: string; to: string; url: string | null }
+  | { kind: 'hidden'; courseId: CourseId; cmId: CmId; module: string; name: string }
+  | { kind: 'shown'; courseId: CourseId; cmId: CmId; module: string; name: string; url: string | null }
+  | { kind: 'due_changed'; courseId: CourseId; eventId: number; cmId: CmId | null; name: string; from: UnixSeconds | null; to: UnixSeconds | null; url: string }
+  | { kind: 'task_added'; courseId: CourseId; eventId: number; cmId: CmId | null; name: string; dueAt: UnixSeconds | null; url: string }
+  /** Grades and feedback are one kind: component alone cannot tell them apart reliably. */
+  | { kind: 'grade_feedback'; courseId: CourseId | null; notification: KeptNotification }
+  | { kind: 'forum'; courseId: CourseId | null; notification: KeptNotification }
+  /** Unknown component and eventtype pair: log only, no system notification. */
+  | { kind: 'other_notification'; courseId: CourseId | null; notification: KeptNotification };
 
 export interface ChangeLogEntry {
+  /** Stable id, also the notification key ("c:" + id). */
   id: string;
   at: UnixSeconds;
   change: Change;
-  /** Whether a system notification was shown for it. */
-  notified: boolean;
+  /** Should produce a system notification (subject to settings and quiet hours). */
+  notify: boolean;
+  /** Seen in the "Kabar terbaru" panel. */
   seen: boolean;
+  /** Popup opens since it was logged, for the "baru" marker on task rows. */
+  opens: number;
 }
 
 export interface DiffResult {

@@ -11,6 +11,7 @@ const CASES: [AllowedFunction, string][] = [
   ['core_calendar_get_action_events_by_timesort', 'calendar-action-events.normal'],
   ['core_courseformat_get_state', 'courseformat-state.normal'],
   ['message_popup_get_popup_notifications', 'popup-notifications.normal'],
+  ['message_popup_get_popup_notifications', 'popup-notifications.grades'],
   ['core_course_get_enrolled_courses_by_timeline_classification', 'enrolled-courses.normal'],
 ];
 
