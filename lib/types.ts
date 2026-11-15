@@ -27,6 +27,7 @@ export type RequestSource =
   | 'popup'
   | 'manual'
   | 'onboarding'
+  /** Removed message (connection test); kept so older counts still show a label. */
   | 'connection-test'
   | 'sesskey-fallback'
   | 'recorder';
@@ -163,12 +164,20 @@ export interface KeptNotification {
   contexturl: string | null;
 }
 
+/**
+ * Structure changes carry `since`: when the snapshot they were compared with
+ * was taken. With the content it makes the log entry id deterministic: two
+ * cycles comparing against the same snapshot produce the same id (one entry,
+ * one notification), while a real repeat later has a newer `since`.
+ */
+type Since = { since: UnixSeconds };
+
 export type Change =
-  | { kind: 'added'; courseId: CourseId; cmId: CmId; module: string; name: string; url: string | null }
-  | { kind: 'removed'; courseId: CourseId; cmId: CmId; module: string; name: string }
-  | { kind: 'renamed'; courseId: CourseId; cmId: CmId; module: string; from: string; to: string; url: string | null }
-  | { kind: 'hidden'; courseId: CourseId; cmId: CmId; module: string; name: string }
-  | { kind: 'shown'; courseId: CourseId; cmId: CmId; module: string; name: string; url: string | null }
+  | ({ kind: 'added'; courseId: CourseId; cmId: CmId; module: string; name: string; url: string | null } & Since)
+  | ({ kind: 'removed'; courseId: CourseId; cmId: CmId; module: string; name: string } & Since)
+  | ({ kind: 'renamed'; courseId: CourseId; cmId: CmId; module: string; from: string; to: string; url: string | null } & Since)
+  | ({ kind: 'hidden'; courseId: CourseId; cmId: CmId; module: string; name: string } & Since)
+  | ({ kind: 'shown'; courseId: CourseId; cmId: CmId; module: string; name: string; url: string | null } & Since)
   | { kind: 'due_changed'; courseId: CourseId; eventId: number; cmId: CmId | null; name: string; from: UnixSeconds | null; to: UnixSeconds | null; url: string }
   | { kind: 'task_added'; courseId: CourseId; eventId: number; cmId: CmId | null; name: string; dueAt: UnixSeconds | null; url: string }
   /** Grades and feedback are one kind: component alone cannot tell them apart reliably. */
@@ -211,7 +220,7 @@ export type SyncTrigger = 'background' | 'popup' | 'manual' | 'onboarding';
 
 export type SyncOutcome =
   | { status: 'ok'; at: UnixSeconds; tasks: number; courseListFetched: boolean }
-  | { status: 'skipped'; reason: ClientRefusal | 'QUIET_HOURS' | 'IDLE' | 'FRESH' }
+  | { status: 'skipped'; reason: ClientRefusal | 'QUIET_HOURS' | 'IDLE' | 'FRESH' | 'BUSY' }
   | { status: 'session_expired' }
   | { status: 'invalid_sesskey' }
   | { status: 'offline' }

@@ -25,21 +25,22 @@ export function diffCourse(
   const baseline = previous === null || previous.parserVersion !== PARSER_VERSION;
   const items: Record<string, SnapshotItem> = {};
   const changes: Change[] = [];
+  const since = previous?.fetchedAt ?? now;
 
   for (const f of fresh) {
     const before = baseline ? undefined : previous?.items[String(f.cmId)];
     items[String(f.cmId)] = { ...f, firstSeenAt: before?.firstSeenAt ?? now, missCount: 0 };
     if (baseline) continue;
     if (!before) {
-      changes.push({ kind: 'added', courseId, cmId: f.cmId, module: f.module, name: f.name, url: f.url });
+      changes.push({ kind: 'added', courseId, cmId: f.cmId, module: f.module, name: f.name, url: f.url, since });
       continue;
     }
-    if (before.name !== f.name) changes.push({ kind: 'renamed', courseId, cmId: f.cmId, module: f.module, from: before.name, to: f.name, url: f.url });
+    if (before.name !== f.name) changes.push({ kind: 'renamed', courseId, cmId: f.cmId, module: f.module, from: before.name, to: f.name, url: f.url, since });
     // Snapshots from before M4 have no uservisible: treat as visible.
     const was = isVisible({ visible: before.visible, uservisible: before.uservisible ?? true });
     const now_ = isVisible(f);
-    if (was && !now_) changes.push({ kind: 'hidden', courseId, cmId: f.cmId, module: f.module, name: f.name });
-    if (!was && now_) changes.push({ kind: 'shown', courseId, cmId: f.cmId, module: f.module, name: f.name, url: f.url });
+    if (was && !now_) changes.push({ kind: 'hidden', courseId, cmId: f.cmId, module: f.module, name: f.name, since });
+    if (!was && now_) changes.push({ kind: 'shown', courseId, cmId: f.cmId, module: f.module, name: f.name, url: f.url, since });
   }
 
   if (!baseline && previous) {
@@ -48,7 +49,7 @@ export function diffCourse(
       if (freshIds.has(key)) continue;
       const missCount = item.missCount + 1;
       if (missCount >= REMOVED_AFTER_MISSES) {
-        changes.push({ kind: 'removed', courseId, cmId: item.cmId, module: item.module, name: item.name });
+        changes.push({ kind: 'removed', courseId, cmId: item.cmId, module: item.module, name: item.name, since });
       } else {
         items[key] = { ...item, missCount };
       }

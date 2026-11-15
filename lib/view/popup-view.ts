@@ -122,6 +122,8 @@ export interface PopupInput {
   online?: boolean;
   /** Active dictionary; Indonesian when omitted (badge, tests). */
   messages?: Messages;
+  /** A sync holds a live lock (lib/sync/lock.ts): "Sedang memperbarui". */
+  syncing?: boolean;
   /** chrome.notifications permission; omitted means granted. */
   notificationsAllowed?: boolean;
 }
@@ -201,7 +203,7 @@ export function buildPopupView(input: PopupInput): PopupView {
 
   let mascot: MascotState = 'idle';
   if (!onboarded) mascot = 'onboarding';
-  else if (input.syncStatus.running) mascot = 'syncing';
+  else if (input.syncing) mascot = 'syncing';
   else if (last?.status === 'parser_broken') mascot = 'dizzy';
   else if (sessionExpired) mascot = 'sleepy';
   else if (stale || offline(input)) mascot = 'stale';
@@ -212,7 +214,7 @@ export function buildPopupView(input: PopupInput): PopupView {
     onboarded,
     banner,
     mascot,
-    syncing: input.syncStatus.running,
+    syncing: input.syncing ?? false,
     lastSyncAt,
     groups,
     pendingCount: pending.length,

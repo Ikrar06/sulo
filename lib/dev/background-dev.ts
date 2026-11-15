@@ -33,7 +33,7 @@ async function injectSampleChanges(deps: DevDeps, kind: 'material' | 'due' | 'gr
   const note = (c: number, component: string, eventtype: string, subject: string) => ({
     id: nid + c, subject, component, eventtype, timecreated: now, read: false, contexturl: null,
   });
-  const material = (c: number, i: number): Change => ({ kind: 'added', courseId: c, cmId: 900_000 + now % 1000 + i, module: 'resource', name: `Materi contoh ${i + 1}`, url: null });
+  const material = (c: number, i: number): Change => ({ kind: 'added', courseId: c, cmId: 900_000 + now % 1000 + i, module: 'resource', name: `Materi contoh ${i + 1}`, url: null, since: now });
   const changes: Change[] =
     kind === 'material'
       ? [material(course, 0), material(course, 1)]

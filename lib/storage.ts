@@ -24,10 +24,9 @@ export interface SyncStatus {
   lastAttemptAt: UnixSeconds | null;
   lastOutcome: SyncOutcome | null;
   /** True while a sync is running, for the "syncing" mascot. */
-  running: boolean;
 }
 
-export const DEFAULT_SYNC_STATUS: SyncStatus = { lastAttemptAt: null, lastOutcome: null, running: false };
+export const DEFAULT_SYNC_STATUS: SyncStatus = { lastAttemptAt: null, lastOutcome: null };
 
 export async function readSyncStatus(store: KeyValueStore): Promise<SyncStatus> {
   return (await store.get<SyncStatus>(SYNC_STATUS_KEY)) ?? DEFAULT_SYNC_STATUS;
@@ -47,6 +46,20 @@ export interface OnboardingState {
 export interface LocalStats {
   notifyFailures: number;
   lastNotifyFailureAt: UnixSeconds | null;
+  /** get_state failures for one course with an access error (skipped 24 hours). */
+  courseAccessFailures?: number;
+  /** get_state failures with a server or unknown error (retried at the next check). */
+  courseOtherFailures?: number;
+}
+
+/** A course whose structure could not be read with an access error. */
+export interface CourseAccess {
+  /** Access failures in a row; reset by a successful read. */
+  failures: number;
+  lastFailedAt: UnixSeconds;
+  lastErrorcode: string;
+  /** 3 failures in a row: shown later in the course settings (M5a). */
+  flagged: boolean;
 }
 
 export interface UserData {
@@ -72,6 +85,8 @@ export interface RadarMeta {
   notificationsLastId: number | null;
   /** The first calendar sync with the radar on is a silent baseline. */
   calendarBaseline: boolean;
+  /** Courses that failed with an access error, keyed by course id. */
+  courseAccess?: Record<string, CourseAccess>;
 }
 
 export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
@@ -104,6 +119,26 @@ export async function switchUser(store: KeyValueStore, userId: UserId): Promise<
   if (staleKeys.length > 0) await store.remove(staleKeys);
   await store.set(CURRENT_USER_KEY, userId);
   return previous !== null || staleKeys.length > 0;
+}
+
+/**
+ * Removes every u:{id}:* key whose id is not the active account (nor an
+ * account waiting for confirmation, Tahap 2). Catches keys a late write left
+ * behind after an account switch. Returns the removed keys.
+ */
+export async function pruneOrphanUserKeys(store: KeyValueStore, keep: readonly (UserId | null)[] = []): Promise<string[]> {
+  const active = await currentUser(store);
+  const allowed = [active, ...keep].filter((id): id is UserId => id !== null).map((id) => `u:${id}:`);
+  const orphans = (await store.keys('u:')).filter((k) => !allowed.some((prefix) => k.startsWith(prefix)));
+  if (orphans.length > 0) await store.remove(orphans);
+  return orphans;
+}
+
+/** Writes only while `userId` is still the active account (compare-and-set). */
+export async function writeUserIfCurrent<K extends keyof UserData>(store: KeyValueStore, userId: UserId, name: K, value: UserData[K]): Promise<boolean> {
+  if ((await currentUser(store)) !== userId) return false;
+  await writeUser(store, userId, name, value);
+  return true;
 }
 
 export async function readUser<K extends keyof UserData>(store: KeyValueStore, userId: UserId, name: K): Promise<UserData[K]> {

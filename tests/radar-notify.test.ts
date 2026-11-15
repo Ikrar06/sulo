@@ -14,7 +14,7 @@ const H = 3600;
 const at = (y: number, mo: number, d: number, h: number, mi = 0) => Date.UTC(y, mo - 1, d, h - 8, mi) / 1000; // WITA
 const DAYTIME = at(2026, 11, 19, 14, 0);
 
-const added = (courseId: number, cmId: number, name = `Modul ${cmId}`): Change => ({ kind: 'added', courseId, cmId, module: 'resource', name, url: null });
+const added = (courseId: number, cmId: number, name = `Modul ${cmId}`): Change => ({ kind: 'added', courseId, cmId, module: 'resource', name, url: null, since: 1 });
 const grade = (courseId: number | null, noteId: number): Change => ({
   kind: 'grade_feedback', courseId,
   notification: { id: noteId, subject: 'Tugas Laporan 3 sudah dinilai: 87', component: 'mod_assign', eventtype: 'assign_notification', timecreated: 1, read: false, contexturl: null },
@@ -65,7 +65,7 @@ describe('update notifications', () => {
   });
 
   it('logs but never notifies removals, renames and other notifications', () => {
-    const log = appendChanges([], [{ kind: 'removed', courseId: 401, cmId: 1, module: 'page', name: 'x' }], DAYTIME);
+    const log = appendChanges([], [{ kind: 'removed', courseId: 401, cmId: 1, module: 'page', name: 'x', since: 1 }], DAYTIME);
     expect(planReminders(input(log, DAYTIME)).send).toEqual([]);
   });
 });

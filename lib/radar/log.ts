@@ -12,7 +12,7 @@ export const FAR_TASK_DAYS = 85;
 export const NEW_MARKER_SECONDS = 24 * 3600;
 export const NEW_MARKER_OPENS = 3;
 
-export function entryId(change: Change, now: UnixSeconds): string {
+export function entryId(change: Change): string {
   switch (change.kind) {
     case 'task_added':
       return `task:${change.eventId}:added`;
@@ -22,8 +22,12 @@ export function entryId(change: Change, now: UnixSeconds): string {
     case 'forum':
     case 'other_notification':
       return `note:${change.notification.id}`;
+    case 'renamed':
+      return `cm:${change.courseId}:${change.cmId}:renamed:${change.since}:${change.to}`;
     default:
-      return `cm:${change.courseId}:${change.cmId}:${change.kind}:${now}`;
+      // Derived from the content and the snapshot compared against, never
+      // from the current time: the same change seen twice is one entry.
+      return `cm:${change.courseId}:${change.cmId}:${change.kind}:${change.since}`;
   }
 }
 
@@ -61,7 +65,7 @@ export function appendChanges(log: readonly ChangeLogEntry[], changes: readonly 
   const existing = new Set(log.map((e) => e.id));
   const fresh: ChangeLogEntry[] = [];
   for (const change of changes) {
-    const id = entryId(change, now);
+    const id = entryId(change);
     if (existing.has(id)) continue;
     existing.add(id);
     fresh.push({ id, at: now, change, notify: mayNotify(change, log, changes, now), seen: false, opens: 0 });

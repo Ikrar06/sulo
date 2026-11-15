@@ -50,7 +50,7 @@ describe('course structure diff', () => {
 
   it('reports new activities', () => {
     const r = diffCourse(snap([item(1)]), [item(1), item(2, { module: 'assign', name: 'Laporan 4' })], ctx);
-    expect(r.changes).toEqual([{ kind: 'added', courseId: 401, cmId: 2, module: 'assign', name: 'Laporan 4', url: `${ORIGIN}/mod/resource/view.php?id=2` }]);
+    expect(r.changes).toEqual([{ kind: 'added', courseId: 401, cmId: 2, module: 'assign', name: 'Laporan 4', url: `${ORIGIN}/mod/resource/view.php?id=2`, since: NOW - H }]);
   });
 
   it('counts a missing activity as removed only after 2 checks in a row', () => {
@@ -58,7 +58,7 @@ describe('course structure diff', () => {
     expect(first.changes).toEqual([]);
     expect(first.next.items['2']?.missCount).toBe(1);
     const second = diffCourse(first.next, [item(1)], { ...ctx, now: NOW + 6 * H });
-    expect(second.changes).toEqual([{ kind: 'removed', courseId: 401, cmId: 2, module: 'resource', name: 'Materi 2' }]);
+    expect(second.changes).toEqual([{ kind: 'removed', courseId: 401, cmId: 2, module: 'resource', name: 'Materi 2', since: NOW }]);
     expect(second.next.items['2']).toBeUndefined();
   });
 
@@ -80,7 +80,7 @@ describe('course structure diff', () => {
 
   it('records renames', () => {
     const r = diffCourse(snap([item(1)]), [item(1, { name: 'Materi 1 (revisi)' })], ctx);
-    expect(r.changes).toEqual([{ kind: 'renamed', courseId: 401, cmId: 1, module: 'resource', from: 'Materi 1', to: 'Materi 1 (revisi)', url: `${ORIGIN}/mod/resource/view.php?id=1` }]);
+    expect(r.changes).toEqual([{ kind: 'renamed', courseId: 401, cmId: 1, module: 'resource', from: 'Materi 1', to: 'Materi 1 (revisi)', url: `${ORIGIN}/mod/resource/view.php?id=1`, since: NOW - H }]);
   });
 });
 
@@ -189,13 +189,13 @@ describe('Moodle notifications', () => {
 });
 
 describe('change log', () => {
-  const added = (cmId: number, module = 'resource'): Change => ({ kind: 'added', courseId: 401, cmId, module, name: 'X', url: null });
+  const added = (cmId: number, module = 'resource'): Change => ({ kind: 'added', courseId: 401, cmId, module, name: 'X', url: null, since: NOW - 6 * H });
   const taskAdded = (eventId: number, cmId: number | null, dueAt: number | null = NOW + 48 * H): Change => ({
     kind: 'task_added', courseId: 401, eventId, cmId, name: 'Laporan', dueAt, url: '',
   });
 
   it('notifies new material and tasks, but not labels, renames, removals or other notifications', () => {
-    const log = appendChanges([], [added(1), added(2, 'label'), { kind: 'renamed', courseId: 401, cmId: 3, module: 'page', from: 'a', to: 'b', url: null }, taskAdded(10, null)], NOW);
+    const log = appendChanges([], [added(1), added(2, 'label'), { kind: 'renamed', courseId: 401, cmId: 3, module: 'page', from: 'a', to: 'b', url: null, since: NOW - 6 * H }, taskAdded(10, null)], NOW);
     expect(log.map((e) => [e.change.kind, e.notify])).toEqual([
       ['added', true],
       ['added', false],
@@ -233,5 +233,22 @@ describe('change log', () => {
     expect(taskMarkers(log, NOW + 25 * H).size).toBe(0);
     for (let i = 0; i < 3; i++) log = countPopupOpen(log, NOW + H);
     expect(taskMarkers(log, NOW + 2 * H).size).toBe(0);
+  });
+
+  it('gives the same change from two overlapping cycles one id, one entry and one notification', () => {
+    const prev = snap([item(1)]);
+    const a = diffCourse(prev, [item(1), item(2)], { ...ctx, now: NOW });
+    const b = diffCourse(prev, [item(1), item(2)], { ...ctx, now: NOW + 30 });
+    const log = appendChanges(appendChanges([], a.changes, NOW), b.changes, NOW + 30);
+    expect(log).toHaveLength(1);
+    expect(log[0]?.notify).toBe(true);
+  });
+
+  it('still records a real repeat later (hidden, shown, hidden again)', () => {
+    const hidden1 = diffCourse(snap([item(1)]), [item(1, { visible: false })], ctx);
+    const shown = diffCourse(hidden1.next, [item(1)], { ...ctx, now: NOW + 6 * H });
+    const hidden2 = diffCourse(shown.next, [item(1, { visible: false })], { ...ctx, now: NOW + 12 * H });
+    const log = [hidden1, shown, hidden2].reduce((l, d, i) => appendChanges(l, d.changes, NOW + i * 6 * H), [] as ReturnType<typeof appendChanges>);
+    expect(log.map((e) => e.change.kind)).toEqual(['hidden', 'shown', 'hidden']);
   });
 });

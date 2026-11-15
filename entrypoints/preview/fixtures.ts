@@ -50,8 +50,8 @@ function baseUser(): UserData {
   const t0 = allTasks[0]!;
   const t1 = allTasks[1]!;
   const yesterday = appendChanges([], [
-    { kind: 'added', courseId: 402, cmId: 7001, module: 'resource', name: 'Modul 6: Analisis lalu lintas', url: 'https://sikola-v2.unhas.ac.id/mod/resource/view.php?id=7001' },
-    { kind: 'renamed', courseId: 402, cmId: 7002, module: 'page', from: 'Materi 5', to: 'Materi 5 (revisi)', url: null },
+    { kind: 'added', courseId: 402, cmId: 7001, module: 'resource', name: 'Modul 6: Analisis lalu lintas', url: 'https://sikola-v2.unhas.ac.id/mod/resource/view.php?id=7001', since: NOW - 30 * HOUR },
+    { kind: 'renamed', courseId: 402, cmId: 7002, module: 'page', from: 'Materi 5', to: 'Materi 5 (revisi)', url: null, since: NOW - 30 * HOUR },
   ], NOW - 26 * HOUR).map((e) => ({ ...e, seen: true }));
   const changes = appendChanges(yesterday, [
     { kind: 'task_added', courseId: t1.courseId, eventId: t1.eventId, cmId: t1.cmId, name: t1.name, dueAt: t1.dueAt, url: t1.url },
@@ -102,7 +102,7 @@ export const POPUP_STATES: { title: string; input: PopupInput; view: PopupView }
   { title: 'Kosong (semua beres)', ...withView(input({ user: { ...baseUser(), tasks: [] } })) },
   { title: 'Satu tugas', ...withView(input({ user: { ...baseUser(), tasks: baseUser().tasks.slice(1, 2) } })) },
   { title: 'Lebih dari 30 tugas, nama panjang', ...withView(input({ user: manyTasksUser() })) },
-  { title: 'Sedang sinkron', ...withView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, running: true } })) },
+  { title: 'Sedang sinkron', ...withView(input({ syncing: true })) },
   { title: 'Sesi habis', ...withView(input({ session: 'EXPIRED' })) },
   { title: 'Parser rusak', ...withView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'parser_broken', where: 'core_calendar_get_action_events_by_timesort' } } })) },
   { title: 'Batas harian', ...withView(input({ budget: { date: '2026-09-22', used: DAILY_BUDGET } })) },
