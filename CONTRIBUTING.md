@@ -89,10 +89,11 @@ Reviewers check that:
 
 Never include real student data in any form: fixtures, screenshots, logs, issue text or commit messages. This covers names, student numbers (NIM), email addresses, grades, session keys, cookies and tokens, including your own.
 
-Fixtures must go through the sanitizer:
+Tests use synthetic fixtures only:
 
-- The development build has a fixture recorder that sanitizes before saving.
-- For other JSON, use `node scripts/sanitize.ts <in.json> <out.json>`.
+- `fixtures/synthetic/` holds hand-written data with the same field names, types and structure as real SIKOLA responses. CI validates every file in it against the schemas.
+- Do not add fixtures taken from a real account, not even sanitized ones. If you need a new case, write it by hand in `fixtures/synthetic/`.
+- The maintainer keeps sanitized recordings outside git and checks that the synthetic fixtures still match their shape with `pnpm fixtures:compare` (field names and types only). The check is skipped when the recordings are absent.
 - Never commit raw responses. `fixtures/raw/` is ignored by git for local use only.
 
 ## Request rules

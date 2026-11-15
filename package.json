@@ -28,7 +28,8 @@
     "test:watch": "vitest",
     "check-leaks": "node scripts/check-leaks.mjs",
     "postinstall": "wxt prepare",
-    "sanitize": "node scripts/sanitize.ts"
+    "sanitize": "node scripts/sanitize.ts",
+    "fixtures:compare": "node scripts/compare-fixture-shapes.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
