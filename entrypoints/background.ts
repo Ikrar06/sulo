@@ -3,10 +3,8 @@ import { defineBackground } from 'wxt/utils/define-background';
 import { BADGE_COLORS } from '@/lib/brand';
 import { createBrowserStore } from '@/lib/browser-store';
 import { systemClock } from '@/lib/clock';
-import { runConnectionTest } from '@/lib/connection-test';
 import {
   messageSchema,
-  type ConnectionTestResponse,
   type Message,
   type StatusResponse,
 } from '@/lib/messages';
@@ -20,11 +18,12 @@ import { effectiveIntervalMinutes, readRemoteConfig, refreshRemoteConfig } from 
 import { BADGE_ALARM, BADGE_REFRESH_MIN, jitterMinutes, SYNC_ALARM, type IdleState } from '@/lib/schedule';
 import { isContentScriptOn, isExtensionPageSender } from '@/lib/sender';
 import { isValidSesskey } from '@/lib/sesskey';
-import { currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUser } from '@/lib/storage';
+import { CURRENT_USER_KEY, currentUser, NOTICE_KEY, NOTICE_VERSION, pruneOrphanUserKeys, readUser, writeUser } from '@/lib/storage';
 import { readPrefs } from '@/lib/prefs';
 import { changeUrl } from '@/lib/radar/describe';
 import { countPopupOpen } from '@/lib/radar/log';
 import { parseNotificationId, runNotifyCycle, type Notifier } from '@/lib/reminders/run';
+import { createSingleFlight } from '@/lib/sync/lock';
 import { runSync } from '@/lib/sync/run-sync';
 import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { messagesFor, resolveLocale } from '@/lib/i18n';
@@ -183,7 +182,7 @@ export default defineBackground(() => {
 
   // ---------- Sync ----------
 
-  const sync = async (trigger: SyncTrigger): Promise<SyncOutcome> => {
+  const syncOnceGuarded = async (trigger: SyncTrigger): Promise<SyncOutcome> => {
     await refreshConfig();
     const idleState: IdleState | undefined =
       trigger === 'background' ? ((await browser.idle.queryState(IDLE_THRESHOLD_SEC)) as IdleState) : undefined;
@@ -192,6 +191,17 @@ export default defineBackground(() => {
     await updateBadge();
     return outcome;
   };
+
+  // One sync at a time: a second trigger (popup, button, alarm, setup) waits
+  // for the running one instead of sending its own request (lib/sync/lock.ts).
+  const sync = createSingleFlight<SyncTrigger>({
+    store: local,
+    now: () => clock.now(),
+    newId: () => crypto.randomUUID(),
+    run: syncOnceGuarded,
+    setInterval: (fn, ms) => setInterval(fn, ms),
+    clearInterval: (handle) => clearInterval(handle as ReturnType<typeof setInterval>),
+  });
 
   // ---------- Status, popup, tools ----------
 
@@ -216,14 +226,6 @@ export default defineBackground(() => {
     return status();
   };
 
-  const testConnection = async (): Promise<ConnectionTestResponse> => {
-    await refreshConfig();
-    const outcome = await runConnectionTest(client);
-    if (outcome.dropSesskey) await session.remove(SESSKEY_KEY);
-    if (outcome.sessionState) await writeSession(local, clock, outcome.sessionState, outcome.userId ?? undefined);
-    return { result: outcome.result, ...(await status()) };
-  };
-
   const handle = (message: Message): Promise<unknown> | null => {
     switch (message.type) {
       case 'status/get':
@@ -232,8 +234,6 @@ export default defineBackground(() => {
         return countOpen().then(onPopupOpened);
       case 'sync/request':
         return sync(message.trigger);
-      case 'connection/test':
-        return testConnection();
       case 'notify/test':
         return sendTestNotification();
       default:
@@ -284,14 +284,28 @@ export default defineBackground(() => {
     if (keys.some((k) => k.endsWith(':taskState') || k.endsWith(':courses') || k === 'global:session')) void updateBadge();
     if ('global:remoteConfig' in changes) void ensureAlarms();
     if (keys.some((k) => REMINDER_INPUTS.test(k))) runReminders();
+    const account = changes[CURRENT_USER_KEY];
+    if (account && account.oldValue !== undefined && account.oldValue !== account.newValue) void onAccountChanged();
   });
+
+  /**
+   * The account changed: every notification on screen belongs to the previous
+   * account (the new one has shown none yet), so all are cleared. Keys left
+   * behind by a late write are removed too.
+   */
+  const onAccountChanged = async () => {
+    const shown = await browser.notifications.getAll();
+    await Promise.all(Object.keys(shown).map((id) => browser.notifications.clear(id)));
+    await pruneOrphanUserKeys(local);
+  };
 
   browser.notifications.onClicked.addListener((id) => void onNotificationClick(id));
   browser.notifications.onButtonClicked.addListener((id, index) => void onNotificationButton(id, index));
 
   // Every time the worker wakes up, recompute: an alarm may have been missed
-  // while the browser was closed or the computer slept.
-  runReminders();
+  // while the browser was closed or the computer slept. Orphaned keys from an
+  // earlier account are removed first.
+  void pruneOrphanUserKeys(local).then(runReminders);
 
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
     const extensionId = browser.runtime.id;

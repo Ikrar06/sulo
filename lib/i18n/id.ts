@@ -18,7 +18,6 @@ export const id = {
   unexpectedError: 'Ada yang tidak beres di Sulo. Tutup lalu buka lagi.',
 
   // Dev-only connection test and recorder keep their wording short and plain.
-  testConnection: 'Cek koneksi',
   testing: 'Memeriksa...',
   sesskeyAvailable: 'SIKOLA terhubung',
   sesskeyMissing: 'Buka SIKOLA dulu.',
@@ -284,6 +283,11 @@ export const id = {
       previous: (n: number) => `Semester sebelumnya (${n})`,
       none: 'Tidak ada mata kuliah dengan nama itu.',
       next: (n: number) => (n === 1 ? 'Lanjut dengan 1 mata kuliah' : `Lanjut dengan ${n} mata kuliah`),
+    },
+    accountChanged: {
+      title: 'Akun SIKOLA berganti',
+      body: 'Ada akun SIKOLA lain yang sekarang aktif di browser ini. Supaya pilihanmu tidak masuk ke akun yang salah, muat ulang halaman ini.',
+      reload: 'Muat ulang',
     },
     whatsNew: {
       title: 'Yang baru di Sulo',

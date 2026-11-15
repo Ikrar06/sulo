@@ -10,12 +10,13 @@ import { createBrowserStore } from '@/lib/browser-store';
 import { isCourseActive } from '@/lib/courses/active-score';
 import { systemClock } from '@/lib/clock';
 import { I18nProvider, useI18n } from '@/components/i18n';
+import { Button } from '@/components/ui/button';
 import { messagesFor, resolveLocale, type Messages } from '@/lib/i18n';
 import { readPrefs } from '@/lib/prefs';
 import type { Message } from '@/lib/messages';
 import { SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { isValidSesskey } from '@/lib/sesskey';
-import { currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUser } from '@/lib/storage';
+import { CURRENT_USER_KEY, currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUser, writeUserIfCurrent } from '@/lib/storage';
 import { nextStep, ONBOARDING_STEPS, progressOf, visibleSteps, type M2StepId } from '@/lib/onboarding/flow';
 import { pendingWhatsNew, WHATS_NEW, type WhatsNewEntry } from '@/lib/onboarding/whats-new';
 import { loadPopupInput } from '@/lib/view/load';
@@ -60,6 +61,7 @@ const outcomeText = (o: SyncOutcome | null, m: Messages): string => {
     case 'parser_broken':
       return m.result.parser_broken;
     case 'skipped':
+      if (o.reason === 'BUSY') return m.popup.updating;
       return o.reason === 'BUDGET_EXHAUSTED' ? m.result.budget_exhausted : o.reason === 'DISABLED_REMOTELY' ? m.result.disabled_remotely : m.result.no_sesskey;
     default:
       return '';
@@ -78,6 +80,11 @@ function App() {
   const [ownView, setOwnView] = useState<PopupView | null>(null);
   const [saving, setSaving] = useState(false);
   const [doneNote, setDoneNote] = useState<string | null>(null);
+  // The account this tab works for, once its courses are loaded. Every write
+  // checks it is still the active account (compare-and-set); otherwise the
+  // tab stops and asks to reload instead of writing into another account.
+  const [ownerId, setOwnerId] = useState<number | null>(null);
+  const [accountChanged, setAccountChanged] = useState(false);
   const connecting = useRef(false);
 
   const steps = visibleSteps(ONBOARDING_STEPS, { completed });
@@ -85,8 +92,21 @@ function App() {
 
   const loadCourses = useCallback(async () => {
     const userId = await currentUser(local);
-    if (userId !== null) setCourses(await readUser(local, userId, 'courses'));
+    if (userId !== null) {
+      setOwnerId(userId);
+      setCourses(await readUser(local, userId, 'courses'));
+    }
   }, []);
+
+  // Another account became active (logged in on SIKOLA in another tab).
+  useEffect(() => {
+    const onChange = (changes: Record<string, { newValue?: unknown }>, area: string) => {
+      const account = changes[CURRENT_USER_KEY];
+      if (area === 'local' && account && ownerId !== null && account.newValue !== ownerId) setAccountChanged(true);
+    };
+    browser.storage.onChanged.addListener(onChange);
+    return () => browser.storage.onChanged.removeListener(onChange);
+  }, [ownerId]);
 
   // Where to start: #courses, "Yang baru", or the first step.
   useEffect(() => {
@@ -148,7 +168,7 @@ function App() {
   const writeCourses = async (next: CourseRecord[]) => {
     setCourses(next);
     const userId = await currentUser(local);
-    if (userId !== null) await writeUser(local, userId, 'courses', next);
+    if (ownerId !== null && !(await writeUserIfCurrent(local, ownerId, 'courses', next))) setAccountChanged(true);
   };
 
   const onToggle = (courseId: CourseId, active: boolean) =>
@@ -156,15 +176,20 @@ function App() {
 
   const onSave = async () => {
     setSaving(true);
-    const userId = await currentUser(local);
+    const userId = ownerId;
     if (userId !== null) {
       const onboarding = await readUser(local, userId, 'onboarding');
-      await writeUser(local, userId, 'onboarding', {
+      const saved = await writeUserIfCurrent(local, userId, 'onboarding', {
         ...onboarding,
         completedAt: onboarding.completedAt ?? Math.floor(Date.now() / 1000),
         confirmedInProgress: courses.filter((c) => c.inProgress).map((c) => c.id),
         reviewSuggested: [],
       });
+      if (!saved) {
+        setSaving(false);
+        setAccountChanged(true);
+        return;
+      }
       // The done step shows the user's own list in the same popup component.
       setOwnView(buildPopupView(await loadPopupInput(local, systemClock, timeZone)));
     }
@@ -190,6 +215,20 @@ function App() {
   };
 
   if (screen === null) return null;
+
+  if (accountChanged) {
+    return (
+      <OnboardingShell stepKey="account-changed">
+        <div className="space-y-6">
+          <h1 className="font-heading text-[clamp(34px,3.2vw,46px)] leading-[1.08] tracking-[-0.02em]">{m.onboarding.accountChanged.title}</h1>
+          <p className="max-w-[34em] text-[18px] leading-[1.6] text-foreground/85">{m.onboarding.accountChanged.body}</p>
+          <Button size="lg" className="ob-cta" onClick={() => location.reload()}>
+            {m.onboarding.accountChanged.reload}
+          </Button>
+        </div>
+      </OnboardingShell>
+    );
+  }
 
   if (screen === 'whats-new') {
     return (

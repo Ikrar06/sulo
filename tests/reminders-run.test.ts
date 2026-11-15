@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { notificationId, parseNotificationId, pruneSent, runNotifyCycle, type Notifier } from '../lib/reminders/run';
 import { SESSION_KEY } from '../lib/moodle/session';
-import { CURRENT_USER_KEY, userKey } from '../lib/storage';
+import { CURRENT_USER_KEY, pruneOrphanUserKeys, userKey, writeUserIfCurrent } from '../lib/storage';
 import type { CourseRecord, Task } from '../lib/types';
 import { memoryStore } from './helpers';
 
@@ -94,5 +94,58 @@ describe('notification ids and pruning', () => {
   it('drops keys older than 30 days and keys of tasks that are gone', () => {
     const sent = { 't:7:180:1': NOW, 't:8:180:1': NOW, 's:1': NOW - 31 * 86_400, 'm:2026-11-19': NOW };
     expect(pruneSent(sent, NOW, new Set([7]))).toEqual({ 't:7:180:1': NOW, 'm:2026-11-19': NOW });
+  });
+});
+
+describe('account switch during a reminder cycle', () => {
+  it('stops without writing anything when the account changed after planning', async () => {
+    const store = setup();
+    let reads = 0;
+    // The first read sees account 5; the switch to 6 lands before the write.
+    const switching = {
+      ...store,
+      get: async <T,>(key: string) => {
+        if (key === CURRENT_USER_KEY && reads++ > 0) return 6 as T;
+        return store.get<T>(key);
+      },
+    };
+    const shown: string[] = [];
+    await runNotifyCycle({ store: switching, now: NOW, timeZone: 'Asia/Makassar', uiLanguage: 'id', notifier: { show: async (id) => void shown.push(id) } });
+    expect(shown).toEqual([]);
+    expect(await store.get(userKey(5, 'notified'))).toBeUndefined();
+  });
+
+  it('does not show the next notification once the account changed', async () => {
+    const store = setup();
+    await store.set(userKey(5, 'tasks'), [task, { ...task, eventId: 8, dueAt: NOW + 3 * H }]);
+    const shown: string[] = [];
+    const notifier: Notifier = {
+      show: async (id) => {
+        shown.push(id);
+        await store.set(CURRENT_USER_KEY, 6);
+      },
+    };
+    // Two tasks due at once become one summary, so use two separate notices: task + session.
+    await store.set(SESSION_KEY, { state: 'EXPIRED', userId: 5, checkedAt: NOW, expiredAt: NOW });
+    await runNotifyCycle({ store, now: NOW, timeZone: 'Asia/Makassar', uiLanguage: 'id', notifier });
+    expect(shown).toHaveLength(1);
+  });
+});
+
+describe('orphaned account keys', () => {
+  it('removes keys of any account that is not active (or waiting)', async () => {
+    const store = memoryStore({ [CURRENT_USER_KEY]: 5, 'u:5:tasks': [], 'u:4:notified': {}, 'u:4:stats': {}, 'u:9:tasks': [], 'global:prefs': {} });
+    expect((await pruneOrphanUserKeys(store, [9])).sort()).toEqual(['u:4:notified', 'u:4:stats']);
+    expect(Object.keys(store.dump()).sort()).toEqual(['global:currentUser', 'global:prefs', 'u:5:tasks', 'u:9:tasks']);
+  });
+});
+
+describe('compare-and-set writes (onboarding tab of another account)', () => {
+  it('writes only while the expected account is still active', async () => {
+    const store = memoryStore({ [CURRENT_USER_KEY]: 6 });
+    expect(await writeUserIfCurrent(store, 5, 'courses', [])).toBe(false);
+    expect(store.dump()['u:5:courses']).toBeUndefined();
+    expect(await writeUserIfCurrent(store, 6, 'courses', [])).toBe(true);
+    expect(store.dump()['u:6:courses']).toEqual([]);
   });
 });

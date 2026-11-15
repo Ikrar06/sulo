@@ -13,7 +13,7 @@ import { courseAlias } from '../courses/display-name';
 import { messagesFor, resolveLocale } from '../i18n';
 import { readSession } from '../moodle/session';
 import { readPrefs } from '../prefs';
-import { currentUser, readUser, writeUser } from '../storage';
+import { currentUser, readUser, writeUserIfCurrent } from '../storage';
 import type { KeyValueStore, Task, UnixSeconds } from '../types';
 import { planReminders, type Notice } from './plan';
 import { noticeView, type NotificationView } from './text';
@@ -85,9 +85,13 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     updates: prefs.updates,
   });
 
+  // The account captured at the start must still be active before every
+  // write and every notification; after a switch the cycle stops silently.
   if (plan.markSent.length > 0 || plan.send.length > 0) {
     const recorded = { ...notified, ...Object.fromEntries(plan.markSent.map((k) => [k, now])) };
-    await writeUser(store, userId, 'notified', pruneSent(recorded, now, new Set(tasks.map((t) => t.eventId))));
+    if (!(await writeUserIfCurrent(store, userId, 'notified', pruneSent(recorded, now, new Set(tasks.map((t) => t.eventId)))))) {
+      return { nextAt: null, shown: 0 };
+    }
   }
 
   const m = messagesFor(resolveLocale(prefs.locale, deps.uiLanguage));
@@ -104,12 +108,13 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
 
   let shown = 0;
   for (const notice of plan.send) {
+    if ((await currentUser(store)) !== userId) return { nextAt: null, shown };
     try {
       await deps.notifier.show(notificationId(notice), noticeView(notice, { now, timeZone, m, courseName, courseNameById }));
       shown += 1;
     } catch {
       const stats = await readUser(store, userId, 'stats');
-      await writeUser(store, userId, 'stats', { notifyFailures: stats.notifyFailures + 1, lastNotifyFailureAt: now });
+      await writeUserIfCurrent(store, userId, 'stats', { ...stats, notifyFailures: stats.notifyFailures + 1, lastNotifyFailureAt: now });
     }
   }
   return { nextAt: plan.nextAt, shown };

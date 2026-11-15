@@ -16,7 +16,6 @@ export const en: Messages = {
   privacyLinkLong: 'Read the privacy policy',
   unexpectedError: 'Something went wrong in Sulo. Close it and open it again.',
 
-  testConnection: 'Check connection',
   testing: 'Checking...',
   sesskeyAvailable: 'SIKOLA connected',
   sesskeyMissing: 'Open SIKOLA first.',
@@ -277,6 +276,11 @@ export const en: Messages = {
       previous: (n) => `Previous semesters (${n})`,
       none: 'No course with that name.',
       next: (n) => `Continue with ${plural(n, 'course', 'courses')}`,
+    },
+    accountChanged: {
+      title: 'SIKOLA account changed',
+      body: "A different SIKOLA account is now active in this browser. Reload this page so your choices don't end up in the wrong account.",
+      reload: 'Reload',
     },
     whatsNew: {
       title: "What's new in Sulo",
