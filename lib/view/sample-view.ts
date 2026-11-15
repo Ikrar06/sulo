@@ -3,7 +3,7 @@
 // looks like the actual popup. Never mixed with the user's data.
 
 import { DAILY_BUDGET } from '@/lib/moodle/limits';
-import { DEFAULT_REMOTE_CONFIG } from '@/lib/remote-config';
+import { DEFAULT_REMOTE_CONFIG } from '@/lib/remote/remote-config';
 import { DEFAULT_SYNC_STATUS, DEFAULTS } from '@/lib/storage';
 import type { CourseRecord, Task, UnixSeconds } from '@/lib/types';
 import { id, type Messages } from '@/lib/i18n/id';

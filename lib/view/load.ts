@@ -4,7 +4,7 @@ import { isSyncRunning } from '../sync/lock';
 import { readBudget } from '../moodle/budget';
 import { DAILY_BUDGET } from '../moodle/limits';
 import { readSession } from '../moodle/session';
-import { readRemoteConfig } from '../remote-config';
+import { readRemoteConfig } from '../remote/remote-config';
 import { currentUser, readAllUser, readSyncStatus } from '../storage';
 import type { Clock, KeyValueStore } from '../types';
 import type { PopupInput } from './popup-view';

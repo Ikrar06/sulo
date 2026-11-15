@@ -7,7 +7,7 @@ import { buildCourses } from '@/lib/courses/build';
 import { appendChanges } from '@/lib/radar/log';
 import { DAILY_BUDGET } from '@/lib/moodle/limits';
 import { parseCall } from '@/lib/moodle/schemas';
-import { DEFAULT_REMOTE_CONFIG } from '@/lib/remote-config';
+import { DEFAULT_REMOTE_CONFIG } from '@/lib/remote/remote-config';
 import { DEFAULT_SYNC_STATUS, DEFAULTS, type UserData } from '@/lib/storage';
 import { mergeTasks, upcomingCourseIds } from '@/lib/tasks/from-calendar';
 import type { CourseRecord, Task } from '@/lib/types';

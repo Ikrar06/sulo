@@ -92,13 +92,62 @@ describe('runSync', () => {
     expect(courseListCalls(2)).toHaveLength(2);
   });
 
-  it('skips a popup sync when data is younger than 15 minutes, without a request', async () => {
-    const client = fakeClient();
-    const store = memoryStore();
-    await run(client, store, 'onboarding');
-    const outcome = await runSync({ client, store, clock: fixedClock('2026-09-22', 10, NOW + 10 * 60), trigger: 'popup' });
-    expect(outcome).toEqual({ status: 'skipped', reason: 'FRESH' });
-    expect(client.batches).toHaveLength(1);
+  // Replaces "skips a popup sync when data is younger than 15 minutes": the
+  // popup no longer triggers a sync at all (Stage 1, item 7).
+  describe('freshness per trigger (no request when data is fresh)', () => {
+    const at = (minutes: number, hour = 10) => fixedClock('2026-09-22', hour, NOW + minutes * 60);
+    const after = async (trigger: SyncTrigger, minutes: number) => {
+      const client = fakeClient();
+      const store = memoryStore();
+      await run(client, store, 'onboarding');
+      const outcome = await runSync({ client, store, clock: at(minutes), trigger, idleState: 'active' });
+      return { outcome, requests: client.batches.length - 1 };
+    };
+
+    it('background waits out the 3-hour TTL (with 10 minutes of slack for alarm timing)', async () => {
+      expect(await after('background', 120)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
+      expect((await after('background', 171)).requests).toBe(1);
+    });
+
+    it('startup and idle catch-ups run only when data is older than 60 minutes', async () => {
+      for (const trigger of ['startup', 'idle'] as const) {
+        expect(await after(trigger, 45)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
+        expect((await after(trigger, 61)).requests).toBe(1);
+      }
+    });
+
+    it('catch-ups obey quiet hours and idle like the background', async () => {
+      const client = fakeClient();
+      expect(await runSync({ client, store: memoryStore(), clock: fixedClock('2026-09-22', 2, NOW), trigger: 'startup', idleState: 'active' })).toEqual({ status: 'skipped', reason: 'QUIET_HOURS' });
+      expect(await runSync({ client, store: memoryStore(), clock: fixedClock('2026-09-22', 10, NOW), trigger: 'idle', idleState: 'locked' })).toEqual({ status: 'skipped', reason: 'IDLE' });
+      expect(client.batches).toHaveLength(0);
+    });
+
+    it('setup reuses data younger than 5 minutes, but only when a course list exists', async () => {
+      expect(await after('onboarding', 3)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
+      expect((await after('onboarding', 6)).requests).toBe(1);
+      const client = fakeClient();
+      const store = memoryStore();
+      await switchUser(store, 1);
+      await writeUser(store, 1, 'sync', { lastSyncAt: NOW, lastCourseListAt: null });
+      await runSync({ client, store, clock: at(1), trigger: 'onboarding' });
+      expect(client.batches).toHaveLength(1);
+    });
+
+    it('a click on "Perbarui" always runs', async () => {
+      expect((await after('manual', 1)).requests).toBe(1);
+    });
+
+    it('setup follows the 24-hour course list TTL too; "Segarkan daftar" forces it', async () => {
+      const client = fakeClient();
+      const store = memoryStore();
+      await run(client, store, 'onboarding');
+      const lists = (i: number) => client.batches[i]!.calls.filter((c) => c.methodname === 'core_course_get_enrolled_courses_by_timeline_classification').length;
+      await runSync({ client, store, clock: at(30), trigger: 'onboarding' });
+      expect(lists(1)).toBe(0);
+      await runSync({ client, store, clock: at(60), trigger: 'onboarding', forceCourseList: true });
+      expect(lists(2)).toBe(2);
+    });
   });
 
   it('never runs in the background during quiet hours or while idle', async () => {
@@ -160,9 +209,11 @@ describe('runSync', () => {
 describe('jitterMinutes', () => {
   it('picks once per installation and reuses it', async () => {
     const store = memoryStore();
-    expect(await jitterMinutes(store, () => 0.55)).toBe(6);
-    expect(await jitterMinutes(store, () => 0.99)).toBe(6);
-    expect(store.dump()[JITTER_KEY]).toBe(6);
+    // Range 0..20 minutes since Stage 1 (was 0..10): 0.55 -> 11.
+    expect(await jitterMinutes(store, () => 0.55)).toBe(11);
+    expect(await jitterMinutes(store, () => 0.99)).toBe(11);
+    expect(store.dump()[JITTER_KEY]).toBe(11);
+    expect(await jitterMinutes(memoryStore(), () => 0.999)).toBe(20);
   });
 
   describe('radar (M4)', () => {

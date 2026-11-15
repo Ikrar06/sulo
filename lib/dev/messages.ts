@@ -14,6 +14,8 @@ export const devMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('dev/notify/reset') }),
   /** Appends sample updates to the real change log, so the real engine notifies (M4). */
   z.object({ type: z.literal('dev/radar/inject'), kind: z.enum(['material', 'due', 'grade', 'forum', 'many']) }),
+  /** One core_session_time_remaining call, to verify nosessionupdate (docs/ATURAN-REQUEST.md). */
+  z.object({ type: z.literal('dev/session/probe') }),
 ]);
 
 export type DevMessage = z.infer<typeof devMessageSchema>;

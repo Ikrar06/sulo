@@ -7,9 +7,12 @@ import { isValidSesskey } from './sesskey';
 
 export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('sesskey/found'), sesskey: z.string().refine(isValidSesskey) }),
+  /** Content script: the user opened a SIKOLA page that is logged out. */
+  z.object({ type: z.literal('session/loggedOut') }),
   z.object({ type: z.literal('status/get') }),
   z.object({ type: z.literal('popup/opened') }),
-  z.object({ type: z.literal('sync/request'), trigger: z.enum(['popup', 'manual', 'onboarding']) }),
+  /** The popup never syncs on open; only "Perbarui" (manual) and setup ask. */
+  z.object({ type: z.literal('sync/request'), trigger: z.enum(['manual', 'onboarding']) }),
   /** "Kirim notifikasi uji" in the reminder settings. */
   z.object({ type: z.literal('notify/test') }),
 ]);

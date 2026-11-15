@@ -3,7 +3,7 @@ import { BACKOFF_KEY } from '../lib/moodle/backoff';
 import { BUDGET_KEY } from '../lib/moodle/budget';
 import { createMoodleClient, type MoodleClientDeps } from '../lib/moodle/client';
 import { SESSION_KEY } from '../lib/moodle/session';
-import { REMOTE_CONFIG_KEY } from '../lib/remote-config';
+import { REMOTE_CONFIG_KEY } from '../lib/remote/remote-config';
 import { fakeFetch, fixedClock, jsonResponse, memoryStore } from './helpers';
 
 const BASE = 'https://sikola-v2.unhas.ac.id';

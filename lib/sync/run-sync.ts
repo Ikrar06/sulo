@@ -1,18 +1,28 @@
 // One sync cycle = one batch request to SIKOLA (docs: ARCHITECTURE section 4).
-// M2 batch: session check + calendar, plus the course list (all and
-// in-progress) at most once a day or during onboarding.
-// Pure: client, store and clock are injected.
+// Batch: session check + calendar, plus what is due (plan-batch.ts): the
+// course list every 24 hours for every trigger, notifications every 3 hours,
+// course structures every 6 hours. Low quota drops the optional parts.
+// The popup never triggers a sync. Pure: client, store and clock are injected.
 
 import { buildCourses, newInProgressIds } from '../courses/build';
 import { scoreCourse } from '../courses/active-score';
-import { calls, type MoodleCall } from '../moodle/calls';
 import type { BatchOutcome, CallResult, MoodleClient } from '../moodle/client';
-import { CALENDAR_LOOKBACK_DAYS, COURSE_LIST_MIN_GAP_H, POPUP_STALE_MIN, SIKOLA_ORIGIN } from '../moodle/limits';
+import { readBudget, remainingQuota } from '../moodle/budget';
+import {
+  CALENDAR_LOOKBACK_DAYS,
+  CATCHUP_FRESH_MIN,
+  COURSE_LIST_MIN_GAP_H,
+  ONBOARDING_FRESH_MIN,
+  SIKOLA_ORIGIN,
+  TASKS_TTL_MIN,
+  TTL_TOLERANCE_MIN,
+} from '../moodle/limits';
 import { applyRadarResults, planRadarCalls } from '../radar/sync-step';
 import { recordFailure } from '../moodle/backoff';
+import { planBatch } from './plan-batch';
 import { parseCall } from '../moodle/schemas';
 import { writeSession } from '../moodle/session';
-import { backgroundBlockReason, BACKGROUND_FRESH_MIN, type IdleState } from '../schedule';
+import { backgroundBlockReason, type IdleState } from '../schedule';
 import { DEFAULT_SYNC_STATUS, readSyncStatus, readUser, SYNC_STATUS_KEY, switchUser, writeUser, type SyncStatus } from '../storage';
 import { mergeTasks, upcomingCourseIds } from '../tasks/from-calendar';
 import { pruneTaskState } from '../tasks/local-state';
@@ -24,8 +34,10 @@ export interface SyncDeps {
   store: KeyValueStore;
   clock: Clock;
   trigger: SyncTrigger;
-  /** Required for background syncs (chrome.idle state). */
+  /** Required for background, startup and idle syncs (chrome.idle state). */
   idleState?: IdleState;
+  /** "Segarkan daftar": fetch the course list even within 24 hours. */
+  forceCourseList?: boolean;
   /** SIKOLA origin, for filtering notification links; defaults to SIKOLA_ORIGIN. */
   origin?: string;
 }
@@ -45,40 +57,69 @@ export async function runSync(deps: SyncDeps): Promise<SyncOutcome> {
   return outcome;
 }
 
+/** Triggers that run without a click: quiet hours and idle apply. */
+const UNATTENDED = new Set<SyncTrigger>(['background', 'startup', 'idle']);
+
+/**
+ * Data younger than this (minutes) makes a trigger skip without a request.
+ * Background waits out the 3-hour TTL (minus slack for alarm timing);
+ * catch-ups after startup or idle wait 60 minutes; setup reuses data from
+ * the last 5 minutes; a click on "Perbarui" always runs.
+ */
+export function freshForMinutes(trigger: SyncTrigger): number {
+  switch (trigger) {
+    case 'background':
+      return TASKS_TTL_MIN - TTL_TOLERANCE_MIN;
+    case 'startup':
+    case 'idle':
+      return CATCHUP_FRESH_MIN;
+    case 'onboarding':
+      return ONBOARDING_FRESH_MIN;
+    case 'manual':
+      return 0;
+  }
+}
+
 async function skipReason(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome | null> {
-  if (deps.trigger === 'background') {
+  if (UNATTENDED.has(deps.trigger)) {
     const block = backgroundBlockReason(deps.clock, deps.idleState ?? 'idle');
     if (block) return { status: 'skipped', reason: block };
   }
-  const freshFor = deps.trigger === 'popup' ? POPUP_STALE_MIN : deps.trigger === 'background' ? BACKGROUND_FRESH_MIN : 0;
+  const freshFor = freshForMinutes(deps.trigger);
   if (freshFor > 0) {
     const userId = await currentUser(deps.store);
     const meta = userId === null ? null : await readUser(deps.store, userId, 'sync');
-    if (meta?.lastSyncAt && now - meta.lastSyncAt < freshFor * 60) return { status: 'skipped', reason: 'FRESH' };
+    // Setup also needs the course list; without one it always runs.
+    const usable = deps.trigger !== 'onboarding' || (meta?.lastCourseListAt ?? null) !== null;
+    if (usable && meta?.lastSyncAt && now - meta.lastSyncAt < freshFor * 60) return { status: 'skipped', reason: 'FRESH' };
   }
   return null;
 }
 
-async function needsCourseList(deps: SyncDeps, now: UnixSeconds): Promise<boolean> {
-  if (deps.trigger === 'onboarding') return true;
+async function courseListState(deps: SyncDeps, now: UnixSeconds): Promise<{ due: boolean; missing: boolean }> {
   const userId = await currentUser(deps.store);
-  if (userId === null) return true;
+  if (userId === null) return { due: true, missing: true };
   const meta = await readUser(deps.store, userId, 'sync');
-  return meta.lastCourseListAt === null || now - meta.lastCourseListAt >= COURSE_LIST_MIN_GAP_H * 3600;
+  if (meta.lastCourseListAt === null) return { due: true, missing: true };
+  return { due: deps.forceCourseList === true || now - meta.lastCourseListAt >= COURSE_LIST_MIN_GAP_H * 3600, missing: false };
 }
 
 async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> {
-  const withCourseList = await needsCourseList(deps, now);
-  const batch: MoodleCall[] = [calls.sessionTimeRemaining(), calls.calendarActionEvents(now)];
-  if (withCourseList) batch.push(calls.enrolledCourses('all'), calls.enrolledCourses('inprogress'));
+  const courseList = await courseListState(deps, now);
   // Radar (M4): notifications and the structure of up to 5 active courses,
   // in the same batch: still one request per cycle.
   const knownUser = await currentUser(deps.store);
-  const radarPlan = await planRadarCalls(deps.store, knownUser, knownUser === null ? [] : await readUser(deps.store, knownUser, 'courses'), now);
-  const radarStart = batch.length;
-  batch.push(...radarPlan.calls);
+  const plan = planBatch({
+    now,
+    courseListDue: courseList.due,
+    courseListMissing: courseList.missing,
+    radar: await planRadarCalls(deps.store, knownUser, knownUser === null ? [] : await readUser(deps.store, knownUser, 'courses'), now),
+    userId: knownUser,
+    remaining: remainingQuota(await readBudget(deps.store, deps.clock)),
+  });
+  const { withCourseList, radar: radarPlan, radarStart } = plan;
 
-  const result = await deps.client.callBatch(batch, { source: deps.trigger, withCourseList });
+  const result = await deps.client.callBatch(plan.calls, { source: deps.trigger, withCourseList });
   if (result.kind !== 'ok') return transportOutcome(result);
 
   const [sessionResult, calendarResult, allResult, inProgressResult] = result.results;

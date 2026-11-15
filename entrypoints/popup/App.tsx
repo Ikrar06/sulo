@@ -8,7 +8,9 @@ import { formatCopyList, type CopyScope } from '@/lib/format/copy-list';
 import { googleCalendarUrl } from '@/lib/format/gcal';
 import { messagesFor, resolveLocale, type Locale } from '@/lib/i18n';
 import type { Message } from '@/lib/messages';
-import { DAILY_BUDGET, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { DAILY_BUDGET, DAILY_CALL_BUDGET, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { readRequestLog } from '@/lib/net/request-log';
+import type { RequestLogEntry } from '@/lib/net/scheduler';
 import { DEFAULT_PREFS, readPrefs, writePrefs, type DueFormat, type Prefs } from '@/lib/prefs';
 import { currentUser, readUser, writeUser } from '@/lib/storage';
 import type { ReminderSettings } from '@/lib/reminders/settings';
@@ -18,8 +20,9 @@ import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupView as View, type TaskRow } from '@/lib/view/popup-view';
 
-// Popup container: renders instantly from stored data, then asks the service
-// worker to sync in the background (only if data is older than 15 minutes).
+// Popup container: renders from stored data only. Opening the popup never
+// sends a request to SIKOLA or anywhere else; only "Perbarui" asks the
+// service worker to sync (docs/ATURAN-REQUEST.md).
 
 /** Written by the background when an update summary is clicked. */
 const POPUP_PANEL_KEY = 'global:popupPanel';
@@ -36,6 +39,23 @@ const send = async (message: Message): Promise<unknown> => {
   }
 };
 
+/**
+ * Development builds only: one core_session_time_remaining call, to check
+ * that Sulo's batches do not extend the SIKOLA session (nosessionupdate).
+ * The condition is a build-time constant, so other builds drop the message.
+ */
+const probeSession = (m: ReturnType<typeof messagesFor>): (() => Promise<string>) | undefined =>
+  import.meta.env.MODE === 'development'
+    ? async () => {
+        const result = (await browser.runtime.sendMessage({ type: 'dev/session/probe' }).catch(() => null)) as
+          | { kind: 'ok'; timeremaining: number }
+          | { kind: 'failed'; reason: string }
+          | null;
+        if (result?.kind === 'ok') return m.popup.dev.probeResult(Math.floor(result.timeremaining / 60));
+        return m.popup.dev.probeFailed(result?.kind === 'failed' ? result.reason : 'no answer');
+      }
+    : undefined;
+
 export default function App({ startedAt }: { startedAt: number }) {
   const [view, setView] = useState<View | null>(null);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
@@ -44,6 +64,7 @@ export default function App({ startedAt }: { startedAt: number }) {
   const [note, setNote] = useState<string | null>(null);
   const [openMs, setOpenMs] = useState<number | null>(null);
   const [startPanel, setStartPanel] = useState<'updates' | undefined>(undefined);
+  const [requestLog, setRequestLog] = useState<RequestLogEntry[]>([]);
   const measured = useRef(false);
 
   const locale = resolveLocale(prefs.locale, uiLanguage);
@@ -63,6 +84,7 @@ export default function App({ startedAt }: { startedAt: number }) {
     }
     setPrefs(stored);
     setNow(input.now);
+    if (isDev) setRequestLog(await readRequestLog(local));
     setView(
       buildPopupView({
         ...input,
@@ -74,10 +96,8 @@ export default function App({ startedAt }: { startedAt: number }) {
   }, []);
 
   useEffect(() => {
-    void reload().then(async () => {
-      await send({ type: 'popup/opened' });
-      await send({ type: 'sync/request', trigger: 'popup' });
-    });
+    // Only local work: the "baru" markers count popup opens. No sync.
+    void reload().then(() => send({ type: 'popup/opened' }));
     const onChange = (_changes: unknown, area: string) => {
       if (area === 'local') void reload();
     };
@@ -167,7 +187,7 @@ export default function App({ startedAt }: { startedAt: number }) {
         initialPanel={startPanel}
         celebrate={celebrate}
         note={note}
-        dev={isDev ? { openMs, budgetLimit: DAILY_BUDGET } : null}
+        dev={isDev ? { openMs, budgetLimit: DAILY_BUDGET, callLimit: DAILY_CALL_BUDGET, requestLog, onProbeSession: probeSession(m) } : null}
         onDone={(e) => void onDone(e)}
         onOpenTask={(url) => void browser.tabs.create({ url })}
         onAddToCalendar={onAddToCalendar}

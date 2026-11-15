@@ -24,13 +24,19 @@ export interface SessionInfo {
 /** What triggered a request to SIKOLA, for the per-source request counter. */
 export type RequestSource =
   | 'background'
+  /** Catch-up after the browser starts / after the user returns (idle -> active). */
+  | 'startup'
+  | 'idle'
+  /** The popup no longer sends requests; kept so older counts still show a label. */
   | 'popup'
   | 'manual'
   | 'onboarding'
   /** Removed message (connection test); kept so older counts still show a label. */
   | 'connection-test'
   | 'sesskey-fallback'
-  | 'recorder';
+  | 'recorder'
+  /** Dev builds: the nosessionupdate check. */
+  | 'dev-probe';
 
 export interface BudgetState {
   /** Local date, YYYY-MM-DD. Budget resets when this changes. */
@@ -40,6 +46,8 @@ export interface BudgetState {
   bySource?: Partial<Record<RequestSource, number>>;
   /** Requests today that also carried the daily course list. */
   withCourseList?: number;
+  /** Moodle function calls today, all batches (limit DAILY_CALL_BUDGET). */
+  calls?: number;
 }
 
 export interface BackoffState {
@@ -60,7 +68,9 @@ export type ClientRefusal =
   | 'SESSION_EXPIRED'
   | 'NO_SESSKEY'
   | 'DISABLED_REMOTELY'
-  | 'NOT_ALLOWLISTED';
+  | 'NOT_ALLOWLISTED'
+  /** The domain refuses every request (NEOSIA: project rule 12). */
+  | 'DOMAIN_DENIED';
 
 // ---------- Courses ----------
 
@@ -216,7 +226,8 @@ export interface ParseResult<T> {
 
 // ---------- Sync ----------
 
-export type SyncTrigger = 'background' | 'popup' | 'manual' | 'onboarding';
+/** The popup never triggers a sync (it only reads storage). */
+export type SyncTrigger = 'background' | 'startup' | 'idle' | 'manual' | 'onboarding';
 
 export type SyncOutcome =
   | { status: 'ok'; at: UnixSeconds; tasks: number; courseListFetched: boolean }

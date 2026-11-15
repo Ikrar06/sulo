@@ -130,36 +130,55 @@ function App() {
     })();
   }, [loadCourses]);
 
-  const tryConnect = useCallback(async () => {
-    if (connecting.current) return;
-    connecting.current = true;
-    setConnect('checking');
-    const sesskey = await session.get<string>('sesskey');
-    if (!isValidSesskey(sesskey)) {
-      setConnect('need_login');
+  // Setup is thrifty (docs/ATURAN-REQUEST.md): at most one automatic sync
+  // per onboarding session, none after a success, and data younger than 5
+  // minutes is reused (runSync answers FRESH without a request). A new
+  // sesskey only retries after the session was gone, once per sesskey.
+  // "Coba lagi" still syncs, subject to single-flight and the budget.
+  const synced = useRef(false);
+  const autoTriedFor = useRef<string | null | undefined>(undefined);
+
+  const tryConnect = useCallback(
+    async (reason: 'auto' | 'retry') => {
+      if (connecting.current || synced.current) return;
+      const sesskey = await session.get<string>('sesskey');
+      const key = isValidSesskey(sesskey) ? sesskey : null;
+      if (reason === 'auto') {
+        if (autoTriedFor.current !== undefined && autoTriedFor.current === key) return;
+        // Without a sesskey, one automatic try is enough (it may fetch /my/ once per 6 hours).
+        if (autoTriedFor.current !== undefined && key === null) return;
+        autoTriedFor.current = key;
+      }
+      connecting.current = true;
+      setConnect(key ? 'connected' : 'checking');
+      const [outcome] = await Promise.all([syncFromOnboarding(), new Promise((r) => window.setTimeout(r, key ? CONNECTED_PAUSE_MS : 0))]);
       connecting.current = false;
-      return;
-    }
-    setConnect('connected');
-    const [outcome] = await Promise.all([syncFromOnboarding(), new Promise((r) => window.setTimeout(r, CONNECTED_PAUSE_MS))]);
-    connecting.current = false;
-    if (outcome?.status === 'ok') {
-      await loadCourses();
-      setScreen('courses');
-    } else if (outcome?.status === 'session_expired' || outcome?.status === 'invalid_sesskey') {
-      setConnect('need_login');
-    } else {
-      setFailedReason(outcomeText(outcome, m));
-      setConnect('failed');
-    }
-  }, [loadCourses, m]);
+      const fresh = outcome?.status === 'skipped' && outcome.reason === 'FRESH';
+      if (outcome?.status === 'ok' || fresh) {
+        synced.current = true;
+        setConnect('connected');
+        await loadCourses();
+        setScreen('courses');
+      } else if (
+        outcome?.status === 'session_expired' ||
+        outcome?.status === 'invalid_sesskey' ||
+        (outcome?.status === 'skipped' && (outcome.reason === 'NO_SESSKEY' || outcome.reason === 'SESSION_EXPIRED'))
+      ) {
+        setConnect('need_login');
+      } else {
+        setFailedReason(outcomeText(outcome, m));
+        setConnect('failed');
+      }
+    },
+    [loadCourses, m],
+  );
 
   // The connect step notices a fresh sesskey from the content script without a reload.
   useEffect(() => {
     if (screen !== 'connect') return;
-    void tryConnect();
+    void tryConnect('auto');
     const onChange = (changes: Record<string, unknown>, area: string) => {
-      if (area === 'session' && 'sesskey' in changes) void tryConnect();
+      if (area === 'session' && 'sesskey' in changes) void tryConnect('auto');
     };
     browser.storage.onChanged.addListener(onChange);
     return () => browser.storage.onChanged.removeListener(onChange);
@@ -266,7 +285,7 @@ function App() {
             setConnect('waiting');
             void browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
           }}
-          onRetry={() => void tryConnect()}
+          onRetry={() => void tryConnect('retry')}
         />
       )}
       {screen === 'courses' && <StepCourses courses={courses} onToggle={onToggle} />}

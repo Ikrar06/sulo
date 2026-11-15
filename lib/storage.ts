@@ -87,6 +87,10 @@ export interface RadarMeta {
   calendarBaseline: boolean;
   /** Courses that failed with an access error, keyed by course id. */
   courseAccess?: Record<string, CourseAccess>;
+  /** Last successful notification fetch (3-hour TTL). */
+  notificationsFetchedAt?: UnixSeconds;
+  /** The last small page (10) was all new: fetch the full page (20) next time. */
+  notificationsWide?: boolean;
 }
 
 export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {

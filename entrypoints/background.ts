@@ -10,11 +10,14 @@ import {
 } from '@/lib/messages';
 import { readBudget } from '@/lib/moodle/budget';
 import { createMoodleClient } from '@/lib/moodle/client';
-import { DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { CATCHUP_DELAY_MAX_MIN, DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { createRequestLogger } from '@/lib/net/request-log';
+import { createScheduler } from '@/lib/net/scheduler';
+import { fetchSlotHour } from '@/lib/remote/fetch-public';
 import { onSesskeyReceived, readSession, writeSession } from '@/lib/moodle/session';
-import { trySesskeyFallbackFromPopup } from '@/lib/moodle/sesskey-fallback';
+import { trySesskeyFallbackFromPopup as trySesskeyFallback } from '@/lib/moodle/sesskey-fallback';
 import { pendingWhatsNew, WHATS_NEW } from '@/lib/onboarding/whats-new';
-import { effectiveIntervalMinutes, readRemoteConfig, refreshRemoteConfig } from '@/lib/remote-config';
+import { effectiveIntervalMinutes, readRemoteConfig, refreshRemoteConfig } from '@/lib/remote/remote-config';
 import { BADGE_ALARM, BADGE_REFRESH_MIN, jitterMinutes, SYNC_ALARM, type IdleState } from '@/lib/schedule';
 import { isContentScriptOn, isExtensionPageSender } from '@/lib/sender';
 import { isValidSesskey } from '@/lib/sesskey';
@@ -40,6 +43,9 @@ const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
 const ONBOARDING_PAGE = '/onboarding.html';
+/** Catch-up syncs after the browser starts or the user returns: "catchup:startup", "catchup:idle". */
+const CATCHUP_ALARM_PREFIX = 'catchup:';
+const CATCHUP_TRIGGERS = new Set<SyncTrigger>(['startup', 'idle']);
 
 // No state in module variables except the client, whose queue only orders
 // requests. All data lives in chrome.storage (project convention).
@@ -54,15 +60,28 @@ export default defineBackground(() => {
     return isValidSesskey(value) ? value : null;
   };
 
+  // The only place that calls fetch: per-domain gates, queues and backoff
+  // (lib/net/scheduler.ts). The request log exists in dev and tester builds
+  // only; production passes nothing, so it never records anything.
+  const scheduler = createScheduler({
+    fetch: (input, init) => fetch(input, init),
+    store: local,
+    clock,
+    random: Math.random,
+    onRequest: import.meta.env.MODE === 'production' ? undefined : createRequestLogger(local),
+  });
+
   const client = createMoodleClient({
     fetch: (input, init) => fetch(input, init),
+    scheduler,
     store: local,
     clock,
     baseUrl: SIKOLA_ORIGIN,
     getSesskey,
   });
 
-  const refreshConfig = () => refreshRemoteConfig({ fetch: (i, init) => fetch(i, init), store: local, clock, url: REMOTE_CONFIG_URL });
+  const refreshConfig = async () =>
+    refreshRemoteConfig({ scheduler, store: local, clock, url: REMOTE_CONFIG_URL, fetchSlotHour: await fetchSlotHour(local) });
 
   // ---------- Badge ----------
 
@@ -182,10 +201,24 @@ export default defineBackground(() => {
 
   // ---------- Sync ----------
 
+  /**
+   * No sesskey yet: only a click on "Perbarui" or the setup's connect step
+   * may fetch /my/ to find one (at most once per 6 hours, counted in the
+   * budget). Never in the background and never when the popup opens.
+   */
+  const recoverSesskeyIfAllowed = async (trigger: SyncTrigger) => {
+    if (trigger !== 'manual' && trigger !== 'onboarding') return;
+    if ((await getSesskey()) !== null || (await readSession(local)).state === 'EXPIRED') return;
+    const fallback = await trySesskeyFallback({ client, store: local, clock });
+    if (fallback.kind === 'recovered') await session.set(SESSKEY_KEY, fallback.sesskey);
+    if (fallback.kind === 'not_found') await writeSession(local, clock, 'EXPIRED');
+  };
+
   const syncOnceGuarded = async (trigger: SyncTrigger): Promise<SyncOutcome> => {
     await refreshConfig();
-    const idleState: IdleState | undefined =
-      trigger === 'background' ? ((await browser.idle.queryState(IDLE_THRESHOLD_SEC)) as IdleState) : undefined;
+    const unattended = trigger === 'background' || CATCHUP_TRIGGERS.has(trigger);
+    const idleState: IdleState | undefined = unattended ? ((await browser.idle.queryState(IDLE_THRESHOLD_SEC)) as IdleState) : undefined;
+    await recoverSesskeyIfAllowed(trigger);
     const outcome = await runSync({ client, store: local, clock, trigger, idleState });
     if (outcome.status === 'invalid_sesskey') await session.remove(SESSKEY_KEY);
     await updateBadge();
@@ -215,23 +248,32 @@ export default defineBackground(() => {
     };
   };
 
-  const onPopupOpened = async (): Promise<StatusResponse> => {
-    await refreshConfig();
-    const current = await readSession(local);
-    if ((await getSesskey()) === null && current.state !== 'EXPIRED') {
-      const fallback = await trySesskeyFallbackFromPopup({ client, store: local, clock });
-      if (fallback.kind === 'recovered') await session.set(SESSKEY_KEY, fallback.sesskey);
-      if (fallback.kind === 'not_found') await writeSession(local, clock, 'EXPIRED');
-    }
-    return status();
+  /**
+   * A catch-up sync a random 0 to 5 minutes later (not every browser at the
+   * same second). runSync skips it when data is younger than 60 minutes.
+   * An alarm already waiting is kept.
+   */
+  const scheduleCatchup = async (trigger: 'startup' | 'idle') => {
+    const name = `${CATCHUP_ALARM_PREFIX}${trigger}`;
+    if (await browser.alarms.get(name)) return;
+    // Chrome alarms fire no sooner than 30 seconds.
+    await browser.alarms.create(name, { delayInMinutes: Math.max(0.5, Math.random() * CATCHUP_DELAY_MAX_MIN) });
+  };
+
+  /** The user opened a logged-out SIKOLA page: stop at once, without a request. */
+  const onLoggedOutPage = async () => {
+    await session.remove(SESSKEY_KEY);
+    if ((await readSession(local)).state !== 'EXPIRED') await writeSession(local, clock, 'EXPIRED');
+    await updateBadge();
   };
 
   const handle = (message: Message): Promise<unknown> | null => {
     switch (message.type) {
       case 'status/get':
         return status();
+      // Local only: counts the open for the "baru" markers. No request.
       case 'popup/opened':
-        return countOpen().then(onPopupOpened);
+        return countOpen().then(status);
       case 'sync/request':
         return sync(message.trigger);
       case 'notify/test':
@@ -270,10 +312,20 @@ export default defineBackground(() => {
     void ensureAlarms();
     void updateBadge();
     runReminders();
+    void scheduleCatchup('startup');
+  });
+
+  browser.idle.setDetectionInterval(IDLE_THRESHOLD_SEC);
+  browser.idle.onStateChanged.addListener((state) => {
+    if (state === 'active') void scheduleCatchup('idle');
   });
 
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SYNC_ALARM) void sync('background');
+    if (alarm.name.startsWith(CATCHUP_ALARM_PREFIX)) {
+      const trigger = alarm.name.slice(CATCHUP_ALARM_PREFIX.length) as SyncTrigger;
+      if (CATCHUP_TRIGGERS.has(trigger)) void sync(trigger);
+    }
     if (alarm.name === BADGE_ALARM) void updateBadge();
     if (alarm.name === NOTIFY_ALARM) runReminders();
   });
@@ -318,6 +370,11 @@ export default defineBackground(() => {
     if (message.type === 'sesskey/found') {
       if (!isContentScriptOn(sender, extensionId, SIKOLA_ORIGIN)) return false;
       void session.set(SESSKEY_KEY, message.sesskey).then(() => onSesskeyReceived(local, clock)).then(updateBadge);
+      return false;
+    }
+    if (message.type === 'session/loggedOut') {
+      if (!isContentScriptOn(sender, extensionId, SIKOLA_ORIGIN)) return false;
+      void onLoggedOutPage();
       return false;
     }
 

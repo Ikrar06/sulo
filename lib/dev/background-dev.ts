@@ -1,5 +1,7 @@
 import { browser } from 'wxt/browser';
 import { recordFixtures } from '../recorder';
+import { calls } from '../moodle/calls';
+import { parseCall } from '../moodle/schemas';
 import type { MoodleClient } from '../moodle/client';
 import { activeCourseIds } from '../courses/active-score';
 import { appendChanges } from '../radar/log';
@@ -49,6 +51,14 @@ async function injectSampleChanges(deps: DevDeps, kind: 'material' | 'due' | 'gr
   return { ok: true, added: changes.length };
 }
 
+/** Reads how long the SIKOLA session has left, with nosessionupdate like every batch. */
+async function probeSession(deps: DevDeps) {
+  const result = await deps.client.callBatch([calls.sessionTimeRemaining()], { source: 'dev-probe' });
+  if (result.kind !== 'ok') return { kind: 'failed', reason: result.kind === 'refused' ? result.reason : result.kind };
+  const parsed = parseCall('core_session_time_remaining', result.results[0] ?? { ok: false, errorcode: 'missing' });
+  return parsed.ok ? { kind: 'ok', timeremaining: parsed.data.timeremaining } : { kind: 'failed', reason: 'unreadable' };
+}
+
 export function installDevTools(deps: DevDeps): void {
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
     const parsed = devMessageSchema.safeParse(raw);
@@ -68,6 +78,8 @@ export function installDevTools(deps: DevDeps): void {
           return deps.runRemindersAt(message.at);
         case 'dev/radar/inject':
           return injectSampleChanges(deps, message.kind);
+        case 'dev/session/probe':
+          return probeSession(deps);
         case 'dev/notify/reset': {
           const userId = await currentUser(deps.store);
           if (userId !== null) await writeUser(deps.store, userId, 'notified', {});

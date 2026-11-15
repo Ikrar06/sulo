@@ -3,15 +3,17 @@
 //
 // Every request passes the same gates, in order: allowlist, remote kill
 // switch, session not EXPIRED, not backing off, (sesskey for JSON), budget.
-// The budget is reserved before sending. Failures that suggest server
-// trouble feed the backoff; a login redirect sets the session EXPIRED.
+// The budget (requests and function calls) is reserved before sending. The
+// fetch itself goes through the per-domain scheduler (lib/net/scheduler.ts),
+// which owns the SIKOLA backoff; a login redirect sets the session EXPIRED.
 
 import type { ClientRefusal, Clock, FetchLike, KeyValueStore, RequestSource } from '../types';
-import { readRemoteConfig } from '../remote-config';
-import { isBackingOff, parseRetryAfter, readBackoff, recordFailure, recordSuccess } from './backoff';
+import { createScheduler, type Scheduler } from '../net/scheduler';
+import { readRemoteConfig } from '../remote/remote-config';
+import { isBackingOff, readBackoff } from './backoff';
 import { reserveRequest } from './budget';
 import { isAllowedFunction, isAllowedPage, type MoodleCall } from './calls';
-import { DAILY_BUDGET, REQUEST_TIMEOUT_MS } from './limits';
+import { DAILY_BUDGET, DAILY_CALL_BUDGET, SEND_NOSESSIONUPDATE } from './limits';
 import { batchResponseSchema, topLevelErrorSchema } from './schemas';
 import { readSession, writeSession } from './session';
 
@@ -22,7 +24,11 @@ export interface MoodleClientDeps {
   baseUrl: string;
   getSesskey: () => Promise<string | null>;
   dailyBudget?: number;
-  timeoutMs?: number;
+  dailyCallBudget?: number;
+  /** Shared scheduler (background). Without one, the client makes its own from fetch. */
+  scheduler?: Scheduler;
+  /** Adds nosessionupdate=true to batches; default SEND_NOSESSIONUPDATE. */
+  noSessionUpdate?: boolean;
 }
 
 export type CallResult = { ok: true; data: unknown } | { ok: false; errorcode: string };
@@ -56,7 +62,11 @@ export interface MoodleClient {
 const LOGIN_ERRORCODES = new Set(['servicerequireslogin', 'requireloginerror']);
 const SESSKEY_ERRORCODES = new Set(['invalidsesskey']);
 
-export function createMoodleClient(deps: MoodleClientDeps): MoodleClient {
+export function createMoodleClient(input: MoodleClientDeps): MoodleClient {
+  const deps: ResolvedDeps = {
+    ...input,
+    scheduler: input.scheduler ?? createScheduler({ fetch: input.fetch, store: input.store, clock: input.clock }),
+  };
   // Promise chain that serializes requests within this context. It holds no
   // data, only ordering, so losing it on service worker restart is harmless.
   let tail: Promise<unknown> = Promise.resolve();
@@ -72,7 +82,15 @@ export function createMoodleClient(deps: MoodleClientDeps): MoodleClient {
   };
 }
 
-async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[], options: RequestOptions): Promise<BatchOutcome> {
+type ResolvedDeps = MoodleClientDeps & { scheduler: Scheduler };
+
+/** The batch endpoint. nosessionupdate keeps Sulo's checks from extending the SIKOLA session. */
+export function batchPath(sesskey: string, noSessionUpdate: boolean = SEND_NOSESSIONUPDATE): string {
+  const query = `sesskey=${encodeURIComponent(sesskey)}${noSessionUpdate ? '&nosessionupdate=true' : ''}`;
+  return `/lib/ajax/service.php?${query}`;
+}
+
+async function executeBatch(deps: ResolvedDeps, calls: readonly MoodleCall[], options: RequestOptions): Promise<BatchOutcome> {
   if (calls.length === 0 || !calls.every((c) => isAllowedFunction(c.methodname))) {
     return refused('NOT_ALLOWLISTED');
   }
@@ -84,13 +102,14 @@ async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[]
 
   const sent = await send(
     deps,
-    `/lib/ajax/service.php?sesskey=${encodeURIComponent(sesskey)}`,
+    batchPath(sesskey, deps.noSessionUpdate),
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(calls.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))),
     },
     options,
+    calls.length,
   );
   if (sent.kind !== 'response') return sent;
 
@@ -99,13 +118,13 @@ async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[]
   return outcome;
 }
 
-async function executePage(deps: MoodleClientDeps, pathAndQuery: string, options: RequestOptions): Promise<PageOutcome> {
+async function executePage(deps: ResolvedDeps, pathAndQuery: string, options: RequestOptions): Promise<PageOutcome> {
   const url = safeUrl(pathAndQuery, deps.baseUrl);
   if (!url || !isAllowedPage(url.pathname)) return refused('NOT_ALLOWLISTED');
   const gate = await checkGates(deps);
   if (gate) return gate;
 
-  const sent = await send(deps, `${url.pathname}${url.search}`, { method: 'GET' }, options);
+  const sent = await send(deps, `${url.pathname}${url.search}`, { method: 'GET' }, options, 0);
   if (sent.kind !== 'response') return sent;
 
   const outcome = await interpretPage(sent.response);
@@ -122,41 +141,24 @@ async function checkGates(deps: MoodleClientDeps): Promise<TransportFailure | nu
 
 type SendResult = { kind: 'response'; response: Response } | TransportFailure;
 
-/** Reserves budget, sends, and records backoff. The only place that calls fetch. */
-async function send(deps: MoodleClientDeps, path: string, init: RequestInit, options: RequestOptions): Promise<SendResult> {
-  const reserved = await reserveRequest(
-    deps.store,
-    deps.clock,
-    deps.dailyBudget ?? DAILY_BUDGET,
-    options.source ?? 'manual',
-    options.withCourseList ?? false,
-  );
-  if (!reserved) {
-    return refused('BUDGET_EXHAUSTED');
-  }
-
-  let response: Response;
-  try {
-    response = await deps.fetch(`${deps.baseUrl}${path}`, {
-      ...init,
-      credentials: 'include',
-      // A redirect means the session is gone (login page). Following it to
-      // another host would surface as a CORS/network error instead.
-      redirect: 'manual',
-      signal: AbortSignal.timeout(deps.timeoutMs ?? REQUEST_TIMEOUT_MS),
-    });
-  } catch (error) {
-    await recordFailure(deps.store, deps.clock, null);
-    return isTimeoutError(error) ? { kind: 'timeout' } : { kind: 'network_error' };
-  }
-
-  if (response.status === 429 || response.status >= 500) {
-    const retryAfter = parseRetryAfter(response.headers.get('retry-after'), deps.clock.now());
-    await recordFailure(deps.store, deps.clock, retryAfter);
-    return { kind: 'http_error', status: response.status };
-  }
-  await recordSuccess(deps.store);
-  return { kind: 'response', response };
+/** Hands the request to the scheduler, which reserves the budget just before fetch. */
+async function send(deps: ResolvedDeps, path: string, init: RequestInit, options: RequestOptions, callCount: number): Promise<SendResult> {
+  const source = options.source ?? 'manual';
+  const result = await deps.scheduler.request('sikola', `${deps.baseUrl}${path}`, init, {
+    trigger: source,
+    calls: callCount,
+    reserve: () =>
+      reserveRequest(
+        deps.store,
+        deps.clock,
+        deps.dailyBudget ?? DAILY_BUDGET,
+        source,
+        options.withCourseList ?? false,
+        callCount,
+        deps.dailyCallBudget ?? DAILY_CALL_BUDGET,
+      ),
+  });
+  return result;
 }
 
 function isRedirect(response: Response): boolean {
@@ -233,8 +235,4 @@ function safeUrl(pathAndQuery: string, baseUrl: string): URL | null {
   } catch {
     return null;
   }
-}
-
-function isTimeoutError(error: unknown): boolean {
-  return error instanceof DOMException && (error.name === 'TimeoutError' || error.name === 'AbortError');
 }

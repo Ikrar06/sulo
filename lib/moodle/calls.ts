@@ -60,9 +60,9 @@ export const calls = {
     args: { courseid },
   }),
 
-  popupNotifications: (useridto: UserId): MoodleCall => ({
+  popupNotifications: (useridto: UserId, limit: number = NOTIFICATIONS_LIMIT): MoodleCall => ({
     methodname: 'message_popup_get_popup_notifications',
-    args: { useridto, limit: NOTIFICATIONS_LIMIT, offset: 0 },
+    args: { useridto, limit, offset: 0 },
   }),
 
   enrolledCourses: (classification: 'all' | 'inprogress' = 'all'): MoodleCall => ({

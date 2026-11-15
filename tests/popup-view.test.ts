@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_REMOTE_CONFIG } from '../lib/remote-config';
+import { DEFAULT_REMOTE_CONFIG } from '../lib/remote/remote-config';
 import { DEFAULT_SYNC_STATUS, DEFAULTS, type UserData } from '../lib/storage';
 import type { CourseRecord, Task } from '../lib/types';
 import { buildPopupView, type PopupInput } from '../lib/view/popup-view';

@@ -5,11 +5,12 @@ import {
   effectiveIntervalMinutes,
   readRemoteConfig,
   refreshRemoteConfig,
-} from '../lib/remote-config';
+} from '../lib/remote/remote-config';
 import { fakeFetch, fixedClock, jsonResponse, memoryStore } from './helpers';
 
 const NOW = 1_794_000_000;
-const URL_ = 'https://example.test/config.json';
+// Must be on the sulo-data domain: the scheduler refuses any other origin.
+const URL_ = 'https://ikrar06.github.io/sulo-data/config.json';
 const clock = fixedClock('2026-11-13', 10, NOW);
 
 describe('remote config', () => {

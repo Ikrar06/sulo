@@ -1,12 +1,17 @@
 // Remote kill switch, served from the public repository Ikrar06/sulo-data.
 // Data only, never code. Not a SIKOLA request, so it does not use the
-// Moodle client or count against the daily budget.
+// Moodle client or count against the daily budget. Fetched through the
+// scheduler's sulo-data domain (lib/remote/fetch-public.ts).
 
 import { z } from 'zod';
-import { BACKGROUND_INTERVAL_MIN, REMOTE_CONFIG_MIN_GAP_H, REQUEST_TIMEOUT_MS } from './moodle/limits';
-import type { Clock, FetchLike, KeyValueStore, RemoteConfig } from './types';
+import { BACKGROUND_INTERVAL_MIN } from '../moodle/limits';
+import { createScheduler, type Scheduler } from '../net/scheduler';
+import type { Clock, FetchLike, KeyValueStore, RemoteConfig } from '../types';
+import { fetchPublicJson } from './fetch-public';
 
 export const REMOTE_CONFIG_KEY = 'global:remoteConfig';
+/** Revalidation state (Last-Modified, content hash) of the config file. */
+export const REMOTE_CONFIG_FILE_KEY = 'global:remoteFile:config';
 
 export const remoteConfigSchema = z.object({
   enabled: z.boolean(),
@@ -31,43 +36,37 @@ export function effectiveIntervalMinutes(config: RemoteConfig): number {
 }
 
 export interface RefreshDeps {
-  fetch: FetchLike;
+  /** Used only when no scheduler is given (tests). */
+  fetch?: FetchLike;
+  scheduler?: Scheduler;
   store: KeyValueStore;
   clock: Clock;
   url: string;
+  /** The installation's fetch hour; undefined: any hour once 24 hours passed. */
+  fetchSlotHour?: number;
 }
 
 /**
- * Fetches the config at most once per REMOTE_CONFIG_MIN_GAP_H. On failure or
+ * Fetches the config at most once a day (fetch-public.ts). On failure or
  * invalid content the last stored value stays in force (default when none).
  * `fetchedAt` records the last attempt so failures are not retried sooner.
  */
 export async function refreshRemoteConfig(deps: RefreshDeps): Promise<RemoteConfig> {
   const current = await readRemoteConfig(deps.store);
   if (!deps.url) return current;
+  const scheduler = deps.scheduler ?? (deps.fetch ? createScheduler({ fetch: deps.fetch, store: deps.store, clock: deps.clock }) : null);
+  if (!scheduler) return current;
 
-  const now = deps.clock.now();
-  if (current.fetchedAt > 0 && now - current.fetchedAt < REMOTE_CONFIG_MIN_GAP_H * 3600) return current;
+  const outcome = await fetchPublicJson(
+    { scheduler, store: deps.store, clock: deps.clock, url: deps.url, stateKey: REMOTE_CONFIG_FILE_KEY, fetchSlotHour: deps.fetchSlotHour, trigger: 'remote-config' },
+    current.fetchedAt,
+  );
+  if (outcome.kind === 'not_due') return current;
 
-  const next = { ...(await fetchConfig(deps)) ?? stripFetchedAt(current), fetchedAt: now };
+  const parsed = outcome.kind === 'changed' ? remoteConfigSchema.safeParse(outcome.json) : null;
+  const next = { ...(parsed?.success ? parsed.data : stripFetchedAt(current)), fetchedAt: deps.clock.now() };
   await deps.store.set(REMOTE_CONFIG_KEY, next);
   return next;
-}
-
-async function fetchConfig(deps: RefreshDeps): Promise<Omit<RemoteConfig, 'fetchedAt'> | null> {
-  try {
-    const response = await deps.fetch(deps.url, {
-      method: 'GET',
-      credentials: 'omit',
-      cache: 'no-store',
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    });
-    if (!response.ok) return null;
-    const parsed = remoteConfigSchema.safeParse(await response.json());
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
 }
 
 function stripFetchedAt(config: RemoteConfig): Omit<RemoteConfig, 'fetchedAt'> {

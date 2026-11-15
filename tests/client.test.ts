@@ -29,13 +29,28 @@ describe('moodle client: request shape', () => {
     expect(outcome).toEqual({ kind: 'ok', results: [{ ok: true, data: { userid: 7, timeremaining: 100 } }] });
     expect(fetch.calls).toHaveLength(1);
     const [call] = fetch.calls;
-    expect(call?.url).toBe(`${BASE}/lib/ajax/service.php?sesskey=${SESSKEY}`);
+    // nosessionupdate: Sulo's checks must not keep the SIKOLA session alive (Stage 1, item 9).
+    expect(call?.url).toBe(`${BASE}/lib/ajax/service.php?sesskey=${SESSKEY}&nosessionupdate=true`);
     expect(call?.init?.method).toBe('POST');
     expect(call?.init?.credentials).toBe('include');
     expect(call?.init?.redirect).toBe('manual');
     expect(JSON.parse(String(call?.init?.body))).toEqual([
       { index: 0, methodname: 'core_session_time_remaining', args: {} },
     ]);
+  });
+
+  it('leaves nosessionupdate out only when switched off (for verification)', async () => {
+    const { client, fetch } = setup({ noSessionUpdate: false });
+    await client.callBatch([sessionCall]);
+    expect(fetch.calls[0]?.url).toBe(`${BASE}/lib/ajax/service.php?sesskey=${SESSKEY}`);
+  });
+
+  it('counts function calls separately from requests and refuses past 300 calls', async () => {
+    const { client, store, fetch } = setup({ dailyCallBudget: 3 });
+    expect((await client.callBatch([sessionCall, sessionCall])).kind).toBe('bad_response'); // 2 calls, 1-result body
+    expect((store.dump()['global:budget'] as { used: number; calls: number })).toMatchObject({ used: 1, calls: 2 });
+    expect(await client.callBatch([sessionCall, sessionCall])).toEqual({ kind: 'refused', reason: 'BUDGET_EXHAUSTED' });
+    expect(fetch.calls).toHaveLength(1);
   });
 });
 

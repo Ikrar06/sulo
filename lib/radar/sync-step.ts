@@ -4,6 +4,7 @@
 
 import { activeCourseIds } from '../courses/active-score';
 import { calls, type MoodleCall } from '../moodle/calls';
+import { NOTIFICATIONS_LIMIT, NOTIFICATIONS_LIMIT_SMALL, TASKS_TTL_MIN, TTL_TOLERANCE_MIN } from '../moodle/limits';
 import type { CallResult } from '../moodle/client';
 import { parseCall } from '../moodle/schemas';
 import { readUser, writeUser, type CourseAccess } from '../storage';
@@ -21,20 +22,45 @@ export interface RadarPlan {
   /** Course ids, in the order of their get_state calls. */
   courseIds: number[];
   withNotifications: boolean;
+  /** Page size of the notification call (20 for the baseline or a catch-up, else 10). */
+  notificationsLimit: number;
 }
 
-/** Calls to add for a known user: notifications every cycle, structure of up to 5 courses. */
+export const EMPTY_RADAR_PLAN: RadarPlan = { calls: [], courseIds: [], withNotifications: false, notificationsLimit: 0 };
+
+/** Rebuilds the call list after parts of a plan were dropped (plan-batch.ts). */
+export function radarPlanWith(userId: UserId, plan: Pick<RadarPlan, 'courseIds' | 'withNotifications' | 'notificationsLimit'>): RadarPlan {
+  return {
+    ...plan,
+    calls: [
+      ...(plan.withNotifications ? [calls.popupNotifications(userId, plan.notificationsLimit)] : []),
+      ...plan.courseIds.map((id) => calls.courseformatState(id)),
+    ],
+  };
+}
+
+/** Notifications are due every 3 hours (with slack for alarm timing). */
+export function notificationsDue(radar: { notificationsFetchedAt?: UnixSeconds }, now: UnixSeconds): boolean {
+  const at = radar.notificationsFetchedAt;
+  return at === undefined || now - at >= (TASKS_TTL_MIN - TTL_TOLERANCE_MIN) * 60;
+}
+
+/** Calls to add for a known user: notifications when due, structure of up to 5 courses. */
 export async function planRadarCalls(store: KeyValueStore, userId: UserId | null, courses: readonly CourseRecord[], now: UnixSeconds): Promise<RadarPlan> {
-  if (userId === null) return { calls: [], courseIds: [], withNotifications: false };
+  if (userId === null) return EMPTY_RADAR_PLAN;
   const radar = await readUser(store, userId, 'radar');
   const active = [...activeCourseIds(courses)];
   const accessFailedAt = Object.fromEntries(Object.entries(radar.courseAccess ?? {}).map(([id, a]) => [id, a.lastFailedAt]));
   const courseIds = pickCoursesToCheck(active, radar.stateCheckedAt, now, { accessFailedAt });
-  return {
-    calls: [calls.popupNotifications(userId), ...courseIds.map((id) => calls.courseformatState(id))],
-    courseIds,
-    withNotifications: true,
-  };
+  const withNotifications = notificationsDue(radar, now);
+  const notificationsLimit = radar.notificationsLastId === null || radar.notificationsWide ? NOTIFICATIONS_LIMIT : NOTIFICATIONS_LIMIT_SMALL;
+  return radarPlanWith(userId, { courseIds, withNotifications, notificationsLimit });
+}
+
+/** A small page that is entirely new may hide more: widen the next fetch. */
+export function nextNotificationsWide(limit: number, ids: readonly number[], lastId: number | null): boolean {
+  if (lastId === null || limit >= NOTIFICATIONS_LIMIT) return false;
+  return ids.length >= limit && ids.every((id) => id > lastId);
 }
 
 export interface RadarResults {
@@ -63,7 +89,7 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
   const snapshots = { ...(await readUser(store, r.userId, 'snapshots')) };
   const courseAccess: Record<string, CourseAccess> = { ...(radar.courseAccess ?? {}) };
   const changes: Change[] = [];
-  let { notificationsLastId, calendarBaseline } = radar;
+  let { notificationsLastId, calendarBaseline, notificationsFetchedAt, notificationsWide } = radar;
   const stateCheckedAt = { ...radar.stateCheckedAt };
   let accessFailures = 0;
   let otherFailures = 0;
@@ -78,9 +104,12 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
     const result = r.results[index++];
     const parsed = result ? parseCall('message_popup_get_popup_notifications', result) : null;
     if (parsed?.ok) {
+      const ids = parsed.data.notifications.map((n) => n.id);
+      notificationsWide = nextNotificationsWide(r.plan.notificationsLimit, ids, notificationsLastId);
       const scan = scanNotifications(parsed.data.notifications, notificationsLastId, r.origin);
       changes.push(...scan.changes);
       notificationsLastId = scan.lastId;
+      notificationsFetchedAt = r.now;
     } else if (parsed && parsed.status === 'PARSER_BROKEN') {
       broken.push('message_popup_get_popup_notifications');
     }
@@ -127,7 +156,14 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
     });
   }
   await writeUser(store, r.userId, 'snapshots', snapshots);
-  await writeUser(store, r.userId, 'radar', { stateCheckedAt, notificationsLastId, calendarBaseline, courseAccess });
+  await writeUser(store, r.userId, 'radar', {
+    stateCheckedAt,
+    notificationsLastId,
+    calendarBaseline,
+    courseAccess,
+    ...(notificationsFetchedAt !== undefined ? { notificationsFetchedAt } : {}),
+    ...(notificationsWide ? { notificationsWide } : {}),
+  });
   const sikolaTrouble = r.plan.courseIds.length > 0 && otherFailures === r.plan.courseIds.length;
   return { broken: [...new Set(broken)], sikolaTrouble };
 }
