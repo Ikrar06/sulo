@@ -42,7 +42,7 @@ export async function trySesskeyFallbackFromPopup(deps: {
   // Record the attempt before sending so failures also respect the gap.
   await deps.store.set<FallbackState>(FALLBACK_KEY, { lastPopupAttemptAt: now });
 
-  const page = await deps.client.fetchPage('/my/');
+  const page = await deps.client.fetchPage('/my/', { source: 'sesskey-fallback' });
   if (page.kind === 'login_required') return { kind: 'login_required' };
   if (page.kind !== 'ok') return { kind: 'failed', reason: page.kind === 'refused' ? page.reason : page.kind };
 

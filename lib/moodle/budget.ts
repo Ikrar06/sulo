@@ -1,4 +1,4 @@
-import type { BudgetState, Clock, KeyValueStore } from '../types';
+import type { BudgetState, Clock, KeyValueStore, RequestSource } from '../types';
 import { DAILY_BUDGET } from './limits';
 
 export const BUDGET_KEY = 'global:budget';
@@ -20,9 +20,18 @@ export async function reserveRequest(
   store: KeyValueStore,
   clock: Clock,
   limit: number = DAILY_BUDGET,
+  source: RequestSource = 'manual',
+  withCourseList = false,
 ): Promise<boolean> {
   const current = await readBudget(store, clock);
   if (current.used >= limit) return false;
-  await store.set<BudgetState>(BUDGET_KEY, { date: current.date, used: current.used + 1 });
+  const bySource = { ...current.bySource, [source]: (current.bySource?.[source] ?? 0) + 1 };
+  const next: BudgetState = {
+    date: current.date,
+    used: current.used + 1,
+    bySource,
+    withCourseList: (current.withCourseList ?? 0) + (withCourseList ? 1 : 0),
+  };
+  await store.set<BudgetState>(BUDGET_KEY, next);
   return true;
 }

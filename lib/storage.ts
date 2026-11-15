@@ -12,10 +12,25 @@ export const NOTICE_KEY = 'global:notice';
 export const NOTICE_VERSION = 1;
 
 export interface SyncMeta {
+  /** Last successful sync for this user. */
   lastSyncAt: UnixSeconds | null;
+  lastCourseListAt: UnixSeconds | null;
+}
+
+/** Last attempt, kept globally because the userid is unknown before the first success. */
+export const SYNC_STATUS_KEY = 'global:syncStatus';
+
+export interface SyncStatus {
   lastAttemptAt: UnixSeconds | null;
   lastOutcome: SyncOutcome | null;
-  lastCourseListAt: UnixSeconds | null;
+  /** True while a sync is running, for the "syncing" mascot. */
+  running: boolean;
+}
+
+export const DEFAULT_SYNC_STATUS: SyncStatus = { lastAttemptAt: null, lastOutcome: null, running: false };
+
+export async function readSyncStatus(store: KeyValueStore): Promise<SyncStatus> {
+  return (await store.get<SyncStatus>(SYNC_STATUS_KEY)) ?? DEFAULT_SYNC_STATUS;
 }
 
 export interface OnboardingState {
@@ -38,7 +53,7 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   courses: [],
   tasks: [],
   taskState: {},
-  sync: { lastSyncAt: null, lastAttemptAt: null, lastOutcome: null, lastCourseListAt: null },
+  sync: { lastSyncAt: null, lastCourseListAt: null },
   onboarding: { completedAt: null, confirmedInProgress: [], reviewSuggested: [] },
 };
 

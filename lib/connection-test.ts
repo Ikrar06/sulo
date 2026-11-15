@@ -24,7 +24,7 @@ const REFUSAL_RESULT: Record<ClientRefusal, ConnectionTestResult> = {
 // One call that proves the session cookie reaches SIKOLA from the service
 // worker. Pure: the client is injected.
 export async function runConnectionTest(client: MoodleClient): Promise<ConnectionTestOutcome> {
-  return interpret(await client.callBatch([calls.sessionTimeRemaining()]));
+  return interpret(await client.callBatch([calls.sessionTimeRemaining()], { source: 'connection-test' }));
 }
 
 function interpret(outcome: BatchOutcome): ConnectionTestOutcome {

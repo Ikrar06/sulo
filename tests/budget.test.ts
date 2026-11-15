@@ -20,7 +20,7 @@ describe('daily budget', () => {
     expect(await reserveRequest(store, clock)).toBe(false);
     clock.setDate('2026-11-14');
     expect(await reserveRequest(store, clock)).toBe(true);
-    expect(store.dump()[BUDGET_KEY]).toEqual({ date: '2026-11-14', used: 1 });
+    expect(store.dump()[BUDGET_KEY]).toEqual({ date: '2026-11-14', used: 1, bySource: { manual: 1 }, withCourseList: 0 });
   });
 
   it('survives a restart because the count is read from storage', async () => {
@@ -30,5 +30,19 @@ describe('daily budget', () => {
     await reserveRequest(store, clock);
     const restarted = memoryStore(store.dump());
     expect((await readBudget(restarted, clock)).used).toBe(2);
+  });
+
+  it('counts requests per source and those that carried the course list', async () => {
+    const store = memoryStore();
+    const clock = fixedClock();
+    await reserveRequest(store, clock, DAILY_BUDGET, 'background', true);
+    await reserveRequest(store, clock, DAILY_BUDGET, 'background');
+    await reserveRequest(store, clock, DAILY_BUDGET, 'popup');
+    expect(await readBudget(store, clock)).toEqual({
+      date: '2026-11-13',
+      used: 3,
+      bySource: { background: 2, popup: 1 },
+      withCourseList: 1,
+    });
   });
 });

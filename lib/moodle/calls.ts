@@ -65,8 +65,8 @@ export const calls = {
     args: { useridto, limit: NOTIFICATIONS_LIMIT, offset: 0 },
   }),
 
-  enrolledCourses: (): MoodleCall => ({
+  enrolledCourses: (classification: 'all' | 'inprogress' = 'all'): MoodleCall => ({
     methodname: 'core_course_get_enrolled_courses_by_timeline_classification',
-    args: { classification: 'all', limit: 0, offset: 0 },
+    args: { classification, limit: 0, offset: 0 },
   }),
 } as const;

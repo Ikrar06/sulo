@@ -10,6 +10,7 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('status/get') }),
   z.object({ type: z.literal('popup/opened') }),
   z.object({ type: z.literal('connection/test') }),
+  z.object({ type: z.literal('sync/request'), trigger: z.enum(['popup', 'manual', 'onboarding']) }),
   // Dev builds only; the production service worker ignores it.
   z.object({ type: z.literal('dev/record') }),
 ]);

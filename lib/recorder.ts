@@ -47,7 +47,7 @@ export async function recordFixtures(deps: {
 }): Promise<RecordOutcome> {
   const now = deps.clock.now();
   const first: MoodleCall[] = [calls.sessionTimeRemaining(), calls.enrolledCourses(), calls.calendarActionEvents(now)];
-  const batch1 = await deps.client.callBatch(first);
+  const batch1 = await deps.client.callBatch(first, { source: 'recorder' });
   if (batch1.kind !== 'ok') return { kind: 'failed', reason: describeOutcome(batch1) };
 
   const [session, courses, calendar] = batch1.results;
@@ -59,7 +59,7 @@ export async function recordFixtures(deps: {
 
   let batch2Results: CallResult[] = [];
   if (second.length > 0) {
-    const batch2 = await deps.client.callBatch(second);
+    const batch2 = await deps.client.callBatch(second, { source: 'recorder' });
     if (batch2.kind !== 'ok') return { kind: 'failed', reason: describeOutcome(batch2) };
     batch2Results = batch2.results;
   }

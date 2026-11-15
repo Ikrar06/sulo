@@ -6,7 +6,7 @@
 // The budget is reserved before sending. Failures that suggest server
 // trouble feed the backoff; a login redirect sets the session EXPIRED.
 
-import type { ClientRefusal, Clock, FetchLike, KeyValueStore } from '../types';
+import type { ClientRefusal, Clock, FetchLike, KeyValueStore, RequestSource } from '../types';
 import { readRemoteConfig } from '../remote-config';
 import { isBackingOff, parseRetryAfter, readBackoff, recordFailure, recordSuccess } from './backoff';
 import { reserveRequest } from './budget';
@@ -40,10 +40,17 @@ export type BatchOutcome = { kind: 'ok'; results: CallResult[] } | { kind: 'inva
 
 export type PageOutcome = { kind: 'ok'; html: string } | TransportFailure;
 
+/** Tags each request for the per-source counter. */
+export interface RequestOptions {
+  source?: RequestSource;
+  /** True when the batch also carries the daily course list. */
+  withCourseList?: boolean;
+}
+
 export interface MoodleClient {
-  callBatch(calls: readonly MoodleCall[]): Promise<BatchOutcome>;
+  callBatch(calls: readonly MoodleCall[], options?: RequestOptions): Promise<BatchOutcome>;
   /** GET an allowlisted HTML page, e.g. "/my/". Only on user request. */
-  fetchPage(pathAndQuery: string): Promise<PageOutcome>;
+  fetchPage(pathAndQuery: string, options?: RequestOptions): Promise<PageOutcome>;
 }
 
 const LOGIN_ERRORCODES = new Set(['servicerequireslogin', 'requireloginerror']);
@@ -60,12 +67,12 @@ export function createMoodleClient(deps: MoodleClientDeps): MoodleClient {
   };
 
   return {
-    callBatch: (calls) => enqueue(() => executeBatch(deps, calls)),
-    fetchPage: (path) => enqueue(() => executePage(deps, path)),
+    callBatch: (calls, options = {}) => enqueue(() => executeBatch(deps, calls, options)),
+    fetchPage: (path, options = {}) => enqueue(() => executePage(deps, path, options)),
   };
 }
 
-async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[]): Promise<BatchOutcome> {
+async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[], options: RequestOptions): Promise<BatchOutcome> {
   if (calls.length === 0 || !calls.every((c) => isAllowedFunction(c.methodname))) {
     return refused('NOT_ALLOWLISTED');
   }
@@ -75,11 +82,16 @@ async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[]
   const sesskey = await deps.getSesskey();
   if (!sesskey) return refused('NO_SESSKEY');
 
-  const sent = await send(deps, `/lib/ajax/service.php?sesskey=${encodeURIComponent(sesskey)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(calls.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))),
-  });
+  const sent = await send(
+    deps,
+    `/lib/ajax/service.php?sesskey=${encodeURIComponent(sesskey)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(calls.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))),
+    },
+    options,
+  );
   if (sent.kind !== 'response') return sent;
 
   const outcome = await interpretBatch(sent.response, calls.length);
@@ -87,13 +99,13 @@ async function executeBatch(deps: MoodleClientDeps, calls: readonly MoodleCall[]
   return outcome;
 }
 
-async function executePage(deps: MoodleClientDeps, pathAndQuery: string): Promise<PageOutcome> {
+async function executePage(deps: MoodleClientDeps, pathAndQuery: string, options: RequestOptions): Promise<PageOutcome> {
   const url = safeUrl(pathAndQuery, deps.baseUrl);
   if (!url || !isAllowedPage(url.pathname)) return refused('NOT_ALLOWLISTED');
   const gate = await checkGates(deps);
   if (gate) return gate;
 
-  const sent = await send(deps, `${url.pathname}${url.search}`, { method: 'GET' });
+  const sent = await send(deps, `${url.pathname}${url.search}`, { method: 'GET' }, options);
   if (sent.kind !== 'response') return sent;
 
   const outcome = await interpretPage(sent.response);
@@ -111,8 +123,15 @@ async function checkGates(deps: MoodleClientDeps): Promise<TransportFailure | nu
 type SendResult = { kind: 'response'; response: Response } | TransportFailure;
 
 /** Reserves budget, sends, and records backoff. The only place that calls fetch. */
-async function send(deps: MoodleClientDeps, path: string, init: RequestInit): Promise<SendResult> {
-  if (!(await reserveRequest(deps.store, deps.clock, deps.dailyBudget ?? DAILY_BUDGET))) {
+async function send(deps: MoodleClientDeps, path: string, init: RequestInit, options: RequestOptions): Promise<SendResult> {
+  const reserved = await reserveRequest(
+    deps.store,
+    deps.clock,
+    deps.dailyBudget ?? DAILY_BUDGET,
+    options.source ?? 'manual',
+    options.withCourseList ?? false,
+  );
+  if (!reserved) {
     return refused('BUDGET_EXHAUSTED');
   }
 
