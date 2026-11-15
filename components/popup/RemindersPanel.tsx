@@ -3,6 +3,7 @@ import { useI18n } from '@/components/i18n';
 import { ChevronLeftIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatClock } from '@/lib/format/time';
 import type { Messages } from '@/lib/i18n';
 import { STAGE_OPTIONS, lastStage, type ReminderSettings, type StageMin } from '@/lib/reminders/settings';
@@ -44,19 +45,18 @@ function Check({ checked, disabled, onChange, children }: { checked: boolean; di
 function HourSelect({ value, label, disabled, timeZone, onChange }: { value: number; label: string; disabled?: boolean; timeZone: string; onChange: (v: number) => void }) {
   const { m } = useI18n();
   return (
-    <select
-      aria-label={label}
-      value={value}
-      disabled={disabled}
-      onChange={(e) => onChange(Number(e.target.value))}
-      className="h-7 rounded-md border border-border bg-background px-1.5 text-[13px] tabular-nums outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50"
-    >
-      {HOURS.map((h) => (
-        <option key={h} value={h}>
-          {hourLabel(h, timeZone, m)}
-        </option>
-      ))}
-    </select>
+    <Select value={String(value)} disabled={disabled} onValueChange={(v) => onChange(Number(v))}>
+      <SelectTrigger aria-label={label} className="w-[84px] text-[13px] tabular-nums">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {HOURS.map((h) => (
+          <SelectItem key={h} value={String(h)} className="text-[13px] tabular-nums">
+            {hourLabel(h, timeZone, m)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -113,7 +113,7 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack }:
           <Check checked={settings.quiet.enabled} disabled={off} onChange={(enabled) => set({ quiet: { ...settings.quiet, enabled } })}>
             {r.quietOn}
           </Check>
-          <div className="flex items-center gap-2 pl-[26px] text-[13px]">
+          <div className="flex items-center gap-2 py-1 pl-[26px] text-[13px] leading-8">
             <span>{r.from}</span>
             <HourSelect label={`${r.quiet}: ${r.from}`} value={settings.quiet.startMin} disabled={off || !settings.quiet.enabled} timeZone={timeZone} onChange={(startMin) => set({ quiet: { ...settings.quiet, startMin } })} />
             <span>{r.to}</span>
@@ -128,14 +128,14 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack }:
           <Check checked={settings.morning.enabled} disabled={off} onChange={(enabled) => set({ morning: { ...settings.morning, enabled } })}>
             {r.morningOn}
           </Check>
-          <div className="flex items-center gap-2 pl-[26px] text-[13px]">
+          <div className="flex items-center gap-2 py-1 pl-[26px] text-[13px] leading-8">
             <span>{r.at}</span>
             <HourSelect label={`${r.morning}: ${r.at}`} value={settings.morning.atMin} disabled={off || !settings.morning.enabled} timeZone={timeZone} onChange={(atMin) => set({ morning: { ...settings.morning, atMin } })} />
           </div>
         </Section>
 
         <Section title={m.popup.row.snooze}>
-          <div className="flex items-center gap-2 text-[13px]">
+          <div className="flex items-center gap-2 py-1 text-[13px] leading-[18px]">
             <span>{r.snoozeMorning}</span>
             <HourSelect label={r.snoozeMorning} value={settings.snoozeMorningMin} timeZone={timeZone} onChange={(snoozeMorningMin) => set({ snoozeMorningMin })} />
           </div>
@@ -143,7 +143,6 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack }:
 
         <Section title={r.check}>
           <Button
-            size="sm"
             variant="outline"
             onClick={() => {
               void onTest().then(() => setTested(true));
