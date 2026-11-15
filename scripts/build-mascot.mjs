@@ -4,17 +4,18 @@
 //
 // Usage: node scripts/build-mascot.mjs
 //
-// mascot-base.svg has no layer ids yet, so elements are recognized by
-// order and shape. The script fails loudly if that structure changes.
-// Expected base structure (frame 510x540):
-//   path #1, path #2   flame (gradient fills)
-//   path #3            face already clipped by the flame silhouette
-//   ellipse            full face oval (for animation; not used here)
-//   rect, rect         default eyes
-//   defs               two linearGradients
+// Elements in mascot-base.svg are found by layer id (frame 510x540):
+//   flame-back, flame   the two flame paths (gradient fills)
+//   face-cut            face already clipped by the flame silhouette (static use)
+//   face                full face oval (animation only, not used here)
+//   eyes > eye-left, eye-right   default eyes
+//   defs: face-clip     flame silhouette clipPath (animation only, not used here)
+// The script fails loudly if an id is missing.
 //
-// Output (frame 510x512, the flame's own bounds):
-//   flame + flattened face + eyes clipped to the face shape.
+// Output (frame 510x512, the flame's own bounds): flame + face-cut + eyes
+// clipped to the face shape. Layer ids are removed and gradient ids are
+// prefixed per state, so several mascots can share one page without
+// duplicate ids.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -46,31 +47,41 @@ function innerOf(svg, file) {
   return match[1];
 }
 
+function elementById(svg, id, file) {
+  const match = new RegExp(`<(path|ellipse|rect)\\b[^>]*\\bid="${id}"[^>]*/>`).exec(svg);
+  if (!match) fail(`${file}: elemen dengan id "${id}" tidak ditemukan`);
+  return match[0];
+}
+
+function stripId(element) {
+  return element.replace(/\sid="[^"]*"/, '');
+}
+
 function parseBase() {
   const file = 'mascot-base.svg';
   const svg = readFileSync(join(MASCOT_DIR, file), 'utf8');
   if (!/viewBox="0 0 510 540"/.test(svg)) fail(`${file}: frame berubah (diharapkan viewBox 0 0 510 540)`);
-  const inner = innerOf(svg, file);
 
-  const paths = inner.match(/<path\b[^>]*\/>/g) ?? [];
-  const ellipses = inner.match(/<ellipse\b[^>]*\/>/g) ?? [];
-  const rects = inner.match(/<rect\b[^>]*\/>/g) ?? [];
-  const defs = /<defs>[\s\S]*<\/defs>/.exec(inner)?.[0];
-  const gradients = defs?.match(/<linearGradient\b[\s\S]*?<\/linearGradient>/g) ?? [];
+  const flameBack = elementById(svg, 'flame-back', file);
+  const flame = elementById(svg, 'flame', file);
+  const faceCut = elementById(svg, 'face-cut', file);
+  elementById(svg, 'face', file);
+  elementById(svg, 'eye-left', file);
+  elementById(svg, 'eye-right', file);
 
-  if (paths.length !== 3 || ellipses.length !== 1 || rects.length !== 2 || gradients.length !== 2) {
-    fail(
-      `${file}: struktur berubah (path ${paths.length}/3, ellipse ${ellipses.length}/1, rect ${rects.length}/2, gradient ${gradients.length}/2). ` +
-        'Perbarui skrip ini, atau pakai id layer setelah aset diekspor ulang.',
-    );
-  }
-  const [flameA, flameB, face] = paths;
-  if (!flameA.includes('url(#') || !flameB.includes('url(#')) fail(`${file}: dua path pertama harus api bergradasi`);
-  if (!face.includes(`fill="${FACE_FILL}"`)) fail(`${file}: path ketiga harus wajah berwarna ${FACE_FILL}`);
-  const faceD = /\sd="([^"]+)"/.exec(face)?.[1];
-  if (!faceD) fail(`${file}: path wajah tidak punya atribut d`);
+  if (!flameBack.includes('url(#') || !flame.includes('url(#')) fail(`${file}: flame-back dan flame harus bergradasi`);
+  if (!faceCut.includes(`fill="${FACE_FILL}"`)) fail(`${file}: face-cut harus berwarna ${FACE_FILL}`);
+  const faceD = /\sd="([^"]+)"/.exec(faceCut)?.[1];
+  if (!faceD) fail(`${file}: face-cut tidak punya atribut d`);
 
-  return { flame: [flameA, flameB], face, faceD, gradients };
+  const gradientIds = [flameBack, flame].map((el) => /url\(#([^)]+)\)/.exec(el)[1]);
+  const gradients = gradientIds.map((id) => {
+    const g = new RegExp(`<linearGradient\\b[^>]*\\bid="${id}"[\\s\\S]*?</linearGradient>`).exec(svg)?.[0];
+    if (!g) fail(`${file}: gradasi ${id} tidak ditemukan`);
+    return g;
+  });
+
+  return { flame: [stripId(flameBack), stripId(flame)], face: stripId(faceCut), faceD, gradients };
 }
 
 function readEyes(name) {
