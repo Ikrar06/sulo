@@ -41,8 +41,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Visual identity: colors, dark and light themes, bundled fonts, app icons, and static mascot expressions.
 - Documentation: architecture, request rules, privacy, brand guide, and plans for the academic calendar, the optional NEOSIA module, attendance and course registration planning.
 
+### Fixed
+
+- One course that cannot be opened no longer makes Sulo think you were logged out. Only the session check itself, or a login page at the top level, means the session ended. Courses with an access error are skipped for 24 hours and flagged after 3 failures in a row; server errors are retried at the next check, and when every course fails that way Sulo backs off from SIKOLA instead.
+- Only one sync runs at a time: pressing update while one is running waits for it instead of sending another request, and the popup says "Sedang memperbarui".
+- The same course change seen by two overlapping checks is logged and notified once.
+- After switching SIKOLA accounts, the previous account's notifications are cleared, reminders of the previous account stop, and leftover data is removed. A setup tab that was open for the previous account no longer writes into the new one; it asks to reload.
+
 ### Security
 
-- Development-only tools (the fixture recorder and the reminder simulator) are excluded from production and tester builds, and a build check fails if any of it slips in.
+- The unused connection-test message was removed. Development-only tools (the fixture recorder and the reminder simulator) are excluded from production and tester builds, and a build check fails if any of it slips in.
 
 - A scan for personal or session data runs before every commit and in CI.

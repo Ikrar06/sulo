@@ -9,7 +9,6 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('sesskey/found'), sesskey: z.string().refine(isValidSesskey) }),
   z.object({ type: z.literal('status/get') }),
   z.object({ type: z.literal('popup/opened') }),
-  z.object({ type: z.literal('connection/test') }),
   z.object({ type: z.literal('sync/request'), trigger: z.enum(['popup', 'manual', 'onboarding']) }),
   /** "Kirim notifikasi uji" in the reminder settings. */
   z.object({ type: z.literal('notify/test') }),
@@ -37,10 +36,6 @@ export interface StatusResponse {
   budgetLimit: number;
   /** Message from the remote config when the extension is disabled remotely. */
   disabledMessage: string | null;
-}
-
-export interface ConnectionTestResponse extends StatusResponse {
-  result: ConnectionTestResult;
 }
 
 export type RecordResponse =
