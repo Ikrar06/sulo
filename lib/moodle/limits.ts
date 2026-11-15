@@ -26,7 +26,7 @@ export const BACKOFF_STEPS_H = [3, 6, 12] as const;
 export const BACKOFF_MAX_H = 24;
 
 /** Remote kill switch. Empty URL means the feature is skipped. */
-export const REMOTE_CONFIG_URL = '';
+export const REMOTE_CONFIG_URL = 'https://ikrar06.github.io/sulo-data/config.json';
 export const REMOTE_CONFIG_MIN_GAP_H = 24;
 
 // Calendar window and page sizes used by the sync batch.
