@@ -12,6 +12,8 @@ export const devMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('dev/notify/simulate'), at: z.number().int().positive() }),
   /** Forgets which reminders were sent, so a simulation can be repeated. */
   z.object({ type: z.literal('dev/notify/reset') }),
+  /** Appends sample updates to the real change log, so the real engine notifies (M4). */
+  z.object({ type: z.literal('dev/radar/inject'), kind: z.enum(['material', 'due', 'grade', 'forum', 'many']) }),
 ]);
 
 export type DevMessage = z.infer<typeof devMessageSchema>;

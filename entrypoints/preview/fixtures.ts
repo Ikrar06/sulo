@@ -4,6 +4,7 @@
 import calendarFx from '@/fixtures/synthetic/calendar-action-events.normal.json';
 import enrolledFx from '@/fixtures/synthetic/enrolled-courses.normal.json';
 import { buildCourses } from '@/lib/courses/build';
+import { appendChanges } from '@/lib/radar/log';
 import { DAILY_BUDGET } from '@/lib/moodle/limits';
 import { parseCall } from '@/lib/moodle/schemas';
 import { DEFAULT_REMOTE_CONFIG } from '@/lib/remote-config';
@@ -45,8 +46,21 @@ function baseUser(): UserData {
     previous: [],
     now: NOW,
   });
+  // A few updates for the "Kabar terbaru" panel and the row markers.
+  const t0 = allTasks[0]!;
+  const t1 = allTasks[1]!;
+  const yesterday = appendChanges([], [
+    { kind: 'added', courseId: 402, cmId: 7001, module: 'resource', name: 'Modul 6: Analisis lalu lintas', url: 'https://sikola-v2.unhas.ac.id/mod/resource/view.php?id=7001' },
+    { kind: 'renamed', courseId: 402, cmId: 7002, module: 'page', from: 'Materi 5', to: 'Materi 5 (revisi)', url: null },
+  ], NOW - 26 * HOUR).map((e) => ({ ...e, seen: true }));
+  const changes = appendChanges(yesterday, [
+    { kind: 'task_added', courseId: t1.courseId, eventId: t1.eventId, cmId: t1.cmId, name: t1.name, dueAt: t1.dueAt, url: t1.url },
+    { kind: 'due_changed', courseId: t0.courseId, eventId: t0.eventId, cmId: t0.cmId, name: t0.name, from: (t0.dueAt ?? NOW) - 2 * DAY, to: t0.dueAt, url: t0.url },
+    { kind: 'grade_feedback', courseId: 403, notification: { id: 701, subject: 'Tugas sudah dinilai', component: 'mod_assign', eventtype: 'assign_notification', timecreated: NOW - HOUR, read: false, contexturl: 'https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=901' } },
+  ], NOW - HOUR);
   return {
     ...DEFAULTS,
+    changes,
     courses: built,
     tasks: allTasks,
     sync: { lastSyncAt: NOW - 5 * 60, lastCourseListAt: NOW - HOUR },

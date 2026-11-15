@@ -12,6 +12,7 @@ import { NO_ACTIONS, PopupView } from '@/components/popup/PopupView';
 import { messagesFor, type Locale } from '@/lib/i18n';
 import type { DueFormat } from '@/lib/prefs';
 import { DEFAULT_REMINDERS } from '@/lib/reminders/settings';
+import { DEFAULT_UPDATES } from '@/lib/radar/settings';
 import { buildPopupView } from '@/lib/view/popup-view';
 import { Button } from '@/components/ui/button';
 import { isCourseActive } from '@/lib/courses/active-score';
@@ -19,6 +20,7 @@ import { id } from '@/lib/i18n/id';
 import type { CourseId, CourseRecord } from '@/lib/types';
 import type { MascotState } from '@/lib/view/popup-view';
 import { NotificationMock, RemindersSim } from './RemindersSim';
+import { RadarSim } from './RadarSim';
 import { noticeView } from '@/lib/reminders/text';
 import { courseAlias } from '@/lib/courses/display-name';
 import { manyCourses, NOW, POPUP_STATES, PREVIEW_COURSES, TZ } from './fixtures';
@@ -168,7 +170,7 @@ function Overview() {
           {POPUP_STATES.map(({ title, view }) => (
             <div key={title} className="space-y-2">
               <h3 className="text-sm">{title}</h3>
-              <Themes>{() => <PopupView view={view} now={NOW} timeZone={TZ} dueFormat={dueFormat} reminders={DEFAULT_REMINDERS} {...NO_ACTIONS} dev={null} />}</Themes>
+              <Themes>{() => <PopupView view={view} now={NOW} timeZone={TZ} dueFormat={dueFormat} reminders={DEFAULT_REMINDERS} updatesSettings={DEFAULT_UPDATES} {...NO_ACTIONS} dev={null} />}</Themes>
             </div>
           ))}
         </div>
@@ -287,7 +289,7 @@ function SinglePopup({ still, index = 0 }: { still: boolean; index?: number }) {
   }, []);
   return (
     <div className="w-[380px]">
-      <PopupView initialPanel={params.get('panel') === 'reminders' ? 'reminders' : undefined} view={localized(index)} now={NOW} timeZone={TZ} dueFormat={dueFormat} reminders={DEFAULT_REMINDERS} {...NO_ACTIONS} dev={null} mascotStill={still} />
+      <PopupView initialPanel={params.get('panel') === 'reminders' ? 'reminders' : params.get('panel') === 'updates' ? 'updates' : undefined} view={localized(index)} now={NOW} timeZone={TZ} dueFormat={dueFormat} reminders={DEFAULT_REMINDERS} updatesSettings={DEFAULT_UPDATES} {...NO_ACTIONS} dev={null} mascotStill={still} />
     </div>
   );
 }
@@ -327,7 +329,7 @@ function FormatGrid() {
                   now={NOW}
                   timeZone={TZ}
                   dueFormat={f}
-                  reminders={DEFAULT_REMINDERS} {...NO_ACTIONS}
+                  reminders={DEFAULT_REMINDERS} updatesSettings={DEFAULT_UPDATES} {...NO_ACTIONS}
                   dev={null}
                   mascotStill
                 />
@@ -341,6 +343,7 @@ function FormatGrid() {
 }
 
 function Route() {
+  if (params.has('radar')) return <RadarSim />;
   if (params.has('reminders')) return <RemindersSim input={POPUP_STATES[0]!.input} start={NOW} />;
   if (params.has('notifications')) return <NotificationGallery />;
   if (params.has('formats')) return <FormatGrid />;

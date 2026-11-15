@@ -8,7 +8,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const MARKERS = ['dev/record', 'dev/notify/simulate', 'dev/notify/reset', 'recordFixtures', 'installDevTools'];
+const MARKERS = ['dev/record', 'dev/notify/simulate', 'dev/notify/reset', 'dev/radar/inject', 'recordFixtures', 'installDevTools'];
 const root = process.argv[2];
 if (!root) {
   console.error('check-no-dev-code: beri folder hasil build, misalnya .output/chrome-mv3');

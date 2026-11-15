@@ -1,7 +1,10 @@
 import { browser } from 'wxt/browser';
 import { recordFixtures } from '../recorder';
 import type { MoodleClient } from '../moodle/client';
-import { currentUser, writeUser } from '../storage';
+import { activeCourseIds } from '../courses/active-score';
+import { appendChanges } from '../radar/log';
+import { currentUser, readUser, writeUser } from '../storage';
+import type { Change } from '../types';
 import type { Clock, KeyValueStore, UnixSeconds } from '../types';
 import { devMessageSchema } from './messages';
 
@@ -16,6 +19,34 @@ export interface DevDeps {
   /** Runs a reminder cycle at a given time and returns what happened. */
   runRemindersAt: (now: UnixSeconds) => Promise<{ nextAt: UnixSeconds | null; shown: number }>;
   isExtensionPage: (sender: Parameters<Parameters<typeof browser.runtime.onMessage.addListener>[0]>[1]) => boolean;
+}
+
+/** Sample updates built from the user's own courses and tasks (dev builds only). */
+async function injectSampleChanges(deps: DevDeps, kind: 'material' | 'due' | 'grade' | 'forum' | 'many') {
+  const userId = await currentUser(deps.store);
+  if (userId === null) return { ok: false, reason: 'no user' };
+  const now = deps.clock.now();
+  const courses = [...activeCourseIds(await readUser(deps.store, userId, 'courses'))];
+  const task = (await readUser(deps.store, userId, 'tasks')).find((t) => t.dueAt !== null && t.dueAt > now);
+  const course = courses[0] ?? 1;
+  const nid = now; // unique enough for a sample notification id
+  const note = (c: number, component: string, eventtype: string, subject: string) => ({
+    id: nid + c, subject, component, eventtype, timecreated: now, read: false, contexturl: null,
+  });
+  const material = (c: number, i: number): Change => ({ kind: 'added', courseId: c, cmId: 900_000 + now % 1000 + i, module: 'resource', name: `Materi contoh ${i + 1}`, url: null });
+  const changes: Change[] =
+    kind === 'material'
+      ? [material(course, 0), material(course, 1)]
+      : kind === 'due' && task
+        ? [{ kind: 'due_changed', courseId: task.courseId, eventId: task.eventId, cmId: task.cmId, name: task.name, from: (task.dueAt as number) - 2 * 86_400, to: task.dueAt, url: task.url }]
+        : kind === 'grade'
+          ? [{ kind: 'grade_feedback', courseId: course, notification: note(1, 'mod_assign', 'assign_notification', 'Contoh nilai') }]
+          : kind === 'forum'
+            ? [{ kind: 'forum', courseId: course, notification: note(2, 'mod_forum', 'posts', 'Pengumuman contoh') }]
+            : courses.slice(0, 4).map((c, i) => material(c, i));
+  const log = await readUser(deps.store, userId, 'changes');
+  await writeUser(deps.store, userId, 'changes', appendChanges(log, changes, now));
+  return { ok: true, added: changes.length };
 }
 
 export function installDevTools(deps: DevDeps): void {
@@ -35,6 +66,8 @@ export function installDevTools(deps: DevDeps): void {
           });
         case 'dev/notify/simulate':
           return deps.runRemindersAt(message.at);
+        case 'dev/radar/inject':
+          return injectSampleChanges(deps, message.kind);
         case 'dev/notify/reset': {
           const userId = await currentUser(deps.store);
           if (userId !== null) await writeUser(deps.store, userId, 'notified', {});
