@@ -16,7 +16,7 @@ export interface Section {
   blocks: Block[];
 }
 
-export const PRIVACY_UPDATED: Text = { id: '15 November 2026', en: '15 November 2026' };
+export const PRIVACY_UPDATED: Text = { id: '16 November 2026', en: '16 November 2026' };
 
 export const PRIVACY_TITLE: Text = { id: 'Kebijakan Privasi', en: 'Privacy Policy' };
 
@@ -95,8 +95,8 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Data terikat ke akun SIKOLA-mu. Kalau akun lain login di browser yang sama, data akun sebelumnya dihapus.',
-          en: "Data is tied to your SIKOLA account. If a different account logs in on the same browser, the previous account's data is deleted.",
+          id: 'Data terikat ke akun SIKOLA-mu, dikenali dari nomor pengguna SIKOLA (userid) yang disimpan apa adanya di browsermu. Kalau akun lain masuk ke SIKOLA di browser yang sama, data akun sebelumnya langsung disembunyikan dan Sulo berhenti memeriksa serta mengingatkan. Data itu baru dihapus setelah kamu memilih "Pakai akun ini", atau saat kamu memakai "Hapus semua data". Kalau kamu masuk lagi dengan akun sebelumnya, semuanya muncul kembali.',
+          en: "Data is tied to your SIKOLA account, recognised by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose \"Use this account\", or when you use \"Delete all data\". If you sign in with the previous account again, everything comes back.",
         },
       },
     ],
@@ -170,7 +170,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'Mencopot ekstensi dari browser menghapus semua datanya. Ini sudah berlaku sekarang.', en: 'Removing the extension from your browser deletes all of its data. This works today.' },
-          { id: 'Tombol "Hapus semua data" di pengaturan Sulo direncanakan bersama dashboard, untuk menghapus semuanya tanpa mencopot ekstensi.', en: 'A "Hapus semua data" button in Sulo\'s settings is planned with the dashboard and will delete everything without removing the extension.' },
+          { id: '"Hapus semua data" di menu pengaturan popup menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in the popup settings menu deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.' },
         ],
       },
     ],

@@ -44,7 +44,7 @@ Planned:
 
 - **No password.** Sulo never asks for, reads or stores credentials. It uses the session you already have in the browser.
 - **Read only.** Only an allowlist of read-only Moodle functions can be called. Sulo never submits work, marks anything as read or keeps the session alive on its own.
-- **Local data.** Everything is stored in `chrome.storage` on your device. From M2 on, data is keyed by user id and cleared when a different account logs in.
+- **Local data.** Everything is stored in `chrome.storage` on your device, keyed by SIKOLA user id. When a different account signs in, the previous account's data is hidden and all activity stops; it is deleted only after you confirm, or with "Delete all data" in the settings menu.
 - **No telemetry.** No analytics and no third-party requests. Apart from SIKOLA, Sulo only fetches public data from its own data repository (a kill-switch file now, the academic calendar later): data only, validated, at most once a day, with nothing that identifies the user.
 - **Small footprint.** At most 40 requests per day per installation, with a typical target of 5 to 10. Requests run one at a time, never during quiet hours (00.00 to 06.00) or while the computer is idle, and back off for 3 to 24 hours after server errors.
 - **Optional modules are off by default.** Planned modules such as NEOSIA must be turned on explicitly, never send requests of their own, and remove their data when turned off.

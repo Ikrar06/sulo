@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-Last updated: 15 November 2026
+Last updated: 16 November 2026
 
 Sulo is an unofficial academic companion for Universitas Hasanuddin students. It is not affiliated with or endorsed by Universitas Hasanuddin.
 
@@ -30,7 +30,7 @@ Everything is stored locally in your browser (chrome.storage) on your own device
 
 From SIKOLA notifications, Sulo keeps only the id, the subject, the component and event type, when it was created, whether it has been read, the related page address (known SIKOLA pages only, with no parameters other than ids) and the course number. Message bodies (text, fullmessage, fullmessagehtml, smallmessage) and extra data (customdata), which may contain grades or lecturer comments, are dropped when read and never stored. Sulo's own notifications about grades never mention the grade or the comment.
 
-Data is tied to your SIKOLA account. If a different account logs in on the same browser, the previous account's data is deleted.
+Data is tied to your SIKOLA account, recognised by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose "Use this account", or when you use "Delete all data". If you sign in with the previous account again, everything comes back.
 
 ## What Sulo never does
 
@@ -61,7 +61,7 @@ Optional modules, such as the planned NEOSIA module, are off by default. Before 
 ## Deleting your data
 
 - Removing the extension from your browser deletes all of its data. This works today.
-- A "Hapus semua data" button in Sulo's settings is planned with the dashboard and will delete everything without removing the extension.
+- "Delete all data" in the popup settings menu deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.
 
 ## Changes to this policy
 
