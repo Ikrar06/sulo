@@ -74,6 +74,11 @@ export const en: Messages = {
     row: {
       menu: (name) => `Options for ${name}`,
       markDone: 'Mark as done',
+      snooze: 'Snooze reminder',
+      snoozeFor: (amount) => amount,
+      snoozeMorning: (clock) => `Tomorrow morning, ${clock}`,
+      snoozedUntil: (when) => `Reminder snoozed until ${when}`,
+      unsnooze: 'Cancel snooze',
       addToCalendar: 'Add to Google Calendar',
       calendarDetails: (course, url) => `${course} task on SIKOLA.\n${url}`,
     },
@@ -88,6 +93,31 @@ export const en: Messages = {
         countdown: 'Countdown',
       },
       language: 'Language',
+      reminders: 'Reminders',
+    },
+    reminders: {
+      title: 'Reminders',
+      back: 'Back',
+      enabled: 'Remind me before things are due',
+      stages: 'When to remind me',
+      stage: (amount) => `${amount} before`,
+      atLeastOne: 'Pick at least one time.',
+      quiet: 'Quiet hours',
+      quietOn: "Don't disturb me at certain hours",
+      from: 'From',
+      to: 'to',
+      lastStage: (amount) => `Still remind me ${amount} before, even in quiet hours`,
+      morning: 'Morning summary',
+      morningOn: 'Send a summary of my tasks every morning',
+      at: 'At',
+      snoozeMorning: '"Tomorrow morning" snoozes until',
+      check: 'Check notifications',
+      test: 'Send a test notification',
+      testSent: 'Test notification sent.',
+      testHelp: "If it doesn't show up, turn on notifications for Chrome in your computer's system settings.",
+      macSteps: 'macOS: System Settings > Notifications > Google Chrome > Allow notifications.',
+      winSteps: 'Windows: Settings > System > Notifications > turn on for Google Chrome.',
+      sessionNote: 'If you need to sign in to SIKOLA again, Sulo tells you once.',
     },
     dev: {
       title: 'Dev build info',
@@ -122,7 +152,7 @@ export const en: Messages = {
 
   banner: {
     disabledFallback: 'Sulo is taking a short break.',
-    sessionExpired: 'Sign in to SIKOLA again so Sulo can update your tasks.',
+    sessionExpired: 'This list may be out of date. Sign in to SIKOLA again so Sulo can update it.',
     openSikola: 'Open SIKOLA',
     parserBroken: "Sulo can't read SIKOLA properly yet. Try again later.",
     report: 'Copy info',
@@ -131,6 +161,27 @@ export const en: Messages = {
     offline: "You're offline. Showing your last data.",
     stale: (ago) => (ago === null ? "Your tasks haven't been updated yet." : `Last updated ${ago}.`),
     refreshNow: 'Update',
+    notificationsOff: "Sulo's notifications are turned off in Chrome, so reminders won't show.",
+    notificationsHow: 'See how',
+  },
+
+  notify: {
+    taskTitle: (name, left) => `${name}, ${left}`,
+    taskBody: (course, clock) => `${course}. Due ${clock}.`,
+    summaryTitle: (n) => `${plural(n, 'task is', 'tasks are')} almost due`,
+    summaryBody: (name, left) => `Nearest: ${name}, ${left}.`,
+    morningTitle: 'Your tasks today',
+    morningBody: (today, week, name, left) =>
+      today === 0
+        ? `Nothing due today. ${plural(week, 'task', 'tasks')} this week. Nearest: ${name}, ${left}.`
+        : `${today} due today, ${week} this week. Nearest: ${name}, ${left}.`,
+    sessionTitle: "Your tasks can't be updated",
+    sessionRepeatTitle: "Your tasks haven't been updated since yesterday",
+    sessionBody: 'Sign in to SIKOLA again so Sulo can update your tasks.',
+    snoozeButton: 'Snooze 1 hour',
+    doneButton: 'Mark as done',
+    testTitle: 'Test notification from Sulo',
+    testBody: 'If you can see this, Sulo reminders will show up.',
   },
 
   onboarding: {

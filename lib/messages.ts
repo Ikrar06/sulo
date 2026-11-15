@@ -11,9 +11,11 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('popup/opened') }),
   z.object({ type: z.literal('connection/test') }),
   z.object({ type: z.literal('sync/request'), trigger: z.enum(['popup', 'manual', 'onboarding']) }),
-  // Dev builds only; the production service worker ignores it.
-  z.object({ type: z.literal('dev/record') }),
+  /** "Kirim notifikasi uji" in the reminder settings. */
+  z.object({ type: z.literal('notify/test') }),
 ]);
+// Dev-only messages live in lib/dev/messages.ts and are handled by a module
+// that only development builds contain (scripts/check-no-dev-code.mjs).
 
 export type Message = z.infer<typeof messageSchema>;
 

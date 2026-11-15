@@ -8,7 +8,6 @@ import {
   messageSchema,
   type ConnectionTestResponse,
   type Message,
-  type RecordResponse,
   type StatusResponse,
 } from '@/lib/messages';
 import { readBudget } from '@/lib/moodle/budget';
@@ -17,18 +16,26 @@ import { DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } fr
 import { onSesskeyReceived, readSession, writeSession } from '@/lib/moodle/session';
 import { trySesskeyFallbackFromPopup } from '@/lib/moodle/sesskey-fallback';
 import { pendingWhatsNew, WHATS_NEW } from '@/lib/onboarding/whats-new';
-import { recordFixtures } from '@/lib/recorder';
 import { effectiveIntervalMinutes, readRemoteConfig, refreshRemoteConfig } from '@/lib/remote-config';
 import { BADGE_ALARM, BADGE_REFRESH_MIN, jitterMinutes, SYNC_ALARM, type IdleState } from '@/lib/schedule';
 import { isContentScriptOn, isExtensionPageSender } from '@/lib/sender';
 import { isValidSesskey } from '@/lib/sesskey';
-import { currentUser, NOTICE_KEY, NOTICE_VERSION, readUser } from '@/lib/storage';
+import { currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUser } from '@/lib/storage';
+import { readPrefs } from '@/lib/prefs';
+import { parseNotificationId, runNotifyCycle, type Notifier } from '@/lib/reminders/run';
 import { runSync } from '@/lib/sync/run-sync';
+import { setDone, setSnooze } from '@/lib/tasks/local-state';
+import { messagesFor, resolveLocale } from '@/lib/i18n';
 import type { SyncOutcome, SyncTrigger } from '@/lib/types';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView } from '@/lib/view/popup-view';
 
 const SESSKEY_KEY = 'sesskey';
+/** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
+const NOTIFY_ALARM = 'notify';
+/** Storage changes that can move the next reminder. Not notified or stats (written by the cycle itself). */
+const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses)|global:(prefs|session|currentUser))$/;
+const SNOOZE_FROM_NOTIFICATION = 3600;
 const ONBOARDING_PAGE = '/onboarding.html';
 
 // No state in module variables except the client, whose queue only orders
@@ -76,6 +83,77 @@ export default defineBackground(() => {
     }
   };
 
+  // ---------- Reminders: one rolling alarm ----------
+
+  const notifier: Notifier = {
+    show: async (id, view) => {
+      await browser.notifications.create(id, {
+        type: 'basic',
+        iconUrl: browser.runtime.getURL(`/notify/${view.icon}.png`),
+        title: view.title,
+        message: view.message,
+        buttons: view.buttons.map((title) => ({ title })),
+        priority: 1,
+      });
+    },
+  };
+
+  // Orders overlapping cycles (an alarm and a storage change at once). It only
+  // sequences work; all data stays in storage.
+  let reminderQueue: Promise<unknown> = Promise.resolve();
+  const runRemindersAt = (now: number) => {
+    const run = reminderQueue.then(async () => {
+      const result = await runNotifyCycle({ store: local, now, timeZone: timeZone(), uiLanguage: browser.i18n.getUILanguage(), notifier });
+      if (result.nextAt === null) await browser.alarms.clear(NOTIFY_ALARM);
+      else await browser.alarms.create(NOTIFY_ALARM, { when: result.nextAt * 1000 });
+      return result;
+    });
+    reminderQueue = run.catch(() => undefined);
+    return run;
+  };
+  const runReminders = () => void runRemindersAt(clock.now()).catch(() => undefined);
+
+  const findTask = async (eventId: number) => {
+    const userId = await currentUser(local);
+    if (userId === null) return null;
+    return { userId, task: (await readUser(local, userId, 'tasks')).find((t) => t.eventId === eventId) ?? null };
+  };
+
+  const onNotificationClick = async (id: string) => {
+    const { kind, eventId } = parseNotificationId(id);
+    await browser.notifications.clear(id);
+    if (kind === 'task' && eventId !== null) {
+      const found = await findTask(eventId);
+      if (found?.task) await browser.tabs.create({ url: found.task.url });
+    } else if (kind === 'summary' || kind === 'morning') {
+      try {
+        await browser.action.openPopup();
+      } catch {
+        await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/calendar/view.php?view=upcoming` });
+      }
+    } else if (kind === 'session') {
+      await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
+    }
+  };
+
+  const onNotificationButton = async (id: string, index: number) => {
+    const { kind, eventId } = parseNotificationId(id);
+    await browser.notifications.clear(id);
+    if (kind !== 'task' || eventId === null) return;
+    const found = await findTask(eventId);
+    if (!found) return;
+    const state = await readUser(local, found.userId, 'taskState');
+    const next = index === 0 ? setSnooze(state, eventId, clock.now() + SNOOZE_FROM_NOTIFICATION) : setDone(state, eventId, true);
+    await writeUser(local, found.userId, 'taskState', next);
+  };
+
+  const sendTestNotification = async () => {
+    const prefs = await readPrefs(local);
+    const m = messagesFor(resolveLocale(prefs.locale, browser.i18n.getUILanguage()));
+    await notifier.show(`test|${clock.now()}`, { title: m.notify.testTitle, message: m.notify.testBody, icon: 'idle', buttons: [] });
+    return { ok: true };
+  };
+
   // ---------- Sync ----------
 
   const sync = async (trigger: SyncTrigger): Promise<SyncOutcome> => {
@@ -119,15 +197,6 @@ export default defineBackground(() => {
     return { result: outcome.result, ...(await status()) };
   };
 
-  const record = async (): Promise<RecordResponse> =>
-    recordFixtures({
-      client,
-      clock,
-      origin: SIKOLA_ORIGIN,
-      // Random shift of 20 to 60 days back, so real dates cannot be read off.
-      timeShiftSeconds: -(20 + Math.floor(Math.random() * 41)) * 86_400,
-    });
-
   const handle = (message: Message): Promise<unknown> | null => {
     switch (message.type) {
       case 'status/get':
@@ -138,8 +207,8 @@ export default defineBackground(() => {
         return sync(message.trigger);
       case 'connection/test':
         return testConnection();
-      case 'dev/record':
-        return import.meta.env.MODE !== 'production' ? record() : null;
+      case 'notify/test':
+        return sendTestNotification();
       default:
         return null;
     }
@@ -149,6 +218,7 @@ export default defineBackground(() => {
 
   browser.runtime.onInstalled.addListener((details) => {
     void ensureAlarms();
+    runReminders();
     if (details.reason === 'install') void browser.tabs.create({ url: browser.runtime.getURL(ONBOARDING_PAGE) });
     if (details.reason === 'update') void openWhatsNewIfNeeded();
   });
@@ -172,18 +242,29 @@ export default defineBackground(() => {
   browser.runtime.onStartup.addListener(() => {
     void ensureAlarms();
     void updateBadge();
+    runReminders();
   });
 
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SYNC_ALARM) void sync('background');
     if (alarm.name === BADGE_ALARM) void updateBadge();
+    if (alarm.name === NOTIFY_ALARM) runReminders();
   });
 
   browser.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
-    if (Object.keys(changes).some((k) => k.endsWith(':taskState') || k.endsWith(':courses'))) void updateBadge();
+    const keys = Object.keys(changes);
+    if (keys.some((k) => k.endsWith(':taskState') || k.endsWith(':courses') || k === 'global:session')) void updateBadge();
     if ('global:remoteConfig' in changes) void ensureAlarms();
+    if (keys.some((k) => REMINDER_INPUTS.test(k))) runReminders();
   });
+
+  browser.notifications.onClicked.addListener((id) => void onNotificationClick(id));
+  browser.notifications.onButtonClicked.addListener((id, index) => void onNotificationButton(id, index));
+
+  // Every time the worker wakes up, recompute: an alarm may have been missed
+  // while the browser was closed or the computer slept.
+  runReminders();
 
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
     const extensionId = browser.runtime.id;
@@ -207,4 +288,20 @@ export default defineBackground(() => {
     work.then(sendResponse, () => sendResponse(null));
     return true; // keep the channel open for the async response
   });
+
+  // Development builds only. The condition is a build-time constant, so other
+  // builds drop this branch and the whole lib/dev module with it
+  // (checked by scripts/check-no-dev-code.mjs after every build).
+  if (import.meta.env.MODE === 'development') {
+    void import('@/lib/dev/background-dev').then(({ installDevTools }) =>
+      installDevTools({
+        client,
+        clock,
+        store: local,
+        origin: SIKOLA_ORIGIN,
+        runRemindersAt,
+        isExtensionPage: (sender) => isExtensionPageSender(sender, browser.runtime.id, browser.runtime.getURL('/').replace(/\/+$/, '')),
+      }),
+    );
+  }
 });

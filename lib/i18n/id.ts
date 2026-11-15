@@ -77,6 +77,11 @@ export const id = {
     row: {
       menu: (name: string) => `Pilihan untuk ${name}`,
       markDone: 'Tandai selesai',
+      snooze: 'Tunda pengingat',
+      snoozeFor: (amount: string) => amount,
+      snoozeMorning: (clock: string) => `Besok pagi, ${clock}`,
+      snoozedUntil: (when: string) => `Pengingat ditunda sampai ${when}`,
+      unsnooze: 'Batalkan tunda',
       addToCalendar: 'Tambah ke Google Calendar',
       calendarDetails: (course: string, url: string) => `Tugas ${course} di SIKOLA.\n${url}`,
     },
@@ -91,6 +96,31 @@ export const id = {
         countdown: 'Hitung mundur',
       },
       language: 'Bahasa',
+      reminders: 'Pengingat',
+    },
+    reminders: {
+      title: 'Pengingat',
+      back: 'Kembali',
+      enabled: 'Ingatkan aku sebelum tenggat',
+      stages: 'Kapan diingatkan',
+      stage: (amount: string) => `${amount} sebelumnya`,
+      atLeastOne: 'Pilih minimal satu waktu.',
+      quiet: 'Jam tenang',
+      quietOn: 'Jangan ganggu pada jam tertentu',
+      from: 'Dari',
+      to: 'sampai',
+      lastStage: (amount: string) => `Tetap ingatkan ${amount} sebelum tenggat, walau di jam tenang`,
+      morning: 'Ringkasan pagi',
+      morningOn: 'Kirim ringkasan tugas setiap pagi',
+      at: 'Pukul',
+      snoozeMorning: 'Tunda sampai besok pagi berarti pukul',
+      check: 'Cek notifikasi',
+      test: 'Kirim notifikasi uji',
+      testSent: 'Notifikasi uji sudah dikirim.',
+      testHelp: 'Kalau tidak muncul, nyalakan notifikasi untuk Chrome di pengaturan sistem komputermu.',
+      macSteps: 'macOS: Pengaturan Sistem > Notifikasi > Google Chrome > Izinkan notifikasi.',
+      winSteps: 'Windows: Pengaturan > Sistem > Notifikasi > nyalakan untuk Google Chrome.',
+      sessionNote: 'Kalau kamu perlu masuk lagi ke SIKOLA, Sulo memberi tahu sekali saja.',
     },
     dev: {
       title: 'Info build dev',
@@ -128,7 +158,7 @@ export const id = {
 
   banner: {
     disabledFallback: 'Sulo sedang istirahat sebentar.',
-    sessionExpired: 'Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu.',
+    sessionExpired: 'Daftar ini mungkin belum terbaru. Masuk ke SIKOLA lagi supaya Sulo bisa memperbaruinya.',
     openSikola: 'Buka SIKOLA',
     parserBroken: 'Sulo belum bisa membaca SIKOLA dengan benar. Coba lagi nanti.',
     report: 'Salin info',
@@ -137,6 +167,28 @@ export const id = {
     offline: 'Kamu sedang offline. Menampilkan data terakhir.',
     stale: (ago: string | null) => (ago === null ? 'Tugasmu belum diperbarui.' : `Terakhir diperbarui ${ago}.`),
     refreshNow: 'Perbarui',
+    notificationsOff: 'Notifikasi Sulo dimatikan di Chrome, jadi pengingat tidak muncul.',
+    notificationsHow: 'Lihat caranya',
+  },
+
+  /** System notifications (reminders, summaries, session). Short, no grades or other sensitive data. */
+  notify: {
+    taskTitle: (name: string, left: string) => `${name}, ${left}`,
+    taskBody: (course: string, clock: string) => `${course}. Tenggat ${clock}.`,
+    summaryTitle: (n: number) => `${n} tugas mendekati tenggat`,
+    summaryBody: (name: string, left: string) => `Yang terdekat: ${name}, ${left}.`,
+    morningTitle: 'Tugasmu hari ini',
+    morningBody: (today: number, week: number, name: string, left: string) =>
+      today === 0
+        ? `Hari ini tidak ada tenggat. Minggu ini ada ${week} tugas. Yang terdekat: ${name}, ${left}.`
+        : `${today} tugas hari ini, ${week} minggu ini. Yang terdekat: ${name}, ${left}.`,
+    sessionTitle: 'Tugasmu belum bisa diperbarui',
+    sessionRepeatTitle: 'Tugasmu belum diperbarui sejak kemarin',
+    sessionBody: 'Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu.',
+    snoozeButton: 'Tunda 1 jam',
+    doneButton: 'Tandai selesai',
+    testTitle: 'Notifikasi uji dari Sulo',
+    testBody: 'Kalau kamu melihat ini, pengingat Sulo akan muncul.',
   },
 
   onboarding: {

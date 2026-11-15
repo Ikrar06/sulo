@@ -4,6 +4,7 @@
 
 import { z } from 'zod';
 import type { Locale } from './i18n';
+import { DEFAULT_REMINDERS, reminderSettingsSchema, type ReminderSettings } from './reminders/settings';
 import type { KeyValueStore } from './types';
 
 export const PREFS_KEY = 'global:prefs';
@@ -24,13 +25,15 @@ export interface Prefs {
   /** null: follow the browser language. */
   locale: Locale | null;
   dueFormat: DueFormat;
+  reminders: ReminderSettings;
 }
 
-export const DEFAULT_PREFS: Prefs = { locale: null, dueFormat: 'both' };
+export const DEFAULT_PREFS: Prefs = { locale: null, dueFormat: 'both', reminders: DEFAULT_REMINDERS };
 
 const prefsSchema = z.object({
   locale: z.enum(['id', 'en']).nullable().catch(null),
   dueFormat: z.enum(['both', 'remaining', 'clock', 'countdown']).catch('both'),
+  reminders: reminderSettingsSchema.catch(DEFAULT_REMINDERS),
 });
 
 export async function readPrefs(store: KeyValueStore): Promise<Prefs> {

@@ -76,7 +76,7 @@ describe('preferences', () => {
   it('stores a choice and ignores unreadable values', async () => {
     const store = memoryStore();
     await writePrefs(store, { dueFormat: 'countdown' });
-    expect(await readPrefs(store)).toEqual({ locale: null, dueFormat: 'countdown' });
+    expect(await readPrefs(store)).toEqual({ ...DEFAULT_PREFS, dueFormat: 'countdown' });
     expect(await readPrefs(memoryStore({ [PREFS_KEY]: { locale: 'fr', dueFormat: 42 } }))).toEqual(DEFAULT_PREFS);
   });
 });

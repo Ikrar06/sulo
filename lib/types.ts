@@ -15,6 +15,8 @@ export interface SessionInfo {
   state: SessionState;
   userId: UserId | null;
   checkedAt: UnixSeconds;
+  /** When the session entered EXPIRED (one notification per event); null otherwise. */
+  expiredAt?: UnixSeconds | null;
 }
 
 // ---------- Request safety ----------

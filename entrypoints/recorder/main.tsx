@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { Button } from '@/components/ui/button';
 import { id } from '@/lib/i18n/id';
+import type { DevMessage } from '@/lib/dev/messages';
 import type { Message, RecordResponse } from '@/lib/messages';
 import '@/assets/tailwind.css';
 import { installInputModality } from '@/lib/ui/input-modality';
@@ -37,7 +38,7 @@ function Recorder() {
     setBusy(true);
     let response: RecordResponse | null = null;
     try {
-      response = (await browser.runtime.sendMessage({ type: 'dev/record' } satisfies Message)) as RecordResponse | null;
+      response = (await browser.runtime.sendMessage({ type: 'dev/record' } satisfies DevMessage)) as RecordResponse | null;
     } catch {
       response = null;
     }

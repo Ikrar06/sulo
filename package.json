@@ -20,10 +20,10 @@
   },
   "scripts": {
     "dev": "wxt",
-    "build": "wxt build",
+    "build": "wxt build && node scripts/check-no-dev-code.mjs .output/chrome-mv3",
     "build:dev": "wxt build --mode development",
     "zip": "wxt zip",
-    "zip:tester": "wxt zip --mode tester",
+    "zip:tester": "wxt zip --mode tester && node scripts/check-no-dev-code.mjs .output/chrome-mv3",
     "typecheck": "wxt prepare && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -31,7 +31,8 @@
     "postinstall": "wxt prepare",
     "sanitize": "node scripts/sanitize.ts",
     "fixtures:compare": "node scripts/compare-fixture-shapes.mjs",
-    "privacy": "node scripts/build-privacy.ts"
+    "privacy": "node scripts/build-privacy.ts",
+    "notify-icons": "node scripts/build-notify-icons.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

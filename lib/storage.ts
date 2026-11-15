@@ -43,12 +43,21 @@ export interface OnboardingState {
   skippedSteps?: string[];
 }
 
+/** Local counters, never sent anywhere (shown in the dev info panel). */
+export interface LocalStats {
+  notifyFailures: number;
+  lastNotifyFailureAt: UnixSeconds | null;
+}
+
 export interface UserData {
   courses: CourseRecord[];
   tasks: Task[];
   taskState: TaskStateMap;
   sync: SyncMeta;
   onboarding: OnboardingState;
+  /** Notification keys already sent, with the time (docs/ARCHITECTURE.md section 9). */
+  notified: Record<string, UnixSeconds>;
+  stats: LocalStats;
 }
 
 export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
@@ -57,6 +66,8 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   taskState: {},
   sync: { lastSyncAt: null, lastCourseListAt: null },
   onboarding: { completedAt: null, confirmedInProgress: [], reviewSuggested: [] },
+  notified: {},
+  stats: { notifyFailures: 0, lastNotifyFailureAt: null },
 };
 
 export const userKey = (userId: UserId, name: keyof UserData) => `u:${userId}:${name}`;

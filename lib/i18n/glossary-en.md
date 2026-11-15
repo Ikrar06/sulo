@@ -37,3 +37,17 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 - The full sentence "Sulo is not an official app and is not affiliated with Universitas Hasanuddin" appears in setup step 1 and on the privacy page.
 - Footers and other pages use "Not an official Unhas app" with a "Privacy" link.
 - The statement appears once per screen, never repeated.
+
+## Notifications
+
+| Kind | Title | Body |
+|---|---|---|
+| Task | Laporan praktikum, 3 hours left | Fisika Dasar. Due Thursday 23:59. |
+| Summary | 3 tasks are almost due | Nearest: Laporan praktikum, 5 hours left. |
+| Morning summary | Your tasks today | 1 due today, 3 this week. Nearest: ... |
+| Session expired | Your tasks can't be updated | Sign in to SIKOLA again so Sulo can update your tasks. |
+| Test | Test notification from Sulo | If you can see this, Sulo reminders will show up. |
+
+- Buttons: "Snooze 1 hour", "Mark as done". In the popup: "Snooze reminder", "Tomorrow morning, 07:00", "Cancel snooze".
+- Settings use checkboxes and plain sentences ("Remind me before things are due", "Don't disturb me at certain hours"). Avoid "toggle", "switch", "enable".
+- Notifications never include grades or other sensitive data.

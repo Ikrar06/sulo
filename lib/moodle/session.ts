@@ -15,10 +15,13 @@ export async function writeSession(
   userId?: UserId | null,
 ): Promise<SessionInfo> {
   const prev = await readSession(store);
+  const now = clock.now();
   const next: SessionInfo = {
     state,
     userId: userId === undefined ? prev.userId : userId,
-    checkedAt: clock.now(),
+    checkedAt: now,
+    // Entering EXPIRED starts a new event; staying keeps its time; leaving clears it.
+    expiredAt: state === 'EXPIRED' ? (prev.state === 'EXPIRED' ? (prev.expiredAt ?? now) : now) : null,
   };
   await store.set(SESSION_KEY, next);
   return next;

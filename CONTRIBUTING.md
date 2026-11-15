@@ -25,8 +25,23 @@ The second command enables two git hooks: a scan for personal or session data be
 | `pnpm test` | Vitest, no browser needed |
 | `pnpm typecheck` | `wxt prepare` and `tsc --noEmit` |
 | `node scripts/check-leaks.mjs` | Scans the repository for personal or session data |
+| `pnpm notify-icons` | Rebuilds the notification icons in `public/notify/` from the static mascots (needs `rsvg-convert`, see below) |
 
 To try the extension, open `chrome://extensions`, turn on Developer mode, choose "Load unpacked" and select the build folder.
+
+`pnpm build` and `pnpm zip:tester` also run `scripts/check-no-dev-code.mjs`, which fails if development-only code (the fixture recorder or the reminder simulator) ends up in the build.
+
+### Notification icons
+
+Notifications cannot use SVG, so `public/notify/*.png` are built from the static mascots with `rsvg-convert` (librsvg) and committed, like the extension icons. Rebuild them only when the mascot changes (`node scripts/build-mascot.mjs`, then `pnpm notify-icons`). Installing `rsvg-convert`:
+
+| System | Command |
+|---|---|
+| macOS (Homebrew) | `brew install librsvg` |
+| Debian, Ubuntu | `sudo apt install librsvg2-bin` |
+| Fedora | `sudo dnf install librsvg2-tools` |
+| Windows (MSYS2) | `pacman -S mingw-w64-x86_64-librsvg` |
+| Windows (Chocolatey) | `choco install rsvg-convert` |
 
 ## Project rules
 
