@@ -4,6 +4,7 @@
 
 import { z } from 'zod';
 import type { Locale } from './i18n';
+import { DEFAULT_UPDATES, updateSettingsSchema, type UpdateSettings } from './radar/settings';
 import { DEFAULT_REMINDERS, reminderSettingsSchema, type ReminderSettings } from './reminders/settings';
 import type { KeyValueStore } from './types';
 
@@ -26,14 +27,17 @@ export interface Prefs {
   locale: Locale | null;
   dueFormat: DueFormat;
   reminders: ReminderSettings;
+  /** Which kinds of updates notify (materials, deadlines, grades, forum). */
+  updates: UpdateSettings;
 }
 
-export const DEFAULT_PREFS: Prefs = { locale: null, dueFormat: 'both', reminders: DEFAULT_REMINDERS };
+export const DEFAULT_PREFS: Prefs = { locale: null, dueFormat: 'both', reminders: DEFAULT_REMINDERS, updates: DEFAULT_UPDATES };
 
 const prefsSchema = z.object({
   locale: z.enum(['id', 'en']).nullable().catch(null),
   dueFormat: z.enum(['both', 'remaining', 'clock', 'countdown']).catch('both'),
   reminders: reminderSettingsSchema.catch(DEFAULT_REMINDERS),
+  updates: updateSettingsSchema,
 });
 
 export async function readPrefs(store: KeyValueStore): Promise<Prefs> {

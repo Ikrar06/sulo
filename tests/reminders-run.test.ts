@@ -86,8 +86,9 @@ describe('notification cycle', () => {
 describe('notification ids and pruning', () => {
   it('round-trips the task id for click handling', () => {
     const id = notificationId({ kind: 'task', key: 't:7:180:1', task, snoozed: false });
-    expect(parseNotificationId(id)).toEqual({ kind: 'task', eventId: 7 });
-    expect(parseNotificationId('summary|sum:1')).toEqual({ kind: 'summary', eventId: null });
+    expect(parseNotificationId(id)).toEqual({ kind: 'task', eventId: 7, entryId: null });
+    expect(parseNotificationId('summary|sum:1')).toEqual({ kind: 'summary', eventId: null, entryId: null });
+    expect(parseNotificationId('changes|task:5:added')).toEqual({ kind: 'changes', eventId: null, entryId: 'task:5:added' });
   });
 
   it('drops keys older than 30 days and keys of tasks that are gone', () => {

@@ -6,9 +6,10 @@
 
 import { calendarDaysBetween } from '../format/time';
 import { getTaskState, type TaskStateMap } from '../tasks/local-state';
-import type { CourseId, SessionState, Task, UnixSeconds } from '../types';
+import { categoryOf, DEFAULT_UPDATES, type UpdateSettings } from '../radar/settings';
+import type { ChangeLogEntry, CourseId, SessionState, Task, UnixSeconds } from '../types';
 import { lastStage, type ReminderSettings } from './settings';
-import { localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
+import { inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
 
 /** The morning summary is skipped when the browser opens more than this after its time. */
 export const MORNING_GRACE = 3 * 3600;
@@ -26,6 +27,9 @@ export interface PlanInput {
   settings: ReminderSettings;
   sent: SentKeys;
   session: { state: SessionState; expiredAt: UnixSeconds | null };
+  /** Change log (M4); entries with notify set and not yet sent become update notices. */
+  changes?: readonly ChangeLogEntry[];
+  updates?: UpdateSettings;
 }
 
 export type Notice =
@@ -34,7 +38,11 @@ export type Notice =
   /** Several reminders at once (missed while the browser was closed, or held by quiet hours). */
   | { kind: 'summary'; key: string; count: number; nearest: Task }
   | { kind: 'morning'; key: string; today: number; week: number; nearest: Task }
-  | { kind: 'session'; key: string; repeat: boolean };
+  | { kind: 'session'; key: string; repeat: boolean }
+  /** Updates for one course in one cycle ("3 materi baru di Hidrologi"). */
+  | { kind: 'changes'; key: string; courseId: CourseId | null; entries: ChangeLogEntry[] }
+  /** Updates across more than 3 courses, or held by quiet hours. */
+  | { kind: 'changes_summary'; key: string; count: number; courses: number };
 
 export interface Plan {
   send: Notice[];
@@ -42,6 +50,47 @@ export interface Plan {
   markSent: string[];
   /** Next wake-up for the rolling alarm; null when nothing is pending. */
   nextAt: UnixSeconds | null;
+}
+
+/** Updates notify in groups of at most this many courses; more becomes one summary. */
+export const MAX_COURSE_NOTICES = 3;
+export const changeKey = (entry: ChangeLogEntry) => `c:${entry.id}`;
+
+/**
+ * Update notices. Quiet hours apply in full (no exception): during them
+ * nothing is sent, and whatever was held goes out as one summary when they
+ * end. Disabled kinds are recorded as handled, so turning them on later does
+ * not replay old updates.
+ */
+function planChanges(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: UnixSeconds | null } {
+  const settings = input.updates ?? DEFAULT_UPDATES;
+  const pending = (input.changes ?? []).filter((e) => e.notify && !(changeKey(e) in input.sent));
+  if (pending.length === 0) return { send: [], mark: [], nextAt: null };
+  const allowed = pending.filter((e) => {
+    const category = categoryOf(e.change);
+    return category !== null && settings[category];
+  });
+  const disabled = pending.filter((e) => !allowed.includes(e)).map(changeKey);
+  if (allowed.length === 0) return { send: [], mark: disabled, nextAt: null };
+
+  const { quiet } = input.settings;
+  if (quiet.enabled && inWindow(input.now, quiet, input.timeZone)) {
+    return { send: [], mark: disabled, nextAt: windowEnd(input.now, quiet, input.timeZone) };
+  }
+  const held = quiet.enabled && allowed.some((e) => inWindow(e.at, quiet, input.timeZone));
+  const groups = new Map<CourseId | null, ChangeLogEntry[]>();
+  for (const e of allowed) groups.set(e.change.courseId, [...(groups.get(e.change.courseId) ?? []), e]);
+  const mark = [...disabled, ...allowed.map(changeKey)];
+  if (held || groups.size > MAX_COURSE_NOTICES) {
+    return { send: [{ kind: 'changes_summary', key: `chs:${input.now}`, count: allowed.length, courses: groups.size }], mark, nextAt: null };
+  }
+  const send: Notice[] = [...groups.entries()].map(([courseId, entries]) => ({
+    kind: 'changes',
+    key: entries.length === 1 ? entries[0]!.id : `chg:${courseId ?? 'x'}:${input.now}`,
+    courseId,
+    entries,
+  }));
+  return { send, mark, nextAt: null };
 }
 
 export const stageKey = (t: Task, stageMin: number) => `t:${t.eventId}:${stageMin}:${t.dueAt}`;
@@ -193,6 +242,11 @@ export function planReminders(input: PlanInput): Plan {
       upcoming.push(s.at);
     }
   }
+
+  const updates = planChanges(input);
+  send.push(...updates.send);
+  markSent.push(...updates.mark);
+  if (updates.nextAt !== null) upcoming.push(updates.nextAt);
 
   const later = upcoming.filter((t) => t > now);
   return { send, markSent: [...new Set(markSent)], nextAt: later.length ? Math.min(...later) : null };

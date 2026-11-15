@@ -51,3 +51,18 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 - Buttons: "Snooze 1 hour", "Mark as done". In the popup: "Snooze reminder", "Tomorrow morning, 07:00", "Cancel snooze".
 - Settings use checkboxes and plain sentences ("Remind me before things are due", "Don't disturb me at certain hours"). Avoid "toggle", "switch", "enable".
 - Notifications never include grades or other sensitive data.
+
+## Latest updates
+
+| Update | Notification title |
+|---|---|
+| New material | 3 new materials in Hidrologi |
+| New task | New task in Hidrologi |
+| Due date changed | Laporan praktikum: due date moved 2 days later / 1 day earlier |
+| Grade or feedback | New grade or feedback in Analisa Struktur I |
+| Forum | New forum post in Hidrologi |
+| Summary | 9 updates from 5 courses |
+
+- Say "moved later" and "moved earlier", not "postponed" or "brought forward".
+- Grade notifications never mention the grade or the comment.
+- Panel: "Latest updates", "3 new updates", "Mark all as seen", "Tell me about". Row markers: "New", "Due date changed".

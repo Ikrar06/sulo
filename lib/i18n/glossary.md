@@ -55,3 +55,18 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 - Tombol: "Tunda 1 jam", "Tandai selesai". Di popup: "Tunda pengingat", "Besok pagi, 07.00", "Batalkan tunda".
 - Pengaturan memakai kotak centang dan kalimat biasa ("Ingatkan aku sebelum tenggat", "Jangan ganggu pada jam tertentu"). Hindari "sakelar", "toggle", "aktifkan".
 - Notifikasi tidak pernah memuat nilai atau data sensitif lain.
+
+## Kabar terbaru
+
+| Kabar | Judul notifikasi |
+|---|---|
+| Materi baru | 3 materi baru di Hidrologi |
+| Tugas baru | Tugas baru di Hidrologi |
+| Tenggat berubah | Tenggat Laporan praktikum diundur 2 hari / dimajukan 1 hari |
+| Nilai atau feedback | Ada nilai atau feedback baru di Analisa Struktur I |
+| Forum | Kabar baru di forum Hidrologi |
+| Ringkasan | 9 kabar baru dari 5 mata kuliah |
+
+- Pakai "diundur" dan "dimajukan", bukan "mundur" atau "maju".
+- Notifikasi nilai tidak pernah menyebut angka nilai atau isi komentar.
+- Panel: "Kabar terbaru", "3 kabar baru", "Tandai semua sudah dilihat", "Beri tahu aku tentang". Penanda baris: "Baru", "Tenggat berubah".

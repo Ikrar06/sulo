@@ -17,7 +17,12 @@ interface FakeClient extends MoodleClient {
   batches: { calls: MoodleCall[]; options: RequestOptions | undefined }[];
 }
 
-function fakeClient(respond?: (calls: readonly MoodleCall[]) => BatchOutcome, userid = 1): FakeClient {
+function fakeClient(
+  respond?: (calls: readonly MoodleCall[]) => BatchOutcome,
+  userid = 1,
+  notifications: () => unknown = () => fx('popup-notifications.normal'),
+  state: (courseId: number) => unknown = () => fx('courseformat-state.normal'),
+): FakeClient {
   const batches: FakeClient['batches'] = [];
   const all = fx('enrolled-courses.normal');
   const data = (c: MoodleCall): unknown => {
@@ -26,6 +31,10 @@ function fakeClient(respond?: (calls: readonly MoodleCall[]) => BatchOutcome, us
         return { userid, timeremaining: 7200 };
       case 'core_calendar_get_action_events_by_timesort':
         return fx('calendar-action-events.normal');
+      case 'message_popup_get_popup_notifications':
+        return notifications();
+      case 'core_courseformat_get_state':
+        return state(c.args.courseid as number);
       case 'core_course_get_enrolled_courses_by_timeline_classification':
         return c.args.classification === 'inprogress'
           ? { courses: all.courses.filter((x: { id: number }) => [401, 402, 403].includes(x.id)), nextoffset: 3 }
@@ -76,10 +85,11 @@ describe('runSync', () => {
     const store = memoryStore();
     await run(client, store, 'onboarding');
     await runSync({ client, store, clock: fixedClock('2026-09-22', 14, NOW + 4 * 3600), trigger: 'manual' });
-    expect(client.batches[1]?.calls).toHaveLength(2);
+    const courseListCalls = (i: number) => client.batches[i]?.calls.filter((c) => c.methodname === 'core_course_get_enrolled_courses_by_timeline_classification') ?? [];
+    expect(courseListCalls(1)).toHaveLength(0);
     expect(client.batches[1]?.options).toEqual({ source: 'manual', withCourseList: false });
     await runSync({ client, store, clock: fixedClock('2026-09-23', 10, NOW + DAY), trigger: 'manual' });
-    expect(client.batches[2]?.calls).toHaveLength(4);
+    expect(courseListCalls(2)).toHaveLength(2);
   });
 
   it('skips a popup sync when data is younger than 15 minutes, without a request', async () => {
@@ -123,7 +133,9 @@ describe('runSync', () => {
       results: calls.map((c) =>
         c.methodname === 'core_calendar_get_action_events_by_timesort'
           ? { ok: true, data: { events: 'nope' } }
-          : { ok: true, data: { userid: 1, timeremaining: 1 } },
+          : c.methodname === 'core_session_time_remaining'
+            ? { ok: true, data: { userid: 1, timeremaining: 1 } }
+            : { ok: false, errorcode: 'nopermissions' },
       ),
     }));
     const outcome = await runSync({ client: broken, store, clock: fixedClock('2026-09-22', 11, NOW + 3600), trigger: 'manual' });
@@ -151,5 +163,60 @@ describe('jitterMinutes', () => {
     expect(await jitterMinutes(store, () => 0.55)).toBe(6);
     expect(await jitterMinutes(store, () => 0.99)).toBe(6);
     expect(store.dump()[JITTER_KEY]).toBe(6);
+  });
+
+  describe('radar (M4)', () => {
+    const state = (cms: { id: number; name: string; module?: string; visible?: boolean }[]) => {
+      const base = fx('courseformat-state.normal');
+      const parsed = JSON.parse(base as string);
+      const tmpl = parsed.cm[0];
+      parsed.cm = cms.map((c) => ({ ...tmpl, id: c.id, name: c.name, module: c.module ?? 'resource', visible: c.visible ?? true, uservisible: true }));
+      parsed.section[0].cmlist = cms.map((c) => c.id);
+      for (const s of parsed.section.slice(1)) s.cmlist = [];
+      return JSON.stringify(parsed);
+    };
+
+    it('stays one request per cycle, with notifications and at most 5 course structures', async () => {
+      const client = fakeClient();
+      const store = memoryStore();
+      await run(client, store, 'onboarding');
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 14, NOW + 4 * 3600), trigger: 'manual' });
+      const second = client.batches[1]!.calls.map((c) => c.methodname);
+      expect(client.batches).toHaveLength(2);
+      expect(second.filter((m) => m === 'message_popup_get_popup_notifications')).toHaveLength(1);
+      expect(second.filter((m) => m === 'core_courseformat_get_state').length).toBeLessThanOrEqual(5);
+    });
+
+    it('logs nothing on the baselines, then logs new material and new notifications', async () => {
+      let cms = [{ id: 1, name: 'Modul 1' }];
+      let notes = fx('popup-notifications.normal');
+      const client = fakeClient(undefined, 1, () => notes, () => state(cms));
+      const store = memoryStore();
+      await run(client, store, 'onboarding'); // learns the user
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 11, NOW + 3600), trigger: 'manual' }); // radar baselines
+      expect(await readUser(store, 1, 'changes')).toEqual([]);
+
+      cms = [{ id: 1, name: 'Modul 1' }, { id: 2, name: 'Modul 2' }];
+      notes = fx('popup-notifications.grades');
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 18, NOW + 8 * 3600), trigger: 'manual' });
+      const kinds = (await readUser(store, 1, 'changes')).map((e) => e.change.kind);
+      expect(kinds).toContain('added');
+      expect(kinds).toContain('grade_feedback');
+      expect(JSON.stringify(await readUser(store, 1, 'changes'))).not.toMatch(/fullmessage|Komentar dosen/);
+    });
+
+    it('never reads a failed course result as "everything removed"', async () => {
+      let broken = false;
+      const client = fakeClient(undefined, 1, () => fx('popup-notifications.normal'), () => (broken ? '{"oops":1}' : state([{ id: 1, name: 'Modul 1' }])));
+      const store = memoryStore();
+      await run(client, store, 'onboarding');
+      await runSync({ client, store, clock: fixedClock('2026-09-22', 11, NOW + 3600), trigger: 'manual' });
+      const before = await readUser(store, 1, 'snapshots');
+      broken = true;
+      const outcome = await runSync({ client, store, clock: fixedClock('2026-09-22', 18, NOW + 8 * 3600), trigger: 'manual' });
+      expect(outcome).toMatchObject({ status: 'parser_broken', where: 'core_courseformat_get_state' });
+      expect(await readUser(store, 1, 'snapshots')).toEqual(before);
+      expect(await readUser(store, 1, 'changes')).toEqual([]);
+    });
   });
 });

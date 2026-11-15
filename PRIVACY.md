@@ -14,8 +14,8 @@ Sulo uses the SIKOLA session that already exists in your browser to read your ow
 
 - your list of courses
 - assignments and their due dates, including quiz deadlines
-- the structure of each course (sections and activities), from the change radar milestone
-- your SIKOLA notifications, from the change radar milestone
+- the structure of each active course (sections and activities), a few times a day, to spot new materials and tasks
+- your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts
 
 Sulo only reads. It never submits work, never marks anything as read, never changes data in SIKOLA, never reads quiz content, and never reads other students' data.
 
@@ -24,10 +24,11 @@ Sulo only reads. It never submits work, never marks anything as read, never chan
 Everything is stored locally in your browser (chrome.storage) on your own device:
 
 - courses, assignments and due dates
+- the last seen structure of each course and the "Latest updates" log (at most 200 entries)
 - your choices: active courses, tasks marked done, and later aliases, colors and a nickname you type yourself
 - local usage counters, which never leave your device unless you export them yourself
 
-From SIKOLA notifications, Sulo will keep only the id, the subject, the component and event type, when it was created, and whether it has been read. The message body, which may contain grades or lecturer comments, is never stored.
+From SIKOLA notifications, Sulo keeps only the id, the subject, the component and event type, when it was created, whether it has been read, the related page address (known SIKOLA pages only, with no parameters other than ids) and the course number. Message bodies (text, fullmessage, fullmessagehtml, smallmessage) and extra data (customdata), which may contain grades or lecturer comments, are dropped when read and never stored. Sulo's own notifications about grades never mention the grade or the comment.
 
 Data is tied to your SIKOLA account. If a different account logs in on the same browser, the previous account's data is deleted.
 

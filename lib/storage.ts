@@ -3,7 +3,7 @@
 // before anything new is written. Pure: the KeyValueStore is injected.
 
 import type { TaskStateMap } from './tasks/local-state';
-import type { CourseId, CourseRecord, KeyValueStore, SyncOutcome, Task, UnixSeconds, UserId } from './types';
+import type { ChangeLogEntry, CourseId, CourseRecord, CourseSnapshot, KeyValueStore, SyncOutcome, Task, UnixSeconds, UserId } from './types';
 
 export const CURRENT_USER_KEY = 'global:currentUser';
 export const NOTICE_KEY = 'global:notice';
@@ -58,6 +58,20 @@ export interface UserData {
   /** Notification keys already sent, with the time (docs/ARCHITECTURE.md section 9). */
   notified: Record<string, UnixSeconds>;
   stats: LocalStats;
+  /** "Kabar terbaru": at most 200 newest change entries (lib/radar/log.ts). */
+  changes: ChangeLogEntry[];
+  /** Course structure snapshots, keyed by course id (lib/radar/diff.ts). */
+  snapshots: Record<string, CourseSnapshot>;
+  radar: RadarMeta;
+}
+
+export interface RadarMeta {
+  /** When each course's structure was last checked (rotation, 6-hour gap). */
+  stateCheckedAt: Record<string, UnixSeconds>;
+  /** Highest Moodle notification id seen; null until the baseline fetch. */
+  notificationsLastId: number | null;
+  /** The first calendar sync with the radar on is a silent baseline. */
+  calendarBaseline: boolean;
 }
 
 export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
@@ -68,6 +82,9 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   onboarding: { completedAt: null, confirmedInProgress: [], reviewSuggested: [] },
   notified: {},
   stats: { notifyFailures: 0, lastNotifyFailureAt: null },
+  changes: [],
+  snapshots: {},
+  radar: { stateCheckedAt: {}, notificationsLastId: null, calendarBaseline: false },
 };
 
 export const userKey = (userId: UserId, name: keyof UserData) => `u:${userId}:${name}`;

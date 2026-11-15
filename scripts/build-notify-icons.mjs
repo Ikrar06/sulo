@@ -16,7 +16,7 @@ const OUT = join(ROOT, 'public/notify');
 const SIZE = '128';
 
 /** Notification icon name -> static mascot. */
-const ICONS = { idle: 'mascot-idle', urgent: 'mascot-wide', sleepy: 'mascot-sleepy' };
+const ICONS = { idle: 'mascot-idle', urgent: 'mascot-wide', sleepy: 'mascot-sleepy', happy: 'mascot-happy' };
 
 try {
   execFileSync('rsvg-convert', ['--version'], { stdio: 'ignore' });

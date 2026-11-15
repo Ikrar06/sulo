@@ -22,6 +22,8 @@ import { isContentScriptOn, isExtensionPageSender } from '@/lib/sender';
 import { isValidSesskey } from '@/lib/sesskey';
 import { currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUser } from '@/lib/storage';
 import { readPrefs } from '@/lib/prefs';
+import { changeUrl } from '@/lib/radar/describe';
+import { countPopupOpen } from '@/lib/radar/log';
 import { parseNotificationId, runNotifyCycle, type Notifier } from '@/lib/reminders/run';
 import { runSync } from '@/lib/sync/run-sync';
 import { setDone, setSnooze } from '@/lib/tasks/local-state';
@@ -34,7 +36,9 @@ const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
 const NOTIFY_ALARM = 'notify';
 /** Storage changes that can move the next reminder. Not notified or stats (written by the cycle itself). */
-const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses)|global:(prefs|session|currentUser))$/;
+const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser))$/;
+/** The popup opens on this panel once (a click on an update summary). */
+const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
 const ONBOARDING_PAGE = '/onboarding.html';
 
@@ -120,9 +124,23 @@ export default defineBackground(() => {
   };
 
   const onNotificationClick = async (id: string) => {
-    const { kind, eventId } = parseNotificationId(id);
+    const { kind, eventId, entryId } = parseNotificationId(id);
     await browser.notifications.clear(id);
-    if (kind === 'task' && eventId !== null) {
+    if (kind === 'changes' || kind === 'changes_summary') {
+      const userId = await currentUser(local);
+      const entry = entryId && userId !== null ? (await readUser(local, userId, 'changes')).find((e) => e.id === entryId) : undefined;
+      const url = entry ? changeUrl(entry.change) : null;
+      if (url) {
+        await browser.tabs.create({ url });
+        return;
+      }
+      await local.set(POPUP_PANEL_KEY, { panel: 'updates', at: clock.now() });
+      try {
+        await browser.action.openPopup();
+      } catch {
+        await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
+      }
+    } else if (kind === 'task' && eventId !== null) {
       const found = await findTask(eventId);
       if (found?.task) await browser.tabs.create({ url: found.task.url });
     } else if (kind === 'summary' || kind === 'morning') {
@@ -145,6 +163,15 @@ export default defineBackground(() => {
     const state = await readUser(local, found.userId, 'taskState');
     const next = index === 0 ? setSnooze(state, eventId, clock.now() + SNOOZE_FROM_NOTIFICATION) : setDone(state, eventId, true);
     await writeUser(local, found.userId, 'taskState', next);
+  };
+
+  /** The "baru" marker on task rows fades after 3 popup opens. */
+  const countOpen = async () => {
+    const userId = await currentUser(local);
+    if (userId === null) return;
+    const log = await readUser(local, userId, 'changes');
+    const next = countPopupOpen(log, clock.now());
+    if (next.some((e, i) => e !== log[i])) await writeUser(local, userId, 'changes', next);
   };
 
   const sendTestNotification = async () => {
@@ -202,7 +229,7 @@ export default defineBackground(() => {
       case 'status/get':
         return status();
       case 'popup/opened':
-        return onPopupOpened();
+        return countOpen().then(onPopupOpened);
       case 'sync/request':
         return sync(message.trigger);
       case 'connection/test':

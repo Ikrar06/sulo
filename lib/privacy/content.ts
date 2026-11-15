@@ -53,8 +53,8 @@ export const PRIVACY_SECTIONS: Section[] = [
         items: [
           { id: 'daftar mata kuliahmu', en: 'your list of courses' },
           { id: 'tugas dan tenggatnya, termasuk tenggat kuis', en: 'assignments and their due dates, including quiz deadlines' },
-          { id: 'susunan tiap mata kuliah (bagian dan aktivitas), mulai tahap radar perubahan', en: 'the structure of each course (sections and activities), from the change radar milestone' },
-          { id: 'notifikasi SIKOLA-mu, mulai tahap radar perubahan', en: 'your SIKOLA notifications, from the change radar milestone' },
+          { id: 'susunan tiap mata kuliah aktif (bagian dan aktivitas), beberapa kali sehari, untuk mengetahui materi dan tugas baru', en: 'the structure of each active course (sections and activities), a few times a day, to spot new materials and tasks' },
+          { id: '20 notifikasi SIKOLA terbarumu, untuk mengetahui nilai, feedback, dan kabar forum baru', en: 'your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts' },
         ],
       },
       {
@@ -80,6 +80,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'mata kuliah, tugas, dan tenggat', en: 'courses, assignments and due dates' },
+          { id: 'susunan mata kuliah terakhir yang terlihat dan log "Kabar terbaru" (paling banyak 200 entri)', en: 'the last seen structure of each course and the "Latest updates" log (at most 200 entries)' },
           { id: 'pilihanmu: mata kuliah aktif, tugas yang ditandai selesai, dan kelak alias, warna, serta nama panggilan yang kamu isi sendiri', en: 'your choices: active courses, tasks marked done, and later aliases, colors and a nickname you type yourself' },
           { id: 'penghitung pemakaian lokal, yang tidak pernah keluar dari perangkatmu kecuali kamu sendiri mengekspornya', en: 'local usage counters, which never leave your device unless you export them yourself' },
         ],
@@ -87,8 +88,8 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Dari notifikasi SIKOLA, Sulo hanya akan menyimpan id, subjek, komponen dan jenis kejadian, waktu dibuat, dan status dibaca. Isi pesan, yang bisa memuat nilai atau komentar dosen, tidak pernah disimpan.',
-          en: 'From SIKOLA notifications, Sulo will keep only the id, the subject, the component and event type, when it was created, and whether it has been read. The message body, which may contain grades or lecturer comments, is never stored.',
+          id: 'Dari notifikasi SIKOLA, Sulo hanya menyimpan id, subjek, komponen dan jenis kejadian, waktu dibuat, status dibaca, alamat halaman terkait (hanya halaman SIKOLA yang dikenal, tanpa parameter selain id), dan nomor mata kuliahnya. Isi pesan (text, fullmessage, fullmessagehtml, smallmessage) dan data tambahan (customdata), yang bisa memuat nilai atau komentar dosen, dibuang saat dibaca dan tidak pernah disimpan. Notifikasi Sulo tentang nilai tidak pernah menyebut angka nilai atau isi komentar.',
+          en: "From SIKOLA notifications, Sulo keeps only the id, the subject, the component and event type, when it was created, whether it has been read, the related page address (known SIKOLA pages only, with no parameters other than ids) and the course number. Message bodies (text, fullmessage, fullmessagehtml, smallmessage) and extra data (customdata), which may contain grades or lecturer comments, are dropped when read and never stored. Sulo's own notifications about grades never mention the grade or the comment.",
         },
       },
       {

@@ -7,7 +7,8 @@ import { buildCourses, newInProgressIds } from '../courses/build';
 import { scoreCourse } from '../courses/active-score';
 import { calls, type MoodleCall } from '../moodle/calls';
 import type { BatchOutcome, CallResult, MoodleClient } from '../moodle/client';
-import { CALENDAR_LOOKBACK_DAYS, COURSE_LIST_MIN_GAP_H, POPUP_STALE_MIN } from '../moodle/limits';
+import { CALENDAR_LOOKBACK_DAYS, COURSE_LIST_MIN_GAP_H, POPUP_STALE_MIN, SIKOLA_ORIGIN } from '../moodle/limits';
+import { applyRadarResults, planRadarCalls } from '../radar/sync-step';
 import { parseCall } from '../moodle/schemas';
 import { writeSession } from '../moodle/session';
 import { backgroundBlockReason, BACKGROUND_FRESH_MIN, type IdleState } from '../schedule';
@@ -24,6 +25,8 @@ export interface SyncDeps {
   trigger: SyncTrigger;
   /** Required for background syncs (chrome.idle state). */
   idleState?: IdleState;
+  /** SIKOLA origin, for filtering notification links; defaults to SIKOLA_ORIGIN. */
+  origin?: string;
 }
 
 export async function runSync(deps: SyncDeps): Promise<SyncOutcome> {
@@ -68,11 +71,18 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   const withCourseList = await needsCourseList(deps, now);
   const batch: MoodleCall[] = [calls.sessionTimeRemaining(), calls.calendarActionEvents(now)];
   if (withCourseList) batch.push(calls.enrolledCourses('all'), calls.enrolledCourses('inprogress'));
+  // Radar (M4): notifications and the structure of up to 5 active courses,
+  // in the same batch: still one request per cycle.
+  const knownUser = await currentUser(deps.store);
+  const radarPlan = await planRadarCalls(deps.store, knownUser, knownUser === null ? [] : await readUser(deps.store, knownUser, 'courses'), now);
+  const radarStart = batch.length;
+  batch.push(...radarPlan.calls);
 
   const result = await deps.client.callBatch(batch, { source: deps.trigger, withCourseList });
   if (result.kind !== 'ok') return transportOutcome(result);
 
   const [sessionResult, calendarResult, allResult, inProgressResult] = result.results;
+  const radarResults = result.results.slice(radarStart);
   const session = parseCall('core_session_time_remaining', sessionResult ?? missing);
   if (!session.ok) return { status: 'parser_broken', where: 'core_session_time_remaining' };
   const userId: UserId = session.data.userid;
@@ -83,8 +93,10 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
 
   const previousTasks = await readUser(deps.store, userId, 'tasks');
   let tasks = previousTasks;
+  let calendarMerged = false;
   const calendar = parseCall('core_calendar_get_action_events_by_timesort', calendarResult ?? missing);
   if (calendar.ok) {
+    calendarMerged = true;
     tasks = mergeTasks(previousTasks, calendar.data.events, now, CALENDAR_LOOKBACK_DAYS);
     await writeUser(deps.store, userId, 'tasks', tasks);
     const state = await readUser(deps.store, userId, 'taskState');
@@ -115,6 +127,22 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
     }
   }
   await writeUser(deps.store, userId, 'courses', courses);
+
+  // The radar only reads results for the user it planned for (a different
+  // account was just wiped by switchUser and starts with its own baseline).
+  if (knownUser === userId) {
+    broken.push(
+      ...(await applyRadarResults(deps.store, {
+        userId,
+        now,
+        origin: deps.origin ?? SIKOLA_ORIGIN,
+        plan: radarPlan,
+        results: radarResults,
+        previousTasks,
+        nextTasks: calendarMerged ? tasks : null,
+      })),
+    );
+  }
 
   const meta = await readUser(deps.store, userId, 'sync');
   await writeUser(deps.store, userId, 'sync', {
