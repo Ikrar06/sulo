@@ -16,7 +16,7 @@ export interface BuildCoursesInput {
 
 /**
  * Builds course records from the course list, keeping the user's pins,
- * aliases, labels and colors. "past" is everything that is neither in
+ * aliases and colors. "past" is everything that is neither in
  * progress nor in the future: the list is fetched as "all" plus "inprogress"
  * in one batch, and future courses are not expected mid-semester.
  */
@@ -43,7 +43,6 @@ export function buildCourses(input: BuildCoursesInput): CourseRecord[] {
       activeReasons: reasons,
       activePin: prev?.activePin ?? null,
       alias: prev?.alias ?? null,
-      label: prev?.label ?? null,
       color: prev?.color ?? null,
     };
   });

@@ -2,7 +2,7 @@
   "events": [
     {
       "id": 101,
-      "name": "Aktivitas 1",
+      "name": "Laporan praktikum aliran saluran terbuka is due",
       "description": "<p>Lorem ipsum</p>",
       "descriptionformat": 1,
       "location": "",
@@ -13,7 +13,7 @@
       "eventcount": null,
       "component": "mod_assign",
       "modulename": "assign",
-      "activityname": "Aktivitas 1",
+      "activityname": "Laporan praktikum aliran saluran terbuka",
       "activitystr": "Teks 1",
       "instance": 201,
       "eventtype": "due",
@@ -82,7 +82,7 @@
     },
     {
       "id": 102,
-      "name": "Aktivitas 2",
+      "name": "Kuis pekan 5 closes",
       "description": "<p>Lorem ipsum</p>",
       "descriptionformat": 1,
       "location": "",
@@ -93,7 +93,7 @@
       "eventcount": null,
       "component": "mod_quiz",
       "modulename": "quiz",
-      "activityname": "Aktivitas 2",
+      "activityname": "Kuis pekan 5",
       "activitystr": "Teks 1",
       "instance": 202,
       "eventtype": "close",
@@ -162,7 +162,7 @@
     },
     {
       "id": 103,
-      "name": "Aktivitas 3",
+      "name": "Rancangan tata guna lahan is due",
       "description": "<p>Lorem ipsum</p>",
       "descriptionformat": 1,
       "location": "",
@@ -173,7 +173,7 @@
       "eventcount": null,
       "component": "mod_assign",
       "modulename": "assign",
-      "activityname": "Aktivitas 3",
+      "activityname": "Rancangan tata guna lahan",
       "activitystr": "Teks 1",
       "instance": 203,
       "eventtype": "due",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { courseAlias, courseNameWithClass, toDisplayCase } from '../lib/courses/display-name';
 import { parseCourseName } from '../lib/courses/parse-name';
-import { assignLabels, baseLabel } from '../lib/courses/short-label';
+import { assignCourseColors, COURSE_COLOR_COUNT } from '../lib/courses/colors';
 import type { CourseRecord } from '../lib/types';
 
 // Invented course names that follow the real SIKOLA pattern.
@@ -52,37 +52,27 @@ describe('toDisplayCase', () => {
   });
 });
 
-describe('labels', () => {
-  it.each([
-    ['ANALISA STRUKTUR I', 'AS1'],
-    ['WAWASAN BUDAYA DAN IPTEKS', 'WBI'],
-    ['KALKULUS', 'KAL'],
-    ['MEKANIKA TANAH II', 'MT2'],
-    ['PENGANTAR REKAYASA SISTEM INFRASTRUKTUR WILAYAH PESISIR', 'PRSIW'],
-  ])('%s -> %s', (name, label) => {
-    expect(baseLabel(name)).toBe(label);
-    expect(baseLabel(name).length).toBeLessThanOrEqual(5);
-  });
-
-  const course = (id: number, name: string, cls: string | null, label: string | null = null) => ({
+describe('course colors', () => {
+  const course = (id: number, name: string, color: string | null = null) => ({
     id,
-    label,
-    parsed: { name, classLetter: cls, program: null, code: null, matched: true },
+    alias: null,
+    color,
+    parsed: { name, classLetter: null, program: null, code: null, matched: true },
   });
 
-  it('never gives two courses the same label', () => {
-    const labels = assignLabels([
-      course(1, 'BAHASA INGGRIS', 'A'),
-      course(2, 'BIOLOGI INDUSTRI', 'B'),
-      course(3, 'BAHASA INDONESIA', null),
-      course(4, 'BAHASA INGGRIS', 'C', 'BING'),
-    ]);
-    const values = [...labels.values()];
-    expect(new Set(values).size).toBe(values.length);
-    expect(labels.get(4)).toBe('BING');
-    expect(labels.get(1)).toBe('BIA');
-    expect(labels.get(2)).toBe('BIB');
-    expect(values.every((l) => l.length <= 5)).toBe(true);
+  it('gives eleven courses colors so that equal colors are never neighbours by name', () => {
+    const names = ['GEOLOGI', 'BETON', 'ANALISA', 'DINAMIKA', 'FISIKA', 'HIDROLOGI', 'IRIGASI', 'KALKULUS', 'MEKANIKA', 'STATISTIKA', 'ETIKA'];
+    const courses = names.map((n, i) => course(i + 1, n));
+    const colors = assignCourseColors(courses);
+    const sorted = [...courses].sort((a, b) => a.parsed.name.localeCompare(b.parsed.name, 'id'));
+    const sequence = sorted.map((c) => colors.get(c.id));
+    for (let i = 1; i < sequence.length; i += 1) expect(sequence[i]).not.toBe(sequence[i - 1]);
+    expect(new Set(sequence).size).toBe(COURSE_COLOR_COUNT);
+    expect(sequence.every((c) => c! >= 1 && c! <= COURSE_COLOR_COUNT)).toBe(true);
+  });
+
+  it('keeps a color the user picked', () => {
+    expect(assignCourseColors([course(1, 'A', 'course-5'), course(2, 'B')]).get(1)).toBe(5);
   });
 });
 

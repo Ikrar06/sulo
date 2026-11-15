@@ -90,7 +90,7 @@ export interface CourseRecord {
   activePin: boolean | null;
   /** User overrides (dashboard, M5a). null means "use the default". */
   alias: string | null;
-  label: string | null;
+  /** "course-1" .. "course-8" when chosen by the user (M5a); null means automatic. */
   color: string | null;
 }
 

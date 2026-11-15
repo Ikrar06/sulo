@@ -36,7 +36,8 @@ export function taskFromEvent(event: CalendarEvent, now: UnixSeconds, previous?:
     eventId: event.id,
     cmId: cmIdFromUrl(url),
     courseId: event.course.id,
-    name: event.name,
+    // The activity name, without Moodle's translated suffix; the event name as fallback.
+    name: event.activityname?.trim() || event.name,
     module: event.modulename ?? 'unknown',
     dueAt: event.timesort > 0 ? event.timesort : null,
     url,

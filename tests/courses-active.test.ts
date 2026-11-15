@@ -48,9 +48,9 @@ describe('scoreCourse', () => {
 });
 
 describe('buildCourses', () => {
-  it('scores the synthetic list and keeps the user pin, alias and label', () => {
+  it('scores the synthetic list and keeps the user pin, alias and color', () => {
     const courses = enrolled();
-    const previous = [{ id: 403, activePin: true, alias: 'Kesehatan', label: 'KS', color: '#123456' } as CourseRecord];
+    const previous = [{ id: 403, activePin: true, alias: 'Kesehatan', color: 'course-3' } as CourseRecord];
     const result = buildCourses({
       all: courses,
       inProgressIds: new Set([401, 402, 403]),
@@ -62,7 +62,7 @@ describe('buildCourses', () => {
     expect(byId.get(401)?.activeReasons).toEqual(['inprogress', 'enddate_future', 'upcoming_events']);
     expect(byId.get(404)?.past).toBe(true);
     expect(byId.get(404)?.activeReasons).toContain('ended_long_ago');
-    expect(byId.get(403)).toMatchObject({ activePin: true, alias: 'Kesehatan', label: 'KS', color: '#123456' });
+    expect(byId.get(403)).toMatchObject({ activePin: true, alias: 'Kesehatan', color: 'course-3' });
     expect(byId.get(401)?.parsed.matched).toBe(true);
     expect(byId.get(401)?.parsed.code).toMatch(/^[0-9A-Z]{11}$/);
     expect([...activeCourseIds(result)].sort()).toEqual([401, 402, 403]);

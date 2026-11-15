@@ -44,6 +44,13 @@ describe('tasks from the calendar', () => {
     ]);
   });
 
+  it('uses the activity name without Moodle\'s "is due" or "closes" suffix', () => {
+    const tasks = events().map((e) => taskFromEvent(e, NOW));
+    expect(tasks.map((t) => t.name)).toEqual(['Laporan praktikum aliran saluran terbuka', 'Kuis pekan 5', 'Rancangan tata guna lahan']);
+    const fallback = taskFromEvent({ ...events()[0]!, activityname: undefined }, NOW);
+    expect(fallback.name).toBe('Laporan praktikum aliran saluran terbuka is due');
+  });
+
   it('keeps firstSeenAt across syncs', () => {
     const [first] = mergeTasks([], events(), NOW - DAY, 14);
     const [again] = mergeTasks([first!], events(), NOW, 14);

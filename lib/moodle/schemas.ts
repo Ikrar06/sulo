@@ -44,6 +44,8 @@ export const sessionTimeRemainingSchema = z.looseObject({
 const calendarEventSchema = z.looseObject({
   id,
   name: z.string(),
+  /** Activity name without Moodle's "is due" / "closes" suffix; shown to the user. */
+  activityname: z.string().nullable().optional(),
   modulename: z.string().nullable(),
   instance: id.nullable(),
   timesort: unix,
