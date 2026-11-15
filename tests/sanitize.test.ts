@@ -111,4 +111,63 @@ describe('sanitizeJson', () => {
     expect(leakReport(dirty).length).toBeGreaterThan(0);
     expect(leakReport(run(dirty))).toEqual([]);
   });
+
+  it('replaces every notification body field that can hold grades or lecturer comments', () => {
+    const grade = ['Nilai', ' 87,5 ', 'untuk Budi Santoso'].join('');
+    const comment = 'Laporanmu kurang rapi, perbaiki bagian 3';
+    const out = run({
+      notifications: [
+        {
+          id: 9001,
+          useridfrom: 55,
+          useridto: 7,
+          subject: grade,
+          shortenedsubject: grade,
+          text: comment,
+          fullmessage: `${grade}. ${comment}`,
+          fullmessageformat: 2,
+          fullmessagehtml: `<p>${grade}</p><p>${comment}</p>`,
+          smallmessage: grade,
+          contexturl: `${ORIGIN}/mod/assign/view.php?id=888&action=grader&userid=7`,
+          contexturlname: 'Laporan Praktikum 3',
+          timecreatedpretty: '2 hours 5 mins ago',
+          customdata: JSON.stringify({ cmid: 888, instance: 12, messagehtml: `<b>${grade}</b>`, notificationiconurl: `${ORIGIN}/theme/image.php/x/icon` }),
+          component: 'mod_assign',
+          eventtype: 'assign_notification',
+          read: false,
+        },
+      ],
+    }) as { notifications: Record<string, unknown>[] };
+    const n = out.notifications[0]!;
+    const text = JSON.stringify(out);
+    for (const secret of ['87,5', 'Budi', 'Santoso', 'rapi', 'Laporan Praktikum', '888', '9001']) expect(text).not.toContain(secret);
+    expect(n.component).toBe('mod_assign');
+    expect(n.eventtype).toBe('assign_notification');
+    expect(n.read).toBe(false);
+    // userid in the URL maps to the same placeholder as useridto (7 -> 2).
+    expect(n.useridto).toBe(2);
+    expect(n.contexturl).toBe(`${ORIGIN}/mod/assign/view.php?id=101&userid=2`);
+    const custom = JSON.parse(n.customdata as string);
+    expect(custom).toMatchObject({ cmid: 101, instance: 101, notificationiconurl: 'https://example.test/file' });
+    expect(custom.messagehtml).toMatch(/^<p>Lorem/);
+    for (const field of ['text', 'fullmessage', 'fullmessagehtml', 'smallmessage']) expect(String(n[field])).toMatch(/Lorem/);
+  });
+
+  it('keeps course state ids consistent across cm.id, sectionid and cmlist, string or number', () => {
+    const state = JSON.stringify({
+      course: { id: '4321' },
+      section: [{ id: 77, cmlist: ['888', '999'], title: 'Pekan 1', current: true }],
+      cm: [
+        { id: '888', sectionid: '77', module: 'assign', modname: 'Assignment' },
+        { id: '999', sectionid: '77', module: 'label', modname: 'Text and media area' },
+      ],
+    });
+    const out = JSON.parse((run({ data: state }) as { data: string }).data);
+    expect(out.course.id).toBe('101');
+    expect(out.section[0].cmlist).toEqual(['101', '102']);
+    expect(out.cm.map((c: { id: string }) => c.id)).toEqual(['101', '102']);
+    expect(out.cm[0].sectionid).toBe(String(out.section[0].id));
+    expect(out.cm.map((c: { module: string }) => c.module)).toEqual(['assign', 'label']);
+  });
 });
+

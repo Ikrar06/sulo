@@ -23,7 +23,7 @@ const LOGIN_ID_KEYS = new Set(['username', 'idnumber']);
 const SECRET_KEYS = new Set(['sesskey', 'token', 'wstoken', 'privatetoken']);
 const LONG_TEXT_KEYS = new Set([
   'description', 'summary', 'fullmessage', 'fullmessagehtml', 'smallmessage', 'message',
-  'text', 'intro', 'content', 'alttext', 'formattedtime', 'timeusermidnight_text',
+  'text', 'intro', 'content', 'alttext', 'formattedtime', 'timeusermidnight_text', 'messagehtml',
 ]);
 const TITLE_LABELS: Record<string, string> = {
   name: 'Aktivitas', title: 'Bagian', subject: 'Notifikasi', shortenedsubject: 'Notifikasi',
@@ -79,8 +79,15 @@ export function sanitizeJson(value: unknown, options: SanitizeOptions): unknown 
   return walk(value, null, null, new Context(options));
 }
 
+/** Arrays of ids whose items need remapping (e.g. section.cmlist). */
+const ID_LIST_NAMESPACE: Record<string, string> = { cmlist: 'cm' };
+
 function walk(value: unknown, key: string | null, parentKey: string | null, ctx: Context): unknown {
-  if (Array.isArray(value)) return value.map((item) => walk(item, key, parentKey, ctx));
+  if (Array.isArray(value)) {
+    const listNamespace = key ? ID_LIST_NAMESPACE[key] : undefined;
+    if (listNamespace) return value.map((item) => remapIdLike(item, listNamespace, ctx));
+    return value.map((item) => walk(item, key, parentKey, ctx));
+  }
   if (value !== null && typeof value === 'object') {
     const obj = value as Record<string, unknown>;
     const courseLike = 'shortname' in obj || key === 'course' || key === 'courses';
@@ -89,8 +96,20 @@ function walk(value: unknown, key: string | null, parentKey: string | null, ctx:
     );
   }
   if (typeof value === 'number') return sanitizeNumber(value, key, parentKey, ctx);
-  if (typeof value === 'string') return sanitizeString(value, key, ctx);
+  if (typeof value === 'string') return sanitizeString(value, key, parentKey, ctx);
   return value;
+}
+
+function idNamespace(key: string | null, parentKey: string | null): string | undefined {
+  if (key === null) return undefined;
+  return key === 'id' ? (ID_NAMESPACE_BY_PARENT[parentKey ?? ''] ?? parentKey ?? 'root') : ID_NAMESPACE_BY_KEY[key];
+}
+
+/** Remaps a number or numeric string, keeping its type. */
+function remapIdLike(item: unknown, namespace: string, ctx: Context): unknown {
+  if (typeof item === 'number' && Number.isInteger(item) && item > 0) return ctx.id(namespace, item);
+  if (typeof item === 'string' && /^\d+$/.test(item) && Number(item) > 0) return String(ctx.id(namespace, Number(item)));
+  return item;
 }
 
 function walkCourseField(k: string, v: unknown, parentKey: string | null, ctx: Context): unknown {
@@ -107,12 +126,15 @@ function sanitizeNumber(value: number, key: string | null, parentKey: string | n
   if (key === null || !Number.isInteger(value)) return value;
   if (TIME_KEY.test(key)) return value > 0 ? value + ctx.options.timeShiftSeconds : value;
   if (GRADE_KEYS.has(key)) return fakeGrade(value);
-  const namespace = key === 'id' ? (ID_NAMESPACE_BY_PARENT[parentKey ?? ''] ?? parentKey ?? 'root') : ID_NAMESPACE_BY_KEY[key];
+  const namespace = idNamespace(key, parentKey);
   return namespace && value > 0 ? ctx.id(namespace, value) : value;
 }
 
-function sanitizeString(value: string, key: string | null, ctx: Context): string {
+function sanitizeString(value: string, key: string | null, parentKey: string | null, ctx: Context): string {
   if (value === '') return value;
+  // Ids exported as numeric strings (course state) are remapped like numbers.
+  const namespace = idNamespace(key, parentKey);
+  if (namespace && /^\d+$/.test(value)) return String(remapIdLike(value, namespace, ctx));
   const nested = tryParseJson(value);
   if (nested !== undefined) return JSON.stringify(walk(nested, key, null, ctx));
 

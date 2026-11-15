@@ -70,7 +70,8 @@ export interface Task {
   cmId: CmId | null;
   courseId: CourseId;
   name: string;
-  modname: string; // 'assign', 'quiz', ...
+  /** Module code from the calendar's `modulename` ('assign', 'quiz'). Never the translated name. */
+  module: string;
   /** null for tasks without a due date */
   dueAt: UnixSeconds | null;
   url: string;
@@ -93,7 +94,8 @@ export const PARSER_VERSION = 1;
 
 export interface SnapshotItem {
   cmId: CmId;
-  modname: string;
+  /** Module code from the course state's `module` ('assign'). Not `modname`, which is translated. */
+  module: string;
   name: string;
   sectionId: number;
   visible: boolean;
@@ -112,8 +114,8 @@ export interface CourseSnapshot {
 }
 
 export type Change =
-  | { kind: 'added'; courseId: CourseId; cmId: CmId; modname: string; name: string }
-  | { kind: 'removed'; courseId: CourseId; cmId: CmId; modname: string; name: string }
+  | { kind: 'added'; courseId: CourseId; cmId: CmId; module: string; name: string }
+  | { kind: 'removed'; courseId: CourseId; cmId: CmId; module: string; name: string }
   | { kind: 'renamed'; courseId: CourseId; cmId: CmId; from: string; to: string }
   | { kind: 'hidden'; courseId: CourseId; cmId: CmId; name: string }
   | { kind: 'shown'; courseId: CourseId; cmId: CmId; name: string }

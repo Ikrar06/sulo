@@ -2,9 +2,9 @@ import { z } from 'zod';
 import type { AllowedFunction } from './calls';
 import type { CallResult } from './client';
 
-// Fields we use are required; unknown fields pass through (docs/ROADMAP.md, M1).
-// Fields marked "perlu dikonfirmasi" in docs/API-MOODLE.md are required too;
-// recorded fixtures will confirm or correct them.
+// Fields Sulo uses are required; every other field passes through.
+// Field presence is confirmed (docs/API-MOODLE.md); exact value types are
+// confirmed or corrected once recorded fixtures exist.
 
 // ---------- Transport ----------
 
@@ -35,20 +35,22 @@ export const sessionTimeRemainingSchema = z.looseObject({
   timeremaining: z.number(),
 });
 
+// Field presence confirmed on an account with active courses (verify-console,
+// UI in English). Only fields Sulo uses are required; inner shapes of
+// `course` and `action` wait for recorded fixtures. Translated UI text
+// (formattedtime, activitystr, normalisedeventtypetext, action.name) is
+// never used for logic; kind comes from codes, time from timestamps.
+
 const calendarEventSchema = z.looseObject({
   id,
   name: z.string(),
-  timestart: unix,
-  timesort: unix,
-  eventtype: z.string(),
   modulename: z.string().nullable(),
   instance: id.nullable(),
+  timesort: unix,
   overdue: z.boolean(),
+  course: z.looseObject({ id }),
+  action: z.looseObject({}).nullable(),
   url: z.string(),
-  course: z.looseObject({ id, fullname: z.string(), shortname: z.string() }),
-  action: z
-    .looseObject({ name: z.string(), url: z.string(), itemcount: z.number(), actionable: z.boolean() })
-    .nullable(),
 });
 
 export const calendarActionEventsSchema = z.looseObject({
@@ -60,13 +62,28 @@ export const calendarActionEventsSchema = z.looseObject({
 const stateCmSchema = z.looseObject({
   id: idLike,
   name: z.string(),
-  visible: z.boolean(),
-  sectionid: idLike,
+  // modname is the translated module name ("Assignment" or "Tugas"): display only.
+  modname: z.string(),
+  // module is the code ("assign"): use this for logic.
   module: z.string(),
+  visible: z.boolean(),
+  uservisible: z.boolean(),
+  sectionid: idLike,
+  // Present for activities with a view page; labels may have none.
   url: z.string().optional(),
 });
 
-const stateSectionSchema = z.looseObject({ id: idLike, number: z.number().int(), title: z.string() });
+const stateSectionSchema = z
+  .looseObject({
+    id: idLike,
+    number: z.number().int(),
+    title: z.string().optional(),
+    rawtitle: z.string().optional(),
+    cmlist: z.array(idLike),
+    visible: z.boolean(),
+    current: z.boolean(),
+  })
+  .refine((s) => s.title !== undefined || s.rawtitle !== undefined, { message: 'title or rawtitle required', path: ['title'] });
 
 const courseformatStateObject = z.looseObject({
   course: z.looseObject({ id: idLike }),
@@ -87,15 +104,21 @@ export const courseformatStateSchema = z
   })
   .pipe(courseformatStateObject);
 
+/**
+ * Sulo keeps only id, subject, component, eventtype, timecreated and read
+ * from notifications. Message bodies (text, fullmessage*, smallmessage,
+ * contexturl, customdata) may hold grades or lecturer comments and are
+ * never stored.
+ */
 export const popupNotificationsSchema = z.looseObject({
   notifications: z.array(
     z.looseObject({
       id,
-      useridfrom: z.number().int(),
       subject: z.string(),
       component: z.string(),
       eventtype: z.string(),
       timecreated: unix,
+      read: z.boolean(),
     }),
   ),
   unreadcount: z.number().int().nonnegative(),
