@@ -3,8 +3,21 @@
   "version": "0.0.1",
   "private": true,
   "description": "Pendamping akademik untuk mahasiswa Unhas. Tidak resmi.",
+  "license": "MIT",
+  "author": "Ikrar Gempur Tirani",
+  "homepage": "https://github.com/Ikrar06/sulo#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ikrar06/sulo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ikrar06/sulo/issues"
+  },
   "type": "module",
   "packageManager": "pnpm@10.28.1",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
@@ -38,8 +51,5 @@
     "vitest": "^5.1.0",
     "web-ext": "^10.8.0",
     "wxt": "^0.21.5"
-  },
-  "engines": {
-    "node": ">=24"
   }
 }

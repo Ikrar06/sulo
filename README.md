@@ -51,7 +51,7 @@ Planned (see [docs/ROADMAP.md](docs/ROADMAP.md)):
 - **No academic automation.** Sulo does not fill in course registration, surveys or attendance, and does not watch class quotas.
 - **Minimal permissions.** `storage`, `alarms`, `notifications`, `idle`, and access to `https://sikola-v2.unhas.ac.id/*` only.
 
-Details: [docs/ATURAN-REQUEST.md](docs/ATURAN-REQUEST.md) and [docs/PRIVASI.md](docs/PRIVASI.md).
+Full policy: [PRIVACY.md](PRIVACY.md). Technical rules (Indonesian): [docs/ATURAN-REQUEST.md](docs/ATURAN-REQUEST.md) and [docs/PRIVASI.md](docs/PRIVASI.md).
 
 ## Architecture
 
@@ -89,6 +89,7 @@ git config core.hooksPath .githooks   # leak scan and commit message checks
 | Command | What it does |
 |---|---|
 | `pnpm dev` | Builds to `.output/chrome-mv3-dev` with hot reload and opens a fresh Chrome profile |
+| `pnpm build:dev` | Development build in `.output/chrome-mv3-dev`, without opening a browser |
 | `pnpm build` | Production build to `.output/chrome-mv3` |
 | `pnpm zip` | Production zip in `.output/` |
 | `pnpm test` | Vitest, no browser needed |
@@ -97,7 +98,7 @@ git config core.hooksPath .githooks   # leak scan and commit message checks
 
 Load the extension in your own Chrome profile, where you are logged in to SIKOLA:
 
-1. Run `pnpm build` (or `pnpm dev` for the development build).
+1. Run `pnpm build` (or `pnpm build:dev` for the development build).
 2. Open `chrome://extensions` and turn on Developer mode.
 3. Choose "Load unpacked" and select `.output/chrome-mv3` (or `.output/chrome-mv3-dev`).
 
@@ -138,6 +139,25 @@ Written in Indonesian.
 - [PRIVASI.md](docs/PRIVASI.md): privacy policy draft
 - [PASANG.md](docs/PASANG.md): install guide for testers
 
+## Contributing
+
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md): it covers setup, conventions, the data and request rules, and the kinds of features that will not be accepted. Sulo is maintained by one person, so please open an issue before larger changes. Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), and never include personal data or credentials in a report.
+
+## Disclaimer
+
+Sulo is an independent, unofficial project. It is not affiliated with, endorsed by or supported by Universitas Hasanuddin. SIKOLA and NEOSIA are named only to describe where data comes from. Information shown by Sulo can be incomplete or out of date. For anything that matters, such as deadlines, grades or academic rules, the university's own systems and your academic advisor are authoritative.
+
 ## License
 
-[MIT](LICENSE). Bundled fonts are under the SIL Open Font License; see `assets/fonts/*/OFL.txt`.
+The source code is released under the [MIT License](LICENSE).
+
+- **Fonts.** The bundled fonts (Inter and Plus Jakarta Sans) are under the SIL Open Font License 1.1. See `assets/fonts/*/OFL.txt`.
+- **Brand.** The Sulo name, logo, icons and mascot are not covered by the MIT License. They may not be used for derived products that could be mistaken for Sulo. See [TRADEMARK.md](TRADEMARK.md).
+
+## Acknowledgements
+
+Built with [WXT](https://wxt.dev), [React](https://react.dev), [Tailwind CSS](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), [Zod](https://zod.dev) and [Vitest](https://vitest.dev). Fonts: [Inter](https://rsms.me/inter/) and [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans).

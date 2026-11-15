@@ -1,0 +1,77 @@
+name: Bug report
+description: Something in Sulo does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Do not include personal data.** No passwords, cookies, session keys (sesskey), tokens, grades, student numbers (NIM), names or screenshots that show any of them. Describe what you saw with placeholders instead.
+
+        Security problems go through [SECURITY.md](https://github.com/Ikrar06/sulo/blob/main/SECURITY.md), not here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open SIKOLA and log in
+        2. Open the Sulo popup
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Popup
+        - Dashboard
+        - Notifications and reminders
+        - Session or connection
+        - Installation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Sulo version or commit
+      description: Shown on the extension card in chrome://extensions.
+      placeholder: 0.0.1
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 131 on macOS
+  - type: dropdown
+    id: ui-language
+    attributes:
+      label: SIKOLA interface language
+      options:
+        - English
+        - Indonesian
+        - Not sure
+  - type: textarea
+    id: status
+    attributes:
+      label: Status shown by Sulo
+      description: The status line in the popup, for example "Sesi habis" or "SIKOLA berubah, respons tidak dikenali".
+  - type: textarea
+    id: debug-bundle
+    attributes:
+      label: Debug bundle (optional)
+      description: |
+        When your version of Sulo has "Ekspor bundel debug" in its settings, attach that file. It goes through the same sanitizer as the test fixtures. Open it and check it yourself before attaching. Do not paste raw responses from SIKOLA or NEOSIA.
+  - type: checkboxes
+    id: no-personal-data
+    attributes:
+      label: Personal data
+      options:
+        - label: This report contains no passwords, cookies, session keys, tokens, grades, names, student numbers or screenshots of them.
+          required: true

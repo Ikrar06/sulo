@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest an improvement or a new feature.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Some features cannot be accepted, whatever their value: automation of course registration, surveys or attendance, watching class quotas, reading tokens, sending data to a server, and telemetry. See [CONTRIBUTING.md](https://github.com/Ikrar06/sulo/blob/main/CONTRIBUTING.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what makes it hard today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How could Sulo help?
+    validations:
+      required: true
+  - type: textarea
+    id: requests
+    attributes:
+      label: Data and requests
+      description: Does this need new data from SIKOLA, more requests, or a new permission? Changes to the request limits are discussed first.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
