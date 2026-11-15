@@ -1,4 +1,4 @@
-import { browser, type Browser } from 'wxt/browser';
+import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { createBrowserStore } from '@/lib/browser-store';
 import { systemClock } from '@/lib/clock';
@@ -17,6 +17,7 @@ import { onSesskeyReceived, readSession, writeSession } from '@/lib/moodle/sessi
 import { trySesskeyFallbackFromPopup } from '@/lib/moodle/sesskey-fallback';
 import { recordFixtures } from '@/lib/recorder';
 import { readRemoteConfig, refreshRemoteConfig } from '@/lib/remote-config';
+import { isContentScriptOn, isExtensionPageSender } from '@/lib/sender';
 import { isValidSesskey } from '@/lib/sesskey';
 
 const SESSKEY_KEY = 'sesskey';
@@ -97,34 +98,25 @@ export default defineBackground(() => {
   };
 
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
-    if (sender.id !== browser.runtime.id) return false;
+    const extensionId = browser.runtime.id;
+    const extensionOrigin = browser.runtime.getURL('/').replace(/\/+$/, '');
+    if (sender.id !== extensionId) return false;
     const parsed = messageSchema.safeParse(raw);
     if (!parsed.success) return false;
     const message = parsed.data;
 
     if (message.type === 'sesskey/found') {
-      if (!isFromSikolaTab(sender)) return false;
+      if (!isContentScriptOn(sender, extensionId, SIKOLA_ORIGIN)) return false;
       void session.set(SESSKEY_KEY, message.sesskey).then(() => onSesskeyReceived(local, clock));
       return false;
     }
 
-    if (!isFromExtensionPage(sender)) return false;
+    // Extension pages may be the popup (no tab) or a page opened in a tab
+    // (the recorder), so the origin decides, not the tab.
+    if (!isExtensionPageSender(sender, extensionId, extensionOrigin)) return false;
     const work = handle(message);
     if (!work) return false;
     work.then(sendResponse, () => sendResponse(null));
     return true; // keep the channel open for the async response
   });
 });
-
-function isFromSikolaTab(sender: Browser.runtime.MessageSender): boolean {
-  if (!sender.tab || !sender.url) return false;
-  try {
-    return new URL(sender.url).origin === SIKOLA_ORIGIN;
-  } catch {
-    return false;
-  }
-}
-
-function isFromExtensionPage(sender: Browser.runtime.MessageSender): boolean {
-  return !sender.tab && typeof sender.url === 'string' && sender.url.startsWith(browser.runtime.getURL('/'));
-}
