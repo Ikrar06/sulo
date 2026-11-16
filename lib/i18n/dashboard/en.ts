@@ -267,6 +267,7 @@ export const dashEn: DashMessages = {
   pengaturan: {
     title: 'Settings',
     sections: {
+      notifikasi: 'Notifications',
       tampilan: 'Appearance',
       pengingat: 'Task reminders',
       kabar: 'Latest updates',
@@ -286,7 +287,6 @@ export const dashEn: DashMessages = {
     angkatanHelp: 'Optional. Used to highlight study evaluations that mention your intake year. Sulo never reads it from your student number.',
     manageCourses: 'Choose courses',
     openPrivacy: 'Privacy policy',
-    requestsToday: (used, limit) => `Checks with SIKOLA today: ${used} of ${limit}`,
     wipeHelp: 'Deletes everything Sulo keeps in this browser. Nothing in SIKOLA is touched.',
     stats: {
       title: 'Usage statistics (local)',
@@ -313,7 +313,6 @@ export const dashEn: DashMessages = {
       sanggah: 'Grade appeal period',
     },
     updatesHelp: 'Every update is still logged. These choices only set notifications.',
-    sendTest: 'Send a test notification',
     testSent: 'Test notification sent.',
   },
 };

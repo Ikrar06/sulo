@@ -56,6 +56,7 @@
    and update panels). The popup keeps its compact 13 px body; the dashboard
    overrides these to its scale (components/dashboard/dashboard.css). */
 :root {
+  --panel-px: 16px; /* side padding of panels shared with the dashboard (20 px there) */
   --fs-body: 13px;
   --fs-caption: 12.5px;
   --lh-body: 18px;

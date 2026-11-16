@@ -21,6 +21,8 @@ export interface RemindersPanelProps {
   /** Popup: a back button. Omitted in the dashboard, where the page has the title. */
   onBack?: () => void;
   onOpenUpdates: () => void;
+  /** The "Cek notifikasi" section; the dashboard shows one test button for every kind of notification instead. */
+  showCheck?: boolean;
 }
 
 export function stageAmount(stage: StageMin, m: Messages): string {
@@ -64,14 +66,14 @@ function HourSelect({ value, label, disabled, timeZone, onChange }: { value: num
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="space-y-1 border-b border-border px-4 py-3 last:border-b-0">
+    <section className="space-y-1 border-b border-border px-(--panel-px) py-3 last:border-b-0">
       <h2 className="text-(length:--fs-caption) font-semibold text-muted-foreground">{title}</h2>
       {children}
     </section>
   );
 }
 
-export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, onOpenUpdates }: RemindersPanelProps) {
+export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, onOpenUpdates, showCheck = true }: RemindersPanelProps) {
   const { m } = useI18n();
   const r = m.popup.reminders;
   const [tested, setTested] = useState(false);
@@ -96,7 +98,7 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
         <h3 className="sr-only">{r.title}</h3>
       )}
       <div className="flex-1 overflow-y-auto">
-        <section className="border-b border-border px-4 pt-1 pb-3">
+        <section className="border-b border-border px-(--panel-px) pt-1 pb-3">
           <Check checked={settings.enabled} onChange={(enabled) => set({ enabled })}>
             {r.enabled}
           </Check>
@@ -147,6 +149,7 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
           </div>
         </Section>
 
+        {showCheck && (
         <Section title={r.check}>
           <Button
             variant="outline"
@@ -175,6 +178,7 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
             {r.updatesLink}
           </button>
         </Section>
+        )}
       </div>
     </div>
   );

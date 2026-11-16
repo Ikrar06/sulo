@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CALENDAR_NOTIFY_KINDS } from '@/lib/calendar/notify-settings';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n';
-import { DAILY_BUDGET } from '@/lib/moodle/limits';
 import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, type Theme } from '@/lib/prefs';
 import { UPDATE_CATEGORIES } from '@/lib/radar/settings';
 import { timeZone } from '../data';
@@ -18,7 +17,7 @@ import { UsageStats } from '../UsageStats';
 import type { PageProps } from '../types';
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
-const SECTIONS = ['tampilan', 'tentangKamu', 'pengingat', 'kabar', 'kalender', 'data'] as const;
+const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'data'] as const;
 
 function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
   const id = useId();
@@ -153,7 +152,34 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         </Field>
       </Card>
 
-      <Card title={<span id="set-pengingat">{t.sections.pengingat}</span>} className="!p-0 !pt-5 [&>div:first-child]:px-5">
+      {/* One test for every kind of notification (tasks, updates, calendar): they share one path. */}
+      <Card title={<span id="set-notifikasi">{t.sections.notifikasi}</span>}>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await actions.send({ type: 'notify/test' });
+              setTested(true);
+            }}
+          >
+            {m.popup.reminders.test}
+          </Button>
+          {tested && (
+            <span role="status" className="text-[12px] text-muted-foreground">
+              {t.testSent}
+            </span>
+          )}
+        </div>
+        <p className="mt-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.testHelp}</p>
+        <ul className="mt-1 space-y-1 text-[12px] leading-normal text-muted-foreground">
+          <li>{m.popup.reminders.macSteps}</li>
+          <li>{m.popup.reminders.winSteps}</li>
+        </ul>
+        <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.sessionNote}</p>
+      </Card>
+
+      {/* The panel's sections use the dashboard padding (--panel-px: 20) so they line up with the card title. */}
+      <Card title={<span id="set-pengingat">{t.sections.pengingat}</span>} className="!px-0 !pb-0 [&>div:first-child]:px-5">
         <RemindersPanel
           settings={prefs.reminders}
           timeZone={timeZone}
@@ -161,6 +187,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
           onTest={async () => {
             await actions.send({ type: 'notify/test' });
           }}
+          showCheck={false}
           onOpenUpdates={() => document.getElementById('set-kabar')?.scrollIntoView({ behavior: 'smooth' })}
         />
       </Card>
@@ -181,26 +208,9 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             {t.calendarKinds[k]}
           </Check>
         ))}
-        <div className="flex items-center gap-3 pt-2">
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await actions.send({ type: 'notify/test' });
-              setTested(true);
-            }}
-          >
-            {t.sendTest}
-          </Button>
-          {tested && (
-            <span role="status" className="text-[12px] text-muted-foreground">
-              {t.testSent}
-            </span>
-          )}
-        </div>
       </Card>
 
       <Card title={<span id="set-data">{t.sections.data}</span>}>
-        <p className="text-[14px] tabular-nums">{t.requestsToday(data.view.budget.used, DAILY_BUDGET)}</p>
         <UsageStats d={d} data={data} actions={actions} />
         <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
           <Button variant="outline" onClick={() => actions.openTab(browser.runtime.getURL('/onboarding.html#courses'))}>

@@ -50,10 +50,14 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
         aria-label={m.popup.openTask(row.name)}
         className="min-w-0 flex-1 text-left outline-none after:absolute after:inset-0 after:rounded-lg focus-ring:after:ring-2 focus-ring:after:ring-focus"
       >
-        <span className="line-clamp-2 text-[14px] leading-[19px] font-semibold">{row.name}</span>
+        <span className="line-clamp-2 text-[14px] leading-[19px] font-semibold" title={row.name}>
+          {row.name}
+        </span>
         <span className="mt-1 flex items-center gap-1.5 text-[12px] leading-4 text-muted-foreground">
           <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${COURSE_DOT[row.courseColor] ?? COURSE_DOT[1]}`} />
-          <span className="truncate">{row.courseName}</span>
+          <span className="truncate" title={row.courseName}>
+            {row.courseName}
+          </span>
           {row.marker !== null && (
             <span className="shrink-0 rounded-full border border-border px-1.5 text-[11px] leading-4 font-medium text-foreground">
               {row.marker === 'new' ? m.popup.updates.markerNew : m.popup.updates.markerDue}

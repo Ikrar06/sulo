@@ -269,6 +269,7 @@ export const dashId = {
   pengaturan: {
     title: 'Pengaturan',
     sections: {
+      notifikasi: 'Notifikasi',
       tampilan: 'Tampilan',
       pengingat: 'Pengingat tugas',
       kabar: 'Kabar terbaru',
@@ -288,7 +289,6 @@ export const dashId = {
     angkatanHelp: 'Opsional. Dipakai untuk menyorot evaluasi studi yang menyebut angkatanmu. Sulo tidak membaca angkatan dari NIM.',
     manageCourses: 'Atur mata kuliah',
     openPrivacy: 'Kebijakan privasi',
-    requestsToday: (used: number, limit: number) => `Pemeriksaan ke SIKOLA hari ini: ${used} dari ${limit}`,
     wipeHelp: 'Menghapus semua yang Sulo simpan di browser ini. Data di SIKOLA tidak tersentuh.',
     stats: {
       title: 'Statistik pemakaian (lokal)',
@@ -315,7 +315,6 @@ export const dashId = {
       sanggah: 'Masa sanggah nilai',
     },
     updatesHelp: 'Semua kabar tetap tercatat. Pilihan ini hanya mengatur notifikasi.',
-    sendTest: 'Kirim notifikasi uji',
     testSent: 'Notifikasi uji sudah dikirim.',
   },
 };
