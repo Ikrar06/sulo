@@ -20,7 +20,7 @@
   },
   "scripts": {
     "dev": "wxt",
-    "build": "wxt build && node scripts/check-no-dev-code.mjs .output/chrome-mv3 --production",
+    "build": "node scripts/check-leaks.mjs && wxt build && node scripts/check-no-dev-code.mjs .output/chrome-mv3 --production",
     "build:dev": "wxt build --mode development",
     "zip": "wxt zip",
     "zip:tester": "wxt zip --mode tester && node scripts/check-no-dev-code.mjs .output/chrome-mv3-tester",

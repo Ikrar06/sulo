@@ -9,6 +9,12 @@
  */
 export const LEAK_RULES = [
   {
+    // The editor link of a form gives anyone who has it the form's answers
+    // view; only the public "viewform" link may ever be committed.
+    name: 'Tautan edit Google Form',
+    re: /docs\.google\.com\/forms\/[^\s'"`)<>]*\/edit/gi,
+  },
+  {
     name: 'Alamat email Unhas',
     re: /[A-Za-z0-9._%+-]+@(?:[a-z0-9-]+\.)*unhas\.ac\.id/gi,
   },

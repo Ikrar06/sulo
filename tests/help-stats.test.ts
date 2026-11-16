@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FAQ, HOW_IT_WORKS } from '../lib/help/content';
-import { FEEDBACK_FORM_URL, isShownLink, SOCIAL_LINKS, TRAKTEER_URL } from '../lib/links';
+import { CREATOR_LINKS, FEEDBACK_FORM_URL, isShownLink, TRAKTEER_URL } from '../lib/links';
 import { bump, bumpUsage, exportUsage, readUsage, USAGE_COUNTERS, USAGE_KEY } from '../lib/stats/usage';
 import { memoryStore } from './helpers';
 
@@ -35,11 +35,17 @@ describe('help content', () => {
 });
 
 describe('outside links', () => {
-  it('Trakteer is set; social media and the feedback form stay hidden until filled in', () => {
+  it('Trakteer and the creator links are set; the feedback form stays hidden until filled in', () => {
     expect(TRAKTEER_URL).toBe('https://trakteer.id/krar');
     expect(isShownLink(TRAKTEER_URL)).toBe(true);
     expect(isShownLink(FEEDBACK_FORM_URL)).toBe(false);
-    expect(SOCIAL_LINKS.filter((s) => isShownLink(s.url))).toEqual([]);
+    expect(CREATOR_LINKS.map((l) => [l.id, l.url])).toEqual([
+      ['instagram', 'https://www.instagram.com/krargmprr/'],
+      ['linkedin', 'https://www.linkedin.com/in/ikrargempurtirani/'],
+      ['github', 'https://github.com/Ikrar06'],
+      ['web', 'https://ikrar.dev'],
+    ]);
+    expect(CREATOR_LINKS.every((l) => isShownLink(l.url))).toBe(true);
     expect(isShownLink('http://contoh.test')).toBe(false);
     expect(isShownLink('')).toBe(false);
   });

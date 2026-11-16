@@ -103,13 +103,16 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
   );
 }
 
-/** A section with a quiet heading; depth from the border and --surface only. */
-export function Card({ title, action, children, className = '' }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
+/**
+ * A section with a quiet heading; depth from the border and --surface only.
+ * Padding 16 (20 when `large`), title 16 px, 12 px between title and body.
+ */
+export function Card({ title, action, children, className = '', large = false }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string; large?: boolean }) {
   return (
-    <section className={`rounded-xl border border-border bg-surface p-4 ${className}`}>
+    <section className={`rounded-xl border border-border bg-surface ${large ? 'p-5' : 'p-4'} ${className}`}>
       {(title || action) && (
         <div className="mb-3 flex items-center justify-between gap-3">
-          {title && <h2 className="text-[14px] font-semibold">{title}</h2>}
+          {title && <h2 className="text-[16px] leading-6 font-semibold">{title}</h2>}
           {action}
         </div>
       )}

@@ -1,88 +1,102 @@
+import type { ComponentType, SVGProps } from 'react';
 import { browser } from 'wxt/browser';
-import { useI18n } from '@/components/i18n';
 import { ExternalIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Button } from '@/components/ui/button';
-import { FEEDBACK_FORM_URL, isShownLink, SOCIAL_LINKS, TRAKTEER_URL } from '@/lib/links';
-import { CoffeeIcon } from '../icons';
+import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, TRAKTEER_URL, type CreatorLinkId } from '@/lib/links';
+import { CoffeeIcon, GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '../icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
 
 const external = { target: '_blank', rel: 'noopener noreferrer' } as const;
 
+const LINK_ICONS: Record<CreatorLinkId, ComponentType<SVGProps<SVGSVGElement>>> = {
+  instagram: InstagramIcon,
+  linkedin: LinkedInIcon,
+  github: GitHubIcon,
+  web: GlobeIcon,
+};
+
+const textLink =
+  'inline-flex items-center gap-2 rounded text-[14px] underline-offset-4 outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background';
+
 /**
- * About and appreciation. Every outside link is a plain link opened by a
- * click; nothing from Trakteer, social media or Google is loaded here (no
- * embed script, no image from their CDN). The coffee cup is our own SVG.
+ * About. Every outside link is a plain link opened by a click; nothing from
+ * Trakteer, social media or Google is loaded here (no embed script, no
+ * image from a CDN). Icons are our own inline SVG.
  */
 export function TentangPage({ d, actions }: PageProps) {
-  const { m } = useI18n();
   const t = d.tentang;
-  const socials = SOCIAL_LINKS.filter((s) => isShownLink(s.url));
+  const creators = CREATOR_LINKS.filter((l) => isShownLink(l.url));
   const feedback = isShownLink(FEEDBACK_FORM_URL);
 
   return (
-    <div className="max-w-[760px] space-y-5">
-      <Card>
-        <div className="flex items-start gap-4">
-          <Mascot state="idle" size={72} grounded />
-          <div className="space-y-2">
-            <h2 className="font-heading text-[20px]">{t.nameTitle}</h2>
-            <p className="text-[14.5px] leading-[22px] text-foreground/85">{t.nameBody}</p>
-          </div>
-        </div>
-        <div className="mt-4 space-y-1 border-t border-border pt-4 text-[13.5px]">
-          <p>{m.disclaimer}</p>
-          <p className="text-muted-foreground">
+    <div className="db-prose space-y-4">
+      <Card large>
+        <p className="text-[14px] leading-normal">{t.intro}</p>
+        <ul className="mt-3 list-disc space-y-1 pl-5 text-[14px] leading-normal">
+          {t.points.map((p) => (
+            <li key={p}>{p}</li>
+          ))}
+        </ul>
+        <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-normal text-muted-foreground">
+          <span>
             {t.version(browser.runtime.getManifest().version)}. {t.license}
-          </p>
+          </span>
           <button
             type="button"
-            className="rounded text-[13.5px] underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus"
+            className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus"
             onClick={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}
           >
             {t.privacy}
           </button>
-        </div>
+        </p>
       </Card>
 
-      <Card title={t.supportTitle}>
-        <p className="text-[14px] leading-[22px] text-foreground/85">{t.supportBody}</p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button asChild className="h-11 rounded-xl px-4 text-[15px]">
-            <a href={TRAKTEER_URL} {...external}>
-              <CoffeeIcon className="size-5" />
-              <span className="flex flex-col items-start leading-tight">
-                <span className="font-semibold">{t.coffee}</span>
-                <span className="text-[11.5px] font-normal opacity-80">{t.coffeeVia}</span>
-              </span>
-            </a>
-          </Button>
-          {feedback && (
-            <Button asChild variant="outline" className="h-11 rounded-xl px-4">
-              <a href={FEEDBACK_FORM_URL} {...external}>
-                {t.feedback}
-                <ExternalIcon className="size-3.5" />
-              </a>
-            </Button>
-          )}
-        </div>
-        {socials.length > 0 && (
-          <div className="mt-4">
-            <p className="text-[13px] font-medium">{t.social}</p>
-            <ul className="mt-1 flex flex-wrap gap-3 text-[13.5px]">
-              {socials.map((s) => (
-                <li key={s.url}>
-                  <a href={s.url} {...external} className="inline-flex items-center gap-1 rounded underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
-                    {s.label}
-                    <ExternalIcon className="size-3" />
+      {creators.length > 0 && (
+        <Card title={t.madeBy(CREATOR_NAME)}>
+          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+            {creators.map((l) => {
+              const Icon = LINK_ICONS[l.id];
+              return (
+                <li key={l.id}>
+                  <a href={l.url} {...external} className={textLink}>
+                    <Icon className="size-4 shrink-0" />
+                    <span>{l.label}</span>
                   </a>
                 </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <p className="mt-4 text-[12.5px] text-muted-foreground">{t.externalNote}</p>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+
+      {feedback && (
+        <Card title={t.feedbackTitle}>
+          <a
+            href={FEEDBACK_FORM_URL}
+            {...external}
+            className="inline-flex h-8 items-center gap-2 rounded-lg border border-border px-3 text-[14px] font-medium outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
+          >
+            {t.feedback}
+            <ExternalIcon className="size-4" />
+          </a>
+          <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{t.feedbackNote}</p>
+        </Card>
+      )}
+
+      <Card title={t.supportTitle}>
+        <p className="text-[14px] leading-normal">{t.supportBody}</p>
+        <a
+          href={TRAKTEER_URL}
+          {...external}
+          className="mt-4 inline-flex h-12 items-center gap-3 rounded-xl bg-primary px-4 text-primary-foreground outline-none hover:bg-primary/85 focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
+        >
+          <CoffeeIcon className="size-5 shrink-0" />
+          <span className="flex flex-col items-start leading-tight">
+            <span className="text-[14px] font-semibold">{t.coffee}</span>
+            <span className="text-[12px] opacity-80">{t.coffeeVia}</span>
+          </span>
+        </a>
+        <p className="mt-4 text-[12px] leading-normal text-muted-foreground">{t.externalNote}</p>
       </Card>
     </div>
   );

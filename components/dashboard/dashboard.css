@@ -94,3 +94,8 @@
 .db-load-2 { background: color-mix(in oklch, var(--brand-amber) 45%, var(--surface-raised)); }
 .db-load-3 { background: color-mix(in oklch, var(--brand-orange) 62%, var(--surface-raised)); }
 .db-load-4 { background: color-mix(in oklch, var(--brand-orange) 88%, var(--surface-raised)); }
+
+/* Text pages (Bantuan, Tentang): a comfortable reading measure. */
+.db-prose {
+  max-width: 68ch;
+}

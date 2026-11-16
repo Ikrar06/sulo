@@ -59,3 +59,15 @@ describe('existing rules still hold', () => {
     expect(findLeaks(clean)).toEqual([]);
   });
 });
+
+describe('Google Form links', () => {
+  // Built from pieces, so this test file itself never matches the rule.
+  const form = ['https://docs.google.com', 'forms', 'd', 'e', '1FAIpQLSexample'].join('/');
+  it('fails on the editor link', () => {
+    expect(findLeaks(`url: '${form.replace('/e/', '/')}/ed${'it'}'`, 'lib/links.ts')).toContain('Tautan edit Google Form');
+    expect(findLeaks(`${form}/ed${'it'}#responses`, 'docs/x.md')).toContain('Tautan edit Google Form');
+  });
+  it('lets the public form link pass', () => {
+    expect(findLeaks(`${form}/viewform?usp=sf_link`, 'lib/links.ts')).not.toContain('Tautan edit Google Form');
+  });
+});
