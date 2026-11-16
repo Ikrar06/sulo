@@ -2,7 +2,8 @@ import type { ComponentType, SVGProps } from 'react';
 import { browser } from 'wxt/browser';
 import { ExternalIcon } from '@/components/icons';
 import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, TRAKTEER_URL, type CreatorLinkId } from '@/lib/links';
-import { CoffeeIcon, GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '../icons';
+import { SupportButton } from '@/components/ui/support-button';
+import { GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '../icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
 
@@ -69,33 +70,24 @@ export function TentangPage({ d, actions }: PageProps) {
         </Card>
       )}
 
-      {feedback && (
-        <Card title={t.feedbackTitle}>
-          <a
-            href={FEEDBACK_FORM_URL}
-            {...external}
-            className="inline-flex h-8 items-center gap-2 rounded-lg border border-border px-3 text-[14px] font-medium outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
-          >
-            {t.feedback}
-            <ExternalIcon className="size-4" />
-          </a>
-          <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{t.feedbackNote}</p>
-        </Card>
-      )}
-
+      {/* Support first (primary), feedback beside it (secondary, same 40 px height); stacked 8 px apart on narrow screens. */}
       <Card title={t.supportTitle}>
-        <p className="text-[14px] leading-normal">{t.supportBody}</p>
-        <a
-          href={TRAKTEER_URL}
-          {...external}
-          className="mt-4 inline-flex h-12 items-center gap-3 rounded-xl bg-primary px-4 text-primary-foreground outline-none hover:bg-primary/85 focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
-        >
-          <CoffeeIcon className="size-5 shrink-0" />
-          <span className="flex flex-col items-start leading-tight">
-            <span className="text-[14px] font-semibold">{t.coffee}</span>
-            <span className="text-[12px] opacity-80">{t.coffeeVia}</span>
-          </span>
-        </a>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+          {isShownLink(TRAKTEER_URL) && <SupportButton href={TRAKTEER_URL} label={t.coffee} note={t.supportNote} srHint={t.coffeeHint} />}
+          {feedback && (
+            <div className="flex flex-col items-start gap-2">
+              <a
+                href={FEEDBACK_FORM_URL}
+                {...external}
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-[14px] font-medium outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
+              >
+                {t.feedback}
+                <ExternalIcon className="size-3.5 text-muted-foreground" />
+              </a>
+              <p className="text-[12px] leading-normal text-muted-foreground">{t.feedbackNote}</p>
+            </div>
+          )}
+        </div>
         <p className="mt-4 text-[12px] leading-normal text-muted-foreground">{t.externalNote}</p>
       </Card>
     </div>

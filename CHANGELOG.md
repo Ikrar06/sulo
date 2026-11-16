@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The dashboard greets you by time of day (morning, midday, afternoon, evening) without using your name. The teaching week shows as "Week X of Y" with a thin progress bar; outside the lecture period it names the next agenda item.
 - Course colors are picked from eight round swatches plus "Automatic", usable with the arrow keys.
 - One date format for due times everywhere: "Jum, 13 Nov, 23.59" in Indonesian and "Fri, 13 Nov, 11:59 PM" in English, without a time zone suffix.
-- An About page with what Sulo does, the maker's links and a "Send feedback" link to a public Google Form (opened in a new tab; it reminds you not to send your student number, password or grades).
+- An About page with what Sulo does, the maker's links, a "Buy me a coffee" button that opens Trakteer's send page, and a "Send feedback" link to a public Google Form beside it (both open in a new tab; the form reminds you not to send your student number, password or grades).
 
 - The Unhas academic calendar 2026/2027 is built in (from the official decree, checked against its PDF) and updated from Sulo's public data at most once a day. It will be shown in the dashboard; subscribable calendars for core S1 dates, graduation and national holidays are published with the public data.
 

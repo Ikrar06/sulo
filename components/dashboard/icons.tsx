@@ -72,15 +72,6 @@ export const InfoIcon = (p: IconProps) => (
   </Icon>
 );
 
-/** Coffee cup for "Traktir kopi": our own drawing, never a third-party logo. */
-export const CoffeeIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M4 9h12v5a6 6 0 0 1-6 6h0a6 6 0 0 1-6-6z" />
-    <path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16" />
-    <path d="M8 2.5c-.6.8-.6 1.7 0 2.5M11.5 2.5c-.6.8-.6 1.7 0 2.5" />
-  </Icon>
-);
-
 export const XIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M18 6 6 18M6 6l12 12" />

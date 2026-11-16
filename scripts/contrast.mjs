@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Contrast of the dashboard's colored chips and cells, in both themes
+// Contrast of the dashboard's colored chips, cells and the support button, in both themes
 // (WCAG 2 ratio). Reads the theme tokens from assets/tokens.css and mixes
 // colors the way CSS color-mix(in oklch) does. No dependencies.
 // Usage: node scripts/contrast.mjs   (exit 1 when any pair is below 4.5:1)
@@ -60,8 +60,14 @@ const ratio = (a, b) => {
   return (x + 0.05) / (y + 0.05);
 };
 
-function pairs(t) {
+const WHITE = [1, 1, 1];
+
+function pairs(t, theme) {
   const c = (n) => hex(t[n]);
+  // Support button (components/ui/support-button.css): same values as the CSS.
+  const orange = c('brand-orange');
+  const supportHover = theme === 'terang' ? mix(orange, c('ink'), 0.92) : mix(orange, WHITE, 0.88);
+  const supportMuted = mix(c('ink'), orange, 0.85);
   const ev = c('surface-raised');
   const exam = mix(c('brand-amber'), c('surface'), 0.28);
   const holiday = mix(c('danger'), c('surface'), 0.16);
@@ -86,13 +92,17 @@ function pairs(t) {
       'peta beban tingkat 2': [c('text'), load(2, 'brand-amber', 0.45)],
       'peta beban tingkat 3 (teks --text)': [c('text'), load(3, 'brand-orange', 0.62)],
       'peta beban tingkat 4 (teks --ink)': [c('ink'), load(4, 'brand-orange', 0.88)],
+      'tombol traktir: teks dan cangkir (--ink di oranye)': [c('ink'), orange],
+      'tombol traktir hover: teks dan cangkir': [c('ink'), supportHover],
+      'tombol traktir: panah muted': [supportMuted, orange],
+      'tombol traktir hover: panah muted': [supportMuted, supportHover],
     },
   };
 }
 
 let failed = false;
 for (const [theme, tokens] of [['gelap', dark], ['terang', light]]) {
-  const { before, after } = pairs(tokens);
+  const { before, after } = pairs(tokens, theme);
   console.log(`\nTema ${theme}`);
   for (const [name, [fg, bg]] of Object.entries(before)) console.log(`  sebelum  ${ratio(fg, bg).toFixed(2)}:1  ${name}`);
   for (const [name, [fg, bg]] of Object.entries(after)) {

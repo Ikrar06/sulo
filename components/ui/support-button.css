@@ -1,0 +1,66 @@
+/* Support button ("Traktir kopi"). Solid brand orange with ink text; no
+   gradient or glow. Every pair below is checked at 4.5:1 or more in both
+   themes by scripts/contrast.mjs:
+   - hover: darker in the light theme (orange 92% + ink), lighter in the
+     dark theme (orange 88% + white), never past 4.5:1 for text or arrow
+   - arrow: a muted ink (85% ink + orange) */
+
+.support-btn {
+  --support-hover: color-mix(in oklch, var(--brand-orange) 88%, #ffffff);
+  --support-muted: color-mix(in oklch, var(--ink) 85%, var(--brand-orange));
+  background: var(--brand-orange);
+  color: var(--ink);
+  transition: background-color 150ms ease, transform 100ms ease;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .support-btn {
+    --support-hover: color-mix(in oklch, var(--brand-orange) 92%, var(--ink));
+  }
+}
+
+[data-theme="light"] .support-btn {
+  --support-hover: color-mix(in oklch, var(--brand-orange) 92%, var(--ink));
+}
+
+[data-theme="dark"] .support-btn {
+  --support-hover: color-mix(in oklch, var(--brand-orange) 88%, #ffffff);
+}
+
+.support-btn:hover {
+  background: var(--support-hover);
+}
+
+.support-btn:active {
+  transform: scale(0.97);
+}
+
+.support-btn-arrow {
+  color: var(--support-muted);
+}
+
+/* The cup sways once per hover: -8deg, 8deg, back to 0 in 400 ms. */
+.support-btn-cup {
+  transform-origin: 50% 85%;
+}
+
+.support-btn:hover .support-btn-cup {
+  animation: support-cup-sway 400ms ease-in-out 1;
+}
+
+@keyframes support-cup-sway {
+  0% { transform: rotate(0deg); }
+  30% { transform: rotate(-8deg); }
+  70% { transform: rotate(8deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .support-btn {
+    transition: none;
+  }
+
+  .support-btn:hover .support-btn-cup {
+    animation: none;
+  }
+}
