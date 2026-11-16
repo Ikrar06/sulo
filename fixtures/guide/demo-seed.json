@@ -1,0 +1,694 @@
+{
+ "note": "Synthetic demo data for pnpm guide:shots, built from entrypoints/preview/fixtures.ts (no real account). Times are shifted to the moment the script runs.",
+ "generatedAt": 1794779795,
+ "storage": {
+  "global:currentUser": 1,
+  "global:session": {
+   "state": "OK",
+   "userId": 1,
+   "checkedAt": 1794779795
+  },
+  "u:1:courses": [
+   {
+    "id": 401,
+    "fullname": "MEKANIKA FLUIDA B [23D01110101]",
+    "shortname": "CE201-Mekanika Fluida B [100401]",
+    "startdate": 1784816000,
+    "enddate": 1795184000,
+    "parsed": {
+     "name": "MEKANIKA FLUIDA",
+     "classLetter": "B",
+     "program": null,
+     "code": "23D01110101",
+     "matched": true
+    },
+    "inProgress": true,
+    "past": false,
+    "activeScore": 8,
+    "activeReasons": [
+     "inprogress",
+     "enddate_future",
+     "upcoming_events"
+    ],
+    "activePin": null,
+    "alias": null,
+    "color": null
+   },
+   {
+    "id": 402,
+    "fullname": "PERENCANAAN WILAYAH A (TEKNIK SIPIL) [23D01110202]",
+    "shortname": "CE202-Perencanaan Wilayah A [100402]",
+    "startdate": 1784816000,
+    "enddate": 1795184000,
+    "parsed": {
+     "name": "PERENCANAAN WILAYAH",
+     "classLetter": "A",
+     "program": "TEKNIK SIPIL",
+     "code": "23D01110202",
+     "matched": true
+    },
+    "inProgress": true,
+    "past": false,
+    "activeScore": 8,
+    "activeReasons": [
+     "inprogress",
+     "enddate_future",
+     "upcoming_events"
+    ],
+    "activePin": null,
+    "alias": null,
+    "color": null
+   },
+   {
+    "id": 403,
+    "fullname": "ETIKA PROFESI DAN KOMUNIKASI BMI C (TEKNIK SIPIL) [23U01110303]",
+    "shortname": "UN203-Etika Profesi C [100403]",
+    "startdate": 1784816000,
+    "enddate": 1795184000,
+    "parsed": {
+     "name": "ETIKA PROFESI DAN KOMUNIKASI BMI",
+     "classLetter": "C",
+     "program": "TEKNIK SIPIL",
+     "code": "23U01110303",
+     "matched": true
+    },
+    "inProgress": true,
+    "past": false,
+    "activeScore": 8,
+    "activeReasons": [
+     "inprogress",
+     "enddate_future",
+     "upcoming_events"
+    ],
+    "activePin": null,
+    "alias": null,
+    "color": null
+   },
+   {
+    "id": 404,
+    "fullname": "STATISTIKA I [23D01110404]",
+    "shortname": "CE104-Statistika I [100404]",
+    "startdate": 1755440000,
+    "enddate": 1772720000,
+    "parsed": {
+     "name": "STATISTIKA I",
+     "classLetter": null,
+     "program": null,
+     "code": "23D01110404",
+     "matched": true
+    },
+    "inProgress": false,
+    "past": true,
+    "activeScore": -5,
+    "activeReasons": [
+     "upcoming_events",
+     "past",
+     "ended_long_ago"
+    ],
+    "activePin": null,
+    "alias": null,
+    "color": null
+   },
+   {
+    "id": 405,
+    "fullname": "Praktikum Lapangan Terpadu",
+    "shortname": "PL-Praktikum Lapangan [100405]",
+    "startdate": 1784816000,
+    "enddate": 1795184000,
+    "parsed": {
+     "name": "Praktikum Lapangan Terpadu",
+     "classLetter": null,
+     "program": null,
+     "code": null,
+     "matched": false
+    },
+    "inProgress": true,
+    "past": false,
+    "activeScore": 6,
+    "activeReasons": [
+     "inprogress",
+     "enddate_future"
+    ],
+    "activePin": null,
+    "alias": null,
+    "color": null
+   }
+  ],
+  "u:1:tasks": [
+   {
+    "eventId": 2000,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak geoteknik bagian 1",
+    "module": "assign",
+    "dueAt": 1794700425,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2001,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Tugas 2",
+    "module": "assign",
+    "dueAt": 1794732825,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2002,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Tugas 3",
+    "module": "assign",
+    "dueAt": 1794765225,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2003,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Tugas 4",
+    "module": "assign",
+    "dueAt": 1794797625,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2004,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Tugas 5",
+    "module": "assign",
+    "dueAt": 1794830025,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2005,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak geoteknik bagian 6",
+    "module": "assign",
+    "dueAt": 1794862425,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2006,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Tugas 7",
+    "module": "assign",
+    "dueAt": 1794894825,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2007,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Tugas 8",
+    "module": "assign",
+    "dueAt": 1794927225,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2008,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Tugas 9",
+    "module": "assign",
+    "dueAt": 1794959625,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2009,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Tugas 10",
+    "module": "assign",
+    "dueAt": 1794992025,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2010,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak geoteknik bagian 11",
+    "module": "assign",
+    "dueAt": 1795024425,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2011,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Tugas 12",
+    "module": "assign",
+    "dueAt": 1795056825,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2012,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Tugas 13",
+    "module": "assign",
+    "dueAt": 1795089225,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2013,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Tugas 14",
+    "module": "assign",
+    "dueAt": 1795121625,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2014,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Tugas 15",
+    "module": "assign",
+    "dueAt": 1795154025,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2015,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak geoteknik bagian 16",
+    "module": "assign",
+    "dueAt": 1795186425,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2016,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Tugas 17",
+    "module": "assign",
+    "dueAt": 1795218825,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2017,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Tugas 18",
+    "module": "assign",
+    "dueAt": 1795251225,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2018,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Tugas 19",
+    "module": "assign",
+    "dueAt": 1795283625,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2019,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Tugas 20",
+    "module": "assign",
+    "dueAt": 1795316025,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2020,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak geoteknik bagian 21",
+    "module": "assign",
+    "dueAt": 1795348425,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2021,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Tugas 22",
+    "module": "assign",
+    "dueAt": 1795380825,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2022,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Tugas 23",
+    "module": "assign",
+    "dueAt": 1795413225,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2023,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Tugas 24",
+    "module": "assign",
+    "dueAt": 1795445625,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2024,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Tugas 25",
+    "module": "assign",
+    "dueAt": 1795478025,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2025,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak geoteknik bagian 26",
+    "module": "assign",
+    "dueAt": 1795510425,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2026,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Tugas 27",
+    "module": "assign",
+    "dueAt": 1795542825,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2027,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Tugas 28",
+    "module": "assign",
+    "dueAt": 1795575225,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2028,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Tugas 29",
+    "module": "assign",
+    "dueAt": 1795607625,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2029,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Tugas 30",
+    "module": "assign",
+    "dueAt": 1795640025,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2030,
+    "cmId": 301,
+    "courseId": 403,
+    "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak geoteknik bagian 31",
+    "module": "assign",
+    "dueAt": 1795672425,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2031,
+    "cmId": 301,
+    "courseId": 405,
+    "name": "Tugas 32",
+    "module": "assign",
+    "dueAt": 1795704825,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2032,
+    "cmId": 301,
+    "courseId": 401,
+    "name": "Tugas 33",
+    "module": "assign",
+    "dueAt": 1795737225,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   },
+   {
+    "eventId": 2033,
+    "cmId": 301,
+    "courseId": 402,
+    "name": "Tugas 34",
+    "module": "assign",
+    "dueAt": 1795769625,
+    "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301",
+    "overdue": true,
+    "firstSeenAt": 1794797625,
+    "lastSeenAt": 1794797625,
+    "missingSince": null
+   }
+  ],
+  "u:1:taskState": {},
+  "u:1:sync": {
+   "lastSyncAt": 1794780075,
+   "lastCourseListAt": 1794780075
+  },
+  "u:1:onboarding": {
+   "completedAt": 1790000000,
+   "confirmedInProgress": [],
+   "reviewSuggested": []
+  },
+  "u:1:notified": {},
+  "u:1:stats": {
+   "notifyFailures": 0,
+   "lastNotifyFailureAt": null
+  },
+  "u:1:changes": [
+   {
+    "id": "task:102:added",
+    "at": 1794794025,
+    "change": {
+     "kind": "task_added",
+     "courseId": 402,
+     "eventId": 102,
+     "cmId": 305,
+     "name": "Kuis pekan 5",
+     "dueAt": 1790121600,
+     "url": "https://sikola-v2.unhas.ac.id/mod/quiz/view.php?id=305"
+    },
+    "notify": true,
+    "seen": false,
+    "opens": 0
+   },
+   {
+    "id": "task:101:due:1790031600",
+    "at": 1794794025,
+    "change": {
+     "kind": "due_changed",
+     "courseId": 401,
+     "eventId": 101,
+     "cmId": 301,
+     "name": "Laporan praktikum aliran saluran terbuka",
+     "from": 1789858800,
+     "to": 1790031600,
+     "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=301"
+    },
+    "notify": true,
+    "seen": false,
+    "opens": 0
+   },
+   {
+    "id": "note:701",
+    "at": 1794794025,
+    "change": {
+     "kind": "grade_feedback",
+     "courseId": 403,
+     "notification": {
+      "id": 701,
+      "subject": "Tugas sudah dinilai",
+      "component": "mod_assign",
+      "eventtype": "assign_notification",
+      "timecreated": 1790046000,
+      "read": false,
+      "contexturl": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=901"
+     }
+    },
+    "notify": true,
+    "seen": false,
+    "opens": 0
+   },
+   {
+    "id": "cm:402:7001:added:1789941600",
+    "at": 1794704025,
+    "change": {
+     "kind": "added",
+     "courseId": 402,
+     "cmId": 7001,
+     "module": "resource",
+     "name": "Modul 6: Analisis lalu lintas",
+     "url": "https://sikola-v2.unhas.ac.id/mod/resource/view.php?id=7001",
+     "since": 1789941600
+    },
+    "notify": true,
+    "seen": true,
+    "opens": 0
+   },
+   {
+    "id": "cm:402:7002:renamed:1789941600:Materi 5 (revisi)",
+    "at": 1794704025,
+    "change": {
+     "kind": "renamed",
+     "courseId": 402,
+     "cmId": 7002,
+     "module": "page",
+     "from": "Materi 5",
+     "to": "Materi 5 (revisi)",
+     "url": null,
+     "since": 1789941600
+    },
+    "notify": false,
+    "seen": true,
+    "opens": 0
+   }
+  ],
+  "u:1:snapshots": {},
+  "u:1:radar": {
+   "stateCheckedAt": {},
+   "notificationsLastId": null,
+   "calendarBaseline": false
+  },
+  "global:prefs": {
+   "locale": "id"
+  }
+ }
+}

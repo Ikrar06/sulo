@@ -36,7 +36,8 @@
     "calendar:build": "node scripts/calendar/build.ts",
     "calendar:status": "node scripts/calendar/set-status.ts",
     "calendar:publish": "node scripts/calendar/publish.ts",
-    "notify-icons": "node scripts/build-notify-icons.mjs"
+    "notify-icons": "node scripts/build-notify-icons.mjs",
+    "guide:shots": "node scripts/guide-shots.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -53,6 +54,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@wxt-dev/module-react": "^1.2.2",
+    "playwright": "1.62.1",
     "shadcn": "4.23.0",
     "tailwindcss": "^4.3.5",
     "typescript": "^5.9.3",

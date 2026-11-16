@@ -185,6 +185,20 @@
   }
 }
 
+/* "Mulai pakai" pictures: one file per theme, the other one hidden (a
+   hidden lazy image is never fetched). Dark is the default, like the tokens. */
+.db-guide-light { display: none; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .db-guide-light { display: block; }
+  :root:not([data-theme="dark"]) .db-guide-dark { display: none; }
+}
+
+[data-theme="light"] .db-guide-light { display: block; }
+[data-theme="light"] .db-guide-dark { display: none; }
+[data-theme="dark"] .db-guide-light { display: none; }
+[data-theme="dark"] .db-guide-dark { display: block; }
+
 /* Text pages (Bantuan, Tentang): a comfortable reading measure. */
 .db-prose {
   max-width: 68ch;

@@ -4,6 +4,8 @@ import { ChevronDownIcon, ExternalIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
 import { DocLayout } from '@/components/ui/doc-layout';
 import { FAQ, HOW_IT_WORKS } from '@/lib/help/content';
+import { GUIDE_TITLE } from '@/lib/help/guide';
+import { Guide } from '../Guide';
 import { FEEDBACK_FORM_URL, isShownLink } from '@/lib/links';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
@@ -28,7 +30,7 @@ export function BantuanPage({ d, route }: PageProps) {
     document.getElementById(route.detail)?.scrollIntoView({ block: 'start' });
   }, [route.detail]);
 
-  const toc = [...HOW_IT_WORKS.map((s, i) => ({ id: `cara-${i + 1}`, label: s.heading[locale] })), { id: 'faq', label: b.faqTitle }];
+  const toc = [{ id: 'mulai', label: GUIDE_TITLE[locale] }, ...HOW_IT_WORKS.map((s, i) => ({ id: `cara-${i + 1}`, label: s.heading[locale] })), { id: 'faq', label: b.faqTitle }];
 
   const stuck = isShownLink(FEEDBACK_FORM_URL) ? (
     <div className="rounded-xl border border-border bg-surface p-5">
@@ -46,6 +48,7 @@ export function BantuanPage({ d, route }: PageProps) {
 
   return (
     <DocLayout toc={toc} tocLabel={b.onThisPage} aside={stuck} hashFor={(id) => `bantuan/${id}`}>
+      <Guide locale={locale} />
       <Card title={b.howTitle}>
         <div className="space-y-6">
           {HOW_IT_WORKS.map((s, i) => (
