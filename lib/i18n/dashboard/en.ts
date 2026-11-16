@@ -240,7 +240,7 @@ export const dashEn: DashMessages = {
     languageAuto: 'Follow the browser',
     dueFormat: 'Due time format',
     nickname: 'Nickname',
-    nicknameHelp: 'Optional. Only used to greet you on the dashboard, kept in your browser.',
+    nicknameHelp: 'Optional, up to 24 characters. Only used to greet you on the dashboard, kept in your browser.',
     angkatan: 'Intake year',
     angkatanNone: 'Not chosen',
     angkatanHelp: 'Optional. Used to highlight study evaluations that mention your intake year. Sulo never reads it from your student number.',

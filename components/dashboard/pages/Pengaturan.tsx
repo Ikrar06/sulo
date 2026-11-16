@@ -5,11 +5,12 @@ import { WipeDialog } from '@/components/popup/WipeDialog';
 import { RemindersPanel } from '@/components/popup/RemindersPanel';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CALENDAR_NOTIFY_KINDS } from '@/lib/calendar/notify-settings';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n';
 import { DAILY_BUDGET } from '@/lib/moodle/limits';
-import { DUE_FORMATS, THEMES, type DueFormat, type Theme } from '@/lib/prefs';
+import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, type Theme } from '@/lib/prefs';
 import { UPDATE_CATEGORIES } from '@/lib/radar/settings';
 import { timeZone } from '../data';
 import { Card } from '../Shell';
@@ -51,6 +52,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
   const { m } = useI18n();
   const t = d.pengaturan;
   const prefs = data.prefs;
+  const [nickname, setNickname] = useState(prefs.nickname);
   const [tested, setTested] = useState(false);
   const [wipeOpen, setWipeOpen] = useState(false);
   const year = Number(new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric' }).format(new Date(data.now * 1000)));
@@ -115,6 +117,23 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
       </Card>
 
       <Card title={<span id="set-tentangKamu">{t.sections.tentangKamu}</span>}>
+        <Field label={t.nickname} help={t.nicknameHelp}>
+          {(id) => (
+            <Input
+              id={id}
+              className="w-56"
+              maxLength={NICKNAME_MAX}
+              autoComplete="off"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              onBlur={() => {
+                const next = normalizeNickname(nickname);
+                setNickname(next);
+                if (next !== prefs.nickname) void actions.setPrefs({ nickname: next });
+              }}
+            />
+          )}
+        </Field>
         <Field label={t.angkatan} help={t.angkatanHelp}>
           {(id) => (
             <Select value={prefs.angkatan === null ? 'none' : String(prefs.angkatan)} onValueChange={(v) => void actions.setPrefs({ angkatan: v === 'none' ? null : Number(v) })}>

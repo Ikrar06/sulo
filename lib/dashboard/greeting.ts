@@ -8,3 +8,9 @@ export function dayPart(localHour: number): DayPart {
   if (localHour >= 15 && localHour <= 17) return 'sore';
   return 'malam';
 }
+
+/** "Selamat pagi, Ikrar" with a nickname, "Selamat pagi" without one (any language). */
+export function greetingText(base: string, nickname: string): string {
+  const name = nickname.trim();
+  return name ? `${base}, ${name}` : base;
+}

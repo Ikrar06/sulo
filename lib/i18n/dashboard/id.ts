@@ -240,7 +240,7 @@ export const dashId = {
     languageAuto: 'Ikuti browser',
     dueFormat: 'Format waktu tenggat',
     nickname: 'Nama panggilan',
-    nicknameHelp: 'Opsional. Hanya untuk menyapamu di dashboard, disimpan di browsermu.',
+    nicknameHelp: 'Opsional, maksimal 24 karakter. Hanya untuk menyapamu di dashboard, disimpan di browsermu.',
     angkatan: 'Angkatan',
     angkatanNone: 'Tidak dipilih',
     angkatanHelp: 'Opsional. Dipakai untuk menyorot evaluasi studi yang menyebut angkatanmu. Sulo tidak membaca angkatan dari NIM.',

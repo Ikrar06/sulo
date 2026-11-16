@@ -29,7 +29,12 @@ export type Theme = 'system' | 'dark' | 'light';
 export const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 
 /** Nicknames stay short: they only greet the user on the dashboard. */
-export const NICKNAME_MAX = 40;
+export const NICKNAME_MAX = 24;
+
+/** Trimmed and cut to NICKNAME_MAX characters (code points, so emoji stay whole). */
+export function normalizeNickname(raw: string): string {
+  return Array.from(raw.trim()).slice(0, NICKNAME_MAX).join('').trim();
+}
 
 export interface Prefs {
   /** null: follow the browser language. */
@@ -64,7 +69,8 @@ const prefsSchema = z.object({
   reminders: reminderSettingsSchema.catch(DEFAULT_REMINDERS),
   updates: updateSettingsSchema,
   theme: z.enum(['system', 'dark', 'light']).catch('system'),
-  nickname: z.string().max(NICKNAME_MAX).catch(''),
+  // Longer values from before the 24-character limit are cut, not dropped.
+  nickname: z.string().transform(normalizeNickname).catch(''),
   angkatan: z.number().int().min(1990).max(2100).nullable().catch(null),
   calendar: calendarNotifySchema,
 });

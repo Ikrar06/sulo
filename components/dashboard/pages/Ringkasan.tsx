@@ -3,7 +3,7 @@ import { useI18n } from '@/components/i18n';
 import { ChevronRightIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
 import { formatDateKey } from '@/lib/calendar/countdown';
-import { dayPart } from '@/lib/dashboard/greeting';
+import { dayPart, greetingText } from '@/lib/dashboard/greeting';
 import { loadMap } from '@/lib/dashboard/load-map';
 import { routeHash } from '@/lib/dashboard/routes';
 import { buildTaskItems } from '@/lib/dashboard/tasks';
@@ -55,7 +55,7 @@ export function RingkasanPage({ d, data }: PageProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-[16px] text-muted-foreground">{r.greeting[dayPart(hour)]}</p>
+      <p className="text-[16px] text-muted-foreground">{greetingText(r.greeting[dayPart(hour)], data.prefs.nickname)}</p>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">

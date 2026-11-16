@@ -1,5 +1,34 @@
 import { describe, expect, it } from 'vitest';
-import { dayPart } from '@/lib/dashboard/greeting';
+import { dayPart, greetingText } from '@/lib/dashboard/greeting';
+import { dashFor } from '@/lib/i18n/dashboard';
+import { normalizeNickname, NICKNAME_MAX } from '@/lib/prefs';
+
+describe('greetingText', () => {
+  it('adds the nickname after a comma when one is set, in every time slot and both languages', () => {
+    for (const locale of ['id', 'en'] as const) {
+      const g = dashFor(locale).ringkasan.greeting;
+      for (const part of ['pagi', 'siang', 'sore', 'malam'] as const) expect(greetingText(g[part], 'Ikrar')).toBe(`${g[part]}, Ikrar`);
+    }
+    expect(greetingText('Selamat pagi', 'Ikrar')).toBe('Selamat pagi, Ikrar');
+    expect(greetingText('Good evening', 'Ikrar')).toBe('Good evening, Ikrar');
+  });
+
+  it('is the plain greeting when the nickname is empty or only spaces', () => {
+    expect(greetingText('Selamat pagi', '')).toBe('Selamat pagi');
+    expect(greetingText('Selamat malam', '   ')).toBe('Selamat malam');
+    expect(greetingText('Good morning', '')).toBe('Good morning');
+  });
+});
+
+describe('normalizeNickname', () => {
+  it('trims and keeps at most 24 characters', () => {
+    expect(NICKNAME_MAX).toBe(24);
+    expect(normalizeNickname('  Ikrar  ')).toBe('Ikrar');
+    expect(normalizeNickname('a'.repeat(30))).toBe('a'.repeat(24));
+    expect(normalizeNickname(`${'b'.repeat(23)} c`)).toBe('b'.repeat(23));
+    expect(Array.from(normalizeNickname('🔥'.repeat(30)))).toHaveLength(24);
+  });
+});
 
 describe('dayPart', () => {
   it('follows the agreed hour bands, edges included', () => {

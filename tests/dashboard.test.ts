@@ -186,7 +186,7 @@ describe('preferences added in M5a', () => {
     expect(await readPrefs(memoryStore({ [PREFS_KEY]: { theme: 'neon', angkatan: 1800, nickname: 'x'.repeat(99), calendar: { krs: false } } }))).toMatchObject({
       theme: 'system',
       angkatan: null,
-      nickname: '',
+      nickname: 'x'.repeat(24),
       calendar: { krs: false, uas: true },
     });
   });
