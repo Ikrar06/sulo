@@ -103,6 +103,8 @@ function pairs(t, theme) {
       'kalender: angka hari ini (--ink di oranye)': [c('ink'), orange],
       'kalender: chip filter mati (--muted di --bg)': [c('muted'), c('bg')],
       'kalender: hari dipilih (--text di --surface-raised)': [c('text'), c('surface-raised')],
+      'checkbox belum dicentang: tepi (--control-border di --surface, min 3:1)': [c('control-border'), c('surface')],
+      'checkbox belum dicentang: tepi (--control-border di --surface-raised, min 3:1)': [c('control-border'), c('surface-raised')],
       'tombol traktir: teks dan cangkir (--ink di oranye)': [c('ink'), orange],
       'tombol traktir hover: teks dan cangkir': [c('ink'), supportHover],
       'tombol traktir: panah muted': [supportMuted, orange],
@@ -118,8 +120,10 @@ for (const [theme, tokens] of [['gelap', dark], ['terang', light]]) {
   for (const [name, [fg, bg]] of Object.entries(before)) console.log(`  sebelum  ${ratio(fg, bg).toFixed(2)}:1  ${name}`);
   for (const [name, [fg, bg]] of Object.entries(after)) {
     const r = ratio(fg, bg);
-    if (r < 4.5) failed = true;
-    console.log(`  sesudah  ${r.toFixed(2)}:1  ${name}${r < 4.5 ? '  << di bawah 4.5' : ''}`);
+    // Non-text edges (WCAG 1.4.11) need 3:1; every text pair needs 4.5:1.
+    const min = name.includes('min 3:1') ? 3 : 4.5;
+    if (r < min) failed = true;
+    console.log(`  sesudah  ${r.toFixed(2)}:1  ${name}${r < min ? `  << di bawah ${min}` : ''}`);
   }
 }
 process.exit(failed ? 1 : 0);

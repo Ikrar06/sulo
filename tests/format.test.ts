@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { formatCopyList, type CopyItem } from '../lib/format/copy-list';
 import { en } from '../lib/i18n/en';
-import { calendarDaysBetween, formatAgo, formatDue, formatRemaining, localDateKey } from '../lib/format/time';
+import { calendarDaysBetween, formatAgo, formatDue, formatRemaining, localDateKey, taskDueLines } from '../lib/format/time';
+import { id as idWords } from '../lib/i18n/id';
 import type { Task } from '../lib/types';
 
 const TZ = 'Asia/Makassar';
@@ -38,6 +39,17 @@ describe('time zones are applied through Intl, never a fixed offset', () => {
     expect(formatDue(at(2026, 8, 17, 0, 5), 'id', TZ)).toBe('Sen, 17 Agu, 00.05');
     expect(formatDue(at(2026, 8, 17, 0, 5), 'en', TZ)).toBe('Mon, 17 Aug, 12:05 AM');
     expect(formatDue(at(2026, 11, 13, 23, 59), 'id', TZ)).not.toMatch(/WITA|GMT/);
+  });
+
+  // M5a.3: a far due date was shown twice ("5 Des" then "Sab, 5 Des, 22.00").
+  it('task rows: time left on top, the full date below; the due-time mode is one line', () => {
+    const due = NOW + 19 * 86_400;
+    const both = taskDueLines(due, NOW, TZ, idWords, 'id', 'both');
+    expect(both.primary).toBe('19 hari lagi');
+    expect(both.secondary).toBe(formatDue(due, 'id', TZ));
+    expect(taskDueLines(due, NOW, TZ, en, 'en', 'remaining').primary).toMatch(/19 days/);
+    expect(taskDueLines(due, NOW, TZ, idWords, 'id', 'clock')).toEqual({ primary: formatDue(due, 'id', TZ), secondary: null });
+    expect(taskDueLines(NOW - 7200, NOW, TZ, idWords, 'id', 'both').primary).toBe('terlambat 2 jam');
   });
 
   it('formats elapsed time', () => {

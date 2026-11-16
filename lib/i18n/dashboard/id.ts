@@ -134,6 +134,7 @@ export const dashId = {
     allCourses: 'Semua mata kuliah',
     kind: 'Jenis kabar',
     allKinds: 'Semua jenis',
+    notify: 'Atur notifikasi',
   },
   kalender: {
     to: 'sampai',

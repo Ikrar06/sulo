@@ -144,3 +144,14 @@ export function formatAgo(at: UnixSeconds, now: UnixSeconds, m: Words = id): str
   if (diff < DAY) return m.time.ago(m.time.hours(Math.floor(diff / HOUR)));
   return m.time.ago(m.time.days(Math.floor(diff / DAY)));
 }
+
+/**
+ * The two lines on the right of a task row in the dashboard: time left on
+ * top ("19 hari lagi", "terlambat 2 jam"), the full date below. In the
+ * "due time" mode the date alone is enough, on one line.
+ */
+export function taskDueLines(dueAt: UnixSeconds, now: UnixSeconds, timeZone: string, m: Words, locale: 'id' | 'en', format: 'both' | 'remaining' | 'clock' | 'countdown'): { primary: string; secondary: string | null } {
+  const full = formatDue(dueAt, locale, timeZone);
+  if (format === 'clock') return { primary: full, secondary: null };
+  return { primary: formatLeft(dueAt, now, timeZone, m), secondary: full };
+}

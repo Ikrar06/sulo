@@ -24,8 +24,9 @@ export interface TaskDetailActions {
   onNote: (note: string) => void;
 }
 
+// Every control in the action row is 36 px high.
 const action =
-  'inline-flex h-8 items-center gap-2 rounded-lg border border-border px-3 text-[14px] outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background';
+  'inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3 text-[14px] outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background';
 
 /**
  * One column: what the user keeps about the task (personal due date, steps,
@@ -58,7 +59,8 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions 
   };
 
   return (
-    <div className="space-y-4 border-t border-border px-4 pt-3 pb-4">
+    // Indented to the task title (row padding 16 + checkbox 16 + gap 12 = 44 px), not to the checkbox.
+    <div className="space-y-4 border-t border-border pt-3 pr-4 pb-4 pl-11">{/* lint-ui-allow: 44 px aligns with the title text */}
       {snoozed && <p className="text-[14px]">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
 
       {undated && (
@@ -116,8 +118,9 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions 
             setStep('');
           }}
         >
-          <Input aria-label={t.addStep} placeholder={t.stepPlaceholder} maxLength={STEP_MAX} value={step} onChange={(e) => setStep(e.target.value)} />
-          <Button type="submit" variant="outline" disabled={!step.trim()}>
+          {/* Enter in the field submits the form, like the button. Both 40 px high. */}
+          <Input className="h-10" aria-label={t.addStep} placeholder={t.stepPlaceholder} maxLength={STEP_MAX} value={step} onChange={(e) => setStep(e.target.value)} />
+          <Button type="submit" variant="outline" className="h-10 shrink-0" disabled={!step.trim()}>
             <PlusIcon className="size-4" />
             {t.addStep}
           </Button>
@@ -133,7 +136,8 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions 
           rows={3}
           maxLength={2000}
           placeholder={t.notePlaceholder}
-          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-[14px] leading-normal outline-none placeholder:text-muted-foreground focus-visible:border-focus focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+          // Starts at three lines (80 px) and grows with the text up to 240 px; no resize handle.
+          className="max-h-60 min-h-20 w-full resize-none [field-sizing:content] rounded-lg border border-input bg-transparent px-3 py-2 text-[14px] leading-normal outline-none placeholder:text-muted-foreground focus-visible:border-focus focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
           value={note}
           onChange={(e) => {
             setNote(e.target.value);
@@ -166,7 +170,7 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions 
         )}
         {canSnooze && (
           <Select value="" onValueChange={(v) => actions.onSnooze(Number(v))}>
-            <SelectTrigger className="min-w-44" aria-label={t.snooze}>
+            <SelectTrigger className="h-9 w-auto" aria-label={t.snooze}>
               <SelectValue placeholder={t.snooze} />
             </SelectTrigger>
             <SelectContent>
@@ -179,7 +183,7 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions 
           </Select>
         )}
         {snoozed && (
-          <Button variant="ghost" onClick={() => actions.onSnooze(null)}>
+          <Button variant="ghost" className="h-9" onClick={() => actions.onSnooze(null)}>
             {t.cancelSnooze}
           </Button>
         )}

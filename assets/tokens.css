@@ -86,6 +86,7 @@
   --surface: #17171c;
   --surface-raised: #1f1f25;
   --border: #26262e;
+  --control-border: #6b6b75; /* unchecked checkbox edge: 3:1 or more on bg, surface, surface-raised */
   --text: #f2f2f5;
   --muted: #8a8a96;
 
@@ -126,6 +127,7 @@
     --surface: #ffffff;
     --surface-raised: #f2f2f5;
     --border: #e4e4ea;
+    --control-border: #84848e;
     --text: #111114;
     --muted: #5f5f6b;
     --urgency-overdue: #b91c1c;
@@ -158,6 +160,7 @@
   --surface: #ffffff;
   --surface-raised: #f2f2f5;
   --border: #e4e4ea;
+  --control-border: #84848e;
   --text: #111114;
   --muted: #5f5f6b;
   --urgency-overdue: #b91c1c;
@@ -188,6 +191,7 @@
   --surface: #17171c;
   --surface-raised: #1f1f25;
   --border: #26262e;
+  --control-border: #6b6b75; /* unchecked checkbox edge: 3:1 or more on bg, surface, surface-raised */
   --text: #f2f2f5;
   --muted: #8a8a96;
   --urgency-overdue: #f87171;
@@ -306,6 +310,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-control-border: var(--control-border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-focus: var(--focus);

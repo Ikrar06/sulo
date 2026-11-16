@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { activeCourseIds } from '@/lib/courses/active-score';
 import { courseAlias } from '@/lib/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@/lib/dashboard/tasks';
-import { formatDue, formatRemaining } from '@/lib/format/time';
+import { taskDueLines } from '@/lib/format/time';
 import { googleCalendarUrl } from '@/lib/format/gcal';
 import { addStep, removeStep, setCustomDue, setDone, setNote, setSnooze, toggleStep } from '@/lib/tasks/local-state';
 import { urgencyOf } from '@/lib/tasks/group';
@@ -97,6 +97,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
               }}
               d={d}
               now={data.now}
+              dueFormat={data.prefs.dueFormat}
               details={
                 <TaskDetails
                   item={item}
@@ -126,7 +127,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   );
 }
 
-function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, details }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; details: ReactNode }) {
+function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, details }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; details: ReactNode }) {
   const { m, locale } = useI18n();
   const t = d.tugas;
   const due = item.task.dueAt;
@@ -153,10 +154,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, details }: 
           {due === null ? (
             <span className="text-muted-foreground">{t.noDue}</span>
           ) : (
-            <>
-              <span className={`block ${URGENCY_TEXT[urgency]}`}>{formatRemaining(due, now, timeZone, m)}</span>
-              <span className="block text-[12px] leading-normal text-muted-foreground">{formatDue(due, locale, timeZone)}</span>
-            </>
+            <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} />
           )}
         </span>
         <button type="button" className="mt-1 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
@@ -165,5 +163,15 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, details }: 
       </div>
       {expanded && <div id={panelId}>{details}</div>}
     </li>
+  );
+}
+
+/** Time left on top (urgency color), the full date below; one line in the "due time" mode. */
+function DueLines({ lines, tone }: { lines: { primary: string; secondary: string | null }; tone: string }) {
+  return (
+    <>
+      <span className={`block ${lines.secondary === null ? '' : tone}`}>{lines.primary}</span>
+      {lines.secondary !== null && <span className="block text-[12px] leading-normal text-muted-foreground">{lines.secondary}</span>}
+    </>
   );
 }

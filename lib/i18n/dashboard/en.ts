@@ -133,6 +133,7 @@ export const dashEn: DashMessages = {
     allCourses: 'All courses',
     kind: 'Kind of update',
     allKinds: 'All kinds',
+    notify: 'Notification settings',
   },
   kalender: {
     to: 'to',
