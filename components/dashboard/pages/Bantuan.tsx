@@ -16,14 +16,16 @@ export function BantuanPage({ d, route }: PageProps) {
   const { locale } = useI18n();
   const b = d.bantuan;
 
-  // #bantuan/<id> opens that question and brings it into view.
+  // #bantuan/<id> opens that question, or brings that section into view.
   useEffect(() => {
     if (!route.detail) return;
-    const el = document.getElementById(`faq-${route.detail}`) as HTMLDetailsElement | null;
-    if (el) {
-      el.open = true;
-      el.scrollIntoView({ block: 'start' });
+    const faq = document.getElementById(`faq-${route.detail}`) as HTMLDetailsElement | null;
+    if (faq) {
+      faq.open = true;
+      faq.scrollIntoView({ block: 'start' });
+      return;
     }
+    document.getElementById(route.detail)?.scrollIntoView({ block: 'start' });
   }, [route.detail]);
 
   const toc = [...HOW_IT_WORKS.map((s, i) => ({ id: `cara-${i + 1}`, label: s.heading[locale] })), { id: 'faq', label: b.faqTitle }];
@@ -43,7 +45,7 @@ export function BantuanPage({ d, route }: PageProps) {
   ) : null;
 
   return (
-    <DocLayout toc={toc} tocLabel={b.onThisPage} aside={stuck}>
+    <DocLayout toc={toc} tocLabel={b.onThisPage} aside={stuck} hashFor={(id) => `bantuan/${id}`}>
       <Card title={b.howTitle}>
         <div className="space-y-6">
           {HOW_IT_WORKS.map((s, i) => (

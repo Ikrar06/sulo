@@ -47,10 +47,8 @@ export function TentangPage({ d, actions }: PageProps) {
       </button>
     </div>
   );
-  const toc = [{ id: 'tentang-sulo', label: t.tocAbout }, ...(creators.length > 0 ? [{ id: 'pembuat', label: t.tocMaker }] : []), { id: 'dukung', label: t.tocSupport }];
-
   return (
-    <DocLayout toc={toc} tocLabel={d.bantuan.onThisPage} aside={version}>
+    <DocLayout aside={version}>
       <section id="tentang-sulo">
         <Card>
           <p className="text-[14px] leading-normal">{t.intro}</p>
