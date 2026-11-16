@@ -4,7 +4,7 @@
 
 import { activeCourseIds } from '../courses/active-score';
 import { calls, type MoodleCall } from '../moodle/calls';
-import { NOTIFICATIONS_LIMIT, NOTIFICATIONS_LIMIT_SMALL, TASKS_TTL_MIN, TTL_TOLERANCE_MIN } from '../moodle/limits';
+import { MAX_STATE_CALLS_PER_BATCH, NOTIFICATIONS_LIMIT, NOTIFICATIONS_LIMIT_SMALL, TASKS_TTL_MIN, TTL_TOLERANCE_MIN } from '../moodle/limits';
 import type { CallResult } from '../moodle/client';
 import { parseCall } from '../moodle/schemas';
 import { readUser, writeUser, type CourseAccess } from '../storage';
@@ -13,7 +13,7 @@ import { diffCourse } from './diff';
 import { appendChanges } from './log';
 import { scanNotifications } from './notifications';
 import { courseErrorKind } from './course-errors';
-import { ACCESS_FLAG_AFTER, pickCoursesToCheck } from './schedule';
+import { ACCESS_FLAG_AFTER, coursesDueSoon, pickCoursesToCheck } from './schedule';
 import { itemsFromState } from './snapshot';
 import { diffTasks } from './tasks-diff';
 
@@ -45,13 +45,34 @@ export function notificationsDue(radar: { notificationsFetchedAt?: UnixSeconds }
   return at === undefined || now - at >= (TASKS_TTL_MIN - TTL_TOLERANCE_MIN) * 60;
 }
 
-/** Calls to add for a known user: notifications when due, structure of up to 5 courses. */
-export async function planRadarCalls(store: KeyValueStore, userId: UserId | null, courses: readonly CourseRecord[], now: UnixSeconds): Promise<RadarPlan> {
+/**
+ * How much of the radar a sync carries: `full` ("Perbarui") checks every
+ * active course; `normal` (automatic) checks up to 4 in turns; `saver`
+ * (automatic, past the soft daily limit) checks no course structure.
+ */
+export type RadarMode = 'full' | 'normal' | 'saver';
+
+/** Calls to add for a known user: notifications when due, course structures by mode. */
+export async function planRadarCalls(
+  store: KeyValueStore,
+  userId: UserId | null,
+  courses: readonly CourseRecord[],
+  now: UnixSeconds,
+  mode: RadarMode = 'normal',
+  tasks: readonly Task[] = [],
+): Promise<RadarPlan> {
   if (userId === null) return EMPTY_RADAR_PLAN;
   const radar = await readUser(store, userId, 'radar');
   const active = [...activeCourseIds(courses)];
   const accessFailedAt = Object.fromEntries(Object.entries(radar.courseAccess ?? {}).map(([id, a]) => [id, a.lastFailedAt]));
-  const courseIds = pickCoursesToCheck(active, radar.stateCheckedAt, now, { accessFailedAt });
+  const courseIds =
+    mode === 'saver'
+      ? []
+      : pickCoursesToCheck(active, radar.stateCheckedAt, now, {
+          accessFailedAt,
+          soon: coursesDueSoon(tasks, now),
+          ...(mode === 'full' ? { all: true, maxPerBatch: MAX_STATE_CALLS_PER_BATCH } : {}),
+        });
   const withNotifications = notificationsDue(radar, now);
   const notificationsLimit = radar.notificationsLastId === null || radar.notificationsWide ? NOTIFICATIONS_LIMIT : NOTIFICATIONS_LIMIT_SMALL;
   return radarPlanWith(userId, { courseIds, withNotifications, notificationsLimit });

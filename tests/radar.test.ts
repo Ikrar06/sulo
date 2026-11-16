@@ -6,7 +6,7 @@ import { diffCourse } from '../lib/radar/diff';
 import { appendChanges, countPopupOpen, LOG_LIMIT, markAllSeen, taskMarkers } from '../lib/radar/log';
 import { notificationKind } from '../lib/radar/notification-kinds';
 import { courseIdFromCustomdata, filterContextUrl, scanNotifications } from '../lib/radar/notifications';
-import { pickCoursesToCheck } from '../lib/radar/schedule';
+import { pickCoursesToCheck, coursesDueSoon } from '../lib/radar/schedule';
 import { itemsFromState, type FreshItem } from '../lib/radar/snapshot';
 import { diffTasks } from '../lib/radar/tasks-diff';
 import type { Change, CourseSnapshot, Task } from '../lib/types';
@@ -86,15 +86,32 @@ describe('course structure diff', () => {
 
 describe('structure check schedule', () => {
   const ids = [401, 402, 403, 404, 405, 406, 407];
-  it('checks at most 5 courses, never-checked first, then the oldest', () => {
+  it('checks at most 4 courses per automatic sync, never-checked first, then the oldest', () => {
     const checked = { '401': NOW - 7 * H, '402': NOW - 20 * H, '403': NOW - H };
-    expect(pickCoursesToCheck(ids, checked, NOW)).toEqual([404, 405, 406, 407, 402]);
+    expect(pickCoursesToCheck(ids, checked, NOW)).toEqual([404, 405, 406, 407]);
+    expect(pickCoursesToCheck([401, 402, 403], checked, NOW)).toEqual([402, 401]);
+  });
+
+  it('courses with a deadline soon go first, then the turn order', () => {
+    const checked = { '401': NOW - 7 * H, '402': NOW - 20 * H, '403': NOW - 30 * H };
+    expect(pickCoursesToCheck([401, 402, 403, 404, 405, 406], checked, NOW, { soon: new Set([401]) })).toEqual([401, 404, 405, 406]);
+  });
+
+  it('"Perbarui" checks every active course, even ones checked a moment ago (access failures still wait)', () => {
+    const all = Object.fromEntries(ids.map((id) => [String(id), NOW - 60]));
+    expect(pickCoursesToCheck(ids, all, NOW, { all: true, maxPerBatch: 10 })).toHaveLength(7);
+    expect(pickCoursesToCheck(ids, all, NOW, { all: true, maxPerBatch: 10, accessFailedAt: { '401': NOW - H } })).not.toContain(401);
+  });
+
+  it('deadline soon: pending, due within 7 days', () => {
+    const t = (courseId: number, dueAt: number | null, missingSince: number | null = null) => ({ courseId, dueAt, missingSince });
+    expect([...coursesDueSoon([t(1, NOW + 2 * 24 * H), t(2, NOW + 8 * 24 * H), t(3, NOW - H), t(4, null), t(5, NOW + H, NOW)], NOW)]).toEqual([1]);
   });
 
   it('waits 6 hours before checking a course again', () => {
     const all = Object.fromEntries(ids.map((id) => [String(id), NOW - 5 * H]));
     expect(pickCoursesToCheck(ids, all, NOW)).toEqual([]);
-    expect(pickCoursesToCheck(ids, all, NOW + H)).toHaveLength(5);
+    expect(pickCoursesToCheck(ids, all, NOW + H)).toHaveLength(4);
   });
 
   it('rotates so every course is checked within a few cycles', () => {

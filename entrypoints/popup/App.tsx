@@ -9,6 +9,8 @@ import { googleCalendarUrl } from '@/lib/format/gcal';
 import { messagesFor, resolveLocale, type Locale } from '@/lib/i18n';
 import type { Message } from '@/lib/messages';
 import { DAILY_BUDGET, DAILY_CALL_BUDGET, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { refreshFeedback } from '@/lib/view/refresh-feedback';
+import type { SyncOutcome } from '@/lib/types';
 import { readRequestLog } from '@/lib/net/request-log';
 import type { RequestLogEntry } from '@/lib/net/scheduler';
 import { DEFAULT_PREFS, readPrefs, writePrefs, type DueFormat, type Prefs } from '@/lib/prefs';
@@ -196,7 +198,10 @@ export default function App({ startedAt }: { startedAt: number }) {
         onDone={(e) => void onDone(e)}
         onOpenTask={(url) => void browser.tabs.create({ url })}
         onAddToCalendar={onAddToCalendar}
-        onRefresh={() => void send({ type: 'sync/request', trigger: 'manual' })}
+        onRefresh={async () => {
+          const outcome = (await send({ type: 'sync/request', trigger: 'manual' })) as SyncOutcome | null;
+          return refreshFeedback(outcome, view.lastSyncAt, Math.floor(Date.now() / 1000)) === 'up-to-date';
+        }}
         onCopy={(s) => void onCopy(s)}
         onOpenOnboarding={(hash = '') => void browser.tabs.create({ url: browser.runtime.getURL(`/onboarding.html${hash}`) })}
         onOpenSikola={() => void browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` })}

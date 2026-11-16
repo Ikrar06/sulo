@@ -1,8 +1,12 @@
 // One sync cycle = one batch request to SIKOLA (docs: ARCHITECTURE section 4).
 // Batch: session check + calendar, plus what is due (plan-batch.ts): the
 // course list every 24 hours for every trigger, notifications every 3 hours,
-// course structures every 6 hours. Low quota drops the optional parts.
-// The popup never triggers a sync. Pure: client, store and clock are injected.
+// course structures in turns (up to 4 per automatic sync, all on "Perbarui").
+// Past the soft daily limit, automatic syncs run in saver mode (no course
+// structures, at least 60 minutes apart); "Perbarui" stays a full sync.
+// "Perbarui" within 2 minutes of a good sync sends nothing. Near the hard
+// limit the optional parts drop. The popup never triggers a sync. Pure:
+// client, store and clock are injected.
 
 import { buildCourses, newInProgressIds } from '../courses/build';
 import { scoreCourse } from '../courses/active-score';
@@ -12,12 +16,15 @@ import {
   CALENDAR_LOOKBACK_DAYS,
   CATCHUP_FRESH_MIN,
   COURSE_LIST_MIN_GAP_H,
+  MANUAL_COOLDOWN_SEC,
   ONBOARDING_FRESH_MIN,
+  SAVER_MIN_GAP_MIN,
   SIKOLA_ORIGIN,
+  SOFT_DAILY_POSTS,
   TASKS_TTL_MIN,
   TTL_TOLERANCE_MIN,
 } from '../moodle/limits';
-import { applyRadarResults, planRadarCalls } from '../radar/sync-step';
+import { applyRadarResults, planRadarCalls, type RadarMode } from '../radar/sync-step';
 import { recordFailure } from '../moodle/backoff';
 import { planBatch } from './plan-batch';
 import { ACCOUNT_PENDING_KEY, mayCheckWhilePending, newPending, readPending, resolveCheck, type AccountPending } from '../account/pending';
@@ -91,13 +98,27 @@ export function freshForMinutes(trigger: SyncTrigger): number {
   }
 }
 
+/** Which sync this is: "Perbarui" is always full; automatic syncs past the soft limit save. */
+export function syncMode(trigger: SyncTrigger, postsToday: number): RadarMode {
+  if (trigger === 'manual') return 'full';
+  return UNATTENDED.has(trigger) && postsToday >= SOFT_DAILY_POSTS ? 'saver' : 'normal';
+}
+
 async function skipReason(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome | null> {
   if (UNATTENDED.has(deps.trigger)) {
     const block = backgroundBlockReason(deps.clock, deps.idleState ?? 'idle');
     if (block) return { status: 'skipped', reason: block };
   }
-  // "Segarkan daftar" is an explicit request for the list: never "fresh enough".
-  const freshFor = deps.forceCourseList ? 0 : freshForMinutes(deps.trigger);
+  const mode = syncMode(deps.trigger, (await readBudget(deps.store, deps.clock)).used);
+  // "Perbarui" right after a good sync: nothing to fetch, nothing sent ("Sudah terbaru").
+  // Saver mode: automatic syncs at least an hour apart.
+  const freshFor = deps.forceCourseList
+    ? 0 // "Segarkan daftar" is an explicit request for the list: never "fresh enough".
+    : deps.trigger === 'manual'
+      ? MANUAL_COOLDOWN_SEC / 60
+      : mode === 'saver'
+        ? Math.max(SAVER_MIN_GAP_MIN, freshForMinutes(deps.trigger))
+        : freshForMinutes(deps.trigger);
   if (freshFor > 0) {
     const userId = await currentUser(deps.store);
     const meta = userId === null ? null : await readUser(deps.store, userId, 'sync');
@@ -140,17 +161,26 @@ async function courseListState(deps: SyncDeps, now: UnixSeconds): Promise<{ due:
 }
 
 async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> {
+  const budget = await readBudget(deps.store, deps.clock);
+  const mode = syncMode(deps.trigger, budget.used);
   const courseList = await courseListState(deps, now);
-  // Radar (M4): notifications and the structure of up to 5 active courses,
-  // in the same batch: still one request per cycle.
+  // Radar (M4): notifications and course structures by mode, in the same batch: still one request per cycle.
   const knownUser = await currentUser(deps.store);
   const plan = planBatch({
     now,
-    courseListDue: courseList.due,
+    // Saver mode keeps the course list only when there is none yet.
+    courseListDue: mode === 'saver' ? false : courseList.due,
     courseListMissing: courseList.missing,
-    radar: await planRadarCalls(deps.store, knownUser, knownUser === null ? [] : await readUser(deps.store, knownUser, 'courses'), now),
+    radar: await planRadarCalls(
+      deps.store,
+      knownUser,
+      knownUser === null ? [] : await readUser(deps.store, knownUser, 'courses'),
+      now,
+      mode,
+      knownUser === null ? [] : await readUser(deps.store, knownUser, 'tasks'),
+    ),
     userId: knownUser,
-    remaining: remainingQuota(await readBudget(deps.store, deps.clock)),
+    remaining: remainingQuota(budget),
   });
   const { withCourseList, radar: radarPlan, radarStart } = plan;
 

@@ -49,6 +49,7 @@ export const id = {
     },
     title: 'Hari Ini',
     updatedAgo: (ago: string) => `Diperbarui ${ago}`,
+    upToDate: 'Sudah terbaru',
     neverUpdated: 'Belum pernah diperbarui',
     updating: 'Sedang memperbarui...',
     refresh: 'Perbarui sekarang',

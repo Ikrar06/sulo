@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
+import { BUDGET_KEY } from '../lib/moodle/budget';
 import { describe, expect, it } from 'vitest';
 import type { MoodleCall } from '../lib/moodle/calls';
 import type { BatchOutcome, MoodleClient, RequestOptions } from '../lib/moodle/client';
 import { SESSION_KEY } from '../lib/moodle/session';
 import { ensureJitter, jitterMinutes, JITTER_KEY } from '../lib/schedule';
 import { readUser, switchUser, SYNC_STATUS_KEY, writeUser } from '../lib/storage';
-import { runSync } from '../lib/sync/run-sync';
+import { runSync, syncMode } from '../lib/sync/run-sync';
 import type { SyncTrigger } from '../lib/types';
 import { fixedClock, memoryStore } from './helpers';
 
@@ -134,8 +135,34 @@ describe('runSync', () => {
       expect(client.batches).toHaveLength(1);
     });
 
-    it('a click on "Perbarui" always runs', async () => {
-      expect((await after('manual', 1)).requests).toBe(1);
+    it('"Perbarui" within 2 minutes of a good sync sends nothing; after that it runs', async () => {
+      expect(await after('manual', 1)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
+      expect((await after('manual', 2)).requests).toBe(1);
+    });
+
+    it('sync modes: "Perbarui" is full; automatic syncs save from 80 POSTs a day', () => {
+      expect(syncMode('manual', 200)).toBe('full');
+      expect(syncMode('background', 79)).toBe('normal');
+      expect(syncMode('background', 80)).toBe('saver');
+      expect(syncMode('idle', 80)).toBe('saver');
+      expect(syncMode('onboarding', 120)).toBe('normal');
+    });
+
+    it('saver mode: automatic syncs wait an hour and carry no course structures; "Perbarui" stays full', async () => {
+      const client = fakeClient();
+      const store = memoryStore();
+      await run(client, store, 'onboarding');
+      await store.set(BUDGET_KEY, { date: at(200).localDate(), used: 80 });
+      // 3 h later a background sync would normally run; in saver mode it still runs (past 60 min) but without structures.
+      await runSync({ client, store, clock: at(200), trigger: 'background', idleState: 'active' });
+      const last = client.batches.at(-1)!.calls.map((c) => c.methodname);
+      expect(last).toContain('core_calendar_get_action_events_by_timesort');
+      expect(last).not.toContain('core_courseformat_get_state');
+      expect(last).not.toContain('core_course_get_enrolled_courses_by_timeline_classification');
+      // Idle catch-up 30 minutes later: saver mode keeps an hour between automatic syncs.
+      const before = client.batches.length;
+      expect(await runSync({ client, store, clock: at(230), trigger: 'idle', idleState: 'active' })).toEqual({ status: 'skipped', reason: 'FRESH' });
+      expect(client.batches.length).toBe(before);
     });
 
     it('setup follows the 24-hour course list TTL too; "Segarkan daftar" forces it', async () => {

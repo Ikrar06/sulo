@@ -50,6 +50,10 @@ export interface BudgetState {
   withCourseList?: number;
   /** Moodle function calls today, all batches (limit DAILY_CALL_BUDGET). */
   calls?: number;
+  /** Send times of the POSTs in the loop-guard window (LOOP_GUARD). */
+  recent?: UnixSeconds[];
+  /** Loop guard tripped: every request waits until then. */
+  pausedUntil?: UnixSeconds;
 }
 
 export interface BackoffState {

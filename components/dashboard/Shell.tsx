@@ -4,6 +4,7 @@ import { useI18n } from '@/components/i18n';
 import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button } from '@/components/ui/button';
+import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@/lib/format/time';
 import { PAGES, routeHash, type Page } from '@/lib/dashboard/routes';
 import type { DashMessages } from '@/lib/i18n/dashboard';
@@ -33,7 +34,8 @@ export interface ShellProps {
   lastSyncAt: number | null;
   now: number;
   syncing: boolean;
-  onRefresh: (() => void) | null;
+  /** Resolves true when the click sent nothing and the data is recent ("Sudah terbaru"). */
+  onRefresh: (() => Promise<boolean>) | null;
   /** The refresh button's text ("Perbarui" by default; "Muat ulang daftar" on Mata kuliah). */
   refreshLabel?: string;
   /** "Diperbarui 5 menit lalu" next to the button; off where it would mislead. */
@@ -44,7 +46,8 @@ export interface ShellProps {
 
 export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRefresh, refreshLabel, showUpdated = true, onOpenPrivacy, children }: ShellProps) {
   const { m } = useI18n();
-  const updated = syncing ? d.common.updating : lastSyncAt ? m.popup.updatedAgo(formatAgo(lastSyncAt, now, m)) : m.popup.neverUpdated;
+  const quiet = useQuietRefresh(onRefresh ?? (async () => false));
+  const updated = syncing ? d.common.updating : quiet.upToDate ? m.popup.upToDate : lastSyncAt ? m.popup.updatedAgo(formatAgo(lastSyncAt, now, m)) : m.popup.neverUpdated;
   return (
     <div className="db-layout">
       <aside className="db-side">
@@ -97,8 +100,8 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
                   {updated}
                 </span>
               )}
-              <Button variant="outline" onClick={onRefresh} disabled={syncing}>
-                <RefreshIcon className={`size-4 ${syncing ? 'motion-safe:animate-spin' : ''}`} />
+              <Button variant="outline" onClick={quiet.click} disabled={syncing}>
+                <RefreshIcon className={`size-4 ${syncing ? 'motion-safe:animate-spin' : quiet.spinning ? 'motion-safe:animate-[spin_300ms_ease-out_1]' : ''}`} />
                 {refreshLabel ?? d.common.refresh}
               </Button>
             </div>

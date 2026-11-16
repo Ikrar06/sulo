@@ -1,7 +1,10 @@
 import type { BudgetState, Clock, KeyValueStore, RequestSource } from '../types';
-import { DAILY_BUDGET, DAILY_CALL_BUDGET } from './limits';
+import { DAILY_BUDGET, DAILY_CALL_BUDGET, LOOP_GUARD } from './limits';
 
 export const BUDGET_KEY = 'global:budget';
+
+/** True while the loop guard holds every request. */
+export const loopPaused = (state: BudgetState, now: number): boolean => state.pausedUntil !== undefined && now < state.pausedUntil;
 
 /** Budget for the current local day. A stored state from another day counts as zero. */
 export async function readBudget(store: KeyValueStore, clock: Clock): Promise<BudgetState> {
@@ -35,8 +38,16 @@ export async function reserveRequest(
   callLimit: number = DAILY_CALL_BUDGET,
 ): Promise<boolean> {
   const current = await readBudget(store, clock);
+  const now = clock.now();
+  // Hard limits and the loop guard refuse silently (the dev log shows why).
   if (current.used >= limit) return false;
   if (calls > 0 && (current.calls ?? 0) + calls > callLimit) return false;
+  if (current.pausedUntil !== undefined && now < current.pausedUntil) return false;
+  const recent = (current.recent ?? []).filter((t) => now - t < LOOP_GUARD.windowSec);
+  if (recent.length >= LOOP_GUARD.posts) {
+    await store.set<BudgetState>(BUDGET_KEY, { ...current, recent, pausedUntil: now + LOOP_GUARD.pauseSec });
+    return false;
+  }
   const bySource = { ...current.bySource, [source]: (current.bySource?.[source] ?? 0) + 1 };
   const next: BudgetState = {
     date: current.date,
@@ -44,6 +55,7 @@ export async function reserveRequest(
     bySource,
     withCourseList: (current.withCourseList ?? 0) + (withCourseList ? 1 : 0),
     ...(calls > 0 || current.calls !== undefined ? { calls: (current.calls ?? 0) + calls } : {}),
+    recent: [...recent, now],
   };
   await store.set<BudgetState>(BUDGET_KEY, next);
   return true;

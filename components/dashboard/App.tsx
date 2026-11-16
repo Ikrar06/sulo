@@ -8,6 +8,7 @@ import { dashFor } from '@/lib/i18n/dashboard';
 import { DashboardProvider, timeZone, useDashboard } from './data';
 import { DashboardShell } from './Shell';
 import { StatusNotice } from './StatusNotice';
+import { refreshFeedback } from '@/lib/view/refresh-feedback';
 import type { PageProps } from './types';
 
 // Each page is its own chunk, loaded when first opened.
@@ -69,10 +70,11 @@ function Router() {
 
   // Mata kuliah reloads the course list itself; the others sync tasks and updates.
   const reloadsCourses = route.page === 'mata-kuliah';
-  const refresh = async () => {
+  const refresh = async (): Promise<boolean> => {
     setSyncing(true);
-    await actions.sync(reloadsCourses);
+    const outcome = await actions.sync(reloadsCourses);
     setSyncing(false);
+    return refreshFeedback(outcome, data.view.lastSyncAt, Math.floor(Date.now() / 1000)) === 'up-to-date';
   };
 
   return (
@@ -85,7 +87,7 @@ function Router() {
         now={data.now}
         syncing={syncing || data.view.syncing}
         // Another SIKOLA account is signed in: no refresh and no "Diperbarui" in the header (the M4 message card explains).
-        onRefresh={connected && !data.pending && (REFRESH_PAGES.has(route.page) || reloadsCourses) ? () => void refresh() : null}
+        onRefresh={connected && !data.pending && (REFRESH_PAGES.has(route.page) || reloadsCourses) ? refresh : null}
         refreshLabel={reloadsCourses ? d.mataKuliah.refreshList : undefined}
         showUpdated={!reloadsCourses}
         onOpenPrivacy={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}

@@ -3,10 +3,29 @@
 
 export const SIKOLA_ORIGIN = 'https://sikola-v2.unhas.ac.id';
 
-/** Max HTTP requests to SIKOLA per local day per installation, all kinds. */
-export const DAILY_BUDGET = 40;
-/** Max Moodle function calls per local day (all batches together). */
-export const DAILY_CALL_BUDGET = 300;
+/**
+ * Soft limit: from this many POSTs today, automatic syncs switch to saver
+ * mode (session and calendar, plus notifications when due; no course
+ * structures, no course list unless missing; at least SAVER_MIN_GAP_MIN
+ * apart). "Perbarui" still runs a full sync.
+ */
+export const SOFT_DAILY_POSTS = 80;
+/**
+ * Hard limit, a guard against bugs only: max HTTP requests to SIKOLA per
+ * local day per installation. Reached, every sync stops until the daily
+ * reset, without a message to the user (dev log only).
+ */
+export const DAILY_BUDGET = 150;
+/** Max Moodle function calls per local day (all batches together); same silent guard. */
+export const DAILY_CALL_BUDGET = 1000;
+/** Saver mode: automatic syncs at least this far apart. */
+export const SAVER_MIN_GAP_MIN = 60;
+/** Loop guard: more than `posts` POSTs within `windowSec` pauses every request for `pauseSec`, silently. */
+export const LOOP_GUARD = { posts: 10, windowSec: 5 * 60, pauseSec: 30 * 60 } as const;
+/** "Perbarui" within this long after a successful sync sends nothing and says "Sudah terbaru". */
+export const MANUAL_COOLDOWN_SEC = 120;
+/** Automatic syncs check the structure of at most this many courses, in turns. */
+export const RADAR_AUTO_MAX = 4;
 export const BACKGROUND_INTERVAL_MIN = 180;
 /** Fixed random offset per installation for the periodic alarm, 0..20 minutes. */
 export const JITTER_MAX_MIN = 20;

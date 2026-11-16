@@ -47,6 +47,7 @@ export const en: Messages = {
     },
     title: 'Today',
     updatedAgo: (ago) => `Updated ${ago}`,
+    upToDate: 'Up to date',
     neverUpdated: 'Not updated yet',
     updating: 'Updating...',
     refresh: 'Update now',

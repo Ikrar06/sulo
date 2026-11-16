@@ -10,6 +10,7 @@ import type { ReminderSettings } from '@/lib/reminders/settings';
 import { addDays, localParts, zonedToUnix } from '@/lib/reminders/zoned';
 import type { Locale } from '@/lib/i18n';
 import type { DueFormat } from '@/lib/prefs';
+import { useQuietRefresh } from '@/components/quiet-refresh';
 import type { RequestLogEntry } from '@/lib/net/scheduler';
 import type { RequestSource, UnixSeconds } from '@/lib/types';
 import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-view';
@@ -29,7 +30,8 @@ export interface PopupActions {
   onDone: (eventId: number) => void;
   onOpenTask: (url: string) => void;
   onAddToCalendar: (row: TaskRow) => void;
-  onRefresh: () => void;
+  /** Resolves true when the click sent nothing and the data is recent ("Sudah terbaru"). */
+  onRefresh: () => Promise<boolean>;
   onCopy: (scope: CopyScope) => void;
   onOpenOnboarding: (hash?: string) => void;
   onOpenSikola: () => void;
@@ -56,7 +58,7 @@ export const NO_ACTIONS: PopupActions = {
   onDone: () => {},
   onOpenTask: () => {},
   onAddToCalendar: () => {},
-  onRefresh: () => {},
+  onRefresh: async () => false,
   onCopy: () => {},
   onOpenOnboarding: () => {},
   onOpenSikola: () => {},
@@ -232,7 +234,9 @@ export function PopupView(props: PopupViewProps) {
   const due = { format: props.dueFormat, now, timeZone: props.timeZone, snoozeOptions };
   const openReminders = () => setPanel('reminders');
   // Another account: the stored account's update time is hidden too.
-  const updated = view.screen === 'mismatch' ? '' : view.syncing ? t.updating : view.lastSyncAt ? t.updatedAgo(formatAgo(view.lastSyncAt, now, m)) : t.neverUpdated;
+  const quiet = useQuietRefresh(props.onRefresh);
+  const updated =
+    view.screen === 'mismatch' ? '' : view.syncing ? t.updating : quiet.upToDate ? t.upToDate : view.lastSyncAt ? t.updatedAgo(formatAgo(view.lastSyncAt, now, m)) : t.neverUpdated;
   const empty = view.onboarded && view.groups.length === 0;
   const headerMascot: MascotState = empty && view.mascot === 'all-done' ? 'idle' : view.mascot;
 
@@ -274,8 +278,8 @@ export function PopupView(props: PopupViewProps) {
           </div>
           {(view.onboarded || mismatch) && (
             <div className="flex items-center">
-              <IconButton label={t.refresh} onClick={props.onRefresh} disabled={view.syncing}>
-                <RefreshIcon className={`size-4 ${view.syncing ? 'motion-safe:animate-spin' : ''}`} />
+              <IconButton label={t.refresh} onClick={quiet.click} disabled={view.syncing}>
+                <RefreshIcon className={`size-4 ${view.syncing ? 'motion-safe:animate-spin' : quiet.spinning ? 'motion-safe:animate-[spin_300ms_ease-out_1]' : ''}`} />
               </IconButton>
               {!mismatch && <CopyMenu onCopy={props.onCopy} />}
               <SettingsMenu
@@ -381,3 +385,4 @@ export function PopupView(props: PopupViewProps) {
     </TooltipProvider>
   );
 }
+
