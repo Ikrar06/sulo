@@ -85,12 +85,29 @@ describe('buildPopupView', () => {
   it.each([
     [{ remoteConfig: { ...DEFAULT_REMOTE_CONFIG, enabled: false, message: 'Jeda' } }, { kind: 'disabled_remotely', message: 'Jeda' }],
     [{ session: 'EXPIRED' as const }, { kind: 'session_expired' }],
-    [{ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'parser_broken' as const, where: 'x' } } }, { kind: 'parser_broken' }],
-    [{ budget: { date: 'x', used: 40 } }, { kind: 'budget_exhausted' }],
     [{ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'offline' as const } } }, { kind: 'offline' }],
     [{ online: false }, { kind: 'offline' }],
   ])('banner for %o', (patch, banner) => {
     expect(buildPopupView(input(patch)).banner).toEqual(banner);
+  });
+
+  // M5a.4: users never see budgets, backoff or parser trouble; only actionable messages and one plain "could not update" after 12 hours.
+  describe('status message selection', () => {
+    const old = (h: number) => user({ sync: { lastSyncAt: NOW - h * HOUR, lastCourseListAt: null } });
+    const broken = { syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'parser_broken' as const, where: 'x' } } };
+    it('a full daily budget or a parser problem shows nothing while data is fresh', () => {
+      expect(buildPopupView(input({ budget: { date: 'x', used: 999 } })).banner).toBeNull();
+      expect(buildPopupView(input(broken)).banner).toBeNull();
+      expect(buildPopupView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'skipped' as const, reason: 'BUDGET_EXHAUSTED' as const } } })).banner).toBeNull();
+    });
+    it('data up to 12 hours old shows nothing; older shows the plain stale message, whatever the cause', () => {
+      expect(buildPopupView(input({ user: old(12) })).banner).toBeNull();
+      expect(buildPopupView(input({ ...broken, user: old(13) })).banner).toEqual({ kind: 'stale', lastSyncAt: NOW - 13 * HOUR });
+      expect(buildPopupView(input({ budget: { date: 'x', used: 999 }, user: old(30) })).banner?.kind).toBe('stale');
+    });
+    it('an expired session wins over old data (it can be acted on)', () => {
+      expect(buildPopupView(input({ session: 'EXPIRED', user: old(30) })).banner).toEqual({ kind: 'session_expired' });
+    });
   });
 
   it('does not call a server error or a slow SIKOLA "offline"', () => {
@@ -99,8 +116,8 @@ describe('buildPopupView', () => {
   });
 
   it('marks stale data, uses a neutral badge and the sleepy mascot', () => {
-    const view = buildPopupView(input({ user: user({ sync: { lastSyncAt: NOW - 8 * HOUR, lastCourseListAt: null } }) }));
-    expect(view.banner).toEqual({ kind: 'stale', lastSyncAt: NOW - 8 * HOUR });
+    const view = buildPopupView(input({ user: user({ sync: { lastSyncAt: NOW - 13 * HOUR, lastCourseListAt: null } }) }));
+    expect(view.banner).toEqual({ kind: 'stale', lastSyncAt: NOW - 13 * HOUR });
     expect(view.badge.tone).toBe('neutral');
     expect(view.mascot).toBe('stale');
   });

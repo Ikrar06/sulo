@@ -199,6 +199,11 @@
 [data-theme="dark"] .db-guide-light { display: none; }
 [data-theme="dark"] .db-guide-dark { display: block; }
 
+/* Status notice under the page header: a faint neutral tint, no colored edge. */
+.db-notice {
+  background: color-mix(in oklch, var(--status-stale) 8%, var(--surface));
+}
+
 /* Text pages (Bantuan, Tentang): a comfortable reading measure. */
 .db-prose {
   max-width: 68ch;

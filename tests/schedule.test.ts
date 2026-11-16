@@ -34,9 +34,9 @@ describe('staleness', () => {
     expect(isStale(null, NOW)).toBe(true);
     expect(hoursSince(null, NOW)).toBeNull();
   });
-  it('is stale only beyond 6 hours', () => {
-    expect(isStale(NOW - 6 * 3600, NOW)).toBe(false);
-    expect(isStale(NOW - 6 * 3600 - 1, NOW)).toBe(true);
+  it('is stale only beyond 12 hours', () => {
+    expect(isStale(NOW - 12 * 3600, NOW)).toBe(false);
+    expect(isStale(NOW - 12 * 3600 - 1, NOW)).toBe(true);
     expect(hoursSince(NOW - 7 * 3600 - 5, NOW)).toBe(7);
   });
 });

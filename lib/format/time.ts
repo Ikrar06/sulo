@@ -155,3 +155,6 @@ export function taskDueLines(dueAt: UnixSeconds, now: UnixSeconds, timeZone: str
   if (format === 'clock') return { primary: full, secondary: null };
   return { primary: formatLeft(dueAt, now, timeZone, m), secondary: full };
 }
+
+/** The browser's own time zone (display only; stored times stay UTC). */
+export const browserTimeZone = (): string => Intl.DateTimeFormat().resolvedOptions().timeZone;

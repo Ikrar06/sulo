@@ -17,6 +17,11 @@ export const dashEn: DashMessages = {
     bantuan: 'Help',
     tentang: 'About',
   },
+  notice: {
+    sessionExpired: 'Your SIKOLA session ended. Sign in to SIKOLA again, then click Update.',
+    openSikola: 'Open SIKOLA',
+    stale: (since) => `Sulo couldn't update since ${since}. Try Update later.`,
+  },
   common: {
     refresh: 'Update',
     updating: 'Updating...',

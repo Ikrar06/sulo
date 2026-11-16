@@ -28,7 +28,7 @@ export const REQUEST_TIMEOUT_MS = 20_000;
 export const HTML_ON_DEMAND_TTL_H = 24;
 /** Min gap between GET /my/ for a missing sesskey (manual refresh or setup only). */
 export const SESSKEY_FALLBACK_POPUP_GAP_H = 6;
-export const STALE_WARNING_H = 6;
+export const STALE_WARNING_H = 12;
 export const COURSE_LIST_MIN_GAP_H = 24;
 
 /**

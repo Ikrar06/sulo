@@ -28,8 +28,6 @@ export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgen
 export type Banner =
   | { kind: 'disabled_remotely'; message: string }
   | { kind: 'session_expired' }
-  | { kind: 'parser_broken' }
-  | { kind: 'budget_exhausted' }
   | { kind: 'offline' }
   | { kind: 'stale'; lastSyncAt: UnixSeconds | null }
   /** Lowest priority: notifications are blocked in Chrome, so reminders cannot show. */
@@ -151,14 +149,16 @@ export interface PopupInput {
 const offline = (input: PopupInput) =>
   input.online === false || input.syncStatus.lastOutcome?.status === 'offline' || input.session === 'OFFLINE';
 
-function bannerFor(input: PopupInput, stale: boolean): Banner | null {
+/**
+ * The one status message for the popup and the dashboard (shared, never
+ * duplicated). Users only see what they can act on: an expired session,
+ * being offline, blocked notifications, a remote pause. Budgets, backoff and
+ * parser trouble are never named; when data is more than 12 hours old for
+ * any other reason, one plain "could not update since" line covers it.
+ */
+export function bannerFor(input: PopupInput, stale: boolean): Banner | null {
   if (!input.remoteConfig.enabled) return { kind: 'disabled_remotely', message: input.remoteConfig.message };
   if (input.session === 'EXPIRED') return { kind: 'session_expired' };
-  const last = input.syncStatus.lastOutcome;
-  if (last?.status === 'parser_broken') return { kind: 'parser_broken' };
-  if (input.budget.used >= input.budgetLimit || (last?.status === 'skipped' && last.reason === 'BUDGET_EXHAUSTED')) {
-    return { kind: 'budget_exhausted' };
-  }
   if (offline(input)) return { kind: 'offline' };
   if (stale && input.user?.sync.lastSyncAt) return { kind: 'stale', lastSyncAt: input.user.sync.lastSyncAt };
   if (input.notificationsAllowed === false) return { kind: 'notifications_off' };

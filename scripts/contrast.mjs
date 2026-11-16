@@ -103,6 +103,7 @@ function pairs(t, theme) {
       'kalender: angka hari ini (--ink di oranye)': [c('ink'), orange],
       'kalender: chip filter mati (--muted di --bg)': [c('muted'), c('bg')],
       'kalender: hari dipilih (--text di --surface-raised)': [c('text'), c('surface-raised')],
+      'notice status: teks (--text di tint 8%)': [c('text'), mix(c('status-stale'), c('surface'), 0.08)],
       'sidebar: latar aktif terhadap latar sidebar (--nav-active di --bg, min 3:1)': [c('nav-active'), c('bg')],
       'sidebar: teks aktif (--text di --nav-active)': [c('text'), c('nav-active')],
       'sidebar: teks hover (--text di --nav-hover)': [c('text'), c('nav-hover')],

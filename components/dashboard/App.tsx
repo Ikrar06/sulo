@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { parseRoute, type Page, type Route } from '@/lib/dashboard/routes';
 import { resolveLocale } from '@/lib/i18n';
 import { dashFor } from '@/lib/i18n/dashboard';
-import { DashboardProvider, useDashboard } from './data';
+import { DashboardProvider, timeZone, useDashboard } from './data';
 import { DashboardShell } from './Shell';
+import { StatusNotice } from './StatusNotice';
 import type { PageProps } from './types';
 
 // Each page is its own chunk, loaded when first opened.
@@ -23,6 +24,9 @@ const PAGES: Record<Page, ComponentType<PageProps>> = {
 
 /** Pages whose data changes with a check: only these show "Diperbarui ... / Perbarui". */
 const REFRESH_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender']);
+
+/** Data pages: they show the status notice (expired session, data that could not be updated). */
+const DATA_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender', 'mata-kuliah']);
 
 /** Pages that work without a connected account. */
 const WITHOUT_ACCOUNT: ReadonlySet<Page> = new Set(['kalender', 'pengaturan', 'bantuan', 'tentang']);
@@ -80,7 +84,8 @@ function Router() {
         lastSyncAt={data.view.lastSyncAt}
         now={data.now}
         syncing={syncing || data.view.syncing}
-        onRefresh={(connected || data.pending) && (REFRESH_PAGES.has(route.page) || (reloadsCourses && connected)) ? () => void refresh() : null}
+        // Another SIKOLA account is signed in: no refresh and no "Diperbarui" in the header (the M4 message card explains).
+        onRefresh={connected && !data.pending && (REFRESH_PAGES.has(route.page) || reloadsCourses) ? () => void refresh() : null}
         refreshLabel={reloadsCourses ? d.mataKuliah.refreshList : undefined}
         showUpdated={!reloadsCourses}
         onOpenPrivacy={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}
@@ -88,9 +93,12 @@ function Router() {
         {blocked ? (
           <NotConnected d={d} mismatch={data.pending !== null} onSetup={() => actions.openTab(browser.runtime.getURL('/onboarding.html'))} />
         ) : (
-          <Suspense fallback={<p className="text-[14px] text-muted-foreground">{d.common.loading}</p>}>
-            <Page d={d} data={data} actions={actions} route={route} />
-          </Suspense>
+          <>
+            {DATA_PAGES.has(route.page) && <StatusNotice banner={data.view.banner} d={d} locale={locale} timeZone={timeZone} className="mb-4" />}
+            <Suspense fallback={<p className="text-[14px] text-muted-foreground">{d.common.loading}</p>}>
+              <Page d={d} data={data} actions={actions} route={route} />
+            </Suspense>
+          </>
         )}
       </DashboardShell>
     </I18nProvider>

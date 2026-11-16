@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useI18n } from '@/components/i18n';
-import { AlertIcon, BellOffIcon, ClockIcon, KeyIcon, OfflineIcon, PauseIcon } from '@/components/icons';
-import { formatAgo } from '@/lib/format/time';
+import { BellOffIcon, ClockIcon, KeyIcon, OfflineIcon, PauseIcon } from '@/components/icons';
+import { browserTimeZone, formatDue, localeOf } from '@/lib/format/time';
 import type { UnixSeconds } from '@/lib/types';
 import type { Banner } from '@/lib/view/popup-view';
 
@@ -41,14 +41,10 @@ export function StatusLine({ banner, now, actions }: { banner: Banner; now: Unix
       return line(<PauseIcon className={`${icon} text-status-disabled`} />, banner.message || b.disabledFallback);
     case 'session_expired':
       return line(<KeyIcon className={`${icon} text-status-stale`} />, b.sessionExpired, [b.openSikola, actions.onOpenSikola]);
-    case 'parser_broken':
-      return line(<AlertIcon className={`${icon} text-status-broken`} />, b.parserBroken, [b.report, actions.onReport]);
-    case 'budget_exhausted':
-      return line(<PauseIcon className={`${icon} text-status-disabled`} />, b.budget);
     case 'offline':
       return line(<OfflineIcon className={`${icon} text-status-offline`} />, b.offline);
     case 'stale':
-      return line(<ClockIcon className={`${icon} text-status-stale`} />, b.stale(banner.lastSyncAt ? formatAgo(banner.lastSyncAt, now, m) : null), [
+      return line(<ClockIcon className={`${icon} text-status-stale`} />, b.stale(banner.lastSyncAt ? formatDue(banner.lastSyncAt, localeOf(m), browserTimeZone()) : null), [
         b.refreshNow,
         actions.onRefresh,
       ]);

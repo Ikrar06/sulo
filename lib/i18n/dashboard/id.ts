@@ -17,6 +17,11 @@ export const dashId = {
     bantuan: 'Bantuan',
     tentang: 'Tentang',
   },
+  notice: {
+    sessionExpired: 'Sesi SIKOLA kamu habis. Masuk lagi di SIKOLA, lalu klik Perbarui.',
+    openSikola: 'Buka SIKOLA',
+    stale: (since: string) => `Sulo belum bisa memperbarui sejak ${since}. Coba Perbarui nanti.`,
+  },
   common: {
     refresh: 'Perbarui',
     updating: 'Sedang memperbarui...',
