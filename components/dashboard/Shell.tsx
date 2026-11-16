@@ -111,9 +111,10 @@ export function Card({ title, action, children, className = '', large = false }:
   return (
     <section className={`rounded-xl border border-border bg-surface ${large ? 'p-5' : 'p-4'} ${className}`}>
       {(title || action) && (
-        <div className="mb-3 flex items-center justify-between gap-3">
+        // In a narrow card the action moves under the title instead of breaking into two lines.
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           {title && <h2 className="text-[16px] leading-6 font-semibold">{title}</h2>}
-          {action}
+          {action && <div className="shrink-0 whitespace-nowrap">{action}</div>}
         </div>
       )}
       {children}
