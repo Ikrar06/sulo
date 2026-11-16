@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- A dashboard in a full tab, opened from ⚙ in the popup: Overview (today, this week, a 14-day workload map, the next important date and the teaching week), Tasks (filters, search, snooze, a personal due date for undated tasks, checklist steps and a note), Courses (active, display name, color, access status), Latest updates, Calendar, Settings, Help and About. Every page has its own link, and opening the dashboard never checks SIKOLA.
+- The academic calendar on screen: a one-line "important date" with a countdown under the popup's title, a month and list view with your task deadlines, flags for estimates, open ends and items to double-check, the source decree on every view, and subscription links for Google Calendar.
+- Academic calendar notifications a day before KRS, tuition payment, midterms, finals, the drop and withdrawal deadlines and grade appeals, and a week before KRS, tuition and finals. They can be turned off per kind.
+- Light and dark themes you can choose, an optional nickname and intake year, local usage statistics with a voluntary export, and a Help page with the FAQ that works offline.
+
 - The Unhas academic calendar 2026/2027 is built in (from the official decree, checked against its PDF) and updated from Sulo's public data at most once a day. It will be shown in the dashboard; subscribable calendars for core S1 dates, graduation and national holidays are published with the public data.
 
 - "Delete all data" in the popup settings menu removes everything Sulo keeps in this browser, after a dialog that lists what goes and says nothing in SIKOLA is touched. Setup then starts again.
@@ -59,6 +64,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - After a SIKOLA problem, waits are spread out a little per installation, and problems with Sulo's public data never pause SIKOLA checks.
 
 ### Fixed
+
+- Cleaning up leftover data could delete a first account's freshly saved data when the extension woke up at the same moment as the first check.
 
 - One course that cannot be opened no longer makes Sulo think you were logged out. Only the session check itself, or a login page at the top level, means the session ended. Courses with an access error are skipped for 24 hours and flagged after 3 failures in a row; server errors are retried at the next check, and when every course fails that way Sulo backs off from SIKOLA instead.
 - Only one sync runs at a time: pressing update while one is running waits for it instead of sending another request, and the popup says "Sedang memperbarui".
