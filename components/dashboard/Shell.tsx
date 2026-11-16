@@ -61,8 +61,9 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
                 key={p}
                 href={routeHash(p)}
                 aria-current={current ? 'page' : undefined}
+                // Active: --nav-active (3:1 on the sidebar) with semibold text and icon in text color. Hover: half as strong, weight unchanged.
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] whitespace-nowrap outline-none focus-ring:ring-2 focus-ring:ring-focus ${
-                  current ? 'bg-surface-raised font-semibold text-foreground' : 'text-muted-foreground hover:bg-surface-raised hover:text-foreground'
+                  current ? 'bg-nav-active font-semibold text-foreground' : 'text-muted-foreground hover:bg-nav-hover hover:text-foreground'
                 }`}
               >
                 <Icon className="size-4 shrink-0" />
