@@ -1,10 +1,11 @@
-import { useMemo, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useI18n } from '@/components/i18n';
 import { formatDateKey } from '@/lib/calendar/countdown';
 import { addDays } from '@/lib/calendar/dates';
 import { eventsOnDay, type CalEvent } from '@/lib/calendar/groups';
 import { monthGrid } from '@/lib/calendar/month';
 import { layoutWeek, periodAt, type WeekBar } from '@/lib/calendar/week-layout';
+import { gridRowHeight, lanesForRow } from '@/lib/calendar/row-height';
 import type { DashMessages } from '@/lib/i18n/dashboard';
 
 /**
@@ -26,7 +27,20 @@ export function MonthView({ month, today, events, holidays, selected, onSelect, 
 }) {
   const { m } = useI18n();
   const weeks = monthGrid(month);
-  const layouts = useMemo(() => weeks.map((w) => layoutWeek(events, w[0]!)), [weeks, events]);
+  const grid = useRef<HTMLDivElement>(null);
+  const [rowHeight, setRowHeight] = useState(112);
+  // Rows share the height left under the grid's top edge (clamped 88..128), so a 6-week month fits the window.
+  useEffect(() => {
+    const measure = () => {
+      const top = grid.current ? grid.current.getBoundingClientRect().top + window.scrollY : 0;
+      setRowHeight(gridRowHeight(window.innerHeight, top, weeks.length));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [weeks.length]);
+  const lanes = lanesForRow(rowHeight);
+  const layouts = useMemo(() => weeks.map((w) => layoutWeek(events, w[0]!, lanes)), [weeks, events, lanes]);
   const weekdays = weeks[0]!.map((day) => formatDateKey(day, m.intl, { weekday: 'short' }));
 
   const move = (e: KeyboardEvent<HTMLButtonElement>, day: string) => {
@@ -45,11 +59,11 @@ export function MonthView({ month, today, events, holidays, selected, onSelect, 
           <span key={w}>{w}</span>
         ))}
       </div>
-      <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border">
+      <div ref={grid} className="grid gap-px overflow-hidden rounded-xl border border-border bg-border">
         {weeks.map((week, wi) => {
           const layout = layouts[wi]!;
           return (
-            <div key={week[0]} className="relative grid min-h-28 grid-cols-7 gap-px">
+            <div key={week[0]} className="relative grid grid-cols-7 gap-px" style={{ minHeight: rowHeight }}>
               {week.map((day, col) => {
                 const inMonth = day.slice(0, 7) === month;
                 const period = periodAt(layout, col);
@@ -80,7 +94,7 @@ export function MonthView({ month, today, events, holidays, selected, onSelect, 
                         </span>
                       )}
                     </span>
-                    {hidden > 0 && <span className="absolute bottom-1 left-2 text-[12px] leading-4 font-semibold text-muted-foreground">{d.kalender.more(hidden)}</span>}
+                    {hidden > 0 && <span className={`absolute left-2 text-[12px] leading-4 font-semibold text-muted-foreground ${lanes < 3 ? 'bottom-0' : 'bottom-1'}`}>{d.kalender.more(hidden)}</span>}
                   </button>
                 );
               })}
