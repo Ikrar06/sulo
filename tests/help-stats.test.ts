@@ -36,7 +36,7 @@ describe('help content', () => {
 
 describe('outside links', () => {
   it('Trakteer, the feedback form and the creator links are set', () => {
-    expect(TRAKTEER_URL).toBe('https://trakteer.id/krar');
+    expect(TRAKTEER_URL).toBe('https://teer.id/krar');
     expect(isShownLink(TRAKTEER_URL)).toBe(true);
     // The public short link, never an editor link (leak-rules blocks /edit).
     expect(FEEDBACK_FORM_URL).toBe('https://forms.gle/XsBuWXGHNR4pPTs17');

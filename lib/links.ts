@@ -3,7 +3,7 @@
 // is loaded into any extension page. An empty value hides its link.
 
 /** "Traktir kopi" (Trakteer). */
-export const TRAKTEER_URL = 'https://trakteer.id/krar';
+export const TRAKTEER_URL = 'https://teer.id/krar';
 
 export type CreatorLinkId = 'instagram' | 'linkedin' | 'github' | 'web';
 
