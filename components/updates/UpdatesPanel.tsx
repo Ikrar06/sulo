@@ -25,6 +25,10 @@ export interface UpdatesPanelProps {
   onBack?: () => void;
   /** Inside a page that already has the title (dashboard): the heading is for screen readers only. */
   embedded?: boolean;
+  /** The "notify me about" checkboxes under the list; the dashboard moves them into a popover. */
+  showSettings?: boolean;
+  /** Replaces the default one-line empty state. */
+  empty?: ReactNode;
 }
 
 function dayLabel(at: UnixSeconds, now: UnixSeconds, timeZone: string, today: string, yesterday: string, intl: string): string {
@@ -45,7 +49,7 @@ function Entry({ entry, course, timeZone, onOpen }: { entry: ChangeLogEntry; cou
         <span className={`min-w-0 flex-1 text-(length:--fs-body) leading-(--lh-body) ${entry.seen ? 'text-foreground/85' : 'font-semibold'}`}>{describeChange(entry.change, timeZone, m)}</span>
         <span className="shrink-0 text-[12px] leading-(--lh-body) text-muted-foreground tabular-nums">{formatClock(entry.at, timeZone, m)}</span>
       </span>
-      <span className={`mt-0.5 block truncate text-[12px] leading-(--lh-caption) text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`}>{course}</span>
+      <span className={`mt-0.5 block truncate text-[12px] leading-(--lh-caption) text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`} title={course}>{course}</span>
     </>
   );
   return (
@@ -78,7 +82,23 @@ function Check({ checked, onChange, children }: { checked: boolean; onChange: (v
   );
 }
 
-export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack, embedded = false }: UpdatesPanelProps) {
+/** "Beri tahu saya tentang": the four kinds and the quiet-hours note. Shared by the panel and the dashboard's popover; one source (prefs.updates). */
+export function UpdateSettingsChecks({ settings, onChange }: { settings: UpdatesPanelProps['settings']; onChange: UpdatesPanelProps['onChangeSettings'] }) {
+  const { m } = useI18n();
+  const u = m.popup.updates;
+  return (
+    <>
+      {UPDATE_CATEGORIES.map((c: UpdateCategory) => (
+        <Check key={c} checked={settings[c]} onChange={(v) => onChange({ ...settings, [c]: v })}>
+          {u.categories[c]}
+        </Check>
+      ))}
+      <p className="pt-1 text-[12px] leading-(--lh-caption) text-muted-foreground">{u.settingsNote}</p>
+    </>
+  );
+}
+
+export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack, embedded = false, showSettings = true, empty }: UpdatesPanelProps) {
   const { m } = useI18n();
   const u = m.popup.updates;
   const days = new Map<string, ChangeLogEntry[]>();
@@ -107,7 +127,7 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
       </header>
       <div className="flex-1 overflow-y-auto pb-2">
         {entries.length === 0 ? (
-          <p className="px-4 py-6 text-center text-(length:--fs-body) text-muted-foreground">{u.empty}</p>
+          (empty ?? <p className="px-4 py-6 text-center text-(length:--fs-body) text-muted-foreground">{u.empty}</p>)
         ) : (
           [...days.entries()].map(([label, list]) => (
             <section key={label} className="px-1 pt-1">
@@ -120,18 +140,15 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
             </section>
           ))
         )}
-        <section className="mx-4 mt-2 border-t border-border pt-3">
-          <h2 className="flex items-center gap-1.5 text-(length:--fs-caption) font-semibold text-muted-foreground">
-            <BellIcon className="size-3.5" aria-hidden="true" />
-            {u.settings}
-          </h2>
-          {UPDATE_CATEGORIES.map((c: UpdateCategory) => (
-            <Check key={c} checked={settings[c]} onChange={(v) => onChangeSettings({ ...settings, [c]: v })}>
-              {u.categories[c]}
-            </Check>
-          ))}
-          <p className="pt-1 text-[12px] leading-(--lh-caption) text-muted-foreground">{u.settingsNote}</p>
-        </section>
+        {showSettings && (
+          <section className="mx-4 mt-2 border-t border-border pt-3">
+            <h2 className="flex items-center gap-1.5 text-(length:--fs-caption) font-semibold text-muted-foreground">
+              <BellIcon className="size-3.5" aria-hidden="true" />
+              {u.settings}
+            </h2>
+            <UpdateSettingsChecks settings={settings} onChange={onChangeSettings} />
+          </section>
+        )}
       </div>
     </div>
   );

@@ -64,6 +64,7 @@ export function Upcoming({ events, today, d, onSelect }: { events: readonly CalE
   const { m } = useI18n();
   const next = upcomingEvents(events, today);
   const k = d.kalender;
+  const meta = (e: CalEvent) => `${k.groups[e.group]}${e.end !== e.start ? ` · ${formatRange({ mulai: e.start, selesai: e.end }, m.intl, k.to, '')}` : ''}`;
   return (
     <Card title={k.upcoming}>
       {next.length === 0 ? (
@@ -84,9 +85,8 @@ export function Upcoming({ events, today, d, onSelect }: { events: readonly CalE
                   </span>
                   <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
                     <span aria-hidden="true" className={`db-cat-${e.group} db-cat-dot size-2 shrink-0 rounded-full`} />
-                    <span className="truncate">
-                      {k.groups[e.group]}
-                      {e.end !== e.start ? ` · ${formatRange({ mulai: e.start, selesai: e.end }, m.intl, k.to, '')}` : ''}
+                    <span className="truncate" title={meta(e)}>
+                      {meta(e)}
                     </span>
                   </span>
                 </span>
