@@ -125,6 +125,31 @@
 .db-chip-holiday { background: color-mix(in oklch, var(--danger) 16%, var(--surface)); color: var(--text); }
 .db-chip-task { border: 1px solid var(--border); color: var(--text); }
 
+/* Accent text (countdown numbers only). Brand orange reads 5.7:1 on the
+   dark surface but only 3.1:1 on white, so the light theme darkens it
+   (75% orange + ink: 5.3:1 on --surface). Checked by scripts/contrast.mjs. */
+.db-layout {
+  --accent-text: var(--brand-orange);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .db-layout {
+    --accent-text: color-mix(in oklch, var(--brand-orange) 75%, var(--ink));
+  }
+}
+
+[data-theme="light"] .db-layout {
+  --accent-text: color-mix(in oklch, var(--brand-orange) 75%, var(--ink));
+}
+
+[data-theme="dark"] .db-layout {
+  --accent-text: var(--brand-orange);
+}
+
+.db-accent-text {
+  color: var(--accent-text);
+}
+
 /* Text pages (Bantuan, Tentang): a comfortable reading measure. */
 .db-prose {
   max-width: 68ch;

@@ -112,6 +112,39 @@ export function WeekProgress({ calendar, today, d }: { calendar: CalendarFile; t
   );
 }
 
+/** The teaching week as one 12 px line, "Semester Awal · Minggu ke-14 dari 16", and a 6 px bar (neutral track, text-colored fill). */
+export function WeekLine({ calendar, today, d, barWidth }: { calendar: CalendarFile; today: string; d: DashMessages; barWidth?: string }) {
+  const { m } = useI18n();
+  const { semester, info } = currentWeek(calendar, today);
+  const w = d.kalender.week;
+  const semesterLabel = semester ? w.semester[semester] : null;
+  const text =
+    info.kind === 'week'
+      ? w.n(info.nomor, info.total)
+      : info.kind === 'unavailable'
+        ? w.unavailable
+        : info.kind === 'before'
+          ? w.before(formatDateKey(info.startsOn, m.intl, { day: 'numeric', month: 'long' }))
+          : info.kind === 'excluded'
+            ? w.excluded(info.alasan)
+            : w.after;
+  const label = [semesterLabel, text].filter(Boolean).join(' · ');
+  return (
+    <div>
+      <p className="text-[12px] leading-normal">{label}</p>
+      {info.kind === 'week' && <WeekBar nomor={info.nomor} total={info.total} label={w.n(info.nomor, info.total)} className={`mt-2 ${barWidth ?? 'w-full'}`} />}
+    </div>
+  );
+}
+
+export function WeekBar({ nomor, total, label, className = '' }: { nomor: number; total: number; label: string; className?: string }) {
+  return (
+    <div role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={nomor} aria-label={label} className={`h-1.5 overflow-hidden rounded-full bg-surface-raised ${className}`}>
+      <div className="h-full rounded-full bg-foreground" style={{ width: `${Math.round((nomor / total) * 100)}%` }} />
+    </div>
+  );
+}
+
 /** Source, revision, verification date, the official PDF and "rujuk dokumen resmi". */
 export function SourceLine({ calendar, d }: { calendar: CalendarFile; d: DashMessages }) {
   const { m } = useI18n();

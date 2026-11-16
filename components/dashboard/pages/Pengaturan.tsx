@@ -153,7 +153,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         </Field>
       </Card>
 
-      <Card title={<span id="set-pengingat">{t.sections.pengingat}</span>} className="p-0 pt-4 [&>div:first-child]:px-4">
+      <Card title={<span id="set-pengingat">{t.sections.pengingat}</span>} className="!p-0 !pt-5 [&>div:first-child]:px-5">
         <RemindersPanel
           settings={prefs.reminders}
           timeZone={timeZone}

@@ -11,7 +11,7 @@
 // - every target="_blank" link carries rel="noopener noreferrer"
 // In the dashboard (components/dashboard/):
 // - text sizes only 12, 14, 16, 20, 24 px (never below 12)
-// - spacing only 0, 4, 8, 12, 16, 24, 32 px (20 px only as large-card padding)
+// - spacing only 0, 4, 8, 12, 16, 24, 32 px (20 px only as card padding)
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -78,7 +78,7 @@ for (const file of walk(join(root, 'components', 'dashboard'), ['.tsx'])) {
       if (step.startsWith('[')) {
         const px = /^\[(\d+)px\]$/.exec(step)?.[1];
         if (!px || !['4', '8', '12', '16', '24', '32'].includes(px)) report(file, line, `jarak ${whole} di luar skala`, whole);
-      } else if (!STEP_OK.has(step) && !(step === '5' && prop === 'p')) report(file, line, `jarak ${whole} di luar skala`, whole);
+      } else if (!STEP_OK.has(step) && !(step === '5' && prop.startsWith('p'))) report(file, line, `jarak ${whole} di luar skala`, whole);
     }
   });
 }

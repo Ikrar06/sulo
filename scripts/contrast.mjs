@@ -68,6 +68,8 @@ function pairs(t, theme) {
   const orange = c('brand-orange');
   const supportHover = theme === 'terang' ? mix(orange, c('ink'), 0.92) : mix(orange, WHITE, 0.88);
   const supportMuted = mix(c('ink'), orange, 0.85);
+  // Accent text (countdown numbers, components/dashboard/dashboard.css).
+  const accentText = theme === 'terang' ? mix(orange, c('ink'), 0.75) : orange;
   const ev = c('surface-raised');
   const exam = mix(c('brand-amber'), c('surface'), 0.28);
   const holiday = mix(c('danger'), c('surface'), 0.16);
@@ -92,6 +94,9 @@ function pairs(t, theme) {
       'peta beban tingkat 2': [c('text'), load(2, 'brand-amber', 0.45)],
       'peta beban tingkat 3 (teks --text)': [c('text'), load(3, 'brand-orange', 0.62)],
       'peta beban tingkat 4 (teks --ink)': [c('ink'), load(4, 'brand-orange', 0.88)],
+      'angka hitung mundur (--accent-text di --surface)': [accentText, c('surface')],
+      'angka hitung mundur (--accent-text di --bg)': [accentText, c('bg')],
+      'keterlambatan (--urgency-overdue di --surface)': [c('urgency-overdue'), c('surface')],
       'tombol traktir: teks dan cangkir (--ink di oranye)': [c('ink'), orange],
       'tombol traktir hover: teks dan cangkir': [c('ink'), supportHover],
       'tombol traktir: panah muted': [supportMuted, orange],

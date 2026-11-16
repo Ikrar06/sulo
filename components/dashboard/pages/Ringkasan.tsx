@@ -5,99 +5,97 @@ import { Mascot } from '@/components/mascot/Mascot';
 import { formatDateKey } from '@/lib/calendar/countdown';
 import { dayPart, greetingText } from '@/lib/dashboard/greeting';
 import { loadMap } from '@/lib/dashboard/load-map';
+import { buildSummary, groupOverview, heroMood, limitGroups } from '@/lib/dashboard/overview';
 import { routeHash } from '@/lib/dashboard/routes';
-import { buildTaskItems } from '@/lib/dashboard/tasks';
+import { buildTaskItems, type TaskItem } from '@/lib/dashboard/tasks';
 import { formatRemaining } from '@/lib/format/time';
 import { describeChange } from '@/lib/radar/describe';
 import { localParts } from '@/lib/reminders/zoned';
-import type { TaskGroupView } from '@/lib/view/popup-view';
-import { ImportantCard, SourceLine, WeekProgress } from '../CalendarParts';
+import { AcademicCard, nextForSummary, SummaryLine } from '../OverviewParts';
 import { timeZone } from '../data';
-import { Card } from '../Shell';
+import { Card, CardLink } from '../Shell';
 import type { PageProps } from '../types';
 
-const linkClass =
-  'inline-flex items-center gap-1 rounded text-[12px] text-muted-foreground underline-offset-2 outline-none hover:text-foreground hover:underline focus-ring:ring-2 focus-ring:ring-focus';
-
 const LEVELS = [1, 2, 3, 4] as const;
+
+type Row = TaskItem & { dueAt: number | null };
 
 export function RingkasanPage({ d, data }: PageProps) {
   const { m } = useI18n();
   const r = d.ringkasan;
   const user = data.user!;
-  const groups = data.view.groups;
-  const group = (key: TaskGroupView['key']) => groups.find((g) => g.key === key)?.rows ?? [];
-  const pending = useMemo(() => buildTaskItems(user).filter((i) => i.status === 'pending').map((i) => i.task), [user]);
-  const days = useMemo(() => loadMap(pending, data.calendar.kegiatan, data.now, timeZone), [pending, data.calendar, data.now]);
+  const pendingItems = useMemo(() => buildTaskItems(user).filter((i) => i.status === 'pending'), [user]);
+  const rows = useMemo<Row[]>(() => pendingItems.map((i) => ({ ...i, dueAt: i.task.dueAt })), [pendingItems]);
+  const groups = useMemo(() => groupOverview(rows, data.now, timeZone), [rows, data.now]);
+  const shown = limitGroups(groups);
+  const overdue = groups.find((g) => g.key === 'overdue')?.rows.length ?? 0;
+  const dueThisWeek = groups.filter((g) => g.key !== 'overdue').reduce((n, g) => n + g.rows.length, 0);
+
+  const days = useMemo(() => loadMap(pendingItems.map((i) => i.task), data.calendar.kegiatan, data.now, timeZone), [pendingItems, data.calendar, data.now]);
   const loadEmpty = days.every((day) => day.tasks.length === 0 && day.events.length === 0);
   const updates = data.view.updates.slice(0, 6);
   const hour = Math.floor(localParts(data.now, timeZone).minuteOfDay / 60);
-
-  const taskList = (rows: ReturnType<typeof group>, empty: string) =>
-    rows.length === 0 ? (
-      <p className="text-[14px] text-muted-foreground">{empty}</p>
-    ) : (
-      <ul className="space-y-1">
-        {rows.map((row) => (
-          <li key={row.eventId}>
-            <a href={routeHash('tugas', row.eventId)} className="flex items-start gap-3 rounded-lg px-2 py-2 outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus">
-              <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: `var(--course-${row.courseColor})` }} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14px] font-semibold">{row.name}</span>
-                <span className="block truncate text-[12px] text-muted-foreground">{row.courseName}</span>
-              </span>
-              <span className="shrink-0 text-[12px] leading-6 text-muted-foreground tabular-nums">{row.dueAt !== null ? formatRemaining(row.dueAt, data.now, timeZone, m) : ''}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    );
+  const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d) });
 
   return (
     <div className="space-y-4">
-      <p className="text-[16px] text-muted-foreground">{greetingText(r.greeting[dayPart(hour)], data.prefs.nickname)}</p>
+      {/* Hero: no card. One mascot on this page; it idles and stops for reduced motion (Mascot handles both). */}
+      <section className="flex items-center gap-4 pb-2">
+        <Mascot state={heroMood(overdue, dueThisWeek)} size={56} />
+        <div className="min-w-0">
+          <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.nickname)}</h2>
+          <SummaryLine parts={summary} d={d} />
+        </div>
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-4">
-          {group('overdue').length > 0 && <Card title={r.overdue}>{taskList(group('overdue'), '')}</Card>}
-          <Card
-            title={r.today}
-            action={
-              <a href={routeHash('tugas')} className={linkClass}>
-                {r.allTasks}
-                <ChevronRightIcon className="size-3" />
-              </a>
-            }
-          >
-            {taskList(group('soon'), r.nothingToday)}
-          </Card>
-          <Card title={r.week}>{taskList(group('week'), r.nothingWeek)}</Card>
-        </div>
-        <div className="space-y-4">
-          <Card
-            title={r.importantTitle}
-            action={
-              <a href={routeHash('kalender')} className={linkClass}>
-                {r.openCalendar}
-                <ChevronRightIcon className="size-3" />
-              </a>
-            }
-          >
-            <ImportantCard calendar={data.calendar} today={data.today} d={d} />
-          </Card>
-          <Card>
-            <WeekProgress calendar={data.calendar} today={data.today} d={d} />
-          </Card>
-          <SourceLine calendar={data.calendar} d={d} />
-        </div>
+      <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>}>
+          {shown.groups.length === 0 ? (
+            <p className="text-[14px] text-muted-foreground">{r.nothingSoon}</p>
+          ) : (
+            <div className="space-y-4">
+              {shown.groups.map((g) => (
+                <section key={g.key} aria-label={r.groups[g.key]}>
+                  <h3 className="mb-1 text-[12px] font-semibold text-muted-foreground">{r.groups[g.key]}</h3>
+                  <ul>
+                    {g.rows.map((row) => (
+                      <li key={row.task.eventId}>
+                        <a href={routeHash('tugas', row.task.eventId)} className="-mx-2 flex items-start gap-3 rounded-lg px-2 py-2 outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus">
+                          <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: `var(--course-${row.courseColor})` }} />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[14px] font-semibold" title={row.task.name}>
+                              {row.task.name}
+                            </span>
+                            <span className="block truncate text-[12px] text-muted-foreground" title={row.courseName}>
+                              {row.courseName}
+                            </span>
+                          </span>
+                          <span className={`shrink-0 text-[12px] leading-6 tabular-nums ${g.key === 'overdue' ? 'text-urgency-overdue' : 'text-muted-foreground'}`}>
+                            {row.dueAt !== null ? formatRemaining(row.dueAt, data.now, timeZone, m) : ''}
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+              {shown.hidden > 0 && (
+                <a href={routeHash('tugas')} className="inline-block rounded text-[14px] text-muted-foreground outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+                  {r.moreRows(shown.hidden)}
+                </a>
+              )}
+            </div>
+          )}
+        </Card>
+
+        <Card title={r.calendarTitle} action={<CardLink href={routeHash('kalender')}>{r.openCalendar}</CardLink>} className="flex flex-col [&>div:last-child]:flex-1">
+          <AcademicCard calendar={data.calendar} today={data.today} d={d} />
+        </Card>
       </div>
 
       <Card title={r.loadTitle}>
         {loadEmpty ? (
-          <div className="flex items-center gap-3">
-            <Mascot state="all-done" size={40} still />
-            <p className="text-[14px] text-muted-foreground">{r.loadEmpty}</p>
-          </div>
+          <p className="text-[14px] text-muted-foreground">{r.loadEmpty}</p>
         ) : (
           <>
             <p className="mb-3 text-[12px] text-muted-foreground">{r.loadHelp}</p>
@@ -115,7 +113,7 @@ export function RingkasanPage({ d, data }: PageProps) {
                 );
               })}
             </ol>
-            {/* Legend: the four filled levels, lightest to darkest. */}
+            {/* Legend only with data: the four filled levels, lightest to darkest. */}
             <div className="mt-3 flex items-center justify-end gap-2 text-[12px] text-muted-foreground" aria-hidden="true">
               <span>{r.loadLess}</span>
               {LEVELS.map((l) => (
@@ -127,26 +125,23 @@ export function RingkasanPage({ d, data }: PageProps) {
         )}
       </Card>
 
-      <Card
-        title={r.updatesTitle}
-        action={
-          <a href={routeHash('kabar')} className={linkClass}>
-            {r.allUpdates}
-            <ChevronRightIcon className="size-3" />
-          </a>
-        }
-      >
+      <Card title={r.updatesTitle} action={<CardLink href={routeHash('kabar')}>{r.allUpdates}</CardLink>}>
         {updates.length === 0 ? (
           <p className="text-[14px] text-muted-foreground">{r.updatesEmpty}</p>
         ) : (
           <ul className="space-y-2">
-            {updates.map((e) => (
-              <li key={e.id} className="flex items-baseline gap-2 text-[14px]">
-                <span aria-hidden="true" className={`size-2 shrink-0 self-center rounded-full ${e.seen ? 'bg-transparent' : 'bg-brand-amber'}`} />
-                <span className={`min-w-0 flex-1 ${e.seen ? '' : 'font-semibold'}`}>{describeChange(e.change, timeZone, m)}</span>
-                <span className="shrink-0 truncate text-[12px] text-muted-foreground">{e.change.courseId !== null ? data.view.courseNames[String(e.change.courseId)] : ''}</span>
-              </li>
-            ))}
+            {updates.map((e) => {
+              const course = e.change.courseId !== null ? (data.view.courseNames[String(e.change.courseId)] ?? '') : '';
+              return (
+                <li key={e.id} className="flex items-baseline gap-2 text-[14px]">
+                  <span aria-hidden="true" className={`size-2 shrink-0 self-center rounded-full ${e.seen ? 'bg-transparent' : 'bg-brand-amber'}`} />
+                  <span className={`min-w-0 flex-1 ${e.seen ? '' : 'font-semibold'}`}>{describeChange(e.change, timeZone, m)}</span>
+                  <span className="max-w-[40%] shrink-0 truncate text-[12px] text-muted-foreground" title={course}>
+                    {course}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>

@@ -24,7 +24,7 @@ export function BantuanPage({ d, route }: PageProps) {
   return (
     <div className="db-prose space-y-4">
       <p className="text-[12px] text-muted-foreground">{b.offline}</p>
-      <Card title={b.howTitle} large>
+      <Card title={b.howTitle}>
         <div className="space-y-4">
           {HOW_IT_WORKS.map((s) => (
             <section key={s.heading.id} className="space-y-2">
@@ -38,7 +38,7 @@ export function BantuanPage({ d, route }: PageProps) {
           ))}
         </div>
       </Card>
-      <Card title={b.faqTitle} large>
+      <Card title={b.faqTitle}>
         <div className="divide-y divide-border">
           {FAQ.map((f) => (
             <details key={f.id} id={`faq-${f.id}`} className="group">
