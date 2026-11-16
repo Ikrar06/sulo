@@ -150,6 +150,22 @@
   color: var(--accent-text);
 }
 
+/* A course row that just moved between "Dipantau" and "Tidak dipantau". */
+.db-row-enter {
+  animation: db-row-enter 180ms ease-out;
+}
+
+@keyframes db-row-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .db-row-enter {
+    animation: none;
+  }
+}
+
 /* Text pages (Bantuan, Tentang): a comfortable reading measure. */
 .db-prose {
   max-width: 68ch;

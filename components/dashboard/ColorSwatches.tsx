@@ -14,7 +14,10 @@ export function ColorSwatches({
   autoLabel,
   names,
   autoColor,
+  onPick,
 }: {
+  /** Called after a click or Enter/Space chooses a swatch (arrow keys only move); a popover closes here. */
+  onPick?: () => void;
   /** 1..8, or null for automatic. */
   value: number | null;
   onChange: (value: number | null) => void;
@@ -58,7 +61,10 @@ export function ColorSwatches({
             aria-label={name}
             title={name}
             tabIndex={checked ? 0 : -1}
-            onClick={() => onChange(option)}
+            onClick={() => {
+              onChange(option);
+              onPick?.();
+            }}
             onKeyDown={onKeyDown}
             className={`relative flex size-5 shrink-0 items-center justify-center rounded-full outline-none focus-ring:outline-2 focus-ring:outline-offset-4 focus-ring:outline-focus ${
               checked ? 'ring-2 ring-foreground ring-offset-2 ring-offset-surface' : ''

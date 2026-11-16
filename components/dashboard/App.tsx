@@ -63,9 +63,11 @@ function Router() {
   const connected = data.user !== null && data.view.onboarded;
   const blocked = !connected && !WITHOUT_ACCOUNT.has(route.page);
 
+  // Mata kuliah reloads the course list itself; the others sync tasks and updates.
+  const reloadsCourses = route.page === 'mata-kuliah';
   const refresh = async () => {
     setSyncing(true);
-    await actions.sync();
+    await actions.sync(reloadsCourses);
     setSyncing(false);
   };
 
@@ -78,7 +80,9 @@ function Router() {
         lastSyncAt={data.view.lastSyncAt}
         now={data.now}
         syncing={syncing || data.view.syncing}
-        onRefresh={(connected || data.pending) && REFRESH_PAGES.has(route.page) ? () => void refresh() : null}
+        onRefresh={(connected || data.pending) && (REFRESH_PAGES.has(route.page) || (reloadsCourses && connected)) ? () => void refresh() : null}
+        refreshLabel={reloadsCourses ? d.mataKuliah.refreshList : undefined}
+        showUpdated={!reloadsCourses}
         onOpenPrivacy={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}
       >
         {blocked ? (

@@ -72,6 +72,13 @@ export const InfoIcon = (p: IconProps) => (
   </Icon>
 );
 
+export const PencilIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M17 3.5a2.1 2.1 0 0 1 3 3L8 18.5 3.5 20 5 15.5z" />
+    <path d="m14.5 6 3.5 3.5" />
+  </Icon>
+);
+
 export const XIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M18 6 6 18M6 6l12 12" />

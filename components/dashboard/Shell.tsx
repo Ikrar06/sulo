@@ -34,11 +34,15 @@ export interface ShellProps {
   now: number;
   syncing: boolean;
   onRefresh: (() => void) | null;
+  /** The refresh button's text ("Perbarui" by default; "Muat ulang daftar" on Mata kuliah). */
+  refreshLabel?: string;
+  /** "Diperbarui 5 menit lalu" next to the button; off where it would mislead. */
+  showUpdated?: boolean;
   onOpenPrivacy: () => void;
   children: ReactNode;
 }
 
-export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRefresh, onOpenPrivacy, children }: ShellProps) {
+export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRefresh, refreshLabel, showUpdated = true, onOpenPrivacy, children }: ShellProps) {
   const { m } = useI18n();
   const updated = syncing ? d.common.updating : lastSyncAt ? m.popup.updatedAgo(formatAgo(lastSyncAt, now, m)) : m.popup.neverUpdated;
   return (
@@ -87,12 +91,14 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
           <h1 className="font-heading text-[20px] leading-8">{d.nav[page]}</h1>
           {onRefresh && (
             <div className="flex items-center gap-3">
-              <span className="text-[12px] text-muted-foreground" role="status">
-                {updated}
-              </span>
+              {showUpdated && (
+                <span className="text-[12px] text-muted-foreground" role="status">
+                  {updated}
+                </span>
+              )}
               <Button variant="outline" onClick={onRefresh} disabled={syncing}>
                 <RefreshIcon className={`size-4 ${syncing ? 'motion-safe:animate-spin' : ''}`} />
-                {d.common.refresh}
+                {refreshLabel ?? d.common.refresh}
               </Button>
             </div>
           )}
