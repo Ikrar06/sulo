@@ -376,6 +376,7 @@ export const id = {
 
   privacyPage: {
     updated: (date: string) => `Terakhir diperbarui: ${date}`,
+    onThisPage: 'Di halaman ini',
   },
 
   recorder: {

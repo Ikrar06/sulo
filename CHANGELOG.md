@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The overview opens with the mascot, a greeting with your nickname and one summary line (overdue tasks, deadlines this week, the next important date). Tasks are one card grouped as overdue, today, tomorrow and this week; the academic calendar is one card with the next date and the teaching week.
 - Courses are a compact list: a color dot that opens the eight swatches plus "Automatic", the display name edited in place, SIKOLA's name with the class code, and a "Followed" switch. Courses you do not follow sit in a folded section.
 - One date format for due times everywhere: "Jum, 13 Nov, 23.59" in Indonesian and "Fri, 13 Nov, 11:59 PM" in English, without a time zone suffix.
-- An About page with what Sulo does, the maker's links, a "Buy me a coffee" button that opens Trakteer's send page, and a "Send feedback" link to a public Google Form beside it (both open in a new tab; the form reminds you not to send your student number, password or grades).
+- Help, About and the privacy policy read like documents: the text at a comfortable width with a table of contents beside it that follows your scroll. About has what Sulo does, the maker's links, a "Buy me a coffee" button that opens Trakteer's send page and a "Send feedback" link to a public Google Form (both open in a new tab; the form reminds you not to send your student number, password or grades).
 
 - The Unhas academic calendar 2026/2027 is built in (from the official decree, checked against its PDF) and updated from Sulo's public data at most once a day. It will be shown in the dashboard; subscribable calendars for core S1 dates, graduation and national holidays are published with the public data.
 

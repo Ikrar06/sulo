@@ -1,8 +1,10 @@
-import type { ComponentType, SVGProps } from 'react';
+import { useId, type ComponentType, type SVGProps } from 'react';
 import { browser } from 'wxt/browser';
 import { ExternalIcon } from '@/components/icons';
 import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, TRAKTEER_URL, type CreatorLinkId } from '@/lib/links';
+import { DocLayout } from '@/components/ui/doc-layout';
 import { SupportButton } from '@/components/ui/support-button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '../icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
@@ -28,69 +30,93 @@ export function TentangPage({ d, actions }: PageProps) {
   const t = d.tentang;
   const creators = CREATOR_LINKS.filter((l) => isShownLink(l.url));
   const feedback = isShownLink(FEEDBACK_FORM_URL);
+  const warnId = useId();
+
+  const version = (
+    <div className="rounded-xl border border-border bg-surface p-5">
+      <p className="text-[14px] font-semibold">{t.versionTitle}</p>
+      <p className="mt-2 text-[12px] leading-normal text-muted-foreground">
+        {t.version(browser.runtime.getManifest().version)}. {t.license}
+      </p>
+      <button
+        type="button"
+        className="mt-2 rounded text-[12px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus"
+        onClick={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}
+      >
+        {t.privacy}
+      </button>
+    </div>
+  );
+  const toc = [{ id: 'tentang-sulo', label: t.tocAbout }, ...(creators.length > 0 ? [{ id: 'pembuat', label: t.tocMaker }] : []), { id: 'dukung', label: t.tocSupport }];
 
   return (
-    <div className="db-prose space-y-4">
-      <Card>
-        <p className="text-[14px] leading-normal">{t.intro}</p>
-        <ul className="mt-3 list-disc space-y-1 pl-6 text-[14px] leading-normal">
-          {t.points.map((p) => (
-            <li key={p}>{p}</li>
-          ))}
-        </ul>
-        <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-normal text-muted-foreground">
-          <span>
-            {t.version(browser.runtime.getManifest().version)}. {t.license}
-          </span>
-          <button
-            type="button"
-            className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus"
-            onClick={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}
-          >
-            {t.privacy}
-          </button>
-        </p>
-      </Card>
-
-      {creators.length > 0 && (
-        <Card title={t.madeBy(CREATOR_NAME)}>
-          <ul className="flex flex-wrap gap-x-6 gap-y-2">
-            {creators.map((l) => {
-              const Icon = LINK_ICONS[l.id];
-              return (
-                <li key={l.id}>
-                  <a href={l.url} {...external} className={textLink}>
-                    <Icon className="size-4 shrink-0" />
-                    <span>{l.label}</span>
-                  </a>
-                </li>
-              );
-            })}
+    <DocLayout toc={toc} tocLabel={d.bantuan.onThisPage} aside={version}>
+      <section id="tentang-sulo">
+        <Card>
+          <p className="text-[14px] leading-normal">{t.intro}</p>
+          <ul className="mt-3 list-disc space-y-1 pl-6 text-[14px] leading-normal">
+            {t.points.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
           </ul>
         </Card>
+      </section>
+
+      {creators.length > 0 && (
+        <section id="pembuat">
+          <Card title={t.madeBy(CREATOR_NAME)}>
+            <ul className="flex flex-wrap gap-x-6 gap-y-2">
+              {creators.map((l) => {
+                const Icon = LINK_ICONS[l.id];
+                return (
+                  <li key={l.id}>
+                    <a href={l.url} {...external} className={textLink}>
+                      <Icon className="size-4 shrink-0" />
+                      <span>{l.label}</span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        </section>
       )}
 
-      {/* Support (primary) and feedback (secondary, same 40 px height) side by side; stacked 8 px apart on narrow screens. Notes below the row. */}
-      <Card title={t.supportTitle}>
-        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-          {isShownLink(TRAKTEER_URL) && <SupportButton href={TRAKTEER_URL} label={t.coffee} srHint={t.coffeeHint} />}
-          {feedback && (
-            <a
-              href={FEEDBACK_FORM_URL}
-              {...external}
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-[14px] font-medium outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
-            >
-              {t.feedback}
-              <ExternalIcon className="size-3.5 text-muted-foreground" />
-            </a>
-          )}
-        </div>
-        <div className="mt-3 space-y-1 text-[12px] leading-normal text-muted-foreground">
-          {isShownLink(TRAKTEER_URL) && <p>{t.supportNote}</p>}
-          {feedback && <p>{t.feedbackNote}</p>}
-          <p>{t.externalNote}</p>
-        </div>
-      </Card>
-    </div>
+      {/* Support (primary) and feedback (secondary, same 40 px height) side by side, stacked 8 px apart on narrow screens; one sentence under them. The "don't send" warning belongs to feedback only, as its tooltip. */}
+      <section id="dukung">
+        <Card title={t.supportTitle}>
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+            {isShownLink(TRAKTEER_URL) && <SupportButton href={TRAKTEER_URL} label={t.coffee} srHint={t.coffeeHint} />}
+            {feedback && (
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <a
+                      href={FEEDBACK_FORM_URL}
+                      {...external}
+                      aria-describedby={warnId}
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-[14px] font-medium outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
+                    >
+                      {t.feedback}
+                      <ExternalIcon className="size-3.5 text-muted-foreground" />
+                    </a>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={6}>
+                    {t.feedbackNote}
+                  </TooltipContent>
+                </Tooltip>
+                <span id={warnId} className="sr-only">
+                  {t.feedbackNote}
+                </span>
+              </TooltipProvider>
+            )}
+          </div>
+          {isShownLink(TRAKTEER_URL) && <p className="mt-3 text-[12px] leading-normal text-muted-foreground">{t.supportNote}</p>}
+        </Card>
+      </section>
+
+      {/* One note for every outside link on this page. */}
+      <p className="text-[12px] leading-normal text-muted-foreground">{t.externalNote}</p>
+    </DocLayout>
   );
 }

@@ -6,6 +6,7 @@ import { messagesFor, resolveLocale, type Locale } from '@/lib/i18n';
 import { readPrefs } from '@/lib/prefs';
 import { PRIVACY_INTRO, PRIVACY_SECTIONS, PRIVACY_TITLE, PRIVACY_UPDATED, type Block } from '@/lib/privacy/content';
 import '@/assets/tailwind.css';
+import { DocLayout } from '@/components/ui/doc-layout';
 import { installInputModality } from '@/lib/ui/input-modality';
 import { applyTheme } from '@/lib/ui/theme';
 
@@ -18,25 +19,31 @@ installInputModality(document, document.documentElement);
 function BlockView({ block, lang }: { block: Block; lang: Locale }) {
   if (block.kind === 'p') return <p>{block.text[lang]}</p>;
   const items = block.items.map((item) => <li key={item.id}>{item[lang]}</li>);
-  return block.kind === 'ol' ? <ol className="list-decimal space-y-1 pl-5">{items}</ol> : <ul className="list-disc space-y-1 pl-5">{items}</ul>;
+  return block.kind === 'ol' ? <ol className="list-decimal space-y-1 pl-6">{items}</ol> : <ul className="list-disc space-y-1 pl-6">{items}</ul>;
 }
 
+/** Same document layout as Bantuan and Tentang: the text at 68ch and a table of contents beside it. */
 function Privacy({ lang }: { lang: Locale }) {
+  const toc = PRIVACY_SECTIONS.map((s, i) => ({ id: `bagian-${i + 1}`, label: s.heading[lang] }));
   return (
-    <main className="mx-auto max-w-2xl space-y-4 px-4 py-10 text-sm leading-relaxed sm:px-6">
-      <h1 className="text-xl">{PRIVACY_TITLE[lang]}</h1>
-      <p className="text-xs text-muted-foreground">{messagesFor(lang).privacyPage.updated(PRIVACY_UPDATED[lang])}</p>
-      {PRIVACY_INTRO.map((b, i) => (
-        <BlockView key={i} block={b} lang={lang} />
-      ))}
-      {PRIVACY_SECTIONS.map((s) => (
-        <section key={s.heading.id} className="space-y-2 pt-2">
-          <h2 className="text-base">{s.heading[lang]}</h2>
-          {s.blocks.map((b, i) => (
+    <main className="mx-auto max-w-[1040px] px-4 py-8 text-[14px] leading-normal sm:px-8">
+      <h1 className="font-heading text-[20px] leading-8">{PRIVACY_TITLE[lang]}</h1>
+      <p className="mb-6 text-[12px] text-muted-foreground">{messagesFor(lang).privacyPage.updated(PRIVACY_UPDATED[lang])}</p>
+      <DocLayout toc={toc} tocLabel={messagesFor(lang).privacyPage.onThisPage}>
+        <div className="space-y-3">
+          {PRIVACY_INTRO.map((b, i) => (
             <BlockView key={i} block={b} lang={lang} />
           ))}
-        </section>
-      ))}
+        </div>
+        {PRIVACY_SECTIONS.map((s, i) => (
+          <section key={s.heading.id} id={`bagian-${i + 1}`} className="space-y-2 pt-4">
+            <h2 className="text-[16px] leading-6 font-semibold">{s.heading[lang]}</h2>
+            {s.blocks.map((b, j) => (
+              <BlockView key={j} block={b} lang={lang} />
+            ))}
+          </section>
+        ))}
+      </DocLayout>
     </main>
   );
 }

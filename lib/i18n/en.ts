@@ -369,6 +369,7 @@ export const en: Messages = {
 
   privacyPage: {
     updated: (date) => `Last updated: ${date}`,
+    onThisPage: 'On this page',
   },
 
   recorder: {
