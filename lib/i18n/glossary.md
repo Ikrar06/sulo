@@ -20,7 +20,7 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 | Sinkron 2 mnt lalu | Diperbarui 2 menit lalu |
 | sesi habis, sesi kedaluwarsa | Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu |
 | parser rusak, respons tidak dikenali | Sulo belum bisa membaca SIKOLA dengan benar. Coba lagi nanti |
-| batas harian tercapai, anggaran request | Sulo sudah cukup sering memeriksa hari ini. Diperbarui lagi besok |
+| batas harian tercapai, anggaran request, backoff | Tidak pernah ditampilkan (M5a.4). Data lebih dari 12 jam: "Sulo belum bisa memperbarui sejak {waktu}. Coba Perbarui nanti." |
 | data basi | Terakhir diperbarui 7 jam lalu |
 | offline, tidak terhubung ke jaringan | Kamu sedang offline. Menampilkan data terakhir |
 | sakelar, toggle, aktifkan, nonaktifkan | pilih, centang, hapus centang |

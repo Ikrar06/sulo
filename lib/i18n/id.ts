@@ -29,7 +29,7 @@ export const id = {
     no_sesskey: 'Buka SIKOLA dulu, lalu coba lagi.',
     session_expired: 'Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu.',
     invalid_sesskey: 'Muat ulang halaman SIKOLA, lalu coba lagi.',
-    budget_exhausted: 'Sulo sudah cukup sering memeriksa hari ini. Diperbarui lagi besok.',
+    budget_exhausted: 'Sulo belum bisa terhubung sekarang. Coba lagi nanti.',
     backing_off: 'SIKOLA sedang sulit dihubungi. Sulo mencoba lagi nanti.',
     disabled_remotely: 'Sulo sedang istirahat sebentar.',
     offline: 'Kamu sedang offline. Menampilkan data terakhir.',

@@ -41,8 +41,8 @@ export const HOW_IT_WORKS: HelpSection[] = [
         en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It does not check from 00:00 to 06:00. Opening the popup or the dashboard never checks SIKOLA.',
       },
       {
-        id: 'Ada batas harian supaya Sulo tidak membebani SIKOLA. Kalau batas itu tercapai, Sulo memeriksa lagi besok dan daftar terakhir tetap tampil.',
-        en: 'There is a daily limit so Sulo never weighs on SIKOLA. When it is reached, Sulo checks again tomorrow and your last list stays on screen.',
+        id: 'Sulo mengecek dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
+        en: 'Sulo checks sparingly so it never weighs on SIKOLA, so new data sometimes shows up a little later.',
       },
     ],
   },
@@ -94,11 +94,11 @@ export const FAQ: FaqEntry[] = [
   },
   {
     id: 'tidak-diperbarui',
-    q: { id: 'Kenapa daftarku tidak diperbarui?', en: 'Why is my list not updating?' },
+    q: { id: 'Kenapa daftarku tidak berubah?', en: 'Why is my list not changing?' },
     a: [
       {
-        id: 'Lihat baris di bawah judul popup. "Masuk ke SIKOLA lagi" berarti login SIKOLA-mu habis: buka SIKOLA dan masuk, lalu Sulo lanjut sendiri. "Sudah cukup sering memeriksa hari ini" berarti batas harian tercapai. Kalau kamu offline, daftar terakhir tetap tampil. Sulo juga tidak memeriksa saat laptop tidak dipakai atau pada pukul 00.00 sampai 06.00.',
-        en: 'Look at the line under the popup’s title. "Sign in to SIKOLA again" means your SIKOLA login ended: open SIKOLA and sign in, and Sulo carries on. "Checked often enough today" means the daily limit was reached. When you are offline, the last list stays. Sulo also does not check while the laptop is not in use or from 00:00 to 06:00.',
+        id: 'Pertama, pastikan kamu masih masuk di SIKOLA: buka SIKOLA, dan kalau diminta, masuk lagi. Setelah itu klik Perbarui di popup atau dashboard, lalu tunggu sebentar. Kalau kamu offline, daftar terakhir tetap tampil. Sulo juga tidak memeriksa saat laptop tidak dipakai atau pada pukul 00.00 sampai 06.00.',
+        en: 'First, make sure you are still signed in to SIKOLA: open SIKOLA and sign in again if it asks. Then click Update in the popup or the dashboard and wait a moment. When you are offline, the last list stays. Sulo also does not check while the laptop is not in use or from 00:00 to 06:00.',
       },
     ],
   },

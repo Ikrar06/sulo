@@ -27,7 +27,7 @@ export const en: Messages = {
     no_sesskey: 'Open SIKOLA first, then try again.',
     session_expired: 'Sign in to SIKOLA again so Sulo can update your tasks.',
     invalid_sesskey: 'Reload the SIKOLA page, then try again.',
-    budget_exhausted: 'Sulo has checked often enough today. It will update again tomorrow.',
+    budget_exhausted: "Sulo can't connect right now. Try again later.",
     backing_off: 'SIKOLA is hard to reach right now. Sulo will try again later.',
     disabled_remotely: 'Sulo is taking a short break.',
     offline: "You're offline. Showing your last data.",
