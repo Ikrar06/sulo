@@ -95,6 +95,13 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
+          id: 'Statistik pemakaian lokal (berapa kali popup dan dashboard dibuka, tugas ditandai selesai, dan pengingat tampil) hanya berupa angka dan tersimpan di browsermu. Sulo tidak pernah mengirimnya. Di Pengaturan kamu bisa mengekspornya sebagai berkas dan memutuskan sendiri mau mengirimnya atau tidak.',
+          en: 'Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. In Settings you can export them as a file and decide yourself whether to share it.',
+        },
+      },
+      {
+        kind: 'p',
+        text: {
           id: 'Data terikat ke akun SIKOLA-mu, dikenali dari nomor pengguna SIKOLA (userid) yang disimpan apa adanya di browsermu. Kalau akun lain masuk ke SIKOLA di browser yang sama, data akun sebelumnya langsung disembunyikan dan Sulo berhenti memeriksa serta mengingatkan. Data itu baru dihapus setelah kamu memilih "Pakai akun ini", atau saat kamu memakai "Hapus semua data". Kalau kamu masuk lagi dengan akun sebelumnya, semuanya muncul kembali.',
           en: "Data is tied to your SIKOLA account, recognised by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose \"Use this account\", or when you use \"Delete all data\". If you sign in with the previous account again, everything comes back.",
         },
@@ -138,6 +145,13 @@ export const PRIVACY_SECTIONS: Section[] = [
         text: {
           id: '"Tambah ke Google Calendar" di menu tugas hanya membuka halaman Google Calendar di tab baru, saat kamu mengekliknya. Halaman itu sudah berisi nama tugas, nama mata kuliah, tenggat, dan tautan ke tugas di SIKOLA. Sulo sendiri tidak mengirim apa pun ke Google dan tidak butuh login; kamu yang memutuskan menyimpannya di Google Calendar.',
           en: '"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no login; you decide whether to save it in Google Calendar.',
+        },
+      },
+      {
+        kind: 'p',
+        text: {
+          id: 'Tombol "Traktir kopi" (Trakteer), tautan media sosial, dan "Kirim kritik dan saran" (Google Form) di halaman Tentang, serta tautan PDF kalender resmi, hanya membuka situs itu di tab baru saat kamu mengekliknya. Sebelum diklik, Sulo tidak menghubungi situs itu sama sekali, dan tidak ada script, gambar, atau font dari situs itu yang dimuat di halaman Sulo. Sulo tidak mengirim data apa pun ke sana dan tidak mengisi formulir untukmu.',
+          en: 'The "Buy me a coffee" button (Trakteer), social media links and "Send feedback" (Google Form) on the About page, and the link to the official calendar PDF, only open that site in a new tab when you click them. Until you click, Sulo does not contact that site at all, and no script, image or font from it is loaded into Sulo\'s pages. Sulo sends no data there and never fills in a form for you.',
         },
       },
     ],
