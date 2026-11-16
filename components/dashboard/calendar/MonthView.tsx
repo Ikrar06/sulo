@@ -17,18 +17,19 @@ const MAX_IN_CELL = 3;
  * with a red tint and the word in their tooltip.
  */
 function Chip({ item, d }: { item: CalendarItem; d: DashMessages }) {
-  const base = 'block truncate rounded px-1.5 text-[11.5px] leading-[18px]';
+  // Colors live in dashboard.css (.db-chip-*), measured at 4.5:1 or more in both themes.
+  const base = 'block truncate rounded px-1 text-[12px] leading-5';
   if (item.type === 'tugas') {
     return (
-      <span className={`${base} border border-border`} title={`${d.kalender.tasks}: ${item.name}`}>
-        <span aria-hidden="true" className="mr-1 inline-block size-1.5 rounded-full align-middle" style={{ background: `var(--course-${item.courseColor})` }} />
+      <span className={`${base} db-chip-task`} title={`${d.kalender.tasks}: ${item.name}`}>
+        <span aria-hidden="true" className="mr-1 inline-block size-2 rounded-full align-middle" style={{ background: `var(--course-${item.courseColor})` }} />
         {item.name}
       </span>
     );
   }
   if (item.type === 'libur') {
     return (
-      <span className={`${base} bg-[color-mix(in_oklch,var(--danger)_16%,var(--surface))]`} title={`${d.kalender.holiday}: ${item.libur.nama}`}>
+      <span className={`${base} db-chip-holiday`} title={`${d.kalender.holiday}: ${item.libur.nama}`}>
         {item.libur.nama}
       </span>
     );
@@ -36,7 +37,7 @@ function Chip({ item, d }: { item: CalendarItem; d: DashMessages }) {
   const k = item.kegiatan;
   const exam = k.kategori === 'uts' || k.kategori === 'uas';
   return (
-    <span className={`${base} ${exam ? 'bg-[color-mix(in_oklch,var(--brand-amber)_28%,var(--surface))] font-medium' : 'bg-surface-raised'}`} title={`${d.kalender.academic}: ${k.judul}`}>
+    <span className={`${base} ${exam ? 'db-chip-exam font-semibold' : 'db-chip-event'}`} title={`${d.kalender.academic}: ${k.judul}`}>
       {k.judul}
     </span>
   );
@@ -65,7 +66,7 @@ export function MonthView({ month, today, calendar, filter, tasks, selected, onS
     <div className="space-y-4">
       <div className="overflow-x-auto">
         <div className="min-w-[640px]">
-          <div className="grid grid-cols-7 gap-px pb-1 text-center text-[12px] text-muted-foreground" aria-hidden="true">
+          <div className="grid grid-cols-7 gap-1 pb-1 text-center text-[12px] text-muted-foreground" aria-hidden="true">
             {weekdayNames.map((w) => (
               <span key={w}>{w}</span>
             ))}
@@ -84,17 +85,22 @@ export function MonthView({ month, today, calendar, filter, tasks, selected, onS
                     onClick={() => onSelect(day)}
                     aria-pressed={isSelected}
                     aria-label={label}
-                    className={`flex h-[104px] w-full flex-col gap-0.5 rounded-lg border p-1.5 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus ${
+                    className={`flex h-28 w-full flex-col gap-1 rounded-lg border p-1 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus ${
                       isSelected ? 'border-foreground/50' : 'border-border hover:border-foreground/25'
-                    } ${outside ? 'bg-transparent opacity-55' : 'bg-surface'}`}
+                    } ${outside ? 'bg-background' : 'bg-surface'}`}
                   >
-                    <span className={`text-[12.5px] tabular-nums ${isToday ? 'inline-flex size-5 items-center justify-center rounded-full bg-foreground font-semibold text-background' : ''}`}>
+                    {/* Days of other months: only the number is quieter; chips keep full contrast. */}
+                    <span
+                      className={`text-[12px] leading-5 tabular-nums ${
+                        isToday ? 'inline-flex size-5 items-center justify-center rounded-full bg-foreground font-semibold text-background' : outside ? 'text-muted-foreground' : ''
+                      }`}
+                    >
                       {Number(day.slice(8))}
                     </span>
                     {items.slice(0, MAX_IN_CELL).map((item, i) => (
                       <Chip key={i} item={item} d={d} />
                     ))}
-                    {items.length > MAX_IN_CELL && <span className="px-1 text-[11px] text-muted-foreground">{d.kalender.more(items.length - MAX_IN_CELL)}</span>}
+                    {items.length > MAX_IN_CELL && <span className="px-1 text-[12px] text-muted-foreground">{d.kalender.more(items.length - MAX_IN_CELL)}</span>}
                   </button>
                 </li>
               );
@@ -104,9 +110,9 @@ export function MonthView({ month, today, calendar, filter, tasks, selected, onS
       </div>
 
       <section aria-live="polite" className="rounded-xl border border-border bg-surface p-4">
-        <h3 className="mb-3 text-[14px] font-semibold">{formatDateKey(selected, m.intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h3>
+        <h3 className="mb-3 text-[16px] leading-6 font-semibold">{formatDateKey(selected, m.intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h3>
         {selectedItems.length === 0 ? (
-          <p className="text-[13.5px] text-muted-foreground">{d.kalender.emptyList}</p>
+          <p className="text-[14px] text-muted-foreground">{d.kalender.emptyList}</p>
         ) : (
           <ul className="space-y-4">
             {selectedItems.map((item, i) => (
@@ -118,8 +124,8 @@ export function MonthView({ month, today, calendar, filter, tasks, selected, onS
                 ) : (
                   <a href={routeHash('tugas', item.eventId)} className="flex items-center gap-2 rounded-md text-[14px] outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus">
                     <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${item.courseColor})` }} />
-                    <span className="font-medium">{item.name}</span>
-                    <span className="text-[12.5px] text-muted-foreground">{d.kalender.taskDue(item.courseName)}</span>
+                    <span className="font-semibold">{item.name}</span>
+                    <span className="text-[12px] text-muted-foreground">{d.kalender.taskDue(item.courseName)}</span>
                   </a>
                 )}
               </li>

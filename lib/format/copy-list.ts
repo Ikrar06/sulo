@@ -5,7 +5,7 @@
 
 import { id, type Messages } from '../i18n/id';
 import type { Task, UnixSeconds } from '../types';
-import { calendarDaysBetween, formatDayDateTime } from './time';
+import { calendarDaysBetween, formatDue, localeOf } from './time';
 
 export type CopyScope = 'week' | 'all';
 
@@ -30,7 +30,7 @@ export function formatCopyList(items: readonly CopyItem[], scope: CopyScope, now
   const selected = selectForCopy(items, scope, now, timeZone);
   if (selected.length === 0) return `${title}: ${c.none}`;
   const lines = selected.map(({ courseName, task }, i) => {
-    const due = task.dueAt === null ? c.noDue : formatDayDateTime(task.dueAt, timeZone, m);
+    const due = task.dueAt === null ? c.noDue : formatDue(task.dueAt, localeOf(m), timeZone);
     return `${i + 1}. ${courseName} - ${task.name} (${due})`;
   });
   return [title, ...lines].join('\n');

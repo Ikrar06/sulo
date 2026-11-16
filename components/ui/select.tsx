@@ -3,7 +3,7 @@ import { cn } from "cn"
 import { Select as SelectPrimitive } from "radix-ui"
 import { CheckIcon, ChevronDownIcon } from "@/components/icons"
 
-// Sulo's dropdown. Never use the browser's native <select> (docs/UI.md):
+// Sulo's dropdown. Never use the browser's native <select> (docs/UI.md): lint-ui-allow
 // its arrow sits against the edge and it does not follow the theme.
 // Same height and radius as buttons and inputs; focus ring for keyboard only.
 

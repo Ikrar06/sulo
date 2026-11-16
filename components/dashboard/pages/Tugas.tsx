@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { activeCourseIds } from '@/lib/courses/active-score';
 import { courseAlias } from '@/lib/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@/lib/dashboard/tasks';
-import { formatFullDate, formatRemaining } from '@/lib/format/time';
+import { formatDue, formatRemaining } from '@/lib/format/time';
 import { googleCalendarUrl } from '@/lib/format/gcal';
 import { addStep, removeStep, setCustomDue, setDone, setNote, setSnooze, toggleStep } from '@/lib/tasks/local-state';
 import { urgencyOf } from '@/lib/tasks/group';
@@ -47,7 +47,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-60 flex-1">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input type="search" className="pl-8" placeholder={t.search} aria-label={t.search} value={filter.query} onChange={(e) => setFilter({ ...filter, query: e.target.value })} />
         </div>
         <Select value={filter.courseId === null ? 'all' : String(filter.courseId)} onValueChange={(v) => setFilter({ ...filter, courseId: v === 'all' ? null : Number(v) })}>
@@ -77,7 +77,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
           </SelectContent>
         </Select>
       </div>
-      <p className="text-[13px] text-muted-foreground" role="status">
+      <p className="text-[12px] text-muted-foreground" role="status">
         {t.count(shown.length)}
       </p>
 
@@ -127,7 +127,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
 }
 
 function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, details }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; details: ReactNode }) {
-  const { m } = useI18n();
+  const { m, locale } = useI18n();
   const t = d.tugas;
   const due = item.task.dueAt;
   const urgency = item.status === 'pending' ? urgencyOf(due, now) : 'normal';
@@ -136,30 +136,30 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, details }: 
   return (
     <li id={`task-${item.task.eventId}`}>
       <div className="flex items-start gap-3 px-4 py-3">
-        <Checkbox className="mt-0.5" checked={item.status === 'done'} onCheckedChange={(v) => onDone(v === true)} aria-label={item.status === 'done' ? t.markUndone : t.markDone} />
+        <Checkbox className="mt-1" checked={item.status === 'done'} onCheckedChange={(v) => onDone(v === true)} aria-label={item.status === 'done' ? t.markUndone : t.markDone} />
         <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
-          <span className={`block text-[14.5px] leading-5 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-medium'}`}>{item.task.name}</span>
-          <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12.5px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
+          <span className={`block text-[14px] leading-6 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`}>{item.task.name}</span>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-normal text-muted-foreground">
+            <span className="inline-flex items-center gap-2">
               <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${item.courseColor})` }} />
               {item.courseName}
             </span>
             {item.status !== 'pending' && <span>{t.statuses[item.status]}</span>}
-            {item.personalDue && <span className="rounded border border-border px-1 text-[11.5px]">{t.personalDue}</span>}
+            {item.personalDue && <span className="rounded border border-border px-1 text-[12px]">{t.personalDue}</span>}
             {steps.length > 0 && <span className="tabular-nums">{t.stepsDone(steps.filter((s) => s.done).length, steps.length)}</span>}
           </span>
         </button>
-        <span className="shrink-0 text-right text-[13px] leading-5 tabular-nums">
+        <span className="shrink-0 text-right text-[14px] leading-6 tabular-nums">
           {due === null ? (
             <span className="text-muted-foreground">{t.noDue}</span>
           ) : (
             <>
               <span className={`block ${URGENCY_TEXT[urgency]}`}>{formatRemaining(due, now, timeZone, m)}</span>
-              <span className="block text-[12px] text-muted-foreground">{formatFullDate(due, timeZone, m)}</span>
+              <span className="block text-[12px] leading-normal text-muted-foreground">{formatDue(due, locale, timeZone)}</span>
             </>
           )}
         </span>
-        <button type="button" className="mt-0.5 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
+        <button type="button" className="mt-1 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <ChevronDownIcon className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
       </div>

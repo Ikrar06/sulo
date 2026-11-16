@@ -40,7 +40,14 @@
 
 .db-main {
   min-width: 0;
-  padding: 20px clamp(16px, 4vw, 48px) 48px;
+  padding: 24px 16px 32px;
+}
+
+/* One container: 1040 px wide at most, 32 px side padding (16 on phones). */
+.db-header,
+.db-content {
+  max-width: 1040px;
+  margin-inline: auto;
 }
 
 .db-header {
@@ -49,13 +56,25 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px 24px;
-  max-width: 1120px;
-  margin: 0 auto 20px;
+  min-height: 32px;
+  /* Page title to content: 24 px. */
+  margin-bottom: 24px;
 }
 
+/* Dashboard type scale for shared components: body 14 px, captions 12 px, line height 1.5. */
 .db-content {
-  max-width: 1120px;
-  margin: 0 auto;
+  --fs-body: 14px;
+  --fs-caption: 12px;
+  --lh-body: 21px;
+  --lh-caption: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (min-width: 640px) {
+  .db-main {
+    padding-inline: 32px;
+  }
 }
 
 @media (min-width: 900px) {
@@ -84,16 +103,27 @@
   }
 
   .db-main {
-    padding-top: 28px;
+    padding-top: 32px;
   }
 }
 
-/* Load map cells: solid fills mixed from brand tokens (never a gradient), darker means heavier. */
-.db-load-0 { background: var(--surface-raised); }
-.db-load-1 { background: color-mix(in oklch, var(--brand-amber) 22%, var(--surface-raised)); }
-.db-load-2 { background: color-mix(in oklch, var(--brand-amber) 45%, var(--surface-raised)); }
-.db-load-3 { background: color-mix(in oklch, var(--brand-orange) 62%, var(--surface-raised)); }
-.db-load-4 { background: color-mix(in oklch, var(--brand-orange) 88%, var(--surface-raised)); }
+/* Load map cells: solid fills mixed from brand tokens (never a gradient),
+   darker means heavier. Level 4 uses ink text: light text on bright orange
+   fell to 3.4:1 in the dark theme, ink gives 5.1 (dark) and 7.1 (light).
+   Level 3 keeps --text (5.4 / 9.2); ink there was only 3.2 in the dark
+   theme (scripts/contrast.mjs). */
+.db-load-0 { background: var(--surface-raised); color: var(--text); }
+.db-load-1 { background: color-mix(in oklch, var(--brand-amber) 22%, var(--surface-raised)); color: var(--text); }
+.db-load-2 { background: color-mix(in oklch, var(--brand-amber) 45%, var(--surface-raised)); color: var(--text); }
+.db-load-3 { background: color-mix(in oklch, var(--brand-orange) 62%, var(--surface-raised)); color: var(--text); }
+.db-load-4 { background: color-mix(in oklch, var(--brand-orange) 88%, var(--surface-raised)); color: var(--ink); }
+
+/* Calendar chips. Every pair is checked at 4.5:1 or more in both themes
+   (scripts/contrast.mjs); chips never sit under an opacity. */
+.db-chip-event { background: var(--surface-raised); color: var(--text); }
+.db-chip-exam { background: color-mix(in oklch, var(--brand-amber) 28%, var(--surface)); color: var(--text); }
+.db-chip-holiday { background: color-mix(in oklch, var(--danger) 16%, var(--surface)); color: var(--text); }
+.db-chip-task { border: 1px solid var(--border); color: var(--text); }
 
 /* Text pages (Bantuan, Tentang): a comfortable reading measure. */
 .db-prose {

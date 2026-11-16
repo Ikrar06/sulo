@@ -21,6 +21,9 @@ const PAGES: Record<Page, ComponentType<PageProps>> = {
   tentang: lazy(() => import('./pages/Tentang').then((m) => ({ default: m.TentangPage }))),
 };
 
+/** Pages whose data changes with a check: only these show "Diperbarui ... / Perbarui". */
+const REFRESH_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender']);
+
 /** Pages that work without a connected account. */
 const WITHOUT_ACCOUNT: ReadonlySet<Page> = new Set(['kalender', 'pengaturan', 'bantuan', 'tentang']);
 
@@ -75,7 +78,7 @@ function Router() {
         lastSyncAt={data.view.lastSyncAt}
         now={data.now}
         syncing={syncing || data.view.syncing}
-        onRefresh={connected || data.pending ? () => void refresh() : null}
+        onRefresh={(connected || data.pending) && REFRESH_PAGES.has(route.page) ? () => void refresh() : null}
         onOpenPrivacy={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}
       >
         {blocked ? (
@@ -92,9 +95,9 @@ function Router() {
 
 function NotConnected({ d, mismatch, onSetup }: { d: ReturnType<typeof dashFor>; mismatch: boolean; onSetup: () => void }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
-      <h2 className="font-heading text-[18px]">{mismatch ? d.common.mismatchTitle : d.common.notConnectedTitle}</h2>
-      <p className="mt-1 max-w-[46em] text-[14px] text-muted-foreground">{mismatch ? d.common.mismatchBody : d.common.notConnectedBody}</p>
+    <div className="rounded-xl border border-border bg-surface p-5">
+      <h2 className="text-[16px] font-semibold">{mismatch ? d.common.mismatchTitle : d.common.notConnectedTitle}</h2>
+      <p className="mt-1 max-w-[68ch] text-[14px] text-muted-foreground">{mismatch ? d.common.mismatchBody : d.common.notConnectedBody}</p>
       {!mismatch && (
         <Button className="mt-4" onClick={onSetup}>
           {d.common.continueSetup}

@@ -14,8 +14,9 @@ import { localParts } from '@/lib/reminders/zoned';
 import { ListView } from '../calendar/ListView';
 import { MonthView } from '../calendar/MonthView';
 import { Subscribe } from '../calendar/Subscribe';
-import { ImportantCard, SourceLine, WeekText } from '../CalendarParts';
+import { ImportantCard, SourceLine, WeekProgress } from '../CalendarParts';
 import { timeZone } from '../data';
+import { Card } from '../Shell';
 import type { PageProps } from '../types';
 
 type View = 'month' | 'list';
@@ -25,7 +26,7 @@ function Toggle({ checked, onChange, children }: { checked: boolean; onChange: (
   return (
     <span className="inline-flex items-center gap-2">
       <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} />
-      <label htmlFor={id} className="text-[13px]">
+      <label htmlFor={id} className="text-[14px]">
         {children}
       </label>
     </span>
@@ -65,41 +66,40 @@ export function KalenderPage({ d, data }: PageProps) {
       type="button"
       aria-pressed={view === v}
       onClick={() => setView(v)}
-      className={`h-8 rounded-md px-3 text-[13px] outline-none focus-ring:ring-2 focus-ring:ring-focus ${view === v ? 'border border-border bg-surface font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
+      className={`h-8 rounded-md px-3 text-[14px] outline-none focus-ring:ring-2 focus-ring:ring-focus ${view === v ? 'bg-surface font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
     >
       {label}
     </button>
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {status.kind === 'expired' && (
         <div role="alert" className="flex items-start gap-3 rounded-xl border border-border bg-surface p-4">
-          <AlertIcon className="mt-0.5 size-4 shrink-0 text-urgency-soon" />
+          <AlertIcon className="mt-1 size-4 shrink-0 text-urgency-soon" />
           <div>
-            <p className="text-[14.5px] font-semibold">{k.expiredTitle}</p>
-            <p className="mt-0.5 text-[13.5px] text-muted-foreground">{k.expiredBody(formatDateKey(status.berlakuSampai, m.intl, { day: 'numeric', month: 'long', year: 'numeric' }))}</p>
+            <p className="text-[16px] leading-6 font-semibold">{k.expiredTitle}</p>
+            <p className="text-[14px] text-muted-foreground">{k.expiredBody(formatDateKey(status.berlakuSampai, m.intl, { day: 'numeric', month: 'long', year: 'numeric' }))}</p>
           </div>
         </div>
       )}
 
       {status.kind !== 'expired' && (
-        <div className="grid gap-5 md:grid-cols-2">
-          <section className="rounded-xl border border-border bg-surface p-4">
-            <h2 className="mb-2 text-[14px] font-semibold">{d.ringkasan.importantTitle}</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card title={d.ringkasan.importantTitle}>
             <ImportantCard calendar={calendar} today={data.today} d={d} />
-          </section>
-          <section className="rounded-xl border border-border bg-surface p-4">
-            <WeekText calendar={calendar} today={data.today} d={d} />
-            <a href={routeHash('pengaturan', 'kalender')} className="mt-3 inline-block rounded text-[13px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+          </Card>
+          <Card>
+            <WeekProgress calendar={calendar} today={data.today} d={d} />
+            <a href={routeHash('pengaturan', 'kalender')} className="mt-3 inline-block rounded text-[12px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
               {k.notifySettings}
             </a>
-          </section>
+          </Card>
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <div role="group" aria-label={k.viewLabel} className="inline-flex rounded-lg border border-border bg-surface-raised p-0.5">
+        <div role="group" aria-label={k.viewLabel} className="inline-flex gap-1 rounded-lg border border-border bg-surface-raised p-1">
           {viewButton('month', k.month)}
           {viewButton('list', k.list)}
         </div>
@@ -108,7 +108,7 @@ export function KalenderPage({ d, data }: PageProps) {
             <Button size="icon" variant="ghost" aria-label={k.prevMonth} onClick={() => setMonth(shiftMonth(month, -1))}>
               <ChevronLeftIcon className="size-4" />
             </Button>
-            <span className="min-w-36 text-center text-[14.5px] font-semibold" aria-live="polite">
+            <span className="min-w-36 text-center text-[16px] font-semibold" aria-live="polite">
               {formatDateKey(`${month}-01`, m.intl, { month: 'long', year: 'numeric' })}
             </span>
             <Button size="icon" variant="ghost" aria-label={k.nextMonth} onClick={() => setMonth(shiftMonth(month, 1))}>
@@ -139,7 +139,7 @@ export function KalenderPage({ d, data }: PageProps) {
           </SelectContent>
         </Select>
       </div>
-      <div className="flex flex-wrap gap-x-5 gap-y-2">
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
         <Toggle checked={filter.tasks} onChange={(tasksOn) => setFilter({ ...filter, tasks: tasksOn })}>
           {k.tasks}
         </Toggle>

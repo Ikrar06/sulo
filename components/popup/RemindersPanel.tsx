@@ -35,9 +35,9 @@ const HOURS = Array.from({ length: 24 }, (_, h) => h * 60);
 function Check({ checked, disabled, onChange, children }: { checked: boolean; disabled?: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
   const id = useId();
   return (
-    <div className={`flex items-start gap-2.5 py-1 ${disabled ? 'opacity-50' : ''}`}>
+    <div className={`flex items-start gap-2 py-1 ${disabled ? 'opacity-50' : ''}`}>
       <Checkbox id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onChange(v === true)} className="mt-px" />
-      <label htmlFor={id} className="text-[13px] leading-[18px]">
+      <label htmlFor={id} className="text-(length:--fs-body) leading-(--lh-body)">
         {children}
       </label>
     </div>
@@ -48,12 +48,12 @@ function HourSelect({ value, label, disabled, timeZone, onChange }: { value: num
   const { m } = useI18n();
   return (
     <Select value={String(value)} disabled={disabled} onValueChange={(v) => onChange(Number(v))}>
-      <SelectTrigger aria-label={label} className="w-[84px] text-[13px] tabular-nums">
+      <SelectTrigger aria-label={label} className="w-[84px] text-(length:--fs-body) tabular-nums">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {HOURS.map((h) => (
-          <SelectItem key={h} value={String(h)} className="text-[13px] tabular-nums">
+          <SelectItem key={h} value={String(h)} className="text-(length:--fs-body) tabular-nums">
             {hourLabel(h, timeZone, m)}
           </SelectItem>
         ))}
@@ -65,7 +65,7 @@ function HourSelect({ value, label, disabled, timeZone, onChange }: { value: num
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-1 border-b border-border px-4 py-3 last:border-b-0">
-      <h2 className="text-[12.5px] font-semibold text-muted-foreground">{title}</h2>
+      <h2 className="text-(length:--fs-caption) font-semibold text-muted-foreground">{title}</h2>
       {children}
     </section>
   );
@@ -112,14 +112,14 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
               </Check>
             );
           })}
-          {settings.stages.length === 1 && <p className="pl-[26px] text-[12px] text-muted-foreground">{r.atLeastOne}</p>}
+          {settings.stages.length === 1 && <p className="pl-6 text-[12px] text-muted-foreground">{r.atLeastOne}</p>}
         </Section>
 
         <Section title={r.quiet}>
           <Check checked={settings.quiet.enabled} disabled={off} onChange={(enabled) => set({ quiet: { ...settings.quiet, enabled } })}>
             {r.quietOn}
           </Check>
-          <div className="flex items-center gap-2 py-1 pl-[26px] text-[13px] leading-8">
+          <div className="flex items-center gap-2 py-1 pl-6 text-(length:--fs-body) leading-8">
             <span>{r.from}</span>
             <HourSelect label={`${r.quiet}: ${r.from}`} value={settings.quiet.startMin} disabled={off || !settings.quiet.enabled} timeZone={timeZone} onChange={(startMin) => set({ quiet: { ...settings.quiet, startMin } })} />
             <span>{r.to}</span>
@@ -134,14 +134,14 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
           <Check checked={settings.morning.enabled} disabled={off} onChange={(enabled) => set({ morning: { ...settings.morning, enabled } })}>
             {r.morningOn}
           </Check>
-          <div className="flex items-center gap-2 py-1 pl-[26px] text-[13px] leading-8">
+          <div className="flex items-center gap-2 py-1 pl-6 text-(length:--fs-body) leading-8">
             <span>{r.at}</span>
             <HourSelect label={`${r.morning}: ${r.at}`} value={settings.morning.atMin} disabled={off || !settings.morning.enabled} timeZone={timeZone} onChange={(atMin) => set({ morning: { ...settings.morning, atMin } })} />
           </div>
         </Section>
 
         <Section title={m.popup.row.snooze}>
-          <div className="flex items-center gap-2 py-1 text-[13px] leading-[18px]">
+          <div className="flex items-center gap-2 py-1 text-(length:--fs-body) leading-(--lh-body)">
             <span>{r.snoozeMorning}</span>
             <HourSelect label={r.snoozeMorning} value={settings.snoozeMorningMin} timeZone={timeZone} onChange={(snoozeMorningMin) => set({ snoozeMorningMin })} />
           </div>
@@ -157,20 +157,20 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
             {r.test}
           </Button>
           {tested && (
-            <p role="status" className="text-[12.5px]">
+            <p role="status" className="text-(length:--fs-caption)">
               {r.testSent}
             </p>
           )}
-          <p className="pt-1 text-[12.5px] leading-[17px] text-muted-foreground">{r.testHelp}</p>
-          <ul className="space-y-0.5 text-[12px] leading-4 text-muted-foreground">
+          <p className="pt-1 text-(length:--fs-caption) leading-(--lh-caption) text-muted-foreground">{r.testHelp}</p>
+          <ul className="space-y-0.5 text-[12px] leading-(--lh-caption) text-muted-foreground">
             <li>{r.macSteps}</li>
             <li>{r.winSteps}</li>
           </ul>
-          <p className="pt-1 text-[12px] leading-4 text-muted-foreground">{r.sessionNote}</p>
+          <p className="pt-1 text-[12px] leading-(--lh-caption) text-muted-foreground">{r.sessionNote}</p>
           <button
             type="button"
             onClick={onOpenUpdates}
-            className="mt-1 rounded-sm text-left text-[12.5px] font-medium underline-offset-2 outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus"
+            className="mt-1 rounded-sm text-left text-(length:--fs-caption) font-medium underline-offset-2 outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus"
           >
             {r.updatesLink}
           </button>

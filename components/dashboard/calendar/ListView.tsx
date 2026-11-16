@@ -16,14 +16,14 @@ export function ListView({ calendar, filter, today, angkatan, d }: { calendar: C
   if (allMonths.length === 0) return <p className="text-[14px] text-muted-foreground">{d.kalender.emptyList}</p>;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {allMonths.map((month) => {
         const list = months.find((g) => g.month === month)?.events ?? [];
         const offs = holidays.filter((h) => h.mulai.slice(0, 7) === month);
-        const past = month < today.slice(0, 7);
+        // Past months stay at full contrast (no opacity); the month heading is enough.
         return (
-          <section key={month} className={`rounded-xl border border-border bg-surface p-4 ${past ? 'opacity-70' : ''}`}>
-            <h3 className="mb-3 font-heading text-[16px]">{formatDateKey(`${month}-01`, m.intl, { month: 'long', year: 'numeric' })}</h3>
+          <section key={month} className="rounded-xl border border-border bg-surface p-4">
+            <h3 className="mb-3 text-[16px] leading-6 font-semibold">{formatDateKey(`${month}-01`, m.intl, { month: 'long', year: 'numeric' })}</h3>
             <ul className="space-y-4">
               {offs.map((l) => (
                 <li key={l.id}>

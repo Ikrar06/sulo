@@ -6,7 +6,7 @@ import { FEEDBACK_FORM_URL, isShownLink } from '@/lib/links';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
 
-/** How Sulo works and the FAQ, from lib/help/content.ts (bundled; works offline). */
+/** How Sulo works and the FAQ, from lib/help/content.ts (bundled; works offline). Text page: 68ch. */
 export function BantuanPage({ d, route }: PageProps) {
   const { locale } = useI18n();
   const b = d.bantuan;
@@ -22,15 +22,15 @@ export function BantuanPage({ d, route }: PageProps) {
   }, [route.detail]);
 
   return (
-    <div className="max-w-[820px] space-y-5">
-      <p className="text-[13px] text-muted-foreground">{b.offline}</p>
-      <Card title={b.howTitle}>
+    <div className="db-prose space-y-4">
+      <p className="text-[12px] text-muted-foreground">{b.offline}</p>
+      <Card title={b.howTitle} large>
         <div className="space-y-4">
           {HOW_IT_WORKS.map((s) => (
-            <section key={s.heading.id} className="space-y-1.5">
-              <h3 className="text-[14.5px] font-semibold">{s.heading[locale]}</h3>
+            <section key={s.heading.id} className="space-y-2">
+              <h3 className="text-[14px] font-semibold">{s.heading[locale]}</h3>
               {s.paragraphs.map((p) => (
-                <p key={p.id} className="text-[14px] leading-[22px] text-foreground/85">
+                <p key={p.id} className="text-[14px] leading-normal">
                   {p[locale]}
                 </p>
               ))}
@@ -38,17 +38,17 @@ export function BantuanPage({ d, route }: PageProps) {
           ))}
         </div>
       </Card>
-      <Card title={b.faqTitle}>
+      <Card title={b.faqTitle} large>
         <div className="divide-y divide-border">
           {FAQ.map((f) => (
-            <details key={f.id} id={`faq-${f.id}`} className="group py-1">
-              <summary className="flex cursor-pointer list-none items-center gap-3 rounded-md py-2 text-[14.5px] font-medium outline-none focus-ring:ring-2 focus-ring:ring-focus [&::-webkit-details-marker]:hidden">
+            <details key={f.id} id={`faq-${f.id}`} className="group">
+              <summary className="flex cursor-pointer list-none items-center gap-3 rounded-md py-3 text-[14px] font-semibold outline-none focus-ring:ring-2 focus-ring:ring-focus [&::-webkit-details-marker]:hidden">
                 <span className="flex-1">{f.q[locale]}</span>
                 <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
-              <div className="space-y-2 pb-3">
+              <div className="space-y-2 pb-4">
                 {f.a.map((p) => (
-                  <p key={p.id} className="text-[14px] leading-[22px] text-foreground/85">
+                  <p key={p.id} className="text-[14px] leading-normal">
                     {p[locale]}
                   </p>
                 ))}
@@ -58,7 +58,7 @@ export function BantuanPage({ d, route }: PageProps) {
         </div>
       </Card>
       {/* Only once the feedback form exists; never point to a hidden button. */}
-      {isShownLink(FEEDBACK_FORM_URL) && <p className="text-[13px] text-muted-foreground">{b.moreHelp}</p>}
+      {isShownLink(FEEDBACK_FORM_URL) && <p className="text-[12px] text-muted-foreground">{b.moreHelp}</p>}
     </div>
   );
 }

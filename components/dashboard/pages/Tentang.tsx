@@ -32,7 +32,7 @@ export function TentangPage({ d, actions }: PageProps) {
     <div className="db-prose space-y-4">
       <Card large>
         <p className="text-[14px] leading-normal">{t.intro}</p>
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-[14px] leading-normal">
+        <ul className="mt-3 list-disc space-y-1 pl-6 text-[14px] leading-normal">
           {t.points.map((p) => (
             <li key={p}>{p}</li>
           ))}

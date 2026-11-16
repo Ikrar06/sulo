@@ -25,6 +25,7 @@
     "zip": "wxt zip",
     "zip:tester": "wxt zip --mode tester && node scripts/check-no-dev-code.mjs .output/chrome-mv3-tester",
     "typecheck": "wxt prepare && tsc --noEmit",
+    "lint": "node scripts/lint-ui.mjs && node scripts/check-leaks.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "check-leaks": "node scripts/check-leaks.mjs",

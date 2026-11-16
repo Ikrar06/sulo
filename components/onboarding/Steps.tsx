@@ -26,7 +26,7 @@ export function StepIntro({ noticeOutdated, onContinue }: { noticeOutdated: bool
       </ul>
       <p className="max-w-[36em] text-[15px] leading-6 text-muted-foreground">
         {m.disclaimer}{' '}
-        <a className="font-medium text-foreground underline underline-offset-4" href="/privacy.html" target="_blank" rel="noreferrer">
+        <a className="font-medium text-foreground underline underline-offset-4" href="/privacy.html" target="_blank" rel="noopener noreferrer">
           {m.privacyLinkLong}
         </a>
       </p>
@@ -139,7 +139,7 @@ export function StepWhatsNew(props: { entries: readonly WhatsNewEntry[]; noticeC
       {props.noticeChanged && (
         <p className="text-[16px] leading-7">
           {t.whatsNew.noticeChanged}{' '}
-          <a className="font-medium underline underline-offset-4" href="/privacy.html" target="_blank" rel="noreferrer">
+          <a className="font-medium underline underline-offset-4" href="/privacy.html" target="_blank" rel="noopener noreferrer">
             {m.privacyLinkLong}
           </a>
         </p>

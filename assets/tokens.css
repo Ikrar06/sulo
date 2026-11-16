@@ -52,6 +52,16 @@
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* Type size of components shared by the popup and the dashboard (reminder
+   and update panels). The popup keeps its compact 13 px body; the dashboard
+   overrides these to its scale (components/dashboard/dashboard.css). */
+:root {
+  --fs-body: 13px;
+  --fs-caption: 12.5px;
+  --lh-body: 18px;
+  --lh-caption: 17px;
+}
+
 @custom-variant dark (&:is([data-theme="dark"] *, :root:not([data-theme="light"]) *));
 
 /* ---------- Brand (same in every theme, extracted from assets/brand) ---------- */
@@ -309,7 +319,7 @@
  * Focus: rings are for keyboard users only. lib/ui/input-modality.ts sets
  * <html data-input="mouse|keyboard"> from the last input. Without the
  * attribute (script not run yet) rings show, so keyboard users never lose
- * them. Use these variants for every focus style, never plain `focus:`:
+ * them. Use these variants for every focus style, never plain `focus:` (lint-ui-allow):
  *   focus-ring:        this element has keyboard focus
  *   has-focus-ring:    something inside has keyboard focus (cards, rows)
  *   group-focus-ring:  something inside the nearest .group has keyboard focus

@@ -45,8 +45,8 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
     <div className="db-layout">
       <aside className="db-side">
         <a href={routeHash('ringkasan')} className="db-brand rounded-lg outline-none focus-ring:ring-2 focus-ring:ring-focus">
-          <Mascot state="idle" size={34} still />
-          <span className="font-heading text-[19px]">Sulo</span>
+          <Mascot state="idle" size={32} still />
+          <span className="font-heading text-[20px]">Sulo</span>
         </a>
         <nav aria-label={d.nav.label} className="db-nav">
           {PAGES.map((p) => {
@@ -57,14 +57,14 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
                 key={p}
                 href={routeHash(p)}
                 aria-current={current ? 'page' : undefined}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[14px] whitespace-nowrap outline-none focus-ring:ring-2 focus-ring:ring-focus ${
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] whitespace-nowrap outline-none focus-ring:ring-2 focus-ring:ring-focus ${
                   current ? 'bg-surface-raised font-semibold text-foreground' : 'text-muted-foreground hover:bg-surface-raised hover:text-foreground'
                 }`}
               >
                 <Icon className="size-4 shrink-0" />
                 <span className="flex-1">{d.nav[p]}</span>
                 {p === 'kabar' && unseen > 0 && (
-                  <span className="rounded-full bg-brand-amber/20 px-1.5 text-[11.5px] font-semibold text-foreground tabular-nums">{unseen}</span>
+                  <span className="min-w-6 rounded-full bg-surface-raised px-2 text-center text-[12px] leading-5 font-semibold text-foreground tabular-nums">{unseen}</span>
                 )}
               </a>
             );
@@ -72,7 +72,7 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
         </nav>
         <footer className="db-side-footer flex flex-col gap-1 text-[12px] leading-normal text-muted-foreground">
           <span>{m.disclaimerShort}</span>
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5">{/* lint-ui-allow: 6 px separator gap, as specified */}
             <button type="button" className="rounded underline-offset-2 outline-none hover:text-foreground hover:underline focus-ring:ring-2 focus-ring:ring-focus" onClick={onOpenPrivacy}>
               {m.privacyLink}
             </button>
@@ -84,10 +84,10 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
       </aside>
       <main className="db-main">
         <header className="db-header">
-          <h1 className="font-heading text-[26px] leading-8 tracking-[-0.01em]">{d.nav[page]}</h1>
+          <h1 className="font-heading text-[20px] leading-8">{d.nav[page]}</h1>
           {onRefresh && (
             <div className="flex items-center gap-3">
-              <span className="text-[13px] text-muted-foreground" role="status">
+              <span className="text-[12px] text-muted-foreground" role="status">
                 {updated}
               </span>
               <Button variant="outline" onClick={onRefresh} disabled={syncing}>

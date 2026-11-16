@@ -55,24 +55,28 @@ export function formatShortDate(at: UnixSeconds, timeZone: string, m: Words = id
 const weekday = (at: UnixSeconds, timeZone: string, m: Words, width: 'short' | 'long') =>
   fmt(m.intl, timeZone, { weekday: width }).format(new Date(at * 1000));
 
-/** "Jum, 14 Nov 23.59", used in copied lists (always the date, never a countdown). */
-export function formatDayDateTime(at: UnixSeconds, timeZone: string, m: Words = id): string {
-  return `${weekday(at, timeZone, m, 'short')}, ${formatShortDate(at, timeZone, m)} ${formatClock(at, timeZone, m)}`;
+/**
+ * The one absolute date format: "Jum, 13 Nov, 23.59" (id) and
+ * "Fri, 13 Nov, 11:59 PM" (en). No zone name: every user is in WITA, and
+ * the browser zone is used anyway. Every absolute due date uses this.
+ */
+export function formatDue(at: UnixSeconds, locale: 'id' | 'en', timeZone: string): string {
+  const id = locale === 'id';
+  const parts = fmt(id ? 'id-ID' : 'en-US', timeZone, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+    ...(id ? { hourCycle: 'h23' as const } : { hour12: true }),
+  }).formatToParts(new Date(at * 1000));
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
+  const time = id ? `${get('hour').padStart(2, '0')}.${get('minute')}` : `${get('hour')}:${get('minute')} ${get('dayPeriod').toUpperCase()}`;
+  return `${get('weekday')}, ${get('day')} ${get('month')}, ${time}`;
 }
 
-/** Full date and time with the zone abbreviation, for tooltips ("... WITA"). */
-export function formatFullDate(at: UnixSeconds, timeZone: string, m: Words = id): string {
-  return fmt(m.intl, timeZone, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZoneName: 'short',
-  }).format(new Date(at * 1000));
-}
+/** The locale behind a dictionary ("id-ID" -> id). */
+export const localeOf = (m: Words): 'id' | 'en' => (m.intl.startsWith('id') ? 'id' : 'en');
 
 /** "terlambat 2 jam", "terlambat 3 hari" (calendar days once past a day). */
 function formatLate(dueAt: UnixSeconds, now: UnixSeconds, timeZone: string, m: Words): string {

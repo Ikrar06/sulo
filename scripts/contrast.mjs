@@ -1,0 +1,104 @@
+#!/usr/bin/env node
+// Contrast of the dashboard's colored chips and cells, in both themes
+// (WCAG 2 ratio). Reads the theme tokens from assets/tokens.css and mixes
+// colors the way CSS color-mix(in oklch) does. No dependencies.
+// Usage: node scripts/contrast.mjs   (exit 1 when any pair is below 4.5:1)
+
+import { readFileSync } from 'node:fs';
+
+const css = readFileSync(new URL('../assets/tokens.css', import.meta.url), 'utf8');
+
+/** Tokens of a block whose selector matches `re` (first match). */
+function block(re) {
+  const m = re.exec(css);
+  if (!m) throw new Error(`block not found: ${re}`);
+  const start = css.indexOf('{', m.index) + 1;
+  let depth = 1;
+  let i = start;
+  for (; i < css.length && depth > 0; i++) depth += css[i] === '{' ? 1 : css[i] === '}' ? -1 : 0;
+  return Object.fromEntries([...css.slice(start, i).matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)].map((x) => [x[1], x[2]]));
+}
+const brand = block(/:root\s*\{\s*\n\s*--brand-amber/);
+const dark = { ...brand, ...block(/:root\s*\{[^}]*--bg:\s*#0b0b0e/) };
+const light = { ...brand, ...block(/\[data-theme="light"\]\s*\{/) };
+
+// sRGB <-> OKLab (Björn Ottosson), OKLCH mixing as CSS Color 4.
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+const toLin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const fromLin = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+function oklab([r, g, b]) {
+  [r, g, b] = [r, g, b].map(toLin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s];
+}
+function rgb([L, a, b]) {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s].map((c) => Math.min(1, Math.max(0, fromLin(c))));
+}
+const lch = ([L, a, b]) => [L, Math.hypot(a, b), Math.atan2(b, a)];
+const lab = ([L, C, h]) => [L, C * Math.cos(h), C * Math.sin(h)];
+/** color-mix(in oklch, a p%, b): shorter hue arc; an achromatic side takes the other's hue. */
+function mix(a, b, p) {
+  const [A, B] = [lch(oklab(a)), lch(oklab(b))];
+  if (A[1] < 1e-4) A[2] = B[2];
+  if (B[1] < 1e-4) B[2] = A[2];
+  let dh = B[2] - A[2];
+  if (dh > Math.PI) dh -= 2 * Math.PI;
+  if (dh < -Math.PI) dh += 2 * Math.PI;
+  const t = 1 - p;
+  return rgb(lab([A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + dh * t]));
+}
+/** Text drawn with opacity over a background. */
+const over = (fg, bg, alpha) => fg.map((c, i) => c * alpha + bg[i] * (1 - alpha));
+const lum = (c) => c.map(toLin).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+const ratio = (a, b) => {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+};
+
+function pairs(t) {
+  const c = (n) => hex(t[n]);
+  const ev = c('surface-raised');
+  const exam = mix(c('brand-amber'), c('surface'), 0.28);
+  const holiday = mix(c('danger'), c('surface'), 0.16);
+  const load = (n, color, p) => mix(c(color), c('surface-raised'), p);
+  return {
+    before: {
+      'chip acara (bulan lain, opacity 55%)': [over(c('text'), c('bg'), 0.55), over(ev, c('bg'), 0.55)],
+      'chip wisuda (bulan lain, opacity 55%)': [over(c('text'), c('bg'), 0.55), over(ev, c('bg'), 0.55)],
+      'chip ujian (bulan lain, opacity 55%)': [over(c('text'), c('bg'), 0.55), over(exam, c('bg'), 0.55)],
+      'peta beban tingkat 3, teks --text': [c('text'), load(3, 'brand-orange', 0.62)],
+      'peta beban tingkat 4, teks --text': [c('text'), load(4, 'brand-orange', 0.88)],
+    },
+    after: {
+      'chip acara/wisuda (--text di --surface-raised)': [c('text'), ev],
+      'chip ujian (--text di amber 28%)': [c('text'), exam],
+      'chip libur (--text di danger 16%)': [c('text'), holiday],
+      'chip tugas (--text di --surface)': [c('text'), c('surface')],
+      'chip tugas, sel bulan lain (--text di --bg)': [c('text'), c('bg')],
+      'angka tanggal bulan lain (--muted di --bg)': [c('muted'), c('bg')],
+      'peta beban tingkat 0': [c('text'), c('surface-raised')],
+      'peta beban tingkat 1': [c('text'), load(1, 'brand-amber', 0.22)],
+      'peta beban tingkat 2': [c('text'), load(2, 'brand-amber', 0.45)],
+      'peta beban tingkat 3 (teks --text)': [c('text'), load(3, 'brand-orange', 0.62)],
+      'peta beban tingkat 4 (teks --ink)': [c('ink'), load(4, 'brand-orange', 0.88)],
+    },
+  };
+}
+
+let failed = false;
+for (const [theme, tokens] of [['gelap', dark], ['terang', light]]) {
+  const { before, after } = pairs(tokens);
+  console.log(`\nTema ${theme}`);
+  for (const [name, [fg, bg]] of Object.entries(before)) console.log(`  sebelum  ${ratio(fg, bg).toFixed(2)}:1  ${name}`);
+  for (const [name, [fg, bg]] of Object.entries(after)) {
+    const r = ratio(fg, bg);
+    if (r < 4.5) failed = true;
+    console.log(`  sesudah  ${r.toFixed(2)}:1  ${name}${r < 4.5 ? '  << di bawah 4.5' : ''}`);
+  }
+}
+process.exit(failed ? 1 : 0);

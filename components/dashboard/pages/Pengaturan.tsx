@@ -5,12 +5,11 @@ import { WipeDialog } from '@/components/popup/WipeDialog';
 import { RemindersPanel } from '@/components/popup/RemindersPanel';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CALENDAR_NOTIFY_KINDS } from '@/lib/calendar/notify-settings';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n';
 import { DAILY_BUDGET } from '@/lib/moodle/limits';
-import { DUE_FORMATS, NICKNAME_MAX, THEMES, type DueFormat, type Theme } from '@/lib/prefs';
+import { DUE_FORMATS, THEMES, type DueFormat, type Theme } from '@/lib/prefs';
 import { UPDATE_CATEGORIES } from '@/lib/radar/settings';
 import { timeZone } from '../data';
 import { Card } from '../Shell';
@@ -23,9 +22,9 @@ const SECTIONS = ['tampilan', 'tentangKamu', 'pengingat', 'kabar', 'kalender', '
 function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
   const id = useId();
   return (
-    <div className="flex items-start gap-2.5 py-1">
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-px" />
-      <label htmlFor={id} className="text-[14px] leading-5">
+    <div className="flex items-start gap-2 py-1">
+      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-1" />
+      <label htmlFor={id} className="text-[14px] leading-6">
         {children}
       </label>
     </div>
@@ -35,13 +34,14 @@ function Check({ checked, onChange, children }: { checked: boolean; onChange: (v
 function Field({ label, help, children }: { label: string; help?: string; children: (id: string) => ReactNode }) {
   const id = useId();
   return (
-    <div className="grid gap-1.5 py-2 md:grid-cols-[220px_minmax(0,1fr)] md:items-start md:gap-6">
-      <label htmlFor={id} className="pt-1.5 text-[14px] font-medium">
+    <div className="grid gap-2 py-2 md:grid-cols-[200px_minmax(0,1fr)] md:items-start md:gap-6">
+      {/* 32 px row: label line (24) + 4 top aligns its text with the control's text. */}
+      <label htmlFor={id} className="pt-1 text-[14px] leading-6 font-semibold">
         {label}
       </label>
       <div className="space-y-1">
         {children(id)}
-        {help && <p className="max-w-[46em] text-[12.5px] leading-[18px] text-muted-foreground">{help}</p>}
+        {help && <p className="max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{help}</p>}
       </div>
     </div>
   );
@@ -51,7 +51,6 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
   const { m } = useI18n();
   const t = d.pengaturan;
   const prefs = data.prefs;
-  const [nickname, setNickname] = useState(prefs.nickname);
   const [tested, setTested] = useState(false);
   const [wipeOpen, setWipeOpen] = useState(false);
   const year = Number(new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric' }).format(new Date(data.now * 1000)));
@@ -62,7 +61,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
   }, [route.detail]);
 
   return (
-    <div className="max-w-[880px] space-y-5">
+    <div className="space-y-4">
       <Card title={<span id="set-tampilan">{t.sections.tampilan}</span>}>
         <Field label={t.theme}>
           {(id) => (
@@ -116,18 +115,6 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
       </Card>
 
       <Card title={<span id="set-tentangKamu">{t.sections.tentangKamu}</span>}>
-        <Field label={t.nickname} help={t.nicknameHelp}>
-          {(id) => (
-            <Input
-              id={id}
-              className="w-72"
-              maxLength={NICKNAME_MAX}
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              onBlur={() => nickname.trim() !== prefs.nickname && void actions.setPrefs({ nickname: nickname.trim() })}
-            />
-          )}
-        </Field>
         <Field label={t.angkatan} help={t.angkatanHelp}>
           {(id) => (
             <Select value={prefs.angkatan === null ? 'none' : String(prefs.angkatan)} onValueChange={(v) => void actions.setPrefs({ angkatan: v === 'none' ? null : Number(v) })}>
@@ -160,7 +147,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
       </Card>
 
       <Card title={<span id="set-kabar">{t.sections.kabar}</span>}>
-        <p className="-mt-1 mb-2 text-[13px] text-muted-foreground">{t.updatesHelp}</p>
+        <p className="mb-2 text-[12px] text-muted-foreground">{t.updatesHelp}</p>
         {UPDATE_CATEGORIES.map((c) => (
           <Check key={c} checked={prefs.updates[c]} onChange={(v) => void actions.setPrefs({ updates: { ...prefs.updates, [c]: v } })}>
             {m.popup.updates.categories[c]}
@@ -169,7 +156,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
       </Card>
 
       <Card title={<span id="set-kalender">{t.sections.kalender}</span>}>
-        <p className="-mt-1 mb-2 max-w-[52em] text-[13px] leading-[19px] text-muted-foreground">{t.calendarHelp}</p>
+        <p className="mb-2 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{t.calendarHelp}</p>
         {CALENDAR_NOTIFY_KINDS.map((k) => (
           <Check key={k} checked={prefs.calendar[k]} onChange={(v) => void actions.setPrefs({ calendar: { ...prefs.calendar, [k]: v } })}>
             {t.calendarKinds[k]}
@@ -186,7 +173,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             {t.sendTest}
           </Button>
           {tested && (
-            <span role="status" className="text-[13px] text-muted-foreground">
+            <span role="status" className="text-[12px] text-muted-foreground">
               {t.testSent}
             </span>
           )}
@@ -205,7 +192,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
           </Button>
         </div>
         <div className="mt-4 space-y-2 border-t border-border pt-4">
-          <p className="text-[13px] text-muted-foreground">{t.wipeHelp}</p>
+          <p className="text-[12px] text-muted-foreground">{t.wipeHelp}</p>
           <Button variant="destructive" onClick={() => setWipeOpen(true)}>
             {m.popup.settings.wipe}
           </Button>

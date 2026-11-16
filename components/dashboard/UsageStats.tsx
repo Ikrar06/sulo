@@ -40,8 +40,8 @@ export function UsageStats({ d, data }: Pick<PageProps, 'd' | 'data' | 'actions'
   return (
     <div className="mt-4 border-t border-border pt-4">
       <p className="text-[14px] font-medium">{s.title}</p>
-      <p className="mt-0.5 text-[12.5px] text-muted-foreground">{s.since(formatDateKey(usage.since, m.intl, { day: 'numeric', month: 'long', year: 'numeric' }))}</p>
-      <dl className="mt-3 grid gap-x-6 gap-y-1 text-[13.5px] sm:grid-cols-2">
+      <p className="mt-1 text-[12px] text-muted-foreground">{s.since(formatDateKey(usage.since, m.intl, { day: 'numeric', month: 'long', year: 'numeric' }))}</p>
+      <dl className="mt-3 grid gap-x-6 gap-y-1 text-[14px] sm:grid-cols-2">
         {USAGE_COUNTERS.map((c) => (
           <div key={c} className="flex justify-between gap-3 border-b border-border/60 py-1">
             <dt className="text-muted-foreground">{s.counters[c]}</dt>
@@ -49,11 +49,11 @@ export function UsageStats({ d, data }: Pick<PageProps, 'd' | 'data' | 'actions'
           </div>
         ))}
       </dl>
-      <div className="mt-3 space-y-1.5">
+      <div className="mt-3 space-y-2">
         <Button variant="outline" onClick={download}>
           {s.export}
         </Button>
-        <p className="max-w-[52em] text-[12.5px] leading-[18px] text-muted-foreground">{s.exportHelp}</p>
+        <p className="max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{s.exportHelp}</p>
       </div>
     </div>
   );

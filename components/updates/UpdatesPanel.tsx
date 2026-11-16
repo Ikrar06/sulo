@@ -42,10 +42,10 @@ function Entry({ entry, course, timeZone, onOpen }: { entry: ChangeLogEntry; cou
     <>
       <span className="flex items-start gap-2">
         {!entry.seen && <span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-brand-amber" />}
-        <span className={`min-w-0 flex-1 text-[13.5px] leading-[19px] ${entry.seen ? 'text-foreground/85' : 'font-semibold'}`}>{describeChange(entry.change, timeZone, m)}</span>
-        <span className="shrink-0 text-[12px] leading-[19px] text-muted-foreground tabular-nums">{formatClock(entry.at, timeZone, m)}</span>
+        <span className={`min-w-0 flex-1 text-(length:--fs-body) leading-(--lh-body) ${entry.seen ? 'text-foreground/85' : 'font-semibold'}`}>{describeChange(entry.change, timeZone, m)}</span>
+        <span className="shrink-0 text-[12px] leading-(--lh-body) text-muted-foreground tabular-nums">{formatClock(entry.at, timeZone, m)}</span>
       </span>
-      <span className={`mt-0.5 block truncate text-[12px] leading-4 text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`}>{course}</span>
+      <span className={`mt-0.5 block truncate text-[12px] leading-(--lh-caption) text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`}>{course}</span>
     </>
   );
   return (
@@ -69,9 +69,9 @@ function Entry({ entry, course, timeZone, onOpen }: { entry: ChangeLogEntry; cou
 function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
   const id = useId();
   return (
-    <div className="flex items-start gap-2.5 py-1">
+    <div className="flex items-start gap-2 py-1">
       <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-px" />
-      <label htmlFor={id} className="text-[13px] leading-[18px]">
+      <label htmlFor={id} className="text-(length:--fs-body) leading-(--lh-body)">
         {children}
       </label>
     </div>
@@ -107,11 +107,11 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
       </header>
       <div className="flex-1 overflow-y-auto pb-2">
         {entries.length === 0 ? (
-          <p className="px-4 py-6 text-center text-[13px] text-muted-foreground">{u.empty}</p>
+          <p className="px-4 py-6 text-center text-(length:--fs-body) text-muted-foreground">{u.empty}</p>
         ) : (
           [...days.entries()].map(([label, list]) => (
             <section key={label} className="px-1 pt-1">
-              <h2 className="px-3 py-1.5 text-[12.5px] font-semibold text-muted-foreground">{label}</h2>
+              <h2 className="px-3 py-1.5 text-(length:--fs-caption) font-semibold text-muted-foreground">{label}</h2>
               <ul>
                 {list.map((e) => (
                   <Entry key={e.id} entry={e} course={courseOf(e)} timeZone={timeZone} onOpen={onOpen} />
@@ -121,7 +121,7 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
           ))
         )}
         <section className="mx-4 mt-2 border-t border-border pt-3">
-          <h2 className="flex items-center gap-1.5 text-[12.5px] font-semibold text-muted-foreground">
+          <h2 className="flex items-center gap-1.5 text-(length:--fs-caption) font-semibold text-muted-foreground">
             <BellIcon className="size-3.5" aria-hidden="true" />
             {u.settings}
           </h2>
@@ -130,7 +130,7 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
               {u.categories[c]}
             </Check>
           ))}
-          <p className="pt-1 text-[12px] leading-4 text-muted-foreground">{u.settingsNote}</p>
+          <p className="pt-1 text-[12px] leading-(--lh-caption) text-muted-foreground">{u.settingsNote}</p>
         </section>
       </div>
     </div>

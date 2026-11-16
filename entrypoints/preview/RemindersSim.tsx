@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { activeCourseIds } from '@/lib/courses/active-score';
 import { courseAlias } from '@/lib/courses/display-name';
 import type { DevMessage } from '@/lib/dev/messages';
-import { formatFullDate } from '@/lib/format/time';
+import { formatDue, localeOf } from '@/lib/format/time';
 import { planReminders, type SentKeys } from '@/lib/reminders/plan';
 import { DEFAULT_REMINDERS, type ReminderSettings } from '@/lib/reminders/settings';
 import { noticeView, type NotificationView } from '@/lib/reminders/text';
@@ -92,7 +92,7 @@ export function RemindersSim({ input, start }: { input: PopupInput; start: numbe
         <p className="text-sm text-muted-foreground">Planner yang sama dengan latar belakang, memakai data sintetis pratinjau. Hanya ada di build dev.</p>
       </header>
       <section className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="tabular-nums">Sekarang: {formatFullDate(now, tz, m)}</span>
+        <span className="tabular-nums">Sekarang: {formatDue(now, localeOf(m), tz)}</span>
         {[1, 6, 24].map((h) => (
           <Button key={h} size="sm" variant="outline" onClick={() => setNow((n) => n + h * H)}>
             +{h} jam
@@ -118,7 +118,7 @@ export function RemindersSim({ input, start }: { input: PopupInput; start: numbe
       <section className="space-y-2">
         <h2 className="text-base">Akan dikirim sekarang ({views.length})</h2>
         <div className="flex flex-wrap gap-3">{views.length ? views.map((v, i) => <NotificationMock key={i} view={v} />) : <p className="text-sm text-muted-foreground">Tidak ada.</p>}</div>
-        <p className="text-sm text-muted-foreground tabular-nums">Alarm berikutnya: {plan.nextAt === null ? 'tidak ada' : formatFullDate(plan.nextAt, tz, m)}</p>
+        <p className="text-sm text-muted-foreground tabular-nums">Alarm berikutnya: {plan.nextAt === null ? 'tidak ada' : formatDue(plan.nextAt, localeOf(m), tz)}</p>
       </section>
       <section className="space-y-2">
         <h2 className="text-base">Lewat latar belakang (notifikasi sungguhan)</h2>
@@ -137,7 +137,7 @@ export function RemindersSim({ input, start }: { input: PopupInput; start: numbe
           <h2 className="text-base">Riwayat</h2>
           {log.map((entry) => (
             <div key={entry.at} className="space-y-2">
-              <p className="text-xs text-muted-foreground tabular-nums">{formatFullDate(entry.at, tz, m)}</p>
+              <p className="text-xs text-muted-foreground tabular-nums">{formatDue(entry.at, localeOf(m), tz)}</p>
               <div className="flex flex-wrap gap-3">{entry.views.length ? entry.views.map((v, i) => <NotificationMock key={i} view={v} />) : <span className="text-xs">tidak ada</span>}</div>
             </div>
           ))}

@@ -5,7 +5,8 @@ import { activeCourseIds } from '../courses/active-score';
 import { assignCourseColors } from '../courses/colors';
 import { courseAlias } from '../courses/display-name';
 import type { CopyItem } from '../format/copy-list';
-import { calendarDaysBetween, formatCountdown, formatDueClock, formatFullDate, formatLeft, formatRemaining } from '../format/time';
+import { formatDue, localeOf } from '../format/time';
+import { calendarDaysBetween, formatCountdown, formatDueClock, formatLeft, formatRemaining } from '../format/time';
 import { id, type Messages } from '../i18n/id';
 import type { DueFormat } from '../prefs';
 import { STALE_WARNING_H } from '../moodle/limits';
@@ -208,7 +209,7 @@ export function buildPopupView(input: PopupInput): PopupView {
       remaining: t.dueAt === null ? m.popup.copy.noDue : formatRemaining(t.dueAt, now, timeZone, m),
       left: t.dueAt === null ? '' : formatLeft(t.dueAt, now, timeZone, m),
       clock: t.dueAt === null ? '' : formatDueClock(t.dueAt, now, timeZone, m),
-      fullDate: t.dueAt === null ? '' : formatFullDate(t.dueAt, timeZone, m),
+      fullDate: t.dueAt === null ? '' : formatDue(t.dueAt, localeOf(m), timeZone),
       far: t.dueAt !== null && t.dueAt > now && calendarDaysBetween(now, t.dueAt, timeZone) >= 7,
       snoozedUntil: snoozeOf(t.eventId),
       marker: markers.get(t.eventId) ?? null,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatCopyList, type CopyItem } from '../lib/format/copy-list';
 import { en } from '../lib/i18n/en';
-import { calendarDaysBetween, formatAgo, formatDayDateTime, formatFullDate, formatRemaining, localDateKey } from '../lib/format/time';
+import { calendarDaysBetween, formatAgo, formatDue, formatRemaining, localDateKey } from '../lib/format/time';
 import type { Task } from '../lib/types';
 
 const TZ = 'Asia/Makassar';
@@ -31,9 +31,13 @@ describe('time zones are applied through Intl, never a fixed offset', () => {
     expect(calendarDaysBetween(NOW, t, 'Asia/Makassar')).toBe(1);
   });
 
-  it('shows the zone abbreviation in the full date', () => {
-    expect(formatFullDate(at(2026, 11, 14, 23, 59), TZ)).toMatch(/WITA|GMT\+8/);
-    expect(formatDayDateTime(at(2026, 11, 14, 23, 59), TZ)).toBe('Sab, 14 Nov 23.59');
+  // Replaces the full date with a zone name and the copied-list date (M5a.1).
+  it('one absolute due format, without a zone name', () => {
+    expect(formatDue(at(2026, 11, 13, 23, 59), 'id', TZ)).toBe('Jum, 13 Nov, 23.59');
+    expect(formatDue(at(2026, 11, 13, 23, 59), 'en', TZ)).toBe('Fri, 13 Nov, 11:59 PM');
+    expect(formatDue(at(2026, 8, 17, 0, 5), 'id', TZ)).toBe('Sen, 17 Agu, 00.05');
+    expect(formatDue(at(2026, 8, 17, 0, 5), 'en', TZ)).toBe('Mon, 17 Aug, 12:05 AM');
+    expect(formatDue(at(2026, 11, 13, 23, 59), 'id', TZ)).not.toMatch(/WITA|GMT/);
   });
 
   it('formats elapsed time', () => {
@@ -57,9 +61,10 @@ describe('formatCopyList', () => {
     item('PBO', 'Project Akhir', at(2026, 12, 20, 23, 59)),
   ];
 
+  // Dates use the single formatDue format since M5a.1.
   it('is plain text that reads well in WhatsApp: no asterisks or Markdown', () => {
     expect(formatCopyList(items, 'week', NOW, TZ)).toBe(
-      'Tugas minggu ini\n1. ASD - Laporan Praktikum 3 (Jum, 13 Nov 23.59)\n2. NLP - Tugas 4 Tokenisasi (Sab, 14 Nov 12.00)',
+      'Tugas minggu ini\n1. ASD - Laporan Praktikum 3 (Jum, 13 Nov, 23.59)\n2. NLP - Tugas 4 Tokenisasi (Sab, 14 Nov, 12.00)',
     );
     expect(formatCopyList(items, 'all', NOW, TZ)).not.toMatch(/[*_#`]/);
   });
@@ -78,7 +83,7 @@ describe('formatCopyList', () => {
 
   it('follows the chosen language, always with the due date and time', () => {
     expect(formatCopyList(items, 'week', NOW, TZ, en)).toBe(
-      "This week's tasks\n1. ASD - Laporan Praktikum 3 (Fri, 13 Nov 23:59)\n2. NLP - Tugas 4 Tokenisasi (Sat, 14 Nov 12:00)",
+      "This week's tasks\n1. ASD - Laporan Praktikum 3 (Fri, 13 Nov, 11:59 PM)\n2. NLP - Tugas 4 Tokenisasi (Sat, 14 Nov, 12:00 PM)",
     );
   });
 });
