@@ -23,7 +23,21 @@ export interface NotificationView {
 
 // Short enough that the system never cuts off the time at the end of the title.
 const MAX_NAME = 40;
-export const shorten = (name: string, max = MAX_NAME) => (name.length > max ? `${name.slice(0, max - 1).trimEnd()}…` : name);
+/**
+ * At most `max` characters including the "…". Cuts at the last word
+ * boundary that fits; only a single word longer than the limit is cut
+ * inside the word.
+ */
+export function shorten(name: string, max = MAX_NAME): string {
+  const clean = name.trim();
+  if (clean.length <= max) return clean;
+  const room = clean.slice(0, max - 1);
+  // The limit falls right after a whole word: keep that word.
+  const endsOnWord = /\s/.test(clean.charAt(max - 1));
+  const space = room.search(/\s\S*$/);
+  const cut = endsOnWord ? room : space > 0 ? room.slice(0, space) : room;
+  return `${cut.replace(/[\s,;:.\-–]+$/, '')}…`;
+}
 /** Calendar titles carry no time at the end, so the event name may run longer. */
 const MAX_CALENDAR_NAME = 64;
 

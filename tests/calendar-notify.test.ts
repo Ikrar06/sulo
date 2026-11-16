@@ -182,3 +182,26 @@ describe('month and list helpers', () => {
 // The lite shape is all a notice keeps from the calendar file.
 const _lite: CalendarEventLite = cal.kegiatan[0]!;
 void _lite;
+
+describe('title shortening (word boundary + "…")', () => {
+  it('keeps a title that fits, untouched', async () => {
+    const { shorten } = await import('../lib/reminders/text');
+    expect(shorten('Ujian final (UAS)', 64)).toBe('Ujian final (UAS)');
+  });
+  it('cuts at the last whole word and never goes over the limit', async () => {
+    const { shorten } = await import('../lib/reminders/text');
+    const long = 'Mahasiswa yang memiliki surat izin ujian atau surat pendaftaran wisuda tidak dikenakan UKT Semester Awal';
+    const out = shorten(long, 64);
+    expect(out).toBe('Mahasiswa yang memiliki surat izin ujian atau surat pendaftaran…');
+    expect(out.length).toBeLessThanOrEqual(64);
+    expect(shorten('Batas akhir pembatalan/penggantian mata kuliah', 40)).toBe('Batas akhir pembatalan/penggantian mata…');
+  });
+  it('drops trailing punctuation before the ellipsis', async () => {
+    const { shorten } = await import('../lib/reminders/text');
+    expect(shorten('Laporan praktikum, revisi kedua dan ketiga', 22)).toBe('Laporan praktikum…');
+  });
+  it('a single word longer than the limit is cut inside the word', async () => {
+    const { shorten } = await import('../lib/reminders/text');
+    expect(shorten('Pneumonoultramicroscopicsilicovolcanoconiosis', 20)).toBe('Pneumonoultramicros…');
+  });
+});
