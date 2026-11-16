@@ -141,7 +141,7 @@
 
 .db-cat-bar { background: color-mix(in oklch, var(--cat) 18%, var(--surface)); color: var(--text); }
 .db-cat-dot { background: var(--cat); }
-.db-cat-period { background: color-mix(in oklch, var(--cat) 7%, var(--surface)); }
+.db-cat-period { background: color-mix(in oklch, var(--cat) 5%, var(--surface)); }
 .db-holiday-number { color: var(--danger); }
 
 /* Accent text (countdown numbers only). Brand orange reads 5.7:1 on the

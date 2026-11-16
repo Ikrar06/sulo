@@ -49,9 +49,10 @@ export function RingkasanPage({ d, data }: PageProps) {
       </section>
 
       <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>}>
+        <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>} className="flex flex-col">
           {shown.groups.length === 0 ? (
-            <p className="text-[14px] text-muted-foreground">{r.nothingSoon}</p>
+            // The card stretches to the calendar card's height; the one line sits in its middle instead of leaving a hole below.
+            <p className="flex flex-1 items-center justify-center py-8 text-center text-[14px] text-muted-foreground">{r.nothingSoon}</p>
           ) : (
             <div className="space-y-4">
               {shown.groups.map((g) => (

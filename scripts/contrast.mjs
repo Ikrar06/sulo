@@ -73,7 +73,7 @@ function pairs(t, theme) {
   // Calendar categories (components/dashboard/dashboard.css, .db-cat-*).
   const cat = { akademik: c('muted'), ujian: c('brand-amber'), administrasi: c('urgency-week'), libur: c('danger'), wisuda: c('course-7') };
   const bar = (k) => mix(cat[k], c('surface'), 0.18);
-  const period = mix(cat.libur, c('surface'), 0.07);
+  const period = mix(cat.libur, c('surface'), 0.05);
   const ev = c('surface-raised');
   const exam = mix(c('brand-amber'), c('surface'), 0.28);
   const load = (n, color, p) => mix(c(color), c('surface-raised'), p);
@@ -95,10 +95,10 @@ function pairs(t, theme) {
       'angka hitung mundur (--accent-text di --bg)': [accentText, c('bg')],
       'keterlambatan (--urgency-overdue di --surface)': [c('urgency-overdue'), c('surface')],
       ...Object.fromEntries(Object.keys(cat).map((k) => [`kalender: teks bar ${k} (--text di tint 18%)`, [c('text'), bar(k)]])),
-      'kalender: label periode (--muted di tint 7%)': [c('muted'), period],
-      'kalender: angka tanggal di periode (--text di tint 7%)': [c('text'), period],
+      'kalender: label periode (--muted di tint 5%)': [c('muted'), period],
+      'kalender: angka tanggal di periode (--text di tint 5%)': [c('text'), period],
       'kalender: angka libur nasional (--danger di --surface)': [c('danger'), c('surface')],
-      'kalender: angka libur di periode (--danger di tint 7%)': [c('danger'), period],
+      'kalender: angka libur di periode (--danger di tint 5%)': [c('danger'), period],
       'kalender: angka di luar bulan (--muted di --surface)': [c('muted'), c('surface')],
       'kalender: angka hari ini (--ink di oranye)': [c('ink'), orange],
       'kalender: chip filter mati (--muted di --bg)': [c('muted'), c('bg')],
