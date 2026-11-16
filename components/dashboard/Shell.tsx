@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode, SVGProps } from 'react';
+import { browser } from 'wxt/browser';
 import { useI18n } from '@/components/i18n';
 import { RefreshIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
@@ -69,11 +70,16 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
             );
           })}
         </nav>
-        <footer className="db-side-footer text-[12px] leading-4 text-muted-foreground">
-          <span>{m.disclaimerShort}</span>{' '}
-          <button type="button" className="rounded underline-offset-2 outline-none hover:text-foreground hover:underline focus-ring:ring-2 focus-ring:ring-focus" onClick={onOpenPrivacy}>
-            {m.privacyLink}
-          </button>
+        <footer className="db-side-footer flex flex-col gap-1 text-[12px] leading-normal text-muted-foreground">
+          <span>{m.disclaimerShort}</span>
+          <span className="flex items-center gap-1.5">
+            <button type="button" className="rounded underline-offset-2 outline-none hover:text-foreground hover:underline focus-ring:ring-2 focus-ring:ring-focus" onClick={onOpenPrivacy}>
+              {m.privacyLink}
+            </button>
+            <span aria-hidden="true">·</span>
+            {/* Read from the manifest, never written by hand. */}
+            <span className="tabular-nums">v{browser.runtime.getManifest().version}</span>
+          </span>
         </footer>
       </aside>
       <main className="db-main">
