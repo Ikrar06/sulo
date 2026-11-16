@@ -14,6 +14,7 @@ import type { RequestLogEntry } from '@/lib/net/scheduler';
 import type { RequestSource, UnixSeconds } from '@/lib/types';
 import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-view';
 import { useCountdownTicker } from './countdown';
+import { formatDateKey, type Countdown } from '@/lib/calendar/countdown';
 import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
 // Rarely opened panels load on demand, so opening the popup stays light.
 const RemindersPanel = lazy(() => import('./RemindersPanel').then((mod) => ({ default: mod.RemindersPanel })));
@@ -161,6 +162,39 @@ function DevPanel({ view, dev }: { view: View; dev: NonNullable<PopupViewProps['
   );
 }
 
+function countdownText(c: Countdown, t: ReturnType<typeof useI18n>['m']): string {
+  const k = t.popup.important;
+  switch (c.kind) {
+    case 'today':
+      return k.today;
+    case 'tomorrow':
+      return k.tomorrow;
+    case 'days':
+      return k.days(c.n);
+    case 'ongoing':
+      return k.ongoing(formatDateKey(c.until, t.intl, { day: 'numeric', month: 'short' }));
+    case 'ongoingOpen':
+      return k.ongoingOpen;
+  }
+}
+
+/** One quiet line under the title: the nearest academic date and its countdown. */
+function ImportantLine({ judul, countdown, onOpen }: { judul: string; countdown: Countdown; onOpen: () => void }) {
+  const { m } = useI18n();
+  const when = countdownText(countdown, m);
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={m.popup.important.open(`${judul}, ${when}`)}
+      className="mx-3 flex w-[calc(100%-24px)] items-baseline gap-2 rounded-md px-1 pb-1.5 text-left text-[12.5px] leading-4 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus"
+    >
+      <span className="shrink-0 font-semibold tabular-nums">{when}</span>
+      <span className="min-w-0 truncate text-muted-foreground">{judul}</span>
+    </button>
+  );
+}
+
 function EmptyState({ celebrate, still }: { celebrate: number; still?: boolean }) {
   const t = useI18n().m.popup;
   return (
@@ -258,6 +292,9 @@ export function PopupView(props: PopupViewProps) {
           )}
         </header>
 
+        {view.important && !props.sample && (
+          <ImportantLine judul={view.important.judul} countdown={view.important.countdown} onOpen={() => props.onOpenDashboard('#kalender')} />
+        )}
         <div ref={listRef} className="flex-1 overflow-y-auto pb-2">
           <div className="space-y-2 px-3">
             {view.banner && <StatusLine banner={view.banner} now={now} actions={{ ...props, onOpenReminders: openReminders }} />}

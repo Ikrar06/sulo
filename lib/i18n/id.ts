@@ -38,6 +38,15 @@ export const id = {
   } satisfies Record<ConnectionTestResult, string>,
 
   popup: {
+    important: {
+      label: 'Tanggal penting',
+      today: 'Hari ini',
+      tomorrow: 'Besok',
+      days: (n: number) => `${n} hari lagi`,
+      ongoing: (date: string) => `Sampai ${date}`,
+      ongoingOpen: 'Sedang berlangsung',
+      open: (name: string) => `Tanggal penting: ${name}. Buka kalender di dashboard`,
+    },
     title: 'Hari Ini',
     updatedAgo: (ago: string) => `Diperbarui ${ago}`,
     neverUpdated: 'Belum pernah diperbarui',
@@ -241,6 +250,16 @@ export const id = {
 
   /** System notifications (reminders, summaries, session). Short, no grades or other sensitive data. */
   notify: {
+    calendar: {
+      h7Single: (name: string) => `Seminggu lagi: ${name}`,
+      h7Range: (name: string) => `${name} mulai seminggu lagi`,
+      h1Single: (name: string) => `Besok: ${name}`,
+      h1Range: (name: string) => `${name} mulai besok`,
+      h1End: (name: string) => `${name} berakhir besok`,
+      body: (range: string, source: string) => `${range}. Sumber: kalender akademik Unhas, ${source}.`,
+      to: 'sampai',
+      open: 'tanpa tanggal akhir',
+    },
     taskTitle: (name: string, left: string) => `${name}, ${left}`,
     taskBody: (course: string, clock: string) => `${course}. Tenggat ${clock}.`,
     summaryTitle: (n: number) => `${n} tugas mendekati tenggat`,

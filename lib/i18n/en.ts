@@ -36,6 +36,15 @@ export const en: Messages = {
   },
 
   popup: {
+    important: {
+      label: 'Important date',
+      today: 'Today',
+      tomorrow: 'Tomorrow',
+      days: (n) => `In ${n} days`,
+      ongoing: (date) => `Until ${date}`,
+      ongoingOpen: 'Running now',
+      open: (name) => `Important date: ${name}. Open the calendar in the dashboard`,
+    },
     title: 'Today',
     updatedAgo: (ago) => `Updated ${ago}`,
     neverUpdated: 'Not updated yet',
@@ -234,6 +243,16 @@ export const en: Messages = {
   },
 
   notify: {
+    calendar: {
+      h7Single: (name) => `In a week: ${name}`,
+      h7Range: (name) => `${name} starts in a week`,
+      h1Single: (name) => `Tomorrow: ${name}`,
+      h1Range: (name) => `${name} starts tomorrow`,
+      h1End: (name) => `${name} ends tomorrow`,
+      body: (range, source) => `${range}. Source: Unhas academic calendar, ${source}.`,
+      to: 'to',
+      open: 'no end date',
+    },
     taskTitle: (name, left) => `${name}, ${left}`,
     taskBody: (course, clock) => `${course}. Due ${clock}.`,
     summaryTitle: (n) => `${plural(n, 'task is', 'tasks are')} almost due`,

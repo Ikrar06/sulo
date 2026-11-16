@@ -8,6 +8,8 @@ import { calendarDaysBetween } from '../format/time';
 import { getTaskState, type TaskStateMap } from '../tasks/local-state';
 import { categoryOf, DEFAULT_UPDATES, type UpdateSettings } from '../radar/settings';
 import type { ChangeLogEntry, CourseId, SessionState, Task, UnixSeconds } from '../types';
+import { calendarReminders, type CalendarEventLite, type CalendarStage } from '../calendar/notify';
+import type { CalendarNotifySettings } from '../calendar/notify-settings';
 import { lastStage, type ReminderSettings } from './settings';
 import { inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
 
@@ -30,6 +32,8 @@ export interface PlanInput {
   /** Change log (M4); entries with notify set and not yet sent become update notices. */
   changes?: readonly ChangeLogEntry[];
   updates?: UpdateSettings;
+  /** Academic calendar reminders (M5a); omitted means none. */
+  calendar?: { events: readonly CalendarEventLite[]; settings: CalendarNotifySettings; /** Short source for the body, e.g. "SK Rektor No. 08429/UN4.1/KEP/2026". */ source: string };
 }
 
 export type Notice =
@@ -42,7 +46,9 @@ export type Notice =
   /** Updates for one course in one cycle ("3 materi baru di Hidrologi"). */
   | { kind: 'changes'; key: string; courseId: CourseId | null; entries: ChangeLogEntry[] }
   /** Updates across more than 3 courses, or held by quiet hours. */
-  | { kind: 'changes_summary'; key: string; count: number; courses: number };
+  | { kind: 'changes_summary'; key: string; count: number; courses: number }
+  /** An academic calendar date: a week or a day before it, or before a window's last day. */
+  | { kind: 'calendar'; key: string; stage: CalendarStage; event: CalendarEventLite; source: string };
 
 export interface Plan {
   send: Notice[];
@@ -91,6 +97,40 @@ function planChanges(input: PlanInput): { send: Notice[]; mark: string[]; nextAt
     entries,
   }));
   return { send, mark, nextAt: null };
+}
+
+/**
+ * Academic calendar reminders, at the user's morning time on their day
+ * (quiet hours move them later that day). Sent only on their own day; one
+ * whose day has passed is recorded as handled without a notification.
+ */
+function planCalendar(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: UnixSeconds | null } {
+  if (!input.calendar) return { send: [], mark: [], nextAt: null };
+  const today = localParts(input.now, input.timeZone).dateKey;
+  const atMin = input.settings.snoozeMorningMin;
+  const send: Notice[] = [];
+  const mark: string[] = [];
+  const upcoming: UnixSeconds[] = [];
+  for (const r of calendarReminders(input.calendar.events, input.calendar.settings)) {
+    if (r.key in input.sent) continue;
+    if (r.day < today) {
+      mark.push(r.key);
+      continue;
+    }
+    const fireAt = quietAdjusted(zonedToUnix(r.day, atMin, input.timeZone), false, input);
+    if (r.day === today && fireAt <= input.now) {
+      const releaseAt = quietAdjusted(input.now, false, input);
+      if (releaseAt > input.now) upcoming.push(releaseAt);
+      else {
+        send.push({ kind: 'calendar', key: r.key, stage: r.stage, event: r.event, source: input.calendar.source });
+        mark.push(r.key);
+      }
+    } else {
+      upcoming.push(fireAt);
+    }
+  }
+  const later = upcoming.filter((t) => t > input.now);
+  return { send, mark, nextAt: later.length ? Math.min(...later) : null };
 }
 
 export const stageKey = (t: Task, stageMin: number) => `t:${t.eventId}:${stageMin}:${t.dueAt}`;
@@ -247,6 +287,11 @@ export function planReminders(input: PlanInput): Plan {
   send.push(...updates.send);
   markSent.push(...updates.mark);
   if (updates.nextAt !== null) upcoming.push(updates.nextAt);
+
+  const calendar = planCalendar(input);
+  send.push(...calendar.send);
+  markSent.push(...calendar.mark);
+  if (calendar.nextAt !== null) upcoming.push(calendar.nextAt);
 
   const later = upcoming.filter((t) => t > now);
   return { send, markSent: [...new Set(markSent)], nextAt: later.length ? Math.min(...later) : null };

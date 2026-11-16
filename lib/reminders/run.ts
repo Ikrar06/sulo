@@ -16,6 +16,7 @@ import { readPrefs } from '../prefs';
 import { currentUser, readUser, writeUserIfCurrent } from '../storage';
 import { readPending } from '../account/pending';
 import { applyPersonalDue } from '../tasks/personal-due';
+import { readCalendar } from '../calendar/remote';
 import type { KeyValueStore, Task, UnixSeconds } from '../types';
 import { planReminders, type Notice } from './plan';
 import { noticeView, type NotificationView } from './text';
@@ -67,7 +68,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   // Another account is signed in: the stored account's reminders stay silent
   // until the user decides (lib/account/pending.ts).
   if (await readPending(store)) return { nextAt: null, shown: 0 };
-  const [prefs, session, tasks, taskState, courses, notified, changes] = await Promise.all([
+  const [prefs, session, tasks, taskState, courses, notified, changes, calendar] = await Promise.all([
     readPrefs(store),
     readSession(store),
     readUser(store, userId, 'tasks'),
@@ -75,6 +76,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     readUser(store, userId, 'courses'),
     readUser(store, userId, 'notified'),
     readUser(store, userId, 'changes'),
+    readCalendar(store),
   ]);
 
   const plan = planReminders({
@@ -89,6 +91,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     session: { state: session.state, expiredAt: session.expiredAt ?? null },
     changes,
     updates: prefs.updates,
+    calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
   });
 
   // The account captured at the start must still be active before every

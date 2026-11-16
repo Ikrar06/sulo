@@ -9,6 +9,7 @@ import { dueShift, isMovedEarlier } from '../radar/describe';
 import { categoryOf, type UpdateCategory } from '../radar/settings';
 import type { ChangeLogEntry, CourseId } from '../types';
 import type { Notice } from './plan';
+import { formatRange } from '../calendar/countdown';
 
 export type NotifyIcon = 'idle' | 'urgent' | 'sleepy' | 'happy';
 
@@ -22,7 +23,9 @@ export interface NotificationView {
 
 // Short enough that the system never cuts off the time at the end of the title.
 const MAX_NAME = 40;
-export const shorten = (name: string) => (name.length > MAX_NAME ? `${name.slice(0, MAX_NAME - 1).trimEnd()}…` : name);
+export const shorten = (name: string, max = MAX_NAME) => (name.length > max ? `${name.slice(0, max - 1).trimEnd()}…` : name);
+/** Calendar titles carry no time at the end, so the event name may run longer. */
+const MAX_CALENDAR_NAME = 64;
 
 const DAY = 86_400;
 
@@ -58,6 +61,14 @@ export function noticeView(
       return changesView(notice.entries, ctx.courseNameById?.(notice.courseId) ?? null, ctx);
     case 'changes_summary':
       return { title: n.changesSummaryTitle(notice.count, notice.courses), message: n.changesSummaryBody, icon: 'idle', buttons: [] };
+    case 'calendar': {
+      const c = n.calendar;
+      const e = notice.event;
+      const single = e.selesai === e.mulai;
+      const name = shorten(e.judul, MAX_CALENDAR_NAME);
+      const title = notice.stage === 'h7' ? (single ? c.h7Single(name) : c.h7Range(name)) : notice.stage === 'h1' ? (single ? c.h1Single(name) : c.h1Range(name)) : c.h1End(name);
+      return { title, message: c.body(formatRange(e, m.intl, c.to, c.open), notice.source), icon: notice.stage === 'h7' ? 'idle' : 'urgent', buttons: [] };
+    }
   }
 }
 

@@ -22,6 +22,6 @@ export function routeHash(page: Page, detail?: string | number | null): string {
 }
 
 /** Path for chrome.runtime.getURL / tabs.create. */
-export function dashboardPath(page: Page, detail?: string | number | null): string {
+export function dashboardPath(page: Page, detail?: string | number | null): `/dashboard.html${string}` {
   return `/dashboard.html${routeHash(page, detail)}`;
 }

@@ -10,7 +10,10 @@ import {
 } from '@/lib/messages';
 import { readBudget } from '@/lib/moodle/budget';
 import { createMoodleClient } from '@/lib/moodle/client';
-import { refreshCalendar } from '@/lib/calendar/remote';
+import { readCalendar, refreshCalendar } from '@/lib/calendar/remote';
+import { CALENDAR_HIGHLIGHT_KEY, calendarHighlight, type CalendarHighlight } from '@/lib/calendar/highlight';
+import { localParts } from '@/lib/reminders/zoned';
+import { dashboardPath } from '@/lib/dashboard/routes';
 import { CALENDAR_URL, CATCHUP_DELAY_MAX_MIN, DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { createRequestLogger } from '@/lib/net/request-log';
 import { createScheduler } from '@/lib/net/scheduler';
@@ -41,7 +44,7 @@ const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
 const NOTIFY_ALARM = 'notify';
 /** Storage changes that can move the next reminder. Not notified or stats (written by the cycle itself). */
-const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser|accountPending))$/;
+const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser|accountPending|calendar))$/;
 /** The popup opens on this panel once (a click on an update summary). */
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
@@ -93,7 +96,15 @@ export default defineBackground(() => {
 
   // ---------- Badge ----------
 
+  /** Keeps the popup's "Tanggal penting" line current (written only when it changes). */
+  const refreshHighlight = async () => {
+    const next = calendarHighlight(await readCalendar(local), localParts(clock.now(), timeZone()).dateKey);
+    const stored = (await local.get<CalendarHighlight | null>(CALENDAR_HIGHLIGHT_KEY)) ?? null;
+    if (JSON.stringify(stored) !== JSON.stringify(next)) await local.set(CALENDAR_HIGHLIGHT_KEY, next);
+  };
+
   const updateBadge = async () => {
+    await refreshHighlight().catch(() => undefined);
     const view = buildPopupView(await loadPopupInput(local, clock, timeZone()));
     await browser.action.setBadgeText({ text: view.onboarded ? view.badge.text : '' });
     await browser.action.setBadgeBackgroundColor({ color: BADGE_COLORS[view.badge.tone] });
@@ -177,6 +188,8 @@ export default defineBackground(() => {
       } catch {
         await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/calendar/view.php?view=upcoming` });
       }
+    } else if (kind === 'calendar') {
+      await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('kalender')) });
     } else if (kind === 'session') {
       await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
     }

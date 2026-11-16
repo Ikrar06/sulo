@@ -14,9 +14,12 @@ import type { SyncStatus, UserData } from '../storage';
 import { taskMarkers } from '../radar/log';
 import { getTaskState } from '../tasks/local-state';
 import { applyPersonalDue } from '../tasks/personal-due';
+import { localParts } from '../reminders/zoned';
 import { badgeCount, GROUP_ORDER, groupTasks, pendingTasks, urgencyOf, type TaskGroupKey, type Urgency } from '../tasks/group';
 import type { BudgetState, RemoteConfig, SessionState, UnixSeconds, ChangeLogEntry } from '../types';
 import type { AccountPending } from '../account/pending';
+import type { CalendarHighlight } from '../calendar/highlight-key';
+import { countdownOf, type Countdown } from '../calendar/countdown';
 import { accountStatus, decidePopupScreen, setupStatus, type PopupScreen } from '../account/state';
 
 export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgent' | 'sleepy' | 'stale' | 'dizzy' | 'onboarding';
@@ -116,6 +119,8 @@ export interface PopupView {
   updates: ChangeLogEntry[];
   /** Course names by id, for the panel and notifications. */
   courseNames: Record<string, string>;
+  /** "Tanggal penting" line under the title; null hides it. */
+  important: { judul: string; countdown: Countdown } | null;
 }
 
 export interface PopupInput {
@@ -137,6 +142,8 @@ export interface PopupInput {
   notificationsAllowed?: boolean;
   /** Another SIKOLA account signed in (global:accountPending); omitted means none. */
   accountPending?: AccountPending | null;
+  /** Nearest academic calendar date, computed by the background; omitted means none. */
+  calendarHighlight?: CalendarHighlight | null;
 }
 
 /** Offline: the browser says so, or the last request failed at the network level. */
@@ -253,6 +260,10 @@ export function buildPopupView(input: PopupInput): PopupView {
     updatesUnseen: updates.filter((e) => !e.seen).length,
     updates,
     courseNames: Object.fromEntries(courses.map((c) => [String(c.id), courseAlias(c)])),
+    important:
+      onboarded && input.calendarHighlight
+        ? { judul: input.calendarHighlight.judul, countdown: countdownOf(input.calendarHighlight, localParts(now, timeZone).dateKey) }
+        : null,
   };
 }
 
@@ -281,6 +292,7 @@ function mismatchView(input: PopupInput, deferred: boolean): PopupView {
     updatesUnseen: 0,
     updates: [],
     courseNames: {},
+    important: null,
   };
 }
 
