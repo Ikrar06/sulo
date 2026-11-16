@@ -131,9 +131,15 @@ export async function switchUser(store: KeyValueStore, userId: UserId): Promise<
  * behind after an account switch. Returns the removed keys.
  */
 export async function pruneOrphanUserKeys(store: KeyValueStore, keep: readonly (UserId | null)[] = []): Promise<string[]> {
+  // Keys first, the active account second. A sync writes global:currentUser
+  // before the account's u:{id}:* keys, so any key listed here belongs to an
+  // account that is already current when it is read afterwards. The other
+  // order deleted a first account's data written in between (worker start
+  // racing the first sync).
+  const keys = await store.keys('u:');
   const active = await currentUser(store);
   const allowed = [active, ...keep].filter((id): id is UserId => id !== null).map((id) => `u:${id}:`);
-  const orphans = (await store.keys('u:')).filter((k) => !allowed.some((prefix) => k.startsWith(prefix)));
+  const orphans = keys.filter((k) => !allowed.some((prefix) => k.startsWith(prefix)));
   if (orphans.length > 0) await store.remove(orphans);
   return orphans;
 }

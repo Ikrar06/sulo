@@ -40,6 +40,35 @@ describe('"Pakai akun ini"', () => {
   });
 });
 
+describe('pruning orphaned keys while the first sync writes', () => {
+  it("never deletes the first account's data written between pruning's two reads", async () => {
+    const base = memoryStore();
+    let synced = false;
+    // The first sync lands right after pruning's first storage call, whichever it is.
+    const firstSync = async () => {
+      if (synced) return;
+      synced = true;
+      await base.set(CURRENT_USER_KEY, 1);
+      await base.set('u:1:tasks', [{ eventId: 1 }]);
+    };
+    const store = {
+      ...base,
+      get: async <T,>(key: string) => {
+        const value = await base.get<T>(key);
+        await firstSync();
+        return value;
+      },
+      keys: async (prefix: string) => {
+        const keys = await base.keys(prefix);
+        await firstSync();
+        return keys;
+      },
+    };
+    expect(await pruneOrphanUserKeys(store)).toEqual([]);
+    expect(base.dump()['u:1:tasks']).toEqual([{ eventId: 1 }]);
+  });
+});
+
 describe('"Hapus semua data"', () => {
   function deps(running: boolean[] = []) {
     const log: string[] = [];
