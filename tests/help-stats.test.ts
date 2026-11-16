@@ -35,10 +35,13 @@ describe('help content', () => {
 });
 
 describe('outside links', () => {
-  it('Trakteer and the creator links are set; the feedback form stays hidden until filled in', () => {
+  it('Trakteer, the feedback form and the creator links are set', () => {
     expect(TRAKTEER_URL).toBe('https://trakteer.id/krar');
     expect(isShownLink(TRAKTEER_URL)).toBe(true);
-    expect(isShownLink(FEEDBACK_FORM_URL)).toBe(false);
+    // The public short link, never an editor link (leak-rules blocks /edit).
+    expect(FEEDBACK_FORM_URL).toBe('https://forms.gle/XsBuWXGHNR4pPTs17');
+    expect(isShownLink(FEEDBACK_FORM_URL)).toBe(true);
+    expect(isShownLink('')).toBe(false);
     expect(CREATOR_LINKS.map((l) => [l.id, l.url])).toEqual([
       ['instagram', 'https://www.instagram.com/krargmprr/'],
       ['linkedin', 'https://www.linkedin.com/in/ikrargempurtirani/'],

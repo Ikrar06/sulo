@@ -20,7 +20,7 @@ export const CREATOR_LINKS: readonly { id: CreatorLinkId; label: string; url: st
  * "Kirim masukan" (Google Form): the public link only, never the editor
  * link (scripts/leak-rules.mjs fails the build on one). Empty hides the button.
  */
-export const FEEDBACK_FORM_URL = '';
+export const FEEDBACK_FORM_URL = 'https://forms.gle/XsBuWXGHNR4pPTs17';
 
 /** True for a link that may be shown: https and not empty. */
 export function isShownLink(url: string): boolean {

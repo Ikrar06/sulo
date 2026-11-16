@@ -150,7 +150,7 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Tombol "Traktir kopi" (Trakteer), tautan media sosial, dan "Kirim kritik dan saran" (Google Form) di halaman Tentang, serta tautan PDF kalender resmi, hanya membuka situs itu di tab baru saat kamu mengekliknya. Sebelum diklik, Sulo tidak menghubungi situs itu sama sekali, dan tidak ada script, gambar, atau font dari situs itu yang dimuat di halaman Sulo. Sulo tidak mengirim data apa pun ke sana dan tidak mengisi formulir untukmu.',
+          id: 'Tombol "Traktir kopi" (Trakteer), tautan media sosial, dan "Kirim masukan" (Google Form) di halaman Tentang, serta tautan PDF kalender resmi, hanya membuka situs itu di tab baru saat kamu mengekliknya. Sebelum diklik, Sulo tidak menghubungi situs itu sama sekali, dan tidak ada script, gambar, atau font dari situs itu yang dimuat di halaman Sulo. Sulo tidak mengirim data apa pun ke sana dan tidak mengisi formulir untukmu.',
           en: 'The "Buy me a coffee" button (Trakteer), social media links and "Send feedback" (Google Form) on the About page, and the link to the official calendar PDF, only open that site in a new tab when you click them. Until you click, Sulo does not contact that site at all, and no script, image or font from it is loaded into Sulo\'s pages. Sulo sends no data there and never fills in a form for you.',
         },
       },
