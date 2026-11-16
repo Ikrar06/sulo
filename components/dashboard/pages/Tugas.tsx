@@ -11,7 +11,8 @@ import { formatFullDate, formatRemaining } from '@/lib/format/time';
 import { googleCalendarUrl } from '@/lib/format/gcal';
 import { addStep, removeStep, setCustomDue, setDone, setNote, setSnooze, toggleStep } from '@/lib/tasks/local-state';
 import { urgencyOf } from '@/lib/tasks/group';
-import { timeZone } from '../data';
+import { local, timeZone } from '../data';
+import { bumpUsage } from '@/lib/stats/usage';
 import { TaskDetails } from '../TaskDetails';
 import type { PageProps } from '../types';
 
@@ -90,7 +91,10 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
               item={item}
               expanded={open === item.task.eventId}
               onToggleOpen={() => setOpen(open === item.task.eventId ? null : item.task.eventId)}
-              onDone={(done) => state((s) => setDone(s, item.task.eventId, done))}
+              onDone={(done) => {
+                state((s) => setDone(s, item.task.eventId, done));
+                if (done) void bumpUsage(local, data.today, 'tasksMarkedDone');
+              }}
               d={d}
               now={data.now}
               details={

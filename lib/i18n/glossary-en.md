@@ -78,3 +78,11 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 
 - Say what happens to the data in everyday words: "hidden", "deleted", "not touched". Never mention user ids, storage or an "active" account.
 - Every sentence about deleting says that nothing in SIKOLA is touched.
+
+## Dashboard and calendar
+
+- Dashboard pages: Overview, Tasks, Courses, Latest updates, Calendar, Settings, Help, About.
+- "Personal due date" for a date the user sets; it never changes SIKOLA.
+- "Important date", "Week 14 of 16", "Week not available yet", "In 14 days", "Until 12 Feb".
+- Calendar flags: "Month only", "No end date", "Needs checking". Every calendar view ends with "Check the official document".
+- "Buy me a coffee" with "via Trakteer". "Usage statistics (local)" and "Export statistics".

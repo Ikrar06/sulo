@@ -11,6 +11,7 @@ import { currentUser, readAllUser, readUser, writeUserIfCurrent, type UserData }
 import type { SyncOutcome, UnixSeconds, UserId } from '@/lib/types';
 import { localParts } from '@/lib/reminders/zoned';
 import { applyTheme } from '@/lib/ui/theme';
+import { bumpUsage } from '@/lib/stats/usage';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupInput, type PopupView } from '@/lib/view/popup-view';
 
@@ -87,6 +88,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void reload();
+    void bumpUsage(local, localParts(systemClock.now(), timeZone).dateKey, 'dashboardOpens');
     // Coalesces bursts of storage writes (a sync writes several keys).
     const onChange = (_c: unknown, area: string) => {
       if (area !== 'local') return;

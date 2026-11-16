@@ -82,3 +82,11 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 
 - Sebut apa yang terjadi pada data dengan kata sehari-hari: "disembunyikan", "dihapus", "tidak tersentuh". Jangan menyebut userid, storage, atau akun "aktif".
 - Setiap kalimat tentang penghapusan menyebut bahwa data di SIKOLA tidak tersentuh.
+
+## Dashboard dan kalender
+
+- Halaman dashboard: Ringkasan, Tugas, Mata kuliah, Kabar terbaru, Kalender, Pengaturan, Bantuan, Tentang.
+- "Tenggat pribadi" untuk tenggat yang dibuat pengguna; tidak pernah mengubah SIKOLA.
+- "Tanggal penting", "Pekan 14 dari 16", "Pekan belum tersedia", "14 hari lagi", "Sampai 12 Feb".
+- Tanda kalender: "Perkiraan bulan", "Tanpa tanggal akhir", "Perlu dicek". Setiap tampilan kalender menutup dengan "Rujuk dokumen resmi".
+- "Traktir kopi" dengan keterangan "lewat Trakteer". "Statistik pemakaian (lokal)" dan "Ekspor statistik".

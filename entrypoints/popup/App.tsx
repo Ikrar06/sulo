@@ -20,6 +20,8 @@ import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupView as View, type TaskRow } from '@/lib/view/popup-view';
 import { applyTheme } from '@/lib/ui/theme';
+import { bumpUsage } from '@/lib/stats/usage';
+import { localParts } from '@/lib/reminders/zoned';
 
 // Popup container: renders from stored data only. Opening the popup never
 // sends a request to SIKOLA or anywhere else; only "Perbarui" asks the
@@ -137,6 +139,7 @@ export default function App({ startedAt }: { startedAt: number }) {
     if (userId === null) return;
     const state = await readUser(local, userId, 'taskState');
     await writeUser(local, userId, 'taskState', setDone(state, eventId, true));
+    await bumpUsage(local, localParts(systemClock.now(), timeZone).dateKey, 'tasksMarkedDone');
     if (view.pendingCount === 1) setCelebrate((n) => n + 1);
   };
 

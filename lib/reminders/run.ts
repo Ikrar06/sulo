@@ -61,7 +61,7 @@ export function pruneSent(sent: Record<string, UnixSeconds>, now: UnixSeconds, t
   );
 }
 
-export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSeconds | null; shown: number }> {
+export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSeconds | null; shown: number; shownKinds?: Notice['kind'][] }> {
   const { store, now, timeZone } = deps;
   const userId = await currentUser(store);
   if (userId === null) return { nextAt: null, shown: 0 };
@@ -116,15 +116,17 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   };
 
   let shown = 0;
+  const shownKinds: Notice['kind'][] = [];
   for (const notice of plan.send) {
-    if ((await currentUser(store)) !== userId) return { nextAt: null, shown };
+    if ((await currentUser(store)) !== userId) return { nextAt: null, shown, shownKinds };
     try {
       await deps.notifier.show(notificationId(notice), noticeView(notice, { now, timeZone, m, courseName, courseNameById }));
       shown += 1;
+      shownKinds.push(notice.kind);
     } catch {
       const stats = await readUser(store, userId, 'stats');
       await writeUserIfCurrent(store, userId, 'stats', { ...stats, notifyFailures: stats.notifyFailures + 1, lastNotifyFailureAt: now });
     }
   }
-  return { nextAt: plan.nextAt, shown };
+  return { nextAt: plan.nextAt, shown, shownKinds };
 }

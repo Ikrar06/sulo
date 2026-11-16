@@ -31,6 +31,7 @@ import { changeUrl } from '@/lib/radar/describe';
 import { countPopupOpen } from '@/lib/radar/log';
 import { parseNotificationId, runNotifyCycle, type Notifier } from '@/lib/reminders/run';
 import { createSingleFlight, isSyncRunning } from '@/lib/sync/lock';
+import { bumpUsage } from '@/lib/stats/usage';
 import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@/lib/account/pending';
 import { useNewAccount, wipeAllData } from '@/lib/account/actions';
 import { runSync } from '@/lib/sync/run-sync';
@@ -96,6 +97,18 @@ export default defineBackground(() => {
 
   // ---------- Badge ----------
 
+  const today = () => localParts(clock.now(), timeZone()).dateKey;
+
+  /** Local usage counters (lib/stats/usage.ts): counts only, never sent anywhere. */
+  const countShown = async (kinds: readonly string[]) => {
+    const calendar = kinds.filter((k) => k === 'calendar').length;
+    const updates = kinds.filter((k) => k === 'changes' || k === 'changes_summary').length;
+    const reminders = kinds.filter((k) => k === 'task' || k === 'summary' || k === 'morning').length;
+    await bumpUsage(local, today(), 'calendarRemindersShown', calendar);
+    await bumpUsage(local, today(), 'updatesShown', updates);
+    await bumpUsage(local, today(), 'remindersShown', reminders);
+  };
+
   /** Keeps the popup's "Tanggal penting" line current (written only when it changes). */
   const refreshHighlight = async () => {
     const next = calendarHighlight(await readCalendar(local), localParts(clock.now(), timeZone()).dateKey);
@@ -147,6 +160,7 @@ export default defineBackground(() => {
   const runRemindersAt = (now: number) => {
     const run = reminderQueue.then(async () => {
       const result = await runNotifyCycle({ store: local, now, timeZone: timeZone(), uiLanguage: browser.i18n.getUILanguage(), notifier });
+      await countShown(result.shownKinds ?? []);
       if (result.nextAt === null) await browser.alarms.clear(NOTIFY_ALARM);
       else await browser.alarms.create(NOTIFY_ALARM, { when: result.nextAt * 1000 });
       return result;
@@ -339,7 +353,9 @@ export default defineBackground(() => {
         return status();
       // Local only: counts the open for the "baru" markers. No request.
       case 'popup/opened':
-        return countOpen().then(status);
+        return countOpen()
+          .then(() => bumpUsage(local, today(), 'popupOpens'))
+          .then(status);
       case 'sync/request':
         // A request that arrives while a cycle runs shares that cycle's result.
         return sync(message.trigger, message.forceCourseList ?? false);

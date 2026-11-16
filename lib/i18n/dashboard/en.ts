@@ -196,6 +196,26 @@ export const dashEn: DashMessages = {
     nothing: 'No important dates coming up.',
     notifySettings: 'Calendar notification settings',
   },
+  bantuan: {
+    howTitle: 'How Sulo works',
+    faqTitle: 'Frequently asked questions',
+    offline: 'This page is stored in the extension, so it opens without internet.',
+    moreHelp: 'Still unsure? Send your question from the About page.',
+  },
+  tentang: {
+    nameTitle: 'What "Sulo" means',
+    nameBody: 'Sulo means torch in Bugis and Makassarese: a small light so your way through college is easier to see.',
+    version: (v) => `Version ${v}`,
+    license: "Sulo's code is MIT licensed.",
+    privacy: 'Privacy policy',
+    supportTitle: 'Support Sulo',
+    supportBody: 'Sulo is free, with no ads and no tracking. If it helps you, you can buy its maintainer a coffee.',
+    coffee: 'Buy me a coffee',
+    coffeeVia: 'via Trakteer',
+    feedback: 'Send feedback',
+    social: 'Follow Sulo',
+    externalNote: 'These links open another site in a new tab only when you click them. Sulo sends nothing there.',
+  },
   pengaturan: {
     title: 'Settings',
     sections: {
@@ -220,6 +240,20 @@ export const dashEn: DashMessages = {
     openPrivacy: 'Privacy policy',
     requestsToday: (used, limit) => `Checks with SIKOLA today: ${used} of ${limit}`,
     wipeHelp: 'Deletes everything Sulo keeps in this browser. Nothing in SIKOLA is touched.',
+    stats: {
+      title: 'Usage statistics (local)',
+      since: (date) => `Counted since ${date}. Numbers only, kept in your browser, never sent.`,
+      counters: {
+        popupOpens: 'Popup opened',
+        dashboardOpens: 'Dashboard opened',
+        tasksMarkedDone: 'Tasks marked as done',
+        remindersShown: 'Task reminders shown',
+        calendarRemindersShown: 'Calendar reminders shown',
+        updatesShown: 'Update notifications shown',
+      },
+      export: 'Export statistics',
+      exportHelp: 'Saves a JSON file with the numbers above, the Sulo version and the dates. No task names, courses or account. Send it only if you want to help development.',
+    },
     calendarHelp: 'Sulo tells you one day before, and for KRS, UKT and UAS also a week before. Events that last several days are also reminded before their last day. Quiet hours still apply.',
     calendarKinds: {
       krs: 'Course registration (KRS)',

@@ -196,6 +196,26 @@ export const dashId = {
     nothing: 'Tidak ada tanggal penting dalam waktu dekat.',
     notifySettings: 'Atur notifikasi kalender',
   },
+  bantuan: {
+    howTitle: 'Cara kerja Sulo',
+    faqTitle: 'Pertanyaan yang sering muncul',
+    offline: 'Halaman ini tersimpan di ekstensi, jadi bisa dibuka tanpa internet.',
+    moreHelp: 'Masih bingung? Kirim pertanyaanmu lewat halaman Tentang.',
+  },
+  tentang: {
+    nameTitle: 'Arti nama Sulo',
+    nameBody: 'Sulo berarti obor dalam bahasa Bugis dan Makassar: penerang kecil supaya jalan kuliahmu lebih terlihat.',
+    version: (v: string) => `Versi ${v}`,
+    license: 'Kode Sulo berlisensi MIT.',
+    privacy: 'Kebijakan privasi',
+    supportTitle: 'Dukung Sulo',
+    supportBody: 'Sulo gratis, tanpa iklan, dan tanpa pelacakan. Kalau Sulo membantu, kamu bisa mentraktir kopi untuk pengelolanya.',
+    coffee: 'Traktir kopi',
+    coffeeVia: 'lewat Trakteer',
+    feedback: 'Kirim kritik dan saran',
+    social: 'Ikuti Sulo',
+    externalNote: 'Tautan ini membuka situs lain di tab baru hanya saat kamu mengkliknya. Sulo tidak mengirim data apa pun ke sana.',
+  },
   pengaturan: {
     title: 'Pengaturan',
     sections: {
@@ -220,6 +240,20 @@ export const dashId = {
     openPrivacy: 'Kebijakan privasi',
     requestsToday: (used: number, limit: number) => `Pemeriksaan ke SIKOLA hari ini: ${used} dari ${limit}`,
     wipeHelp: 'Menghapus semua yang Sulo simpan di browser ini. Data di SIKOLA tidak tersentuh.',
+    stats: {
+      title: 'Statistik pemakaian (lokal)',
+      since: (date: string) => `Dihitung sejak ${date}. Hanya angka, tersimpan di browsermu, tidak pernah dikirim.`,
+      counters: {
+        popupOpens: 'Popup dibuka',
+        dashboardOpens: 'Dashboard dibuka',
+        tasksMarkedDone: 'Tugas ditandai selesai',
+        remindersShown: 'Pengingat tugas tampil',
+        calendarRemindersShown: 'Pengingat kalender tampil',
+        updatesShown: 'Notifikasi kabar terbaru tampil',
+      },
+      export: 'Ekspor statistik',
+      exportHelp: 'Menyimpan berkas JSON berisi angka di atas, versi Sulo, dan tanggal. Tanpa nama tugas, mata kuliah, atau akun. Kirim berkasnya hanya kalau kamu mau membantu pengembangan.',
+    },
     calendarHelp: 'Sulo memberi tahu satu hari sebelumnya, dan untuk KRS, UKT, dan UAS juga seminggu sebelumnya. Acara yang berlangsung beberapa hari juga diingatkan menjelang hari terakhir. Jam tenang tetap berlaku.',
     calendarKinds: {
       krs: 'Pengisian KRS',
