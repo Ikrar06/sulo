@@ -18,7 +18,8 @@ export interface RemindersPanelProps {
   timeZone: string;
   onChange: (next: ReminderSettings) => void;
   onTest: () => Promise<void>;
-  onBack: () => void;
+  /** Popup: a back button. Omitted in the dashboard, where the page has the title. */
+  onBack?: () => void;
   onOpenUpdates: () => void;
 }
 
@@ -84,12 +85,16 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex items-center gap-1 px-2 pt-2.5 pb-1.5">
-        <Button size="icon-sm" variant="ghost" aria-label={r.back} onClick={onBack}>
-          <ChevronLeftIcon className="size-4" />
-        </Button>
-        <h1 className="font-heading text-[17px] leading-5">{r.title}</h1>
-      </header>
+      {onBack ? (
+        <header className="flex items-center gap-1 px-2 pt-2.5 pb-1.5">
+          <Button size="icon-sm" variant="ghost" aria-label={r.back} onClick={onBack}>
+            <ChevronLeftIcon className="size-4" />
+          </Button>
+          <h1 className="font-heading text-[17px] leading-5">{r.title}</h1>
+        </header>
+      ) : (
+        <h3 className="sr-only">{r.title}</h3>
+      )}
       <div className="flex-1 overflow-y-auto">
         <section className="border-b border-border px-4 pt-1 pb-3">
           <Check checked={settings.enabled} onChange={(enabled) => set({ enabled })}>

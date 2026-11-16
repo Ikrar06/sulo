@@ -30,6 +30,7 @@ import { buildPopupView, type PopupView } from '@/lib/view/popup-view';
 import type { CourseId, CourseRecord, SyncOutcome } from '@/lib/types';
 import '@/assets/tailwind.css';
 import { installInputModality } from '@/lib/ui/input-modality';
+import { applyTheme } from '@/lib/ui/theme';
 
 // The setup page in a full tab: one flow, four modes (lib/account/state.ts):
 // - first-run: resumes at the last step reached (global:setupProgress)
@@ -421,6 +422,7 @@ const root = document.getElementById('root');
 if (!root) throw new Error('Onboarding root element not found');
 // The language is resolved before the first render: stored choice, else the browser's.
 void readPrefs(local).then((prefs) => {
+  applyTheme(document.documentElement, prefs.theme);
   const locale = resolveLocale(prefs.locale, browser.i18n.getUILanguage());
   document.documentElement.lang = locale;
   document.title = messagesFor(locale).onboarding.pageTitle;

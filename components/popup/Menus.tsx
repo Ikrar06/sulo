@@ -69,12 +69,13 @@ export interface SettingsMenuProps {
   onOpenReminders?: () => void;
   /** "Hapus semua data": opens the confirmation dialog. */
   onWipe: () => void;
+  onOpenDashboard: () => void;
   /** The ⚙ button, so the dialog can return focus to it when it closes. */
   triggerRef?: Ref<HTMLButtonElement>;
 }
 
 /** Small settings menu for M2; the full settings page comes with the dashboard (M5a). */
-export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses, onOpenReminders, onWipe, triggerRef }: SettingsMenuProps) {
+export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses, onOpenReminders, onWipe, onOpenDashboard, triggerRef }: SettingsMenuProps) {
   const { m, locale } = useI18n();
   const s = m.popup.settings;
   return (
@@ -83,6 +84,7 @@ export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageC
         <SettingsIcon className="size-4" />
       </MenuButton>
       <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem onSelect={onOpenDashboard}>{s.openDashboard}</DropdownMenuItem>
         {onManageCourses && <DropdownMenuItem onSelect={onManageCourses}>{s.manageCourses}</DropdownMenuItem>}
         {onOpenReminders && (
           <DropdownMenuItem onSelect={onOpenReminders}>

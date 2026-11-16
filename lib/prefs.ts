@@ -1,9 +1,11 @@
-// Device preferences: language and due-time format. Global (not per user):
+// Device preferences: language, due-time format, theme, reminders and the
+// optional nickname and intake year. Global (not per user):
 // they describe how this browser shows Sulo, not anyone's data. Validated
 // with Zod; anything unreadable falls back to the defaults.
 
 import { z } from 'zod';
 import type { Locale } from './i18n';
+import { calendarNotifySchema, DEFAULT_CALENDAR_NOTIFY, type CalendarNotifySettings } from './calendar/notify-settings';
 import { DEFAULT_UPDATES, updateSettingsSchema, type UpdateSettings } from './radar/settings';
 import { DEFAULT_REMINDERS, reminderSettingsSchema, type ReminderSettings } from './reminders/settings';
 import type { KeyValueStore } from './types';
@@ -22,6 +24,13 @@ export const PREFS_KEY = 'global:prefs';
 export type DueFormat = 'both' | 'remaining' | 'clock' | 'countdown';
 export const DUE_FORMATS: readonly DueFormat[] = ['both', 'remaining', 'clock', 'countdown'];
 
+/** "system" follows the operating system; the others set data-theme on <html>. */
+export type Theme = 'system' | 'dark' | 'light';
+export const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
+
+/** Nicknames stay short: they only greet the user on the dashboard. */
+export const NICKNAME_MAX = 40;
+
 export interface Prefs {
   /** null: follow the browser language. */
   locale: Locale | null;
@@ -29,15 +38,35 @@ export interface Prefs {
   reminders: ReminderSettings;
   /** Which kinds of updates notify (materials, deadlines, grades, forum). */
   updates: UpdateSettings;
+  theme: Theme;
+  /** Optional, local only; '' means none. */
+  nickname: string;
+  /** Optional intake year, chosen by the user (never read from the student number); filters study evaluations. */
+  angkatan: number | null;
+  /** Academic calendar notifications per kind. */
+  calendar: CalendarNotifySettings;
 }
 
-export const DEFAULT_PREFS: Prefs = { locale: null, dueFormat: 'both', reminders: DEFAULT_REMINDERS, updates: DEFAULT_UPDATES };
+export const DEFAULT_PREFS: Prefs = {
+  locale: null,
+  dueFormat: 'both',
+  reminders: DEFAULT_REMINDERS,
+  updates: DEFAULT_UPDATES,
+  theme: 'system',
+  nickname: '',
+  angkatan: null,
+  calendar: DEFAULT_CALENDAR_NOTIFY,
+};
 
 const prefsSchema = z.object({
   locale: z.enum(['id', 'en']).nullable().catch(null),
   dueFormat: z.enum(['both', 'remaining', 'clock', 'countdown']).catch('both'),
   reminders: reminderSettingsSchema.catch(DEFAULT_REMINDERS),
   updates: updateSettingsSchema,
+  theme: z.enum(['system', 'dark', 'light']).catch('system'),
+  nickname: z.string().max(NICKNAME_MAX).catch(''),
+  angkatan: z.number().int().min(1990).max(2100).nullable().catch(null),
+  calendar: calendarNotifySchema,
 });
 
 export async function readPrefs(store: KeyValueStore): Promise<Prefs> {

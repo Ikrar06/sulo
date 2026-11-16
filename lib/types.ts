@@ -135,6 +135,8 @@ export interface TaskLocalState {
   snoozedUntil: UnixSeconds | null;
   steps: { id: string; text: string; done: boolean }[];
   note: string;
+  /** Personal due date for a task without one (dashboard). Never changes SIKOLA. */
+  customDueAt?: UnixSeconds | null;
 }
 
 // ---------- Radar ----------

@@ -1,0 +1,165 @@
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useI18n } from '@/components/i18n';
+import { ChevronDownIcon, SearchIcon } from '@/components/icons';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { activeCourseIds } from '@/lib/courses/active-score';
+import { courseAlias } from '@/lib/courses/display-name';
+import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@/lib/dashboard/tasks';
+import { formatFullDate, formatRemaining } from '@/lib/format/time';
+import { googleCalendarUrl } from '@/lib/format/gcal';
+import { addStep, removeStep, setCustomDue, setDone, setNote, setSnooze, toggleStep } from '@/lib/tasks/local-state';
+import { urgencyOf } from '@/lib/tasks/group';
+import { timeZone } from '../data';
+import { TaskDetails } from '../TaskDetails';
+import type { PageProps } from '../types';
+
+const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
+
+const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
+
+export function TugasPage({ d, data, actions, route }: PageProps) {
+  const { m } = useI18n();
+  const t = d.tugas;
+  const user = data.user!;
+  const items = useMemo(() => buildTaskItems(user), [user]);
+  const counts = useMemo(() => countByStatus(items), [items]);
+  const [filter, setFilter] = useState<TaskFilter>(DEFAULT_TASK_FILTER);
+  const linked = route.detail !== null ? Number(route.detail) : null;
+  const [open, setOpen] = useState<number | null>(linked);
+
+  // #tugas/<eventId>: show that task whatever its status, opened and in view.
+  useEffect(() => {
+    if (linked === null) return;
+    setFilter({ ...DEFAULT_TASK_FILTER, status: 'all' });
+    setOpen(linked);
+    window.requestAnimationFrame(() => document.getElementById(`task-${linked}`)?.scrollIntoView({ block: 'center' }));
+  }, [linked]);
+
+  const shown = filterTasks(items, filter);
+  const active = activeCourseIds(user.courses);
+  const courses = user.courses.filter((c) => active.has(c.id)).sort((a, b) => courseAlias(a).localeCompare(courseAlias(b), 'id'));
+  const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-60 flex-1">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input type="search" className="pl-8" placeholder={t.search} aria-label={t.search} value={filter.query} onChange={(e) => setFilter({ ...filter, query: e.target.value })} />
+        </div>
+        <Select value={filter.courseId === null ? 'all' : String(filter.courseId)} onValueChange={(v) => setFilter({ ...filter, courseId: v === 'all' ? null : Number(v) })}>
+          <SelectTrigger className="w-56" aria-label={t.course}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t.allCourses}</SelectItem>
+            {courses.map((c) => (
+              <SelectItem key={c.id} value={String(c.id)}>
+                {courseAlias(c)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filter.status} onValueChange={(v) => setFilter({ ...filter, status: v as TaskStatusFilter })}>
+          <SelectTrigger className="w-60" aria-label={t.status}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_FILTERS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {t.statuses[s]}
+                {s !== 'all' ? ` (${counts[s]})` : ''}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <p className="text-[13px] text-muted-foreground" role="status">
+        {t.count(shown.length)}
+      </p>
+
+      {shown.length === 0 ? (
+        <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-[14px] text-muted-foreground">{t.empty}</p>
+      ) : (
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
+          {shown.map((item) => (
+            <TaskRowItem
+              key={item.task.eventId}
+              item={item}
+              expanded={open === item.task.eventId}
+              onToggleOpen={() => setOpen(open === item.task.eventId ? null : item.task.eventId)}
+              onDone={(done) => state((s) => setDone(s, item.task.eventId, done))}
+              d={d}
+              now={data.now}
+              details={
+                <TaskDetails
+                  item={item}
+                  d={d}
+                  now={data.now}
+                  timeZone={timeZone}
+                  snoozeMorningMin={data.prefs.reminders.snoozeMorningMin}
+                  actions={{
+                    onOpen: actions.openTab,
+                    onAddToCalendar: (i) =>
+                      i.task.dueAt !== null &&
+                      actions.openTab(googleCalendarUrl({ title: `${i.task.name} (${i.courseName})`, dueAt: i.task.dueAt, details: m.popup.row.calendarDetails(i.courseName, i.task.url) })),
+                    onSnooze: (until) => state((s) => setSnooze(s, item.task.eventId, until)),
+                    onCustomDue: (at) => state((s) => setCustomDue(s, item.task.eventId, at)),
+                    onAddStep: (text) => state((s) => addStep(s, item.task.eventId, text, crypto.randomUUID())),
+                    onToggleStep: (id) => state((s) => toggleStep(s, item.task.eventId, id)),
+                    onRemoveStep: (id) => state((s) => removeStep(s, item.task.eventId, id)),
+                    onNote: (note) => state((s) => setNote(s, item.task.eventId, note)),
+                  }}
+                />
+              }
+            />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, details }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; details: ReactNode }) {
+  const { m } = useI18n();
+  const t = d.tugas;
+  const due = item.task.dueAt;
+  const urgency = item.status === 'pending' ? urgencyOf(due, now) : 'normal';
+  const steps = item.state.steps;
+  const panelId = `task-panel-${item.task.eventId}`;
+  return (
+    <li id={`task-${item.task.eventId}`}>
+      <div className="flex items-start gap-3 px-4 py-3">
+        <Checkbox className="mt-0.5" checked={item.status === 'done'} onCheckedChange={(v) => onDone(v === true)} aria-label={item.status === 'done' ? t.markUndone : t.markDone} />
+        <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
+          <span className={`block text-[14.5px] leading-5 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-medium'}`}>{item.task.name}</span>
+          <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12.5px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${item.courseColor})` }} />
+              {item.courseName}
+            </span>
+            {item.status !== 'pending' && <span>{t.statuses[item.status]}</span>}
+            {item.personalDue && <span className="rounded border border-border px-1 text-[11.5px]">{t.personalDue}</span>}
+            {steps.length > 0 && <span className="tabular-nums">{t.stepsDone(steps.filter((s) => s.done).length, steps.length)}</span>}
+          </span>
+        </button>
+        <span className="shrink-0 text-right text-[13px] leading-5 tabular-nums">
+          {due === null ? (
+            <span className="text-muted-foreground">{t.noDue}</span>
+          ) : (
+            <>
+              <span className={`block ${URGENCY_TEXT[urgency]}`}>{formatRemaining(due, now, timeZone, m)}</span>
+              <span className="block text-[12px] text-muted-foreground">{formatFullDate(due, timeZone, m)}</span>
+            </>
+          )}
+        </span>
+        <button type="button" className="mt-0.5 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
+          <ChevronDownIcon className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+      {expanded && <div id={panelId}>{details}</div>}
+    </li>
+  );
+}

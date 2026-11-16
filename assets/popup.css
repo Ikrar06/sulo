@@ -1,0 +1,14 @@
+@import "tailwindcss" source(none);
+@import "./tokens.css";
+
+/* The popup's stylesheet: only the files the popup renders are scanned, so
+   classes used by the dashboard and other pages stay out of it. Add a path
+   here when the popup starts rendering a component from somewhere new. */
+@source "../entrypoints/popup";
+@source "../components/popup";
+@source "../components/ui";
+@source "../components/updates";
+@source "../components/mascot";
+@source "../components/i18n.tsx";
+@source "../components/icons.tsx";
+@source "../lib";

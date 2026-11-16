@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
-import '@/assets/tailwind.css';
+import '@/assets/popup.css';
 import { installInputModality } from '@/lib/ui/input-modality';
 
 const startedAt = performance.now();

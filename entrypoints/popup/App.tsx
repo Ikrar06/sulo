@@ -19,6 +19,7 @@ import type { UpdateSettings } from '@/lib/radar/settings';
 import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupView as View, type TaskRow } from '@/lib/view/popup-view';
+import { applyTheme } from '@/lib/ui/theme';
 
 // Popup container: renders from stored data only. Opening the popup never
 // sends a request to SIKOLA or anywhere else; only "Perbarui" asks the
@@ -83,6 +84,7 @@ export default function App({ startedAt }: { startedAt: number }) {
       if (request.panel === 'updates' && input.now - request.at < 120) setStartPanel('updates');
     }
     setPrefs(stored);
+    applyTheme(document.documentElement, stored.theme);
     setNow(input.now);
     if (isDev) setRequestLog(await readRequestLog(local));
     setView(
@@ -206,6 +208,7 @@ export default function App({ startedAt }: { startedAt: number }) {
         onUseNewAccount={() => void send({ type: 'account/useNew' }).then(() => window.close())}
         onDeferAccount={() => void send({ type: 'account/defer' })}
         onWipeAll={() => void send({ type: 'data/wipeAll' }).then(() => window.close())}
+        onOpenDashboard={(hash) => void browser.tabs.create({ url: browser.runtime.getURL(`/dashboard.html${hash}`) })}
         onTestNotification={async () => {
           await send({ type: 'notify/test' });
         }}

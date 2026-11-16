@@ -15,6 +15,7 @@ import { readSession } from '../moodle/session';
 import { readPrefs } from '../prefs';
 import { currentUser, readUser, writeUserIfCurrent } from '../storage';
 import { readPending } from '../account/pending';
+import { applyPersonalDue } from '../tasks/personal-due';
 import type { KeyValueStore, Task, UnixSeconds } from '../types';
 import { planReminders, type Notice } from './plan';
 import { noticeView, type NotificationView } from './text';
@@ -79,7 +80,8 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   const plan = planReminders({
     now,
     timeZone,
-    tasks,
+    // A personal due date (dashboard) gets the same reminders.
+    tasks: applyPersonalDue(tasks, taskState).tasks,
     taskState,
     activeCourseIds: activeCourseIds(courses),
     settings: prefs.reminders,

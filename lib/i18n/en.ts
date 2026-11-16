@@ -107,6 +107,7 @@ export const en: Messages = {
     settings: {
       button: 'Settings',
       manageCourses: 'Choose courses',
+      openDashboard: 'Open dashboard',
       wipe: 'Delete all data',
       dueFormat: 'Due time format',
       formats: {

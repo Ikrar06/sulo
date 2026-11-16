@@ -110,6 +110,7 @@ export const id = {
     settings: {
       button: 'Pengaturan',
       manageCourses: 'Atur mata kuliah',
+      openDashboard: 'Buka dashboard',
       wipe: 'Hapus semua data',
       dueFormat: 'Format waktu tenggat',
       formats: {

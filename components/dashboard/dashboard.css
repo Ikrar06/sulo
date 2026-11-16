@@ -1,0 +1,96 @@
+/* Dashboard. Same rules as onboarding: one plain background (--bg), no
+   gradients or glows, no colored edge lines; depth from thin borders and the
+   --bg / --surface difference. */
+
+.db-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.db-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.db-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 2px 6px 2px 2px;
+}
+
+/* Narrow windows: the page list scrolls sideways under the brand. */
+.db-nav {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.db-side-footer {
+  display: none;
+}
+
+.db-main {
+  min-width: 0;
+  padding: 20px clamp(16px, 4vw, 48px) 48px;
+}
+
+.db-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: 1120px;
+  margin: 0 auto 20px;
+}
+
+.db-content {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  .db-layout {
+    grid-template-columns: 232px minmax(0, 1fr);
+  }
+
+  .db-side {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    border-bottom: 0;
+    border-right: 1px solid var(--border);
+    padding: 20px 14px 16px;
+  }
+
+  .db-nav {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .db-side-footer {
+    display: block;
+    margin-top: auto;
+    padding: 0 6px;
+  }
+
+  .db-main {
+    padding-top: 28px;
+  }
+}
+
+/* Load map cells: solid fills mixed from brand tokens (never a gradient), darker means heavier. */
+.db-load-0 { background: var(--surface-raised); }
+.db-load-1 { background: color-mix(in oklch, var(--brand-amber) 22%, var(--surface-raised)); }
+.db-load-2 { background: color-mix(in oklch, var(--brand-amber) 45%, var(--surface-raised)); }
+.db-load-3 { background: color-mix(in oklch, var(--brand-orange) 62%, var(--surface-raised)); }
+.db-load-4 { background: color-mix(in oklch, var(--brand-orange) 88%, var(--surface-raised)); }

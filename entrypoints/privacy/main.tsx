@@ -7,6 +7,7 @@ import { readPrefs } from '@/lib/prefs';
 import { PRIVACY_INTRO, PRIVACY_SECTIONS, PRIVACY_TITLE, PRIVACY_UPDATED, type Block } from '@/lib/privacy/content';
 import '@/assets/tailwind.css';
 import { installInputModality } from '@/lib/ui/input-modality';
+import { applyTheme } from '@/lib/ui/theme';
 
 // In-extension privacy policy, rendered from the same source as PRIVACY.md,
 // in the user's language (stored choice, else the browser's).
@@ -43,6 +44,7 @@ function Privacy({ lang }: { lang: Locale }) {
 const root = document.getElementById('root');
 if (!root) throw new Error('Privacy root element not found');
 void readPrefs(createBrowserStore(browser.storage.local)).then((prefs) => {
+  applyTheme(document.documentElement, prefs.theme);
   const lang = resolveLocale(prefs.locale, browser.i18n.getUILanguage());
   document.documentElement.lang = lang;
   document.title = PRIVACY_TITLE[lang];

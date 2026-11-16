@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '@/components/i18n';
 import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
@@ -15,11 +15,13 @@ import type { RequestSource, UnixSeconds } from '@/lib/types';
 import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-view';
 import { useCountdownTicker } from './countdown';
 import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
-import { RemindersPanel } from './RemindersPanel';
-import { UpdatesPanel } from '@/components/updates/UpdatesPanel';
+// Rarely opened panels load on demand, so opening the popup stays light.
+const RemindersPanel = lazy(() => import('./RemindersPanel').then((mod) => ({ default: mod.RemindersPanel })));
+const UpdatesPanel = lazy(() => import('@/components/updates/UpdatesPanel').then((mod) => ({ default: mod.UpdatesPanel })));
+const WipeDialog = lazy(() => import('./WipeDialog').then((mod) => ({ default: mod.WipeDialog })));
 import type { UpdateSettings } from '@/lib/radar/settings';
 import { StatusLine } from './StatusLine';
-import { MismatchScreen, WipeDialog } from './AccountScreens';
+import { MismatchScreen } from './AccountScreens';
 import { Group } from './TaskRows';
 
 export interface PopupActions {
@@ -44,6 +46,8 @@ export interface PopupActions {
   onDeferAccount: () => void;
   /** "Hapus semua data", after the confirmation dialog. */
   onWipeAll: () => void;
+  /** Opens the dashboard at a page hash, e.g. "#kalender" ('' = Ringkasan). */
+  onOpenDashboard: (hash: string) => void;
 }
 
 /** Inert actions for the onboarding example card and the dev preview. */
@@ -67,6 +71,7 @@ export const NO_ACTIONS: PopupActions = {
   onUseNewAccount: () => {},
   onDeferAccount: () => {},
   onWipeAll: () => {},
+  onOpenDashboard: () => {},
 };
 
 export interface PopupViewProps extends PopupActions {
@@ -201,6 +206,7 @@ export function PopupView(props: PopupViewProps) {
     <TooltipProvider delayDuration={450}>
       <div className="flex max-h-[560px] w-[380px] flex-col bg-background text-foreground">
         {panel === 'reminders' ? (
+          <Suspense fallback={null}>
           <RemindersPanel
             settings={props.reminders}
             timeZone={props.timeZone}
@@ -209,7 +215,9 @@ export function PopupView(props: PopupViewProps) {
             onBack={() => setPanel('list')}
             onOpenUpdates={() => setPanel('updates')}
           />
+          </Suspense>
         ) : panel === 'updates' ? (
+          <Suspense fallback={null}>
           <UpdatesPanel
             entries={view.updates}
             courseNames={view.courseNames}
@@ -221,6 +229,7 @@ export function PopupView(props: PopupViewProps) {
             onChangeSettings={props.onSetUpdates}
             onBack={() => setPanel('list')}
           />
+          </Suspense>
         ) : (
           <>
         <header className="flex items-center gap-2.5 px-3 pt-3 pb-2">
@@ -242,6 +251,7 @@ export function PopupView(props: PopupViewProps) {
                 onManageCourses={mismatch ? undefined : () => props.onOpenOnboarding('#courses')}
                 onOpenReminders={mismatch ? undefined : openReminders}
                 onWipe={openWipe}
+                onOpenDashboard={() => props.onOpenDashboard('')}
                 triggerRef={settingsRef}
               />
             </div>
@@ -319,7 +329,11 @@ export function PopupView(props: PopupViewProps) {
           </>
         )}
 
-        <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={props.onWipeAll} returnFocusTo={() => settingsRef.current} />
+        {wipeOpen && (
+          <Suspense fallback={null}>
+            <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={props.onWipeAll} returnFocusTo={() => settingsRef.current} />
+          </Suspense>
+        )}
         {!props.sample && <footer className="flex items-center justify-between border-t border-border px-4 py-2 text-[11.5px] text-muted-foreground">
           <span>{m.disclaimerShort}</span>
           <button type="button" className="underline-offset-2 hover:text-foreground hover:underline" onClick={props.onOpenPrivacy}>

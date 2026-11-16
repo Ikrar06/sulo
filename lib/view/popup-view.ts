@@ -13,6 +13,7 @@ import { isStale } from '../staleness';
 import type { SyncStatus, UserData } from '../storage';
 import { taskMarkers } from '../radar/log';
 import { getTaskState } from '../tasks/local-state';
+import { applyPersonalDue } from '../tasks/personal-due';
 import { badgeCount, GROUP_ORDER, groupTasks, pendingTasks, urgencyOf, type TaskGroupKey, type Urgency } from '../tasks/group';
 import type { BudgetState, RemoteConfig, SessionState, UnixSeconds, ChangeLogEntry } from '../types';
 import type { AccountPending } from '../account/pending';
@@ -55,6 +56,8 @@ export interface TaskRow {
   snoozedUntil: UnixSeconds | null;
   /** "Baru" (new task) or "Tenggat berubah": 24 hours or 3 popup opens. */
   marker: 'new' | 'due_changed' | null;
+  /** The due date is the user's own (the task has none in SIKOLA). */
+  personalDue: boolean;
 }
 
 export interface DueText {
@@ -172,8 +175,9 @@ export function buildPopupView(input: PopupInput): PopupView {
   const colors = assignCourseColors(activeCourses);
   const byId = new Map(courses.map((c) => [c.id, c]));
 
-  const tasks = user?.tasks ?? [];
   const state = user?.taskState ?? {};
+  // A personal due date (set in the dashboard) stands in for a missing one.
+  const { tasks, personal } = applyPersonalDue(user?.tasks ?? [], state);
   const pending = pendingTasks(tasks, state, active);
   const grouped = groupTasks(pending, now, timeZone);
 
@@ -201,6 +205,7 @@ export function buildPopupView(input: PopupInput): PopupView {
       far: t.dueAt !== null && t.dueAt > now && calendarDaysBetween(now, t.dueAt, timeZone) >= 7,
       snoozedUntil: snoozeOf(t.eventId),
       marker: markers.get(t.eventId) ?? null,
+      personalDue: personal.has(t.eventId),
     };
   };
 

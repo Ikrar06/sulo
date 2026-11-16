@@ -23,6 +23,8 @@ export interface UpdatesPanelProps {
   onChangeSettings: (next: UpdateSettings) => void;
   /** Shown as a back button when the panel lives inside the popup. */
   onBack?: () => void;
+  /** Inside a page that already has the title (dashboard): the heading is for screen readers only. */
+  embedded?: boolean;
 }
 
 function dayLabel(at: UnixSeconds, now: UnixSeconds, timeZone: string, today: string, yesterday: string, intl: string): string {
@@ -76,7 +78,7 @@ function Check({ checked, onChange, children }: { checked: boolean; onChange: (v
   );
 }
 
-export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack }: UpdatesPanelProps) {
+export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack, embedded = false }: UpdatesPanelProps) {
   const { m } = useI18n();
   const u = m.popup.updates;
   const days = new Map<string, ChangeLogEntry[]>();
@@ -95,7 +97,8 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
             <ChevronLeftIcon className="size-4" />
           </Button>
         )}
-        <h1 className="flex-1 font-heading text-[17px] leading-5">{u.title}</h1>
+        {embedded ? <h2 className="sr-only">{u.title}</h2> : <h1 className="flex-1 font-heading text-[17px] leading-5">{u.title}</h1>}
+        {embedded && <span className="flex-1" />}
         {unseen && (
           <Button size="sm" variant="ghost" onClick={onMarkAllSeen}>
             {u.markAll}
