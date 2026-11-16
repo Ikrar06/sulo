@@ -3,6 +3,7 @@
 // they describe how this browser shows Sulo, not anyone's data. Validated
 // with Zod; anything unreadable falls back to the defaults.
 
+import { DEFAULT_GROUP_FILTER, groupFilterSchema, type GroupFilter } from './calendar/groups';
 import { z } from 'zod';
 import type { Locale } from './i18n';
 import { calendarNotifySchema, DEFAULT_CALENDAR_NOTIFY, type CalendarNotifySettings } from './calendar/notify-settings';
@@ -50,6 +51,8 @@ export interface Prefs {
   angkatan: number | null;
   /** Academic calendar notifications per kind. */
   calendar: CalendarNotifySettings;
+  /** Which groups the calendar page shows (its chips are legend and filter). */
+  calendarFilter: GroupFilter;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -61,6 +64,7 @@ export const DEFAULT_PREFS: Prefs = {
   nickname: '',
   angkatan: null,
   calendar: DEFAULT_CALENDAR_NOTIFY,
+  calendarFilter: DEFAULT_GROUP_FILTER,
 };
 
 const prefsSchema = z.object({
@@ -73,6 +77,7 @@ const prefsSchema = z.object({
   nickname: z.string().transform(normalizeNickname).catch(''),
   angkatan: z.number().int().min(1990).max(2100).nullable().catch(null),
   calendar: calendarNotifySchema,
+  calendarFilter: groupFilterSchema,
 });
 
 export async function readPrefs(store: KeyValueStore): Promise<Prefs> {

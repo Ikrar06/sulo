@@ -7,6 +7,9 @@ import type { CalendarFile, Jenjang, Kategori, Kegiatan } from './schema.ts';
 
 export const IMPORTANT_CATEGORIES: readonly Kategori[] = ['krs', 'uts', 'uas', 'perkuliahan', 'libur', 'nilai', 'sanggah', 'administrasi', 'evaluasi'];
 
+/** Categories short enough to name a date in one line ("UAS mulai 14 hari lagi"); other events use their title. */
+export const SHORT_LABEL_KATEGORI: ReadonlySet<Kategori> = new Set(['krs', 'uts', 'uas', 'kkn', 'wisuda', 'libur']);
+
 export interface UpcomingOptions {
   jenjang?: Jenjang;
   kategori?: readonly Kategori[];

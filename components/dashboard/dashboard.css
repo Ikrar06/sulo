@@ -118,12 +118,31 @@
 .db-load-3 { background: color-mix(in oklch, var(--brand-orange) 62%, var(--surface-raised)); color: var(--text); }
 .db-load-4 { background: color-mix(in oklch, var(--brand-orange) 88%, var(--surface-raised)); color: var(--ink); }
 
-/* Calendar chips. Every pair is checked at 4.5:1 or more in both themes
-   (scripts/contrast.mjs); chips never sit under an opacity. */
-.db-chip-event { background: var(--surface-raised); color: var(--text); }
-.db-chip-exam { background: color-mix(in oklch, var(--brand-amber) 28%, var(--surface)); color: var(--text); }
-.db-chip-holiday { background: color-mix(in oklch, var(--danger) 16%, var(--surface)); color: var(--text); }
-.db-chip-task { border: 1px solid var(--border); color: var(--text); }
+/* Calendar categories (lib/calendar/groups.ts). One hue per group; bars
+   and chips use a low tint with strong text, dots the full color, status
+   periods an even fainter cell tint. Pairs checked by scripts/contrast.mjs. */
+.db-layout {
+  --cat-akademik: var(--muted);
+  --cat-ujian: var(--brand-amber);
+  --cat-administrasi: var(--urgency-week);
+  --cat-libur: var(--danger);
+  --cat-wisuda: var(--course-7);
+  --cat-penerimaan: var(--muted);
+  --cat-tugas: var(--muted);
+}
+
+.db-cat-akademik { --cat: var(--cat-akademik); }
+.db-cat-ujian { --cat: var(--cat-ujian); }
+.db-cat-administrasi { --cat: var(--cat-administrasi); }
+.db-cat-libur { --cat: var(--cat-libur); }
+.db-cat-wisuda { --cat: var(--cat-wisuda); }
+.db-cat-penerimaan { --cat: var(--cat-penerimaan); }
+.db-cat-tugas { --cat: var(--cat-tugas); }
+
+.db-cat-bar { background: color-mix(in oklch, var(--cat) 18%, var(--surface)); color: var(--text); }
+.db-cat-dot { background: var(--cat); }
+.db-cat-period { background: color-mix(in oklch, var(--cat) 7%, var(--surface)); }
+.db-holiday-number { color: var(--danger); }
 
 /* Accent text (countdown numbers only). Brand orange reads 5.7:1 on the
    dark surface but only 3.1:1 on white, so the light theme darkens it

@@ -5,9 +5,9 @@ import { mentionsAngkatan } from '@/lib/calendar/month';
 import type { Kegiatan, Libur } from '@/lib/calendar/schema';
 import type { DashMessages } from '@/lib/i18n/dashboard';
 
-/** Small outlined tag; color is never the only signal. */
-export function Tag({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'warn' | 'accent' }) {
-  const toneClass = tone === 'warn' ? 'border-urgency-soon text-urgency-soon' : tone === 'accent' ? 'border-brand-amber text-foreground' : 'border-border text-muted-foreground';
+/** Small outlined tag; color is never the only signal. Warning colors stay reserved for lateness, so "check this" is a strong neutral. */
+export function Tag({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'strong' | 'accent' }) {
+  const toneClass = tone === 'strong' ? 'border-foreground text-foreground' : tone === 'accent' ? 'border-brand-amber text-foreground' : 'border-border text-muted-foreground';
   return <span className={`inline-flex items-center rounded border px-2 text-[12px] leading-5 ${toneClass}`}>{children}</span>;
 }
 
@@ -28,7 +28,7 @@ export function EventInfo({ k, d, angkatan }: { k: Kegiatan; d: DashMessages; an
         <div className="flex flex-wrap gap-2">
           {k.perkiraan && <Tag>{c.badge.perkiraan}</Tag>}
           {k.ujung_terbuka && <Tag>{c.badge.ujungTerbuka}</Tag>}
-          {k.status_verifikasi === 'perlu_cek' && <Tag tone="warn">{c.badge.perluCek}</Tag>}
+          {k.status_verifikasi === 'perlu_cek' && <Tag tone="strong">{c.badge.perluCek}</Tag>}
           {mine && angkatan !== null && <Tag tone="accent">{c.angkatanMatch(angkatan)}</Tag>}
         </div>
       )}
@@ -40,7 +40,7 @@ export function EventInfo({ k, d, angkatan }: { k: Kegiatan; d: DashMessages; an
       {k.catatan && k.status_verifikasi !== 'perlu_cek' && <p className="text-[12px] text-muted-foreground">{k.catatan}</p>}
       {k.rincian.length > 0 && (
         <div className="space-y-1 pt-1">
-          {k.status_verifikasi === 'perlu_cek' && <p className="text-[12px] font-semibold text-urgency-soon">{c.perluCekNote}</p>}
+          {k.status_verifikasi === 'perlu_cek' && <p className="text-[12px] font-semibold">{c.perluCekNote}</p>}
           <ul className="list-disc space-y-1 pl-6 text-[14px] leading-normal" lang="id">
             {k.rincian.map((r) => (
               <li key={r}>{r}</li>
@@ -59,7 +59,7 @@ export function HolidayInfo({ l, d }: { l: Libur; d: DashMessages }) {
     <div className="space-y-1">
       <div className="flex flex-wrap items-baseline gap-x-2">
         <span className="text-[14px] font-semibold">{l.nama}</span>
-        <span className="text-[12px] text-muted-foreground">{c.holiday}</span>
+        <span className="text-[12px] text-muted-foreground">{l.jenis === 'cuti_bersama' ? c.jointLeave : c.holiday}</span>
       </div>
       <p className="text-[14px] tabular-nums">{formatRange(l, m.intl, c.to, '')}</p>
       {l.catatan && <p className="text-[12px] text-muted-foreground">{l.catatan}</p>}

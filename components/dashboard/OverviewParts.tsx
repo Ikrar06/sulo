@@ -1,20 +1,17 @@
 import { Fragment } from 'react';
 import { useI18n } from '@/components/i18n';
 import { countdownOf, formatDateKey } from '@/lib/calendar/countdown';
-import type { CalendarFile, Kategori } from '@/lib/calendar/schema';
-import { nextImportant } from '@/lib/calendar/upcoming';
+import type { CalendarFile } from '@/lib/calendar/schema';
+import { nextImportant, SHORT_LABEL_KATEGORI } from '@/lib/calendar/upcoming';
 import type { SummaryCountdown, SummaryPart } from '@/lib/dashboard/overview';
 import type { DashMessages } from '@/lib/i18n/dashboard';
 import { useRange, WeekLine } from './CalendarParts';
-
-/** Categories short enough to name the next date in the summary ("UAS mulai 14 hari lagi"); others use the event title. */
-const SHORT_LABEL: ReadonlySet<Kategori> = new Set(['krs', 'uts', 'uas', 'kkn', 'wisuda', 'libur']);
 
 export function nextForSummary(calendar: CalendarFile, today: string, d: DashMessages): { label: string; countdown: SummaryCountdown } | null {
   const next = nextImportant(calendar, today);
   if (!next) return null;
   const k = next.kegiatan;
-  const label = SHORT_LABEL.has(k.kategori) ? d.kalender.kategori[k.kategori] : k.judul;
+  const label = SHORT_LABEL_KATEGORI.has(k.kategori) ? d.kalender.kategori[k.kategori] : k.judul;
   const c = countdownOf(k, today);
   const countdown: SummaryCountdown = c.kind === 'days' ? c : c.kind === 'today' || c.kind === 'tomorrow' ? c : { kind: 'ongoing' };
   return { label, countdown };

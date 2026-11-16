@@ -1,138 +1,123 @@
+import { useMemo, type KeyboardEvent } from 'react';
 import { useI18n } from '@/components/i18n';
 import { formatDateKey } from '@/lib/calendar/countdown';
-import { itemsOnDay, monthGrid, type CalendarFilter, type CalendarItem } from '@/lib/calendar/month';
-import type { CalendarFile } from '@/lib/calendar/schema';
-import { routeHash } from '@/lib/dashboard/routes';
+import { addDays } from '@/lib/calendar/dates';
+import { eventsOnDay, type CalEvent } from '@/lib/calendar/groups';
+import { monthGrid } from '@/lib/calendar/month';
+import { layoutWeek, periodAt, type WeekBar } from '@/lib/calendar/week-layout';
 import type { DashMessages } from '@/lib/i18n/dashboard';
-import { EventInfo, HolidayInfo } from './EventInfo';
-
-type TaskItem = Extract<CalendarItem, { type: 'tugas' }>;
-
-const MAX_IN_CELL = 3;
 
 /**
- * Three kinds that must never be confused, told apart by shape and label,
- * not by color alone: academic events are filled chips, task deadlines are
- * outlined chips with the course dot, national holidays are filled chips
- * with a red tint and the word in their tooltip.
+ * One month as one grid with 1 px lines (radius only on the outer corners).
+ * Each week row has two layers: the day cells (buttons, with the date, a
+ * status-period tint and label, and "+n lagi") and the event bars laid out
+ * by layoutWeek(). Arrow keys move the selected day; bars are decoration for
+ * the cell buttons, which carry the accessible names.
  */
-function Chip({ item, d }: { item: CalendarItem; d: DashMessages }) {
-  // Colors live in dashboard.css (.db-chip-*), measured at 4.5:1 or more in both themes.
-  const base = 'block truncate rounded px-1 text-[12px] leading-5';
-  if (item.type === 'tugas') {
-    return (
-      <span className={`${base} db-chip-task`} title={`${d.kalender.tasks}: ${item.name}`}>
-        <span aria-hidden="true" className="mr-1 inline-block size-2 rounded-full align-middle" style={{ background: `var(--course-${item.courseColor})` }} />
-        {item.name}
-      </span>
-    );
-  }
-  if (item.type === 'libur') {
-    return (
-      <span className={`${base} db-chip-holiday`} title={`${d.kalender.holiday}: ${item.libur.nama}`}>
-        {item.libur.nama}
-      </span>
-    );
-  }
-  const k = item.kegiatan;
-  const exam = k.kategori === 'uts' || k.kategori === 'uas';
+export function MonthView({ month, today, events, holidays, selected, onSelect, d }: {
+  month: string;
+  today: string;
+  events: readonly CalEvent[];
+  holidays: ReadonlySet<string>;
+  selected: string;
+  /** `keyboard` is true when an arrow key moved the selection (the page may switch months). */
+  onSelect: (day: string, keyboard: boolean) => void;
+  d: DashMessages;
+}) {
+  const { m } = useI18n();
+  const weeks = monthGrid(month);
+  const layouts = useMemo(() => weeks.map((w) => layoutWeek(events, w[0]!)), [weeks, events]);
+  const weekdays = weeks[0]!.map((day) => formatDateKey(day, m.intl, { weekday: 'short' }));
+
+  const move = (e: KeyboardEvent<HTMLButtonElement>, day: string) => {
+    const step: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    if (!(e.key in step)) return;
+    e.preventDefault();
+    const next = addDays(day, step[e.key]!);
+    onSelect(next, true);
+    requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`[data-day="${next}"]`)?.focus());
+  };
+
   return (
-    <span className={`${base} ${exam ? 'db-chip-exam font-semibold' : 'db-chip-event'}`} title={`${d.kalender.academic}: ${k.judul}`}>
-      {k.judul}
-    </span>
+    <div>
+      <div className="grid grid-cols-7 pb-2 text-center text-[12px] text-muted-foreground" aria-hidden="true">
+        {weekdays.map((w) => (
+          <span key={w}>{w}</span>
+        ))}
+      </div>
+      <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border">
+        {weeks.map((week, wi) => {
+          const layout = layouts[wi]!;
+          return (
+            <div key={week[0]} className="relative grid min-h-28 grid-cols-7 gap-px">
+              {week.map((day, col) => {
+                const inMonth = day.slice(0, 7) === month;
+                const period = periodAt(layout, col);
+                const periodStarts = period !== null && period.startCol === col;
+                const count = eventsOnDay(events, day).length;
+                const hidden = layout.hidden[col]!;
+                const label = d.kalender.selectDay(formatDateKey(day, m.intl, { weekday: 'long', day: 'numeric', month: 'long' }), count);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    data-day={day}
+                    tabIndex={day === selected ? 0 : -1}
+                    aria-pressed={day === selected}
+                    aria-current={day === today ? 'date' : undefined}
+                    aria-label={label}
+                    onClick={() => onSelect(day, false)}
+                    onKeyDown={(e) => move(e, day)}
+                    className={`relative flex min-w-0 flex-col items-start p-1 text-left outline-none focus-ring:z-10 focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-inset ${
+                      day === selected ? 'bg-surface-raised' : period ? `db-cat-${period.event.group} db-cat-period` : 'bg-surface'
+                    } hover:bg-surface-raised`}
+                  >
+                    <span className="flex w-full min-w-0 items-center gap-1">
+                      <DayNumber day={day} today={day === today} inMonth={inMonth} holiday={holidays.has(day)} />
+                      {periodStarts && (
+                        <span className="truncate text-[12px] text-muted-foreground" title={period.event.title}>
+                          {period.event.source.type === 'kegiatan' ? d.kalender.kategori[period.event.source.kegiatan.kategori] : period.event.title}
+                        </span>
+                      )}
+                    </span>
+                    {hidden > 0 && <span className="absolute bottom-1 left-2 text-[12px] leading-4 font-semibold text-muted-foreground">{d.kalender.more(hidden)}</span>}
+                  </button>
+                );
+              })}
+              {/* Bars: an overlay grid under the date row, three 20 px lanes. Clicks select the segment's first day. */}
+              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-7 grid grid-cols-7 gap-x-px gap-y-1" style={{ gridAutoRows: '20px' }}>
+                {layout.bars.map((bar) => (
+                  <Bar key={`${bar.event.id}-${week[0]}`} bar={bar} onClick={() => onSelect(week[bar.startCol]!, false)} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
-export interface MonthViewProps {
-  month: string;
-  today: string;
-  calendar: CalendarFile;
-  filter: CalendarFilter;
-  tasks: readonly TaskItem[];
-  selected: string;
-  onSelect: (day: string) => void;
-  angkatan: number | null;
-  d: DashMessages;
+function DayNumber({ day, today, inMonth, holiday }: { day: string; today: boolean; inMonth: boolean; holiday: boolean }) {
+  const n = Number(day.slice(8));
+  if (today) return <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-orange text-[12px] font-semibold text-ink tabular-nums">{n}</span>;
+  // Outside the month only the number is dimmed; the events keep full contrast.
+  const tone = !inMonth ? 'text-muted-foreground' : holiday ? 'db-holiday-number font-semibold' : '';
+  return <span className={`flex size-6 shrink-0 items-center justify-center text-[12px] tabular-nums ${tone}`}>{n}</span>;
 }
 
-export function MonthView({ month, today, calendar, filter, tasks, selected, onSelect, angkatan, d }: MonthViewProps) {
-  const { m } = useI18n();
-  const weeks = monthGrid(month);
-  const dayItems = (day: string) => itemsOnDay(day, calendar, filter, tasks);
-  const selectedItems = dayItems(selected);
-  const weekdayNames = weeks[0]!.map((day) => formatDateKey(day, m.intl, { weekday: 'short' }));
-
+function Bar({ bar, onClick }: { bar: WeekBar; onClick: () => void }) {
+  const e = bar.event;
+  const ends = `${bar.continuesBefore ? '' : 'ml-1 rounded-l-md'} ${bar.continuesAfter ? '' : 'mr-1 rounded-r-md'}`;
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <div className="min-w-[640px]">
-          <div className="grid grid-cols-7 gap-1 pb-1 text-center text-[12px] text-muted-foreground" aria-hidden="true">
-            {weekdayNames.map((w) => (
-              <span key={w}>{w}</span>
-            ))}
-          </div>
-          <ol className="grid grid-cols-7 gap-1">
-            {weeks.flat().map((day) => {
-              const items = dayItems(day);
-              const outside = day.slice(0, 7) !== month;
-              const isToday = day === today;
-              const isSelected = day === selected;
-              const label = `${formatDateKey(day, m.intl, { weekday: 'long', day: 'numeric', month: 'long' })}: ${items.length}`;
-              return (
-                <li key={day}>
-                  <button
-                    type="button"
-                    onClick={() => onSelect(day)}
-                    aria-pressed={isSelected}
-                    aria-label={label}
-                    className={`flex h-28 w-full flex-col gap-1 rounded-lg border p-1 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus ${
-                      isSelected ? 'border-foreground/50' : 'border-border hover:border-foreground/25'
-                    } ${outside ? 'bg-background' : 'bg-surface'}`}
-                  >
-                    {/* Days of other months: only the number is quieter; chips keep full contrast. */}
-                    <span
-                      className={`text-[12px] leading-5 tabular-nums ${
-                        isToday ? 'inline-flex size-5 items-center justify-center rounded-full bg-foreground font-semibold text-background' : outside ? 'text-muted-foreground' : ''
-                      }`}
-                    >
-                      {Number(day.slice(8))}
-                    </span>
-                    {items.slice(0, MAX_IN_CELL).map((item, i) => (
-                      <Chip key={i} item={item} d={d} />
-                    ))}
-                    {items.length > MAX_IN_CELL && <span className="px-1 text-[12px] text-muted-foreground">{d.kalender.more(items.length - MAX_IN_CELL)}</span>}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </div>
-
-      <section aria-live="polite" className="rounded-xl border border-border bg-surface p-4">
-        <h3 className="mb-3 text-[16px] leading-6 font-semibold">{formatDateKey(selected, m.intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h3>
-        {selectedItems.length === 0 ? (
-          <p className="text-[14px] text-muted-foreground">{d.kalender.emptyList}</p>
-        ) : (
-          <ul className="space-y-4">
-            {selectedItems.map((item, i) => (
-              <li key={i}>
-                {item.type === 'kegiatan' ? (
-                  <EventInfo k={item.kegiatan} d={d} angkatan={angkatan} />
-                ) : item.type === 'libur' ? (
-                  <HolidayInfo l={item.libur} d={d} />
-                ) : (
-                  <a href={routeHash('tugas', item.eventId)} className="flex items-center gap-2 rounded-md text-[14px] outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus">
-                    <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${item.courseColor})` }} />
-                    <span className="font-semibold">{item.name}</span>
-                    <span className="text-[12px] text-muted-foreground">{d.kalender.taskDue(item.courseName)}</span>
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+    <div
+      onClick={onClick}
+      title={e.title}
+      style={{ gridColumn: `${bar.startCol + 1} / span ${bar.span}`, gridRow: bar.lane + 1 }}
+      className={`db-cat-${e.group} db-cat-bar pointer-events-auto flex min-w-0 cursor-pointer items-center gap-1 px-2 text-[12px] leading-5 ${ends}`}
+    >
+      {e.source.type === 'tugas' && <span className="size-2 shrink-0 rounded-full" style={{ background: `var(--course-${e.source.courseColor})` }} />}
+      <span className="truncate">{e.title}</span>
     </div>
   );
 }

@@ -70,9 +70,12 @@ function pairs(t, theme) {
   const supportMuted = mix(c('ink'), orange, 0.85);
   // Accent text (countdown numbers, components/dashboard/dashboard.css).
   const accentText = theme === 'terang' ? mix(orange, c('ink'), 0.75) : orange;
+  // Calendar categories (components/dashboard/dashboard.css, .db-cat-*).
+  const cat = { akademik: c('muted'), ujian: c('brand-amber'), administrasi: c('urgency-week'), libur: c('danger'), wisuda: c('course-7') };
+  const bar = (k) => mix(cat[k], c('surface'), 0.18);
+  const period = mix(cat.libur, c('surface'), 0.07);
   const ev = c('surface-raised');
   const exam = mix(c('brand-amber'), c('surface'), 0.28);
-  const holiday = mix(c('danger'), c('surface'), 0.16);
   const load = (n, color, p) => mix(c(color), c('surface-raised'), p);
   return {
     before: {
@@ -83,12 +86,6 @@ function pairs(t, theme) {
       'peta beban tingkat 4, teks --text': [c('text'), load(4, 'brand-orange', 0.88)],
     },
     after: {
-      'chip acara/wisuda (--text di --surface-raised)': [c('text'), ev],
-      'chip ujian (--text di amber 28%)': [c('text'), exam],
-      'chip libur (--text di danger 16%)': [c('text'), holiday],
-      'chip tugas (--text di --surface)': [c('text'), c('surface')],
-      'chip tugas, sel bulan lain (--text di --bg)': [c('text'), c('bg')],
-      'angka tanggal bulan lain (--muted di --bg)': [c('muted'), c('bg')],
       'peta beban tingkat 0': [c('text'), c('surface-raised')],
       'peta beban tingkat 1': [c('text'), load(1, 'brand-amber', 0.22)],
       'peta beban tingkat 2': [c('text'), load(2, 'brand-amber', 0.45)],
@@ -97,6 +94,15 @@ function pairs(t, theme) {
       'angka hitung mundur (--accent-text di --surface)': [accentText, c('surface')],
       'angka hitung mundur (--accent-text di --bg)': [accentText, c('bg')],
       'keterlambatan (--urgency-overdue di --surface)': [c('urgency-overdue'), c('surface')],
+      ...Object.fromEntries(Object.keys(cat).map((k) => [`kalender: teks bar ${k} (--text di tint 18%)`, [c('text'), bar(k)]])),
+      'kalender: label periode (--muted di tint 7%)': [c('muted'), period],
+      'kalender: angka tanggal di periode (--text di tint 7%)': [c('text'), period],
+      'kalender: angka libur nasional (--danger di --surface)': [c('danger'), c('surface')],
+      'kalender: angka libur di periode (--danger di tint 7%)': [c('danger'), period],
+      'kalender: angka di luar bulan (--muted di --surface)': [c('muted'), c('surface')],
+      'kalender: angka hari ini (--ink di oranye)': [c('ink'), orange],
+      'kalender: chip filter mati (--muted di --bg)': [c('muted'), c('bg')],
+      'kalender: hari dipilih (--text di --surface-raised)': [c('text'), c('surface-raised')],
       'tombol traktir: teks dan cangkir (--ink di oranye)': [c('ink'), orange],
       'tombol traktir hover: teks dan cangkir': [c('ink'), supportHover],
       'tombol traktir: panah muted': [supportMuted, orange],
