@@ -70,25 +70,26 @@ export function TentangPage({ d, actions }: PageProps) {
         </Card>
       )}
 
-      {/* Support first (primary), feedback beside it (secondary, same 40 px height); stacked 8 px apart on narrow screens. */}
+      {/* Support (primary) and feedback (secondary, same 40 px height) side by side; stacked 8 px apart on narrow screens. Notes below the row. */}
       <Card title={t.supportTitle}>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-          {isShownLink(TRAKTEER_URL) && <SupportButton href={TRAKTEER_URL} label={t.coffee} note={t.supportNote} srHint={t.coffeeHint} />}
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+          {isShownLink(TRAKTEER_URL) && <SupportButton href={TRAKTEER_URL} label={t.coffee} srHint={t.coffeeHint} />}
           {feedback && (
-            <div className="flex flex-col items-start gap-2">
-              <a
-                href={FEEDBACK_FORM_URL}
-                {...external}
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-[14px] font-medium outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
-              >
-                {t.feedback}
-                <ExternalIcon className="size-3.5 text-muted-foreground" />
-              </a>
-              <p className="text-[12px] leading-normal text-muted-foreground">{t.feedbackNote}</p>
-            </div>
+            <a
+              href={FEEDBACK_FORM_URL}
+              {...external}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-[14px] font-medium outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
+            >
+              {t.feedback}
+              <ExternalIcon className="size-3.5 text-muted-foreground" />
+            </a>
           )}
         </div>
-        <p className="mt-4 text-[12px] leading-normal text-muted-foreground">{t.externalNote}</p>
+        <div className="mt-3 space-y-1 text-[12px] leading-normal text-muted-foreground">
+          {isShownLink(TRAKTEER_URL) && <p>{t.supportNote}</p>}
+          {feedback && <p>{t.feedbackNote}</p>}
+          <p>{t.externalNote}</p>
+        </div>
       </Card>
     </div>
   );

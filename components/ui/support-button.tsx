@@ -25,8 +25,8 @@ function ArrowOutIcon(p: SVGProps<SVGSVGElement>) {
 export interface SupportButtonProps {
   href: string;
   label: string;
-  /** One short line under the button (12 px, muted). */
-  note: string;
+  /** One short line under the button (12 px, muted). Leave it out when the page shows it elsewhere, e.g. under a row of buttons. */
+  note?: string;
   /** Read by screen readers after the label, e.g. "via Trakteer, opens in a new tab". */
   srHint: string;
   className?: string;
@@ -50,7 +50,7 @@ export function SupportButton({ href, label, note, srHint, className = '' }: Sup
         <span className="sr-only">{srHint}</span>
         <ArrowOutIcon className="support-btn-arrow shrink-0" />
       </a>
-      <p className="text-[12px] leading-normal text-muted-foreground">{note}</p>
+      {note && <p className="text-[12px] leading-normal text-muted-foreground">{note}</p>}
     </div>
   );
 }
