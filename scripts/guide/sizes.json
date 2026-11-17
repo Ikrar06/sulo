@@ -1,0 +1,22 @@
+{
+  "popup": {
+    "width": 1200,
+    "height": 1642
+  },
+  "tugas": {
+    "width": 1200,
+    "height": 812
+  },
+  "mata-kuliah": {
+    "width": 1200,
+    "height": 538
+  },
+  "kalender": {
+    "width": 1200,
+    "height": 978
+  },
+  "kabar": {
+    "width": 1200,
+    "height": 556
+  }
+}
