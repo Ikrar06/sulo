@@ -2,6 +2,9 @@
 // "Tautan ke luar"). Plain links in a new tab; nothing from these services
 // is loaded into any extension page. An empty value hides its link.
 
+/** The public source repository. Empty: the MIT line and its link stay hidden on About. */
+export const REPO_URL = '';
+
 /** "Traktir kopi" (Trakteer). */
 export const TRAKTEER_URL = 'https://teer.id/krar';
 

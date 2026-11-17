@@ -1,16 +1,15 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { GUIDE_STEPS } from '../lib/help/guide';
+import { GUIDE_STEPS, GUIDE_TIP } from '../lib/help/guide';
 
 describe('"Mulai pakai" guide', () => {
-  it('has six steps; the first one is the drawn toolbar, the rest have clips', () => {
-    expect(GUIDE_STEPS).toHaveLength(6);
-    expect(GUIDE_STEPS[0]!.clip).toBeNull();
-    expect(GUIDE_STEPS.slice(1).every((s) => s.clip !== null)).toBe(true);
+  it('has five steps, each with a clip; pinning is a tip, not a step', () => {
+    expect(GUIDE_STEPS.map((s) => s.clip)).toEqual(['popup', 'tugas', 'mata-kuliah', 'kalender', 'kabar']);
+    expect(GUIDE_TIP.id).toMatch(/puzzle/);
   });
 
   it('every clip exists as local WebM with a WebP poster, in both themes and both languages', () => {
-    for (const s of GUIDE_STEPS.filter((x) => x.clip))
+    for (const s of GUIDE_STEPS)
       for (const theme of ['light', 'dark'])
         for (const locale of ['id', 'en'])
           for (const ext of ['webm', 'webp']) expect(existsSync(`public/guide/${s.clip}-${theme}-${locale}.${ext}`), `${s.clip}-${theme}-${locale}.${ext}`).toBe(true);

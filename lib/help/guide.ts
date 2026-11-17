@@ -1,8 +1,7 @@
-// "Mulai pakai" in Bantuan: six steps, each with a short muted clip and a
+// "Mulai pakai" in Bantuan: five steps, each with a short muted clip and a
 // numbered list of what it shows (plain text, for everyone and for screen
-// readers). Clips and their posters come from `pnpm guide:shots` (synthetic
-// demo data, public/guide/). Step 1 is a drawing, since the browser's own
-// toolbar cannot be recorded.
+// readers), after a one-line tip about pinning Sulo. Clips and their
+// posters come from `pnpm guide:shots` (synthetic demo data, public/guide/).
 
 export type GuideLocale = 'id' | 'en';
 type Text = Record<GuideLocale, string>;
@@ -12,8 +11,8 @@ export interface GuideStep {
   id: string;
   title: Text;
   body: Text;
-  /** File stem in public/guide/ ({clip}-{theme}-{locale}.webm, poster .webp); null for the drawn toolbar step. */
-  clip: string | null;
+  /** File stem in public/guide/ ({clip}-{theme}-{locale}.webm, poster .webp). */
+  clip: string;
   /** Intrinsic size, so the frame keeps its aspect ratio and the markers stay on target. */
   size: { width: number; height: number };
   /** Narrow pictures (the 380 px popup) are shown at their own width, not stretched to the column. */
@@ -25,23 +24,13 @@ export interface GuideStep {
 
 export const GUIDE_TITLE: Text = { id: 'Mulai pakai', en: 'Getting started' };
 
+/** One line under the title instead of a step: pinning lives in the browser, which cannot be recorded. */
+export const GUIDE_TIP: Text = {
+  id: 'Supaya Sulo gampang dibuka, klik ikon puzzle di kanan atas browser lalu sematkan Sulo.',
+  en: 'To open Sulo easily, click the puzzle icon at the top right of the browser and pin Sulo.',
+};
+
 export const GUIDE_STEPS: readonly GuideStep[] = [
-  {
-    id: 'sematkan',
-    title: { id: 'Sematkan Sulo di toolbar', en: 'Pin Sulo to the toolbar' },
-    body: {
-      id: 'Klik ikon puzzle di kanan atas browser, lalu klik pin di sebelah Sulo. Ikon Sulo akan selalu terlihat di toolbar.',
-      en: 'Click the puzzle icon at the top right of the browser, then the pin next to Sulo. Its icon then stays in the toolbar.',
-    },
-    clip: null,
-    size: { width: 1200, height: 360 },
-    alt: { id: 'Gambar toolbar browser: ikon puzzle, pin, lalu ikon Sulo.', en: 'Drawing of the browser toolbar: the puzzle icon, the pin, then the Sulo icon.' },
-    points: [
-      { id: 'Ikon puzzle (Ekstensi) di toolbar.', en: 'The puzzle icon (Extensions) in the toolbar.' },
-      { id: 'Pin di samping Sulo di daftar ekstensi.', en: 'The pin next to Sulo in the extensions list.' },
-      { id: 'Ikon Sulo yang sudah tersemat. Klik untuk membuka popup.', en: 'The pinned Sulo icon. Click it to open the popup.' },
-    ],
-  },
   {
     id: 'popup',
     title: { id: 'Lihat tugas terdekat di popup', en: 'See what is due in the popup' },

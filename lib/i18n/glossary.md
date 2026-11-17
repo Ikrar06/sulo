@@ -90,3 +90,13 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 - "Tanggal penting", "Pekan 14 dari 16", "Pekan belum tersedia", "14 hari lagi", "Sampai 12 Feb".
 - Tanda kalender: "Perkiraan bulan", "Tanpa tanggal akhir", "Perlu dicek". Setiap tampilan kalender menutup dengan "Rujuk dokumen resmi".
 - "Traktir kopi" dengan keterangan "lewat Trakteer". "Statistik pemakaian (lokal)" dan "Ekspor statistik".
+
+## M6: istilah yang disatukan
+
+| Hal | Istilah |
+|---|---|
+| mata kuliah yang diikuti Sulo | dipantau / tidak dipantau (bukan "aktif") |
+| mengecek SIKOLA sekarang | Perbarui |
+| mengambil ulang daftar mata kuliah | Muat ulang daftar (bukan "Segarkan daftar") |
+| log perubahan | Kabar terbaru |
+| empty state | satu kalimat: apa yang akan muncul di sini |

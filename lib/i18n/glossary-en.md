@@ -86,3 +86,13 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 - "Important date", "Week 14 of 16", "Week not available yet", "In 14 days", "Until 12 Feb".
 - Calendar flags: "Month only", "No end date", "Needs checking". Every calendar view ends with "Check the official document".
 - "Buy me a coffee" with "via Trakteer". "Usage statistics (local)" and "Export statistics".
+
+## M6: unified terms
+
+| Thing | Term |
+|---|---|
+| courses Sulo follows | followed / not followed (not "active") |
+| checking SIKOLA now | Update |
+| fetching the course list again | Reload list (not "Refresh list") |
+| change log | Latest updates |
+| empty state | one sentence: what will show up here |

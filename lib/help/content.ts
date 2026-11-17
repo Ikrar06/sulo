@@ -28,8 +28,8 @@ export const HOW_IT_WORKS: HelpSection[] = [
         en: 'Sulo reads SIKOLA with the login already in your browser, just like when you open SIKOLA yourself. Sulo never asks for or keeps your password.',
       },
       {
-        id: 'Tugas dan tenggat diambil dari kalender SIKOLA, untuk mata kuliah yang kamu tandai aktif. Sulo hanya membaca; ia tidak mengumpulkan tugas dan tidak mengubah apa pun di SIKOLA.',
-        en: 'Tasks and due dates come from the SIKOLA calendar, for the courses you marked as active. Sulo only reads; it never hands in work or changes anything in SIKOLA.',
+        id: 'Tugas dan tenggat diambil dari kalender SIKOLA, untuk mata kuliah yang kamu pantau. Sulo hanya membaca; ia tidak mengumpulkan tugas dan tidak mengubah apa pun di SIKOLA.',
+        en: 'Tasks and due dates come from the SIKOLA calendar, for the courses you follow. Sulo only reads; it never hands in work or changes anything in SIKOLA.',
       },
     ],
   },
@@ -87,8 +87,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Kenapa ada tugas yang tidak muncul?', en: 'Why is a task missing?' },
     a: [
       {
-        id: 'Biasanya karena salah satu ini: mata kuliahnya belum ditandai aktif (Pengaturan, lalu "Atur mata kuliah"); tugasnya belum dibuka dosen atau tidak punya tenggat di kalender SIKOLA; tenggatnya lebih dari 90 hari lagi; atau kamu sudah menandainya selesai. Tugas yang sudah dikumpulkan bisa hilang dari kalender SIKOLA, dan Sulo menyebutnya "mungkin sudah dikumpulkan".',
-        en: 'Usually one of these: the course is not marked as active (Settings, then "Choose courses"); the lecturer has not opened the task yet or it has no due date in the SIKOLA calendar; it is due more than 90 days away; or you marked it as done. Handed-in tasks can drop out of the SIKOLA calendar, and Sulo calls them "probably handed in".',
+        id: 'Biasanya karena salah satu ini: mata kuliahnya belum dipantau (dashboard, halaman Mata kuliah); tugasnya belum dibuka dosen atau tidak punya tenggat di kalender SIKOLA; tenggatnya lebih dari 90 hari lagi; atau kamu sudah menandainya selesai. Tugas yang sudah dikumpulkan bisa hilang dari kalender SIKOLA, dan Sulo menyebutnya "mungkin sudah dikumpulkan".',
+        en: 'Usually one of these: the course is not followed (the dashboard’s Courses page); the lecturer has not opened the task yet or it has no due date in the SIKOLA calendar; it is due more than 90 days away; or you marked it as done. Handed-in tasks can drop out of the SIKOLA calendar, and Sulo calls them "probably handed in".',
       },
     ],
   },
@@ -111,8 +111,8 @@ export const FAQ: FaqEntry[] = [
         en: 'Try "Send a test notification" in Settings. If nothing shows, turn on notifications for Chrome on your computer: on macOS in System Settings, Notifications, Google Chrome; on Windows in Settings, System, Notifications, and turn off Focus or Do not disturb.',
       },
       {
-        id: 'Pengingat juga diam selama jam tenang (bawaan 22.00 sampai 06.00, kecuali pengingat terakhir), untuk mata kuliah yang tidak aktif, dan untuk tugas yang sudah kamu tandai selesai.',
-        en: 'Reminders also stay quiet during quiet hours (22:00 to 06:00 by default, except the last reminder), for courses that are not active, and for tasks you marked as done.',
+        id: 'Pengingat juga diam selama jam tenang (bawaan 22.00 sampai 06.00, kecuali pengingat terakhir), untuk mata kuliah yang tidak dipantau, dan untuk tugas yang sudah kamu tandai selesai.',
+        en: 'Reminders also stay quiet during quiet hours (22:00 to 06:00 by default, except the last reminder), for courses you do not follow, and for tasks you marked as done.',
       },
     ],
   },
@@ -138,11 +138,11 @@ export const FAQ: FaqEntry[] = [
   },
   {
     id: 'mata-kuliah-aktif',
-    q: { id: 'Bagaimana cara mengganti mata kuliah aktif?', en: 'How do I change my active courses?' },
+    q: { id: 'Bagaimana cara memilih mata kuliah yang dipantau?', en: 'How do I choose the courses Sulo follows?' },
     a: [
       {
-        id: 'Buka dashboard, halaman Mata kuliah, lalu centang atau hapus centang. Bisa juga lewat ⚙ di popup, "Atur mata kuliah". Kalau mata kuliah baru belum ada di daftar, klik "Segarkan daftar".',
-        en: 'Open the dashboard’s Courses page and tick or untick. You can also use ⚙ in the popup, "Choose courses". If a new course is not listed yet, click "Refresh list".',
+        id: 'Buka dashboard, halaman Mata kuliah, lalu nyalakan atau matikan sakelar Dipantau. Kalau mata kuliah baru belum ada di daftar, klik "Muat ulang daftar".',
+        en: 'Open the dashboard’s Courses page and turn the Followed switch on or off. If a new course is not listed yet, click "Reload list".',
       },
     ],
   },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { GUIDE_STEPS, GUIDE_TITLE, type GuideLocale, type GuideStep } from '@/lib/help/guide';
+import { GUIDE_STEPS, GUIDE_TIP, GUIDE_TITLE, type GuideLocale, type GuideStep } from '@/lib/help/guide';
 import { Card } from './Shell';
 
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -20,6 +20,7 @@ export function Guide({ locale }: { locale: GuideLocale }) {
   return (
     <section id="mulai">
       <Card title={GUIDE_TITLE[locale]}>
+        <p className="mb-6 text-[14px] leading-normal text-muted-foreground">{GUIDE_TIP[locale]}</p>
         <ol className="space-y-8">
           {GUIDE_STEPS.map((step, i) => (
             <GuideStepView key={step.id} step={step} n={i + 1} locale={locale} />
@@ -51,15 +52,9 @@ function GuideStepView({ step, n, locale }: { step: GuideStep; n: number; locale
           className="relative overflow-hidden rounded-lg border border-border bg-background"
           style={{ aspectRatio: `${step.size.width} / ${step.size.height}`, maxWidth: step.maxWidth }}
         >
-          {step.clip ? (
-            <>
-              {/* One clip per theme; the hidden one is never loaded (preload none, never played). */}
-              <Clip src={`/guide/${step.clip}-light-${locale}`} label={step.alt[locale]} locale={locale} className="db-guide-light" />
-              <Clip src={`/guide/${step.clip}-dark-${locale}`} label={step.alt[locale]} locale={locale} className="db-guide-dark" />
-            </>
-          ) : (
-            <ToolbarDrawing label={step.alt[locale]} />
-          )}
+          {/* One clip per theme; the hidden one is never loaded (preload none, never played). */}
+          <Clip src={`/guide/${step.clip}-light-${locale}`} label={step.alt[locale]} locale={locale} className="db-guide-light" />
+          <Clip src={`/guide/${step.clip}-dark-${locale}`} label={step.alt[locale]} locale={locale} className="db-guide-dark" />
         </div>
         <figcaption>
           <ol className="space-y-1">
@@ -121,43 +116,5 @@ function Clip({ src, label, locale, className }: { src: string; label: string; l
         {paused ? w.play : w.pause}
       </button>
     </div>
-  );
-}
-
-/** Step 1: the browser toolbar cannot be recorded, so it is drawn: puzzle, then the pin, then Sulo's icon. Our own shapes; theme colors. */
-function ToolbarDrawing({ label }: { label: string }) {
-  const panel = { fill: 'var(--surface)', stroke: 'var(--border)', strokeWidth: 2 };
-  const ink = { fill: 'none', stroke: 'var(--text)', strokeWidth: 4, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  const arrow = (x: number) => <path d={`M${x} 180h70m-18-16 18 16-18 16`} {...ink} stroke="var(--muted)" />;
-  return (
-    <svg role="img" aria-label={label} viewBox="0 0 1200 360" className="absolute inset-0 size-full">
-      <rect x="0" y="0" width="1200" height="360" fill="var(--bg)" />
-      {/* 1: the extensions button (puzzle piece) */}
-      <rect x="160" y="120" width="120" height="120" rx="24" {...panel} />
-      <path d="M196 160h20a12 12 0 1 1 24 0h20v20a12 12 0 1 1 0 24v20h-20a12 12 0 1 0-24 0h-20v-20a12 12 0 1 0 0-24z" {...ink} />
-      {arrow(320)}
-      {/* 2: the extensions list with the pin next to Sulo */}
-      <rect x="430" y="100" width="340" height="160" rx="20" {...panel} />
-      <image href="/icon/icon-48.png" x="462" y="156" width="48" height="48" />
-      <rect x="526" y="168" width="140" height="24" rx="12" fill="var(--surface-raised)" />
-      <path d="M716 162l16 16-10 6-10 22-4-4-16 16-4-4 16-16-4-4 22-10 6-10z" {...ink} strokeWidth={3} />
-      {arrow(810)}
-      {/* 3: Sulo's icon in the toolbar */}
-      <rect x="920" y="120" width="120" height="120" rx="24" {...panel} />
-      <image href="/icon/icon-48.png" x="950" y="150" width="60" height="60" />
-      {/* Numbers that match the list under the drawing. */}
-      {[
-        [146, 104, 1],
-        [700, 132, 2],
-        [906, 104, 3],
-      ].map(([x, y, n]) => (
-        <g key={n} aria-hidden="true">
-          <circle cx={x} cy={y} r="18" fill="var(--brand-orange)" />
-          <text x={x} y={y! + 7} textAnchor="middle" fontSize="20" fontWeight="700" fill="var(--ink)">
-            {n}
-          </text>
-        </g>
-      ))}
-    </svg>
   );
 }

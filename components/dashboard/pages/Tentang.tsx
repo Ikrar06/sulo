@@ -1,7 +1,7 @@
 import { useId, type ComponentType, type SVGProps } from 'react';
 import { browser } from 'wxt/browser';
 import { ExternalIcon } from '@/components/icons';
-import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, TRAKTEER_URL, type CreatorLinkId } from '@/lib/links';
+import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, REPO_URL, TRAKTEER_URL, type CreatorLinkId } from '@/lib/links';
 import { DocLayout } from '@/components/ui/doc-layout';
 import { SupportButton } from '@/components/ui/support-button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -36,7 +36,16 @@ export function TentangPage({ d, actions }: PageProps) {
     <div className="rounded-xl border border-border bg-surface p-5">
       <p className="text-[14px] font-semibold">{t.versionTitle}</p>
       <p className="mt-2 text-[12px] leading-normal text-muted-foreground">
-        {t.version(browser.runtime.getManifest().version)}. {t.license}
+        {t.version(browser.runtime.getManifest().version)}.
+        {/* The license line only with a public repository to point at. */}
+        {isShownLink(REPO_URL) && (
+          <>
+            {' '}
+            <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
+              {t.license}
+            </a>
+          </>
+        )}
       </p>
       <button
         type="button"
@@ -70,7 +79,7 @@ export function TentangPage({ d, actions }: PageProps) {
                   <li key={l.id}>
                     <a href={l.url} {...external} className={textLink}>
                       <Icon className="size-4 shrink-0" />
-                      <span>{l.label}</span>
+                      <span>{t.links[l.id]}</span>
                     </a>
                   </li>
                 );
