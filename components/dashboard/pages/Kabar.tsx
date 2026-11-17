@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useI18n } from '@/components/i18n';
 import { BellIcon } from '@/components/icons';
 import { Mascot } from '@/components/mascot/Mascot';
@@ -15,10 +15,14 @@ import type { PageProps } from '../types';
  * filters. "Notify me about" lives in a popover on the toolbar, reading and
  * writing the same prefs.updates as Pengaturan.
  */
-export function KabarPage({ d, data, actions }: PageProps) {
+export function KabarPage({ d, data, actions, route }: PageProps) {
   const { m } = useI18n();
   const t = d.kabar;
-  const [course, setCourse] = useState<string>('all');
+  // #kabar/<courseId> (from a notification) opens filtered to that course.
+  const [course, setCourse] = useState<string>(route.detail ?? 'all');
+  useEffect(() => {
+    if (route.detail) setCourse(route.detail);
+  }, [route.detail]);
   const [kind, setKind] = useState<UpdateCategory | 'all'>('all');
   const entries = data.view.updates.filter(
     (e) => (course === 'all' || String(e.change.courseId) === course) && (kind === 'all' || categoryOf(e.change) === kind),

@@ -42,12 +42,15 @@ export function notificationId(notice: Notice): string {
   if (notice.kind === 'task') return `task|${notice.task.eventId}|${notice.key}`;
   // A single update carries its log entry id, so a click can open its page.
   if (notice.kind === 'changes' && notice.entries.length === 1) return `changes|${notice.entries[0]!.id}`;
+  // Several updates for one course: a click opens "Kabar terbaru" filtered to that course.
+  if (notice.kind === 'changes' && notice.courseId !== null) return `changes|course:${notice.courseId}|${notice.key}`;
   return `${notice.kind}|${notice.key}`;
 }
 
-export function parseNotificationId(id: string): { kind: string; eventId: number | null; entryId: string | null } {
+export function parseNotificationId(id: string): { kind: string; eventId: number | null; entryId: string | null; courseId: number | null } {
   const [kind = '', second] = id.split('|');
-  return { kind, eventId: kind === 'task' && second ? Number(second) : null, entryId: kind === 'changes' && second ? second : null };
+  const courseId = kind === 'changes' && second?.startsWith('course:') ? Number(second.slice(7)) : null;
+  return { kind, eventId: kind === 'task' && second ? Number(second) : null, entryId: kind === 'changes' && second && courseId === null ? second : null, courseId };
 }
 
 /** Drops old keys and keys of tasks that no longer exist. */

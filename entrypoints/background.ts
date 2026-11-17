@@ -177,8 +177,12 @@ export default defineBackground(() => {
   };
 
   const onNotificationClick = async (id: string) => {
-    const { kind, eventId, entryId } = parseNotificationId(id);
+    const { kind, eventId, entryId, courseId } = parseNotificationId(id);
     await browser.notifications.clear(id);
+    if (kind === 'changes' && courseId !== null) {
+      await browser.tabs.create({ url: browser.runtime.getURL(`/dashboard.html#kabar/${courseId}`) });
+      return;
+    }
     if (kind === 'changes' || kind === 'changes_summary') {
       const userId = await currentUser(local);
       const entry = entryId && userId !== null ? (await readUser(local, userId, 'changes')).find((e) => e.id === entryId) : undefined;

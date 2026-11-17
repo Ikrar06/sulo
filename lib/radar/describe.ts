@@ -1,6 +1,7 @@
 // Words for changes, shared by notifications and the "Kabar terbaru" panel.
 // Pure; takes the active dictionary.
 
+import { isNewTaskActivity } from './task-modules';
 import { calendarDaysBetween } from '../format/time';
 import type { Messages } from '../i18n';
 import type { Change, UnixSeconds } from '../types';
@@ -22,9 +23,9 @@ export function describeChange(change: Change, timeZone: string, m: Messages): s
   const u = m.popup.updates;
   switch (change.kind) {
     case 'added':
-      return u.added(change.name);
+      return isNewTaskActivity(change) ? u.taskAdded(change.name) : u.added(change.name);
     case 'shown':
-      return u.shown(change.name);
+      return isNewTaskActivity(change) ? u.taskAdded(change.name) : u.shown(change.name);
     case 'hidden':
       return u.hidden(change.name);
     case 'removed':

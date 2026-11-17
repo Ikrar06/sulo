@@ -2,6 +2,7 @@
 // Short title and body, following the glossaries. Never grades or other
 // sensitive data: only task name, course name and due time.
 
+import { isNewTaskActivity } from '../radar/task-modules';
 import { formatDueClock, formatLeft } from '../format/time';
 import type { Messages } from '../i18n';
 import type { Task, UnixSeconds } from '../types';
@@ -94,17 +95,19 @@ function changesView(entries: readonly ChangeLogEntry[], course: string | null, 
   const n = m.notify;
   const changes = entries.map((e) => e.change);
   const icon: NotifyIcon = changes.some(isMovedEarlier) ? 'urgent' : changes.some((c) => c.kind === 'grade_feedback') ? 'happy' : 'idle';
-  const bucket = (c: (typeof changes)[number]): Bucket => (c.kind === 'task_added' ? 'tasks' : (categoryOf(c) ?? 'materials'));
+  const bucket = (c: (typeof changes)[number]): Bucket => (c.kind === 'task_added' || isNewTaskActivity(c) ? 'tasks' : (categoryOf(c) ?? 'materials'));
   const buckets = new Map<Bucket, typeof changes>();
   for (const c of changes) buckets.set(bucket(c), [...(buckets.get(bucket(c)) ?? []), c]);
   const nameOf = (c: (typeof changes)[number]) => ('name' in c ? shorten(c.name) : 'notification' in c ? shorten(c.notification.subject) : '');
   const list = (cs: typeof changes) => n.names(cs.slice(0, 2).map(nameOf), Math.max(0, cs.length - 2));
   const place = course ?? m.popup.updates.otherCourse;
 
+  // More than one change for a course: one summary, "3 hal baru di Hidrolika".
   if (buckets.size > 1) {
     const parts = [...buckets.entries()].map(([b, cs]) => n.parts[b](cs.length));
     return { title: n.changesMixed(changes.length, course), message: `${parts.join(', ')}.`, icon, buttons: [] };
   }
+  if (changes.length > 1 && !buckets.has('grades')) return { title: n.changesMixed(changes.length, course), message: list(changes), icon, buttons: [] };
   const [only, cs] = [...buckets.entries()][0]!;
   const first = cs[0]!;
   switch (only) {

@@ -98,9 +98,12 @@ describe('notification cycle', () => {
 describe('notification ids and pruning', () => {
   it('round-trips the task id for click handling', () => {
     const id = notificationId({ kind: 'task', key: 't:7:180:1', task, snoozed: false });
-    expect(parseNotificationId(id)).toEqual({ kind: 'task', eventId: 7, entryId: null });
-    expect(parseNotificationId('summary|sum:1')).toEqual({ kind: 'summary', eventId: null, entryId: null });
-    expect(parseNotificationId('changes|task:5:added')).toEqual({ kind: 'changes', eventId: null, entryId: 'task:5:added' });
+    expect(parseNotificationId(id)).toEqual({ kind: 'task', eventId: 7, entryId: null, courseId: null });
+    expect(parseNotificationId('summary|sum:1')).toEqual({ kind: 'summary', eventId: null, entryId: null, courseId: null });
+    // Several updates for one course open "Kabar terbaru" filtered to it.
+    expect(parseNotificationId('changes|course:401|chg:401:1')).toEqual({ kind: 'changes', eventId: null, entryId: null, courseId: 401 });
+    expect(parseNotificationId('changes|task:9:added')).toEqual({ kind: 'changes', eventId: null, entryId: 'task:9:added', courseId: null });
+    expect(parseNotificationId('changes|task:5:added')).toEqual({ kind: 'changes', eventId: null, entryId: 'task:5:added', courseId: null });
   });
 
   it('drops keys older than 30 days and keys of tasks that are gone', () => {

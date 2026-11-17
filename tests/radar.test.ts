@@ -1,3 +1,4 @@
+import { isNewTaskActivity, TASK_MODULES } from '../lib/radar/task-modules';
 import { describe, expect, it } from 'vitest';
 import gradesFx from '../fixtures/synthetic/popup-notifications.grades.json';
 import stateFx from '../fixtures/synthetic/courseformat-state.normal.json';
@@ -221,13 +222,49 @@ describe('change log', () => {
     ]);
   });
 
-  it('announces one activity once, whichever source sees it first', () => {
+  // M6: one piece of news per task, whichever source sees it first.
+  it('a new task only: one "task added" entry', () => {
+    const log = appendChanges([], [taskAdded(10, 77)], NOW);
+    expect(log.map((e) => e.change.kind)).toEqual(['task_added']);
+  });
+
+  it('new material only: one "added" entry, notifying', () => {
+    const log = appendChanges([], [added(90, 'resource')], NOW);
+    expect(log).toEqual([expect.objectContaining({ change: expect.objectContaining({ kind: 'added' }), notify: true })]);
+  });
+
+  it('both in the same sync: only the task is kept', () => {
+    const log = appendChanges([], [taskAdded(10, 77), added(77, 'assign')], NOW);
+    expect(log.map((e) => e.change.kind)).toEqual(['task_added']);
+    expect(log[0]?.notify).toBe(true);
+  });
+
+  it('task first, structure later: the later activity is dropped', () => {
     const calendarFirst = appendChanges([], [taskAdded(10, 77)], NOW);
     const thenStructure = appendChanges(calendarFirst, [added(77, 'assign')], NOW + 6 * H);
-    expect(thenStructure[0]).toMatchObject({ notify: false });
+    expect(thenStructure).toHaveLength(1);
+    expect(thenStructure[0]?.change.kind).toBe('task_added');
+  });
+
+  it('structure first, task within 24 hours: the entry becomes the task, same id, no second notification', () => {
     const structureFirst = appendChanges([], [added(78, 'assign')], NOW);
     const thenCalendar = appendChanges(structureFirst, [taskAdded(11, 78)], NOW + H);
-    expect(thenCalendar[0]).toMatchObject({ notify: false });
+    expect(thenCalendar).toHaveLength(1);
+    expect(thenCalendar[0]).toMatchObject({ id: structureFirst[0]!.id, change: { kind: 'task_added', eventId: 11 }, notify: true });
+    // After 24 hours they are separate news again (the task is logged, the old entry stays).
+    expect(appendChanges(structureFirst, [taskAdded(11, 78)], NOW + 25 * H)).toHaveLength(2);
+  });
+
+  it('ids stay deterministic: the same changes give the same entries', () => {
+    const a = appendChanges([], [taskAdded(10, 77), added(90, 'resource')], NOW);
+    const b = appendChanges([], [taskAdded(10, 77), added(90, 'resource')], NOW);
+    expect(a.map((e) => e.id)).toEqual(b.map((e) => e.id));
+  });
+
+  it('a new activity of a task type reads "Tugas baru" even before its deadline is known', () => {
+    expect(isNewTaskActivity(added(91, 'quiz').valueOf() as never)).toBe(true);
+    expect(isNewTaskActivity(added(92, 'resource') as never)).toBe(false);
+    expect([...TASK_MODULES].sort()).toEqual(['assign', 'h5pactivity', 'lesson', 'quiz', 'scorm', 'workshop']);
   });
 
   it('logs a task that only entered the 90-day window without notifying', () => {

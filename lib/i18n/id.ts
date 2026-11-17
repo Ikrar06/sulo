@@ -281,7 +281,7 @@ export const id = {
     changesDue: (name: string, shift: string) => `Tenggat ${name} ${shift}`,
     changesGrade: (course: string | null) => (course ? `Ada nilai atau feedback baru di ${course}` : 'Ada nilai atau feedback baru'),
     changesForum: (course: string | null) => (course ? `Kabar baru di forum ${course}` : 'Kabar baru di forum'),
-    changesMixed: (n: number, course: string | null) => (course ? `${n} kabar baru di ${course}` : `${n} kabar baru`),
+    changesMixed: (n: number, course: string | null) => (course ? `${n} hal baru di ${course}` : `${n} hal baru`),
     changesSummaryTitle: (n: number, courses: number) => `${n} kabar baru dari ${courses} mata kuliah`,
     changesSummaryBody: 'Buka Sulo untuk melihat semuanya.',
     names: (names: string[], more: number) =>

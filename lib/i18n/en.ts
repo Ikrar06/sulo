@@ -274,7 +274,7 @@ export const en: Messages = {
     changesDue: (name, shift) => `${name}: due date ${shift}`,
     changesGrade: (course) => (course ? `New grade or feedback in ${course}` : 'New grade or feedback'),
     changesForum: (course) => (course ? `New forum post in ${course}` : 'New forum post'),
-    changesMixed: (n, course) => (course ? `${plural(n, 'update', 'updates')} in ${course}` : plural(n, 'update', 'updates')),
+    changesMixed: (n, course) => (course ? `${n} new things in ${course}` : `${n} new things`),
     changesSummaryTitle: (n, courses) => `${plural(n, 'update', 'updates')} from ${plural(courses, 'course', 'courses')}`,
     changesSummaryBody: 'Open Sulo to see them all.',
     names: (names, more) =>

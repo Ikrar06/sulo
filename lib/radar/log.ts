@@ -61,17 +61,44 @@ function mayNotify(change: Change, log: readonly ChangeLogEntry[], batch: readon
   }
 }
 
+/** A new activity logged this recently is the same news as its task, when the deadline arrives later. */
+export const MERGE_WINDOW_SECONDS = 24 * 3600;
+
+const isNewActivity = (c: Change) => c.kind === 'added' || c.kind === 'shown';
+
+/**
+ * Adds a cycle's changes. A task is one piece of news, however it is found:
+ * - the calendar's new task and the course structure's new activity with
+ *   the same cmId, in one cycle: only the task is kept;
+ * - the activity was logged first (within 24 hours) and the task comes in a
+ *   later cycle: that entry becomes the task, keeping its id, so it never
+ *   notifies twice;
+ * - the task was logged first: a later "new activity" for it is dropped.
+ * Entry ids stay derived from the first change seen (deterministic).
+ */
 export function appendChanges(log: readonly ChangeLogEntry[], changes: readonly Change[], now: UnixSeconds): ChangeLogEntry[] {
+  const taskCms = new Set<number>();
+  for (const c of [...changes, ...log.map((e) => e.change)]) if (c.kind === 'task_added' && c.cmId !== null) taskCms.add(c.cmId);
+  const kept = changes.filter((c) => !(isNewActivity(c) && taskCms.has(c.cmId)));
+
+  let updated = log;
   const existing = new Set(log.map((e) => e.id));
   const fresh: ChangeLogEntry[] = [];
-  for (const change of changes) {
+  for (const change of kept) {
+    if (change.kind === 'task_added' && change.cmId !== null) {
+      const earlier = updated.find((e) => isNewActivity(e.change) && cmOf(e.change) === change.cmId && now - e.at < MERGE_WINDOW_SECONDS);
+      if (earlier) {
+        updated = updated.map((e) => (e === earlier ? { ...e, change } : e));
+        continue;
+      }
+    }
     const id = entryId(change);
     if (existing.has(id)) continue;
     existing.add(id);
-    fresh.push({ id, at: now, change, notify: mayNotify(change, log, changes, now), seen: false, opens: 0 });
+    fresh.push({ id, at: now, change, notify: mayNotify(change, updated, kept, now), seen: false, opens: 0 });
   }
   // Newest cycle first; within one cycle, the order the changes were found.
-  return [...fresh, ...log].slice(0, LOG_LIMIT);
+  return [...fresh, ...updated].slice(0, LOG_LIMIT);
 }
 
 export const markAllSeen = (log: readonly ChangeLogEntry[]): ChangeLogEntry[] => log.map((e) => (e.seen ? e : { ...e, seen: true }));
