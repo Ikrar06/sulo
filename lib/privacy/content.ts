@@ -16,7 +16,7 @@ export interface Section {
   blocks: Block[];
 }
 
-export const PRIVACY_UPDATED: Text = { id: '16 November 2026', en: '16 November 2026' };
+export const PRIVACY_UPDATED: Text = { id: '18 November 2026', en: '18 November 2026' };
 
 export const PRIVACY_TITLE: Text = { id: 'Kebijakan Privasi', en: 'Privacy Policy' };
 
@@ -81,7 +81,8 @@ export const PRIVACY_SECTIONS: Section[] = [
         items: [
           { id: 'mata kuliah, tugas, dan tenggat', en: 'courses, assignments and due dates' },
           { id: 'susunan mata kuliah terakhir yang terlihat dan log "Kabar terbaru" (paling banyak 200 entri)', en: 'the last seen structure of each course and the "Latest updates" log (at most 200 entries)' },
-          { id: 'pilihanmu: mata kuliah aktif, tugas yang ditandai selesai, dan kelak alias, warna, serta nama panggilan yang kamu isi sendiri', en: 'your choices: active courses, tasks marked done, and later aliases, colors and a nickname you type yourself' },
+          { id: 'pilihanmu: mata kuliah yang dipantau, tugas yang ditandai selesai, nama tampilan dan warna mata kuliah, serta nama panggilan yang kamu isi sendiri', en: 'your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself' },
+          { id: 'log teknis 300 pemeriksaan terakhir ke SIKOLA: hanya waktu, nama fungsi, dan status, tanpa isi apa pun; tidak pernah dikirim, dan hanya ikut kalau kamu sendiri menyalin "info untuk laporan bug"', en: 'a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself' },
           { id: 'penghitung pemakaian lokal, yang tidak pernah keluar dari perangkatmu kecuali kamu sendiri mengekspornya', en: 'local usage counters, which never leave your device unless you export them yourself' },
         ],
       },
@@ -207,8 +208,8 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Pertanyaan soal privasi bisa disampaikan ke pengelola proyek lewat GitHub (github.com/Ikrar06). Jangan sertakan data pribadi di pesanmu.',
-          en: 'Questions about privacy can be raised with the maintainer on GitHub (github.com/Ikrar06). Please do not include personal data in your message.',
+          id: 'Pertanyaan soal privasi bisa dikirim lewat formulir masukan: https://forms.gle/XsBuWXGHNR4pPTs17. Jangan sertakan NIM, password, nilai, atau data pribadi lain di pesanmu.',
+          en: 'Questions about privacy can be sent through the feedback form: https://forms.gle/XsBuWXGHNR4pPTs17. Please do not include your student number, password, grades or other personal data in your message.',
         },
       },
     ],

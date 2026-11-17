@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-Last updated: 16 November 2026
+Last updated: 18 November 2026
 
 Sulo is an unofficial academic companion for Universitas Hasanuddin students. It is not affiliated with or endorsed by Universitas Hasanuddin.
 
@@ -25,7 +25,8 @@ Everything is stored locally in your browser (chrome.storage) on your own device
 
 - courses, assignments and due dates
 - the last seen structure of each course and the "Latest updates" log (at most 200 entries)
-- your choices: active courses, tasks marked done, and later aliases, colors and a nickname you type yourself
+- your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself
+- a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself
 - local usage counters, which never leave your device unless you export them yourself
 
 From SIKOLA notifications, Sulo keeps only the id, the subject, the component and event type, when it was created, whether it has been read, the related page address (known SIKOLA pages only, with no parameters other than ids) and the course number. Message bodies (text, fullmessage, fullmessagehtml, smallmessage) and extra data (customdata), which may contain grades or lecturer comments, are dropped when read and never stored. Sulo's own notifications about grades never mention the grade or the comment.
@@ -73,4 +74,4 @@ Changes are published with new versions of Sulo, and the date at the top is upda
 
 ## Contact
 
-Questions about privacy can be raised with the maintainer on GitHub (github.com/Ikrar06). Please do not include personal data in your message.
+Questions about privacy can be sent through the feedback form: https://forms.gle/XsBuWXGHNR4pPTs17. Please do not include your student number, password, grades or other personal data in your message.

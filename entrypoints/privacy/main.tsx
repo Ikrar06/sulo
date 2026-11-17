@@ -5,6 +5,7 @@ import { createBrowserStore } from '@/lib/browser-store';
 import { messagesFor, resolveLocale, type Locale } from '@/lib/i18n';
 import { readPrefs } from '@/lib/prefs';
 import { PRIVACY_INTRO, PRIVACY_SECTIONS, PRIVACY_TITLE, PRIVACY_UPDATED, type Block } from '@/lib/privacy/content';
+import { PUBLIC_PRIVACY_URL } from '@/lib/privacy/render';
 import '@/assets/tailwind.css';
 import { DocLayout } from '@/components/ui/doc-layout';
 import { installInputModality } from '@/lib/ui/input-modality';
@@ -28,7 +29,12 @@ function Privacy({ lang }: { lang: Locale }) {
   return (
     <main className="mx-auto max-w-[1040px] px-4 py-8 text-[14px] leading-normal sm:px-8">
       <h1 className="font-heading text-[20px] leading-8">{PRIVACY_TITLE[lang]}</h1>
-      <p className="mb-6 text-[12px] text-muted-foreground">{messagesFor(lang).privacyPage.updated(PRIVACY_UPDATED[lang])}</p>
+      <p className="mb-6 text-[12px] text-muted-foreground">
+        {messagesFor(lang).privacyPage.updated(PRIVACY_UPDATED[lang])} ·{' '}
+        <a href={PUBLIC_PRIVACY_URL[lang]} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
+          {messagesFor(lang).privacyPage.publicVersion}
+        </a>
+      </p>
       <DocLayout toc={toc} tocLabel={messagesFor(lang).privacyPage.onThisPage}>
         <div className="space-y-3">
           {PRIVACY_INTRO.map((b, i) => (
