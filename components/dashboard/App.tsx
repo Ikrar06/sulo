@@ -8,6 +8,7 @@ import { dashFor } from '@/lib/i18n/dashboard';
 import { DashboardProvider, timeZone, useDashboard } from './data';
 import { DashboardShell } from './Shell';
 import { StatusNotice } from './StatusNotice';
+import { ToastProvider } from '@/components/ui/toast';
 import { refreshFeedback } from '@/lib/view/refresh-feedback';
 import type { PageProps } from './types';
 
@@ -79,6 +80,7 @@ function Router() {
 
   return (
     <I18nProvider locale={locale}>
+      <ToastProvider>
       <DashboardShell
         page={route.page}
         d={d}
@@ -103,6 +105,7 @@ function Router() {
           </>
         )}
       </DashboardShell>
+      </ToastProvider>
     </I18nProvider>
   );
 }

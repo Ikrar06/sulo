@@ -26,7 +26,7 @@ function Icon({ children, ...props }: IconProps) {
 
 export const CheckIcon = (p: IconProps) => (
   <Icon {...p}>
-    <path d="M20 6 9 17l-5-5" />
+    <path d="M20 6 9 17l-5-5" pathLength={1} />
   </Icon>
 );
 

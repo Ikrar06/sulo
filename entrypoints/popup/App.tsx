@@ -10,6 +10,7 @@ import { messagesFor, resolveLocale, type Locale } from '@/lib/i18n';
 import type { Message } from '@/lib/messages';
 import { DAILY_BUDGET, DAILY_CALL_BUDGET, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { refreshFeedback } from '@/lib/view/refresh-feedback';
+import { undoDone } from '@/lib/tasks/done-undo';
 import type { SyncOutcome } from '@/lib/types';
 import { readRequestLog } from '@/lib/net/request-log';
 import type { RequestLogEntry } from '@/lib/net/scheduler';
@@ -146,6 +147,13 @@ export default function App({ startedAt }: { startedAt: number }) {
     if (view.pendingCount === 1) setCelebrate((n) => n + 1);
   };
 
+  const onUndo = async (eventId: number) => {
+    const userId = await currentUser(local);
+    if (userId === null) return;
+    const state = await readUser(local, userId, 'taskState');
+    await writeUser(local, userId, 'taskState', undoDone(state, eventId));
+  };
+
   const onCopy = async (scope: CopyScope) => {
     await navigator.clipboard.writeText(formatCopyList(view.copyItems, scope, now, timeZone, m));
     flash(m.popup.copy.copied(m.popup.copy[scope]));
@@ -197,6 +205,7 @@ export default function App({ startedAt }: { startedAt: number }) {
         note={note}
         dev={isDev ? { openMs, budgetLimit: DAILY_BUDGET, callLimit: DAILY_CALL_BUDGET, requestLog, onProbeSession: probeSession(m) } : null}
         onDone={(e) => void onDone(e)}
+        onUndo={(e) => void onUndo(e)}
         onOpenTask={(url) => void browser.tabs.create({ url })}
         onAddToCalendar={onAddToCalendar}
         onRefresh={async () => {

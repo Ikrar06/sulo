@@ -8,6 +8,8 @@ import { loadMap } from '@/lib/dashboard/load-map';
 import { buildSummary, groupOverview, heroMood, limitGroups } from '@/lib/dashboard/overview';
 import { routeHash } from '@/lib/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@/lib/dashboard/tasks';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useDoneUndo } from '../done-undo';
 import { formatRemaining } from '@/lib/format/time';
 import { describeChange } from '@/lib/radar/describe';
 import { localParts } from '@/lib/reminders/zoned';
@@ -20,11 +22,14 @@ const LEVELS = [1, 2, 3, 4] as const;
 
 type Row = TaskItem & { dueAt: number | null };
 
-export function RingkasanPage({ d, data }: PageProps) {
+export function RingkasanPage({ d, data, actions }: PageProps) {
   const { m } = useI18n();
   const r = d.ringkasan;
   const user = data.user!;
-  const pendingItems = useMemo(() => buildTaskItems(user).filter((i) => i.status === 'pending'), [user]);
+  const done = useDoneUndo(actions, d, data.today);
+  const allItems = useMemo(() => buildTaskItems(user), [user]);
+  // Pending tasks, plus the ones just marked done (they stay in place for the undo window).
+  const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);
   const rows = useMemo<Row[]>(() => pendingItems.map((i) => ({ ...i, dueAt: i.task.dueAt })), [pendingItems]);
   const groups = useMemo(() => groupOverview(rows, data.now, timeZone), [rows, data.now]);
   const shown = limitGroups(groups);
@@ -60,11 +65,17 @@ export function RingkasanPage({ d, data }: PageProps) {
                   <h3 className="mb-1 text-[12px] font-semibold text-muted-foreground">{r.groups[g.key]}</h3>
                   <ul>
                     {g.rows.map((row) => (
-                      <li key={row.task.eventId}>
-                        <a href={routeHash('tugas', row.task.eventId)} className="-mx-2 flex items-start gap-3 rounded-lg px-2 py-2 outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus">
+                      <li key={row.task.eventId} className={`-mx-2 flex items-start gap-3 rounded-lg px-2 hover:bg-surface-raised ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
+                        <Checkbox
+                          className="mt-3"
+                          checked={row.status === 'done'}
+                          onCheckedChange={(v) => (v === true ? done.mark(row.task.eventId) : done.unmark(row.task.eventId))}
+                          aria-label={`${row.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${row.task.name}`}
+                        />
+                        <a href={routeHash('tugas', row.task.eventId)} className="flex min-w-0 flex-1 items-start gap-3 rounded-lg py-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
                           <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: `var(--course-${row.courseColor})` }} />
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-[14px] font-semibold" title={row.task.name}>
+                            <span className={`block truncate text-[14px] ${row.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`} title={row.task.name}>
                               {row.task.name}
                             </span>
                             <span className="block truncate text-[12px] text-muted-foreground" title={row.courseName}>

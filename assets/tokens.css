@@ -383,3 +383,43 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Checkbox: a short pop and the tick drawing itself when checked (M6).
+   The tick path has pathLength=1, so one dash covers it. Still with reduced motion. */
+[data-slot="checkbox"][data-state="checked"] {
+  animation: sulo-check-pop 150ms ease-out;
+}
+[data-slot="checkbox-indicator"] svg path {
+  stroke-dasharray: 1;
+  animation: sulo-check-draw 180ms ease-out;
+}
+@keyframes sulo-check-pop {
+  50% { transform: scale(1.15); }
+}
+@keyframes sulo-check-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="checkbox"][data-state="checked"],
+  [data-slot="checkbox-indicator"] svg path {
+    animation: none;
+  }
+}
+
+/* A done row leaving its list after the undo window (height to 0, 200 ms), dashboard and popup. */
+:root {
+  interpolate-size: allow-keywords;
+}
+.db-collapse {
+  overflow: hidden;
+  animation: db-collapse 200ms ease-in forwards;
+}
+@keyframes db-collapse {
+  from { height: auto; opacity: 1; }
+  to { height: 0; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .db-collapse { animation: none; }
+}
+

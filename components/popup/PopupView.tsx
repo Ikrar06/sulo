@@ -11,6 +11,8 @@ import { addDays, localParts, zonedToUnix } from '@/lib/reminders/zoned';
 import type { Locale } from '@/lib/i18n';
 import type { DueFormat } from '@/lib/prefs';
 import { useQuietRefresh } from '@/components/quiet-refresh';
+import { COLLAPSE_MS, UNDO_MS } from '@/lib/tasks/done-undo';
+import { GROUP_ORDER } from '@/lib/tasks/group';
 import type { RequestLogEntry } from '@/lib/net/scheduler';
 import type { RequestSource, UnixSeconds } from '@/lib/types';
 import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-view';
@@ -24,10 +26,12 @@ const WipeDialog = lazy(() => import('./WipeDialog').then((mod) => ({ default: m
 import type { UpdateSettings } from '@/lib/radar/settings';
 import { StatusLine } from './StatusLine';
 import { MismatchScreen } from './AccountScreens';
-import { Group } from './TaskRows';
+import { Group, type DoneLinger } from './TaskRows';
 
 export interface PopupActions {
   onDone: (eventId: number) => void;
+  /** Urungkan on a row just marked done. */
+  onUndo: (eventId: number) => void;
   onOpenTask: (url: string) => void;
   onAddToCalendar: (row: TaskRow) => void;
   /** Resolves true when the click sent nothing and the data is recent ("Sudah terbaru"). */
@@ -56,6 +60,7 @@ export interface PopupActions {
 /** Inert actions for the onboarding example card and the dev preview. */
 export const NO_ACTIONS: PopupActions = {
   onDone: () => {},
+  onUndo: () => {},
   onOpenTask: () => {},
   onAddToCalendar: () => {},
   onRefresh: async () => false,
@@ -237,7 +242,31 @@ export function PopupView(props: PopupViewProps) {
   const quiet = useQuietRefresh(props.onRefresh);
   const updated =
     view.screen === 'mismatch' ? '' : view.syncing ? t.updating : quiet.upToDate ? t.upToDate : view.lastSyncAt ? t.updatedAgo(formatAgo(view.lastSyncAt, now, m)) : t.neverUpdated;
-  const empty = view.onboarded && view.groups.length === 0;
+  // Rows marked done stay in place as "Selesai · Urungkan" for 5 seconds, then close (no toast in the popup).
+  const [lingering, setLingering] = useState<(DoneLinger & { token: number })[]>([]);
+  const token = useRef(0);
+  const markDone = (eventId: number) => {
+    const g = view.groups.find((x) => x.rows.some((r) => r.eventId === eventId));
+    const index = g ? g.rows.findIndex((r) => r.eventId === eventId) : -1;
+    const mine = ++token.current;
+    if (g) setLingering((l) => [...l.filter((x) => x.row.eventId !== eventId), { row: g.rows[index]!, group: g.key, index, leaving: false, token: mine }]);
+    props.onDone(eventId);
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.setTimeout(() => setLingering((l) => l.map((x) => (x.token === mine ? { ...x, leaving: true } : x))), UNDO_MS);
+    window.setTimeout(() => setLingering((l) => l.filter((x) => x.token !== mine)), UNDO_MS + (still ? 0 : COLLAPSE_MS));
+  };
+  const undo = (eventId: number) => {
+    setLingering((l) => l.filter((x) => x.row.eventId !== eventId));
+    props.onUndo(eventId);
+  };
+  const rowActions = { ...props, onDone: markDone, onUndo: undo };
+  // A group emptied by a just-done row still shows that row until it leaves.
+  const groups = GROUP_ORDER.flatMap((key) => {
+    const g = view.groups.find((x) => x.key === key);
+    if (g) return [g];
+    return lingering.some((l) => l.group === key) ? [{ key, rows: [], collapsedByDefault: false }] : [];
+  });
+  const empty = view.onboarded && groups.length === 0;
   const headerMascot: MascotState = empty && view.mascot === 'all-done' ? 'idle' : view.mascot;
 
   return (
@@ -332,8 +361,8 @@ export function PopupView(props: PopupViewProps) {
             <EmptyState celebrate={celebrate} still={props.mascotStill} />
           ) : (
             <div className="px-1">
-              {view.groups.map((g) => (
-                <Group key={g.key} group={g} due={due} actions={props} />
+              {groups.map((g) => (
+                <Group key={g.key} group={g} due={due} actions={rowActions} lingering={lingering.filter((l) => l.group === g.key)} />
               ))}
             </div>
           )}

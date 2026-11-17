@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useToast } from '@/components/ui/toast';
 import { MoreIcon } from '@/components/icons';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FEED_IDS, feedUrl } from '@/lib/calendar/feeds';
@@ -19,15 +19,10 @@ const primary =
 
 export function Subscribe({ d }: { d: DashMessages }) {
   const s = d.kalender.subscribe;
-  const [copied, setCopied] = useState<string | null>(null);
-  const timer = useRef<number | null>(null);
-  useEffect(() => () => void (timer.current !== null && window.clearTimeout(timer.current)), []);
-
+  const toast = useToast();
   const copy = async (url: string) => {
     await navigator.clipboard.writeText(url);
-    setCopied(url);
-    if (timer.current !== null) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setCopied(null), COPIED_MS);
+    toast.show({ message: s.copied, duration: COPIED_MS });
   };
 
   return (
@@ -66,13 +61,9 @@ export function Subscribe({ d }: { d: DashMessages }) {
                         {s.apple}
                       </a>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => void copy(url)}>{copied === url ? s.copied : s.copy}</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => void copy(url)}>{s.copy}</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <span role="status" className="sr-only">
-                  {copied === url ? s.copied : ''}
-                </span>
-                {copied === url && <span className="text-[12px] text-muted-foreground">{s.copied}</span>}
               </div>
             </li>
           );

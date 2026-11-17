@@ -9,10 +9,11 @@ import { courseAlias } from '@/lib/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@/lib/dashboard/tasks';
 import { taskDueLines } from '@/lib/format/time';
 import { googleCalendarUrl } from '@/lib/format/gcal';
-import { addStep, removeStep, setCustomDue, setDone, setNote, setSnooze, toggleStep } from '@/lib/tasks/local-state';
+import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@/lib/tasks/local-state';
 import { urgencyOf } from '@/lib/tasks/group';
-import { local, timeZone } from '../data';
-import { bumpUsage } from '@/lib/stats/usage';
+import { timeZone } from '../data';
+import { useDoneUndo } from '../done-undo';
+import { Mascot } from '@/components/mascot/Mascot';
 import { TaskDetails } from '../TaskDetails';
 import type { PageProps } from '../types';
 
@@ -38,7 +39,11 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
     window.requestAnimationFrame(() => document.getElementById(`task-${linked}`)?.scrollIntoView({ block: 'center' }));
   }, [linked]);
 
-  const shown = filterTasks(items, filter);
+  const done = useDoneUndo(actions, d, data.today);
+  // Rows just marked done stay in place for the undo window, whatever the filter.
+  const passes = (i: TaskItem) => filter.status === 'all' || i.status === filter.status;
+  const shown = filterTasks(items, { ...filter, status: 'all' }).filter((i) => passes(i) || done.lingering.has(i.task.eventId));
+  const allClear = filter.status === 'pending' && counts.pending === 0 && filter.courseId === null && filter.query.trim() === '';
   const active = activeCourseIds(user.courses);
   const courses = user.courses.filter((c) => active.has(c.id)).sort((a, b) => courseAlias(a).localeCompare(courseAlias(b), 'id'));
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
@@ -82,7 +87,15 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
       </p>
 
       {shown.length === 0 ? (
-        <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-[14px] text-muted-foreground">{t.empty}</p>
+        allClear ? (
+          // The list just emptied: celebrate once, then the happy idle mascot (the only one on this page).
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-5 py-8 text-center">
+            <Mascot state={done.justCleared ? 'celebrate' : 'all-done'} size={56} />
+            <p className="text-[14px] text-muted-foreground">{t.allClear}</p>
+          </div>
+        ) : (
+          <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-[14px] text-muted-foreground">{t.empty}</p>
+        )
       ) : (
         <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
           {shown.map((item) => (
@@ -91,10 +104,8 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
               item={item}
               expanded={open === item.task.eventId}
               onToggleOpen={() => setOpen(open === item.task.eventId ? null : item.task.eventId)}
-              onDone={(done) => {
-                state((s) => setDone(s, item.task.eventId, done));
-                if (done) void bumpUsage(local, data.today, 'tasksMarkedDone');
-              }}
+              onDone={(checked) => (checked ? done.mark(item.task.eventId, filter.status === 'pending' && counts.pending === 1) : done.unmark(item.task.eventId))}
+              collapsing={done.collapsing.has(item.task.eventId)}
               d={d}
               now={data.now}
               dueFormat={data.prefs.dueFormat}
@@ -127,7 +138,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   );
 }
 
-function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, details }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; details: ReactNode }) {
+function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, details, collapsing = false }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; details: ReactNode; collapsing?: boolean }) {
   const { m, locale } = useI18n();
   const t = d.tugas;
   const due = item.task.dueAt;
@@ -135,7 +146,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   const steps = item.state.steps;
   const panelId = `task-panel-${item.task.eventId}`;
   return (
-    <li id={`task-${item.task.eventId}`}>
+    <li id={`task-${item.task.eventId}`} className={collapsing ? 'db-collapse' : undefined}>
       <div className="flex items-start gap-3 px-4 py-3">
         <Checkbox className="mt-1" checked={item.status === 'done'} onCheckedChange={(v) => onDone(v === true)} aria-label={item.status === 'done' ? t.markUndone : t.markDone} />
         <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>

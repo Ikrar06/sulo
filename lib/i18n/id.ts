@@ -84,6 +84,8 @@ export const id = {
       noDue: 'tanpa tenggat',
     },
     row: {
+      doneShort: 'Selesai',
+      undo: 'Urungkan',
       menu: (name: string) => `Pilihan untuk ${name}`,
       markDone: 'Tandai selesai',
       snooze: 'Tunda pengingat',

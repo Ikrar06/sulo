@@ -81,6 +81,8 @@ export const en: Messages = {
       noDue: 'no due date',
     },
     row: {
+      doneShort: 'Done',
+      undo: 'Undo',
       menu: (name) => `Options for ${name}`,
       markDone: 'Mark as done',
       snooze: 'Snooze reminder',
