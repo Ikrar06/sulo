@@ -3,6 +3,7 @@
 // production). Never a hardcoded offset.
 
 import { localParts } from '../reminders/zoned';
+import { formatCountdown } from './countdown';
 import { id, type Messages } from '../i18n/id';
 import type { UnixSeconds } from '../types';
 
@@ -129,17 +130,12 @@ export function formatDueClock(dueAt: UnixSeconds, now: UnixSeconds, timeZone: s
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /**
- * "Hitung mundur": "05:12:30 lagi" under 24 hours, "2 hari 05:12:30" from
- * 24 hours. Past the due time it is never a negative countdown: it reads
- * "terlambat 2 jam" like the other formats.
+ * "Hitung mundur" for a due time: the clock from lib/format/countdown.ts
+ * ("00:45:09", "2 hari 03:15:42"), or the usual "terlambat …" label once the
+ * deadline has passed (never a negative clock).
  */
-export function formatCountdown(dueAt: UnixSeconds, now: UnixSeconds, timeZone: string, m: Words = id): string {
-  const diff = dueAt - now;
-  if (diff < 0) return formatLate(dueAt, now, timeZone, m);
-  const days = Math.floor(diff / DAY);
-  const rest = diff - days * DAY;
-  const hms = `${pad(Math.floor(rest / HOUR))}:${pad(Math.floor((rest % HOUR) / MIN))}:${pad(rest % MIN)}`;
-  return days === 0 ? m.time.countdown(hms) : m.time.countdownDays(days, hms);
+export function countdownOrLate(dueAt: UnixSeconds, now: UnixSeconds, timeZone: string, m: Words = id): string {
+  return formatCountdown((dueAt - now) * 1000, localeOf(m)) ?? formatLate(dueAt, now, timeZone, m);
 }
 
 /** "5 menit lalu", "2 jam lalu", "3 hari lalu". */
@@ -159,6 +155,7 @@ export function formatAgo(at: UnixSeconds, now: UnixSeconds, m: Words = id): str
 export function taskDueLines(dueAt: UnixSeconds, now: UnixSeconds, timeZone: string, m: Words, locale: 'id' | 'en', format: 'both' | 'remaining' | 'clock' | 'countdown'): { primary: string; secondary: string | null } {
   const full = formatDue(dueAt, locale, timeZone);
   if (format === 'clock') return { primary: full, secondary: null };
+  if (format === 'countdown') return { primary: countdownOrLate(dueAt, now, timeZone, m), secondary: full };
   return { primary: formatLeft(dueAt, now, timeZone, m), secondary: full };
 }
 

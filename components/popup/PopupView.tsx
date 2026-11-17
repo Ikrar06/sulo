@@ -17,7 +17,7 @@ import { GROUP_ORDER } from '@/lib/tasks/group';
 import type { RequestLogEntry } from '@/lib/net/scheduler';
 import type { RequestSource, UnixSeconds } from '@/lib/types';
 import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-view';
-import { useCountdownTicker } from './countdown';
+import { useCountdownTicker } from '@/components/countdown-ticker';
 import { formatDateKey, type Countdown } from '@/lib/calendar/countdown';
 import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
 // Rarely opened panels load on demand, so opening the popup stays light.

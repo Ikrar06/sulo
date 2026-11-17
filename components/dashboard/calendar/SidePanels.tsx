@@ -1,7 +1,8 @@
 import { useI18n } from '@/components/i18n';
 import { formatDateKey, formatRange } from '@/lib/calendar/countdown';
 import { eventsOnDay, upcomingEvents, type CalEvent } from '@/lib/calendar/groups';
-import { formatClock } from '@/lib/format/time';
+import { countdownLabel } from '@/lib/format/countdown';
+import { countdownOrLate, formatClock } from '@/lib/format/time';
 import type { DashMessages } from '@/lib/i18n/dashboard';
 import { timeZone } from '../data';
 import { Card } from '../Shell';
@@ -14,8 +15,8 @@ export function CategoryDot({ event }: { event: CalEvent }) {
 }
 
 /** "Hari dipilih": the full date, then every event on it with its details; tasks show the course and due time. */
-export function SelectedDay({ day, events, angkatan, d }: { day: string; events: readonly CalEvent[]; angkatan: number | null; d: DashMessages }) {
-  const { m } = useI18n();
+export function SelectedDay({ day, events, angkatan, d, countdown = false, now = 0 }: { day: string; events: readonly CalEvent[]; angkatan: number | null; d: DashMessages; countdown?: boolean; now?: number }) {
+  const { m, locale } = useI18n();
   const items = eventsOnDay(events, day);
   return (
     <Card title={formatDateKey(day, m.intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}>
@@ -35,7 +36,14 @@ export function SelectedDay({ day, events, angkatan, d }: { day: string; events:
                   <div>
                     <p className="text-[14px] font-semibold">{e.title}</p>
                     <p className="text-[12px] text-muted-foreground">
-                      {e.source.courseName} · {d.kalender.dueAt(formatClock(e.source.dueAt, timeZone, m))}
+                      {e.source.courseName} ·{' '}
+                      {countdown && e.source.dueAt >= now ? (
+                        <span className="tabular-nums" data-due-at={e.source.dueAt} aria-label={countdownLabel((e.source.dueAt - now) * 1000, locale) ?? undefined}>
+                          {countdownOrLate(e.source.dueAt, now, timeZone, m)}
+                        </span>
+                      ) : (
+                        d.kalender.dueAt(formatClock(e.source.dueAt, timeZone, m))
+                      )}
                     </p>
                   </div>
                 )}

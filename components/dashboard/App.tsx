@@ -1,13 +1,14 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { browser } from 'wxt/browser';
 import { I18nProvider } from '@/components/i18n';
 import { Button } from '@/components/ui/button';
 import { parseRoute, type Page, type Route } from '@/lib/dashboard/routes';
-import { resolveLocale } from '@/lib/i18n';
+import { messagesFor, resolveLocale } from '@/lib/i18n';
 import { dashFor } from '@/lib/i18n/dashboard';
 import { DashboardProvider, timeZone, useDashboard } from './data';
 import { DashboardShell } from './Shell';
 import { StatusNotice } from './StatusNotice';
+import { useCountdownTicker } from '@/components/countdown-ticker';
 import { ToastProvider } from '@/components/ui/toast';
 import { refreshFeedback } from '@/lib/view/refresh-feedback';
 import type { PageProps } from './types';
@@ -59,6 +60,10 @@ function Router() {
 
   const locale = resolveLocale(data?.prefs.locale ?? null, uiLanguage);
   const d = dashFor(locale);
+  // "Hitung mundur": one ticker for the whole dashboard (visible rows only, stops while hidden).
+  const words = useMemo(() => messagesFor(locale), [locale]);
+  const page = useRef<HTMLElement | null>(typeof document === 'undefined' ? null : document.body);
+  useCountdownTicker(page, data?.prefs.dueFormat === 'countdown', timeZone, words);
   useEffect(() => {
     document.documentElement.lang = locale;
     document.title = `${d.nav[route.page]} · Sulo`;

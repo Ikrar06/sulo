@@ -6,7 +6,7 @@ import { assignCourseColors } from '../courses/colors';
 import { courseAlias } from '../courses/display-name';
 import type { CopyItem } from '../format/copy-list';
 import { formatDue, localeOf } from '../format/time';
-import { calendarDaysBetween, formatCountdown, formatDueClock, formatLeft, formatRemaining } from '../format/time';
+import { calendarDaysBetween, countdownOrLate, formatDueClock, formatLeft, formatRemaining } from '../format/time';
 import { id, type Messages } from '../i18n/id';
 import type { DueFormat } from '../prefs';
 import { STALE_WARNING_H } from '../moodle/limits';
@@ -80,7 +80,7 @@ export function dueText(row: TaskRow, format: DueFormat, now: UnixSeconds, timeZ
     case 'clock':
       return { primary: row.clock, secondary: null, ticking: false };
     case 'countdown':
-      return { primary: formatCountdown(row.dueAt, now, timeZone, m), secondary: null, ticking: !overdue };
+      return { primary: countdownOrLate(row.dueAt, now, timeZone, m), secondary: null, ticking: !overdue };
     case 'both':
       if (row.far) return { primary: row.clock, secondary: null, ticking: false };
       return { primary: row.left, secondary: row.clock, ticking: false };

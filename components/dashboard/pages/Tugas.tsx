@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { activeCourseIds } from '@/lib/courses/active-score';
 import { courseAlias } from '@/lib/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@/lib/dashboard/tasks';
+import { countdownLabel } from '@/lib/format/countdown';
 import { taskDueLines } from '@/lib/format/time';
 import { googleCalendarUrl } from '@/lib/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@/lib/tasks/local-state';
@@ -165,7 +166,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
           {due === null ? (
             <span className="text-muted-foreground">{t.noDue}</span>
           ) : (
-            <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} />
+            <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} tickAt={dueFormat === 'countdown' && due >= now ? due : null} label={countdownLabel((due - now) * 1000, locale)} />
           )}
         </span>
         <button type="button" className="mt-1 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
@@ -178,10 +179,13 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
 }
 
 /** Time left on top (urgency color), the full date below; one line in the "due time" mode. */
-function DueLines({ lines, tone }: { lines: { primary: string; secondary: string | null }; tone: string }) {
+function DueLines({ lines, tone, tickAt = null, label = null }: { lines: { primary: string; secondary: string | null }; tone: string; tickAt?: number | null; label?: string | null }) {
   return (
     <>
-      <span className={`block ${lines.secondary === null ? '' : tone}`}>{lines.primary}</span>
+      {/* In countdown mode the shared ticker (App) rewrites this text each second; the label only changes per minute. */}
+      <span className={`block tabular-nums ${lines.secondary === null ? '' : tone}`} data-due-at={tickAt ?? undefined} aria-label={tickAt !== null ? (label ?? undefined) : undefined}>
+        {lines.primary}
+      </span>
       {lines.secondary !== null && <span className="block text-[12px] leading-normal text-muted-foreground">{lines.secondary}</span>}
     </>
   );

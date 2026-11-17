@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { googleCalendarUrl } from '../lib/format/gcal';
-import { formatAgo, formatCountdown, formatDueClock, formatLeft, formatRemaining } from '../lib/format/time';
+import { formatAgo, countdownOrLate, formatDueClock, formatLeft, formatRemaining } from '../lib/format/time';
 import { localeFromUiLanguage, messagesFor, resolveLocale } from '../lib/i18n';
 import { en } from '../lib/i18n/en';
 import { id } from '../lib/i18n/id';
@@ -23,14 +23,14 @@ describe('due time formats', () => {
   });
 
   it('"Hitung mundur": hh:mm:ss under a day, days plus hh:mm:ss from a day', () => {
-    expect(formatCountdown(NOW + 5 * H + 12 * 60 + 30, NOW, TZ)).toBe('05:12:30 lagi');
-    expect(formatCountdown(NOW + 2 * 86_400 + 5 * H + 12 * 60 + 30, NOW, TZ)).toBe('2 hari 05:12:30');
-    expect(formatCountdown(NOW + 59, NOW, TZ)).toBe('00:00:59 lagi');
+    expect(countdownOrLate(NOW + 5 * H + 12 * 60 + 30, NOW, TZ)).toBe('05:12:30');
+    expect(countdownOrLate(NOW + 2 * 86_400 + 5 * H + 12 * 60 + 30, NOW, TZ)).toBe('2 hari 05:12:30');
+    expect(countdownOrLate(NOW + 59, NOW, TZ)).toBe('00:00:59');
   });
 
   it('never counts down below zero: past due reads "terlambat"', () => {
-    expect(formatCountdown(NOW - 2 * H, NOW, TZ)).toBe('terlambat 2 jam');
-    expect(formatCountdown(at(2026, 11, 10, 23, 59), NOW, TZ)).toBe('terlambat 3 hari');
+    expect(countdownOrLate(NOW - 2 * H, NOW, TZ)).toBe('terlambat 2 jam');
+    expect(countdownOrLate(at(2026, 11, 10, 23, 59), NOW, TZ)).toBe('terlambat 3 hari');
     expect(formatLeft(NOW - 2 * H, NOW, TZ)).toBe('terlambat 2 jam');
   });
 
@@ -40,7 +40,7 @@ describe('due time formats', () => {
     expect(formatLeft(NOW + 5 * H, NOW, TZ, en)).toBe('5 hours left');
     expect(formatDueClock(at(2026, 11, 19, 23, 59), NOW, TZ, en)).toBe('Thursday 23:59');
     expect(formatDueClock(at(2026, 11, 14, 8, 0), NOW, TZ, en)).toBe('tomorrow 08:00');
-    expect(formatCountdown(NOW + 86_400 + 1, NOW, TZ, en)).toBe('1 day 00:00:01');
+    expect(countdownOrLate(NOW + 86_400 + 1, NOW, TZ, en)).toBe('1d 00:00:01');
     expect(formatAgo(NOW - 300, NOW, en)).toBe('5 minutes ago');
   });
 });

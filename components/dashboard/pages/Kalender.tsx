@@ -125,7 +125,7 @@ export function KalenderPage({ d, data, actions }: PageProps) {
         <div className="grid gap-6 min-[1100px]:grid-cols-[minmax(0,1fr)_320px]">
           <MonthView month={month} today={data.today} events={events} holidays={holidays} selected={selected} onSelect={select} d={d} />
           <div className="space-y-4">
-            <SelectedDay day={selected} events={events} angkatan={data.prefs.angkatan} d={d} />
+            <SelectedDay day={selected} events={events} angkatan={data.prefs.angkatan} d={d} countdown={data.prefs.dueFormat === 'countdown'} now={data.now} />
             <Upcoming events={events} today={data.today} d={d} onSelect={(day) => select(day, true)} />
           </div>
         </div>

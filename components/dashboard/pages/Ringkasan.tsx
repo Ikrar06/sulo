@@ -10,7 +10,8 @@ import { routeHash } from '@/lib/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@/lib/dashboard/tasks';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDoneUndo } from '../done-undo';
-import { formatRemaining } from '@/lib/format/time';
+import { countdownLabel } from '@/lib/format/countdown';
+import { countdownOrLate, formatRemaining } from '@/lib/format/time';
 import { describeChange } from '@/lib/radar/describe';
 import { localParts } from '@/lib/reminders/zoned';
 import { AcademicCard, nextForSummary, SummaryLine } from '../OverviewParts';
@@ -25,6 +26,8 @@ type Row = TaskItem & { dueAt: number | null };
 export function RingkasanPage({ d, data, actions }: PageProps) {
   const { m } = useI18n();
   const r = d.ringkasan;
+  const { locale } = useI18n();
+  const countdown = data.prefs.dueFormat === 'countdown';
   const user = data.user!;
   const done = useDoneUndo(actions, d, data.today);
   const allItems = useMemo(() => buildTaskItems(user), [user]);
@@ -83,8 +86,12 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                               {row.courseName}
                             </span>
                           </span>
-                          <span className={`shrink-0 text-[12px] leading-6 tabular-nums ${g.key === 'overdue' ? 'text-urgency-overdue' : 'text-muted-foreground'}`}>
-                            {row.dueAt !== null ? formatRemaining(row.dueAt, data.now, timeZone, m) : ''}
+                          <span
+                            className={`shrink-0 text-[12px] leading-6 tabular-nums ${g.key === 'overdue' ? 'text-urgency-overdue' : 'text-muted-foreground'}`}
+                            data-due-at={countdown && row.dueAt !== null && row.dueAt >= data.now ? row.dueAt : undefined}
+                            aria-label={countdown && row.dueAt !== null ? (countdownLabel((row.dueAt - data.now) * 1000, locale) ?? undefined) : undefined}
+                          >
+                            {row.dueAt === null ? '' : countdown ? countdownOrLate(row.dueAt, data.now, timeZone, m) : formatRemaining(row.dueAt, data.now, timeZone, m)}
                           </span>
                         </a>
                       </li>

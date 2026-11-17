@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useI18n } from '@/components/i18n';
 import { ChevronDownIcon, ClockIcon } from '@/components/icons';
-import { formatDueClock } from '@/lib/format/time';
+import { countdownLabel } from '@/lib/format/countdown';
+import { formatDueClock, localeOf } from '@/lib/format/time';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DueFormat } from '@/lib/prefs';
@@ -79,6 +80,7 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
             <span
               className={`text-[12.5px] leading-[19px] font-medium tabular-nums ${URGENCY_TEXT[row.urgency]}`}
               data-due-at={text.ticking && row.dueAt !== null ? row.dueAt : undefined}
+              aria-label={text.ticking && row.dueAt !== null ? (countdownLabel((row.dueAt - due.now) * 1000, localeOf(m)) ?? undefined) : undefined}
             >
               {text.primary}
             </span>
