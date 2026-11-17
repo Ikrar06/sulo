@@ -33,7 +33,8 @@ import { localParts } from '@/lib/reminders/zoned';
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const local = createBrowserStore(browser.storage.local);
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const isDev = import.meta.env.MODE !== 'production';
+// Technical info (request counts, the request log) is for development builds only, never testers (M5a.4).
+const isDev = import.meta.env.MODE === 'development';
 const uiLanguage = browser.i18n.getUILanguage();
 
 const send = async (message: Message): Promise<unknown> => {

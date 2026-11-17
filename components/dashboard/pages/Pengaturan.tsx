@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useId, useState, type ReactNode } from 'react';
 import { browser } from 'wxt/browser';
 import { useI18n } from '@/components/i18n';
 import { WipeDialog } from '@/components/popup/WipeDialog';
@@ -15,6 +15,9 @@ import { timeZone } from '../data';
 import { Card } from '../Shell';
 import { UsageStats } from '../UsageStats';
 import type { PageProps } from '../types';
+
+/** Development builds only: the branch is false in production, so the module is never bundled. */
+const DevDiagnostics = import.meta.env.MODE === 'development' ? lazy(() => import('../DevDiagnostics')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
 const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'data'] as const;
@@ -228,6 +231,12 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         </div>
         <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={() => void actions.send({ type: 'data/wipeAll' }).then(() => window.close())} />
       </Card>
+
+      {DevDiagnostics && (
+        <Suspense fallback={null}>
+          <DevDiagnostics data={data} />
+        </Suspense>
+      )}
     </div>
   );
 }
