@@ -41,6 +41,12 @@ describe('time zones are applied through Intl, never a fixed offset', () => {
     expect(formatDue(at(2026, 11, 13, 23, 59), 'id', TZ)).not.toMatch(/WITA|GMT/);
   });
 
+  it('a deadline at exactly 00.00 names the night before', () => {
+    expect(formatDue(at(2026, 11, 18, 0, 0), 'id', TZ)).toBe('Rab, 18 Nov, 00.00 (Selasa tengah malam)');
+    expect(formatDue(at(2026, 11, 18, 0, 0), 'en', TZ)).toBe('Wed, 18 Nov, 12:00 AM (Tuesday midnight)');
+    expect(formatDue(at(2026, 11, 18, 0, 1), 'id', TZ)).toBe('Rab, 18 Nov, 00.01');
+  });
+
   // M5a.3: a far due date was shown twice ("5 Des" then "Sab, 5 Des, 22.00").
   it('task rows: time left on top, the full date below; the due-time mode is one line', () => {
     const due = NOW + 19 * 86_400;

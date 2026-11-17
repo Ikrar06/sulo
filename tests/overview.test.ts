@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSummary, groupOverview, heroMood, limitGroups } from '@/lib/dashboard/overview';
+import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@/lib/dashboard/overview';
 import { zonedToUnix } from '@/lib/reminders/zoned';
 
 const TZ = 'Asia/Makassar';
@@ -61,17 +61,35 @@ describe('heroMood', () => {
 
 describe('buildSummary', () => {
   const next = { label: 'UAS', countdown: { kind: 'days' as const, n: 14 } };
-  it('overdue, this week, then the next important date', () => {
+  it('overdue, this week, then the next important date; parts at 0 are left out', () => {
     expect(buildSummary({ overdue: 1, dueThisWeek: 0, next })).toEqual([
       { kind: 'overdue', n: 1 },
-      { kind: 'week', n: 0 },
       { kind: 'countdown', label: 'UAS', countdown: { kind: 'days', n: 14 } },
     ]);
+    expect(buildSummary({ overdue: 0, dueThisWeek: 3, next: null })).toEqual([{ kind: 'week', n: 3 }]);
   });
-  it('leaves out overdue at 0 but keeps "0 this week"', () => {
-    expect(buildSummary({ overdue: 0, dueThisWeek: 0, next: null })).toEqual([{ kind: 'week', n: 0 }]);
+  it('both counts at 0: "Tidak ada tenggat minggu ini"', () => {
+    expect(buildSummary({ overdue: 0, dueThisWeek: 0, next: null })).toEqual([{ kind: 'none' }]);
+    expect(buildSummary({ overdue: 0, dueThisWeek: 0, next })[0]).toEqual({ kind: 'none' });
   });
   it('without a next date there is no countdown part', () => {
     expect(buildSummary({ overdue: 2, dueThisWeek: 5, next: null }).map((p) => p.kind)).toEqual(['overdue', 'week']);
+  });
+});
+
+describe('withNext', () => {
+  it('fewer than 4 rows: the nearest tasks after this week fill up to 4, as "next"', () => {
+    const items = [at('2026-11-16', 23), at('2026-11-30', 9), at('2026-12-02', 9), at('2026-12-20', 9), at('2026-12-21', 9)];
+    const groups = withNext(groupOverview(items, NOW, TZ), items, NOW, TZ);
+    expect(groups.map((g) => [g.key, g.rows.length])).toEqual([
+      ['today', 1],
+      ['next', 3],
+    ]);
+    expect(groups[1]!.rows[0]).toEqual(at('2026-11-30', 9));
+  });
+  it('4 rows or more: nothing added; nothing later: nothing added', () => {
+    const four = [at('2026-11-17', 9), at('2026-11-18', 9), at('2026-11-19', 9), at('2026-11-20', 9), at('2026-12-01', 9)];
+    expect(withNext(groupOverview(four, NOW, TZ), four, NOW, TZ).map((g) => g.key)).not.toContain('next');
+    expect(withNext([], [], NOW, TZ)).toEqual([]);
   });
 });

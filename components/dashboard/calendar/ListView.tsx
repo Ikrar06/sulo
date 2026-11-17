@@ -25,7 +25,7 @@ export function ListView({ events, today, d }: { events: readonly CalEvent[]; to
       {shown.length === 0 ? (
         // The one mascot on the calendar page.
         <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-5 py-8 text-center">
-          <Mascot state="all-done" size={40} still />
+          <Mascot state="all-done" size={40} />
           <p className="text-[14px] text-muted-foreground">{k.listEmpty}</p>
         </div>
       ) : (

@@ -31,6 +31,7 @@ export function SummaryLine({ parts, d }: { parts: SummaryPart[]; d: DashMessage
         </span>
       );
     }
+    if (p.kind === 'none') return <span>{s.none}</span>;
     if (p.kind === 'week') {
       const [a, b] = s.week(p.n);
       return (

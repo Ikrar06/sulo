@@ -88,8 +88,6 @@
   --surface-raised: #1f1f25;
   --border: #26262e;
   --control-border: #6b6b75; /* unchecked checkbox edge: 3:1 or more on bg, surface, surface-raised */
-  --nav-active: #636366; /* sidebar: active item, 3:1 or more on --bg */
-  --nav-hover: #343437; /* sidebar: hover, half the active strength */
   --text: #f2f2f5;
   --muted: #8a8a96;
 
@@ -131,8 +129,6 @@
     --surface-raised: #f2f2f5;
     --border: #e4e4ea;
     --control-border: #84848e;
-    --nav-active: #8b8b8e;
-    --nav-hover: #c1c1c3;
     --text: #111114;
     --muted: #5f5f6b;
     --urgency-overdue: #b91c1c;
@@ -166,8 +162,6 @@
   --surface-raised: #f2f2f5;
   --border: #e4e4ea;
   --control-border: #84848e;
-  --nav-active: #8b8b8e;
-  --nav-hover: #c1c1c3;
   --text: #111114;
   --muted: #5f5f6b;
   --urgency-overdue: #b91c1c;
@@ -199,8 +193,6 @@
   --surface-raised: #1f1f25;
   --border: #26262e;
   --control-border: #6b6b75; /* unchecked checkbox edge: 3:1 or more on bg, surface, surface-raised */
-  --nav-active: #636366; /* sidebar: active item, 3:1 or more on --bg */
-  --nav-hover: #343437; /* sidebar: hover, half the active strength */
   --text: #f2f2f5;
   --muted: #8a8a96;
   --urgency-overdue: #f87171;
@@ -320,8 +312,8 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-control-border: var(--control-border);
-  --color-nav-active: var(--nav-active);
-  --color-nav-hover: var(--nav-hover);
+  /* Sidebar hover: half the active fill (surface-raised) over the sidebar. */
+  --color-nav-hover: color-mix(in oklch, var(--surface-raised) 50%, var(--bg));
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-focus: var(--focus);

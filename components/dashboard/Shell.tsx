@@ -2,7 +2,7 @@ import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { browser } from 'wxt/browser';
 import { useI18n } from '@/components/i18n';
 import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
+import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/ui/button';
 import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@/lib/format/time';
@@ -52,7 +52,7 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
     <div className="db-layout">
       <aside className="db-side">
         <a href={routeHash('ringkasan')} className="db-brand rounded-lg outline-none focus-ring:ring-2 focus-ring:ring-focus">
-          <Mascot state="idle" size={32} still />
+          <BrandMark size={28} />
           <span className="font-heading text-[20px]">Sulo</span>
         </a>
         <nav aria-label={d.nav.label} className="db-nav">
@@ -64,9 +64,9 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
                 key={p}
                 href={routeHash(p)}
                 aria-current={current ? 'page' : undefined}
-                // Active: --nav-active (3:1 on the sidebar) with semibold text and icon in text color. Hover: half as strong, weight unchanged.
+                // Active: a thin surface-raised fill, semibold text and icon in text color (the text is the cue). Hover: half that fill, weight unchanged. No gradient.
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] whitespace-nowrap outline-none focus-ring:ring-2 focus-ring:ring-focus ${
-                  current ? 'bg-nav-active font-semibold text-foreground' : 'text-muted-foreground hover:bg-nav-hover hover:text-foreground'
+                  current ? 'bg-surface-raised font-semibold text-foreground' : 'text-muted-foreground hover:bg-nav-hover hover:text-foreground'
                 }`}
               >
                 <Icon className="size-4 shrink-0" />

@@ -64,7 +64,7 @@ export function Upcoming({ events, today, d, onSelect }: { events: readonly CalE
   const { m } = useI18n();
   const next = upcomingEvents(events, today);
   const k = d.kalender;
-  const meta = (e: CalEvent) => `${k.groups[e.group]}${e.end !== e.start ? ` · ${formatRange({ mulai: e.start, selesai: e.end }, m.intl, k.to, '')}` : ''}`;
+  const range = (e: CalEvent) => formatRange({ mulai: e.start, selesai: e.end }, m.intl, k.to, '');
   return (
     <Card title={k.upcoming}>
       {next.length === 0 ? (
@@ -80,15 +80,15 @@ export function Upcoming({ events, today, d, onSelect }: { events: readonly CalE
               >
                 <DateBlock day={e.start} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[14px] font-semibold" title={e.title}>
+                  {/* Up to two lines for the name; the dates get their own line. Nothing cut short. */}
+                  <span className="line-clamp-2 text-[14px] leading-5 font-semibold" title={e.title}>
                     {e.title}
                   </span>
-                  <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <span className="mt-1 flex items-center gap-2 text-[12px] text-muted-foreground">
                     <span aria-hidden="true" className={`db-cat-${e.group} db-cat-dot size-2 shrink-0 rounded-full`} />
-                    <span className="truncate" title={meta(e)}>
-                      {meta(e)}
-                    </span>
+                    {k.groups[e.group]}
                   </span>
+                  {e.end !== e.start && <span className="block text-[12px] text-muted-foreground tabular-nums">{range(e)}</span>}
                 </span>
               </button>
             </li>

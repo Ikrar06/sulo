@@ -84,7 +84,7 @@ export function KabarPage({ d, data, actions, route }: PageProps) {
           showSettings={false}
           empty={
             <div className="flex flex-col items-center gap-3 px-5 py-8 text-center">
-              <Mascot state="all-done" size={40} still />
+              <Mascot state="all-done" size={40} />
               <p className="text-[14px] text-muted-foreground">{m.popup.updates.empty}</p>
             </div>
           }

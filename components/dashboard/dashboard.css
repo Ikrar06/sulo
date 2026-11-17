@@ -170,6 +170,18 @@
   color: var(--accent-text);
 }
 
+/* Teaching-week bar: fills once from 0 on first show. */
+.db-week-fill {
+  transform-origin: left center;
+  animation: db-week-fill 600ms ease-out;
+}
+@keyframes db-week-fill {
+  from { transform: scaleX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .db-week-fill { animation: none; }
+}
+
 /* A course row that just moved between "Dipantau" and "Tidak dipantau". */
 .db-row-enter {
   animation: db-row-enter 180ms ease-out;

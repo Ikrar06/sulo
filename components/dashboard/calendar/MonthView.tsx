@@ -101,7 +101,7 @@ export function MonthView({ month, today, events, holidays, selected, onSelect, 
               {/* Bars: an overlay grid under the date row, three 20 px lanes. Clicks select the segment's first day. */}
               <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-7 grid grid-cols-7 gap-x-px gap-y-1" style={{ gridAutoRows: '20px' }}>
                 {layout.bars.map((bar) => (
-                  <Bar key={`${bar.event.id}-${week[0]}`} bar={bar} onClick={() => onSelect(week[bar.startCol]!, false)} />
+                  <Bar key={`${bar.event.id}-${week[0]}`} bar={bar} twoLines={bar.span === 1 && bar.lane + 1 < lanes && !layout.bars.some((o) => o.lane === bar.lane + 1 && o.startCol <= bar.startCol && bar.startCol < o.startCol + o.span)} onClick={() => onSelect(week[bar.startCol]!, false)} />
                 ))}
               </div>
             </div>
@@ -120,18 +120,19 @@ function DayNumber({ day, today, inMonth, holiday }: { day: string; today: boole
   return <span className={`flex size-6 shrink-0 items-center justify-center text-[12px] tabular-nums ${tone}`}>{n}</span>;
 }
 
-function Bar({ bar, onClick }: { bar: WeekBar; onClick: () => void }) {
+/** One bar. A one-day event may use two lines when the lane under it is free; the full title is always its tooltip. */
+function Bar({ bar, twoLines, onClick }: { bar: WeekBar; twoLines: boolean; onClick: () => void }) {
   const e = bar.event;
   const ends = `${bar.continuesBefore ? '' : 'ml-1 rounded-l-md'} ${bar.continuesAfter ? '' : 'mr-1 rounded-r-md'}`;
   return (
     <div
       onClick={onClick}
       title={e.title}
-      style={{ gridColumn: `${bar.startCol + 1} / span ${bar.span}`, gridRow: bar.lane + 1 }}
-      className={`db-cat-${e.group} db-cat-bar pointer-events-auto flex min-w-0 cursor-pointer items-center gap-1 px-2 text-[12px] leading-5 ${ends}`}
+      style={{ gridColumn: `${bar.startCol + 1} / span ${bar.span}`, gridRow: twoLines ? `${bar.lane + 1} / span 2` : bar.lane + 1 }}
+      className={`db-cat-${e.group} db-cat-bar pointer-events-auto flex min-w-0 cursor-pointer gap-1 px-2 text-[12px] ${twoLines ? 'items-start py-1 leading-4' : 'items-center leading-5'} ${ends}`}
     >
-      {e.source.type === 'tugas' && <span className="size-2 shrink-0 rounded-full" style={{ background: `var(--course-${e.source.courseColor})` }} />}
-      <span className="truncate">{e.title}</span>
+      {e.source.type === 'tugas' && <span className={`size-2 shrink-0 rounded-full ${twoLines ? 'mt-1' : ''}`} style={{ background: `var(--course-${e.source.courseColor})` }} />}
+      <span className={twoLines ? 'line-clamp-2' : 'truncate'}>{e.title}</span>
     </div>
   );
 }

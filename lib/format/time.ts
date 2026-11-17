@@ -2,6 +2,7 @@
 // converted here with Intl in the given IANA time zone (the browser's, in
 // production). Never a hardcoded offset.
 
+import { localParts } from '../reminders/zoned';
 import { id, type Messages } from '../i18n/id';
 import type { UnixSeconds } from '../types';
 
@@ -72,7 +73,12 @@ export function formatDue(at: UnixSeconds, locale: 'id' | 'en', timeZone: string
   }).formatToParts(new Date(at * 1000));
   const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
   const time = id ? `${get('hour').padStart(2, '0')}.${get('minute')}` : `${get('hour')}:${get('minute')} ${get('dayPeriod').toUpperCase()}`;
-  return `${get('weekday')}, ${get('day')} ${get('month')}, ${time}`;
+  const base = `${get('weekday')}, ${get('day')} ${get('month')}, ${time}`;
+  // Exactly 00.00 belongs to the night before: "Rab, 18 Nov, 00.00 (Selasa tengah malam)".
+  const local = localParts(at, timeZone);
+  if (local.minuteOfDay !== 0) return base;
+  const eve = fmt(id ? 'id-ID' : 'en-US', timeZone, { weekday: 'long' }).format(new Date((at - 60) * 1000));
+  return id ? `${base} (${eve} tengah malam)` : `${base} (${eve} midnight)`;
 }
 
 /** The locale behind a dictionary ("id-ID" -> id). */

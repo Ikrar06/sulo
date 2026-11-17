@@ -5,7 +5,7 @@ import { Mascot } from '@/components/mascot/Mascot';
 import { formatDateKey } from '@/lib/calendar/countdown';
 import { dayPart, greetingText } from '@/lib/dashboard/greeting';
 import { loadMap } from '@/lib/dashboard/load-map';
-import { buildSummary, groupOverview, heroMood, limitGroups } from '@/lib/dashboard/overview';
+import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@/lib/dashboard/overview';
 import { routeHash } from '@/lib/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@/lib/dashboard/tasks';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -32,7 +32,8 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);
   const rows = useMemo<Row[]>(() => pendingItems.map((i) => ({ ...i, dueAt: i.task.dueAt })), [pendingItems]);
   const groups = useMemo(() => groupOverview(rows, data.now, timeZone), [rows, data.now]);
-  const shown = limitGroups(groups);
+  // Fewer than 4 rows: "Berikutnya" adds the nearest tasks after this week.
+  const shown = limitGroups(withNext(groups, rows, data.now, timeZone));
   const overdue = groups.find((g) => g.key === 'overdue')?.rows.length ?? 0;
   const dueThisWeek = groups.filter((g) => g.key !== 'overdue').reduce((n, g) => n + g.rows.length, 0);
 
@@ -116,9 +117,16 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                 const events = day.events.map((e) => d.kalender.kategori[e.kategori] ?? e.judul).filter((v, i, a) => a.indexOf(v) === i).join(', ');
                 const label = r.loadDay(formatDateKey(day.dateKey, m.intl, { weekday: 'long', day: 'numeric', month: 'long' }), day.tasks.length, events);
                 const exam = day.events.some((e) => e.kategori === 'uts' || e.kategori === 'uas');
+                const isToday = day.dateKey === data.today;
                 return (
-                  <li key={day.dateKey} title={label} aria-label={label} className={`db-load-${day.level} flex aspect-square flex-col items-center justify-center rounded-lg text-[12px] leading-4 tabular-nums`}>
-                    <span>{formatDateKey(day.dateKey, m.intl, { weekday: 'narrow' })}</span>
+                  <li
+                    key={day.dateKey}
+                    title={label}
+                    aria-label={label}
+                    aria-current={isToday ? 'date' : undefined}
+                    className={`db-load-${day.level} flex aspect-square flex-col items-center justify-center rounded-lg text-[12px] leading-4 tabular-nums ${isToday ? 'ring-1 ring-foreground ring-offset-2 ring-offset-surface' : ''}`}
+                  >
+                    <span>{isToday ? r.loadToday : formatDateKey(day.dateKey, m.intl, { weekday: 'narrow' })}</span>
                     <span className="font-semibold">{formatDateKey(day.dateKey, m.intl, { day: 'numeric' })}</span>
                     {exam && <span aria-hidden="true" className="mt-1 size-1 rounded-full bg-current" />}
                   </li>
@@ -132,6 +140,10 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                 <span key={l} className={`db-load-${l} size-3 rounded`} />
               ))}
               <span>{r.loadMore}</span>
+              <span className="ml-3 inline-flex items-center gap-1">
+                <span className="size-1 rounded-full bg-foreground" />
+                {r.loadExam}
+              </span>
             </div>
           </>
         )}

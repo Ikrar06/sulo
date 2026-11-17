@@ -1,4 +1,5 @@
 import { useI18n } from '@/components/i18n';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BellIcon, ExternalIcon } from '@/components/icons';
 import { countdownOf, formatDateKey, formatRange } from '@/lib/calendar/countdown';
 import { currentWeek } from '@/lib/calendar/current-week';
@@ -47,7 +48,8 @@ export function WeekLine({ calendar, today, d }: { calendar: CalendarFile; today
 export function WeekBar({ nomor, total, label, className = '' }: { nomor: number; total: number; label: string; className?: string }) {
   return (
     <div role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={nomor} aria-label={label} className={`h-1.5 overflow-hidden rounded-full bg-surface-raised ${className}`}>
-      <div className="h-full rounded-full bg-foreground" style={{ width: `${Math.round((nomor / total) * 100)}%` }} />
+      {/* Fills from 0 once when it first shows (600 ms, solid, no gradient); still with reduced motion. */}
+      <div className="db-week-fill h-full rounded-full bg-foreground" style={{ width: `${Math.round((nomor / total) * 100)}%` }} />
     </div>
   );
 }
@@ -85,14 +87,20 @@ export function CalendarStrip({ calendar, today, d }: { calendar: CalendarFile; 
           </span>
         </>
       )}
-      <a
-        href={routeHash('pengaturan', 'kalender')}
-        aria-label={k.notifyAria}
-        title={k.notifyAria}
-        className="ml-auto inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground outline-none hover:bg-surface-raised hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus"
-      >
-        <BellIcon className="size-4" />
-      </a>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <a
+              href={routeHash('pengaturan', 'kalender')}
+              aria-label={k.notifyAria}
+              className="ml-auto inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground outline-none hover:bg-surface-raised hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus"
+            >
+              <BellIcon className="size-4" />
+            </a>
+          </TooltipTrigger>
+          <TooltipContent>{k.notifyAria}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </section>
   );
 }

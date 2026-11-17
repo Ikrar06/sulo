@@ -11,6 +11,7 @@ import { addDays, localParts, zonedToUnix } from '@/lib/reminders/zoned';
 import type { Locale } from '@/lib/i18n';
 import type { DueFormat } from '@/lib/prefs';
 import { useQuietRefresh } from '@/components/quiet-refresh';
+import { BrandMark } from '@/components/BrandMark';
 import { COLLAPSE_MS, UNDO_MS } from '@/lib/tasks/done-undo';
 import { GROUP_ORDER } from '@/lib/tasks/group';
 import type { RequestLogEntry } from '@/lib/net/scheduler';
@@ -267,7 +268,6 @@ export function PopupView(props: PopupViewProps) {
     return lingering.some((l) => l.group === key) ? [{ key, rows: [], collapsedByDefault: false }] : [];
   });
   const empty = view.onboarded && groups.length === 0;
-  const headerMascot: MascotState = empty && view.mascot === 'all-done' ? 'idle' : view.mascot;
 
   return (
     <TooltipProvider delayDuration={450}>
@@ -300,7 +300,7 @@ export function PopupView(props: PopupViewProps) {
         ) : (
           <>
         <header className="flex items-center gap-2.5 px-3 pt-3 pb-2">
-          {!props.sample && <Mascot state={headerMascot} size={36} celebrate={empty ? 0 : celebrate} still={props.mascotStill} />}
+          {!props.sample && <BrandMark size={28} />}
           <div className="min-w-0 flex-1">
             <h1 className="font-heading text-[17px] leading-5">{t.title}</h1>
             <p className="truncate text-[12px] leading-4 text-muted-foreground">{updated}</p>
