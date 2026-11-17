@@ -15,7 +15,7 @@ import { BrandMark } from '@/components/BrandMark';
 import { COLLAPSE_MS, UNDO_MS } from '@/lib/tasks/done-undo';
 import { GROUP_ORDER } from '@/lib/tasks/group';
 import type { RequestLogEntry } from '@/lib/net/scheduler';
-import type { RequestSource, UnixSeconds } from '@/lib/types';
+import type { UnixSeconds } from '@/lib/types';
 import type { MascotState, PopupView as View, TaskRow } from '@/lib/view/popup-view';
 import { useCountdownTicker } from '@/components/countdown-ticker';
 import { formatDateKey, type Countdown } from '@/lib/calendar/countdown';
@@ -113,6 +113,9 @@ export interface PopupViewProps extends PopupActions {
   sample?: boolean;
 }
 
+/** Development builds only (lazy, so production and tester bundles never contain it). */
+const DevPanel = import.meta.env.MODE === 'development' ? lazy(() => import('./DevPanel')) : null;
+
 function IconButton({ label, onClick, disabled, children }: { label: string; onClick: () => void; disabled?: boolean; children: ReactNode }) {
   return (
     <Tooltip>
@@ -123,50 +126,6 @@ function IconButton({ label, onClick, disabled, children }: { label: string; onC
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
-  );
-}
-
-function DevPanel({ view, dev }: { view: View; dev: NonNullable<PopupViewProps['dev']> }) {
-  const t = useI18n().m.popup;
-  const [probe, setProbe] = useState<string | null>(null);
-  const sources = Object.entries(view.budget.bySource ?? {}) as [RequestSource, number][];
-  const clock = (at: number) => new Date(at * 1000).toTimeString().slice(0, 8);
-  return (
-    <details className="mx-3 rounded-md border border-dashed border-border px-2 py-1 text-2xs text-muted-foreground">
-      <summary>{t.dev.title}</summary>
-      <p className="tabular-nums">{t.dev.requests(view.budget.used, dev.budgetLimit)}</p>
-      <p className="tabular-nums">{t.dev.calls(view.budget.calls ?? 0, dev.callLimit)}</p>
-      <ul className="tabular-nums">
-        {sources.map(([s, n]) => (
-          <li key={s}>
-            {t.dev.sources[s] ?? s}: {n}
-          </li>
-        ))}
-      </ul>
-      <p className="tabular-nums">{t.dev.withCourseList(view.budget.withCourseList ?? 0)}</p>
-      {dev.openMs !== null && <p className="tabular-nums">{t.dev.openMs(dev.openMs)}</p>}
-      {dev.onProbeSession && (
-        <p className="flex items-center gap-2 py-1">
-          <Button size="sm" variant="outline" onClick={() => void dev.onProbeSession?.().then(setProbe)}>
-            {t.dev.probe}
-          </Button>
-          {probe && <span className="tabular-nums">{probe}</span>}
-        </p>
-      )}
-      <p className="pt-1 font-semibold">{t.dev.log(dev.requestLog.length)}</p>
-      {dev.requestLog.length === 0 ? (
-        <p>{t.dev.logEmpty}</p>
-      ) : (
-        <ol className="max-h-40 overflow-y-auto tabular-nums">
-          {dev.requestLog.map((e, i) => (
-            <li key={`${e.at}-${i}`}>
-              {clock(e.at)} {e.domain} {e.trigger} {e.calls > 0 ? `${e.calls}f ` : ''}
-              {e.bytes ?? '-'}c {e.outcome}
-            </li>
-          ))}
-        </ol>
-      )}
-    </details>
   );
 }
 
@@ -393,7 +352,11 @@ export function PopupView(props: PopupViewProps) {
               {view.probablySubmittedCount > 0 && <p>{t.probablySubmitted(view.probablySubmittedCount)}</p>}
             </div>
           )}
-          {props.dev && <DevPanel view={view} dev={props.dev} />}
+          {props.dev && DevPanel && (
+            <Suspense fallback={null}>
+              <DevPanel view={view} dev={props.dev} />
+            </Suspense>
+          )}
         </div>
 
           </>

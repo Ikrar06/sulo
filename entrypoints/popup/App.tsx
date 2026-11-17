@@ -58,8 +58,10 @@ const probeSession = (m: ReturnType<typeof messagesFor>): (() => Promise<string>
           | { kind: 'ok'; timeremaining: number }
           | { kind: 'failed'; reason: string }
           | null;
-        if (result?.kind === 'ok') return m.popup.dev.probeResult(Math.floor(result.timeremaining / 60));
-        return m.popup.dev.probeFailed(result?.kind === 'failed' ? result.reason : 'no answer');
+        // Dev wording is imported here only, inside the development branch.
+        const w = (await import('@/lib/i18n/dev')).DEV_WORDS[m.intl.startsWith('id') ? 'id' : 'en'].dev;
+        if (result?.kind === 'ok') return w.probeResult(Math.floor(result.timeremaining / 60));
+        return w.probeFailed(result?.kind === 'failed' ? result.reason : 'no answer');
       }
     : undefined;
 

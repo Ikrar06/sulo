@@ -10,7 +10,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const MARKERS = ['connection/test', 'runConnectionTest', 'dev/record', 'dev/notify/simulate', 'dev/notify/reset', 'dev/radar/inject', 'dev/session/probe', 'recordFixtures', 'installDevTools', 'sulo-dev-diagnostics', 'Diagnostics (dev build only)'];
+const MARKERS = ['connection/test', 'runConnectionTest', 'dev/record', 'dev/notify/simulate', 'dev/notify/reset', 'dev/radar/inject', 'dev/session/probe', 'recordFixtures', 'installDevTools', 'sulo-dev-diagnostics', 'Diagnostics (dev build only)', 'Info build dev', 'Dev build info', 'Perekam fixture', 'Fixture recorder', 'Panggilan fungsi hari ini', 'Function calls today'];
 const PRODUCTION_MARKERS = ['global:requestLog', 'createRequestLogger'];
 const args = process.argv.slice(2);
 const production = args.includes('--production');

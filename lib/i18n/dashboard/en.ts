@@ -272,6 +272,15 @@ export const dashEn: DashMessages = {
     externalNote: 'Every link on this page opens another site in a new tab only when you click it. Sulo sends nothing there.',
   },
   pengaturan: {
+    bugReport: {
+      cardTitle: 'Bug report',
+      help: 'If something is wrong, copy this info and paste it into the feedback form. It only holds the version, the browser and a technical note of the last checks, no name, student number or task content.',
+      button: 'Copy info for a bug report',
+      title: 'Info for a bug report',
+      body: 'This is what will be copied. Check it, then copy.',
+      copy: 'Copy',
+      copied: 'Info copied',
+    },
     title: 'Settings',
     sections: {
       notifikasi: 'Notifications',

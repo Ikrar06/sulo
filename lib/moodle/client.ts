@@ -7,6 +7,7 @@
 // fetch itself goes through the per-domain scheduler (lib/net/scheduler.ts),
 // which owns the SIKOLA backoff; a login redirect sets the session EXPIRED.
 
+import { recordTech, statusOf } from '../net/tech-log';
 import type { ClientRefusal, Clock, FetchLike, KeyValueStore, RequestSource } from '../types';
 import { createScheduler, type Scheduler } from '../net/scheduler';
 import { readRemoteConfig } from '../remote/remote-config';
@@ -77,8 +78,19 @@ export function createMoodleClient(input: MoodleClientDeps): MoodleClient {
   };
 
   return {
-    callBatch: (calls, options = {}) => enqueue(() => executeBatch(deps, calls, options)),
-    fetchPage: (path, options = {}) => enqueue(() => executePage(deps, path, options)),
+    // Every outcome goes into the technical log (function names and status only).
+    callBatch: (calls, options = {}) =>
+      enqueue(async () => {
+        const outcome = await executeBatch(deps, calls, options);
+        await recordTech(deps.store, { at: deps.clock.now(), fn: calls.map((c) => c.methodname).join('+'), status: statusOf(outcome) }).catch(() => undefined);
+        return outcome;
+      }),
+    fetchPage: (path, options = {}) =>
+      enqueue(async () => {
+        const outcome = await executePage(deps, path, options);
+        await recordTech(deps.store, { at: deps.clock.now(), fn: 'page', status: statusOf(outcome) }).catch(() => undefined);
+        return outcome;
+      }),
   };
 }
 

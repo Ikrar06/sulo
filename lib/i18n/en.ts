@@ -16,12 +16,7 @@ export const en: Messages = {
   privacyLinkLong: 'Read the privacy policy',
   unexpectedError: 'Something went wrong in Sulo. Close it and open it again.',
 
-  testing: 'Checking...',
-  sesskeyAvailable: 'SIKOLA connected',
-  sesskeyMissing: 'Open SIKOLA first.',
-  budget: (used, limit) => `Checks today: ${used} of ${limit}`,
   disabledRemotely: 'Sulo is taking a short break.',
-  staleData: (hours) => `Last updated ${plural(hours, 'hour', 'hours')} ago`,
   result: {
     ok: 'Connected to SIKOLA.',
     no_sesskey: 'Open SIKOLA first, then try again.',
@@ -185,31 +180,6 @@ export const en: Messages = {
       sessionNote: 'If you need to sign in to SIKOLA again, Sulo tells you once.',
       updatesLink: 'Choose which updates notify you',
     },
-    dev: {
-      title: 'Dev build info',
-      requests: (used, limit) => `Requests today: ${used} of ${limit}`,
-      withCourseList: (n) => `${n} of them included the course list`,
-      calls: (used, limit) => `Function calls today: ${used} of ${limit}`,
-      openMs: (ms) => `Popup open time: ${ms} ms`,
-      log: (n) => `Last ${n} requests`,
-      logEmpty: 'No requests logged yet.',
-      probe: 'Check session time left',
-      probeResult: (minutes) => `SIKOLA session left: ${minutes} minutes`,
-      probeFailed: (reason) => `Failed: ${reason}`,
-      sources: {
-        background: 'Background',
-        startup: 'Browser opened',
-        idle: 'Back from idle',
-        popup: 'Popup',
-        manual: 'Update button',
-        onboarding: 'Setup',
-        'connection-test': 'Connection check',
-        'sesskey-fallback': 'Sesskey fallback',
-        'dev-probe': 'Session check (dev)',
-        sesskey: 'New sesskey',
-        recorder: 'Recorder',
-      },
-    },
   },
 
   time: {
@@ -372,16 +342,5 @@ export const en: Messages = {
   privacyPage: {
     updated: (date) => `Last updated: ${date}`,
     onThisPage: 'On this page',
-  },
-
-  recorder: {
-    title: 'Fixture recorder',
-    note: 'Dev build only. Uses 2 requests from the daily budget. Every response is sanitized before it is saved.',
-    start: 'Record fixtures',
-    recording: 'Recording...',
-    saved: (n) => `${n} files saved to Downloads. Keep them outside git, then run pnpm fixtures:compare.`,
-    failed: (reason) => `Recording failed: ${reason}`,
-    leak: (rules) => `Cancelled. Leak patterns remain after sanitizing: ${rules}. No files were saved.`,
-    schemaInvalid: (fn, issues) => `${fn}: schema mismatch (${issues} issues), recorded anyway`,
   },
 };

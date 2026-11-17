@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { Button } from '@/components/ui/button';
-import { id } from '@/lib/i18n/id';
+import { DEV_WORDS } from '@/lib/i18n/dev';
+import { id as idMain } from '@/lib/i18n/id';
+
+const id = { ...DEV_WORDS.id, unexpectedError: idMain.unexpectedError };
 import type { DevMessage } from '@/lib/dev/messages';
 import type { Message, RecordResponse } from '@/lib/messages';
 import '@/assets/tailwind.css';

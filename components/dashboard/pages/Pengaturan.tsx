@@ -14,6 +14,7 @@ import { UPDATE_CATEGORIES } from '@/lib/radar/settings';
 import { timeZone } from '../data';
 import { Card } from '../Shell';
 import { UsageStats } from '../UsageStats';
+import { BugReport } from '../BugReport';
 import type { PageProps } from '../types';
 
 /** Development builds only: the branch is false in production, so the module is never bundled. */
@@ -230,6 +231,11 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
           </Button>
         </div>
         <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={() => void actions.send({ type: 'data/wipeAll' }).then(() => window.close())} />
+      </Card>
+
+      <Card title={t.bugReport.cardTitle}>
+        <p className="mb-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{t.bugReport.help}</p>
+        <BugReport d={d} lastSyncAt={data.view.lastSyncAt} />
       </Card>
 
       {DevDiagnostics && (

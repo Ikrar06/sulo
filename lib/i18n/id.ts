@@ -17,13 +17,7 @@ export const id = {
   privacyLinkLong: 'Baca kebijakan privasi',
   unexpectedError: 'Ada yang tidak beres di Sulo. Tutup lalu buka lagi.',
 
-  // Dev-only connection test and recorder keep their wording short and plain.
-  testing: 'Memeriksa...',
-  sesskeyAvailable: 'SIKOLA terhubung',
-  sesskeyMissing: 'Buka SIKOLA dulu.',
-  budget: (used: number, limit: number) => `Pemeriksaan hari ini: ${used} dari ${limit}`,
   disabledRemotely: 'Sulo sedang istirahat sebentar.',
-  staleData: (hours: number) => `Terakhir diperbarui ${hours} jam lalu`,
   result: {
     ok: 'Terhubung dengan SIKOLA.',
     no_sesskey: 'Buka SIKOLA dulu, lalu coba lagi.',
@@ -187,31 +181,6 @@ export const id = {
       winSteps: 'Windows: Pengaturan > Sistem > Notifikasi > nyalakan untuk Google Chrome.',
       sessionNote: 'Kalau kamu perlu masuk lagi ke SIKOLA, Sulo memberi tahu sekali saja.',
       updatesLink: 'Pilih kabar terbaru yang diberitahukan',
-    },
-    dev: {
-      title: 'Info build dev',
-      requests: (used: number, limit: number) => `Request hari ini: ${used} dari ${limit}`,
-      withCourseList: (n: number) => `${n} di antaranya membawa daftar course`,
-      calls: (used: number, limit: number) => `Panggilan fungsi hari ini: ${used} dari ${limit}`,
-      openMs: (ms: number) => `Waktu buka popup: ${ms} ms`,
-      log: (n: number) => `${n} request terakhir`,
-      logEmpty: 'Belum ada request tercatat.',
-      probe: 'Cek sisa waktu sesi',
-      probeResult: (minutes: number) => `Sisa sesi SIKOLA: ${minutes} menit`,
-      probeFailed: (reason: string) => `Gagal: ${reason}`,
-      sources: {
-        background: 'Latar belakang',
-        startup: 'Browser dibuka',
-        idle: 'Kembali aktif',
-        popup: 'Popup',
-        manual: 'Tombol perbarui',
-        onboarding: 'Pengaturan awal',
-        'connection-test': 'Cek koneksi',
-        'sesskey-fallback': 'Cadangan sesskey',
-        'dev-probe': 'Cek sesi (dev)',
-        sesskey: 'Sesskey baru',
-        recorder: 'Perekam',
-      },
     },
   },
 
@@ -379,17 +348,6 @@ export const id = {
   privacyPage: {
     updated: (date: string) => `Terakhir diperbarui: ${date}`,
     onThisPage: 'Di halaman ini',
-  },
-
-  recorder: {
-    title: 'Perekam fixture',
-    note: 'Hanya ada di build dev. Memakai 2 request dari anggaran harian. Semua respons disanitasi sebelum disimpan.',
-    start: 'Rekam fixture',
-    recording: 'Merekam...',
-    saved: (n: number) => `${n} berkas tersimpan di folder Unduhan. Simpan di luar git, lalu jalankan pnpm fixtures:compare.`,
-    failed: (reason: string) => `Gagal merekam: ${reason}`,
-    leak: (rules: string) => `Dibatalkan. Masih ada pola bocor setelah sanitasi: ${rules}. Tidak ada berkas yang disimpan.`,
-    schemaInvalid: (fn: string, issues: number) => `${fn}: skema tidak cocok (${issues} masalah), tetap direkam`,
   },
 };
 

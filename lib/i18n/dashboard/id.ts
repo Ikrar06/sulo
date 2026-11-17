@@ -274,6 +274,15 @@ export const dashId = {
     externalNote: 'Semua tautan di halaman ini membuka situs lain di tab baru hanya saat kamu mengkliknya. Sulo tidak mengirim data apa pun ke sana.',
   },
   pengaturan: {
+    bugReport: {
+      cardTitle: 'Laporan bug',
+      help: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya hanya versi, browser, dan catatan teknis pemeriksaan terakhir, tanpa nama, NIM, atau isi tugas.',
+      button: 'Salin info untuk laporan bug',
+      title: 'Info untuk laporan bug',
+      body: 'Ini yang akan disalin. Periksa dulu, lalu salin.',
+      copy: 'Salin',
+      copied: 'Info tersalin',
+    },
     title: 'Pengaturan',
     sections: {
       notifikasi: 'Notifikasi',
