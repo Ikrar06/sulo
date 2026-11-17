@@ -14,10 +14,11 @@
 // Usage: pnpm guide:shots [--no-build] [--only=<step>]
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { demoStorage } from './lib/demo-storage.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const ext = join(root, '.output/chrome-mv3-dev');
@@ -41,18 +42,6 @@ function findFfmpeg() {
     }
   }
   throw new Error('ffmpeg not found: run `npx playwright install ffmpeg` or set FFMPEG');
-}
-
-/** The demo storage with every timestamp moved so "now" is the moment this runs. */
-function demoStorage() {
-  const { generatedAt, storage } = JSON.parse(readFileSync(join(root, 'fixtures/guide/demo-seed.json'), 'utf8'));
-  const shift = Math.floor(Date.now() / 1000) - generatedAt;
-  const walk = (v, key = '') => {
-    if (Array.isArray(v)) return v.map((x) => walk(x));
-    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x, k)]));
-    return typeof v === 'number' && /At$|^at$|^dueAt$/.test(key) && v > 1e9 ? v + shift : v;
-  };
-  return walk(storage);
 }
 
 // ---- The overlay: cursor, click ripple, key badges (recording only) --------
@@ -289,7 +278,7 @@ async function run() {
         let [sw] = ctx.serviceWorkers();
         if (!sw) sw = await ctx.waitForEvent('serviceworker');
         const extId = new URL(sw.url()).host;
-        const storage = demoStorage();
+        const storage = demoStorage(root);
         storage['global:prefs'] = { ...(storage['global:prefs'] ?? {}), locale, theme };
         await sw.evaluate(async (s) => chrome.storage.local.set(s), storage);
         await new Promise((r) => setTimeout(r, 1000));

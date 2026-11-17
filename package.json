@@ -1,6 +1,6 @@
 {
   "name": "sulo",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "Pendamping akademik untuk mahasiswa Unhas. Tidak resmi.",
   "license": "MIT",
@@ -23,6 +23,8 @@
     "build": "node scripts/check-leaks.mjs && wxt build && node scripts/check-no-dev-code.mjs .output/chrome-mv3 --production",
     "build:dev": "wxt build --mode development",
     "zip": "wxt zip",
+    "zip:store": "node scripts/check-leaks.mjs && wxt zip && node scripts/check-no-dev-code.mjs .output/chrome-mv3 --production && wxt zip -b edge && node scripts/check-no-dev-code.mjs .output/edge-mv3 --production && node scripts/check-release.mjs .output/chrome-mv3 .output/edge-mv3",
+    "store:shots": "node scripts/store-shots.mjs",
     "zip:tester": "wxt zip --mode tester && node scripts/check-no-dev-code.mjs .output/chrome-mv3-tester",
     "typecheck": "wxt prepare && tsc --noEmit",
     "lint": "node scripts/lint-ui.mjs && node scripts/check-leaks.mjs",
