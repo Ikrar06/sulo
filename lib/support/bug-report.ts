@@ -1,7 +1,8 @@
 // "Salin info untuk laporan bug": what Sulo copies, shown in full before it
-// is copied. Pure. Version, browser, sync status and the last 20 lines of
-// the technical log (time, Moodle function names, status). Never a name,
-// student number, course, task, sesskey or response content.
+// is copied. Pure. Version, browser, sync status, the NEOSIA module's state
+// (on or off and when data last came, nothing else) and the last 20 lines
+// of the technical log (time, Moodle function names, status). Never a name,
+// student number, course, task, grade, sesskey or response content.
 
 import type { TechLogEntry } from '../net/tech-log';
 import type { SyncOutcome, UnixSeconds } from '../types';
@@ -28,12 +29,15 @@ export function buildBugReport(input: {
   lastAttemptAt: UnixSeconds | null;
   lastOutcome: SyncOutcome | null;
   log: readonly TechLogEntry[];
+  /** NEOSIA module: on or off, and the last time data came from NEOSIA. Never its data. */
+  neosia?: { enabled: boolean; lastSeenAt: UnixSeconds | null };
 }): string {
   const lines = [
     `Sulo ${input.version}`,
     `Browser: ${browserName(input.userAgent)}`,
     `Last good update: ${iso(input.lastSyncAt)}`,
     `Last attempt: ${iso(input.lastAttemptAt)} (${outcomeOf(input.lastOutcome)})`,
+    `NEOSIA: ${input.neosia?.enabled ? `on, last data ${iso(input.neosia.lastSeenAt)}` : 'off'}`,
     '',
     `Last ${Math.min(REPORT_LOG_LINES, input.log.length)} requests:`,
     ...input.log.slice(0, REPORT_LOG_LINES).map((e) => `${iso(e.at)} ${e.status} ${e.fn}`),

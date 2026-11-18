@@ -258,7 +258,7 @@ export const dashId = {
     feedback: 'Kirim masukan',
   },
   tentang: {
-    intro: 'Sulo adalah aplikasi pendamping untuk mahasiswa Unhas. Sulo mengumpulkan tugas dan perubahan dari SIKOLA serta jadwal dari kalender akademik di satu tempat, lengkap dengan pengingat. Dukungan NEOSIA sedang disiapkan.',
+    intro: 'Sulo adalah aplikasi pendamping untuk mahasiswa Unhas. Sulo mengumpulkan tugas dan perubahan dari SIKOLA serta jadwal dari kalender akademik di satu tempat, lengkap dengan pengingat. Kalau kamu mau, jadwal kuliah dan kesiapan KRS dari NEOSIA bisa ikut masuk lewat Pengaturan.',
     points: ['Semua data tersimpan di browser kamu. Tidak ada server Sulo, tidak ada pelacakan.', 'Bukan aplikasi resmi Unhas.'],
     version: (v: string) => `Versi ${v}`,
     license: 'Kode Sulo berlisensi MIT.',

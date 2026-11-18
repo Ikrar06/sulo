@@ -14,11 +14,12 @@
 // Usage: pnpm guide:shots [--no-build] [--only=<step>]
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { demoStorage } from './lib/demo-storage.mjs';
+import { demoNeosia } from './lib/demo-neosia.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const ext = join(root, '.output/chrome-mv3-dev');
@@ -203,6 +204,41 @@ const STEPS = [
       await click(p, p.getByRole('checkbox').nth(3), 1200);
     },
   },
+  {
+    // Chrome's own permission prompt cannot be recorded (it is browser UI):
+    // the clip shows the consent screen, the click on "Hubungkan", then the
+    // connected state from the synthetic NEOSIA demo data.
+    id: 'neosia',
+    url: '/dashboard.html#pengaturan/neosia',
+    viewport: { width: 1280, height: 720 },
+    // The main column under the header (sidebar 232 px, header 64 px).
+    area: async () => ({ x: 232, y: 64, width: 1048, height: 656 }),
+    play: async (p) => {
+      // The NEOSIA card's title just under the sticky header.
+      const toCard = () => p.evaluate(() => {
+        const card = document.getElementById('set-neosia')?.closest('section');
+        if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 88 });
+      });
+      await toCard();
+      await p.waitForTimeout(500);
+      await click(p, p.getByRole('switch', { name: re('Hubungkan NEOSIA', 'Connect NEOSIA') }), 900);
+      const dialog = p.getByRole('alertdialog');
+      await moveTo(p, dialog.getByRole('heading').first(), 600);
+      await p.mouse.wheel(0, 300);
+      await p.waitForTimeout(900);
+      const connect = dialog.getByRole('button', { name: re('Hubungkan', 'Connect') });
+      await moveTo(p, connect);
+      await p.evaluate(() => window.__guide.ripple());
+      await p.waitForTimeout(400);
+      await p.keyboard.press('Escape');
+      await p.evaluate(async (s) => chrome.storage.local.set(s), demoNeosia());
+      await p.waitForTimeout(900);
+      await toCard();
+      await p.waitForTimeout(300);
+      await moveTo(p, p.getByRole('link', { name: re('Buka NEOSIA', 'Open NEOSIA') }), 700);
+      await p.waitForTimeout(1200);
+    },
+  },
 ];
 
 // ---- Recording ------------------------------------------------------------
@@ -301,7 +337,10 @@ async function run() {
     }
   }
   mkdirSync(join(root, 'scripts/guide'), { recursive: true });
-  writeFileSync(join(root, 'scripts/guide/sizes.json'), `${JSON.stringify(sizes, null, 2)}\n`);
+  // --only keeps the other steps' sizes.
+  const sizesFile = join(root, 'scripts/guide/sizes.json');
+  const kept = existsSync(sizesFile) ? JSON.parse(readFileSync(sizesFile, 'utf8')) : {};
+  writeFileSync(sizesFile, `${JSON.stringify({ ...kept, ...sizes }, null, 2)}\n`);
   const files = readdirSync(outDir);
   const total = (suffix) => files.filter((f) => f.endsWith(suffix)).reduce((s, f) => s + statSync(join(outDir, f)).size, 0) / 1024;
   console.log(`total: videos ${total('.webm').toFixed(0)} KB, posters ${total('.webp').toFixed(0)} KB`);

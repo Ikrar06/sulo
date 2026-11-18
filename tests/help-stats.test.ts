@@ -21,6 +21,8 @@ describe('help content', () => {
       'sikola-berubah',
       'langganan-kalender',
       'langganan-terlambat',
+      'neosia',
+      'tidak-disimpan',
     ]);
     for (const text of [...FAQ.flatMap((f) => [f.q, ...f.a]), ...HOW_IT_WORKS.flatMap((s) => [s.heading, ...s.paragraphs])]) {
       expect(text.id.trim()).not.toBe('');

@@ -16,4 +16,12 @@ describe('bug report', () => {
     // No task count, no ids, no names: only status words and function names.
     expect(text).not.toMatch(/tasks|sesskey|userid/i);
   });
+
+  it('says only whether NEOSIA is on and when its data last came, never its data', () => {
+    const base = { version: '0.2.0', userAgent: 'Chrome/142.0', lastSyncAt: null, lastAttemptAt: null, lastOutcome: null, log: [] };
+    expect(buildBugReport({ ...base, neosia: { enabled: false, lastSeenAt: null } })).toContain('NEOSIA: off');
+    const on = buildBugReport({ ...base, neosia: { enabled: true, lastSeenAt: 1_794_000_000 } });
+    expect(on).toContain('NEOSIA: on, last data 2026-');
+    expect(on).not.toMatch(/ipk|ips|nilai|grade|sks|krs/i);
+  });
 });

@@ -256,7 +256,7 @@ export const dashEn: DashMessages = {
     feedback: 'Send feedback',
   },
   tentang: {
-    intro: 'Sulo is a companion app for Unhas students. It brings your tasks and changes from SIKOLA and the dates from the academic calendar together in one place, with reminders. Support for NEOSIA is on the way.',
+    intro: 'Sulo is a companion app for Unhas students. It brings your tasks and changes from SIKOLA and the dates from the academic calendar together in one place, with reminders. If you like, your class schedule and KRS readiness from NEOSIA can join in through Settings.',
     points: ['All data stays in your browser. There is no Sulo server and no tracking.', 'Not an official Unhas app.'],
     version: (v) => `Version ${v}`,
     license: "Sulo's code is MIT licensed.",

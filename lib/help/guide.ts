@@ -1,4 +1,4 @@
-// "Mulai pakai" in Bantuan: five steps, each with a short muted clip and a
+// "Mulai pakai" in Bantuan: six steps (the last, NEOSIA, optional), each with a short muted clip and a
 // numbered list of what it shows (plain text, for everyone and for screen
 // readers), after a one-line tip about pinning Sulo. Clips and their
 // posters come from `pnpm guide:shots` (synthetic demo data, public/guide/).
@@ -111,6 +111,22 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     points: [
       { id: 'Saring menurut jenis perubahan.', en: 'Filter by kind of change.' },
       { id: 'Atur notifikasi: pilih jenis yang diberitahukan.', en: 'Notification settings: choose which kinds notify you.' },
+    ],
+  },
+  {
+    id: 'neosia',
+    title: { id: 'Hubungkan NEOSIA (opsional)', en: 'Connect NEOSIA (optional)' },
+    body: {
+      id: 'Jadwal kuliah, kesiapan KRS, dan nilai baru dari NEOSIA. Sulo hanya membaca saat kamu membuka NEOSIA sendiri, dan tidak pernah menghubungi NEOSIA.',
+      en: 'Class schedule, KRS readiness and new grades from NEOSIA. Sulo only reads while you open NEOSIA yourself and never contacts NEOSIA.',
+    },
+    clip: 'neosia',
+    size: { width: 1200, height: 752 },
+    alt: { id: 'Kartu NEOSIA di Pengaturan, layar persetujuan, lalu kartu yang sudah terhubung.', en: 'The NEOSIA card in Settings, the consent screen, then the connected card.' },
+    points: [
+      { id: 'Di Pengaturan, nyalakan Hubungkan NEOSIA.', en: 'In Settings, turn on Connect NEOSIA.' },
+      { id: 'Baca apa yang disimpan dan apa yang dibuang, lalu pilih Hubungkan. Chrome menanyakan izinnya.', en: 'Read what is kept and what is dropped, then choose Connect. Chrome asks for permission.' },
+      { id: 'Buka NEOSIA sekali supaya datanya masuk. Matikan kapan saja lewat Putuskan dan hapus data.', en: 'Open NEOSIA once so the data comes in. Turn it off any time with Disconnect and delete data.' },
     ],
   },
 ];

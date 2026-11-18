@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { GUIDE_STEPS, GUIDE_TIP } from '../lib/help/guide';
 
 describe('"Mulai pakai" guide', () => {
-  it('has five steps, each with a clip; pinning is a tip, not a step', () => {
-    expect(GUIDE_STEPS.map((s) => s.clip)).toEqual(['popup', 'tugas', 'mata-kuliah', 'kalender', 'kabar']);
+  it('has six steps (the last, NEOSIA, optional), each with a clip; pinning is a tip, not a step', () => {
+    expect(GUIDE_STEPS.map((s) => s.clip)).toEqual(['popup', 'tugas', 'mata-kuliah', 'kalender', 'kabar', 'neosia']);
     expect(GUIDE_TIP.id).toMatch(/puzzle/);
   });
 

@@ -54,19 +54,46 @@ Sulo makes requests to two places only:
 
 The "Buy me a coffee" button (Trakteer), social media links and "Send feedback" (Google Form) on the About page, and the link to the official calendar PDF, only open that site in a new tab when you click them. Until you click, Sulo does not contact that site at all, and no script, image or font from it is loaded into Sulo's pages. Sulo sends no data there and never fills in a form for you.
 
-## Optional modules
+## NEOSIA module (optional)
 
-Optional modules, such as the planned NEOSIA module, are off by default. Before one is turned on, Sulo shows a consent screen that explains what it reads, what it discards, and how to turn it off.
+Off by default. If you turn on "Connect NEOSIA" in Settings, Sulo first shows a consent screen with the text below, then Chrome asks for its permission.
 
-- Sulo would never send requests to NEOSIA. It would only read data from NEOSIA pages you open yourself.
-- Identity details (such as national ID number, address, date of birth and contact details), payment amounts and lecturer ID numbers are discarded before anything is saved.
-- Grades and GPA are hidden by default and are never included in exports.
-- Turning a module off deletes its data and removes its permissions.
+Sulo only reads data while you open NEOSIA yourself. Sulo never contacts NEOSIA.
+
+What is kept in your browser
+
+- Class schedule: courses, classes, days, times, rooms and lecturer names
+- The KRS window and status, and your credit limit
+- Paid or not paid, without amounts
+- Your academic advisor’s name and the survey status
+- Letter grades, semester and overall GPA, and credits. Hidden until you choose Show
+- Your semester and study period
+
+What is dropped before it leaves the NEOSIA page
+
+- Student number, national ID and school ID numbers
+- Contact details: email and phone number
+- Address and date of birth
+- Payment amounts and bank
+- Numeric grades
+- Lecturers’ ID numbers
+
+Turning it off
+
+Any time, in Settings with "Disconnect and delete data". All NEOSIA data is deleted and the permission is removed.
+
+- Its permissions are optional: "scripting" and access to neosia.unhas.ac.id and api.neosia.unhas.ac.id. All three are asked for only when you turn the module on, and removed when it is turned off. If you remove one in Chrome's settings, the module turns itself off and its data is deleted.
+- Sulo never sends a request to NEOSIA. Two small scripts on NEOSIA pages read the responses the NEOSIA app already asked for, pick out the fields that may be kept right there on the page, and drop the rest. The full responses are never stored, logged or sent.
+- The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA login token is never read.
+- Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.
+- Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA and credits on screen.
+- No automation: Sulo never fills in KRS, surveys or attendance, and never watches class capacity.
 
 ## Deleting your data
 
 - Removing the extension from your browser deletes all of its data. This works today.
 - "Delete all data" in the popup settings menu deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.
+- "Disconnect and delete data" on the NEOSIA card (Settings) deletes all NEOSIA data and removes its permissions. "Delete all data" also turns the NEOSIA module off.
 
 ## Changes to this policy
 

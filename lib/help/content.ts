@@ -63,8 +63,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Apakah Sulo aman?', en: 'Is Sulo safe?' },
     a: [
       {
-        id: 'Sulo hanya membaca data akunmu sendiri di SIKOLA, tidak meminta password, dan tidak mengirim data ke mana pun. Kodenya tidak memuat apa pun dari luar ekstensi. Izinnya hanya SIKOLA, penyimpanan, alarm, notifikasi, dan status aktif atau tidaknya laptop.',
-        en: 'Sulo only reads your own account’s data in SIKOLA, never asks for your password and sends your data nowhere. It loads no code from outside the extension. Its permissions are SIKOLA, storage, alarms, notifications and whether your laptop is in use.',
+        id: 'Sulo hanya membaca data akunmu sendiri di SIKOLA, tidak meminta password, dan tidak mengirim data ke mana pun. Kodenya tidak memuat apa pun dari luar ekstensi. Izinnya hanya SIKOLA, penyimpanan, alarm, notifikasi, dan status aktif atau tidaknya laptop. Izin untuk NEOSIA hanya diminta kalau kamu menyalakan "Hubungkan NEOSIA".',
+        en: 'Sulo only reads your own account’s data in SIKOLA, never asks for your password and sends your data nowhere. It loads no code from outside the extension. Its permissions are SIKOLA, storage, alarms, notifications and whether your laptop is in use. Permission for NEOSIA is asked for only if you turn on "Connect NEOSIA".',
       },
       {
         id: 'Pakai Sulo di laptopmu sendiri, jangan di komputer bersama.',
@@ -203,6 +203,34 @@ export const FAQ: FaqEntry[] = [
       {
         id: 'Google Calendar memperbarui kalender langganan dengan jadwalnya sendiri, bisa berjam-jam sampai sehari. Sulo tidak bisa mempercepatnya. Untuk tanggal terbaru, lihat halaman Kalender di dashboard.',
         en: 'Google Calendar refreshes subscribed calendars on its own schedule, from hours up to a day. Sulo cannot speed that up. For the latest dates, look at the Calendar page in the dashboard.',
+      },
+    ],
+  },
+  {
+    id: 'neosia',
+    q: { id: 'Bagaimana Sulo membaca NEOSIA?', en: 'How does Sulo read NEOSIA?' },
+    a: [
+      {
+        id: 'Hanya kalau kamu menyalakan "Hubungkan NEOSIA" di Pengaturan. Setelah itu, saat kamu membuka NEOSIA sendiri, Sulo membaca data yang sudah dimuat halaman itu: jadwal, KRS, status bayar, dosen PA, survei, dan nilai. Sulo tidak pernah menghubungi NEOSIA, jadi datanya baru diperbarui saat kamu membuka NEOSIA lagi.',
+        en: 'Only if you turn on "Connect NEOSIA" in Settings. After that, when you open NEOSIA yourself, Sulo reads what that page already loaded: schedule, KRS, payment status, advisor, survey and grades. Sulo never contacts NEOSIA, so the data is updated only when you open NEOSIA again.',
+      },
+      {
+        id: 'Data yang tidak boleh disimpan dibuang di halaman NEOSIA itu juga, sebelum sampai ke Sulo. Mematikan modul lewat "Putuskan dan hapus data" menghapus semuanya dan mencabut izinnya.',
+        en: 'What may not be kept is dropped right there on the NEOSIA page, before it reaches Sulo. Turning the module off with "Disconnect and delete data" deletes everything and removes the permission.',
+      },
+    ],
+  },
+  {
+    id: 'tidak-disimpan',
+    q: { id: 'Data apa yang tidak pernah disimpan?', en: 'What is never kept?' },
+    a: [
+      {
+        id: 'Password SIKOLA dan NEOSIA, token login NEOSIA, NIM, NIK, NISN, kontak (email dan nomor HP), alamat, tanggal lahir, nominal dan bank pembayaran, nilai angka, nomor induk dosen, dan tautan survei. Sulo juga tidak membaca data mahasiswa lain.',
+        en: 'SIKOLA and NEOSIA passwords, the NEOSIA login token, student number, national ID, school ID, contact details (email and phone), address, date of birth, payment amounts and bank, numeric grades, lecturers’ ID numbers and the survey link. Sulo never reads other students’ data either.',
+      },
+      {
+        id: 'Nilai huruf, IPS, dan IPK memang disimpan di browsermu, tetapi tersembunyi sampai kamu memilih Tampilkan, dan tidak pernah masuk notifikasi, ekspor, daftar yang disalin, berkas kalender, atau info laporan bug.',
+        en: 'Letter grades and GPA are kept in your browser, but hidden until you choose Show, and never appear in notifications, exports, copied lists, calendar files or bug report info.',
       },
     ],
   },
