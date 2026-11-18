@@ -3,6 +3,13 @@ import { DAILY_BUDGET, DAILY_CALL_BUDGET, LOOP_GUARD } from './limits';
 
 export const BUDGET_KEY = 'global:budget';
 
+/**
+ * Why a request was refused with BUDGET_EXHAUSTED, for one calm line:
+ * 'short' while the loop guard pauses (minutes), else 'day' (the hard limit,
+ * until the local reset).
+ */
+export const restKind = (state: BudgetState, now: number): 'short' | 'day' => (loopPaused(state, now) ? 'short' : 'day');
+
 /** True while the loop guard holds every request. */
 export const loopPaused = (state: BudgetState, now: number): boolean => state.pausedUntil !== undefined && now < state.pausedUntil;
 

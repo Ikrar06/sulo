@@ -39,13 +39,26 @@ object WatchCheck {
         return if (start < end) minuteOfDay in start until end else minuteOfDay >= start || minuteOfDay < end
     }
 
-    data class Ctx(val minuteOfDay: Int, val powerSave: Boolean, val usedToday: Int)
+    data class Ctx(val minuteOfDay: Int, val powerSave: Boolean, val usedToday: Int, val callsToday: Int)
 
-    /** Minutes to the next check, or null at the hard limit (nothing until the daily reset). */
+    // A plan written before the watch stop existed falls back to the same numbers.
+    private fun stopPosts(b: JSONObject) = minOf(b.optInt("watchStopPosts", 100), b.getInt("hardPosts"))
+    private fun stopCalls(b: JSONObject) = minOf(b.optInt("watchStopCalls", 700), b.getInt("callLimit"))
+
+    /** Watching is done for the day: the rest of the budget is the reserve for active use. */
+    fun watchStopped(plan: JSONObject, usedToday: Int, callsToday: Int): Boolean {
+        val b = budget(plan)
+        return usedToday >= stopPosts(b) || callsToday >= stopCalls(b)
+    }
+
+    /** Radar gives way first: it rides along only when the whole batch still ends at or below the watch stop. */
+    fun radarFits(plan: JSONObject, callsToday: Int, baseCalls: Int, radarCalls: Int): Boolean = callsToday + baseCalls + radarCalls <= stopCalls(budget(plan))
+
+    /** Minutes to the next check, or null once watching stopped for the day (nothing until the daily reset). */
     fun nextDelayMinutes(plan: JSONObject, ctx: Ctx): Int? {
         val b = budget(plan)
         val s = schedule(plan)
-        if (ctx.usedToday >= b.getInt("hardPosts")) return null
+        if (watchStopped(plan, ctx.usedToday, ctx.callsToday)) return null
         if (ctx.powerSave || !isDay(ctx.minuteOfDay, plan)) return s.getInt("nightIntervalMin")
         return if (ctx.usedToday >= b.getInt("softPosts")) s.getInt("softDayIntervalMin") else s.getInt("dayIntervalMin")
     }
@@ -76,8 +89,9 @@ object WatchCheck {
         val b = budget(plan)
         val current = if (state != null && state.optString("date") == today) JSONObject(state.toString()) else JSONObject().put("date", today).put("used", 0)
         val used = current.getInt("used")
-        if (used >= b.getInt("hardPosts")) return Reserved(false, current)
-        if (calls > 0 && current.optInt("calls", 0) + calls > b.getInt("callLimit")) return Reserved(false, current)
+        // The watch stop, never the hard limit: the reserve stays for active use.
+        if (used >= stopPosts(b)) return Reserved(false, current)
+        if (calls > 0 && current.optInt("calls", 0) + calls > stopCalls(b)) return Reserved(false, current)
         if (current.has("pausedUntil") && now < current.getLong("pausedUntil")) return Reserved(false, current)
         val recent = JSONArray()
         current.optJSONArray("recent")?.let { r -> for (i in 0 until r.length()) if (now - r.getLong(i) < b.getLong("loopWindowSec")) recent.put(r.getLong(i)) }

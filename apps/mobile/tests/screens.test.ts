@@ -190,6 +190,11 @@ describe('Perbarui without a connection', () => {
     const w = mobileWords('id');
     expect(outcomeNote({ status: 'skipped', reason: 'FRESH' }, w)).toBe(w.connected.upToDate);
     expect(outcomeNote({ status: 'server_error' }, w)).toBe(w.connected.failed);
+    // The daily limit: one calm line, no numbers or technical words; the loop guard says "sebentar".
+    const day = outcomeNote({ status: 'skipped', reason: 'BUDGET_EXHAUSTED' }, w, 'day');
+    expect(day).toBe('Sulo istirahat dulu sampai besok. Data terakhir tetap bisa dibuka.');
+    expect(day).not.toMatch(/\d|batas|anggaran|request|POST/i);
+    expect(outcomeNote({ status: 'skipped', reason: 'BUDGET_EXHAUSTED' }, w, 'short')).toBe(w.app.restShort);
     expect(outcomeNote({ status: 'ok', at: 0, tasks: 0, courseListFetched: false }, w)).toBe('');
     expect(outcomeNote({ status: 'session_expired' }, w)).toBe('');
   });

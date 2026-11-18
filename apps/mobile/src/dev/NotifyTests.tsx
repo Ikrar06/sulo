@@ -11,7 +11,7 @@ import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { messagesFor, resolveLocale } from '@sulo/core/i18n';
 import { readBudget } from '@sulo/core/moodle/budget';
-import { DAILY_BUDGET, SOFT_DAILY_POSTS } from '@sulo/core/moodle/limits';
+import { DAILY_BUDGET, DAILY_CALL_BUDGET, SOFT_DAILY_POSTS, WATCH_STOP } from '@sulo/core/moodle/limits';
 import type { Platform } from '@sulo/core/platform';
 import { readPrefs } from '@sulo/core/prefs';
 import { keepAliveFrom } from '@sulo/core/remote/keep-alive';
@@ -57,7 +57,7 @@ export function NotifyTests({ platform }: { platform: Platform }) {
       `Cek berikutnya: ${s.plannedAt > 0 ? time(s.plannedAt) : '-'}; antrean: ${s.queued}`,
       `Cek terakhir: ${last ? `${time(last.ranAt)} · ${last.outcome} · ${last.ms} ms · ${last.bytes} B · ${last.changes ?? 0} perubahan` : '-'}`,
       `Jeda nyata antar-cek (median 10 terakhir): ${median !== null ? `${Math.round(median / 60)} menit` : '-'}`,
-      `Anggaran hari ini: ${budget.used}/${DAILY_BUDGET} POST (lunak ${SOFT_DAILY_POSTS}), ${budget.calls ?? 0} panggilan`,
+      `Anggaran hari ini: ${budget.used}/${DAILY_BUDGET} POST, ${budget.calls ?? 0}/${DAILY_CALL_BUDGET} panggilan (lunak ${SOFT_DAILY_POSTS}; pemantauan berhenti di ${WATCH_STOP.posts} POST / ${WATCH_STOP.calls} panggilan); pemantauan ${(budget.bySource as Record<string, number> | undefined)?.watch ?? 0} POST`,
       `Config pemantauan: ${JSON.stringify(keepAliveFrom(config))}`,
       `Ringkasan pagi berikutnya: ${prefs.reminders.morning.enabled ? time(morningAt) : `mati (jamnya ${time(morningAt)})`}`,
     ]);

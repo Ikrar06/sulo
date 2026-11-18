@@ -9,7 +9,7 @@
 // silent and core records the change when the app opens (watch/check.ts is
 // the reference of what it does, tested on shared vectors).
 
-import { CALENDAR_LIMIT, CALENDAR_LOOKAHEAD_DAYS, CALENDAR_LOOKBACK_DAYS, DAILY_BUDGET, DAILY_CALL_BUDGET, LOOP_GUARD, NOTIFICATIONS_LIMIT, RADAR_AUTO_MAX, SOFT_DAILY_POSTS } from '../moodle/limits';
+import { CALENDAR_LIMIT, CALENDAR_LOOKAHEAD_DAYS, CALENDAR_LOOKBACK_DAYS, DAILY_BUDGET, DAILY_CALL_BUDGET, LOOP_GUARD, NOTIFICATIONS_LIMIT, RADAR_AUTO_MAX, SOFT_DAILY_POSTS, WATCH_STOP } from '../moodle/limits';
 import { NOTIFICATION_RULES } from '../radar/notification-kinds';
 import { MAX_COURSE_NOTICES } from '../reminders/plan';
 import { FAR_TASK_DAYS } from '../radar/log';
@@ -81,7 +81,12 @@ export interface WatchPlan {
     radarEvery: number;
     radarMax: number;
   };
-  budget: { softPosts: number; hardPosts: number; callLimit: number; loopPosts: number; loopWindowSec: number; loopPauseSec: number };
+  /**
+   * The shared day: soft limit (slower, no Radar), where watching stops for
+   * the day (watchStop*, leaving the reserve for active use), and the hard
+   * limits plus loop guard every request obeys.
+   */
+  budget: { softPosts: number; watchStopPosts: number; watchStopCalls: number; hardPosts: number; callLimit: number; loopPosts: number; loopWindowSec: number; loopPauseSec: number };
   /** Every check: session, calendar, popup notifications (in this order). */
   calls: WatchCall[];
   /** A Radar check appends one call per course after `calls`, taking the next courses in turn. */
@@ -146,7 +151,7 @@ export function buildWatchPlan(input: WatchPlanInput): WatchPlan {
       radarEvery: k.radarEvery,
       radarMax: RADAR_AUTO_MAX,
     },
-    budget: { softPosts: SOFT_DAILY_POSTS, hardPosts: DAILY_BUDGET, callLimit: DAILY_CALL_BUDGET, loopPosts: LOOP_GUARD.posts, loopWindowSec: LOOP_GUARD.windowSec, loopPauseSec: LOOP_GUARD.pauseSec },
+    budget: { softPosts: SOFT_DAILY_POSTS, watchStopPosts: WATCH_STOP.posts, watchStopCalls: WATCH_STOP.calls, hardPosts: DAILY_BUDGET, callLimit: DAILY_CALL_BUDGET, loopPosts: LOOP_GUARD.posts, loopWindowSec: LOOP_GUARD.windowSec, loopPauseSec: LOOP_GUARD.pauseSec },
     calls: [
       { methodname: 'core_session_time_remaining', args: {} },
       { methodname: 'core_calendar_get_action_events_by_timesort', args: { limitnum: CALENDAR_LIMIT }, nowOffsets: { timesortfrom: -CALENDAR_LOOKBACK_DAYS * DAY, timesortto: CALENDAR_LOOKAHEAD_DAYS * DAY } },

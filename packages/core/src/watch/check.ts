@@ -35,6 +35,14 @@ export interface CheckContext {
   powerSave: boolean;
   /** POST requests used today (the shared budget). */
   usedToday: number;
+  /** Moodle function calls used today (the shared budget). */
+  callsToday: number;
+}
+
+/** Watching is done for the day: the rest of the budget is the reserve for active use. */
+export function watchStopped(plan: Pick<WatchPlan, 'budget'>, usedToday: number, callsToday: number): boolean {
+  const b = plan.budget;
+  return usedToday >= Math.min(b.watchStopPosts, b.hardPosts) || callsToday >= Math.min(b.watchStopCalls, b.callLimit);
 }
 
 /**
@@ -43,7 +51,7 @@ export interface CheckContext {
  * night. Past the soft limit: daytime slows to softDayIntervalMin.
  */
 export function nextDelayMinutes(plan: Pick<WatchPlan, 'schedule' | 'budget'>, ctx: CheckContext): number | null {
-  if (ctx.usedToday >= plan.budget.hardPosts) return null;
+  if (watchStopped(plan, ctx.usedToday, ctx.callsToday)) return null;
   if (ctx.powerSave || !isDay(ctx.minuteOfDay, plan)) return plan.schedule.nightIntervalMin;
   return ctx.usedToday >= plan.budget.softPosts ? plan.schedule.softDayIntervalMin : plan.schedule.dayIntervalMin;
 }
@@ -52,6 +60,14 @@ export function nextDelayMinutes(plan: Pick<WatchPlan, 'schedule' | 'budget'>, c
 export function radarDue(plan: Pick<WatchPlan, 'schedule' | 'budget'>, ctx: CheckContext, dayCheckIndex: number): boolean {
   if (ctx.powerSave || !isDay(ctx.minuteOfDay, plan) || ctx.usedToday >= plan.budget.softPosts) return false;
   return dayCheckIndex % plan.schedule.radarEvery === plan.schedule.radarEvery - 1;
+}
+
+/**
+ * Radar gives way first: its calls ride along only when the whole batch
+ * still ends below the watch stop; otherwise the check goes without them.
+ */
+export function radarFits(plan: Pick<WatchPlan, 'budget'>, callsToday: number, baseCalls: number, radarCalls: number): boolean {
+  return callsToday + baseCalls + radarCalls <= Math.min(plan.budget.watchStopCalls, plan.budget.callLimit);
 }
 
 /** The next courses in turn from a cursor; returns them and the cursor after. */
@@ -74,8 +90,9 @@ export const planStale = (plan: Pick<WatchPlan, 'writtenAt'>, now: UnixSeconds):
 export function reserve(state: BudgetState | null, today: string, now: UnixSeconds, calls: number, plan: Pick<WatchPlan, 'budget'>): { ok: boolean; next: BudgetState } {
   const b = plan.budget;
   const current: BudgetState = state && state.date === today ? state : { date: today, used: 0 };
-  if (current.used >= b.hardPosts) return { ok: false, next: current };
-  if (calls > 0 && (current.calls ?? 0) + calls > b.callLimit) return { ok: false, next: current };
+  // The watch stop, never the hard limit: the reserve stays for active use.
+  if (current.used >= Math.min(b.watchStopPosts, b.hardPosts)) return { ok: false, next: current };
+  if (calls > 0 && (current.calls ?? 0) + calls > Math.min(b.watchStopCalls, b.callLimit)) return { ok: false, next: current };
   if (current.pausedUntil !== undefined && now < current.pausedUntil) return { ok: false, next: current };
   const recent = (current.recent ?? []).filter((t) => now - t < b.loopWindowSec);
   if (recent.length >= b.loopPosts) return { ok: false, next: { ...current, recent, pausedUntil: now + b.loopPauseSec } };

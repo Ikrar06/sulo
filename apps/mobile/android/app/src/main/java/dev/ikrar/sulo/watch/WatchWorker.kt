@@ -74,8 +74,7 @@ class WatchRun(private val context: Context) {
         }
         plan!!
         val budget = store.budget()
-        val used = if (budget?.optString("date") == today()) budget.optInt("used", 0) else 0
-        val ctx = WatchCheck.Ctx(minuteOfDay(), powerSave(), used)
+        val ctx = dayCtx(budget)
         if (WatchCheck.nextDelayMinutes(plan, ctx) == null) return untilReset(now)
 
         // The Radar turn: every radarEvery-th daytime check, the next courses in rotation.
@@ -83,7 +82,9 @@ class WatchRun(private val context: Context) {
         val index = store.dayCheckIndex()
         val radar = plan.getJSONObject("radar")
         val rotation = radar.getJSONArray("courseIds").let { a -> (0 until a.length()).map { a.getLong(it) } }
-        val pick = if (WatchCheck.radarDue(plan, ctx, index)) WatchCheck.pickRadar(rotation, store.radarCursor(), plan.getJSONObject("schedule").getInt("radarMax")) else WatchCheck.Pick(emptyList(), store.radarCursor())
+        val turn = if (WatchCheck.radarDue(plan, ctx, index)) WatchCheck.pickRadar(rotation, store.radarCursor(), plan.getJSONObject("schedule").getInt("radarMax")) else WatchCheck.Pick(emptyList(), store.radarCursor())
+        // Radar gives way first when the day is filling up; its turn waits (the cursor stays).
+        val pick = if (turn.ids.isNotEmpty() && !WatchCheck.radarFits(plan, ctx.callsToday, plan.getJSONArray("calls").length(), turn.ids.size)) WatchCheck.Pick(emptyList(), store.radarCursor()) else turn
         if (day) store.setDayCheckIndex(index + 1)
 
         val batch = WatchCheck.buildBatch(plan, now, pick.ids)
@@ -151,14 +152,18 @@ class WatchRun(private val context: Context) {
         result.send.forEach { WatchNotifier.show(context, channel, it) }
     }
 
+    /** Today's shared budget as the interval sees it (another day counts as zero). */
+    private fun dayCtx(budget: JSONObject?): WatchCheck.Ctx {
+        val sameDay = budget?.optString("date") == today()
+        return WatchCheck.Ctx(minuteOfDay(), powerSave(), if (sameDay) budget!!.optInt("used", 0) else 0, if (sameDay) budget!!.optInt("calls", 0) else 0)
+    }
+
     private fun scheduleNext(plan: JSONObject, now: Long, waitUntil: Long = 0) {
-        val budget = store.budget()
-        val used = if (budget?.optString("date") == today()) budget.optInt("used", 0) else 0
-        val minutes = WatchCheck.nextDelayMinutes(plan, WatchCheck.Ctx(minuteOfDay(), powerSave(), used)) ?: return untilReset(now)
+        val minutes = WatchCheck.nextDelayMinutes(plan, dayCtx(store.budget())) ?: return untilReset(now)
         WatchScheduler.next(context, maxOf(minutes * 60L, waitUntil - now), now)
     }
 
-    /** The hard daily limit: nothing until a few minutes past local midnight. */
+    /** Watching stopped for the day (the watch stop or the hard limit): nothing until a few minutes past local midnight. */
     private fun untilReset(now: Long) {
         val c = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 5); set(Calendar.SECOND, 0) }
         WatchScheduler.next(context, c.timeInMillis / 1000 - now, now)

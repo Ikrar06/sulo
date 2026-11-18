@@ -5,7 +5,7 @@
 // deliberate change, then check the diff by hand.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { afterFailure, buildBatch, detect, emptyOverlay, inQuiet, nextDelayMinutes, notices, numericId, pickRadar, radarDue, reserve, type Detected } from '@sulo/core/watch/check';
+import { afterFailure, buildBatch, detect, emptyOverlay, inQuiet, nextDelayMinutes, notices, numericId, pickRadar, radarDue, radarFits, reserve, watchStopped, type Detected } from '@sulo/core/watch/check';
 import { buildWatchPlan } from '@sulo/core/watch/plan';
 import { DEFAULT_KEEP_ALIVE } from '@sulo/core/remote/keep-alive';
 
@@ -77,22 +77,38 @@ const cases = {
     { quiet: { enabled: false, startMin: 0, endMin: 1439 }, minute: 30 },
   ],
   delay: [
-    { minuteOfDay: 6 * 60, powerSave: false, usedToday: 0 },
-    { minuteOfDay: 5 * 60 + 59, powerSave: false, usedToday: 0 },
-    { minuteOfDay: 22 * 60 + 59, powerSave: false, usedToday: 10 },
-    { minuteOfDay: 23 * 60, powerSave: false, usedToday: 10 },
-    { minuteOfDay: 12 * 60, powerSave: true, usedToday: 10 },
-    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 80 },
-    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 79 },
-    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 150 },
+    { minuteOfDay: 6 * 60, powerSave: false, usedToday: 0, callsToday: 0 },
+    { minuteOfDay: 5 * 60 + 59, powerSave: false, usedToday: 0, callsToday: 0 },
+    { minuteOfDay: 22 * 60 + 59, powerSave: false, usedToday: 10, callsToday: 0 },
+    { minuteOfDay: 23 * 60, powerSave: false, usedToday: 10, callsToday: 0 },
+    { minuteOfDay: 12 * 60, powerSave: true, usedToday: 10, callsToday: 0 },
+    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 80, callsToday: 0 },
+    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 79, callsToday: 0 },
+    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 150, callsToday: 0 },
+    // The watch stop: 100 POST or 700 calls in all (the rest is the reserve for active use).
+    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 99, callsToday: 0 },
+    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 100, callsToday: 0 },
+    { minuteOfDay: 23 * 60 + 30, powerSave: false, usedToday: 100, callsToday: 0 },
+    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 40, callsToday: 699 },
+    { minuteOfDay: 12 * 60, powerSave: false, usedToday: 40, callsToday: 700 },
   ],
   radarDue: [
-    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 0 }, index: 0 },
-    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 0 }, index: 2 },
-    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 0 }, index: 5 },
-    { ctx: { minuteOfDay: 23 * 60 + 30, powerSave: false, usedToday: 0 }, index: 2 },
-    { ctx: { minuteOfDay: 12 * 60, powerSave: true, usedToday: 0 }, index: 2 },
-    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 80 }, index: 2 },
+    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 0, callsToday: 0 }, index: 0 },
+    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 0, callsToday: 0 }, index: 2 },
+    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 0, callsToday: 0 }, index: 5 },
+    { ctx: { minuteOfDay: 23 * 60 + 30, powerSave: false, usedToday: 0, callsToday: 0 }, index: 2 },
+    { ctx: { minuteOfDay: 12 * 60, powerSave: true, usedToday: 0, callsToday: 0 }, index: 2 },
+    { ctx: { minuteOfDay: 12 * 60, powerSave: false, usedToday: 80, callsToday: 0 }, index: 2 },
+  ],
+  radarFits: [
+    { callsToday: 0, base: 3, radar: 4 },
+    { callsToday: 693, base: 3, radar: 4 },
+    { callsToday: 694, base: 3, radar: 4 },
+  ],
+  stopped: [
+    { used: 99, calls: 699 },
+    { used: 100, calls: 0 },
+    { used: 0, calls: 700 },
   ],
   pickRadar: [
     { courseIds: [11, 12, 13, 14, 15], cursor: 0, max: 4 },
@@ -110,6 +126,11 @@ const cases = {
     // The loop guard: ten requests inside five minutes pause everything for 30 minutes.
     { state: { date: '2026-11-19', used: 20, recent: Array.from({ length: 10 }, (_, i) => NOW - 20 * i) }, today: '2026-11-19', now: NOW, calls: 3 },
     { state: { date: '2026-11-19', used: 20, bySource: { manual: 4, watch: 7 }, withCourseList: 1, calls: 40, recent: [NOW - 400, NOW - 100] }, today: '2026-11-19', now: NOW, calls: 7 },
+    // The watch stop leaves the reserve: 100 POST refused, 99 still allowed; calls past 700 refused.
+    { state: { date: '2026-11-19', used: 100, bySource: { manual: 60, watch: 40 } }, today: '2026-11-19', now: NOW, calls: 3 },
+    { state: { date: '2026-11-19', used: 99, bySource: { manual: 60, watch: 39 } }, today: '2026-11-19', now: NOW, calls: 3 },
+    { state: { date: '2026-11-19', used: 50, calls: 698 }, today: '2026-11-19', now: NOW, calls: 3 },
+    { state: { date: '2026-11-19', used: 50, calls: 697 }, today: '2026-11-19', now: NOW, calls: 3 },
   ],
   backoff: [
     { prev: null, now: NOW, retryAfter: null, random: 1 },
@@ -192,6 +213,8 @@ function compute() {
     quiet: cases.quiet.map((c) => ({ ...c, out: inQuiet(c.minute, c.quiet) })),
     delay: cases.delay.map((ctx) => ({ ctx, out: nextDelayMinutes(plan, ctx) })),
     radarDue: cases.radarDue.map((c) => ({ ...c, out: radarDue(plan, c.ctx, c.index) })),
+    radarFits: cases.radarFits.map((c) => ({ ...c, out: radarFits(plan, c.callsToday, c.base, c.radar) })),
+    stopped: cases.stopped.map((c) => ({ ...c, out: watchStopped(plan, c.used, c.calls) })),
     pickRadar: cases.pickRadar.map((c) => ({ ...c, out: pickRadar(c.courseIds, c.cursor, c.max) })),
     reserve: cases.reserve.map((c) => ({ ...c, out: reserve(c.state as never, c.today, c.now, c.calls, plan) })),
     backoff: cases.backoff.map((c) => ({ ...c, out: afterFailure(c.prev, c.now, c.retryAfter, c.random) })),
@@ -222,7 +245,11 @@ describe('watch shared vectors', () => {
     expect(notes['quiet-holds']).toMatchObject({ send: [], hold: [{ key: 'task:102:due:1' }] });
     expect(notes['after-quiet'].send[0].title).toBe('1 kabar baru dari 1 mata kuliah');
     expect(fresh.reserve[6].out).toMatchObject({ ok: false, next: { pausedUntil: NOW + 30 * 60 } });
-    expect(fresh.delay.map((c: { out: number | null }) => c.out)).toEqual([20, 60, 20, 60, 60, 40, 20, null]);
+    expect(fresh.plan.budget).toMatchObject({ softPosts: 80, watchStopPosts: 100, watchStopCalls: 700, hardPosts: 150, callLimit: 1000 });
+    expect(fresh.delay.map((c: { out: number | null }) => c.out)).toEqual([20, 60, 20, 60, 60, 40, 20, null, 40, null, null, 20, null]);
+    expect(fresh.reserve.slice(8).map((c: { out: { ok: boolean } }) => c.out.ok)).toEqual([false, true, false, true]);
+    expect(fresh.radarFits.map((c: { out: boolean }) => c.out)).toEqual([true, true, false]);
+    expect(fresh.stopped.map((c: { out: boolean }) => c.out)).toEqual([false, true, true]);
     expect(fresh.radarDue.map((c: { out: boolean }) => c.out)).toEqual([false, true, true, false, false, false]);
   });
 });

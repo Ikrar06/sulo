@@ -11,6 +11,7 @@ import { resolveLocale, type Locale } from '@sulo/core/i18n';
 import { mobileWords, type MobileWords } from '@sulo/core/i18n/mobile';
 import { readPrefs } from '@sulo/core/prefs';
 import type { Platform } from '@sulo/core/platform';
+import { readBudget, restKind } from '@sulo/core/moodle/budget';
 import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { I18nProvider } from '@sulo/ui/i18n';
 import { PrivacyProvider } from '@sulo/ui/private';
@@ -34,9 +35,12 @@ const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({
 /** Set once the notification question was answered (either way). */
 export const NOTIFY_ASKED_KEY = 'mobile:notifyAsked';
 
-export function outcomeNote(o: SyncOutcome, w: MobileWords): string {
+/** `rest` says which pause refused the request when the budget did (moodle/budget.ts restKind). */
+export function outcomeNote(o: SyncOutcome, w: MobileWords, rest: 'short' | 'day' = 'day'): string {
   if (o.status === 'ok' || o.status === 'session_expired') return '';
   if (o.status === 'skipped' && o.reason === 'FRESH') return w.connected.upToDate;
+  // The daily limit (or the loop guard): one calm line; reminders from stored data keep running.
+  if (o.status === 'skipped' && o.reason === 'BUDGET_EXHAUSTED') return rest === 'short' ? w.app.restShort : w.app.restDay;
   // Paused by the maintainer: the calm notice says so; no failure line.
   if (o.status === 'skipped' && o.reason === 'DISABLED_REMOTELY') return '';
   if (o.status === 'offline') return w.app.offline;
@@ -67,7 +71,9 @@ export function App({ platform }: { platform: Platform }) {
       setNote('');
       let line = w.connected.failed;
       try {
-        line = outcomeNote(await run(), w);
+        const outcome = await run();
+        const rest = outcome.status === 'skipped' && outcome.reason === 'BUDGET_EXHAUSTED' ? restKind(await readBudget(platform.store, platform.clock), platform.clock.now()) : 'day';
+        line = outcomeNote(outcome, w, rest);
         // News found while the app is open lands in Kabar terbaru without a notification.
         await markChangesHandled(platform.store, platform.clock.now()).catch(() => 0);
         await scheduleReminders(platform).catch(() => 0);

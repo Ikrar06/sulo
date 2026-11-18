@@ -15,6 +15,8 @@
   },
   "budget": {
    "softPosts": 80,
+   "watchStopPosts": 100,
+   "watchStopCalls": 700,
    "hardPosts": 150,
    "callLimit": 1000,
    "loopPosts": 10,
@@ -278,7 +280,8 @@
    "ctx": {
     "minuteOfDay": 360,
     "powerSave": false,
-    "usedToday": 0
+    "usedToday": 0,
+    "callsToday": 0
    },
    "out": 20
   },
@@ -286,7 +289,8 @@
    "ctx": {
     "minuteOfDay": 359,
     "powerSave": false,
-    "usedToday": 0
+    "usedToday": 0,
+    "callsToday": 0
    },
    "out": 60
   },
@@ -294,7 +298,8 @@
    "ctx": {
     "minuteOfDay": 1379,
     "powerSave": false,
-    "usedToday": 10
+    "usedToday": 10,
+    "callsToday": 0
    },
    "out": 20
   },
@@ -302,7 +307,8 @@
    "ctx": {
     "minuteOfDay": 1380,
     "powerSave": false,
-    "usedToday": 10
+    "usedToday": 10,
+    "callsToday": 0
    },
    "out": 60
   },
@@ -310,7 +316,8 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": true,
-    "usedToday": 10
+    "usedToday": 10,
+    "callsToday": 0
    },
    "out": 60
   },
@@ -318,7 +325,8 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": false,
-    "usedToday": 80
+    "usedToday": 80,
+    "callsToday": 0
    },
    "out": 40
   },
@@ -326,7 +334,8 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": false,
-    "usedToday": 79
+    "usedToday": 79,
+    "callsToday": 0
    },
    "out": 20
   },
@@ -334,7 +343,53 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": false,
-    "usedToday": 150
+    "usedToday": 150,
+    "callsToday": 0
+   },
+   "out": null
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 99,
+    "callsToday": 0
+   },
+   "out": 40
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 100,
+    "callsToday": 0
+   },
+   "out": null
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 1410,
+    "powerSave": false,
+    "usedToday": 100,
+    "callsToday": 0
+   },
+   "out": null
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 40,
+    "callsToday": 699
+   },
+   "out": 20
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 40,
+    "callsToday": 700
    },
    "out": null
   }
@@ -344,7 +399,8 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": false,
-    "usedToday": 0
+    "usedToday": 0,
+    "callsToday": 0
    },
    "index": 0,
    "out": false
@@ -353,7 +409,8 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": false,
-    "usedToday": 0
+    "usedToday": 0,
+    "callsToday": 0
    },
    "index": 2,
    "out": true
@@ -362,7 +419,8 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": false,
-    "usedToday": 0
+    "usedToday": 0,
+    "callsToday": 0
    },
    "index": 5,
    "out": true
@@ -371,7 +429,8 @@
    "ctx": {
     "minuteOfDay": 1410,
     "powerSave": false,
-    "usedToday": 0
+    "usedToday": 0,
+    "callsToday": 0
    },
    "index": 2,
    "out": false
@@ -380,7 +439,8 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": true,
-    "usedToday": 0
+    "usedToday": 0,
+    "callsToday": 0
    },
    "index": 2,
    "out": false
@@ -389,10 +449,48 @@
    "ctx": {
     "minuteOfDay": 720,
     "powerSave": false,
-    "usedToday": 80
+    "usedToday": 80,
+    "callsToday": 0
    },
    "index": 2,
    "out": false
+  }
+ ],
+ "radarFits": [
+  {
+   "callsToday": 0,
+   "base": 3,
+   "radar": 4,
+   "out": true
+  },
+  {
+   "callsToday": 693,
+   "base": 3,
+   "radar": 4,
+   "out": true
+  },
+  {
+   "callsToday": 694,
+   "base": 3,
+   "radar": 4,
+   "out": false
+  }
+ ],
+ "stopped": [
+  {
+   "used": 99,
+   "calls": 699,
+   "out": false
+  },
+  {
+   "used": 100,
+   "calls": 0,
+   "out": true
+  },
+  {
+   "used": 0,
+   "calls": 700,
+   "out": true
   }
  ],
  "pickRadar": [
@@ -673,6 +771,102 @@
      "calls": 47,
      "recent": [
       1794999900,
+      1795000000
+     ]
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 100,
+    "bySource": {
+     "manual": 60,
+     "watch": 40
+    }
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 100,
+     "bySource": {
+      "manual": 60,
+      "watch": 40
+     }
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 99,
+    "bySource": {
+     "manual": 60,
+     "watch": 39
+    }
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 100,
+     "bySource": {
+      "manual": 60,
+      "watch": 40
+     },
+     "withCourseList": 0,
+     "calls": 3,
+     "recent": [
+      1795000000
+     ]
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 50,
+    "calls": 698
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 50,
+     "calls": 698
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 50,
+    "calls": 697
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 51,
+     "bySource": {
+      "watch": 1
+     },
+     "withCourseList": 0,
+     "calls": 700,
+     "recent": [
       1795000000
      ]
     }

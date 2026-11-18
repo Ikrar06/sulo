@@ -61,6 +61,9 @@ const id = {
     back: 'Kembali',
     overdue: (n: number) => (n === 1 ? '1 tugas terlambat' : `${n} tugas terlambat`),
     offline: 'Tidak ada koneksi',
+    // The daily limit or the loop guard: calm, no numbers, no technical words.
+    restDay: 'Sulo istirahat dulu sampai besok. Data terakhir tetap bisa dibuka.',
+    restShort: 'Sulo istirahat sebentar. Data terakhir tetap bisa dibuka.',
     cooldown: 'Baru saja diperbarui. Coba lagi sebentar lagi.',
     pull: 'Tarik untuk memperbarui',
     release: 'Lepas untuk memperbarui',
@@ -261,6 +264,8 @@ const en: MobileWords = {
     back: 'Back',
     overdue: (n: number) => (n === 1 ? '1 overdue task' : `${n} overdue tasks`),
     offline: 'No connection',
+    restDay: 'Sulo is resting until tomorrow. Your latest data is still here.',
+    restShort: 'Sulo is resting for a moment. Your latest data is still here.',
     cooldown: 'Just updated. Try again in a moment.',
     pull: 'Pull to update',
     release: 'Release to update',

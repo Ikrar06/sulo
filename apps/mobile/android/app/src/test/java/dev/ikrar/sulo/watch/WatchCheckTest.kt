@@ -35,7 +35,7 @@ class WatchCheckTest {
 
     private fun cases(name: String): List<JSONObject> = vectors.getJSONArray(name).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
     private fun longs(a: JSONArray) = (0 until a.length()).map { a.getLong(it) }
-    private fun ctx(o: JSONObject) = WatchCheck.Ctx(o.getInt("minuteOfDay"), o.getBoolean("powerSave"), o.getInt("usedToday"))
+    private fun ctx(o: JSONObject) = WatchCheck.Ctx(o.getInt("minuteOfDay"), o.getBoolean("powerSave"), o.getInt("usedToday"), o.getInt("callsToday"))
 
     @Test
     fun numericId() = cases("numericId").forEach { assertEquals(it.getString("id"), it.getInt("out"), WatchCheck.numericId(it.getString("id"))) }
@@ -51,6 +51,19 @@ class WatchCheckTest {
 
     @Test
     fun radarTurn() = cases("radarDue").forEach { assertEquals(it.toString(), it.getBoolean("out"), WatchCheck.radarDue(plan, ctx(it.getJSONObject("ctx")), it.getInt("index"))) }
+
+    @Test
+    fun radarGivesWayFirst() = cases("radarFits").forEach { assertEquals(it.toString(), it.getBoolean("out"), WatchCheck.radarFits(plan, it.getInt("callsToday"), it.getInt("base"), it.getInt("radar"))) }
+
+    @Test
+    fun watchStopsAtOneHundredOrSevenHundred() {
+        cases("stopped").forEach { assertEquals(it.toString(), it.getBoolean("out"), WatchCheck.watchStopped(plan, it.getInt("used"), it.getInt("calls"))) }
+        val b = plan.getJSONObject("budget")
+        assertEquals(100, b.getInt("watchStopPosts"))
+        assertEquals(700, b.getInt("watchStopCalls"))
+        assertEquals(150, b.getInt("hardPosts"))
+        assertEquals(1000, b.getInt("callLimit"))
+    }
 
     @Test
     fun radarRotation() = cases("pickRadar").forEach {
