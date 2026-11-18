@@ -42,8 +42,10 @@ export interface PresensiData {
   recap: { fetchedAt: UnixSeconds; rows: RecapRow[] } | null;
   /** Keyed by cmid. */
   details: Record<string, { fetchedAt: UnixSeconds; sessions: SessionRow[] }>;
-  /** Last request of any kind to an attendance page (cooldown). */
+  /** Last request for the recap (its own 2-minute cooldown). */
   lastRequestAt: UnixSeconds | null;
+  /** Last request per course's details, keyed by cmid (a 2-minute cooldown each). */
+  detailRequestAt?: Record<string, UnixSeconds>;
   /** The last answer could not be read (shape changed): shown as a safe message. */
   unknownShapeAt: UnixSeconds | null;
   /**

@@ -10,7 +10,7 @@ export function demoPresensi(now = Math.floor(Date.now() / 1000)) {
     ['present', 'Hadir', 'Kuliah 2: tekanan hidrostatis'],
     ['late', 'Terlambat', 'Kuliah 3: gaya apung'],
     ['present', 'Hadir', 'Kuliah 4: aliran laminer'],
-    ['absent', 'Tidak hadir', 'Kuliah 5: persamaan Bernoulli'],
+    ['absent', 'Alpa', 'Kuliah 5: persamaan Bernoulli'],
     ['excused', 'Izin', 'Kuliah 6: aliran turbulen'],
     ['present', 'Hadir', 'Kuliah 7: kehilangan energi'],
   ].map(([status, statusText, description], i) => {

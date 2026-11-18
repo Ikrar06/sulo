@@ -237,6 +237,7 @@ describe('background sync never touches attendance', () => {
   });
 });
 
+
 // ---------- M7.3 fix: finding the attendance activity ----------
 
 import { courseStatus, diagnose, findRecapCmid, MAX_CMID_PROBES, recordSeenCmid } from '@sulo/core/presensi/service';
@@ -380,5 +381,41 @@ describe('a followed course before and after the recap', () => {
       new Set([1, 3]),
     );
     expect(g).toMatchObject({ coursesWithSnapshot: 2, followedWithSnapshot: 1, attendanceModules: 2, attendanceVisible: 1, modulesByName: { attendance: 2, assign: 1 }, recapRows: 1, followedWithNumbers: 1, followedNotInRecap: [3], knownCmids: [5] });
+  });
+});
+
+describe('details from a real SIKOLA page (sanitized: name, remarks)', () => {
+  const parsed = parseDetail(page('attendance-course-sessions'), TZ);
+  it('golden', async () => {
+    expect(parsed.kind).toBe('ok');
+    await expect(`${JSON.stringify(parsed, null, 2)}\n`).toMatchFileSnapshot('../fixtures/presensi/golden/detail-real.json');
+  });
+  it('reads every session: date and time from one cell, status, points', () => {
+    if (parsed.kind !== 'ok') throw new Error('shape');
+    expect(parsed.value.length).toBeGreaterThan(0);
+    expect(parsed.value[0]).toMatchObject({ dateText: 'Thu 20 Aug 2026', timeText: '7:50AM - 10:20AM', description: 'Pertemuan ke-1', status: 'present', points: { got: 2, max: 2 } });
+    // 20 August 2026, 07.50 WITA.
+    expect(parsed.value[0]!.at).toBe(Date.UTC(2026, 7, 19, 23, 50) / 1000);
+    expect(parsed.value.every((s) => s.at !== null && s.status !== 'unknown')).toBe(true);
+    expect(new Set(parsed.value.map((s) => s.status))).toEqual(new Set(['present', 'late', 'absent']));
+  });
+});
+
+describe('details: per-course cooldown and when the cooldown line shows', () => {
+  it('opening details right after the recap is not blocked; each course has its own 2 minutes', async () => {
+    const { client, deps } = await setup();
+    await refreshRecap(deps, { force: false });
+    // Same second: the recap's cooldown does not hold details back.
+    expect(await refreshDetail(deps, 36673, { force: false })).toEqual({ status: 'ok' });
+    expect(await refreshDetail(deps, 48298, { force: false })).toEqual({ status: 'ok' });
+    // Perbarui on the same course at once: its own cooldown.
+    expect((await refreshDetail(deps, 36673, { force: true })).status).toBe('cooldown');
+    expect(client.pages.filter((p) => p.includes('view=5'))).toHaveLength(2);
+  });
+
+  it('opening a view never reports "cooldown" for fresh data; it reports "fresh"', async () => {
+    const { deps } = await setup();
+    await refreshRecap(deps, { force: false });
+    expect(await refreshRecap(deps, { force: false })).toEqual({ status: 'fresh' });
   });
 });

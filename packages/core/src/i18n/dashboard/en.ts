@@ -134,7 +134,7 @@ export const dashEn: DashMessages = {
     notFetched: 'Not fetched yet',
     back: 'All courses',
     sessionsTitle: 'Sessions',
-    noDetail: 'No sessions here yet.',
+    noDetail: 'No sessions recorded yet.',
     status: { present: 'Present', late: 'Late', excused: 'Excused', absent: 'Absent' },
     remarks: 'Remarks',
     average: (pct: string) => `Average attendance ${pct}%`,

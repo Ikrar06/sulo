@@ -216,7 +216,7 @@ const STEPS = [
       await p.waitForTimeout(700);
       await moveTo(p, p.getByRole('link', { name: /Mekanika Fluida/i }).first(), 900);
       await click(p, p.getByRole('link', { name: /Mekanika Fluida/i }).first(), 1400);
-      await moveTo(p, p.getByText(/Tidak hadir|Absent/).first(), 1200);
+      await moveTo(p, p.getByText(/Alpa|Absent/).first(), 1200);
     },
   },
   {

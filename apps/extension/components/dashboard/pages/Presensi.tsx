@@ -39,6 +39,9 @@ export function PresensiPage({ d, data, actions, route }: PageProps) {
   const [note, setNote] = useState('');
 
   const ask = async (target: 'recap' | 'detail', force: boolean) => {
+    // Whether this view already shows data (the cooldown line only makes sense then).
+    const cmid = courseId === null ? undefined : presensi.recap?.rows.find((r) => r.courseId === courseId)?.cmid;
+    const hasData = target === 'recap' ? presensi.recap !== null : cmid !== undefined && presensi.details[String(cmid)] !== undefined;
     setBusy(true);
     const outcome = (await actions.send({ type: 'presensi/refresh', target, courseId: courseId ?? undefined, force })) as PresensiOutcome | null;
     setBusy(false);
@@ -49,7 +52,10 @@ export function PresensiPage({ d, data, actions, route }: PageProps) {
         : outcome.status === 'ok' || outcome.status === 'fresh'
         ? ''
         : outcome.status === 'cooldown'
-          ? w.cooldown
+          ? // Only for Perbarui pressed again with data on screen; opening a view never says it.
+            force && hasData
+            ? w.cooldown
+            : ''
           : outcome.status === 'unknown_shape'
             ? w.unknownShape
             : outcome.status === 'no_attendance'
@@ -90,13 +96,13 @@ export function PresensiPage({ d, data, actions, route }: PageProps) {
           <p className="max-w-[68ch] text-[14px] text-muted-foreground">{w.lead}</p>
         )}
         <div className="flex items-center gap-3">
-          <span className="text-[12px] text-muted-foreground">{fetchedAt === null ? w.never : w.updated(formatAgo(fetchedAt, data.now, m))}</span>
+          <span className="text-[12px] text-muted-foreground">{fetchedAt !== null ? w.updated(formatAgo(fetchedAt, data.now, m)) : busy ? w.loading : w.never}</span>
           <Button variant="outline" disabled={busy} onClick={() => void ask(course ? 'detail' : 'recap', true)}>
             {w.refresh}
           </Button>
         </div>
       </div>
-      {busy && fetchedAt === null && <p className="text-[14px] text-muted-foreground">{w.loading}</p>}
+      {busy && fetchedAt === null && !course && <p className="text-[14px] text-muted-foreground">{w.loading}</p>}
       {note && (
         <p role="status" className="text-[14px] text-muted-foreground">
           {note}
@@ -104,7 +110,7 @@ export function PresensiPage({ d, data, actions, route }: PageProps) {
       )}
 
       {course ? (
-        <Detail course={course} color={colors.get(course.id) ?? null} row={row} sessions={detail?.sessions ?? null} w={w} locale={locale} />
+        <Detail course={course} color={colors.get(course.id) ?? null} row={row} sessions={detail?.sessions ?? null} loading={busy && !detail} w={w} locale={locale} />
       ) : followed.length === 0 ? (
         <p className="text-[14px] text-muted-foreground">{w.noneMonitored}</p>
       ) : (
@@ -203,7 +209,22 @@ const STATUS_CLASS: Record<AttendanceStatus, string> = {
   absent: 'border-urgency-soon text-urgency-soon',
 };
 
-function Detail({ course, color, row, sessions, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; sessions: SessionRow[] | null; w: W; locale: string }) {
+/** Placeholder rows while one course's sessions are being fetched. */
+function SessionsSkeleton() {
+  return (
+    <ul className="mt-3 divide-y divide-border" aria-hidden="true">
+      {[0, 1, 2, 3].map((i) => (
+        <li key={i} className="flex items-center gap-3 py-3">
+          <span className="h-3 w-24 rounded bg-surface-raised" />
+          <span className="h-3 flex-1 rounded bg-surface-raised" />
+          <span className="h-4 w-16 rounded bg-surface-raised" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Detail({ course, color, row, sessions, loading, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; sessions: SessionRow[] | null; loading: boolean; w: W; locale: string }) {
   const masked = usePrivacy();
   return (
     <Card
@@ -220,7 +241,7 @@ function Detail({ course, color, row, sessions, w, locale }: { course: CourseRec
           {row.taken === 0 ? w.noSessions : [w.taken(row.taken), row.points ? w.points(row.points.got, row.points.max) : null].filter(Boolean).join(' · ')}
         </p>
       )}
-      {sessions === null ? null : sessions.length === 0 ? (
+      {sessions === null ? (loading ? <SessionsSkeleton /> : null) : sessions.length === 0 ? (
         <p className="mt-3 text-[14px] text-muted-foreground">{w.noDetail}</p>
       ) : (
         <ul className="mt-3 divide-y divide-border">

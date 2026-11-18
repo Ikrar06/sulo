@@ -125,8 +125,10 @@ export function averagePercent(rows: readonly RecapRow[]): number | null {
  * when the cached copy is missing or older than 24 hours.
  */
 export function mayRequest(cachedAt: UnixSeconds | null, lastRequestAt: UnixSeconds | null, now: UnixSeconds, force: boolean): PresensiOutcome | null {
-  if (lastRequestAt !== null && now - lastRequestAt < PRESENSI_COOLDOWN_SEC) return { status: 'cooldown', retryAt: lastRequestAt + PRESENSI_COOLDOWN_SEC };
+  // Opening a view with a fresh copy: nothing to fetch.
   if (!force && cachedAt !== null && now - cachedAt < PRESENSI_CACHE_SEC) return { status: 'fresh' };
+  // The same target asked again within 2 minutes (each target has its own cooldown).
+  if (lastRequestAt !== null && now - lastRequestAt < PRESENSI_COOLDOWN_SEC) return { status: 'cooldown', retryAt: lastRequestAt + PRESENSI_COOLDOWN_SEC };
   return null;
 }
 
@@ -187,17 +189,19 @@ export async function refreshDetail(deps: PresensiDeps, courseId: CourseId, opti
   const data = await readPresensi(deps.store, deps.userId);
   const cmid = data.recap?.rows.find((r) => r.courseId === courseId)?.cmid ?? attendanceCmids(await readUser(deps.store, deps.userId, 'snapshots')).get(courseId);
   if (cmid === undefined) return { status: 'no_attendance' };
-  const wait = mayRequest(data.details[String(cmid)]?.fetchedAt ?? null, data.lastRequestAt, now, options.force);
+  const key = String(cmid);
+  const wait = mayRequest(data.details[key]?.fetchedAt ?? null, data.detailRequestAt?.[key] ?? null, now, options.force);
   if (wait) return wait;
-  await save(deps, { ...data, lastRequestAt: now });
+  const detailRequestAt = { ...(data.detailRequestAt ?? {}), [key]: now };
+  await save(deps, { ...data, detailRequestAt });
   const page = await getPage(deps, detailPath(cmid));
   if (!('html' in page)) return page;
   const parsed = parseDetail(page.html, deps.timeZone);
   if (parsed.kind !== 'ok') {
-    await save(deps, { ...data, lastRequestAt: now, unknownShapeAt: now });
+    await save(deps, { ...data, detailRequestAt, unknownShapeAt: now });
     return { status: 'unknown_shape' };
   }
-  await save(deps, { ...data, lastRequestAt: now, unknownShapeAt: null, details: { ...data.details, [String(cmid)]: { fetchedAt: now, sessions: parsed.value } } });
+  await save(deps, { ...data, detailRequestAt, unknownShapeAt: null, details: { ...data.details, [key]: { fetchedAt: now, sessions: parsed.value } } });
   return { status: 'ok' };
 }
 

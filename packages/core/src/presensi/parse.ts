@@ -105,6 +105,18 @@ export function startMinuteOf(raw: string): number | null {
   return h < 24 && min < 60 ? h * 60 + min : null;
 }
 
+/**
+ * The date cell: "Wed 8.10.25<br>7:30AM - 10AM" (two lines) or, as SIKOLA
+ * writes it, "Thu 20 Aug 2026 7:50AM - 10:20AM" (one line): split at the
+ * first time.
+ */
+export function splitDateTime(cell: string): [string, string] {
+  const [first = '', second = ''] = cell.split('\n');
+  if (second) return [first.trim(), second.trim()];
+  const m = /\s(\d{1,2}(?:[:.]\d{2})?\s*(?:am|pm)?\s*[-–]\s*\d{1,2}(?:[:.]\d{2})?\s*(?:am|pm)?)\s*$/i.exec(first);
+  return m ? [first.slice(0, m.index).trim(), m[1]!.trim()] : [first.trim(), ''];
+}
+
 /** One course's sessions (view=5, "All"). */
 export function parseDetail(html: string, timeZone: string): ParseResult<SessionRow[]> {
   const table = [...html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].map((m) => m[1]!).find((t) => /\bdatecol\b/.test(t) && /\bstatuscol\b/.test(t));
@@ -119,7 +131,7 @@ export function parseDetail(html: string, timeZone: string): ParseResult<Session
   for (const [, row] of body[2]!.matchAll(ROW)) {
     const cells = [...row!.matchAll(CELL)].map((m) => m[2]!);
     if (cells.length < headers.length) continue;
-    const [dateText = '', timeText = ''] = text(cells[at.date]!).split('\n');
+    const [dateText, timeText] = splitDateTime(text(cells[at.date]!));
     const day = dateKeyOf(dateText);
     const minute = startMinuteOf(timeText);
     const statusText = text(cells[at.status]!);
