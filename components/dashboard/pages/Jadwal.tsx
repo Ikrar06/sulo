@@ -227,7 +227,7 @@ function WeekGrid({ meetings, courses, dateOf, holidays, today, now }: ViewProps
           );
         })}
       </div>
-      <div className="grid pt-2" style={columns}>
+      <div className="grid pt-2 pb-3" style={columns}>
         <div className="relative" style={{ height }}>
           {hours.map((h) => (
             // Right-aligned, centred on its own hour line.
@@ -329,7 +329,8 @@ function ClassBlock({ x, courses, fill = false }: { x: LinkedMeeting; courses: r
           title={full}
           aria-label={full}
           // Radius 8, padding 6 and 8, 1 px edge; text in the main text color.
-          className={`flex w-full cursor-pointer flex-col overflow-hidden rounded-lg border px-2 py-[6px] text-left text-[12px] leading-4 text-foreground outline-none hover:brightness-110 focus-ring:ring-2 focus-ring:ring-focus ${fill ? 'h-full' : ''}` /* lint-ui-allow: block padding 6 x 8 as specified */}
+          // Padding 6 x 8; shorter blocks keep 8 at the sides but less above and below, so their lines fit (40 px for 50 minutes).
+          className={`flex w-full cursor-pointer flex-col overflow-hidden rounded-lg border px-2 text-left text-[12px] text-foreground outline-none hover:brightness-110 focus-ring:ring-2 focus-ring:ring-focus ${layout === 'tall' ? 'py-[6px] leading-4' : layout === 'medium' ? 'justify-center py-[3px] leading-[14px]' : 'justify-center py-0 leading-4'} ${fill ? 'h-full' : ''}` /* lint-ui-allow: block padding 6 x 8 as specified; 3 px for 40 to 59 minutes */}
           style={blockColors(x.color)}
         >
           {layout === 'tall' && (
