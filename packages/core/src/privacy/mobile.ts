@@ -85,6 +85,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           { id: 'Sesi login SIKOLA dienkripsi dengan AES-256-GCM. Kuncinya ada di Android Keystore dan tidak bisa dikeluarkan dari HP.', en: 'The SIKOLA sign-in session is encrypted with AES-256-GCM. Its key lives in the Android Keystore and cannot leave the phone.' },
           { id: 'Sesi itu tidak pernah sampai ke bagian tampilan aplikasi, tidak masuk log, dan tidak ikut info laporan bug.', en: 'The session never reaches the app’s interface code, never goes into a log, and is never part of the bug report info.' },
           { id: 'Kunci aplikasi (opsional) meminta sidik jari atau kunci layar HP setiap Sulo dibuka.', en: 'The optional app lock asks for your fingerprint or the phone’s screen lock whenever Sulo opens.' },
+          { id: 'Data Sulo baru bisa dibuka setelah HP dibuka pertama kali sejak dinyalakan. Kalau kunci sesi hilang atau tidak bisa dipakai lagi, sesi yang tidak terbaca dihapus dan Sulo meminta kamu masuk lagi.', en: 'Sulo’s data can only be opened after the phone has been unlocked once since it was turned on. If the session key is lost or can no longer be used, the unreadable session is deleted and Sulo asks you to sign in again.' },
         ],
       },
     ],

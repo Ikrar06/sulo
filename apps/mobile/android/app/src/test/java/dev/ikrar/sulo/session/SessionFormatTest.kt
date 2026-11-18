@@ -70,6 +70,40 @@ class SessionVaultTest {
         val blob = slots.map["blob"]!!
         slots.map["blob"] = blob.dropLast(4) + if (blob.endsWith("AAAA")) "BBBB" else "AAAA"
         assertNull(v.load())
+        // Unreadable data is an ended session: deleted, "expired", sign in again.
+        assertEquals("expired", v.status())
+        assertFalse(slots.map.containsKey("blob"))
+    }
+
+    /** A Keystore that lost or invalidated its key (screen lock changed, key deleted, restored backup). */
+    private class BrokenCrypto(private val destroyFails: Boolean = false) : Crypto {
+        override fun encrypt(plain: ByteArray): String = "v1:AAAAAAAAAAAAAAAA:AAAA"
+        override fun decrypt(blob: String): ByteArray = throw java.security.UnrecoverableKeyException("key unavailable")
+        override fun destroyKey() { if (destroyFails) throw java.security.KeyStoreException("busy") }
+    }
+
+    @Test
+    fun missingKeyEndsTheSessionWithoutCrashing() {
+        val slots = MemorySlots()
+        val v = SessionVault(slots, BrokenCrypto())
+        v.save(SikolaSession("cookie-value-123", "Sesskey0001"))
+        assertEquals("connected", v.status())
+        assertNull(v.load())
+        assertEquals("expired", v.status())
+        assertFalse(slots.map.containsKey("blob"))
+        // A second read finds nothing and stays calm.
+        assertNull(v.load())
+    }
+
+    @Test
+    fun aKeystoreThatCannotDeleteNeverCrashes() {
+        val slots = MemorySlots()
+        val v = SessionVault(slots, BrokenCrypto(destroyFails = true))
+        v.save(SikolaSession("cookie-value-123", null))
+        assertNull(v.load())
+        assertEquals("expired", v.status())
+        v.wipe()
+        assertEquals("none", v.status())
     }
 
     @Test

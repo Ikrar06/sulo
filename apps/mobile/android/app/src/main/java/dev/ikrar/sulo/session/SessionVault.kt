@@ -42,13 +42,21 @@ class SessionVault(private val slots: Slots, private val crypto: Crypto) {
         slots.put(KEY_STATE, STATE_CONNECTED)
     }
 
-    /** null when nothing is stored or it can no longer be decrypted (key gone, data altered). */
+    /**
+     * null when nothing is stored. A blob that can no longer be decrypted
+     * (the Keystore key is gone, invalidated or changed, or the data was
+     * altered) is treated as an ended session: it is deleted, the key with
+     * it, and the state becomes "expired" so the app asks to sign in again.
+     * Never throws.
+     */
     fun load(): SikolaSession? {
         val blob = slots.get(KEY_BLOB) ?: return null
-        return runCatching {
+        val session = runCatching {
             val json = JSONObject(String(crypto.decrypt(blob), Charsets.UTF_8))
             SikolaSession(json.getString("m"), json.optString("s").ifEmpty { null })
         }.getOrNull()
+        if (session == null) runCatching { markExpired() }
+        return session
     }
 
     fun status(): String = when (slots.get(KEY_STATE)) {
@@ -60,14 +68,14 @@ class SessionVault(private val slots: Slots, private val crypto: Crypto) {
     /** SIKOLA said the session ended: keep nothing usable, remember "expired" for the screen. */
     fun markExpired() {
         slots.clear()
-        crypto.destroyKey()
+        runCatching { crypto.destroyKey() }
         slots.put(KEY_STATE, STATE_EXPIRED)
     }
 
     /** "Keluar": the ciphertext, the state and the Keystore key itself. */
     fun wipe() {
         slots.clear()
-        crypto.destroyKey()
+        runCatching { crypto.destroyKey() }
     }
 
     companion object {
