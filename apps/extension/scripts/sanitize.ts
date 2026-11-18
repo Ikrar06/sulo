@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { sanitizeJson } from '../../../packages/core/src/sanitize/json.ts';
 import { sanitizeAttendanceHtml, signedInNames } from '../../../packages/core/src/sanitize/html.ts';
+import { PAGE_USER_ORDER, pageUserCandidates, pageUserId } from '../../../packages/core/src/presensi/page-user.ts';
 import { findLeaks } from '../../../packages/core/src/sanitize/leak-rules.mjs';
 
 const SIKOLA_ORIGIN = 'https://sikola-v2.unhas.ac.id';
@@ -63,6 +64,10 @@ function sanitizeHtmlFile(input: string, output: string): number {
   }
   writeFileSync(output, html);
   console.log(`Tersanitasi: ${output}`);
+  // Where the page names its account (counts and agreement only, never an id).
+  const found = pageUserCandidates(raw);
+  const distinct = new Set(PAGE_USER_ORDER.flatMap((s) => found[s]));
+  console.log(`Penanda akun: ${PAGE_USER_ORDER.map((s) => `${s} ${found[s].length}x (${new Set(found[s]).size} nilai)`).join(', ')}; semua sumber sepakat: ${distinct.size === 1 ? 'ya' : distinct.size === 0 ? 'tidak ada' : 'tidak'}; terbaca: ${pageUserId(raw) !== null ? 'ya' : 'tidak'}`);
   console.log(`Diganti atau dibuang: ${Object.entries(report).filter(([k]) => k !== 'keptRegion').map(([k, v]) => `${k} ${v}`).join(', ')}`);
   return 0;
 }

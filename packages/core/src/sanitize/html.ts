@@ -8,7 +8,10 @@
 // that name everywhere. Emails, student numbers, national ids, user ids,
 // sesskeys and teachers' remarks are replaced too, and course names become
 // "Mata Kuliah Sintetis N". It returns how many of each it replaced, never
-// the values.
+// the values. The page's account marker (presensi/page-user.ts) is kept as
+// a synthetic data-userid="1", so tests see the page as SIKOLA sends it.
+
+import { pageUserId } from '../presensi/page-user.ts';
 
 export interface HtmlSanitizeReport {
   keptRegion: boolean;
@@ -30,6 +33,8 @@ export interface HtmlSanitizeReport {
 const SYNTHETIC_NAME = 'Mahasiswa Sintetis';
 const SYNTHETIC_EMAIL = 'mahasiswa@example.invalid';
 const SYNTHETIC_NIM = 'D000000001';
+/** The navbar's account marker, with the synthetic id every sanitized user id gets. */
+export const SYNTHETIC_ACCOUNT_MARKER = '<div class="popover-region" data-userid="1"></div>\n';
 
 const stripTags = (s: string) => s.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -118,5 +123,5 @@ export function sanitizeAttendanceHtml(html: string): { html: string; report: Ht
 
   // Person markers that should never survive: their count, for the report.
   report.personMarkersLeft = (out.match(/userpicture|userinitials|usertext|\/user\/(?:profile|view)\.php/g) ?? []).length;
-  return { html: `<!doctype html>\n<!-- Sanitized SIKOLA attendance page (main region only). -->\n<html><body>\n${out.trim()}\n</body></html>\n`, report };
+  return { html: `<!doctype html>\n<!-- Sanitized SIKOLA attendance page (main region only). -->\n<html><body>\n${pageUserId(html) !== null ? SYNTHETIC_ACCOUNT_MARKER : ''}${out.trim()}\n</body></html>\n`, report };
 }

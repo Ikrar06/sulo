@@ -6,6 +6,8 @@ import { parseDetail, parseRecap, statusOf } from '@sulo/core/presensi/parse';
 import { MIN_ATTENDANCE_PERCENT, PRESENSI_CACHE_SEC, PRESENSI_COOLDOWN_SEC } from '@sulo/core/presensi/rules';
 import { attendanceCmids, averagePercent, lowestBelowAverage, mayRequest, onlyMonitored, readPresensi, refreshDetail, refreshRecap, type PresensiDeps } from '@sulo/core/presensi/service';
 import { detailPath, isReadOnlyAttendanceUrl, recapPath } from '@sulo/core/presensi/urls';
+import { pageUserId } from '@sulo/core/presensi/page-user';
+import { ACCOUNT_PENDING_KEY } from '@sulo/core/account/pending';
 import { switchUser, writeUser } from '@sulo/core/storage';
 import { runSync } from '@sulo/core/sync/run-sync';
 import type { SyncTrigger } from '@sulo/core/types';
@@ -179,7 +181,7 @@ describe('fetching: monitored courses only, 24-hour cache, 2-minute cooldown', (
     const { deps, store } = await setup();
     await refreshRecap(deps, { force: false });
     const before = (await readPresensi(store, 1)).recap;
-    deps.client = pageClient(() => ({ kind: 'ok', html: '<html>changed</html>' }));
+    deps.client = pageClient(() => ({ kind: 'ok', html: '<html><div data-userid="1"></div>changed</html>' }));
     deps.clock.now = (() => NOW + PRESENSI_CACHE_SEC) as never;
     expect(await refreshRecap(deps, { force: false })).toEqual({ status: 'unknown_shape' });
     expect((await readPresensi(store, 1)).recap).toEqual(before);
@@ -496,5 +498,75 @@ describe('Studi card: lowest course below the average', () => {
     expect(lowestBelowAverage([row(1, 5, 5), row(2, 4, 4)])).toBeNull();
     expect(lowestBelowAverage([row(1, 5, 5), row(2, 0, 0, 0)])).toBeNull();
     expect(lowestBelowAverage([])).toBeNull();
+  });
+});
+
+describe('a fetched attendance page must answer for the active account', () => {
+  const withUser = (html: string, id: number | null) => html.replace(/<div class="popover-region" data-userid="1"><\/div>\n/, id === null ? '' : `<div class="popover-region" data-userid="${id}"></div>\n`);
+  const recapHtml = page('attendance-all-courses');
+  const detailHtml = page('attendance-course-sessions.synthetic');
+
+  async function run(target: 'recap' | 'detail', id: number | null) {
+    const { store, deps } = await setup();
+    // Details need the recap first (its cmid); that one is the account's own.
+    if (target === 'detail') await refreshRecap(deps, { force: false });
+    const before = await readPresensi(store, 1);
+    deps.client = pageClient((p) => ({ kind: 'ok', html: p.includes('mode=1') ? withUser(recapHtml, id) : withUser(detailHtml, id) }));
+    const outcome = target === 'recap' ? await refreshRecap(deps, { force: true }) : await refreshDetail(deps, 36673, { force: false });
+    return { outcome, before, after: await readPresensi(store, 1), pending: await store.get(ACCOUNT_PENDING_KEY) };
+  }
+
+  for (const target of ['recap', 'detail'] as const) {
+    it(`${target}: same account, stored`, async () => {
+      const { outcome, after, pending } = await run(target, 1);
+      expect(outcome).toEqual({ status: 'ok' });
+      expect(target === 'recap' ? after.recap?.rows.length : Object.keys(after.details).length).toBeGreaterThan(0);
+      expect(pending).toBeUndefined();
+    });
+
+    it(`${target}: another account, nothing stored and the switch is marked`, async () => {
+      const { outcome, before, after, pending } = await run(target, 2);
+      expect(outcome).toEqual({ status: 'account_mismatch' });
+      expect(after.recap).toEqual(before.recap);
+      expect(after.details).toEqual(before.details);
+      expect(after.lastOutcome).toEqual(before.lastOutcome);
+      expect(pending).toMatchObject({ userId: 2 });
+    });
+
+    it(`${target}: no account on the page, nothing stored, "user_unverified" for the diagnosis`, async () => {
+      const { outcome, before, after, pending } = await run(target, null);
+      expect(outcome).toEqual({ status: 'user_unverified' });
+      expect(after.recap).toEqual(before.recap);
+      expect(after.details).toEqual(before.details);
+      expect(after.lastOutcome?.status).toBe('user_unverified');
+      expect(pending).toBeUndefined();
+    });
+  }
+
+  it('the automatic recap without an account on the page is tried again in the next sync', async () => {
+    const { store, deps } = await setup();
+    deps.client = pageClient(() => ({ kind: 'ok', html: withUser(recapHtml, null) }));
+    expect(await refreshRecap(deps, { force: false, maxProbes: 0 })).toEqual({ status: 'user_unverified' });
+    // Still no recap: the next sync (past the 2-minute cooldown) asks again.
+    expect((await readPresensi(store, 1)).recap).toBeNull();
+  });
+});
+
+describe('reading the account id of a page (numbers only)', () => {
+  it('data-userid first, then M.cfg, then the profile link', () => {
+    expect(pageUserId('<div data-userid="7"></div><section id="region-main"></section>')).toBe(7);
+    expect(pageUserId('<script>M.cfg = {"wwwroot":"x","userId":8};</script><section id="region-main"></section>')).toBe(8);
+    expect(pageUserId('<a href="/user/profile.php?id=9">Profil</a><section id="region-main"></section>')).toBe(9);
+    expect(pageUserId('<div data-userid="7"></div><a href="/user/profile.php?id=9"></a>')).toBe(7);
+  });
+
+  it('ids inside the main region (other people) are ignored; disagreeing ids give none', () => {
+    expect(pageUserId('<section id="region-main"><div data-userid="5"></div><a href="/user/profile.php?id=6"></a></section>')).toBeNull();
+    expect(pageUserId('<div data-userid="7"></div><div data-userid="8"></div><section id="region-main"></section>')).toBeNull();
+    expect(pageUserId('<div data-userid="abc"></div><section id="region-main"></section>')).toBeNull();
+  });
+
+  it('every sanitized attendance fixture carries the synthetic account', () => {
+    for (const name of ['attendance-all-courses', 'attendance-course', 'attendance-course-sessions', 'attendance-course-sessions.synthetic']) expect(pageUserId(page(name))).toBe(1);
   });
 });

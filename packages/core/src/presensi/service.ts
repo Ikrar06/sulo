@@ -5,6 +5,8 @@
 // Answers are cached 24 hours; "Perbarui" waits 2 minutes between requests.
 // Only monitored courses are kept.
 
+import { ACCOUNT_PENDING_KEY, newPending } from '../account/pending';
+import { pageUserId } from './page-user';
 import { calls } from '../moodle/calls';
 import type { MoodleClient } from '../moodle/client';
 import { parseCall } from '../moodle/schemas';
@@ -37,7 +39,11 @@ export type PresensiOutcome =
   | { status: 'no_attendance' }
   | { status: 'not_monitored' }
   | { status: 'unknown_shape' }
-  | { status: 'failed'; reason: string };
+  | { status: 'failed'; reason: string }
+  /** The page answered for another SIKOLA account: nothing stored, the switch is marked. */
+  | { status: 'account_mismatch' }
+  /** The page names no account: nothing stored, retried next time. */
+  | { status: 'user_unverified' };
 
 export async function readPresensi(store: KeyValueStore, userId: UserId): Promise<PresensiData> {
   return { ...EMPTY_PRESENSI, ...((await readUser(store, userId, 'presensi')) ?? {}) };
@@ -158,7 +164,17 @@ async function getPage(deps: PresensiDeps, path: string): Promise<{ html: string
   // Read-only by construction; checked again so no other URL can slip in.
   if (!isReadOnlyAttendanceUrl(path)) return { status: 'failed', reason: 'NOT_ALLOWLISTED' };
   const page = await deps.client.fetchPage(path, { source: 'attendance' });
-  if (page.kind === 'ok') return { html: page.html };
+  if (page.kind === 'ok') {
+    // Only the page's numeric account id is read (presensi/page-user.ts).
+    const pageUser = pageUserId(page.html);
+    if (pageUser === null) return { status: 'user_unverified' };
+    if (pageUser !== deps.userId) {
+      // Like a sync that meets another account: hide, the popup asks.
+      await deps.store.set(ACCOUNT_PENDING_KEY, newPending(pageUser, deps.clock.now()));
+      return { status: 'account_mismatch' };
+    }
+    return { html: page.html };
+  }
   return { status: 'failed', reason: page.kind === 'refused' ? page.reason : page.kind };
 }
 
@@ -186,6 +202,8 @@ export async function refreshRecap(deps: PresensiDeps, options: { force: boolean
   await save(deps, { ...data, knownCmids: known, lastRequestAt: now });
   const page = await getPage(deps, recapPath(found.cmid));
   if (!('html' in page)) {
+    // Another account's page: nothing at all is written under this one.
+    if (page.status === 'account_mismatch') return page;
     await save(deps, { ...data, knownCmids: known, lastRequestAt: now, lastOutcome: note(page.status, 'reason' in page ? page.reason : undefined) });
     return page;
   }
@@ -219,7 +237,10 @@ export async function refreshDetail(deps: PresensiDeps, courseId: CourseId, opti
   const detailRequestAt = { ...(data.detailRequestAt ?? {}), [key]: now };
   await save(deps, { ...data, detailRequestAt });
   const page = await getPage(deps, detailPath(cmid));
-  if (!('html' in page)) return page;
+  if (!('html' in page)) {
+    if (page.status === 'user_unverified') await save(deps, { ...data, detailRequestAt, lastOutcome: { at: now, status: 'user_unverified', reason: 'detail' } });
+    return page;
+  }
   const parsed = parseDetail(page.html, deps.timeZone);
   if (parsed.kind !== 'ok') {
     await save(deps, { ...data, detailRequestAt, unknownShapeAt: now });
