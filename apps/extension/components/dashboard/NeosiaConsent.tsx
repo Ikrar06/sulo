@@ -2,9 +2,9 @@
 // permission prompt. Its text is NEOSIA_CONSENT, the same text the privacy
 // page shows. Focus starts on "Batal" (Radix AlertDialog).
 
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@sulo/ui/ui/alert-dialog';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { NEOSIA_CONSENT as C } from '@sulo/core/neosia/consent';
 

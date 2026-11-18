@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { BellIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { BellIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Popover, PopoverContent, PopoverTrigger } from '@sulo/ui/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { UpdateSettingsChecks, UpdatesPanel } from '@/components/updates/UpdatesPanel';
 import { markAllSeen } from '@sulo/core/radar/log';
 import { categoryOf, UPDATE_CATEGORIES, type UpdateCategory } from '@sulo/core/radar/settings';

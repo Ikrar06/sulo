@@ -1,5 +1,5 @@
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -7,7 +7,7 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@sulo/ui/ui/alert-dialog';
 
 /**
  * "Hapus semua data": says in plain words what goes and that SIKOLA is not

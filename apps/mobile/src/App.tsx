@@ -9,7 +9,7 @@ import { mobileWords } from '@sulo/core/i18n/mobile';
 import { readPrefs } from '@sulo/core/prefs';
 import type { Platform } from '@sulo/core/platform';
 import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
-import { Mascot } from '../../extension/components/mascot/Mascot';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { DevScreen } from './DevScreen';
 import { scheduleReminders } from './reminders';
 import { SuloSession, type SessionStatus } from './session';

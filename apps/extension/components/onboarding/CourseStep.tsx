@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { ChevronDownIcon, SearchIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Button } from '@sulo/ui/ui/button';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
 import { ACTIVE_THRESHOLD, isCourseActive } from '@sulo/core/courses/active-score';
 import { courseNameWithClass } from '@sulo/core/courses/display-name';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import type { CourseId, CourseRecord } from '@sulo/core/types';
 import { Lead, Title } from './Shell';
 

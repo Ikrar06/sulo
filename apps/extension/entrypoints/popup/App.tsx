@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { sikolaUrl } from '@sulo/core/links';
 import { browser } from 'wxt/browser';
-import { I18nProvider } from '@/components/i18n';
+import { I18nProvider } from '@sulo/ui/i18n';
 import { PopupView } from '@/components/popup/PopupView';
 import { createBrowserStore } from '@/src/platform/store';
 import { systemClock } from '@sulo/core/clock';

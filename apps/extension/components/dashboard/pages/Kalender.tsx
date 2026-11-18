@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { AlertIcon, ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { AlertIcon, ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
+import { Button } from '@sulo/ui/ui/button';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { calendarEvents, CALENDAR_GROUPS, holidayDays, type CalendarGroup, type TaskForCalendar } from '@sulo/core/calendar/groups';
 import { monthGrid, shiftMonth } from '@sulo/core/calendar/month';

@@ -1,11 +1,11 @@
 import { useId, type ComponentType, type SVGProps } from 'react';
 import { browser } from 'wxt/browser';
-import { ExternalIcon } from '@/components/icons';
+import { ExternalIcon } from '@sulo/ui/icons';
 import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, REPO_URL, TRAKTEER_URL, type CreatorLinkId } from '@sulo/core/links';
-import { DocLayout } from '@/components/ui/doc-layout';
-import { SupportButton } from '@/components/ui/support-button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '../icons';
+import { DocLayout } from '@sulo/ui/ui/doc-layout';
+import { SupportButton } from '@sulo/ui/ui/support-button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
+import { GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '@sulo/ui/dashboard-icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
 

@@ -1,9 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { browser } from 'wxt/browser';
-import { I18nProvider } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { I18nProvider } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import { NEOSIA_PAGES, parseRoute, SENSITIVE_PAGES, type Page, type Route } from '@sulo/core/dashboard/routes';
-import { PrivacyProvider } from '@/components/private';
+import { PrivacyProvider } from '@sulo/ui/private';
 import { NeosiaArrivals } from './NeosiaArrivals';
 import { messagesFor, resolveLocale } from '@sulo/core/i18n';
 import { dashFor } from '@sulo/core/i18n/dashboard';
@@ -11,7 +11,7 @@ import { DashboardProvider, timeZone, useDashboard } from './data';
 import { DashboardShell } from './Shell';
 import { StatusNotice } from './StatusNotice';
 import { useCountdownTicker } from '@/components/countdown-ticker';
-import { ToastProvider } from '@/components/ui/toast';
+import { ToastProvider } from '@sulo/ui/ui/toast';
 import { refreshFeedback } from '@sulo/core/view/refresh-feedback';
 import type { PageProps } from './types';
 

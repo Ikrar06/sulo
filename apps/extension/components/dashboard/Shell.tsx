@@ -1,15 +1,15 @@
 import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { browser } from 'wxt/browser';
-import { useI18n } from '@/components/i18n';
-import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronRightIcon, RefreshIcon } from '@sulo/ui/icons';
 import { BrandMark } from '@/components/BrandMark';
-import { Button } from '@/components/ui/button';
+import { Button } from '@sulo/ui/ui/button';
 import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@sulo/core/format/time';
 import { PAGES, routeHash, type Page } from '@sulo/core/dashboard/routes';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
-import { AttendanceIcon, BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AttendanceIcon, BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from '@sulo/ui/dashboard-icons';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import './dashboard.css';
 
@@ -117,7 +117,7 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
               </Button>
             </div>
           )}
-            {/* Privacy mode: masks names, grades, GPA and credits (components/private.tsx). A crossed eye while on. */}
+            {/* Privacy mode: masks names, grades, GPA and credits (packages/ui/src/private.tsx). A crossed eye while on. */}
             {privacy && (
               <TooltipProvider>
                 <Tooltip>

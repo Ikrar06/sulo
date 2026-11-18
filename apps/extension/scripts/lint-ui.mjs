@@ -38,7 +38,7 @@ function eachLine(file, fn) {
 }
 
 const GRADIENT_OK = /mascot|brand|logo|icons\/|tokens\.css/;
-const sources = [...walk(join(root, 'components'), ['.tsx', '.ts', '.css']), ...walk(join(root, 'entrypoints'), ['.tsx', '.ts', '.html', '.css']), ...walk(join(root, 'assets'), ['.css'])];
+const sources = [...walk(join(root, 'components'), ['.tsx', '.ts', '.css']), ...walk(join(root, 'entrypoints'), ['.tsx', '.ts', '.html', '.css']), ...walk(join(root, 'assets'), ['.css']), ...walk(join(root, '../../packages/ui/src'), ['.tsx', '.ts', '.css'])];
 
 for (const file of sources) {
   const rel = relative(root, file);

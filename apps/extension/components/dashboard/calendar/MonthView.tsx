@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { addDays } from '@sulo/core/calendar/dates';
 import { eventsOnDay, type CalEvent } from '@sulo/core/calendar/groups';

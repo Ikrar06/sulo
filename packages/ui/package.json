@@ -1,0 +1,26 @@
+{
+  "name": "@sulo/ui",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Sulo's shared interface pieces for the extension and the Android app: React components with no chrome.*, no WXT and no Capacitor.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "lint": "node scripts/check-platform-imports.mjs"
+  },
+  "dependencies": {
+    "@sulo/core": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.5.2",
+    "radix-ui": "^1.8.1",
+    "react": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^5.9.3"
+  }
+}

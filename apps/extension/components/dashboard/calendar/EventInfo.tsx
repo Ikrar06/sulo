@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import { formatRange } from '@sulo/core/calendar/countdown';
 import { mentionsAngkatan } from '@sulo/core/calendar/month';
 import type { Kegiatan, Libur } from '@sulo/core/calendar/schema';

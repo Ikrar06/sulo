@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronDownIcon, SearchIcon } from '@/components/icons';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Input } from '@sulo/ui/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
@@ -14,7 +14,7 @@ import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } fro
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { timeZone } from '../data';
 import { useDoneUndo } from '../done-undo';
-import { Mascot } from '@/components/mascot/Mascot';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { TaskDetails } from '../TaskDetails';
 import type { PageProps } from '../types';
 

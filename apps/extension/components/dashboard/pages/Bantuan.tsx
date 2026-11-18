@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronDownIcon, ExternalIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
-import { DocLayout } from '@/components/ui/doc-layout';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronDownIcon, ExternalIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { DocLayout } from '@sulo/ui/ui/doc-layout';
 import { FAQ, HOW_IT_WORKS } from '@sulo/core/help/content';
 import { GUIDE_TITLE } from '@sulo/core/help/guide';
 import { Guide } from '../Guide';

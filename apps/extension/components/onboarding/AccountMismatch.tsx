@@ -1,5 +1,5 @@
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import { Lead, Title } from './Shell';
 
 /** The setup page while another SIKOLA account is detected: same choices as the popup. */

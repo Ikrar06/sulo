@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronRightIcon, RefreshIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Button } from '@sulo/ui/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { CopyScope } from '@sulo/core/format/copy-list';
 import { formatAgo, formatClock } from '@sulo/core/format/time';
 import type { ReminderSettings } from '@sulo/core/reminders/settings';

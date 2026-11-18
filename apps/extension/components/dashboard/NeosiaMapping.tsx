@@ -3,8 +3,8 @@
 // A manual choice is stored in neosia:courseMap and wins over the code.
 
 import { useMemo } from 'react';
-import { useI18n } from '@/components/i18n';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { courseNameWithClass } from '@sulo/core/courses/display-name';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { setCourseLink } from '@sulo/core/neosia/course-map';

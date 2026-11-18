@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cn } from "cn"
 import { Select as SelectPrimitive } from "radix-ui"
-import { CheckIcon, ChevronDownIcon } from "@/components/icons"
+import { CheckIcon, ChevronDownIcon } from "../icons"
 
 // Sulo's dropdown. Never use the browser's native <select> (docs/UI.md): lint-ui-allow
 // its arrow sits against the edge and it does not follow the theme.

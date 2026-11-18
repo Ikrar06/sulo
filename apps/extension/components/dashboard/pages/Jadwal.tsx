@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Private } from '@/components/private';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Private } from '@sulo/ui/private';
+import { Button } from '@sulo/ui/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@sulo/ui/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { addDays } from '@sulo/core/calendar/dates';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { courseNameWithClass } from '@sulo/core/courses/display-name';
@@ -22,7 +22,7 @@ import { blockBox, blockLayout, gridDays, gridRange, HOUR_PX, lanes, NO_SCROLL_S
 import { localParts } from '@sulo/core/reminders/zoned';
 import type { CourseRecord } from '@sulo/core/types';
 import { local, timeZone } from '../data';
-import { InfoCircleIcon } from '../icons';
+import { InfoCircleIcon } from '@sulo/ui/dashboard-icons';
 import { useNeosiaConnect } from '../neosia-connect';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';

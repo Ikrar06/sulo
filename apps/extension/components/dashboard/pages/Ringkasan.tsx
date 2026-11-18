@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronRightIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { dayPart, greetingText } from '@sulo/core/dashboard/greeting';
 import { loadMap } from '@sulo/core/dashboard/load-map';
 import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@sulo/core/dashboard/overview';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { useDoneUndo } from '../done-undo';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { countdownOrLate, formatRemaining } from '@sulo/core/format/time';

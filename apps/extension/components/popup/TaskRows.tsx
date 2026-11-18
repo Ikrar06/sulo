@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronDownIcon, ClockIcon } from '@/components/icons';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatDueClock, localeOf } from '@sulo/core/format/time';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { DueFormat } from '@sulo/core/prefs';
 import type { Urgency } from '@sulo/core/tasks/group';
 import type { UnixSeconds } from '@sulo/core/types';

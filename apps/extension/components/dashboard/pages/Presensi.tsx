@@ -6,9 +6,9 @@
 // (presensi/rules.ts MIN_ATTENDANCE_PERCENT). Remarks are hidden in privacy mode.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { Private, usePrivacy } from '@/components/private';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Private, usePrivacy } from '@sulo/ui/private';
+import { Button } from '@sulo/ui/ui/button';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { assignCourseColors } from '@sulo/core/courses/colors';
 import { courseAlias } from '@sulo/core/courses/display-name';
@@ -19,7 +19,7 @@ import { remarkText, sessionTimeText } from '@sulo/core/presensi/display';
 import type { AttendanceStatus, RecapRow, SessionRow } from '@sulo/core/presensi/types';
 import { EMPTY_PRESENSI } from '@sulo/core/presensi/types';
 import type { CourseRecord } from '@sulo/core/types';
-import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
+import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
 

@@ -1,4 +1,4 @@
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import { formatDateKey, formatRange } from '@sulo/core/calendar/countdown';
 import { eventsOnDay, upcomingEvents, type CalEvent } from '@sulo/core/calendar/groups';
 import { countdownLabel } from '@sulo/core/format/countdown';

@@ -1,8 +1,8 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
-import { AlertIcon, ChevronDownIcon } from '@/components/icons';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Switch } from '@/components/ui/switch';
+import { AlertIcon, ChevronDownIcon } from '@sulo/ui/icons';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
+import { Popover, PopoverContent, PopoverTrigger } from '@sulo/ui/ui/popover';
+import { Switch } from '@sulo/ui/ui/switch';
 import { isCourseActive } from '@sulo/core/courses/active-score';
 import { assignCourseColors } from '@sulo/core/courses/colors';
 import { courseAlias } from '@sulo/core/courses/display-name';
@@ -11,7 +11,7 @@ import { applyCourseEdit, partitionCourses, sikolaName, type CourseEdit } from '
 import type { CourseAccess } from '@sulo/core/storage';
 import type { CourseRecord } from '@sulo/core/types';
 import { ColorSwatches } from '../ColorSwatches';
-import { PencilIcon } from '../icons';
+import { PencilIcon } from '@sulo/ui/dashboard-icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
 import { NeosiaMapping } from '../NeosiaMapping';

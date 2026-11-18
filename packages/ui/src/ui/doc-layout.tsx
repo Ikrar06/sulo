@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react"
-import { getActiveSection, SCROLLSPY_OFFSET } from "@/lib/ui/scrollspy"
+import { getActiveSection, SCROLLSPY_OFFSET } from "../scrollspy"
 
 export interface TocItem {
   id: string

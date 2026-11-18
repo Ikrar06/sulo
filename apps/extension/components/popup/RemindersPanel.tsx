@@ -1,9 +1,9 @@
 import { useId, useState, type ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronLeftIcon } from '@/components/icons';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronLeftIcon } from '@sulo/ui/icons';
+import { Button } from '@sulo/ui/ui/button';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { formatClock } from '@sulo/core/format/time';
 import type { Messages } from '@sulo/core/i18n';
 import { STAGE_OPTIONS, lastStage, type ReminderSettings, type StageMin } from '@sulo/core/reminders/settings';

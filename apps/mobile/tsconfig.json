@@ -16,6 +16,7 @@
     "types": [],
     "paths": {
       "@sulo/core/*": ["../../packages/core/src/*"],
+      "@sulo/ui/*": ["../../packages/ui/src/*"],
       "@/*": ["./src/*"]
     }
   },

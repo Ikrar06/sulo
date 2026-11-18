@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { Mascot } from '@/components/mascot/Mascot';
+import { useI18n } from '@sulo/ui/i18n';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { formatDateKey, formatRange } from '@sulo/core/calendar/countdown';
 import type { CalEvent } from '@sulo/core/calendar/groups';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';

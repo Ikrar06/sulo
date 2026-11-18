@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@sulo/core': fileURLToPath(new URL('../../packages/core/src', import.meta.url)),
+      '@sulo/ui': fileURLToPath(new URL('../../packages/ui/src', import.meta.url)),
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },

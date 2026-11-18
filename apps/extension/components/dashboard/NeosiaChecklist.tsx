@@ -9,13 +9,13 @@
 // - settings: the list only, always
 
 import { useEffect, useRef, useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import { formatAgo } from '@sulo/core/format/time';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { completion, overviewNeosiaCard, sourceStatuses, type SourceId } from '@sulo/core/neosia/sources';
 import type { Snapshots } from '@sulo/core/neosia/store';
-import { CheckCircleIcon } from './icons';
+import { CheckCircleIcon } from '@sulo/ui/dashboard-icons';
 import { Card } from './Shell';
 
 /** How long "Data NEOSIA lengkap" stays on the overview. */

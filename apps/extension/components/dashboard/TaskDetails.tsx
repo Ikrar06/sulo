@@ -1,17 +1,17 @@
 import { useId, useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { CalendarPlusIcon, ExternalIcon } from '@/components/icons';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { CalendarPlusIcon, ExternalIcon } from '@sulo/ui/icons';
+import { Button } from '@sulo/ui/ui/button';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Input } from '@sulo/ui/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import type { TaskItem } from '@sulo/core/dashboard/tasks';
 import { formatClock, formatDue } from '@sulo/core/format/time';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
 import { STEP_MAX } from '@sulo/core/tasks/local-state';
 import type { UnixSeconds } from '@sulo/core/types';
-import { PlusIcon, XIcon } from './icons';
+import { PlusIcon, XIcon } from '@sulo/ui/dashboard-icons';
 
 export interface TaskDetailActions {
   onOpen: (url: string) => void;

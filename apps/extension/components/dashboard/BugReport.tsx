@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { browser } from 'wxt/browser';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@sulo/ui/ui/alert-dialog';
+import { Button } from '@sulo/ui/ui/button';
+import { useToast } from '@sulo/ui/ui/toast';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { readTechLog } from '@sulo/core/net/tech-log';
 import { readSyncStatus } from '@sulo/core/storage';

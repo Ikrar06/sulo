@@ -1,12 +1,12 @@
 import { lazy, Suspense, useEffect, useId, useState, type ReactNode } from 'react';
 import { browser } from 'wxt/browser';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import { WipeDialog } from '@/components/popup/WipeDialog';
 import { RemindersPanel } from '@/components/popup/RemindersPanel';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@sulo/ui/ui/button';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Input } from '@sulo/ui/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@sulo/core/i18n';
 import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, type Theme } from '@sulo/core/prefs';

@@ -1,6 +1,6 @@
-import { useI18n } from '@/components/i18n';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BellIcon, ExternalIcon } from '@/components/icons';
+import { useI18n } from '@sulo/ui/i18n';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
+import { BellIcon, ExternalIcon } from '@sulo/ui/icons';
 import { countdownOf, formatDateKey, formatRange } from '@sulo/core/calendar/countdown';
 import { currentWeek } from '@sulo/core/calendar/current-week';
 import type { CalendarFile } from '@sulo/core/calendar/schema';

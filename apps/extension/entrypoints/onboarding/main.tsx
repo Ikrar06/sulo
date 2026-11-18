@@ -14,8 +14,8 @@ import { accountStatus, decideOnboardingMode, resumeStep, SETUP_PROGRESS_KEY, se
 import { createBrowserStore } from '@/src/platform/store';
 import { isCourseActive } from '@sulo/core/courses/active-score';
 import { systemClock } from '@sulo/core/clock';
-import { I18nProvider, useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { I18nProvider, useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import { messagesFor, resolveLocale, type Messages } from '@sulo/core/i18n';
 import { readPrefs } from '@sulo/core/prefs';
 import type { Message } from '@/lib/messages';

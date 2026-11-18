@@ -1,5 +1,5 @@
 import { useCallback, useReducer, useRef, useState } from 'react';
-import { useToast } from '@/components/ui/toast';
+import { useToast } from '@sulo/ui/ui/toast';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { bumpUsage } from '@sulo/core/stats/usage';
 import { COLLAPSE_MS, EMPTY_UNDO, markDone, UNDO_MS, undoDone, undoReducer } from '@sulo/core/tasks/done-undo';

@@ -64,7 +64,7 @@ const WHITE = [1, 1, 1];
 
 function pairs(t, theme) {
   const c = (n) => hex(t[n]);
-  // Support button (components/ui/support-button.css): same values as the CSS.
+  // Support button (packages/ui/src/ui/support-button.css): same values as the CSS.
   const orange = c('brand-orange');
   const supportHover = theme === 'terang' ? mix(orange, c('ink'), 0.92) : mix(orange, WHITE, 0.88);
   const supportMuted = mix(c('ink'), orange, 0.85);

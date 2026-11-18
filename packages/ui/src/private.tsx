@@ -3,7 +3,7 @@
 // this browser; pages read it through this context.
 
 import { createContext, useContext, type ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from './i18n';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 
 const PrivacyContext = createContext(false);

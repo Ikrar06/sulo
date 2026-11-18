@@ -5,5 +5,7 @@
    whole project. The popup has its own entry (assets/popup.css) that scans
    only what the popup renders, so dashboard classes never reach it. The
    shared logic in packages/core (M8a) sits outside this package, so it is
-   named here to keep the scan as it was. */
+   named here to keep the scan as it was. The shared interface pieces moved
+   to packages/ui in M8c and are scanned the same way. */
 @source "../../../packages/core/src";
+@source "../../../packages/ui/src";

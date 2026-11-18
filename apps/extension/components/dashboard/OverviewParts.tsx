@@ -1,6 +1,6 @@
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { Fragment } from 'react';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import { countdownOf, formatDateKey } from '@sulo/core/calendar/countdown';
 import type { CalendarFile } from '@sulo/core/calendar/schema';
 import { nextImportant, SHORT_LABEL_KATEGORI } from '@sulo/core/calendar/upcoming';

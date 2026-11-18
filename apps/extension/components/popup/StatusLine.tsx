@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
-import { BellOffIcon, ClockIcon, KeyIcon, OfflineIcon, PauseIcon } from '@/components/icons';
+import { useI18n } from '@sulo/ui/i18n';
+import { BellOffIcon, ClockIcon, KeyIcon, OfflineIcon, PauseIcon } from '@sulo/ui/icons';
 import { browserTimeZone, formatDue, localeOf } from '@sulo/core/format/time';
 import type { UnixSeconds } from '@sulo/core/types';
 import type { Banner } from '@sulo/core/view/popup-view';
