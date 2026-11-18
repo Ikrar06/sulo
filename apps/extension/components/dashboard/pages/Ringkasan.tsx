@@ -25,6 +25,7 @@ import { holidayRanges } from '@sulo/core/neosia/schedule';
 import { classesToday, nextClass } from '@sulo/core/neosia/today';
 import { dismissInvite, showInvite } from '@sulo/core/neosia/invite';
 import { local } from '../data';
+import { averagePercent } from '@sulo/core/presensi/service';
 import { useNeosiaConnect } from '../neosia-connect';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
@@ -65,6 +66,8 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const upcomingClass = today.length === 0 ? nextClass(meetings, data.today, minuteNow, holidays) : null;
   const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d), classesToday: today.length });
   const consent = useNeosiaConnect(actions);
+  // Attendance average over monitored courses, from the stored recap (no request).
+  const attendance = useMemo(() => (user.presensi?.recap ? averagePercent(user.presensi.recap.rows) : null), [user.presensi]);
   const invite = showInvite({ moduleOn: neosiaOn, dismissedAt: data.neosia.invite.dismissedAt, dismissedDay: data.neosia.invite.dismissedDay, now: data.now, today: data.today, krsWindows: calendarKrs });
   const krsWin = neosiaOn ? krsWindow(snapshots, data.today, calendarKrs) : null;
   const krsCard = neosiaOn && showKrsCard(krsWin, data.today);
@@ -158,7 +161,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
           <Card title={r.calendarTitle} action={<CardLink href={routeHash('kalender')}>{r.openCalendar}</CardLink>} className="flex flex-1 flex-col [&>div:last-child]:flex-1">
             <AcademicCard calendar={data.calendar} today={data.today} d={d} />
           </Card>
-          {neosiaOn && <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} />}
+          <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} neosiaOn={neosiaOn} attendance={attendance} />
         </div>
       </div>
 

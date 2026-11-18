@@ -38,6 +38,8 @@ import { bumpUsage } from '@sulo/core/stats/usage';
 import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@sulo/core/account/pending';
 import { useNewAccount, wipeAllData } from '@sulo/core/account/actions';
 import { runSync } from '@sulo/core/sync/run-sync';
+import { refreshDetail, refreshRecap, type PresensiOutcome } from '@sulo/core/presensi/service';
+import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@sulo/core/sync/relogin';
 import { setDone, setSnooze } from '@sulo/core/tasks/local-state';
 import { messagesFor, resolveLocale } from '@sulo/core/i18n';
@@ -426,6 +428,19 @@ export default defineBackground(() => {
     await updateBadge();
   };
 
+  /**
+   * Attendance (M7.3): only from the Presensi page, through the same client
+   * (budget, queue, backoff). Never part of a sync.
+   */
+  const refreshPresensi = async (target: 'recap' | 'detail', courseId: number | null, force: boolean): Promise<PresensiOutcome> => {
+    const userId = await currentUser(local);
+    if (userId === null) return { status: 'failed', reason: 'NO_ACCOUNT' };
+    if ((await readSession(local)).state === 'EXPIRED') return { status: 'failed', reason: 'SESSION_EXPIRED' };
+    const deps = { client, store: local, clock, timeZone: timeZone(), userId, monitored: activeCourseIds(await readUser(local, userId, 'courses')) };
+    if (target === 'recap') return refreshRecap(deps, { force });
+    return courseId === null ? { status: 'failed', reason: 'NO_COURSE' } : refreshDetail(deps, courseId, { force });
+  };
+
   const handle = (message: Message): Promise<unknown> | null => {
     switch (message.type) {
       case 'status/get':
@@ -446,6 +461,8 @@ export default defineBackground(() => {
         return wipeAll();
       case 'notify/test':
         return sendTestNotification();
+      case 'presensi/refresh':
+        return refreshPresensi(message.target, message.courseId ?? null, message.force);
       case 'neosia/enable':
         return enableModule(neosia);
       case 'neosia/disable':
