@@ -237,6 +237,8 @@ export const en: Messages = {
     sessionTitle: "Your tasks can't be updated",
     sessionRepeatTitle: "Your tasks haven't been updated since yesterday",
     sessionBody: 'Sign in to SIKOLA again so Sulo can update your tasks.',
+    reloginTitle: 'Sulo is up to date',
+    reloginBody: 'You signed in to SIKOLA again, so your tasks are updated.',
     snoozeButton: 'Snooze 1 hour',
     doneButton: 'Mark as done',
     changesMaterials: (n, course) => (n === 1 ? `New material in ${course}` : `${n} new materials in ${course}`),

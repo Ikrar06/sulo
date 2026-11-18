@@ -38,7 +38,9 @@ export type RequestSource =
   /** Dev builds: the nosessionupdate check. */
   | 'dev-probe'
   /** A new sesskey arrived while another account is detected (session-only check). */
-  | 'sesskey';
+  | 'sesskey'
+  /** The user signed in to SIKOLA again after the session expired (M7.2): one sync. */
+  | 'relogin';
 
 export interface BudgetState {
   /** Local date, YYYY-MM-DD. Budget resets when this changes. */
@@ -240,7 +242,7 @@ export interface ParseResult<T> {
 // ---------- Sync ----------
 
 /** The popup never triggers a sync (it only reads storage). */
-export type SyncTrigger = 'background' | 'startup' | 'idle' | 'manual' | 'onboarding' | 'sesskey';
+export type SyncTrigger = 'background' | 'startup' | 'idle' | 'manual' | 'onboarding' | 'sesskey' | 'relogin';
 
 export type SyncOutcome =
   | { status: 'ok'; at: UnixSeconds; tasks: number; courseListFetched: boolean }

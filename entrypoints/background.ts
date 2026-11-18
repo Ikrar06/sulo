@@ -14,7 +14,7 @@ import { readBudget } from '@/lib/moodle/budget';
 import { createMoodleClient } from '@/lib/moodle/client';
 import { readCalendar, refreshCalendar } from '@/lib/calendar/remote';
 import { CALENDAR_HIGHLIGHT_KEY, calendarHighlight, type CalendarHighlight } from '@/lib/calendar/highlight';
-import { localParts } from '@/lib/reminders/zoned';
+import { inWindow, localParts } from '@/lib/reminders/zoned';
 import { dashboardPath } from '@/lib/dashboard/routes';
 import { CALENDAR_URL, CATCHUP_DELAY_MAX_MIN, DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { createRequestLogger } from '@/lib/net/request-log';
@@ -38,6 +38,7 @@ import { bumpUsage } from '@/lib/stats/usage';
 import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@/lib/account/pending';
 import { useNewAccount, wipeAllData } from '@/lib/account/actions';
 import { runSync } from '@/lib/sync/run-sync';
+import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@/lib/sync/relogin';
 import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { messagesFor, resolveLocale } from '@/lib/i18n';
 import type { SyncOutcome, SyncTrigger } from '@/lib/types';
@@ -245,6 +246,8 @@ export default defineBackground(() => {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('kalender')) });
     } else if (kind === 'session') {
       await browser.tabs.create({ url: sikolaUrl('expired') });
+    } else if (kind === 'relogin') {
+      await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     }
   };
 
@@ -318,6 +321,39 @@ export default defineBackground(() => {
     clearInterval: (handle) => clearInterval(handle as ReturnType<typeof setInterval>),
   });
   const sync = (trigger: SyncTrigger, forceCourseList = false) => syncFlight({ trigger, forceCourseList });
+
+  // ---------- Signing in to SIKOLA again (M7.2) ----------
+  // Sulo never keeps the session alive. When it had expired and the user
+  // signs in again (a signed-in SIKOLA page loads and its sesskey arrives,
+  // in either order), one ordinary sync runs: cooldown, lock and budget
+  // apply (lib/sync/relogin.ts). The marker lives in session storage.
+  const RELOGIN_KEY = 'relogin:marker';
+  let reloginQueue: Promise<unknown> = Promise.resolve();
+  const onRelogin = (event: ReloginEvent) => {
+    const run = reloginQueue.then(async () => {
+      const marker = (await session.get<ReloginMarker>(RELOGIN_KEY)) ?? null;
+      const state = (await readSession(local)).state;
+      const step = reloginStep({ event, session: state, marker, now: clock.now() });
+      if (step.marker) await session.set(RELOGIN_KEY, step.marker);
+      else if (marker) await session.remove(RELOGIN_KEY);
+      if (!step.sync) return;
+      const outcome = await sync('relogin');
+      const prefs = await readPrefs(local);
+      const quiet = prefs.reminders.quiet.enabled && inWindow(clock.now(), prefs.reminders.quiet, timeZone());
+      if (!announceRelogin({ status: outcome.status, inQuietHours: quiet })) return;
+      const m = messagesFor(resolveLocale(prefs.locale, browser.i18n.getUILanguage()));
+      // A quiet, light notification: no sound, low priority.
+      await browser.notifications.create(`relogin|${clock.now()}`, {
+        type: 'basic',
+        iconUrl: browser.runtime.getURL('/notify/happy.png'),
+        title: m.notify.reloginTitle,
+        message: m.notify.reloginBody,
+        priority: 0,
+        silent: true,
+      });
+    });
+    reloginQueue = run.catch(() => undefined);
+  };
 
   // ---------- Status, popup, tools ----------
 
@@ -497,6 +533,14 @@ export default defineBackground(() => {
   browser.permissions.onRemoved.addListener(reconcileNeosia);
 
   browser.notifications.onClicked.addListener((id) => void onNotificationClick(id));
+
+  // A SIKOLA tab finished loading. The host permission alone gives the URL of
+  // SIKOLA tabs (no "tabs" permission); other tabs come without a URL and
+  // are ignored here, before any storage read.
+  browser.tabs.onUpdated.addListener((_tabId, change, tab) => {
+    if (change.status !== 'complete' || !isSignedInSikolaPage(tab.url)) return;
+    onRelogin({ kind: 'page', url: tab.url });
+  });
   browser.notifications.onButtonClicked.addListener((id, index) => void onNotificationButton(id, index));
 
   // Every time the worker wakes up, recompute: an alarm may have been missed
@@ -519,13 +563,18 @@ export default defineBackground(() => {
       if (!isContentScriptOn(sender, extensionId, SIKOLA_ORIGIN)) return false;
       // While another account is detected, a new sesskey may run one
       // session-only check (at most every 10 minutes, lib/account/pending.ts).
-      void getSesskey()
+      // Whether the session had expired, read before the sesskey clears that.
+      let wasExpired = false;
+      void readSession(local)
+        .then((s) => void (wasExpired = s.state === 'EXPIRED'))
+        .then(getSesskey)
         .then((previous) => (previous !== null && previous !== message.sesskey ? sessionAge?.newSession() : undefined))
         .then(() => session.set(SESSKEY_KEY, message.sesskey))
         .then(() => onSesskeyReceived(local, clock))
         .then(updateBadge)
         .then(async () => {
           if (await readPending(local)) await sync('sesskey');
+          else onRelogin({ kind: 'sesskey', wasExpired });
         });
       return false;
     }

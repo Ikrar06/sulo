@@ -18,6 +18,7 @@ import {
   COURSE_LIST_MIN_GAP_H,
   MANUAL_COOLDOWN_SEC,
   ONBOARDING_FRESH_MIN,
+  RELOGIN_FRESH_MIN,
   SAVER_MIN_GAP_MIN,
   SIKOLA_ORIGIN,
   SOFT_DAILY_POSTS,
@@ -92,6 +93,8 @@ export function freshForMinutes(trigger: SyncTrigger): number {
       return CATCHUP_FRESH_MIN;
     case 'onboarding':
       return ONBOARDING_FRESH_MIN;
+    case 'relogin':
+      return RELOGIN_FRESH_MIN;
     case 'manual':
     case 'sesskey':
       return 0;
