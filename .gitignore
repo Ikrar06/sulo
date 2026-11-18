@@ -19,3 +19,9 @@ docs/
 
 # Local browser automation output
 .playwright-mcp/
+
+# Design tooling installed locally (skills and their working files)
+.impeccable/
+.agents/
+skills/
+.skills/
