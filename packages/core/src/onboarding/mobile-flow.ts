@@ -36,7 +36,9 @@ export type FlowEvent =
   | { type: 'SYNC_DONE'; result: Exclude<PrepResult, 'pending'>; courseCount: number; selected: number }
   | { type: 'RETRY' }
   | { type: 'CONTINUE_WITHOUT_DATA' }
-  | { type: 'SELECT'; selected: number };
+  | { type: 'SELECT'; selected: number }
+  /** A page dot was tapped (or a swipe settled) on the intro: 0, 1 or 2. */
+  | { type: 'GOTO_INTRO'; index: number };
 
 export const INTRO: readonly Step[] = ['intro1', 'intro2', 'intro3'];
 export const SETUP: readonly Step[] = ['courses', 'nickname', 'reminders'];
@@ -119,8 +121,8 @@ export function back(state: FlowState): FlowState | 'exit' {
       return state.courseCount > 0 ? go('courses') : 'exit';
     case 'reminders':
       return go('nickname');
+    // Everything is saved by now: no way back from "Semua siap".
     case 'done':
-      return go(state.mode === 'switch' ? 'courses' : 'reminders');
     case 'finished':
       return state;
   }
@@ -156,6 +158,10 @@ export function reduce(state: FlowState, event: FlowEvent): FlowState {
       return state.step === 'preparing' && state.prep === 'failed' ? { ...state, courseCount: 0, step: afterSetup({ ...state, courseCount: 0 }, null) } : state;
     case 'SELECT':
       return { ...state, selected: Math.max(0, event.selected) };
+    case 'GOTO_INTRO': {
+      const target = INTRO[event.index];
+      return INTRO.includes(state.step) && target ? { ...state, step: target } : state;
+    }
   }
 }
 

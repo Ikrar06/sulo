@@ -70,6 +70,30 @@ describe('mobile onboarding flow', () => {
     expect(back({ ...start('first'), step: 'signin' })).toMatchObject({ step: 'intro3' });
     expect(back({ ...start('first'), step: 'reminders', courseCount: 2 })).toMatchObject({ step: 'nickname' });
   });
+  it('the intro goes back: one screen at a time, never to the splash', () => {
+    const at = (step: 'intro1' | 'intro2' | 'intro3') => ({ ...start('first'), step });
+    expect(run(at('intro3'), { type: 'BACK' }).step).toBe('intro2');
+    expect(run(at('intro2'), { type: 'BACK' }).step).toBe('intro1');
+    // Android's back button on the first intro screen leaves the app; BACK itself stays put.
+    expect(back(at('intro1'))).toBe('exit');
+    expect(run(at('intro1'), { type: 'BACK' }).step).toBe('intro1');
+  });
+  it('back from sign-in: the last intro screen for a new user, out of the app for one who signed out', () => {
+    expect(back({ ...start('first'), step: 'signin' })).toMatchObject({ step: 'intro3', mode: 'first' });
+    expect(back(start('relogin'))).toBe('exit');
+  });
+  it('a tapped page dot jumps to that intro screen, and only on the intro', () => {
+    const intro1 = { ...start('first'), step: 'intro1' as const };
+    expect(run(intro1, { type: 'GOTO_INTRO', index: 2 }).step).toBe('intro3');
+    expect(run(intro1, { type: 'GOTO_INTRO', index: 2 }, { type: 'GOTO_INTRO', index: 0 }).step).toBe('intro1');
+    expect(run(intro1, { type: 'GOTO_INTRO', index: 5 }).step).toBe('intro1');
+    expect(run(start('relogin'), { type: 'GOTO_INTRO', index: 1 }).step).toBe('signin');
+  });
+  it('preparing and done cannot go back', () => {
+    expect(back({ ...start('first'), step: 'preparing' })).toBe('exit');
+    const done = { ...start('first'), step: 'done' as const };
+    expect(back(done)).toBe(done);
+  });
   it('resumes a closed app at the right step', () => {
     expect(resume(null, { signedIn: false, hasData: false }).step).toBe('splash');
     expect(resume(null, { signedIn: true, hasData: true }).step).toBe('finished');

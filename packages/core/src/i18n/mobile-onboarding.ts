@@ -1,197 +1,221 @@
-// The phone's onboarding words (M8c.2), Indonesian and English. Calm and
-// friendly, no emoji. The stage cards' sample texts live here too: they are
-// synthetic (no real names), only there to show what Sulo does.
+// The phone's onboarding words (M8c.2), Indonesian and English: the owner's
+// final copy. A text budget holds (tested): titles at most 28 characters,
+// supporting lines at most 60, no paragraphs; longer explanations live in
+// bottom sheets (`sheets`). The intro's sample data is synthetic.
 
 import type { Locale } from './index';
+
+/** Checked by the text-budget test: every title and supporting line listed here. */
+export const TITLE_MAX = 28;
+export const SUPPORT_MAX = 60;
 
 const id = {
   skip: 'Lewati',
   next: 'Lanjut',
-  start: 'Mulai',
   back: 'Kembali',
-  skipStep: 'Lewati langkah ini',
   pageOf: (i: number, n: number) => `Halaman ${i} dari ${n}`,
   stepOf: (i: number, n: number) => `Langkah ${i} dari ${n}`,
   splash: { name: 'Sulo', tagline: 'Pendamping akademik mahasiswa Unhas' },
   intro1: {
-    title: 'Semua tenggat di satu tempat',
-    body: 'Tugas dari semua mata kuliah SIKOLA, urut dari yang paling dekat.',
-    stage: 'Contoh tiga kartu tugas dari mata kuliah berbeda, urut dari yang paling dekat.',
+    title: 'Semua tenggat, satu tempat',
+    body: 'Tugas dari semua mata kuliah SIKOLA.',
+    stage: 'Tiga contoh kartu tugas merapikan diri jadi satu tumpukan.',
     cards: [
       { course: 'Hidrologi', title: 'Laporan praktikum 3', due: 'terlambat 1 hari', tone: 'overdue' },
       { course: 'Mekanika Fluida', title: 'Kuis bab 4', due: '4 jam lagi', tone: 'soon' },
       { course: 'Statistika', title: 'Tugas regresi linear', due: '2 hari lagi', tone: 'later' },
+      { course: 'Geologi Teknik', title: 'Peta singkapan', due: '5 hari lagi', tone: 'later' },
     ],
   },
   intro2: {
     title: 'Diingatkan sebelum terlambat',
-    body: 'Pengingat tenggat, kalender akademik, dan presensi, semuanya di HP-mu.',
-    stage: 'Contoh notifikasi pengingat, hitung mundur UAS, dan rekap presensi.',
-    notifyTitle: 'Tugas 4',
-    notifyBody: '3 jam lagi · Mekanika Fluida',
-    calendarLabel: 'UAS',
-    calendarUnit: 'hari lagi',
+    body: 'Tenggat, kalender akademik, dan presensi.',
+    stage: 'Contoh notifikasi pengingat, hitung mundur tenggat, dan presensi.',
+    notifyTitle: 'Kuis bab 4',
+    notifyCourse: 'Mekanika Fluida',
+    countdownLabel: 'Tenggat',
+    left: (h: number, m: number, s: number) => `${h} jam ${String(m).padStart(2, '0')}.${String(s).padStart(2, '0')}`,
     attendanceLabel: 'Presensi',
-    attendanceNote: 'hadir',
   },
   intro3: {
     title: 'Datamu tetap di HP-mu',
-    stage: 'Tiga janji privasi Sulo.',
-    points: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi login disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
+    body: 'Tanpa server, tanpa iklan, tanpa pelacakan.',
+    stage: 'Data tersimpan di dalam HP dan terkunci.',
+    badges: ['Password aman', 'Terenkripsi', 'Tanpa server'],
+    data: ['Tugas', 'Nilai', 'Presensi'],
+    start: 'Mulai',
   },
   signin: {
     title: 'Masuk ke SIKOLA',
-    body: 'Sulo akan membuka halaman login SIKOLA. Setelah berhasil, halaman itu menutup sendiri.',
-    welcomeBack: 'Selamat datang kembali.',
+    body: 'Kamu login di halaman asli. Sulo tidak melihat password-mu.',
     address: 'sikola-v2.unhas.ac.id',
-    addressNote: 'Periksa alamatnya sebelum mengetik password.',
-    open: 'Buka halaman SIKOLA',
+    open: 'Masuk',
     why: 'Kenapa aman?',
-    whyTitle: 'Kenapa aman?',
-    privacyLink: 'Baca kebijakan privasi',
     cancelled: 'Belum masuk. Coba lagi kapan saja.',
     offline: 'Tidak ada koneksi.',
     retry: 'Coba lagi',
     close: 'Tutup',
+    privacyLink: 'Baca kebijakan privasi',
   },
   preparing: {
     title: 'Menyiapkan Sulo',
     stages: { tasks: 'Mengambil tugas', courses: 'Mengenali mata kuliah', calendar: 'Menyiapkan kalender', attendance: 'Mengambil presensi' },
-    later: 'nanti dicoba lagi',
+    chips: { tasks: (n: number) => `${n} tugas`, courses: (n: number) => `${n} mata kuliah`, calendar: 'kalender siap', attendance: 'presensi siap' },
     failedTitle: 'Belum berhasil mengambil data.',
     retry: 'Coba lagi',
     without: 'Lanjut tanpa data',
   },
   courses: {
-    title: 'Mata kuliah mana yang dipantau?',
-    body: 'Sudah kami pilihkan yang sedang berjalan. Bisa diubah nanti.',
-    next: (n: number) => `Lanjut (${n})`,
+    title: 'Pantau yang mana?',
+    body: 'Yang sedang berjalan sudah dipilih.',
+    selected: (n: number) => `${n} dipilih`,
+    none: 'Pilih minimal satu.',
     showAll: 'Tampilkan semua mata kuliah',
-    noneHelp: 'Pilih minimal satu mata kuliah.',
   },
   nickname: {
     title: 'Mau dipanggil apa?',
     label: 'Nama panggilan',
-    placeholder: 'Nama panggilan',
-    note: 'Hanya disimpan di HP ini.',
+    note: 'Opsional. Hanya disimpan di HP ini.',
   },
   reminders: {
     title: 'Mau diingatkan?',
-    body: 'Sulo mengingatkan sebelum tenggat. Jadwalnya dibuat di HP, tidak ada yang dikirim keluar.',
-    sample: { title: 'Tugas regresi linear', body: (when: string, course: string) => `${when} · ${course}` },
-    sampleWhen: '3 jam lagi',
+    sampleTitle: 'Tugas regresi linear',
     sampleCourse: 'Statistika',
-    stagesLabel: 'Ingatkan',
+    stagesLabel: 'Ingatkan sebelum tenggat',
     stages: { 1440: '1 hari', 180: '3 jam', 60: '1 jam' } as Record<number, string>,
-    before: 'sebelum',
+    /** The banner's time for the earliest chosen stage. */
+    inTime: (stage: string) => `${stage} lagi`,
     watchTitle: 'Pantau tugas baru',
-    watchBody: 'Sulo memeriksa SIKOLA berkala di latar belakang supaya tugas baru cepat diberitahu. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
+    watchBody: 'Sulo mengecek SIKOLA berkala di latar belakang.',
+    detail: 'Detail',
     allow: 'Izinkan pengingat',
     later: 'Nanti saja',
   },
   done: {
     title: 'Semua siap.',
-    summary: (n: number, next: string) => `${n} tugas terpantau, terdekat ${next}.`,
-    empty: 'Belum ada tugas. Sulo kabari kalau ada.',
+    tasks: (n: number) => `${n} tugas`,
+    next: (when: string) => `terdekat ${when}`,
+    empty: 'Belum ada tugas',
     open: 'Buka Sulo',
   },
+  sheets: {
+    why: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi login disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
+    watch: 'Sulo memeriksa SIKOLA berkala di latar belakang supaya tugas baru cepat diberitahu. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
+  },
+  unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
 };
 
 type Words = typeof id;
 
 const en: Words = {
   skip: 'Skip',
-  next: 'Continue',
-  start: 'Get started',
+  next: 'Next',
   back: 'Back',
-  skipStep: 'Skip this step',
   pageOf: (i, n) => `Page ${i} of ${n}`,
   stepOf: (i, n) => `Step ${i} of ${n}`,
   splash: { name: 'Sulo', tagline: 'Academic companion for Unhas students' },
   intro1: {
-    title: 'Every deadline in one place',
-    body: 'Tasks from all your SIKOLA courses, soonest first.',
-    stage: 'Three sample task cards from different courses, soonest first.',
+    title: 'Every deadline, one place',
+    body: 'Tasks from all your SIKOLA courses.',
+    stage: 'Three sample task cards tidy themselves into one stack.',
     cards: [
       { course: 'Hydrology', title: 'Lab report 3', due: '1 day overdue', tone: 'overdue' },
       { course: 'Fluid Mechanics', title: 'Chapter 4 quiz', due: 'in 4 hours', tone: 'soon' },
       { course: 'Statistics', title: 'Linear regression task', due: 'in 2 days', tone: 'later' },
+      { course: 'Engineering Geology', title: 'Outcrop map', due: 'in 5 days', tone: 'later' },
     ],
   },
   intro2: {
     title: "Reminded before it's late",
-    body: 'Deadline reminders, the academic calendar and attendance, all on your phone.',
-    stage: 'A sample reminder, an exam countdown and an attendance summary.',
-    notifyTitle: 'Task 4',
-    notifyBody: 'in 3 hours · Fluid Mechanics',
-    calendarLabel: 'Final exams',
-    calendarUnit: 'days left',
+    body: 'Deadlines, academic calendar, attendance.',
+    stage: 'A sample reminder, a deadline countdown and attendance.',
+    notifyTitle: 'Chapter 4 quiz',
+    notifyCourse: 'Fluid Mechanics',
+    countdownLabel: 'Due in',
+    left: (h, m, s) => `${h} h ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`,
     attendanceLabel: 'Attendance',
-    attendanceNote: 'present',
   },
   intro3: {
     title: 'Your data stays on your phone',
-    stage: "Sulo's three privacy promises.",
-    points: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your session is stored encrypted on this phone.', 'No Sulo server, ads or tracking.'],
+    body: 'No server, no ads, no tracking.',
+    stage: 'Your data is kept inside the phone, locked.',
+    badges: ['Password safe', 'Encrypted', 'No server'],
+    data: ['Tasks', 'Grades', 'Attendance'],
+    start: 'Get started',
   },
   signin: {
     title: 'Sign in to SIKOLA',
-    body: "Sulo will open the SIKOLA sign-in page. It closes by itself once you're in.",
-    welcomeBack: 'Welcome back.',
+    body: 'You sign in on the real page. Sulo never sees your password.',
     address: 'sikola-v2.unhas.ac.id',
-    addressNote: 'Check the address before typing your password.',
-    open: 'Open SIKOLA',
+    open: 'Sign in',
     why: 'Why is this safe?',
-    whyTitle: 'Why is this safe?',
-    privacyLink: 'Read the privacy policy',
-    cancelled: 'Not signed in. Try again any time.',
+    cancelled: 'Not signed in yet. Try again anytime.',
     offline: 'No connection.',
     retry: 'Try again',
     close: 'Close',
+    privacyLink: 'Read the privacy policy',
   },
   preparing: {
-    title: 'Setting things up',
-    stages: { tasks: 'Fetching tasks', courses: 'Finding your courses', calendar: 'Preparing the calendar', attendance: 'Fetching attendance' },
-    later: 'will try again later',
-    failedTitle: "Couldn't fetch your data yet.",
+    title: 'Setting up Sulo',
+    stages: { tasks: 'Getting your tasks', courses: 'Finding your courses', calendar: 'Preparing the calendar', attendance: 'Getting attendance' },
+    chips: { tasks: (n) => `${n} tasks`, courses: (n) => `${n} courses`, calendar: 'calendar ready', attendance: 'attendance ready' },
+    failedTitle: "Couldn't get your data.",
     retry: 'Try again',
     without: 'Continue without data',
   },
   courses: {
-    title: 'Which courses should Sulo follow?',
-    body: "We've picked the ones in progress. You can change this later.",
-    next: (n) => `Continue (${n})`,
+    title: 'Which ones to follow?',
+    body: 'Current courses are preselected.',
+    selected: (n) => `${n} selected`,
+    none: 'Pick at least one.',
     showAll: 'Show all courses',
-    noneHelp: 'Pick at least one course.',
   },
   nickname: {
-    title: 'What should Sulo call you?',
+    title: 'What should we call you?',
     label: 'Nickname',
-    placeholder: 'Nickname',
-    note: 'Stored only on this phone.',
+    note: 'Optional. Stored only on this phone.',
   },
   reminders: {
     title: 'Want reminders?',
-    body: "Sulo reminds you before deadlines. Schedules are made on your phone; nothing is sent out.",
-    sample: { title: 'Linear regression task', body: (when, course) => `${when} · ${course}` },
-    sampleWhen: 'in 3 hours',
+    sampleTitle: 'Linear regression task',
     sampleCourse: 'Statistics',
-    stagesLabel: 'Remind me',
+    stagesLabel: 'Remind me before a deadline',
     stages: { 1440: '1 day', 180: '3 hours', 60: '1 hour' },
-    before: 'before',
+    inTime: (stage) => `in ${stage}`,
     watchTitle: 'Watch for new tasks',
-    watchBody: 'Sulo checks SIKOLA now and then in the background, so new tasks reach you quickly. Your SIKOLA session stays active too. You can turn it off any time in Settings.',
+    watchBody: 'Sulo checks SIKOLA in the background from time to time.',
+    detail: 'Details',
     allow: 'Allow reminders',
     later: 'Not now',
   },
   done: {
-    title: "You're all set.",
-    summary: (n, next) => `${n} tasks tracked, next one ${next}.`,
-    empty: 'No tasks yet. Sulo will let you know.',
+    title: 'All set.',
+    tasks: (n) => `${n} tasks`,
+    next: (when) => `next due ${when}`,
+    empty: 'No tasks yet',
     open: 'Open Sulo',
   },
+  sheets: {
+    why: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your sign-in session is stored encrypted on this phone.', 'No Sulo server, no ads, no tracking.'],
+    watch: 'Sulo checks SIKOLA in the background from time to time so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
+  },
+  unofficial: 'Unofficial. Not affiliated with Universitas Hasanuddin.',
 };
 
 export type OnboardingWords = Words;
 
 export const onboardingWords = (locale: Locale): OnboardingWords => (locale === 'en' ? en : id);
+
+/** Every title and supporting line, for the budget test. */
+export function budgetedTexts(w: OnboardingWords): { titles: string[]; supports: string[] } {
+  return {
+    titles: [w.splash.name, w.intro1.title, w.intro2.title, w.intro3.title, w.signin.title, w.preparing.title, w.courses.title, w.nickname.title, w.reminders.title, w.done.title],
+    supports: [w.splash.tagline, w.intro1.body, w.intro2.body, w.intro3.body, w.signin.body, w.signin.cancelled, w.signin.offline, ...Object.values(w.preparing.stages), w.preparing.failedTitle, w.courses.body, w.nickname.note, w.reminders.stagesLabel, w.reminders.watchBody],
+  };
+}
+
+/**
+ * The owner's final copy that is over the budget by one character; kept
+ * word for word and listed here so the test stays strict for everything else.
+ */
+export const BUDGET_EXCEPTIONS: readonly string[] = ['Your data stays on your phone'];
