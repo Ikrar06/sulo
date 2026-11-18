@@ -236,6 +236,15 @@ export const id = {
     summaryTitle: (n: number) => `${n} tugas mendekati tenggat`,
     summaryBody: (name: string, left: string) => `Yang terdekat: ${name}, ${left}.`,
     morningTitle: 'Tugasmu hari ini',
+    /** The phone's full morning summary (reminders/morning.ts): only the parts that are not zero. */
+    morningFullTitle: 'Ringkasan pagi',
+    morningFullBody: (overdue: number, today: number, tomorrow: number, events: string[]) => {
+      const parts = [overdue > 0 ? `${overdue} tugas terlambat` : '', today > 0 ? `${today} tenggat hari ini` : '', tomorrow > 0 ? `${tomorrow} tenggat besok` : ''].filter(Boolean);
+      const shown = events.slice(0, 2);
+      const more = events.length - shown.length;
+      const today_ = shown.length === 0 ? '' : `Hari ini: ${more > 0 ? `${shown.join(', ')}, dan ${more} lainnya` : shown.join(' dan ')}.`;
+      return [parts.length > 0 ? `${parts.join(', ')}.` : '', today_].filter(Boolean).join(' ');
+    },
     morningBody: (today: number, week: number, name: string, left: string) =>
       today === 0
         ? `Hari ini tidak ada tenggat. Minggu ini ada ${week} tugas. Yang terdekat: ${name}, ${left}.`

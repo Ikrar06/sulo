@@ -53,6 +53,10 @@ export interface SuloSessionPlugin {
   watchStatus(): Promise<{ timings: string; sessionEnds: string; plannedAt: number; queued: number }>;
   /** A tapped background notification's id, once. */
   watchTakeOpen(): Promise<{ id: string | null }>;
+  /** Debug build only (refused otherwise): one background check now, through the same work. */
+  watchRunNow(): Promise<void>;
+  /** Debug build only: a simulation without any request (task, due, three, quiet, expired). */
+  watchSimulate(options: { kind: 'task' | 'due' | 'three' | 'quiet' | 'expired'; prefix: string }): Promise<{ status: string; changes: number; notices: number }>;
 }
 
 export const SuloSession = registerPlugin<SuloSessionPlugin>('SuloSession', {

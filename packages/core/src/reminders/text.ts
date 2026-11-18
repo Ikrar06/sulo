@@ -2,6 +2,7 @@
 // Short title and body, following the glossaries. Never grades or other
 // sensitive data: only task name, course name and due time.
 
+import { morningFullView } from './morning';
 import { isNewTaskActivity } from '../radar/task-modules';
 import { formatDueClock, formatLeft } from '../format/time';
 import type { Messages } from '../i18n';
@@ -64,6 +65,7 @@ export function noticeView(
     case 'summary':
       return { title: n.summaryTitle(notice.count), message: n.summaryBody(shorten(notice.nearest.name), left(notice.nearest)), icon: 'idle', buttons: [] };
     case 'morning':
+      if (notice.full) return morningFullView(notice.full, ctx.m);
       return {
         title: n.morningTitle,
         message: n.morningBody(notice.today, notice.week, shorten(notice.nearest.name), left(notice.nearest)),

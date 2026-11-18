@@ -81,6 +81,8 @@ export interface WatchTiming extends CheckTiming {
   ms: number;
   bytes: number;
   outcome: string;
+  /** News found by that check (the worker's own count). */
+  changes?: number;
 }
 
 /** The worker's last checks and session ends (times, durations, sizes, outcome codes). */

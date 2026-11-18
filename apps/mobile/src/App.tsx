@@ -5,7 +5,7 @@
 // Perbarui; each is the user's own activity (nosessionupdate=false). An
 // ended session keeps the data on screen with one calm line.
 
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { resolveLocale, type Locale } from '@sulo/core/i18n';
 import { mobileWords, type MobileWords } from '@sulo/core/i18n/mobile';
@@ -15,7 +15,6 @@ import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { I18nProvider } from '@sulo/ui/i18n';
 import { PrivacyProvider } from '@sulo/ui/private';
 import { ToastProvider } from '@sulo/ui/ui/toast';
-import { DevScreen } from './DevScreen';
 import { DEV_EVENT } from './events';
 import { LOCK_KEY, signOutEverything } from './account';
 import { refreshPublicData } from './public-data';
@@ -28,6 +27,9 @@ import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
 import { lastSyncAt, resumeNeedsSync, syncAfterLogin, syncNow } from './sync';
+
+/** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
+const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({ default: m.DevScreen }))) : null;
 
 /** Set once the notification question was answered (either way). */
 export const NOTIFY_ASKED_KEY = 'mobile:notifyAsked';
@@ -145,8 +147,18 @@ export function App({ platform }: { platform: Platform }) {
             await refreshState();
           }}
         />
-      ) : dev && __SULO_DEV__ ? (
-        <DevScreen platform={platform} w={w} onBack={() => setDev(false)} />
+      ) : dev && DevScreen ? (
+        <Suspense fallback={null}>
+          {/* Back: the screens read the session again (a simulated ended session shows its line). */}
+          <DevScreen
+            platform={platform}
+            w={w}
+            onBack={() => {
+              setDev(false);
+              void refreshState();
+            }}
+          />
+        </Suspense>
       ) : status === 'none' ? (
         <Onboarding w={w} note={note} busy={busy} paused={paused} onSignIn={() => void signIn()} />
       ) : askNotify ? (

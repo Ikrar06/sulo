@@ -30,6 +30,12 @@ object WatchScheduler {
     const val MODE_CHECK = "check"
     /** After the session ended during quiet hours: only the calm notice, once quiet hours end. */
     const val MODE_EXPIRED_NOTICE = "expired-notice"
+    /** Debug build: one check now, the same work (gate, budget, one POST), even with the app open. */
+    const val MODE_CHECK_NOW = "check-now"
+    /** Debug build: send the simulated held notices as one summary (no request). */
+    const val MODE_SIM_FLUSH = "sim-flush"
+    const val SIM = "sulo-watch-sim"
+    const val PREFIX = "prefix"
 
     private val network = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
@@ -38,11 +44,20 @@ object WatchScheduler {
         val request = OneTimeWorkRequestBuilder<WatchWorker>()
             .setInitialDelay(delaySec.coerceAtLeast(0), TimeUnit.SECONDS)
             .setInputData(Data.Builder().putString(MODE, mode).build())
-            .apply { if (mode == MODE_CHECK) setConstraints(network) }
+            .apply { if (mode == MODE_CHECK || mode == MODE_CHECK_NOW) setConstraints(network) }
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(CHAIN, ExistingWorkPolicy.REPLACE, request)
         WatchStore(context).setPlannedAt(now + delaySec)
         ensureGuard(context)
+    }
+
+    /** Debug simulations run apart from the chain, so they never replace the next real check. */
+    fun simulation(context: Context, delaySec: Long, prefix: String) {
+        val request = OneTimeWorkRequestBuilder<WatchWorker>()
+            .setInitialDelay(delaySec.coerceAtLeast(0), TimeUnit.SECONDS)
+            .setInputData(Data.Builder().putString(MODE, MODE_SIM_FLUSH).putString(PREFIX, prefix).build())
+            .build()
+        WorkManager.getInstance(context).enqueueUniqueWork(SIM, ExistingWorkPolicy.REPLACE, request)
     }
 
     fun ensureGuard(context: Context) {

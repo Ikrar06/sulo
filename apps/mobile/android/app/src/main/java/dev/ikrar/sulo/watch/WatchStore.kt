@@ -64,7 +64,15 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
 
     // ---- The answer queue ----
 
+    /** The newest answer, encrypted like the queue, kept for the debug screen's simulations (no request). */
+    @Synchronized fun lastAnswer(): JSONObject? = prefs.getString(KEY_LAST, null)?.let { runCatching { JSONObject(String(crypto.decrypt(it), Charsets.UTF_8)) }.getOrNull() }
+
+    /** Debug simulations: notices held as if in quiet hours, sent as one summary later. */
+    @Synchronized fun simHeld(): List<JSONObject> = array(KEY_SIM_HELD).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
+    @Synchronized fun setSimHeld(list: List<JSONObject>) = put(KEY_SIM_HELD, if (list.isEmpty()) null else JSONArray(list).toString())
+
     @Synchronized fun enqueue(answer: JSONObject) {
+        put(KEY_LAST, crypto.encrypt(answer.toString().toByteArray(Charsets.UTF_8)))
         val q = array(KEY_QUEUE)
         val items = (0 until q.length()).map { q.getString(it) }.toMutableList()
         items.add(crypto.encrypt(answer.toString().toByteArray(Charsets.UTF_8)))
@@ -135,5 +143,7 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
         private const val KEY_TIMINGS = "timings"
         private const val KEY_ENDS = "sessionEnds"
         private const val KEY_OPEN = "pendingOpen"
+        private const val KEY_LAST = "lastAnswer"
+        private const val KEY_SIM_HELD = "simHeld"
     }
 }

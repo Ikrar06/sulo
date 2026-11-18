@@ -265,4 +265,26 @@ class SuloSessionPlugin : Plugin() {
             call.resolve(JSObject().put("id", id ?: org.json.JSONObject.NULL))
         }
     }
+
+    // ---------- Debug build only: the debug screen's tests (refused in a release build) ----------
+
+    /** One background check now: the same work as the chain (gate, budget, one POST). */
+    @PluginMethod
+    fun watchRunNow(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("debug only")
+        dev.ikrar.sulo.watch.WatchScheduler.next(context, 0, System.currentTimeMillis() / 1000, dev.ikrar.sulo.watch.WatchScheduler.MODE_CHECK_NOW)
+        call.resolve()
+    }
+
+    /** A simulation without any request (WatchSimulate): task, due, three, quiet, expired. */
+    @PluginMethod
+    fun watchSimulate(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("debug only")
+        val kind = call.getString("kind") ?: return call.reject("kind missing")
+        val prefix = call.getString("prefix") ?: ""
+        io.execute {
+            val r = runCatching { dev.ikrar.sulo.watch.WatchSimulate(context).run(kind, prefix) }.getOrElse { dev.ikrar.sulo.watch.WatchSimulate.Result("error", 0, 0) }
+            call.resolve(JSObject().put("status", r.status).put("changes", r.changes).put("notices", r.notices))
+        }
+    }
 }

@@ -11,7 +11,9 @@ export function screenForNotification(id: string): Screen {
   const task = kind === 'changes' && entryId ? /^task:(\d+):/.exec(entryId) : null;
   if (task) return { name: 'tugas', detail: task[1]! };
   if (kind === 'task' && eventId !== null && Number.isFinite(eventId)) return { name: 'tugas', detail: String(eventId) };
-  if (kind === 'summary' || kind === 'morning') return { name: 'tugas', detail: null };
+  // The morning summary opens Ringkasan; a task summary, the task list.
+  if (kind === 'morning') return { name: 'ringkasan', detail: null };
+  if (kind === 'summary') return { name: 'tugas', detail: null };
   if (kind === 'calendar') return { name: 'kalender', detail: null };
   if (kind === 'changes' && courseId !== null && Number.isFinite(courseId)) return { name: 'kabar', detail: String(courseId) };
   if (kind === 'changes' || kind === 'changes_summary') return { name: 'kabar', detail: null };

@@ -44,7 +44,8 @@ export async function planReminders(store: KeyValueStore, now: UnixSeconds, time
   let at: UnixSeconds | null = now;
   for (let guard = 0; at !== null && at <= end && out.length < MAX_SCHEDULED && guard < 500; guard++) {
     const when: UnixSeconds = at;
-    const result = await runNotifyCycle({ store: sim, now: when, timeZone, uiLanguage, notifier: { show: async (id, view) => void out.push({ at: when, id, view }) } });
+    // The phone's morning summary is the full one: overdue, today, tomorrow, today's events (reminders/morning.ts).
+    const result = await runNotifyCycle({ store: sim, now: when, timeZone, uiLanguage, morningStyle: 'full', notifier: { show: async (id, view) => void out.push({ at: when, id, view }) } });
     at = result.nextAt !== null && result.nextAt > when ? result.nextAt : null;
   }
   return out.slice(0, MAX_SCHEDULED);

@@ -39,6 +39,8 @@ export interface CycleDeps {
   timeZone: string;
   uiLanguage: string;
   notifier: Notifier;
+  /** The phone passes "full" (reminders/morning.ts); the extension keeps its own summary. */
+  morningStyle?: 'classic' | 'full';
 }
 
 /** Notification ids carry what a click needs: "task|eventId|key", "summary|…", "morning|…", "session|…". */
@@ -103,6 +105,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     updates: prefs.updates,
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
     krsWindows: windows,
+    morningStyle: deps.morningStyle,
     nudges: neosia.enabled ? neosiaNudges(calendar.kegiatan, prefs.calendar) : [],
   });
 

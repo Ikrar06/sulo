@@ -98,7 +98,9 @@ describe('tapping a reminder opens the right screen', () => {
     expect(screenForNotification('calendar|uas-2026|h-1')).toEqual({ name: 'kalender', detail: null });
     expect(screenForNotification('changes|course:401')).toEqual({ name: 'kabar', detail: '401' });
     expect(screenForNotification('summary|2026-11-18')).toEqual({ name: 'tugas', detail: null });
-    expect(screenForNotification('morning|2026-11-18')).toEqual({ name: 'tugas', detail: null });
+    // The morning summary opens Ringkasan (M8c.3); background news about one task opens it.
+    expect(screenForNotification('morning|2026-11-18')).toEqual({ name: 'ringkasan', detail: null });
+    expect(screenForNotification('changes|task:103:added')).toEqual({ name: 'tugas', detail: '103' });
     expect(screenForNotification('something-else')).toEqual({ name: 'ringkasan', detail: null });
   });
 });

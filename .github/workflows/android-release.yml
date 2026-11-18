@@ -34,7 +34,8 @@ jobs:
 
       - name: Web (produksi) dan cap sync
         working-directory: apps/mobile
-        run: pnpm exec vite build && pnpm exec cap sync android
+        # A release bundle with debug-only code (the debug screen, its notification tests) fails here.
+        run: pnpm exec vite build && node scripts/check-no-dev-code.mjs dist && pnpm exec cap sync android
 
       - name: Kunci rilis dari secrets
         env:

@@ -26,7 +26,11 @@ import java.util.Calendar
  */
 class WatchWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
     override fun doWork(): Result {
-        runCatching { WatchRun(applicationContext).run(inputData.getString(WatchScheduler.MODE) ?: WatchScheduler.MODE_CHECK) }
+        val mode = inputData.getString(WatchScheduler.MODE) ?: WatchScheduler.MODE_CHECK
+        runCatching {
+            if (mode == WatchScheduler.MODE_SIM_FLUSH) WatchSimulate(applicationContext).flush(inputData.getString(WatchScheduler.PREFIX) ?: "")
+            else WatchRun(applicationContext).run(mode)
+        }
         return Result.success()
     }
 }
@@ -56,7 +60,8 @@ class WatchRun(private val context: Context) {
                 planEnabled = plan?.optBoolean("enabled", false) == true,
                 userUnlocked = userUnlocked(),
                 sessionStatus = vault.status(),
-                appInForeground = MainActivity.inForeground,
+                // "Jalankan cek sekarang" (debug build) runs with the app open on purpose.
+                appInForeground = MainActivity.inForeground && mode != WatchScheduler.MODE_CHECK_NOW,
                 hasSesskey = session?.sesskey != null,
                 backingOff = WatchCheck.backingOff(backoff, now),
             ),
@@ -132,7 +137,7 @@ class WatchRun(private val context: Context) {
                 store.setOverlay(outcome.overlay)
                 // A stale plan (over 48 hours): the baseline cannot be trusted, so no notice; core records it all.
                 if (!WatchCheck.planStale(plan, now)) announce(plan, outcome.changes, now)
-                record(now, started, bytes, "ok")
+                record(now, started, bytes, "ok", outcome.changes.size)
             }
         }
         scheduleNext(plan, now)
@@ -187,8 +192,8 @@ class WatchRun(private val context: Context) {
     }
 
     /** Times, duration, size and an outcome code only (the dev screen and the battery numbers). */
-    private fun record(now: Long, startedMs: Long, bytes: Int, outcome: String) {
-        store.recordTiming(JSONObject().put("plannedAt", store.plannedAt()).put("ranAt", now).put("ms", System.currentTimeMillis() - startedMs).put("bytes", bytes).put("outcome", outcome))
+    private fun record(now: Long, startedMs: Long, bytes: Int, outcome: String, changes: Int = 0) {
+        store.recordTiming(JSONObject().put("plannedAt", store.plannedAt()).put("ranAt", now).put("ms", System.currentTimeMillis() - startedMs).put("bytes", bytes).put("outcome", outcome).put("changes", changes))
     }
 
     companion object {
