@@ -26,6 +26,12 @@
 
         </activity>
 
+        <!-- SIKOLA's own login page, observed by URL only (no script, no JS bridge). -->
+        <activity
+            android:name=".session.LoginActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
