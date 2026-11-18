@@ -10,7 +10,10 @@ import { formatAgo } from '@/lib/format/time';
 import { GRADE_LETTERS } from '@/lib/grades/scale';
 import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readSemesters, readTranscript, semesterLabeler, simulateIpk, transcriptDiagnostics, type TranscriptRow } from '@/lib/grades/transcript';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { neosiaUrl } from '@/lib/links';
+import { NEOSIA_TRANSKRIP } from '@/lib/links';
+import { formatDateKey } from '@/lib/calendar/countdown';
+import { isOlderThan } from '@/lib/neosia/sources';
+import { NeosiaChecklist } from '../NeosiaChecklist';
 import { neosiaStatus, profile } from '@/lib/neosia/view';
 import { GpaChart } from '../GpaChart';
 import { XIcon } from '../icons';
@@ -38,18 +41,17 @@ export function NilaiPage({ data }: PageProps) {
   const semesters = useMemo(() => readSemesters(snapshots['mahasiswa/semester']?.data), [snapshots]);
   const p = profile(snapshots);
   const status = neosiaStatus(snapshots);
+  const transcriptAt = snapshots.getTranskripMahasiswa?.seenAt ?? null;
 
-  if (rows.length === 0 && !p) {
+  // No transcript yet: the page is the checklist, with the transcript first in line.
+  if (rows.length === 0) {
     return (
-      <Card>
-        <p className="text-[14px] font-semibold">{w.noData}</p>
-        <p className="mt-1 text-[14px] text-muted-foreground">{n.empty}</p>
-        <Button className="mt-4" variant="outline" asChild>
-          <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer">
-            {w.openNeosia}
-          </a>
-        </Button>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <RefreshButton label={w.refresh.grades} />
+        </div>
+        <NeosiaChecklist snapshots={snapshots} now={data.now} highlight="transkrip" />
+      </div>
     );
   }
 
@@ -81,10 +83,17 @@ export function NilaiPage({ data }: PageProps) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[12px] text-muted-foreground">{status.lastSeenAt !== null ? n.source(formatAgo(status.lastSeenAt, data.now, m)) : ''}</p>
-        <Button variant="outline" aria-pressed={shown} onClick={() => setShown(!shown)}>
-          {shown ? n.hide : n.show}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" aria-pressed={shown} onClick={() => setShown(!shown)}>
+            {shown ? n.hide : n.show}
+          </Button>
+          <RefreshButton label={w.refresh.grades} />
+        </div>
       </div>
+      {/* A transcript older than 30 days: when it is from, and how to update it. */}
+      {isOlderThan(transcriptAt, data.now) && transcriptAt !== null && (
+        <p className="text-[12px] text-muted-foreground">{w.refresh.stale(formatDateKey(new Date(transcriptAt * 1000).toISOString().slice(0, 10), m.intl, { day: 'numeric', month: 'long', year: 'numeric' }))}</p>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-3" aria-label={n.title}>
         <Stat label={n.ipk} value={shown ? <Private>{fmt(official ?? computed)}</Private> : HIDDEN} />
@@ -101,8 +110,15 @@ export function NilaiPage({ data }: PageProps) {
 
       <Card title={n.chartTitle} action={<span className="text-[12px] text-muted-foreground">{n.estimate}</span>}>
         {points.length === 0 ? (
-          // No point: no empty axes, one sentence instead.
-          <p className="py-4 text-[14px] text-muted-foreground">{n.chartEmpty}</p>
+          // No point: no empty axes, one sentence and the page that fills it.
+          <div className="flex flex-wrap items-center gap-3 py-4">
+            <p className="text-[14px] text-muted-foreground">{w.refresh.chartEmpty}</p>
+            <Button variant="outline" size="sm" asChild>
+              <a href={NEOSIA_TRANSKRIP} target="_blank" rel="noopener noreferrer">
+                {w.refresh.openTranscript}
+              </a>
+            </Button>
+          </div>
         ) : reveal ? (
           <GpaChart title={n.chartTitle} points={points} />
         ) : (
@@ -132,6 +148,17 @@ function DevTranscript({ rows, semesters }: { rows: readonly TranscriptRow[]; se
     <p className="text-[12px] text-muted-foreground tabular-nums">
       Transcript check (dev build only): {d.stored} rows stored, {d.counted} counted, {d.mapped} mapped to a semester ({semesters.length} semesters stored). Not counted because: not used {d.notUsed}, letter off the scale {d.noLetter}, no credits {d.noCredits}, no semester {d.noSemester}.
     </p>
+  );
+}
+
+/** "Perbarui dari NEOSIA": opens the NEOSIA transcript in a new tab on the user's click. */
+function RefreshButton({ label }: { label: string }) {
+  return (
+    <Button variant="outline" asChild>
+      <a href={NEOSIA_TRANSKRIP} target="_blank" rel="noopener noreferrer">
+        {label}
+      </a>
+    </Button>
   );
 }
 

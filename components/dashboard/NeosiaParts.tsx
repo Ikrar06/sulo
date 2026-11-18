@@ -17,6 +17,9 @@ import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon, XIcon
 import { Card, CardLink } from './Shell';
 import { routeHash } from '@/lib/dashboard/routes';
 import type { LinkedMeeting } from '@/lib/neosia/linked';
+import { completion, sourceStatuses } from '@/lib/neosia/sources';
+import { NeosiaChecklistLine } from './NeosiaChecklist';
+import { NEOSIA_KRS } from '@/lib/links';
 
 const STATE_ICON: Record<ItemState, ComponentType<SVGProps<SVGSVGElement>>> = {
   ok: CheckCircleIcon,
@@ -72,7 +75,7 @@ export function KrsReadinessCard({ items, window, seenAt, now }: { items: Readin
               <Icon className={`mt-1 size-4 shrink-0 ${STATE_CLASS[item.state]}`} aria-label={w.krs.states[item.state]} role="img" aria-hidden={false} />
               <span className="min-w-0 flex-1">{itemText(item, w, m)}</span>
               {needsLink(item) && (
-                <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+                <a href={NEOSIA_KRS} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
                   {w.openInNeosia}
                 </a>
               )}
@@ -113,8 +116,11 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
   const w = neosiaWords(locale).studi;
   const [shown, setShown] = useState(false);
   const masked = usePrivacy();
-  const p = profile(snapshots);
-  if (!p || (p.sksPassed === null && p.ipk === null && p.semester === null)) return null;
+  const profileData = profile(snapshots);
+  const incomplete = !completion(sourceStatuses(snapshots)).complete;
+  if (!profileData && !incomplete) return null;
+  // Nothing from NEOSIA yet: the card holds only the "Lengkapi data" line.
+  const p = profileData ?? { semester: null, sksPassed: null, ipk: null, ips: null, masaStudi: null };
   const fill = p.sksPassed !== null ? Math.min(100, Math.round((p.sksPassed / sksTarget) * 100)) : null;
   const gpa = (v: number) => v.toFixed(2);
   return (
@@ -153,6 +159,7 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
           <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ips)}</Private> : '••••'}</span>
         </p>
       )}
+      <NeosiaChecklistLine snapshots={snapshots} />
     </Card>
   );
 }

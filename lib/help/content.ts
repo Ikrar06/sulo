@@ -248,4 +248,14 @@ export const FAQ: FaqEntry[] = [
       },
     ],
   },
+  {
+    id: 'buka-neosia',
+    q: { id: 'Kenapa harus membuka NEOSIA dulu?', en: 'Why do I have to open NEOSIA first?' },
+    a: [
+      {
+        id: 'Sulo tidak pernah menghubungi NEOSIA sendiri. Data hanya ikut terbaca saat kamu membuka halamannya. Transkrip cukup dibuka setiap ada nilai baru, dan KRS setiap awal semester.',
+        en: 'Sulo never contacts NEOSIA by itself. Data is only read along while you open its pages. Open your transcript whenever new grades are out, and KRS at the start of each semester.',
+      },
+    ],
+  },
 ];

@@ -22,6 +22,7 @@ import { planReminders, type Notice } from './plan';
 import { readModuleState } from '../neosia/module';
 import { readSnapshots } from '../neosia/store';
 import { krsWindows } from '../neosia/view';
+import { neosiaNudges } from '../neosia/nudges';
 import { noticeView, type NotificationView } from './text';
 
 /** Recorded keys are kept this long, then pruned. */
@@ -102,6 +103,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     updates: prefs.updates,
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
     krsWindows: windows,
+    nudges: neosia.enabled ? neosiaNudges(calendar.kegiatan, prefs.calendar) : [],
   });
 
   // The account captured at the start must still be active before every

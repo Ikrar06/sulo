@@ -38,6 +38,12 @@ export interface PlanInput {
    * on and the KRS calendar reminders are on.
    */
   krsWindows?: readonly { start: string; end: string; caption: string | null }[];
+  /**
+   * NEOSIA nudges (M7.1, module on only): academic-calendar periods when a
+   * NEOSIA page is worth opening. "grades": grade input or appeal periods;
+   * "krs": a KRS window opening. One notification per period.
+   */
+  nudges?: readonly { id: string; nudge: 'grades' | 'krs'; mulai: string; selesai: string }[];
   /** Academic calendar reminders (M5a); omitted means none. */
   calendar?: { events: readonly CalendarEventLite[]; settings: CalendarNotifySettings; /** Short source for the body, e.g. "SK Rektor No. 08429/UN4.1/KEP/2026". */ source: string };
 }
@@ -56,7 +62,9 @@ export type Notice =
   /** An academic calendar date: a week or a day before it, or before a window's last day. */
   | { kind: 'calendar'; key: string; stage: CalendarStage; event: CalendarEventLite; source: string }
   /** The KRS window from NEOSIA closes in 3 days or tomorrow. */
-  | { kind: 'krs'; key: string; stage: 'h3' | 'h1'; end: string; caption: string | null };
+  | { kind: 'krs'; key: string; stage: 'h3' | 'h1'; end: string; caption: string | null }
+  /** Open a NEOSIA page so Sulo's copy is fresh: grades may be out, or KRS opened. */
+  | { kind: 'nudge'; key: string; nudge: 'grades' | 'krs' };
 
 export interface Plan {
   send: Notice[];
@@ -180,6 +188,38 @@ function planKrs(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: Un
         }
       } else upcoming.push(fireAt);
     }
+  }
+  const later = upcoming.filter((t) => t > input.now);
+  return { send, mark, nextAt: later.length ? Math.min(...later) : null };
+}
+
+export const nudgeKey = (n: { id: string; nudge: 'grades' | 'krs' }) => `nudge:${n.nudge}:${n.id}`;
+
+/**
+ * One nudge per period, on a day inside it: from the morning time of its
+ * first day (later days send it right away), moved past quiet hours. A
+ * period that already ended is recorded as handled.
+ */
+function planNudges(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: UnixSeconds | null } {
+  const nudges = input.nudges ?? [];
+  if (nudges.length === 0) return { send: [], mark: [], nextAt: null };
+  const today = localParts(input.now, input.timeZone).dateKey;
+  const send: Notice[] = [];
+  const mark: string[] = [];
+  const upcoming: UnixSeconds[] = [];
+  for (const n of nudges) {
+    const key = nudgeKey(n);
+    if (key in input.sent) continue;
+    if (n.selesai < today) {
+      mark.push(key);
+      continue;
+    }
+    const first = n.mulai > today ? n.mulai : today;
+    const at = quietAdjusted(Math.max(zonedToUnix(first, input.settings.snoozeMorningMin, input.timeZone), n.mulai > today ? 0 : input.now), false, input);
+    if (n.mulai <= today && at <= input.now) {
+      send.push({ kind: 'nudge', key, nudge: n.nudge });
+      mark.push(key);
+    } else upcoming.push(at);
   }
   const later = upcoming.filter((t) => t > input.now);
   return { send, mark, nextAt: later.length ? Math.min(...later) : null };
@@ -344,6 +384,11 @@ export function planReminders(input: PlanInput): Plan {
   send.push(...calendar.send);
   markSent.push(...calendar.mark);
   if (calendar.nextAt !== null) upcoming.push(calendar.nextAt);
+
+  const nudges = planNudges(input);
+  send.push(...nudges.send);
+  markSent.push(...nudges.mark);
+  if (nudges.nextAt !== null) upcoming.push(nudges.nextAt);
 
   const krs = planKrs(input);
   send.push(...krs.send);

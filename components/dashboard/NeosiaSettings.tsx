@@ -15,6 +15,7 @@ import { neosiaUrl } from '@/lib/links';
 import { neosiaStatus } from '@/lib/neosia/view';
 import type { DashboardActions, DashboardData } from './data';
 import { useNeosiaConnect } from './neosia-connect';
+import { NeosiaChecklist } from './NeosiaChecklist';
 
 export function NeosiaSettings({ data, actions }: { data: DashboardData; actions: DashboardActions }) {
   const { m, locale } = useI18n();
@@ -69,6 +70,8 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
             {status.lastSeenAt === null ? s.openOnce : s.lastUpdated(formatAgo(status.lastSeenAt, data.now, m))}
           </p>
           {status.changedShape.length > 0 && <p className="text-[12px] text-muted-foreground">{w.changedShape}</p>}
+          {/* Which NEOSIA pages have given data, each with its own "Buka". */}
+          <NeosiaChecklist snapshots={data.neosia.snapshots} now={data.now} variant="settings" />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Button variant="outline" asChild>
               <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer">

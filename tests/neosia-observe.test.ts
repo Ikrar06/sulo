@@ -25,10 +25,20 @@ describe('dev observation listing', () => {
   });
 
   it('writes Markdown with paths and key names, and lists allowlisted paths not seen yet', () => {
-    const md = observationsMarkdown([{ ...obs('/api/dashboard', 'dashboard', ['indeks_prestasi.ipk']), count: 2 }, { ...obs('/api/mahasiswa/mahasiswa', 'never', null), count: 1 }], ['dashboard', 'max_sks']);
+    const md = observationsMarkdown([{ ...obs('/api/dashboard', 'dashboard', ['indeks_prestasi.ipk']), count: 2, pages: ['/'] }, { ...obs('/api/mahasiswa/mahasiswa', 'never', null), count: 1, pages: ['/transkrip-nilai'] }], ['dashboard', 'max_sks']);
+    expect(md).toContain('- halaman NEOSIA: `/`');
     expect(md).toContain('### dashboard');
     expect(md).toContain('indeks_prestasi.ipk');
     expect(md).toContain('- max_sks');
     expect(md).toContain('`/api/mahasiswa/mahasiswa` (tidak pernah dibaca)');
   });
 });
+
+describe('the NEOSIA page each response came from', () => {
+  it('keeps every page a response was seen on', () => {
+    let list = addObservation([], { ...obs('/api/mahasiswa/dashboard', 'dashboard', ['x']), page: '/' });
+    list = addObservation(list, { ...obs('/api/mahasiswa/dashboard', 'dashboard', ['x']), page: '/transkrip-nilai' });
+    expect(list[0]!.pages).toEqual(['/', '/transkrip-nilai']);
+  });
+});
+

@@ -1,5 +1,5 @@
 import { browser } from 'wxt/browser';
-import { sikolaUrl } from '@/lib/links';
+import { NEOSIA_KRS, NEOSIA_TRANSKRIP, sikolaUrl } from '@/lib/links';
 import { defineBackground } from 'wxt/utils/define-background';
 import { BADGE_COLORS } from '@/lib/brand';
 import { createBrowserStore } from '@/lib/browser-store';
@@ -235,6 +235,9 @@ export default defineBackground(() => {
       } catch {
         await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/calendar/view.php?view=upcoming` });
       }
+    } else if (kind === 'nudge') {
+      // The user clicked the notification: open the NEOSIA page it names. Sulo never touches that tab.
+      await browser.tabs.create({ url: id.includes('nudge:grades:') ? NEOSIA_TRANSKRIP : NEOSIA_KRS });
     } else if (kind === 'krs') {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     } else if (kind === 'calendar') {

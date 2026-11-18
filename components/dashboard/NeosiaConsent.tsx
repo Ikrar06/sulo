@@ -41,6 +41,8 @@ export function NeosiaConsent({ open, busy, onCancel, onConnect }: { open: boole
             </section>
             <p className="text-[12px]">{C.unofficial[l]}</p>
             <p className="text-[12px]">{s.chromeNext}</p>
+            {/* The last sentence before the buttons. */}
+            <p className="text-[12px]">{s.afterConnect}</p>
           </div>
         </AlertDialogDescription>
         <div className="mt-4 flex justify-end gap-2">

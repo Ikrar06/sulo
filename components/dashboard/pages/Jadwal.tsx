@@ -11,7 +11,9 @@ import { formatDateKey } from '@/lib/calendar/countdown';
 import { courseNameWithClass } from '@/lib/courses/display-name';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { neosiaUrl } from '@/lib/links';
+import { NEOSIA_KRS } from '@/lib/links';
+import { fromOtherSemester } from '@/lib/neosia/sources';
+import { NeosiaChecklist } from '../NeosiaChecklist';
 import { setCourseLink } from '@/lib/neosia/course-map';
 import { linkedMeetings, type LinkedMeeting } from '@/lib/neosia/linked';
 import { holidayOn, holidayRanges, mondayOf, scheduleIcs, semesterRange } from '@/lib/neosia/schedule';
@@ -99,18 +101,13 @@ export function JadwalPage({ data, actions }: PageProps) {
     );
   }
 
+  // No KRS data yet: the checklist, with KRS first in line.
   if (meetings.length === 0) {
     return (
-      <Card>
-        <p className="text-[14px] font-semibold">{w.noData}</p>
-        <p className="mt-1 text-[14px] text-muted-foreground">{w.schedule.emptyNoData}</p>
-        {status.changedShape.includes('belanja_krs') && <p className="mt-2 text-[12px] text-muted-foreground">{w.changedShape}</p>}
-        <Button className="mt-4" variant="outline" asChild>
-          <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer">
-            {w.openNeosia}
-          </a>
-        </Button>
-      </Card>
+      <div className="space-y-4">
+        {status.changedShape.includes('belanja_krs') && <p className="text-[12px] text-muted-foreground">{w.changedShape}</p>}
+        <NeosiaChecklist snapshots={data.neosia.snapshots} now={data.now} highlight="krs" />
+      </div>
     );
   }
 
@@ -125,6 +122,8 @@ export function JadwalPage({ data, actions }: PageProps) {
   const dateOf = (weekday: number) => addDays(monday, (weekday + 6) % 7);
   // A week outside the semester's teaching weeks has no classes: an empty state, not an empty grid.
   const noClassesThisWeek = range !== null && (sunday < range.start || monday > range.end);
+  // The KRS is from another semester than the academic calendar's current one.
+  const otherSemester = fromOtherSemester(krsSemester(data.neosia.snapshots), range ? { tahunAjaran: calendar.tahun_ajaran, semester: range.semester } : null) === true;
 
   return (
     <div className="space-y-4">
@@ -165,6 +164,17 @@ export function JadwalPage({ data, actions }: PageProps) {
         </p>
       )}
 
+      {otherSemester && (
+        <p role="status" className="flex flex-wrap items-center gap-3 text-[14px]">
+          <span className="text-muted-foreground">{w.refresh.otherSemester}</span>
+          <Button variant="outline" size="sm" asChild>
+            <a href={NEOSIA_KRS} target="_blank" rel="noopener noreferrer">
+              {w.refresh.openKrs}
+            </a>
+          </Button>
+        </p>
+      )}
+
       {noClassesThisWeek ? (
         <Card>
           <p className="text-[14px] text-muted-foreground">{w.schedule.noClassWeek}</p>
@@ -177,7 +187,7 @@ export function JadwalPage({ data, actions }: PageProps) {
 
       <p className="flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
         {status.lastSeenAt !== null && <span>{w.jadwal.updated(formatAgo(status.lastSeenAt, data.now, m))}</span>}
-        <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer" className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+        <a href={NEOSIA_KRS} target="_blank" rel="noopener noreferrer" className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
           {w.openNeosia}
         </a>
       </p>

@@ -15,16 +15,20 @@ export const observationSchema = z.strictObject({
   path: z.string().max(300),
   endpoint: z.string().max(60),
   keys: z.array(z.string().max(200)).max(400).nullable(),
+  page: z.string().max(200).default('/'),
   at: z.number().int().positive(),
 });
 
-export type StoredObservation = z.infer<typeof observationSchema> & { count: number };
+/** `pages`: every NEOSIA page this response was seen on. */
+export type StoredObservation = Omit<z.infer<typeof observationSchema>, 'page'> & { count: number; pages: string[] };
 
 /** Newest first, one row per path and endpoint; a repeat bumps its count and keeps the latest keys. */
-export function addObservation(list: readonly StoredObservation[], o: z.infer<typeof observationSchema>): StoredObservation[] {
+export function addObservation(list: readonly StoredObservation[], o: z.input<typeof observationSchema>): StoredObservation[] {
   const same = list.find((x) => x.path === o.path && x.endpoint === o.endpoint);
   const rest = list.filter((x) => x !== same);
-  return [{ ...o, keys: o.keys ?? same?.keys ?? null, count: (same?.count ?? 0) + 1 }, ...rest].slice(0, OBSERVED_MAX);
+  const { page = '/', ...fields } = o;
+  const pages = [...new Set([...(same?.pages ?? []), page])].slice(0, 20);
+  return [{ ...fields, keys: o.keys ?? same?.keys ?? null, count: (same?.count ?? 0) + 1, pages }, ...rest].slice(0, OBSERVED_MAX);
 }
 
 export async function recordObservation(store: KeyValueStore, raw: unknown): Promise<boolean> {
@@ -48,14 +52,14 @@ export function observationsMarkdown(list: readonly StoredObservation[], allowli
     '',
     ...list
       .filter((o) => o.endpoint !== 'other' && o.endpoint !== 'never')
-      .flatMap((o) => [`### ${o.endpoint}`, '', `- path: \`${o.path}\``, `- terlihat: ${o.count} kali, terakhir ${at(o.at)}`, '- key:', '', '```', ...(o.keys ?? ['(tidak ada)']), '```', '']),
+      .flatMap((o) => [`### ${o.endpoint}`, '', `- path: \`${o.path}\``, `- halaman NEOSIA: ${(o.pages ?? []).map((p) => `\`${p}\``).join(', ') || '-'}`, `- terlihat: ${o.count} kali, terakhir ${at(o.at)}`, '- key:', '', '```', ...(o.keys ?? ['(tidak ada)']), '```', '']),
     '## Daftar putih yang belum terlihat',
     '',
     ...(allowlisted.some((e) => !seen.has(e)) ? allowlisted.filter((e) => !seen.has(e)).map((e) => `- ${e}`) : ['(semua sudah terlihat)']),
     '',
     '## Path NEOSIA lain (isi tidak dibaca)',
     '',
-    ...list.filter((o) => o.endpoint === 'other' || o.endpoint === 'never').map((o) => `- \`${o.path}\`${o.endpoint === 'never' ? ' (tidak pernah dibaca)' : ''}, ${o.count} kali`),
+    ...list.filter((o) => o.endpoint === 'other' || o.endpoint === 'never').map((o) => `- \`${o.path}\`${o.endpoint === 'never' ? ' (tidak pernah dibaca)' : ''}, ${o.count} kali, dari ${(o.pages ?? []).join(', ') || '-'}`),
     '',
   ];
   return lines.join('\n');

@@ -76,6 +76,8 @@ export function noticeView(
       return changesView(notice.entries, ctx.courseNameById?.(notice.courseId) ?? null, ctx);
     case 'changes_summary':
       return { title: n.changesSummaryTitle(notice.count, notice.courses), message: n.changesSummaryBody, icon: 'idle', buttons: [] };
+    case 'nudge':
+      return notice.nudge === 'grades' ? { title: n.nudgeGradesTitle, message: n.nudgeGradesBody, icon: 'idle', buttons: [] } : { title: n.nudgeKrsTitle, message: n.nudgeKrsBody, icon: 'idle', buttons: [] };
     case 'krs': {
       const end = formatDateKey(notice.end, m.intl, { weekday: 'long', day: 'numeric', month: 'long' });
       const caption = shorten(notice.caption ?? n.krsDefaultCaption, MAX_CALENDAR_NAME);

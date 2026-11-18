@@ -4,6 +4,7 @@ import { I18nProvider } from '@/components/i18n';
 import { Button } from '@/components/ui/button';
 import { NEOSIA_PAGES, parseRoute, SENSITIVE_PAGES, type Page, type Route } from '@/lib/dashboard/routes';
 import { PrivacyProvider } from '@/components/private';
+import { NeosiaArrivals } from './NeosiaArrivals';
 import { messagesFor, resolveLocale } from '@/lib/i18n';
 import { dashFor } from '@/lib/i18n/dashboard';
 import { DashboardProvider, timeZone, useDashboard } from './data';
@@ -102,6 +103,7 @@ function Router() {
     <I18nProvider locale={locale}>
       <PrivacyProvider value={data.prefs.privacyMode}>
       <ToastProvider>
+      {data.neosia.module.enabled && <NeosiaArrivals snapshots={data.neosia.snapshots} page={page} />}
       <DashboardShell
         page={page}
         d={d}

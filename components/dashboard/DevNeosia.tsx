@@ -32,7 +32,7 @@ export function DevNeosia({ now }: { now: number }) {
               <li key={`${o.endpoint}${o.path}`}>
                 <details>
                   <summary className="cursor-pointer">
-                    <span className="font-semibold">{o.endpoint}</span> <span className="text-muted-foreground">{o.path} · {o.count}× · {o.keys?.length ?? 0} keys</span>
+                    <span className="font-semibold">{o.endpoint}</span> <span className="text-muted-foreground">{o.path} · {o.count}× · {o.keys?.length ?? 0} keys · from {(o.pages ?? []).join(', ') || '-'}</span>
                   </summary>
                   <pre className="mt-1 max-h-48 overflow-auto rounded-md border border-border p-2 text-[12px]">{(o.keys ?? []).join('\n')}</pre>
                 </details>

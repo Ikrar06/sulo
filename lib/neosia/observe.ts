@@ -18,6 +18,8 @@ export interface Observation {
   endpoint: string;
   /** Dotted key paths ("a.b[].c"); only for allowlisted paths. */
   keys: string[] | null;
+  /** The NEOSIA page open at the time (location.pathname, scrubbed, no query). */
+  page: string;
   at: number;
 }
 
@@ -47,13 +49,14 @@ export function keyShape(value: unknown): string[] {
   return [...out].slice(0, MAX_KEYS);
 }
 
-export function observation(match: UrlMatch, json: unknown, at: number): Observation {
+export function observation(match: UrlMatch, json: unknown, at: number, page = '/'): Observation {
   const listed = match.kind === 'endpoint';
   return {
     type: OBSERVE_TYPE,
     path: match.path,
     endpoint: listed ? match.endpoint.id : match.kind,
     keys: listed && json !== undefined ? keyShape(json) : null,
+    page,
     at,
   };
 }

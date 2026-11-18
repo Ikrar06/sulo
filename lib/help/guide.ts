@@ -141,8 +141,8 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     alt: { id: 'Kartu NEOSIA di Pengaturan, layar persetujuan, lalu kartu yang sudah terhubung.', en: 'The NEOSIA card in Settings, the consent screen, then the connected card.' },
     points: [
       { id: 'Di Pengaturan, nyalakan Hubungkan NEOSIA.', en: 'In Settings, turn on Connect NEOSIA.' },
-      { id: 'Baca apa yang disimpan dan apa yang dibuang, lalu pilih Hubungkan. Chrome menanyakan izinnya.', en: 'Read what is kept and what is dropped, then choose Connect. Chrome asks for permission.' },
-      { id: 'Buka NEOSIA sekali supaya datanya masuk. Matikan kapan saja lewat Putuskan dan hapus data.', en: 'Open NEOSIA once so the data comes in. Turn it off any time with Disconnect and delete data.' },
+      { id: 'Baca apa yang disimpan dan apa yang dibuang, lalu pilih Hubungkan. Chrome menanyakan izinnya, lalu Sulo membuka transkripmu di NEOSIA.', en: 'Read what is kept and what is dropped, then choose Connect. Chrome asks for permission, then Sulo opens your transcript in NEOSIA.' },
+      { id: 'Lengkapi data dari NEOSIA: buka halaman yang belum ada datanya. Matikan kapan saja lewat Putuskan dan hapus data.', en: 'Complete your data from NEOSIA: open the pages without data. Turn it off any time with Disconnect and delete data.' },
     ],
   },
 ];

@@ -51,3 +51,9 @@ export const FEEDBACK_FORM_URL = 'https://forms.gle/XsBuWXGHNR4pPTs17';
 export function isShownLink(url: string): boolean {
   return /^https:\/\/\S+$/.test(url);
 }
+
+/** NEOSIA pages a "Buka" button opens (no student number or other identity in them). */
+export const NEOSIA_TRANSKRIP = 'https://neosia.unhas.ac.id/transkrip-nilai';
+export const NEOSIA_KRS = 'https://neosia.unhas.ac.id/kartu-rencana-studi';
+export const NEOSIA_KHS = 'https://neosia.unhas.ac.id/kartu-hasil-studi';
+export const NEOSIA_MATAKULIAH = 'https://neosia.unhas.ac.id/matakuliah';
