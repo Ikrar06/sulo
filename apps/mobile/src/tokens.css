@@ -20,7 +20,13 @@
    Controls: primary pill 44 (accent), secondary pill 40 (inset), icon
    button circle 40 (card), chip 30, segmented 36, check circle 28; every
    touch target at least 44 whatever its visual size. Tab bar: floating
-   pill 60, 16 from the sides and 12 above the safe area.
+   pill 52, 16 from the sides and 12 above the safe area.
+   Filters: a sideways row of chips only for a few short choices (about 6
+   at most: Tugas's status, Kalender's categories). Many or long choices
+   (courses, kinds, times) use filter pills (36 high, sharing one row) that
+   open a single-choice bottom sheet; an active pill is filled with the text
+   color and carries an X to clear it. Never two chip rows stacked on one
+   screen (check-card-layout.mjs).
 
    --m-tz is 1 on the phone, where WebView's own textZoom (clamped to
    85-130% in MainActivity) scales the text; the web preview sets it to

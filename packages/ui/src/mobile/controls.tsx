@@ -4,6 +4,8 @@
 
 import { Switch as SwitchPrimitive } from 'radix-ui';
 import type { ComponentType, ReactNode, SVGProps } from 'react';
+import { XIcon } from '../dashboard-icons';
+import { ChevronDownIcon } from '../icons';
 
 const ring = 'outline-none focus-ring:ring-2 focus-ring:ring-focus';
 
@@ -99,5 +101,28 @@ export function Toggle({ checked, onChange, label, disabled = false }: { checked
     >
       <SwitchPrimitive.Thumb className="block size-6 translate-x-1 rounded-full bg-m-card shadow-[0_1px_2px_rgb(0_0_0/0.2)] transition-transform duration-150 data-[state=checked]:translate-x-[24px] motion-reduce:transition-none" />
     </SwitchPrimitive.Root>
+  );
+}
+
+/**
+ * A filter button for a choice with many or long options (36 high, sharing
+ * the row's width): tapping the label opens its sheet. Inactive: the inset
+ * layer and a small chevron. Active: filled with the text color, the chosen
+ * option as its label (ellipsis when long) and an X with a 44 px touch area
+ * that clears it.
+ */
+export function FilterPill({ label, active, onOpen, onClear, clearLabel }: { label: string; active: boolean; onOpen: () => void; onClear: () => void; clearLabel: string }) {
+  return (
+    <div className={`flex h-9 min-w-0 flex-1 items-center rounded-full ${active ? 'bg-foreground text-bg' : 'bg-m-inset text-foreground'}`}>
+      <button type="button" aria-haspopup="dialog" onClick={onOpen} className={`m-hit flex h-full min-w-0 flex-1 items-center gap-1 rounded-full pl-4 text-left text-m13 ${active ? 'pr-1' : 'pr-3'} ${ring}`}>
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+        {!active && <ChevronDownIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />}
+      </button>
+      {active && (
+        <button type="button" onClick={onClear} aria-label={clearLabel} className={`m-hit mr-1 flex size-7 shrink-0 items-center justify-center rounded-full ${ring}`}>
+          <XIcon aria-hidden="true" className="size-3.5" />
+        </button>
+      )}
+    </div>
   );
 }

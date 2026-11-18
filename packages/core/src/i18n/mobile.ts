@@ -152,6 +152,11 @@ const id = {
       clear: 'Semua aman hari ini',
     },
   },
+  kabar: {
+    clearFilter: (label: string) => `Hapus filter ${label}`,
+    clearFilters: 'Hapus filter',
+    noneForFilter: 'Tidak ada kabar untuk filter ini.',
+  },
   help: {
     search: 'Cari pertanyaan',
     clearSearch: 'Hapus pencarian',
@@ -304,6 +309,11 @@ const en: MobileWords = {
       tomorrow: (n: number) => `${n} due tomorrow`,
       clear: 'All clear today',
     },
+  },
+  kabar: {
+    clearFilter: (label: string) => `Clear filter ${label}`,
+    clearFilters: 'Clear filters',
+    noneForFilter: 'No updates for this filter.',
   },
   help: {
     search: 'Search questions',

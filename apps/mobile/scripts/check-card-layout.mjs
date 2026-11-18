@@ -6,7 +6,9 @@
 //   every row but the last: [&:not(:last-child)]:border-b);
 // - a negative side margin (-mx-*) together with a row border in one class
 //   list: a list pulled to the screen's edges;
-// - the Select component or a native <select> (choices open a bottom sheet).
+// - the Select component or a native <select> (choices open a bottom sheet);
+// - more than one sideways chip row (role="group" with m-carousel) in one
+//   screen file: many or long choices use filter pills and a sheet.
 // Usage: node scripts/check-card-layout.mjs [file...] (files for its own test).
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -22,8 +24,12 @@ const RULES = [
 const walk = (dir) => readdirSync(dir).flatMap((n) => (statSync(join(dir, n)).isDirectory() ? walk(join(dir, n)) : /\.tsx?$/.test(n) ? [join(dir, n)] : []));
 const files = process.argv.length > 2 ? process.argv.slice(2) : [...walk(SRC), ...walk(SHARED)];
 const problems = [];
+const CHIP_ROW = /role="group"[^>]*m-carousel|m-carousel[^>]*role="group"/;
 for (const file of files) {
-  readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
+  const text = readFileSync(file, 'utf8');
+  const chipRows = text.split('\n').filter((l) => CHIP_ROW.test(l)).length;
+  if (chipRows > 1) problems.push(`${relative(SRC, file).replace(/^(\.\.\/)+/, '')}  ${chipRows} baris chip geser di satu layar (pakai tombol filter pil dan sheet)`);
+  text.split('\n').forEach((line, i) => {
     if (line.includes('lint-ui-allow')) return;
     for (const [re, what] of RULES) if (re.test(line)) problems.push(`${relative(SRC, file).replace(/^(\.\.\/)+/, '')}:${i + 1}  ${what}: ${line.trim().slice(0, 120)}`);
   });

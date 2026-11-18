@@ -21,14 +21,15 @@ export function Sheet({ open, onOpenChange, title, children }: { open: boolean; 
   );
 }
 
-/** A list of options in a sheet: one row each, a check on the chosen one. */
-export function SheetOptions<T extends string | number>({ value, options, onChoose }: { value: T; options: readonly { value: T; label: string }[]; onChoose: (v: T) => void }) {
+/** A list of options in a sheet: one 48 px row each, a check on the chosen one, an optional color dot. */
+export function SheetOptions<T extends string | number>({ value, options, onChoose }: { value: T; options: readonly { value: T; label: string; dot?: string }[]; onChoose: (v: T) => void }) {
   return (
     <ul role="listbox" className="rounded-card bg-m-inset px-4 py-1">
       {options.map((o) => (
         <li key={String(o.value)} role="option" aria-selected={o.value === value} className="[&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
           <button type="button" onClick={() => onChoose(o.value)} className="flex min-h-12 w-full items-center gap-3 text-left text-m15 outline-none focus-ring:ring-2 focus-ring:ring-focus">
-            <span className="flex-1">{o.label}</span>
+            {o.dot && <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ background: o.dot }} />}
+            <span className="min-w-0 flex-1">{o.label}</span>
             {o.value === value && <CheckIcon className="size-4" />}
           </button>
         </li>
