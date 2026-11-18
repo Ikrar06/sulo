@@ -10,7 +10,7 @@ import { formatAgo } from '@/lib/format/time';
 import { GRADE_LETTERS } from '@/lib/grades/scale';
 import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readSemesters, readTranscript, semesterLabeler, simulateIpk, transcriptDiagnostics, type TranscriptRow } from '@/lib/grades/transcript';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_LOGIN_URL } from '@/lib/links';
+import { neosiaUrl } from '@/lib/links';
 import { neosiaStatus, profile } from '@/lib/neosia/view';
 import { GpaChart } from '../GpaChart';
 import { XIcon } from '../icons';
@@ -45,7 +45,7 @@ export function NilaiPage({ data }: PageProps) {
         <p className="text-[14px] font-semibold">{w.noData}</p>
         <p className="mt-1 text-[14px] text-muted-foreground">{n.empty}</p>
         <Button className="mt-4" variant="outline" asChild>
-          <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer">
+          <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer">
             {w.openNeosia}
           </a>
         </Button>

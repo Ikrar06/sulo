@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { formatDateKey } from '@/lib/calendar/countdown';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords, type NeosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_LOGIN_URL } from '@/lib/links';
+import { neosiaUrl } from '@/lib/links';
 import { profile, type ItemState, type KrsWindow, type ReadinessItem } from '@/lib/neosia/view';
 import type { Snapshots } from '@/lib/neosia/store';
 import type { Messages } from '@/lib/i18n';
@@ -72,7 +72,7 @@ export function KrsReadinessCard({ items, window, seenAt, now }: { items: Readin
               <Icon className={`mt-1 size-4 shrink-0 ${STATE_CLASS[item.state]}`} aria-label={w.krs.states[item.state]} role="img" aria-hidden={false} />
               <span className="min-w-0 flex-1">{itemText(item, w, m)}</span>
               {needsLink(item) && (
-                <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+                <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
                   {w.openInNeosia}
                 </a>
               )}
@@ -96,7 +96,7 @@ export function SurveyLine() {
     <p className="flex flex-wrap items-center gap-2 text-[14px]" role="status">
       <AlertCircleIcon className="size-4 shrink-0 text-urgency-soon" />
       <span>{w.survey.body}</span>
-      <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="rounded text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+      <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer" className="rounded text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
         {w.survey.link}
       </a>
     </p>

@@ -11,7 +11,7 @@ import { formatDateKey } from '@/lib/calendar/countdown';
 import { courseNameWithClass } from '@/lib/courses/display-name';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_LOGIN_URL } from '@/lib/links';
+import { neosiaUrl } from '@/lib/links';
 import { setCourseLink } from '@/lib/neosia/course-map';
 import { linkedMeetings, type LinkedMeeting } from '@/lib/neosia/linked';
 import { holidayOn, holidayRanges, mondayOf, scheduleIcs, semesterRange } from '@/lib/neosia/schedule';
@@ -106,7 +106,7 @@ export function JadwalPage({ data, actions }: PageProps) {
         <p className="mt-1 text-[14px] text-muted-foreground">{w.schedule.emptyNoData}</p>
         {status.changedShape.includes('belanja_krs') && <p className="mt-2 text-[12px] text-muted-foreground">{w.changedShape}</p>}
         <Button className="mt-4" variant="outline" asChild>
-          <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer">
+          <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer">
             {w.openNeosia}
           </a>
         </Button>
@@ -177,7 +177,7 @@ export function JadwalPage({ data, actions }: PageProps) {
 
       <p className="flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
         {status.lastSeenAt !== null && <span>{w.jadwal.updated(formatAgo(status.lastSeenAt, data.now, m))}</span>}
-        <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+        <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer" className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
           {w.openNeosia}
         </a>
       </p>

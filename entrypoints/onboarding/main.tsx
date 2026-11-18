@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { SIKOLA_LOGIN_URL } from '@/lib/links';
+import { sikolaUrl } from '@/lib/links';
 import ReactDOM from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { AccountMismatch } from '@/components/onboarding/AccountMismatch';
@@ -407,7 +407,8 @@ function App() {
           lead={mode === 'switch-account' ? m.onboarding.switchAccount.lead : undefined}
           onOpenSikola={() => {
             setConnect('waiting');
-            void browser.tabs.create({ url: SIKOLA_LOGIN_URL });
+            // First setup: no account yet, so the login page. Switching accounts: another account is signed in, so SIKOLA's dashboard.
+            void browser.tabs.create({ url: sikolaUrl(mode === 'switch-account' ? 'mismatch' : 'none') });
           }}
           onRetry={() => void tryConnect('retry')}
         />

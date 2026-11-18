@@ -1,5 +1,5 @@
 import { ClockIcon, ExternalIcon, KeyIcon } from '@/components/icons';
-import { SIKOLA_LOGIN_URL } from '@/lib/links';
+import { sikolaUrl } from '@/lib/links';
 import { formatDue } from '@/lib/format/time';
 import type { DashMessages } from '@/lib/i18n/dashboard';
 import type { Banner } from '@/lib/view/popup-view';
@@ -20,7 +20,7 @@ export function StatusNotice({ banner, d, locale, timeZone, className = '' }: { 
         <KeyIcon aria-hidden="true" className="size-4 shrink-0 text-foreground" />
         <p className="min-w-0 flex-1 text-[14px]">{n.sessionExpired}</p>
         <a
-          href={SIKOLA_LOGIN_URL}
+          href={sikolaUrl('expired')}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex h-8 shrink-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-[14px] font-medium outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus"

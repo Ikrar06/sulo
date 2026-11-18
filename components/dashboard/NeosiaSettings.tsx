@@ -11,7 +11,7 @@ import { DEFAULT_SKS_TARGET, SKS_TARGET_MAX, SKS_TARGET_MIN } from '@/lib/neosia
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_LOGIN_URL } from '@/lib/links';
+import { neosiaUrl } from '@/lib/links';
 import { neosiaStatus } from '@/lib/neosia/view';
 import type { DashboardActions, DashboardData } from './data';
 import { useNeosiaConnect } from './neosia-connect';
@@ -71,7 +71,7 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
           {status.changedShape.length > 0 && <p className="text-[12px] text-muted-foreground">{w.changedShape}</p>}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Button variant="outline" asChild>
-              <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer">
+              <a href={neosiaUrl()} target="_blank" rel="noopener noreferrer">
                 {w.openNeosia}
               </a>
             </Button>

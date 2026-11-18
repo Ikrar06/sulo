@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SIKOLA_LOGIN_URL } from '@/lib/links';
+import { sikolaUrl } from '@/lib/links';
 import { browser } from 'wxt/browser';
 import { I18nProvider } from '@/components/i18n';
 import { PopupView } from '@/components/popup/PopupView';
@@ -217,7 +217,8 @@ export default function App({ startedAt }: { startedAt: number }) {
         }}
         onCopy={(s) => void onCopy(s)}
         onOpenOnboarding={(hash = '') => void browser.tabs.create({ url: browser.runtime.getURL(`/onboarding.html${hash}`) })}
-        onOpenSikola={() => void browser.tabs.create({ url: SIKOLA_LOGIN_URL })}
+        // Shown only on the expired-session line: the login page.
+        onOpenSikola={() => void browser.tabs.create({ url: sikolaUrl('expired') })}
         onReport={() => void onReport()}
         onOpenPrivacy={() => void browser.tabs.create({ url: browser.runtime.getURL('/privacy.html') })}
         onSetDueFormat={(dueFormat: DueFormat) => void writePrefs(local, { dueFormat })}
