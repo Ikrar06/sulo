@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { showInvite } from '../lib/neosia/invite';
-import { classesToday } from '../lib/neosia/today';
+import { classesToday, nextClass } from '../lib/neosia/today';
 import type { ClassMeeting } from '../lib/neosia/view';
 
 const m = (weekday: number, start: string, end: string, name = 'X'): ClassMeeting => ({ code: null, name, shortName: null, className: null, sks: 2, weekday, start, end, room: null, lecturers: [] });
@@ -33,5 +33,20 @@ describe('NEOSIA invite card', () => {
     expect(showInvite({ ...base, today: '2026-12-20', dismissedAt: base.now - 5 * DAY, dismissedDay: '2026-12-15' })).toBe(true);
     expect(showInvite({ ...base, today: '2026-12-22', dismissedAt: base.now - 1 * DAY, dismissedDay: '2026-12-21' })).toBe(false);
     expect(showInvite({ ...base, today: '2026-12-19', dismissedAt: base.now - 5 * DAY, dismissedDay: '2026-12-14' })).toBe(false);
+  });
+});
+
+describe('Kuliah berikutnya', () => {
+  // 2026-11-18 is a Wednesday; classes on Monday 07.30 and Wednesday 07.50.
+  const meetings = [m(1, '07:30', '10:00', 'senin'), m(3, '07:50', '09:30', 'magang')];
+  it('the nearest class after now, later today first', () => {
+    expect(nextClass(meetings, '2026-11-18', 6 * 60, [])).toEqual({ meeting: meetings[1], day: '2026-11-18' });
+    expect(nextClass(meetings, '2026-11-18', 8 * 60, [])).toEqual({ meeting: meetings[0], day: '2026-11-23' });
+  });
+  it('skips holidays', () => {
+    expect(nextClass(meetings, '2026-11-18', 8 * 60, [{ mulai: '2026-11-23', selesai: '2026-11-23', nama: 'Libur' }])).toEqual({ meeting: meetings[1], day: '2026-11-25' });
+  });
+  it('none without classes', () => {
+    expect(nextClass([], '2026-11-18', 0, [])).toBeNull();
   });
 });

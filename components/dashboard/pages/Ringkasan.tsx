@@ -18,11 +18,11 @@ import { AcademicCard, nextForSummary, SummaryLine } from '../OverviewParts';
 import { timeZone } from '../data';
 import { Card, CardLink } from '../Shell';
 import type { PageProps } from '../types';
-import { KrsReadinessCard, NeosiaInvite, StudiCard, SurveyLine, TodayClasses } from '../NeosiaParts';
+import { KrsReadinessCard, NeosiaInvite, NextClassLine, StudiCard, SurveyLine, TodayClasses } from '../NeosiaParts';
 import { classMeetings, krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@/lib/neosia/view';
 import { linkedMeetings } from '@/lib/neosia/linked';
 import { holidayRanges } from '@/lib/neosia/schedule';
-import { classesToday } from '@/lib/neosia/today';
+import { classesToday, nextClass } from '@/lib/neosia/today';
 import { dismissInvite, showInvite } from '@/lib/neosia/invite';
 import { local } from '../data';
 import { useNeosiaConnect } from '../neosia-connect';
@@ -56,11 +56,12 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const neosiaOn = data.neosia.module.enabled;
   const snapshots = data.neosia.snapshots;
   const calendarKrs = useMemo(() => data.calendar.kegiatan.filter((k) => k.kategori === 'krs' && !k.perkiraan && k.audiens !== 'calon_mahasiswa'), [data.calendar]);
-  // "Kuliah hari ini": classes still to come today, none on a calendar holiday.
-  const today = useMemo(
-    () => (neosiaOn ? classesToday(linkedMeetings(classMeetings(snapshots), user.courses, data.neosia.courseMap), data.today, localParts(data.now, timeZone).minuteOfDay, holidayRanges(data.calendar)) : []),
-    [neosiaOn, snapshots, user.courses, data.neosia.courseMap, data.today, data.now, data.calendar],
-  );
+  // "Kuliah hari ini": classes still to come today, none on a calendar holiday; else the next class.
+  const meetings = useMemo(() => (neosiaOn ? linkedMeetings(classMeetings(snapshots), user.courses, data.neosia.courseMap) : []), [neosiaOn, snapshots, user.courses, data.neosia.courseMap]);
+  const minuteNow = localParts(data.now, timeZone).minuteOfDay;
+  const holidays = useMemo(() => holidayRanges(data.calendar), [data.calendar]);
+  const today = useMemo(() => classesToday(meetings, data.today, minuteNow, holidays), [meetings, data.today, minuteNow, holidays]);
+  const upcomingClass = today.length === 0 ? nextClass(meetings, data.today, minuteNow, holidays) : null;
   const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d), classesToday: today.length });
   const consent = useNeosiaConnect(actions);
   const invite = showInvite({ moduleOn: neosiaOn, dismissedAt: data.neosia.invite.dismissedAt, dismissedDay: data.neosia.invite.dismissedDay, now: data.now, today: data.today, krsWindows: calendarKrs });
@@ -87,15 +88,22 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
 
       {/* Tasks on the left at their own height; the right column (calendar, then studies) stretches beside it. */}
       <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>} className="self-start">
+        {/* Stretches to the right column's height; a quiet card centres its one line in the space left. */}
+        <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>} className="flex h-full flex-col">
+          <div className="flex flex-1 flex-col">
           {today.length > 0 && (
             <div className="mb-4">
               <TodayClasses classes={today} />
             </div>
           )}
+          {upcomingClass && (
+            <div className="mb-4">
+              <NextClassLine next={upcomingClass} />
+            </div>
+          )}
           {shown.groups.length === 0 ? (
-            // Only when no task is pending at all ("Berikutnya" also takes undated tasks).
-            <p className="py-4 text-[14px] text-muted-foreground">{r.nothingSoon}</p>
+            // Only when no task is pending at all ("Berikutnya" also takes undated tasks); centred in the space left, no mascot.
+            <p className="flex flex-1 items-center justify-center py-8 text-center text-[14px] text-muted-foreground">{r.nothingSoon}</p>
           ) : (
             <div className="space-y-4">
               {shown.groups.map((g) => (
@@ -140,6 +148,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
               )}
             </div>
           )}
+          </div>
         </Card>
 
         <div className="flex flex-col gap-4">

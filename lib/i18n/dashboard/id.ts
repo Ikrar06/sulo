@@ -45,7 +45,7 @@ export const dashId = {
     greeting: { pagi: 'Selamat pagi', siang: 'Selamat siang', sore: 'Selamat sore', malam: 'Selamat malam' },
     tasksTitle: 'Tugas',
     groups: { overdue: 'Terlambat', today: 'Hari ini', tomorrow: 'Besok', week: 'Minggu ini', next: 'Berikutnya' },
-    nothingSoon: 'Tidak ada tenggat 7 hari ke depan.',
+    nothingSoon: 'Tidak ada tugas yang belum selesai.',
     moreRows: (n: number) => `+${n} lainnya`,
     allTasks: 'Lihat semua tugas',
     // Each part wraps its number: [before, after].

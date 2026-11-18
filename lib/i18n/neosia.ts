@@ -100,6 +100,7 @@ const id = {
     title: 'Studi',
     seeGrades: 'Lihat nilai',
     semesterSks: (semester: number | null, passed: number, target: number) => `${semester === null ? '' : `Semester ${semester} · `}${passed} dari ${target} SKS`,
+    creditsOf: (passed: number, target: number) => `${passed} dari ${target} SKS`,
     ipk: 'IPK',
     ips: 'IPS',
     show: 'Tampilkan',
@@ -108,6 +109,7 @@ const id = {
   today: {
     title: 'Kuliah hari ini',
     summary: (n: number) => `${n} kuliah hari ini`,
+    next: 'Kuliah berikutnya',
   },
   invite: {
     text: 'Hubungkan NEOSIA untuk melihat jadwal kuliah, kesiapan KRS, dan nilai di sini.',
@@ -269,6 +271,7 @@ const en: NeosiaWords = {
     title: 'Studies',
     seeGrades: 'See grades',
     semesterSks: (semester: number | null, passed: number, target: number) => `${semester === null ? '' : `Semester ${semester} · `}${passed} of ${target} credits`,
+    creditsOf: (passed: number, target: number) => `${passed} of ${target} credits`,
     ipk: 'GPA',
     ips: 'Semester GPA',
     show: 'Show',
@@ -277,6 +280,7 @@ const en: NeosiaWords = {
   today: {
     title: 'Classes today',
     summary: (n: number) => (n === 1 ? '1 class today' : `${n} classes today`),
+    next: 'Next class',
   },
   invite: {
     text: 'Connect NEOSIA to see your class schedule, KRS readiness and grades here.',

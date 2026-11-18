@@ -45,7 +45,7 @@ export const dashEn: DashMessages = {
     greeting: { pagi: 'Good morning', siang: 'Good afternoon', sore: 'Good afternoon', malam: 'Good evening' },
     tasksTitle: 'Tasks',
     groups: { overdue: 'Overdue', today: 'Today', tomorrow: 'Tomorrow', week: 'This week', next: 'Next' },
-    nothingSoon: 'Nothing due in the next 7 days.',
+    nothingSoon: 'No unfinished tasks.',
     moreRows: (n) => `+${n} more`,
     allTasks: 'See all tasks',
     summary: {

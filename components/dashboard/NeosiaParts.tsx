@@ -119,17 +119,21 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
   const gpa = (v: number) => v.toFixed(2);
   return (
     <Card title={w.title} action={<CardLink href={routeHash('nilai')}>{w.seeGrades}</CardLink>}>
-      {p.sksPassed !== null ? (
-        <p className="text-[14px] font-semibold">
-          <Private>{w.semesterSks(p.semester, p.sksPassed, sksTarget)}</Private>
-        </p>
-      ) : (
-        p.semester !== null && <p className="text-[14px] font-semibold">{`Semester ${p.semester}`}</p>
-      )}
+      {/* "Semester 8" in 14 px semibold, the credits muted. */}
+      <p className="text-[14px]">
+        {p.semester !== null && <span className="font-semibold">{`Semester ${p.semester}`}</span>}
+        {p.sksPassed !== null && (
+          <span className="text-muted-foreground">
+            {p.semester !== null ? ' · ' : ''}
+            <Private>{w.creditsOf(p.sksPassed, sksTarget)}</Private>
+          </span>
+        )}
+      </p>
       {fill !== null && (
         // Solid neutral bar, no gradient; empty in privacy mode (its length would tell the credits).
+        // Same as the teaching-week bar: 6 px, neutral track, fill in the main text color.
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-raised" role="img" aria-label={neosiaWords(locale).profile.sksScale(sksTarget)}>
-          {!masked && <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${fill}%` }} />}
+          {!masked && <div className="h-full rounded-full bg-foreground" style={{ width: `${fill}%` }} />}
         </div>
       )}
       {p.ipk !== null && (
@@ -171,6 +175,24 @@ export function NeosiaInvite({ onConnect, onLater }: { onConnect: () => void; on
         <XIcon className="size-4" />
       </Button>
     </section>
+  );
+}
+
+/** "Kuliah berikutnya: Rab, 25 Nov · 07.50 · Magang", when nothing is left today (holidays skipped). */
+export function NextClassLine({ next }: { next: { meeting: LinkedMeeting; day: string } }) {
+  const { m, locale } = useI18n();
+  const w = neosiaWords(locale).today;
+  const c = next.meeting;
+  const day = formatDateKey(next.day, m.intl, { weekday: 'short', day: 'numeric', month: 'short' });
+  const time = locale === 'id' ? c.start.replace(':', '.') : c.start;
+  return (
+    <p className="flex items-center gap-2 text-[14px]">
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: c.color === null ? 'var(--muted)' : `var(--course-${c.color})` }} />
+      <span className="min-w-0 truncate">
+        <span className="text-muted-foreground">{w.next}: </span>
+        {day} · <span className="tabular-nums">{time}</span> · <span className="font-semibold">{c.displayName}</span>
+      </span>
+    </p>
   );
 }
 
