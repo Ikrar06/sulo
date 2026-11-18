@@ -25,3 +25,13 @@ describe('GPA check on the synthetic demo transcript', () => {
     expect(differsFromNeosia(computeIpk(rows), 2.95)).toBe(false);
   });
 });
+
+describe('transcript diagnostics on the synthetic demo (reported for M7.1)', () => {
+  it('every row maps to a semester through semesters[].id', async () => {
+    const { readSemesters, readTranscript, transcriptDiagnostics } = await import('../lib/grades/transcript');
+    const storage = demoNeosia(1_794_000_000) as Record<string, { data: never }>;
+    const rows = readTranscript(storage['neosia:snap:getTranskripMahasiswa']!.data);
+    const semesters = readSemesters(storage['neosia:snap:mahasiswa/semester']!.data);
+    expect(transcriptDiagnostics(rows, semesters)).toEqual({ stored: 11, counted: 10, mapped: 11, notUsed: 1, noLetter: 0, noCredits: 0, noSemester: 0 });
+  });
+});
