@@ -15,8 +15,10 @@ import { addDays, inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } 
 
 /** The morning summary is skipped when the browser opens more than this after its time. */
 export const MORNING_GRACE = 3 * 3600;
-/** The second "session expired" reminder comes this long after the first. */
+/** Session notices: at most one per this long, and only for data at least this old (M7.2). */
 export const SESSION_REPEAT_AFTER = 24 * 3600;
+/** A session notice only once the last good data is older than this; fresher data gets the on-screen notice only. */
+export const SESSION_NOTIFY_DATA_AGE = 24 * 3600;
 
 export type SentKeys = Readonly<Record<string, UnixSeconds>>;
 
@@ -28,7 +30,12 @@ export interface PlanInput {
   activeCourseIds: ReadonlySet<CourseId>;
   settings: ReminderSettings;
   sent: SentKeys;
-  session: { state: SessionState; expiredAt: UnixSeconds | null };
+  /**
+   * dataAt: the last good sync (the data on screen). An expired session
+   * notifies only once that data is older than 24 hours. Task, calendar and
+   * KRS reminders keep running from that data whatever the session state.
+   */
+  session: { state: SessionState; expiredAt: UnixSeconds | null; dataAt?: UnixSeconds | null };
   /** Change log (M4); entries with notify set and not yet sent become update notices. */
   changes?: readonly ChangeLogEntry[];
   updates?: UpdateSettings;
@@ -288,15 +295,25 @@ function taskCandidates(task: Task, input: PlanInput): Candidate[] {
   return out;
 }
 
+/**
+ * "Masuk lagi ke SIKOLA" (M7.2): no earlier than the expiry, and only once
+ * the data on screen is older than 24 hours (fresher data: the dashboard
+ * and popup notice is enough). At most one per 24 hours, counted from the
+ * last session notice actually sent, and never in quiet hours. Two per
+ * expiry at most: the first, and one 24 hours later.
+ */
 function sessionCandidates(input: PlanInput): { key: string; at: UnixSeconds; repeat: boolean }[] {
   const { state, expiredAt } = input.session;
   if (state !== 'EXPIRED' || expiredAt === null) return [];
-  return [
-    { key: `s:${expiredAt}`, at: expiredAt, repeat: false },
-    { key: `s:${expiredAt}:24h`, at: expiredAt + SESSION_REPEAT_AFTER, repeat: true },
-  ]
-    .filter((c) => !(c.key in input.sent))
-    .map((c) => ({ ...c, at: quietAdjusted(c.at, false, input) }));
+  const dataAt = input.session.dataAt ?? null;
+  const lastSent = Math.max(0, ...Object.entries(input.sent).filter(([k]) => k.startsWith('s:')).map(([, v]) => v));
+  const spaced = (at: UnixSeconds) => Math.max(at, lastSent > 0 ? lastSent + SESSION_REPEAT_AFTER : 0);
+  const firstKey = `s:${expiredAt}`;
+  const first = Math.max(expiredAt, dataAt === null ? 0 : dataAt + SESSION_NOTIFY_DATA_AGE);
+  const candidates = !(firstKey in input.sent)
+    ? [{ key: firstKey, at: spaced(first), repeat: false }]
+    : [{ key: `${firstKey}:24h`, at: spaced(first), repeat: true }].filter((c) => !(c.key in input.sent));
+  return candidates.map((c) => ({ ...c, at: quietAdjusted(c.at, false, input) }));
 }
 
 function morning(input: PlanInput, tasks: readonly Task[]): { notice: Notice | null; mark: string[]; nextAt: UnixSeconds | null } {

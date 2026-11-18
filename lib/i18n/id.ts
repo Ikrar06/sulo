@@ -242,7 +242,7 @@ export const id = {
         : `${today} tugas hari ini, ${week} minggu ini. Yang terdekat: ${name}, ${left}.`,
     sessionTitle: 'Tugasmu belum bisa diperbarui',
     sessionRepeatTitle: 'Tugasmu belum diperbarui sejak kemarin',
-    sessionBody: 'Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu.',
+    sessionBody: 'Masuk lagi ke SIKOLA supaya Sulo bisa memperbarui tugasmu.',
     reloginTitle: 'Sulo sudah diperbarui',
     reloginBody: 'Kamu sudah masuk lagi ke SIKOLA, jadi tugasmu sudah diperbarui.',
     snoozeButton: 'Tunda 1 jam',

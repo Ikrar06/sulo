@@ -98,7 +98,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     activeCourseIds: activeCourseIds(courses),
     settings: prefs.reminders,
     sent: notified,
-    session: { state: session.state, expiredAt: session.expiredAt ?? null },
+    session: { state: session.state, expiredAt: session.expiredAt ?? null, dataAt: (await readUser(store, userId, 'sync'))?.lastSyncAt ?? null },
     changes,
     updates: prefs.updates,
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },

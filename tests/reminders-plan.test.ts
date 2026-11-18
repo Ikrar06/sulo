@@ -262,13 +262,38 @@ describe('morning summary', () => {
   });
 });
 
-describe('session expired', () => {
+describe('session expired (M7.2)', () => {
   const expiredAt = at(2026, 11, 19, 10, 0);
-  const session = { state: 'EXPIRED' as const, expiredAt };
+  const stale = expiredAt - 30 * H; // data older than 24 hours when the session ends
+  const session = { state: 'EXPIRED' as const, expiredAt, dataAt: stale };
 
-  it('sends one notice per event, and one more after 24 hours only', () => {
-    const { log } = simulate(expiredAt, expiredAt + 72 * H, base(0, [], { session }), [expiredAt + 2 * H, expiredAt + 30 * H]);
+  it('old data: one notice at expiry, one more 24 hours later, never more', () => {
+    const { log } = simulate(expiredAt, expiredAt + 96 * H, base(0, [], { session }), [expiredAt + 2 * H, expiredAt + 30 * H, expiredAt + 60 * H]);
     expect(log.map((l) => l.keys)).toEqual([[`s:${expiredAt}`], [`s:${expiredAt}:24h`]]);
+    expect(log[1]!.now - log[0]!.now).toBeGreaterThanOrEqual(24 * H);
+  });
+
+  it('fresh data: no notification until the data is 24 hours old', () => {
+    const fresh = { ...session, dataAt: expiredAt - 2 * H };
+    expect(planReminders(base(expiredAt, [], { session: fresh })).send).toEqual([]);
+    expect(planReminders(base(expiredAt, [], { session: fresh })).nextAt).toBe(expiredAt + 22 * H);
+    const { log } = simulate(expiredAt, expiredAt + 30 * H, base(0, [], { session: fresh }));
+    expect(log.map((l) => [l.now, l.keys])).toEqual([[expiredAt + 22 * H, [`s:${expiredAt}`]]]);
+  });
+
+  it('at most one per 24 hours, also across expiries', () => {
+    const sent = { [`s:${expiredAt - H}`]: expiredAt - H };
+    const plan = planReminders(base(expiredAt, [], { session, sent }));
+    expect(plan.send).toEqual([]);
+    expect(plan.nextAt).toBe(expiredAt + 23 * H);
+  });
+
+  it('never in quiet hours: moved to their end', () => {
+    const night = at(2026, 11, 19, 23, 0);
+    const settings = { ...DEFAULT_REMINDERS, quiet: { ...DEFAULT_REMINDERS.quiet, enabled: true } };
+    const plan = planReminders(base(night, [], { settings, session: { state: 'EXPIRED', expiredAt: night, dataAt: stale } }));
+    expect(plan.send).toEqual([]);
+    expect(localParts(plan.nextAt!, TZ).minuteOfDay).toBe(settings.quiet.endMin);
   });
 
   it('sends nothing once the session is back', () => {
@@ -279,5 +304,14 @@ describe('session expired', () => {
     const t = task(80, expiredAt + 3 * H);
     const plan = planReminders(base(expiredAt, [t], { session, sent: { [`s:${expiredAt}`]: expiredAt } }));
     expect(plan.send.map((n) => n.kind)).toEqual(['task']);
+  });
+
+  it('expired for 3 days: the H-1 reminder still comes, from the last data', () => {
+    const due = expiredAt + 4 * 24 * H;
+    const t = task(81, due);
+    const { log } = simulate(expiredAt, due, base(0, [t], { session }));
+    const h1 = log.find((l) => l.keys.includes(stageKey(t, 1440)));
+    expect(h1?.now).toBe(due - 24 * H);
+    expect(h1!.now - expiredAt).toBe(3 * 24 * H);
   });
 });
