@@ -38,7 +38,7 @@ function eachLine(file, fn) {
 }
 
 const GRADIENT_OK = /mascot|brand|logo|icons\/|tokens\.css/;
-const sources = [...walk(join(root, 'components'), ['.tsx', '.ts', '.css']), ...walk(join(root, 'entrypoints'), ['.tsx', '.ts', '.html', '.css']), ...walk(join(root, 'assets'), ['.css']), ...walk(join(root, '../../packages/ui/src'), ['.tsx', '.ts', '.css'])];
+const sources = [...walk(join(root, 'components'), ['.tsx', '.ts', '.css']), ...walk(join(root, 'entrypoints'), ['.tsx', '.ts', '.html', '.css']), ...walk(join(root, 'assets'), ['.css']), ...walk(join(root, '../../packages/ui/src'), ['.tsx', '.ts', '.css']), ...walk(join(root, '../mobile/src'), ['.tsx', '.ts', '.css'])];
 
 for (const file of sources) {
   const rel = relative(root, file);
@@ -68,8 +68,9 @@ const NAMED_TEXT_BAD = /\btext-(?:2xs|lg|3xl|4xl)\b/;
 const SPACING = /(?<![\w-])(?:-)?(p|px|py|pt|pb|pl|pr|ps|pe|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y|space-y|space-x)-(\[[^\]]+\]|[0-9.]+)(?![\w.])/g;
 const STEP_OK = new Set(['0', '1', '2', '3', '4', '6', '8']);
 // The dashboard's type and spacing scale: its own pages, the parts it shares with
-// the Android app (packages/ui/src/dashboard, card.tsx) and the app's screens.
-const scaled = [...walk(join(root, 'components', 'dashboard'), ['.tsx']), ...walk(join(root, '../../packages/ui/src/dashboard'), ['.tsx']), join(root, '../../packages/ui/src/card.tsx')];
+// the Android app (packages/ui/src/dashboard, card.tsx) and the app's screens
+// (apps/mobile/src/screens and shell).
+const scaled = [...walk(join(root, 'components', 'dashboard'), ['.tsx']), ...walk(join(root, '../../packages/ui/src/dashboard'), ['.tsx']), join(root, '../../packages/ui/src/card.tsx'), ...walk(join(root, '../mobile/src/screens'), ['.tsx']), ...walk(join(root, '../mobile/src/shell'), ['.tsx'])];
 for (const file of scaled) {
   eachLine(file, (text, line) => {
     // A deliberate exception, explained on the same line.

@@ -2,6 +2,7 @@
 // (lib/i18n/glossary.md). Grades never appear here.
 
 import type { Locale } from './index';
+import { dashFor, type DashMessages } from './dashboard';
 
 const id = {
   unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
@@ -169,4 +170,32 @@ const en: MobileWords = {
 
 export function mobileWords(locale: Locale): MobileWords {
   return locale === 'en' ? en : id;
+}
+
+/**
+ * The dashboard's words as the Android app shows them: where the extension
+ * says "in your browser", the phone says "on this phone". NEOSIA comes to the
+ * app in M8d, so About does not mention it yet.
+ */
+export function mobileDash(locale: Locale): DashMessages {
+  const d = dashFor(locale);
+  const phone =
+    locale === 'en'
+      ? {
+          customDueHelp: 'SIKOLA gives this task no due date. A personal one is kept only on this phone and used for reminders.',
+          stepsHelp: 'Break the task into small steps. Kept only on this phone.',
+          intro: 'Sulo is a companion app for Unhas students. It brings your tasks and changes from SIKOLA and the dates from the academic calendar together in one place, with reminders.',
+          points: ['All data stays on this phone. There is no Sulo server and no tracking.', 'Not an official Unhas app.'],
+        }
+      : {
+          customDueHelp: 'SIKOLA tidak memberi tenggat untuk tugas ini. Tenggat pribadi hanya disimpan di HP ini dan dipakai untuk pengingat.',
+          stepsHelp: 'Pecah tugas jadi langkah kecil. Hanya tersimpan di HP ini.',
+          intro: 'Sulo adalah aplikasi pendamping untuk mahasiswa Unhas. Sulo mengumpulkan tugas dan perubahan dari SIKOLA serta jadwal dari kalender akademik di satu tempat, lengkap dengan pengingat.',
+          points: ['Semua data tersimpan di HP ini. Tidak ada server Sulo, tidak ada pelacakan.', 'Bukan aplikasi resmi Unhas.'],
+        };
+  return {
+    ...d,
+    tugas: { ...d.tugas, customDueHelp: phone.customDueHelp, stepsHelp: phone.stepsHelp },
+    tentang: { ...d.tentang, intro: phone.intro, points: phone.points },
+  };
 }

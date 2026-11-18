@@ -104,7 +104,8 @@ function SessionsSkeleton() {
   );
 }
 
-export function Detail({ course, color, row, sessions, loading, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; sessions: SessionRow[] | null; loading: boolean; w: W; locale: 'id' | 'en' }) {
+/** compact: a phone's width; the date and time sit above the session, status and points on the right. */
+export function Detail({ course, color, row, sessions, loading, w, locale, compact = false }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; sessions: SessionRow[] | null; loading: boolean; w: W; locale: 'id' | 'en'; compact?: boolean }) {
   const masked = usePrivacy();
   return (
     <Card
@@ -127,11 +128,18 @@ export function Detail({ course, color, row, sessions, loading, w, locale }: { c
         <ul className="mt-3 divide-y divide-border">
           {sessions.map((s, i) => (
             <li key={`${s.dateText}-${i}`} className="flex items-start gap-3 py-3">
-              <div className="w-36 shrink-0 text-[12px] tabular-nums">
-                <p className="font-medium">{s.dateText}</p>
-                <p className="text-muted-foreground">{sessionTimeText(s.timeText, locale)}</p>
-              </div>
+              {!compact && (
+                <div className="w-36 shrink-0 text-[12px] tabular-nums">
+                  <p className="font-medium">{s.dateText}</p>
+                  <p className="text-muted-foreground">{sessionTimeText(s.timeText, locale)}</p>
+                </div>
+              )}
               <div className="min-w-0 flex-1">
+                {compact && (
+                  <p className="text-[12px] text-muted-foreground tabular-nums">
+                    <span className="font-medium text-foreground">{s.dateText}</span> {sessionTimeText(s.timeText, locale)}
+                  </p>
+                )}
                 <p className="text-[14px]">{s.description}</p>
                 {s.remarks && !masked && (
                   <p className="text-[12px] text-muted-foreground">

@@ -11,9 +11,9 @@ import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@sulo/core/i18n';
 import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, type Theme } from '@sulo/core/prefs';
 import { UPDATE_CATEGORIES } from '@sulo/core/radar/settings';
-import { timeZone } from '../data';
+import { local, timeZone } from '../data';
 import { Card } from '@sulo/ui/card';
-import { BugReport } from '../BugReport';
+import { BugReport } from '@sulo/ui/dashboard/BugReport';
 import { NeosiaSettings } from '../NeosiaSettings';
 import type { PageProps } from '../types';
 
@@ -248,7 +248,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
 
       <Card title={t.bugReport.cardTitle}>
         <p className="mb-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{t.bugReport.help}</p>
-        <BugReport d={d} lastSyncAt={data.view.lastSyncAt} />
+        <BugReport d={d} lastSyncAt={data.view.lastSyncAt} store={local} version={browser.runtime.getManifest().version} />
       </Card>
 
       {RadarDiagnosis && (

@@ -1,5 +1,5 @@
 import { useCallback, useReducer, useRef, useState } from 'react';
-import { useToast } from '../ui/toast';
+import { useToast, type ToastOptions } from '../ui/toast';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { bumpUsage } from '@sulo/core/stats/usage';
 import { COLLAPSE_MS, EMPTY_UNDO, markDone, UNDO_MS, undoDone, undoReducer } from '@sulo/core/tasks/done-undo';
@@ -12,6 +12,15 @@ export interface UpdateUser {
 }
 
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * The snackbar after marking a task done: "Ditandai selesai" with
+ * "Urungkan" for 5 seconds (UNDO_MS); undo restores the task, the end of
+ * the window lets the row leave. Pure, so both apps' tests check it.
+ */
+export function doneToast(d: DashMessages, on: { undo: () => void; timeout: () => void }): ToastOptions {
+  return { message: d.tugas.markedDone, duration: UNDO_MS, action: { label: d.tugas.undo, onClick: on.undo }, onTimeout: on.timeout };
+}
 
 /**
  * Mark a task done from the dashboard: saved at once (its reminders drop at
@@ -52,23 +61,20 @@ export function useDoneUndo(actions: UpdateUser, d: DashMessages, today: string,
       latest.current = eventId;
       dispatch({ kind: 'mark', eventId });
       setJustCleared(lastPending);
-      toast.show({
-        message: d.tugas.markedDone,
-        duration: UNDO_MS,
-        action: {
-          label: d.tugas.undo,
-          onClick: () => {
+      toast.show(
+        doneToast(d, {
+          undo: () => {
             void actions.updateUser('taskState', (m) => undoDone(m, eventId));
             latest.current = null;
             setJustCleared(false);
             dispatch({ kind: 'undo' });
           },
-        },
-        onTimeout: () => {
-          if (latest.current === eventId) latest.current = null;
-          leave(eventId);
-        },
-      });
+          timeout: () => {
+            if (latest.current === eventId) latest.current = null;
+            leave(eventId);
+          },
+        }),
+      );
     },
     [actions, d, today, store, toast, leave],
   );

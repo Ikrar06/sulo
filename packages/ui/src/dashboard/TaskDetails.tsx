@@ -32,7 +32,8 @@ const action =
  * One column: what the user keeps about the task (personal due date, steps,
  * note), then one row of actions. Everything here lives only in this browser.
  */
-export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions }: { item: TaskItem; d: DashMessages; now: UnixSeconds; timeZone: string; snoozeMorningMin: number; actions: TaskDetailActions }) {
+/** inset: lined up under a list row's title (the dashboard); the Android app shows the details on their own screen. */
+export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions, inset = true }: { item: TaskItem; d: DashMessages; now: UnixSeconds; timeZone: string; snoozeMorningMin: number; actions: TaskDetailActions; inset?: boolean }) {
   const { m, locale } = useI18n();
   const t = d.tugas;
   const ids = { due: useId(), note: useId() };
@@ -60,7 +61,7 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions 
 
   return (
     // Indented to the task title (row padding 16 + checkbox 16 + gap 12 = 44 px), not to the checkbox.
-    <div className="space-y-4 border-t border-border pt-3 pr-4 pb-4 pl-11">{/* lint-ui-allow: 44 px aligns with the title text */}
+    <div className={inset ? "space-y-4 border-t border-border pt-3 pr-4 pb-4 pl-11" : "space-y-4 p-4"}>{/* lint-ui-allow: 44 px aligns with the title text */}
       {snoozed && <p className="text-[14px]">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
 
       {undated && (
