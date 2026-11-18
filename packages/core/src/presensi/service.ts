@@ -146,6 +146,12 @@ export function lowestBelowAverage(rows: readonly RecapRow[]): { courseId: Cours
   return lowest !== null && lowest.percent < average ? lowest : null;
 }
 
+/** More than one course with sessions, and not all at the same (rounded) percent: only then is a "lowest" worth showing. */
+export function attendanceSpread(rows: readonly RecapRow[] | undefined): boolean {
+  const percents = new Set((rows ?? []).filter((r) => r.taken > 0).map(rowPercent).filter((p): p is number => p !== null).map((p) => Math.round(p * 10) / 10));
+  return percents.size > 1;
+}
+
 /** The Studi card's attendance: the average, plus the lowest course by its display name when below it. */
 export function attendanceSummary(rows: readonly RecapRow[] | undefined, courses: readonly CourseRecord[]): { average: number; lowest: { name: string; percent: number } | null } | null {
   const average = rows ? averagePercent(rows) : null;

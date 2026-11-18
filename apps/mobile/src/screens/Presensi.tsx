@@ -16,7 +16,7 @@ import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { formatAgo } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { remarkText, sessionTimeText } from '@sulo/core/presensi/display';
-import { attendanceSummary, courseStatus } from '@sulo/core/presensi/service';
+import { attendanceSpread, attendanceSummary, courseStatus } from '@sulo/core/presensi/service';
 import { EMPTY_PRESENSI, type AttendanceStatus, type RecapRow, type SessionRow } from '@sulo/core/presensi/types';
 import { localParts } from '@sulo/core/reminders/zoned';
 import type { CourseRecord } from '@sulo/core/types';
@@ -106,13 +106,19 @@ export function PresensiScreen({ courseId, go }: { courseId: number | null; go: 
               <p className="text-m26 tabular-nums">
                 <Private>{pct(summary.average, locale)}%</Private>
               </p>
-              {summary.lowest && (
-                <p className="line-clamp-2 text-m13 text-muted-foreground">
-                  {w.app.lowest}:{' '}
-                  <Private>
-                    {summary.lowest.name} {pct(summary.lowest.percent, locale)}%
-                  </Private>
-                </p>
+              {/* The lowest course: its percent beside the label, its name on its own line (never "name 78,6%" in one run). */}
+              {summary.lowest && attendanceSpread(presensi.recap?.rows) && (
+                <div className="mt-1">
+                  <p className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-m12 text-muted-foreground">{w.app.lowest}</span>
+                    <span className="text-m13 font-medium tabular-nums">
+                      <Private>{pct(summary.lowest.percent, locale)}%</Private>
+                    </span>
+                  </p>
+                  <p className="line-clamp-2 text-m13 text-muted-foreground">
+                    <Private>{summary.lowest.name}</Private>
+                  </p>
+                </div>
               )}
             </div>
           </div>

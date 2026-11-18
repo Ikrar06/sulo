@@ -22,6 +22,7 @@ await new Promise((resolve) => server.stdout.on('data', (d) => String(d).include
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const lines = [];
 const greetings = [];
+const attendance = [];
 let failed = 0;
 
 async function check(lang, width, zoom) {
@@ -35,6 +36,29 @@ async function check(lang, width, zoom) {
   const later = page.getByRole('button', { name: lang === 'en' ? 'Later' : 'Nanti', exact: true });
   if (await later.isVisible()) await later.click();
   await page.waitForTimeout(800);
+  // Part 3: the attendance card in "Akademik" with the longest course name: the name in two
+  // lines at most (an ellipsis only beyond that), the percent row never overflowing, both cards one height.
+  const att = await page.evaluate(() => {
+    const el = document.querySelector('[data-fit-attendance]');
+    if (!el) return { error: 'kartu presensi tidak ditemukan' };
+    const names = window.__suloCourseNames ?? [];
+    const longest = [...names].sort((a, b) => b.length - a.length)[0] ?? '';
+    const copy = el.cloneNode(false);
+    copy.textContent = longest;
+    copy.style.display = 'block';
+    copy.style.webkitLineClamp = 'unset';
+    copy.style.visibility = 'hidden';
+    copy.style.position = 'absolute';
+    copy.style.width = `${el.getBoundingClientRect().width}px`;
+    el.parentElement.appendChild(copy);
+    const lh = parseFloat(getComputedStyle(copy).lineHeight);
+    const lines = Math.round(copy.getBoundingClientRect().height / lh);
+    copy.remove();
+    const row = el.previousElementSibling;
+    const [a, b] = [...el.closest('.grid').children].map((c) => Math.round(c.getBoundingClientRect().height));
+    return { name: longest, lines, rowOverflow: row.scrollWidth > row.clientWidth + 0.5, equal: a === b };
+  });
+  attendance.push({ ...att, lang, width, zoom });
   // Greetings first, on the untouched page (part 1 swaps the hero's text).
   const g = await page.evaluate(
     async ({ lang }) => {
@@ -124,6 +148,14 @@ for (const [k, v] of byText) console.log(`  ${k}  ->  ${v.join(' · ')}`);
 if (bad.length > 0) {
   failed += bad.length;
   console.error(bad.map((g) => `GAGAL sapaan ${g.lang} ${g.width}@${g.zoom}: "${g.text}" kolom ${g.colWidth} font ${g.fontPx} fit ${g.line1}/${g.line2}${g.twoLines ? 'x2' : ''} ${g.overflow ? 'meluap ' : ''}${g.collides ? 'tabrak maskot ' : ''}${g.orphan ? 'kata yatim' : ''}`).join('\n'));
+}
+console.log('\nKartu Presensi (nama terpanjang):');
+for (const a of attendance) {
+  // An ellipsis after two lines is the allowed fallback; at 384 px and 100% the longest name must fit in two.
+  const tooLong = a.lines > 2 && a.width === 384 && a.zoom === 1;
+  const bad = a.error || a.rowOverflow || !a.equal || tooLong;
+  if (bad) failed++;
+  console.log(`  ${a.lang} ${a.width}@${Math.round(a.zoom * 100)}%: "${a.name}" ${a.lines} baris${a.lines > 2 ? ' (elipsis di baris 2)' : ''}${a.rowOverflow ? ', baris persen meluap' : ''}${a.equal ? '' : ', tinggi kartu beda'}${a.error ? ` ${a.error}` : ''}${bad ? '  << GAGAL' : ''}`);
 }
 if (failed > 0) {
   console.error(`check-countdown-fit: ${failed} kombinasi gagal`);

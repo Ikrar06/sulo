@@ -8,6 +8,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { countdownOf } from '@sulo/core/calendar/countdown';
+import { courseAlias } from '@sulo/core/courses/display-name';
 import { nextImportant, SHORT_LABEL_KATEGORI } from '@sulo/core/calendar/upcoming';
 import { weekBars } from '@sulo/core/dashboard/week-bars';
 import { mascotMood } from '@sulo/core/dashboard/mascot-mood';
@@ -16,7 +17,7 @@ import { groupOverview } from '@sulo/core/dashboard/overview';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { countdownOrLate, formatLeft, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
-import { attendanceSummary } from '@sulo/core/presensi/service';
+import { attendanceSpread, attendanceSummary } from '@sulo/core/presensi/service';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
@@ -90,6 +91,11 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   const hello = greeting({ now, timeZone, nickname, overdue, dueToday }, w);
   const state = greetingState({ sessionExpired: banner === 'session_expired', overdue, dueToday, dueTomorrow, nickname, phrase: hello.phrase }, w);
   const line = `${state.count ?? ''}${state.text}`;
+
+  // pnpm check:fit (web build only): every course's display name, to try in the attendance card.
+  useEffect(() => {
+    if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') (window as unknown as { __suloCourseNames?: string[] }).__suloCourseNames = user.courses.map(courseAlias);
+  }, [user.courses]);
 
   // Perbarui with new data: a short cheer.
   useEffect(() => {
@@ -196,7 +202,7 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
       <section aria-labelledby="academic-title">
         <SectionHead id="academic-title" title={w.app.academic} />
         <div className="grid grid-cols-2 items-stretch gap-3">
-          <Card onPress={() => go({ name: 'kalender', detail: null })} label={r.calendarTitle} className="h-full min-w-0">
+          <Card onPress={() => go({ name: 'kalender', detail: null })} label={r.calendarTitle} className="h-full min-w-0" inner="flex h-full flex-col">
             <p className="text-m12 text-muted-foreground">{r.calendarTitle}</p>
             {next && c ? (
               <>
@@ -209,33 +215,35 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
               <p className="mt-1 text-m13 text-muted-foreground">{k.nothing}</p>
             )}
             {week.info.kind === 'week' && (
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-auto flex items-center gap-2 pt-3">
                 <WeekBar nomor={week.info.nomor} total={week.info.total} label={w.app.weekShort(week.info.nomor, week.info.total)} className="flex-1" />
                 <span className="shrink-0 text-m12 font-normal text-muted-foreground tabular-nums">{w.app.weekShort(week.info.nomor, week.info.total)}</span>
               </div>
             )}
           </Card>
-          <Card onPress={() => go({ name: 'presensi', detail: null })} label={w.app.attendance} className="h-full min-w-0">
+          <Card onPress={() => go({ name: 'presensi', detail: null })} label={w.app.attendance} className="h-full min-w-0" inner="flex h-full flex-col">
             <p className="text-m12 text-muted-foreground">{w.app.attendance}</p>
             {attendance ? (
               <>
                 <p className="mt-1 flex items-baseline gap-2">
-                  <span className="text-m22 tabular-nums">
+                  <span className="text-m22 font-semibold tabular-nums">
                     <Private>{pct(attendance.average, locale)}%</Private>
                   </span>
                   <span className="text-m13 text-muted-foreground">{w.app.average}</span>
                 </p>
-                {attendance.lowest && (
-                  <p className="mt-3 flex min-w-0 text-m12 font-normal text-muted-foreground">
-                    <Private>
-                      <span className="flex min-w-0">
-                        <span className="shrink-0 tabular-nums">
-                          {w.app.lowest} {pct(attendance.lowest.percent, locale)}%&nbsp;·&nbsp;
-                        </span>
-                        <span className="truncate">{attendance.lowest.name}</span>
+                {/* The lowest course in its own rows: the percent never shares a line with a long name. */}
+                {attendance.lowest && attendanceSpread(user.presensi?.recap?.rows) && (
+                  <div className="mt-auto pt-3">
+                    <p className="flex flex-wrap items-baseline justify-between gap-x-2">
+                      <span className="text-m12 text-muted-foreground">{w.app.lowest}</span>
+                      <span className="text-m13 font-medium tabular-nums">
+                        <Private>{pct(attendance.lowest.percent, locale)}%</Private>
                       </span>
-                    </Private>
-                  </p>
+                    </p>
+                    <p data-fit-attendance className="line-clamp-2 text-m13">
+                      <Private>{attendance.lowest.name}</Private>
+                    </p>
+                  </div>
                 )}
               </>
             ) : (
