@@ -11,6 +11,8 @@
 @source "../../../packages/core/src";
 
 html, body, #root { height: 100%; }
+/* Sizes are the tokens' own: no browser font boosting (text autosizing), only the app's text zoom. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   background: var(--m-screen);
   color: var(--text);

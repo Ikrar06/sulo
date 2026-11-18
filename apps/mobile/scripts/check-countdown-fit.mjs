@@ -1,10 +1,14 @@
 #!/usr/bin/env node
-// Render check: every relative-time and countdown text the hero card can
+// Render check, part 1: every relative-time and countdown text the hero card can
 // show stays on one line in the real card (pnpm mobile:web, the app's own
 // CSS and font), in Indonesian and English, at 360 and 384 px wide. The
 // texts come from core's own formatters in the page, from a year late to
 // 90 days ahead, minute by minute near now. At text zoom 100% every text
 // must fit at 22 px; at 130% it may step down to 18 but never be cut.
+// Part 2: every greeting line 2 in core's phrase lists (both languages,
+// every slot, midnight too; read from core, so new phrases are measured
+// too) and a 24-character nickname, through the live GreetingLines: no
+// cut, no overflow, nothing under the mascot, no orphan word.
 // Exit 1 on any failure. Usage: node scripts/check-countdown-fit.mjs
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
@@ -13,10 +17,11 @@ import { MOBILE, ROOT } from './env.mjs';
 
 const PORT = 5184;
 const CORE = join(ROOT, 'packages/core/src');
-const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'] });
+const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 await new Promise((resolve) => server.stdout.on('data', (d) => String(d).includes(String(PORT)) && resolve()));
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const lines = [];
+const greetings = [];
 let failed = 0;
 
 async function check(lang, width, zoom) {
@@ -30,6 +35,25 @@ async function check(lang, width, zoom) {
   const later = page.getByRole('button', { name: lang === 'en' ? 'Later' : 'Nanti', exact: true });
   if (await later.isVisible()) await later.click();
   await page.waitForTimeout(800);
+  // Greetings first, on the untouched page (part 1 swaps the hero's text).
+  const g = await page.evaluate(
+    async ({ lang }) => {
+      // Core's lists as the app holds them (GreetingLines exposes them in the web build).
+      const w = window.__suloGreetPhrases.find((x) => x.lang === lang);
+      w.greet = { line1: w.line1, phrases: w.phrases };
+      const rows = [];
+      for (const [slot, list] of Object.entries(w.greet.phrases)) {
+        const line1 = w.greet.line1[slot];
+        for (const p of list) rows.push({ line1, text: p.text, ...window.__suloFitGreeting(line1, p.text) });
+      }
+      // The longest nickname allowed (24 characters), then its period.
+      const nick = 'Muh. Rizky Akbar Pratama';
+      rows.push({ line1: w.greet.line1.pagi, text: `${nick}.`, ...window.__suloFitGreeting(w.greet.line1.pagi, `${nick}.`) });
+      return rows;
+    },
+    { lang },
+  );
+  greetings.push(...g.map((row) => ({ ...row, lang, width, zoom })));
   const r = await page.evaluate(
     async ({ core, lang }) => {
       const { countdownOrLate, formatLeft } = await import(`/@fs${core}/format/time.ts`);
@@ -84,11 +108,25 @@ try {
   for (const lang of ['id', 'en']) for (const width of [360, 384]) for (const zoom of [1, 1.3]) await check(lang, width, zoom);
 } finally {
   await browser.close();
-  server.kill();
+  // The whole group: pnpm and the vite it started (killing pnpm alone leaves vite running).
+  process.kill(-server.pid);
 }
 console.log(lines.join('\n'));
+// Greeting table: one row per phrase, the size and line count at each width and zoom.
+const bad = greetings.filter((g) => g.overflow || g.collides || g.orphan);
+const byText = new Map();
+for (const g of greetings) {
+  const key = `${g.lang} | ${g.text}`;
+  byText.set(key, [...(byText.get(key) ?? []), `${g.width}@${Math.round(g.zoom * 100)}%: ${g.line2}${g.twoLines ? 'x2' : ''}${g.line1 !== 26 ? ` (baris 1 ${g.line1})` : ''}`]);
+}
+console.log('\nSapaan baris 2 (ukuran, x2 = dua baris):');
+for (const [k, v] of byText) console.log(`  ${k}  ->  ${v.join(' · ')}`);
+if (bad.length > 0) {
+  failed += bad.length;
+  console.error(bad.map((g) => `GAGAL sapaan ${g.lang} ${g.width}@${g.zoom}: "${g.text}" kolom ${g.colWidth} font ${g.fontPx} fit ${g.line1}/${g.line2}${g.twoLines ? 'x2' : ''} ${g.overflow ? 'meluap ' : ''}${g.collides ? 'tabrak maskot ' : ''}${g.orphan ? 'kata yatim' : ''}`).join('\n'));
+}
 if (failed > 0) {
   console.error(`check-countdown-fit: ${failed} kombinasi gagal`);
   process.exit(1);
 }
-console.log('check-countdown-fit: semua teks waktu satu baris.');
+console.log('check-countdown-fit: semua teks waktu satu baris; semua sapaan muat tanpa elipsis.');

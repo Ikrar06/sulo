@@ -13,7 +13,7 @@ import { MOBILE } from './env.mjs';
 const out = process.argv[2];
 if (!out) throw new Error('outDir missing');
 mkdirSync(out, { recursive: true });
-const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', '5181', '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'] });
+const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', '5181', '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 await new Promise((resolve) => server.stdout.on('data', (d) => String(d).includes('5181') && resolve()));
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const notes = [];
@@ -59,6 +59,7 @@ try {
   await run('dark');
 } finally {
   await browser.close();
-  server.kill();
+  // The whole group: pnpm and the vite it started (killing pnpm alone leaves vite running).
+  process.kill(-server.pid);
 }
 console.log(notes.join('\n'));

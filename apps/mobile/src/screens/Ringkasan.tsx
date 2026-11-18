@@ -31,6 +31,7 @@ import { REFRESHED_EVENT } from '../events';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
 import { useTaskDate } from '../shell/task-date';
+import { GreetingLines } from './GreetingLines';
 import { HeroMascot } from './HeroMascot';
 import { WeekCard } from './WeekCard';
 import { URGENCY_TEXT } from './Tugas';
@@ -113,19 +114,16 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
       <div>
         <div className="flex items-end gap-2">
           <div className="min-w-0 flex-1 pb-4">
-            <h2>
-              <span className="block text-m26">{hello.line1}</span>
-              {/* One line at most; a long nickname ends in an ellipsis. */}
-              <span className={`block truncate text-muted-foreground ${hello.line2Small ? 'text-m22 font-semibold' : 'text-m26'}`}>{hello.line2}</span>
-            </h2>
-            <p className="mt-1 text-m13 text-muted-foreground">
+            {/* Never an ellipsis: 26, then 22, then 22 on two balanced lines (GreetingLines). */}
+            <GreetingLines line1={hello.line1} line2={hello.line2} />
+            <p className="mt-1 truncate text-m13 whitespace-nowrap text-muted-foreground">
               {state.count !== null && <span className="text-urgency-overdue tabular-nums">{state.count}</span>}
               {state.text}
             </p>
           </div>
           {/* Sits on the hero card's top edge (12 px over it). */}
           {/* 12 px into the side margin: the flame's own whitespace takes it. */}
-          <div className="relative z-10 -mr-3 -mb-3">
+          <div className="relative z-10 -mr-3 -mb-3 shrink-0">
             <HeroMascot mood={mood} cheer={cheer} celebrate={celebrate} label={line} />
           </div>
         </div>

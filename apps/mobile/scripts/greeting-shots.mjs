@@ -11,7 +11,7 @@ import { MOBILE } from './env.mjs';
 const out = process.argv[2];
 if (!out) throw new Error('outDir missing');
 mkdirSync(out, { recursive: true });
-const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', '5180', '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'] });
+const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', '5180', '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 await new Promise((resolve) => server.stdout.on('data', (d) => String(d).includes('5180') && resolve()));
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const SLOTS = [['pagi', '07:00'], ['siang', '12:00'], ['sore', '16:00'], ['malam', '20:00'], ['tengah-malam', '01:00']];
@@ -43,6 +43,7 @@ try {
   await shot('384x832-en-siang-ada-terlambat', { time: '12:00', lang: 'en', demo: '' });
 } finally {
   await browser.close();
-  server.kill();
+  // The whole group: pnpm and the vite it started (killing pnpm alone leaves vite running).
+  process.kill(-server.pid);
 }
 console.log(shots.join('\n'));

@@ -19,7 +19,7 @@ if (!out) throw new Error('outDir missing');
 const only = args.find((a) => a.startsWith('--only='))?.split('=')[1];
 mkdirSync(out, { recursive: true });
 const PORT = 5182;
-const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'] });
+const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 await new Promise((resolve) => server.stdout.on('data', (d) => String(d).includes(String(PORT)) && resolve()));
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const done = [];
@@ -286,7 +286,8 @@ try {
   }
 } finally {
   await browser.close();
-  server.kill();
+  // The whole group: pnpm and the vite it started (killing pnpm alone leaves vite running).
+  process.kill(-server.pid);
 }
 console.log(`${done.length} screenshot di ${out}`);
 if (failed.length > 0) console.log(`Langkah gagal (${failed.length}):\n${failed.join('\n')}`);

@@ -17,7 +17,7 @@ const out = args.find((a) => !a.startsWith('--')) ?? join(ROOT, '.output/mobile-
 const sizes = flag('sizes', '412x915').split(',').map((s) => s.split('x').map(Number));
 const zoom = Number(flag('zoom', '1'));
 mkdirSync(out, { recursive: true });
-const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', '5175', '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'] });
+const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--port', '5175', '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 await new Promise((resolve) => server.stdout.on('data', (d) => String(d).includes('5175') && resolve()));
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const shots = [];
@@ -126,7 +126,8 @@ try {
   }
 } finally {
   await browser.close();
-  server.kill();
+  // The whole group: pnpm and the vite it started (killing pnpm alone leaves vite running).
+  process.kill(-server.pid);
 }
 console.log(report.join('\n'));
 console.log(`${shots.length} screenshot di ${out}`);

@@ -13,6 +13,9 @@ export function FitLine({ size, className = '', children, text }: { size: keyof 
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Reduced motion turns every change into a 0.01 ms transition (tokens.css): a size read
+    // right after a class change would be the old one, so this line never transitions.
+    el.style.setProperty('transition', 'none', 'important');
     const measure = () => {
       // Measure at the full size: the step down is only for a text that does not fit.
       el.classList.remove(STEP[size]!);
