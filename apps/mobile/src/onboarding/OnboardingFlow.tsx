@@ -16,7 +16,6 @@ import type { Platform } from '@sulo/core/platform';
 import { readPrefs, writePrefs } from '@sulo/core/prefs';
 import { greeting } from '@sulo/core/dashboard/mobile-greeting';
 import type { SyncOutcome } from '@sulo/core/types';
-import type { MascotState } from '@sulo/core/view/popup-view';
 import { closeTopSheet } from '@sulo/ui/mobile/sheet-motion';
 import { refreshPublicData, readKeepAlive } from '../public-data';
 import { scheduleReminders } from '../reminders';
@@ -26,7 +25,7 @@ import { updateWatch } from '../watch';
 import { applyWatchPlan } from '../watch-native';
 import { readCounts, readCourseChoices, readDone, readOfferedStages, readReminderSample, saveCourseChoices, saveFlow, saveStages } from './data';
 import { FlyingMascotLayer } from './FlyingMascot';
-import { MS } from './motion';
+import { MS, reducedMotion } from './motion';
 import { Intro } from './Intro';
 import { Done, Preparing, SignIn, Splash, type DoneTile, type PrepCounts } from './screens-entry';
 import { Courses, Nickname, Reminders, type CourseChoice, type ReminderSample } from './screens-setup';
@@ -73,12 +72,6 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
   const played = useRef(new Set<number>());
   const [watch, setWatch] = useState(true);
   const [watchAllowed, setWatchAllowed] = useState(false);
-  const [, heroSeen] = useState(0);
-  useEffect(() => {
-    if (!landing) return;
-    const raf = requestAnimationFrame(() => heroSeen((n) => n + 1));
-    return () => cancelAnimationFrame(raf);
-  }, [landing]);
   const finishing = useRef(false);
   // The app's callbacks change every render; the first sync must not restart for that.
   const synced = useRef(onSynced);
@@ -304,30 +297,47 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
   // The three intro pages are one screen (the pager); everything else swaps with a slide.
   const swapKey = introIndex >= 0 ? 'intro' : state.step;
 
-  if (landing)
-    return (
-      <FlyingMascotLayer spotKey="landing" selector={HERO_SPOT} duration={MS.landing} onArrived={onLanded} forced={{ state: heroState() }}>
-        <LandingGuard onLanded={onLanded} />
-        {/* The last screen fades away over Ringkasan while it comes in. */}
-        <div aria-hidden="true" className="m-onb-leave pointer-events-none fixed inset-0 z-40 bg-m-screen">
-          {screen}
-        </div>
-      </FlyingMascotLayer>
-    );
+  // The landing: the mascot keeps the done screen's face while it flies to
+  // Ringkasan's hero, and there the two cross-fade (260 ms), so the
+  // expression never switches in one frame. The done screen stays the same
+  // mounted instance and only fades away (no effect of it runs again).
+  const landed = useRef(false);
+  const arrive = useCallback(() => {
+    if (landed.current) return;
+    landed.current = true;
+    const hero = document.querySelector<HTMLElement>(HERO_SPOT);
+    const fly = document.querySelector<HTMLElement>('[data-onb-mascot]');
+    const ms = reducedMotion() ? MS.reduced : 260;
+    if (hero) {
+      hero.style.transition = `opacity ${ms}ms ease-out`;
+      hero.style.opacity = '1';
+    }
+    if (fly) {
+      fly.style.transition = `opacity ${ms}ms ease-out`;
+      fly.style.opacity = '0';
+    }
+    window.setTimeout(() => {
+      hero?.style.removeProperty('transition');
+      hero?.style.removeProperty('opacity');
+      onLanded?.();
+    }, ms + 20);
+  }, [onLanded]);
+
   return (
-    <FlyingMascotLayer spotKey={swapKey} duration={MS.mascotMove}>
-      <StepSwap stepKey={swapKey} order={STEPS.indexOf(state.step)}>
-        {screen}
-      </StepSwap>
+    <FlyingMascotLayer spotKey={landing ? 'landing' : swapKey} selector={landing ? HERO_SPOT : undefined} duration={landing ? MS.landing : MS.mascotMove} onArrived={landing ? arrive : undefined}>
+      {/* While landing, the last screen fades away over Ringkasan as it comes in. */}
+      <div key="screens" aria-hidden={landing ? true : undefined} className={landing ? 'm-onb-leave pointer-events-none fixed inset-0 z-40' : 'contents'}>
+        <StepSwap stepKey={swapKey} order={STEPS.indexOf(state.step)}>
+          {screen}
+        </StepSwap>
+      </div>
+      {landing && <LandingGuard key="guard" onLanded={arrive} />}
     </FlyingMascotLayer>
   );
 }
 
 /** Ringkasan's hero mascot (HeroMascot.tsx): the landing target. */
 export const HERO_SPOT = '[data-mascot-spot="hero"]';
-
-/** Lands with the hero's own expression, so the swap shows nothing. */
-const heroState = (): MascotState => (document.querySelector<HTMLElement>(HERO_SPOT)?.dataset.mascotState as MascotState | undefined) ?? 'idle';
 
 /** A guard ends the landing if the hero never shows. */
 function LandingGuard({ onLanded }: { onLanded?: () => void }) {
