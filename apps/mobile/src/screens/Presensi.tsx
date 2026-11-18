@@ -217,7 +217,7 @@ function Sessions({ sessions, loading, d, locale }: { sessions: SessionRow[] | n
   const pw = d.presensi;
   const masked = usePrivacy();
   if (sessions === null) return loading ? <SessionsSkeleton /> : null;
-  if (sessions.length === 0) return <EmptyCard text={pw.noDetail} />;
+  if (sessions.length === 0) return <EmptyCard mascot={<Mascot state="idle" size={48} />} text={pw.noDetail} />;
   const monthOf = (s: SessionRow) => (s.at !== null ? localParts(s.at, timeZone).dateKey.slice(0, 7) : '');
   const months = [...new Set(sessions.map(monthOf))];
   return (
@@ -238,7 +238,8 @@ function Sessions({ sessions, loading, d, locale }: { sessions: SessionRow[] | n
                     <div className="min-w-0 flex-1">
                       <p className="text-m15">{s.description}</p>
                       <p className="text-m13 text-muted-foreground tabular-nums">
-                        {s.dateText} · {sessionTimeText(s.timeText, locale)}
+                        {/* The date and the time range each stay whole; the line may only break between them. */}
+                        <span className="whitespace-nowrap">{s.dateText}</span> · <span className="whitespace-nowrap">{sessionTimeText(s.timeText, locale)}</span>
                       </p>
                       {s.remarks && !masked && (
                         <p className="text-m13 text-muted-foreground">

@@ -42,6 +42,9 @@ export async function seedDemo(store: KeyValueStore, now: UnixSeconds): Promise<
   const params = typeof location === 'undefined' ? new URLSearchParams() : new URLSearchParams(location.search);
   // ?presensi=none: attendance not fetched yet.
   const data = { ...(shiftTimes(seed.storage, now - seed.generatedAt) as Record<string, unknown>), ...(params.get('presensi') === 'none' ? {} : demoPresensi(now)) };
+  // The course without sessions opens on an empty detail (mobile only; the extension's demo stays as it is).
+  const presensi = data['u:1:presensi'] as { details: Record<string, unknown>; recap: { fetchedAt: number } } | undefined;
+  if (presensi) data['u:1:presensi'] = { ...presensi, details: { ...presensi.details, 9405: { fetchedAt: presensi.recap.fetchedAt, sessions: [] } } };
   data['u:1:tasks'] = demoVariant(data['u:1:tasks'] as Task[], now, params.get('demo'));
   // ?lang=en and ?nick=Ikrar: the language and the nickname for a screenshot.
   const prefs = (data['global:prefs'] ?? {}) as Record<string, unknown>;

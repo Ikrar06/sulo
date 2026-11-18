@@ -11,9 +11,8 @@ import { useI18n } from '@sulo/ui/i18n';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Card, IconTile } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
-import { Sheet } from '@sulo/ui/mobile/sheet';
 import type { TintColor } from '@sulo/ui/mobile/tint';
-import { signOutEverything } from '../account';
+import { SignOutSheet } from './SignOutSheet';
 import { useMobileData } from '../shell/data';
 import type { Screen, ScreenName } from '../shell/nav';
 
@@ -30,7 +29,7 @@ export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; on
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
   const w = mobileWords(locale);
-  const { data, platform } = useMobileData();
+  const { data } = useMobileData();
   const [confirm, setConfirm] = useState(false);
   const label = (name: ScreenName) => (name === 'privasi' ? w.app.privasi : d.nav[name as keyof typeof d.nav]);
   const last = data?.view.lastSyncAt ?? null;
@@ -67,25 +66,7 @@ export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; on
 
       <p className="text-center text-m12 font-normal text-muted-foreground">{w.unofficial}</p>
 
-      <Sheet open={confirm} onOpenChange={setConfirm} title={w.connected.signOutTitle}>
-        <p className="text-m15 font-normal text-muted-foreground">{w.connected.signOutBody}</p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <PillButton full onPress={() => setConfirm(false)}>
-            {w.connected.cancel}
-          </PillButton>
-          <PillButton
-            full
-            danger
-            onPress={async () => {
-              await signOutEverything(platform);
-              setConfirm(false);
-              onSignedOut();
-            }}
-          >
-            {w.settings.signOutDelete}
-          </PillButton>
-        </div>
-      </Sheet>
+      <SignOutSheet open={confirm} onOpenChange={setConfirm} onSignedOut={onSignedOut} />
     </div>
   );
 }

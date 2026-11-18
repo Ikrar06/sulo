@@ -22,7 +22,7 @@ import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
 import { Input } from '@sulo/ui/ui/input';
 import { stageAmount } from '@sulo/ui/reminders/RemindersPanel';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { LOCK_KEY, signOutEverything } from '../account';
+import { LOCK_KEY } from '../account';
 import { SuloSession } from '../session';
 import { timeZone, useMobileData } from '../shell/data';
 
@@ -30,6 +30,7 @@ const HOURS = Array.from({ length: 24 }, (_, h) => h * 60);
 
 type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickname' | null;
 
+import { SignOutSheet } from './SignOutSheet';
 export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
@@ -222,24 +223,7 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
         </div>
       </Sheet>
 
-      <Sheet open={confirm} onOpenChange={setConfirm} title={w.connected.signOutTitle}>
-        <p className="text-m15 font-normal text-muted-foreground">{w.connected.signOutBody}</p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <PillButton full onPress={() => setConfirm(false)}>
-            {w.connected.cancel}
-          </PillButton>
-          <PillButton
-            full
-            danger
-            onPress={async () => {
-              await signOutEverything(platform);
-              onSignedOut();
-            }}
-          >
-            {w.settings.signOutDelete}
-          </PillButton>
-        </div>
-      </Sheet>
+      <SignOutSheet open={confirm} onOpenChange={setConfirm} onSignedOut={onSignedOut} />
     </div>
   );
 }

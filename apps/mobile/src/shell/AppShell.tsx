@@ -37,6 +37,19 @@ const COMPACT_AT = 24;
 /** Screens without SIKOLA data: no Perbarui there. */
 const NO_DATA_SCREENS = new Set(['lainnya', 'pengaturan', 'bantuan', 'tentang', 'privasi']);
 
+/** "Masuk lagi ke SIKOLA untuk memperbarui." with its action words underlined (case-insensitive; plain when absent). */
+function splitAction(line: string, action: string) {
+  const at = line.toLowerCase().indexOf(action.toLowerCase());
+  if (at < 0) return line;
+  return (
+    <>
+      {line.slice(0, at)}
+      <span className="font-medium underline underline-offset-2">{line.slice(at, at + action.length)}</span>
+      {line.slice(at + action.length)}
+    </>
+  );
+}
+
 export interface ShellProps {
   expired: boolean;
   busy: boolean;
@@ -194,15 +207,19 @@ export function AppShell(props: ShellProps) {
           </>
         )}
       </header>
-      {(notice || stale) && (
-        <p role="status" className="mx-4 mb-2 flex min-h-9 items-center gap-3 rounded-full bg-m-inset px-4 text-m13">
-          <span className="min-w-0 flex-1 truncate">{notice === 'expired' ? w.connected.expiredLine : notice === 'offline' ? w.app.offline : stale}</span>
-          {notice === 'expired' && (
-            <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-hit shrink-0 rounded-full text-m13 font-medium underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
-              {w.connected.signInAgain}
-            </button>
-          )}
-        </p>
+      {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
+      {notice === 'expired' ? (
+        <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-press mx-4 mb-2 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
+          <span role="status" className="min-w-0 truncate">
+            {splitAction(w.connected.expiredLine, w.connected.signInAgain)}
+          </span>
+        </button>
+      ) : (
+        (notice || stale) && (
+          <p role="status" className="mx-4 mb-2 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-m13">
+            <span className="min-w-0 truncate">{notice === 'offline' ? w.app.offline : stale}</span>
+          </p>
+        )
       )}
       <div className="relative flex min-h-0 flex-1 flex-col">
       {/* Scroll-edge fade under the header, only once the content has moved. */}

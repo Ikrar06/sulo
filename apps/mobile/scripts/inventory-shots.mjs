@@ -164,7 +164,7 @@ const MAIN = [
   }],
   ['presensi rincian kosong', async ({ page, back, shot }) => {
     await back();
-    await page.locator('main section.m-card .m-cover').nth(1).click();
+    await page.getByRole('main').getByRole('button', { name: /Praktikum Lapangan/ }).click();
     await page.waitForTimeout(400);
     await shot('16-presensi-rincian-tanpa-sesi');
   }],
@@ -274,7 +274,8 @@ try {
     await session(scheme, { query: '?presensi=none' }, one('presensi belum ada', '45-presensi-belum-ada', (c) => c.tab('Presensi')));
     await session(scheme, { query: '?presensi=slow' }, one('presensi memuat', '46-presensi-rincian-memuat', async (c) => {
       await c.tab('Presensi');
-      await c.page.locator('main section.m-card .m-cover').nth(1).click();
+      // A course whose sessions were never fetched: the skeleton shows while it loads.
+      await c.page.getByRole('main').getByRole('button', { name: /Etika Profesi/ }).click();
       await c.page.waitForTimeout(200);
     }));
     for (const [mode, file] of [['wait', '47-kunci'], ['fail', '48-kunci-gagal'], ['nolock', '49-kunci-tanpa-kunci-layar']])
