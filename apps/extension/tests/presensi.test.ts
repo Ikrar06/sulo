@@ -167,9 +167,10 @@ describe('fetching: monitored courses only, 24-hour cache, 2-minute cooldown', (
     expect((await readPresensi(store, 1)).details['307194']?.sessions).toHaveLength(7);
   });
 
-  it('no attendance activity anywhere: says so, sends nothing', async () => {
+  it('no attendance activity anywhere (structures known, none has one): says so, sends nothing', async () => {
     const { client, deps, store } = await setup();
-    await writeUser(store, 1, 'snapshots', {});
+    const none = (courseId: number) => ({ userId: 1, courseId, fetchedAt: NOW, parserVersion: 1, items: {} });
+    await writeUser(store, 1, 'snapshots', { '36673': none(36673), '48298': none(48298) } as never);
     expect(await refreshRecap(deps, { force: true })).toEqual({ status: 'no_attendance' });
     expect(client.pages).toEqual([]);
   });
@@ -233,5 +234,146 @@ describe('background sync never touches attendance', () => {
       expect(batches.length, trigger).toBeGreaterThan(0);
       expect(pages, trigger).toEqual([]);
     }
+  });
+});
+
+// ---------- M7.3 fix: finding the attendance activity ----------
+
+import { courseStatus, diagnose, findRecapCmid, MAX_CMID_PROBES, recordSeenCmid } from '@sulo/core/presensi/service';
+import { attendanceCmidFromUrl } from '@sulo/core/presensi/urls';
+import { readUser as readUserFor } from '@sulo/core/storage';
+
+/** A course structure answer with or without an attendance activity. */
+function stateJson(cmId: number | null) {
+  const state = JSON.parse(fx('courseformat-state.normal')) as { cm: Record<string, unknown>[] };
+  // The fixture's own attendance activity is removed, so each test decides.
+  state.cm = state.cm.filter((c) => c.module !== 'attendance');
+  if (cmId !== null) state.cm.push({ ...state.cm[0], id: String(cmId), module: 'attendance', name: 'Presensi', uservisible: true });
+  return JSON.stringify(state);
+}
+
+/** Records batches (one course structure per POST) and answers pages from fixtures. */
+function probeClient(attendanceIn: Record<number, number | null>) {
+  const posts: number[] = [];
+  const pages: string[] = [];
+  const client: MoodleClient = {
+    async callBatch(callList) {
+      const courseId = callList[0]!.args.courseid as number;
+      posts.push(courseId);
+      return { kind: 'ok', results: [{ ok: true, data: stateJson(attendanceIn[courseId] ?? null) }] };
+    },
+    async fetchPage(path) {
+      pages.push(path);
+      return { kind: 'ok', html: page('attendance-all-courses') };
+    },
+  };
+  return { client, posts, pages };
+}
+
+async function bareSetup(monitored: number[], snapshots: Record<string, unknown> = {}, knownCmids: number[] = []) {
+  const store = memoryStore();
+  await switchUser(store, 1);
+  await writeUser(store, 1, 'snapshots', snapshots as never);
+  if (knownCmids.length) await writeUser(store, 1, 'presensi', { recap: null, details: {}, lastRequestAt: null, unknownShapeAt: null, knownCmids });
+  return { store, monitored: new Set(monitored) };
+}
+
+const snap = (courseId: number, items: { cmId: number; module: string; uservisible?: boolean }[]) => ({
+  userId: 1, courseId, fetchedAt: NOW, parserVersion: 1,
+  items: Object.fromEntries(items.map((i) => [i.cmId, { cmId: i.cmId, module: i.module, name: 'x', sectionId: 1, visible: true, uservisible: i.uservisible ?? true, url: null, firstSeenAt: NOW, missCount: 0 }])),
+});
+
+describe('finding an attendance activity for the recap (stop at the first that works)', () => {
+  it('a. from the structure of any stored course, followed or not; a hidden one as a last resort', async () => {
+    const { store, monitored } = await bareSetup([48298], { '36673': snap(36673, [{ cmId: 197570, module: 'attendance' }]) });
+    const { client, posts, pages } = probeClient({});
+    const deps = { client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored };
+    expect(await findRecapCmid(deps, await readPresensi(store, 1), true)).toEqual({ cmid: 197570, via: 'snapshot', probes: 0 });
+    expect(await refreshRecap(deps, { force: true })).toEqual({ status: 'ok' });
+    expect(posts).toEqual([]);
+    expect(pages).toEqual(['/mod/attendance/view.php?id=197570&mode=1']);
+    const hidden = await bareSetup([1], { '5': snap(5, [{ cmId: 77, module: 'attendance', uservisible: false }]) });
+    expect((await findRecapCmid({ ...deps, store: hidden.store, monitored: hidden.monitored }, await readPresensi(hidden.store, 1), false)).cmid).toBe(77);
+  });
+
+  it('b. from a cmid seen before, without a request', async () => {
+    const { store, monitored } = await bareSetup([48298], {}, [307194]);
+    const { client, posts } = probeClient({});
+    expect(await findRecapCmid({ client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored }, await readPresensi(store, 1), true)).toEqual({ cmid: 307194, via: 'known', probes: 0 });
+    expect(posts).toEqual([]);
+  });
+
+  it('c. one course structure at a time, never or longest unchecked first, stops when found', async () => {
+    const { store, monitored } = await bareSetup([10, 20, 30, 40]);
+    const radar = await readUserFor(store, 1, 'radar');
+    await writeUser(store, 1, 'radar', { ...radar, stateCheckedAt: { '10': NOW - 100, '20': NOW - 5000, '30': NOW - 50 } });
+    const { client, posts, pages } = probeClient({ 10: 197570 });
+    const deps = { client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored };
+    expect(await refreshRecap(deps, { force: true })).toEqual({ status: 'ok' });
+    // 40 never checked, then 20, then 10 (found): 30 is never asked.
+    expect(posts).toEqual([40, 20, 10]);
+    expect(pages).toEqual(['/mod/attendance/view.php?id=197570&mode=1']);
+    expect((await readPresensi(store, 1)).knownCmids?.[0]).toBe(197570);
+  });
+
+  it('c. at most 3 course structures per click; a course whose stored structure has none is not asked', async () => {
+    const { store, monitored } = await bareSetup([1, 2, 3, 4, 5, 6], { '6': snap(6, [{ cmId: 9, module: 'assign' }]) });
+    const { client, posts, pages } = probeClient({});
+    const deps = { client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored };
+    expect(await refreshRecap(deps, { force: true })).toEqual({ status: 'no_attendance' });
+    expect(posts).toHaveLength(MAX_CMID_PROBES);
+    expect(posts).not.toContain(6);
+    expect(pages).toEqual([]);
+    // The probes count against the 2-minute cooldown: a second click right away sends nothing.
+    expect((await refreshRecap(deps, { force: true })).status).toBe('cooldown');
+    expect(posts).toHaveLength(MAX_CMID_PROBES);
+  });
+
+  it('d. nothing anywhere: no_attendance, and the probes are recorded for the diagnosis', async () => {
+    const { store, monitored } = await bareSetup([1]);
+    const { client } = probeClient({});
+    expect(await refreshRecap({ client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored }, { force: false })).toEqual({ status: 'no_attendance' });
+    expect((await readPresensi(store, 1)).lastOutcome).toMatchObject({ status: 'no_attendance', probes: 1 });
+  });
+});
+
+describe('an attendance page the user opened on SIKOLA', () => {
+  it('only the numeric id from the URL', () => {
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=197570')).toBe(197570);
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=197570&mode=1')).toBe(197570);
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/take.php?id=197570')).toBeNull();
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=abc')).toBeNull();
+    expect(attendanceCmidFromUrl('https://evil.example/mod/attendance/view.php?id=1')).toBeNull();
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/course/view.php?id=5')).toBeNull();
+  });
+
+  it('is remembered and opens the recap next time', async () => {
+    const { store, monitored } = await bareSetup([48298]);
+    expect(await recordSeenCmid(store, 1, 307194)).toBe(true);
+    const { client, posts, pages } = probeClient({});
+    expect(await refreshRecap({ client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored }, { force: true })).toEqual({ status: 'ok' });
+    expect(posts).toEqual([]);
+    expect(pages).toEqual(['/mod/attendance/view.php?id=307194&mode=1']);
+  });
+});
+
+describe('a followed course before and after the recap', () => {
+  const row = { courseId: 1, cmid: 2, taken: 16, points: { got: 31, max: 32 }, percent: 96.9 };
+  it('before: "not fetched", never "no attendance"', () => {
+    expect(courseStatus(undefined, false)).toBe('not_fetched');
+    expect(courseStatus(row, false)).toBe('not_fetched');
+  });
+  it('after: numbers, no sessions yet, or no attendance when missing from the recap', () => {
+    expect(courseStatus(row, true)).toBe('numbers');
+    expect(courseStatus({ ...row, taken: 0 }, true)).toBe('no_sessions');
+    expect(courseStatus(undefined, true)).toBe('no_module');
+  });
+  it('diagnosis: snapshot and module counts, recap matching by course id', () => {
+    const g = diagnose(
+      { '1': snap(1, [{ cmId: 5, module: 'attendance' }, { cmId: 6, module: 'assign' }]) as never, '9': snap(9, [{ cmId: 7, module: 'attendance', uservisible: false }]) as never },
+      { recap: { fetchedAt: NOW, rows: [row] }, details: {}, lastRequestAt: null, unknownShapeAt: null, knownCmids: [5] },
+      new Set([1, 3]),
+    );
+    expect(g).toMatchObject({ coursesWithSnapshot: 2, followedWithSnapshot: 1, attendanceModules: 2, attendanceVisible: 1, modulesByName: { attendance: 2, assign: 1 }, recapRows: 1, followedWithNumbers: 1, followedNotInRecap: [3], knownCmids: [5] });
   });
 });

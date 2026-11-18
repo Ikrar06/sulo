@@ -46,6 +46,17 @@ export interface PresensiData {
   lastRequestAt: UnixSeconds | null;
   /** The last answer could not be read (shape changed): shown as a safe message. */
   unknownShapeAt: UnixSeconds | null;
+  /**
+   * Attendance activities (cmid) seen before, newest first: from the recap,
+   * from a course structure, or from the URL of an attendance page the user
+   * opened on SIKOLA. Any one opens the global "All courses" recap.
+   */
+  knownCmids?: number[];
+  /** Development builds' diagnosis: how the last fetch went (codes only). */
+  lastOutcome?: { at: UnixSeconds; status: string; reason?: string; via?: CmidSource; probes?: number } | null;
 }
 
-export const EMPTY_PRESENSI: PresensiData = { recap: null, details: {}, lastRequestAt: null, unknownShapeAt: null };
+/** Where the cmid for the recap came from (presensi/service.ts findRecapCmid). */
+export type CmidSource = 'snapshot' | 'known' | 'probe';
+
+export const EMPTY_PRESENSI: PresensiData = { recap: null, details: {}, lastRequestAt: null, unknownShapeAt: null, knownCmids: [], lastOutcome: null };

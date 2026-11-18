@@ -13,6 +13,22 @@ export const recapPath = (cmid: number) => `${ATTENDANCE_PATH}?id=${cmid}&mode=1
  */
 export const detailPath = (cmid: number) => `${ATTENDANCE_PATH}?id=${cmid}&view=5`;
 
+/**
+ * The cmid of an attendance page the user opened (content script): only
+ * https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id={number}.
+ */
+export function attendanceCmidFromUrl(href: string): number | null {
+  let url: URL;
+  try {
+    url = new URL(href);
+  } catch {
+    return null;
+  }
+  if (url.origin !== 'https://sikola-v2.unhas.ac.id' || url.pathname !== ATTENDANCE_PATH) return null;
+  const id = url.searchParams.get('id');
+  return id !== null && /^\d{1,10}$/.test(id) && Number(id) > 0 ? Number(id) : null;
+}
+
 const ALLOWED_PARAMS = new Set(['id', 'mode', 'view']);
 const FORBIDDEN = /take|sessions\.php|submit|sesskey|status|remarks|self|password/i;
 
