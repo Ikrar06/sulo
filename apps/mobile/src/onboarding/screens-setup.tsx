@@ -1,18 +1,22 @@
-// Screens 6-9 (M8c.2): the courses to follow, the nickname, reminders (with
-// "Pantau tugas baru"), and done. The screens hold their own choices; the
-// flow saves them when the user moves on.
+// Screens 6-8 (M8c.2): the courses to follow, the nickname, reminders with
+// "Pantau tugas baru". The mascot (96) stands at the top middle of each and
+// reacts: a glance at the row just tapped, eyes on the field while typing,
+// a hop when the switch turns on. The block (mascot, title, content) is
+// centered in the stage when it is short and scrolls when it is long.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { OnboardingWords } from '@sulo/core/i18n/mobile-onboarding';
 import { NICKNAME_MAX } from '@sulo/core/prefs';
-import { BellIcon, ChevronDownIcon } from '@sulo/ui/icons';
-import { Card, Chip, IconTile } from '@sulo/ui/mobile/cards';
-import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
-import { initials, ON_SOLID, tintVar } from '@sulo/ui/mobile/tint';
-import { MascotSpot, useMascotCue } from './FlyingMascot';
-import { EASE_SPRING, MS } from './motion';
-import { SetupLayout, useTitleFocus } from './Shell';
-import { Piece, useAfter } from './Stage';
+import { ChevronDownIcon } from '@sulo/ui/icons';
+import { Card } from '@sulo/ui/mobile/cards';
+import { Toggle } from '@sulo/ui/mobile/controls';
+import { Sheet } from '@sulo/ui/mobile/sheet';
+import { initials, ON_SOLID, tintBg, tintVar } from '@sulo/ui/mobile/tint';
+import { act, burstSparks, NotifyBanner } from './bits';
+import { MascotSpot, useExpression, useMascot } from './FlyingMascot';
+import { BackButton, Frame, ProgressBar, TextLink, useTitleFocus, type FrameAction } from './Frame';
+import { haptic } from './haptics';
+import { EASE_SPRING } from './motion';
 
 export interface CourseChoice {
   id: number;
@@ -24,224 +28,279 @@ export interface CourseChoice {
 
 type Progress = { index: number; total: number; label: string } | null;
 
-export function Courses({ w, progress, courses, selected, onToggle, onNext, onBack }: { w: OnboardingWords; progress: Progress; courses: readonly CourseChoice[]; selected: ReadonlySet<number>; onToggle: (id: number) => void; onNext: () => void; onBack: (() => void) | null }) {
-  const t = w.courses;
-  const [all, setAll] = useState(() => courses.every((c) => c.main));
-  useMascotCue({ state: 'onboarding' });
-  const shown = all ? courses : courses.filter((c) => c.main || selected.has(c.id));
-  const hidden = courses.length - shown.length;
+/** A flexible space between two parts of a setup screen: at least `min`, growing up to `max` when the stage has room. */
+export function Gap({ min = 16, max = 40 }: { min?: number; max?: number }) {
+  return <div aria-hidden="true" className="shrink-0" style={{ flex: `1 1 ${min}px`, minHeight: min, maxHeight: max }} />;
+}
+
+/** A setup screen: back and progress on top, the centered block, the fixed action block. */
+function SetupFrame({ w, stepKey, progress, onBack, title, body, hint, primary, secondary, children, sparksRef }: { w: OnboardingWords; stepKey: string; progress: Progress; onBack: (() => void) | null; title: string; body?: string; hint?: ReactNode; primary: FrameAction; secondary?: ReactNode; children: ReactNode; sparksRef?: React.Ref<HTMLDivElement> }) {
+  const titleRef = useTitleFocus(stepKey);
   return (
-    <SetupLayout
-      stepKey="courses"
-      progress={progress}
-      title={t.title}
-      body={t.body}
-      back={onBack ? { label: w.back, onPress: onBack } : null}
-      action={{ label: t.next(selected.size), onPress: onNext, disabled: selected.size === 0, help: t.noneHelp }}
+    <Frame
+      topLeft={
+        <>
+          {onBack && <BackButton label={w.back} onPress={onBack} />}
+          {progress && <ProgressBar {...progress} />}
+        </>
+      }
+      hint={hint}
+      primary={primary}
+      secondary={secondary}
     >
-      {/* The list scrolls on its own when long; the link stays right under it. */}
-      <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1 pb-1">
-        <ul className="space-y-2">
-          {shown.map((c) => (
-            <li key={c.id}>
-              <CourseCard course={c} on={selected.has(c.id)} onToggle={() => onToggle(c.id)} />
-            </li>
-          ))}
-        </ul>
-        {!all && hidden > 0 && (
-          <button type="button" onClick={() => setAll(true)} className="m-hit mt-2 inline-flex items-center gap-1 rounded-full px-1 text-m13 text-muted-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
-            {t.showAll}
-            <ChevronDownIcon aria-hidden="true" className="size-4" />
-          </button>
-        )}
+      {/* Short content sits in the middle; long content scrolls under soft edges. */}
+      <div className="onb-scroll -mx-4 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4">
+        {/* Free height is shared out between the parts (Gap), so a short block never floats in a void. */}
+        <div className="flex min-h-full flex-col justify-center py-2">
+          <div ref={sparksRef} className="relative mx-auto">
+            <MascotSpot size={96} />
+          </div>
+          <Gap min={12} max={56} />
+          <h1 ref={titleRef} tabIndex={-1} className="onb-title outline-none">
+            {title}
+          </h1>
+          {body && <p className="mt-1 text-m15r text-muted-foreground">{body}</p>}
+          <Gap min={16} max={72} />
+          {children}
+        </div>
       </div>
-    </SetupLayout>
+    </Frame>
   );
 }
 
-function CourseCard({ course, on, onToggle }: { course: CourseChoice; on: boolean; onToggle: () => void }) {
+export function Courses({ w, progress, courses, selected, onToggle, onNext, onBack }: { w: OnboardingWords; progress: Progress; courses: readonly CourseChoice[]; selected: ReadonlySet<number>; onToggle: (id: number) => void; onNext: () => void; onBack: (() => void) | null }) {
+  const t = w.courses;
+  const mascot = useMascot();
+  const [all, setAll] = useState(() => courses.every((c) => c.main));
+  useExpression('neutral');
+  const shown = all ? courses : courses.filter((c) => c.main || selected.has(c.id));
+  const hidden = courses.length - shown.length;
+  return (
+    <SetupFrame w={w} stepKey="courses" progress={progress} onBack={onBack} title={t.title} body={t.body} hint={<span role="status">{selected.size > 0 ? t.selected(selected.size) : t.none}</span>} primary={{ label: w.next, onPress: onNext, disabled: selected.size === 0 }}>
+      <ul className="space-y-2">
+        {shown.map((c) => (
+          <li key={c.id}>
+            <CourseRow
+              course={c}
+              on={selected.has(c.id)}
+              onToggle={(el) => {
+                haptic('light');
+                mascot.lookAt(el, 900);
+                if (!selected.has(c.id)) mascot.flash('happy', 600);
+                onToggle(c.id);
+              }}
+            />
+          </li>
+        ))}
+      </ul>
+      {!all && hidden > 0 && (
+        <button type="button" onClick={() => setAll(true)} className="m-hit mt-3 inline-flex items-center gap-1 rounded-full px-1 text-m13 text-muted-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
+          {t.showAll}
+          <ChevronDownIcon aria-hidden="true" className="size-4" />
+        </button>
+      )}
+    </SetupFrame>
+  );
+}
+
+/** Chosen: the row takes a tint of its course color and the circle fills; not chosen: a plain card, dimmed to 60 %. No border either way. */
+function CourseRow({ course, on, onToggle }: { course: CourseChoice; on: boolean; onToggle: (el: HTMLElement) => void }) {
+  const tint = course.color ? (`course-${course.color}` as const) : 'neutral';
   return (
     <button
       type="button"
       role="checkbox"
       aria-checked={on}
-      onClick={onToggle}
-      className={`m-hit m-press flex min-h-14 w-full items-center gap-3 rounded-card px-3 py-2 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus ${on ? 'bg-m-inset shadow-[inset_0_0_0_1.5px_var(--text)]' : 'm-card'}`}
+      onClick={(e) => onToggle(e.currentTarget)}
+      className={`m-hit onb-row flex min-h-14 w-full items-center gap-3 rounded-card px-3 py-2 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus ${on ? 'is-on' : 'm-card'}`}
+      style={{ '--row-tint': tintBg(tint, 16, 'var(--m-card)') } as CSSProperties}
     >
-      <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-ctl text-m13 font-semibold" style={course.color ? { background: tintVar(`course-${course.color}`), ...ON_SOLID } : { background: 'var(--m-inset)', color: 'var(--muted)' }}>
+      <span aria-hidden="true" className={`flex size-10 shrink-0 items-center justify-center rounded-ctl text-m13 font-semibold transition-opacity duration-150 ${on ? '' : 'opacity-60'}`} style={course.color ? { background: tintVar(`course-${course.color}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}>
         {initials(course.name)}
       </span>
-      <span className="line-clamp-2 min-w-0 flex-1 text-m15">{course.name}</span>
-      <span aria-hidden="true" className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${on ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'}`} style={{ transitionDuration: `${MS.check}ms` }}>
+      <span className={`min-w-0 flex-1 text-m15 transition-opacity duration-150 ${on ? '' : 'opacity-60'}`}>{course.name}</span>
+      <span aria-hidden="true" className={`onb-check inline-flex size-6 shrink-0 items-center justify-center rounded-full border-2 ${on ? 'is-on border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'}`}>
         <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12.5 10 17 19 7.5" className={on ? 'm-check-draw' : ''} />
+          <path d="M5 12.5 10 17 19 7.5" />
         </svg>
       </span>
     </button>
   );
 }
 
-/** Screen 7: a live preview of the greeting above a large field; the keyboard opens at once. */
+/** Screen 7: the greeting, large, changes with every letter; the field has the focus so the keyboard is up. */
 export function Nickname({ w, progress, line1, initial, onNext, onSkip, onBack }: { w: OnboardingWords; progress: Progress; line1: string; initial: string; onNext: (name: string) => void; onSkip: () => void; onBack: (() => void) | null }) {
   const t = w.nickname;
+  const mascot = useMascot();
   const [name, setName] = useState(initial);
-  const [hop, setHop] = useState(0);
-  const waved = useRef(initial.trim() !== '');
+  const greeted = useRef(initial.trim() !== '');
   const input = useRef<HTMLInputElement | null>(null);
-  useMascotCue({ state: hop > 0 ? 'all-done' : 'onboarding', poke: hop });
-  useEffect(() => input.current?.focus({ preventScroll: true }), []);
+  useExpression('neutral');
+  useEffect(() => {
+    input.current?.focus({ preventScroll: true });
+    // The keyboard takes half the screen: the field stays in view when the stage shrinks.
+    const show = () => input.current?.scrollIntoView({ block: 'nearest' });
+    window.visualViewport?.addEventListener('resize', show);
+    window.addEventListener('resize', show);
+    // Eyes on the field.
+    const id = window.setTimeout(() => mascot.lookAt(input.current, 0), 400);
+    return () => {
+      window.clearTimeout(id);
+      window.visualViewport?.removeEventListener('resize', show);
+      window.removeEventListener('resize', show);
+      mascot.lookAt(null);
+    };
+  }, [mascot]);
   const clean = name.trim();
+  // Without a name: the greeting alone, no comma.
   const preview = clean ? `${line1} ${clean}.` : `${line1.replace(/,\s*$/, '')}.`;
   return (
-    <SetupLayout
-      stepKey="nickname"
-      progress={progress}
-      title={t.title}
-      barMascot={false}
-      back={onBack ? { label: w.back, onPress: onBack } : null}
-      action={{ label: w.next, onPress: () => onNext(clean) }}
-      skip={{ label: w.skipStep, onPress: onSkip }}
-    >
+    <SetupFrame w={w} stepKey="nickname" progress={progress} onBack={onBack} title={t.title} primary={{ label: w.next, onPress: () => onNext(clean) }} secondary={<TextLink onPress={onSkip}>{w.skip}</TextLink>}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           onNext(clean);
         }}
       >
-        <div className="flex items-center gap-3">
-          <MascotSpot size={72} />
-          <p aria-live="polite" className="min-w-0 text-m18 break-words">
-            {preview}
-          </p>
-        </div>
+        <p aria-live="polite" className="onb-greeting min-h-[2lh] break-words">
+          {preview}
+        </p>
         <input
           ref={input}
           aria-label={t.label}
-          placeholder={t.placeholder}
+          placeholder={t.label}
           maxLength={NICKNAME_MAX}
           value={name}
           enterKeyHint="next"
           autoComplete="nickname"
+          autoCapitalize="words"
           onChange={(e) => {
-            setName(e.target.value);
-            // The first letters: one small wave.
-            if (!waved.current && e.target.value.trim() !== '') {
-              waved.current = true;
-              setHop((n) => n + 1);
+            const v = e.target.value;
+            setName(v);
+            // The eyes follow the text as it grows.
+            const r = e.target.getBoundingClientRect();
+            mascot.lookAt({ x: r.left + 24 + Math.min(1, v.length / NICKNAME_MAX) * (r.width - 48), y: r.top + r.height / 2 }, 0);
+            if (!greeted.current && v.trim() !== '') {
+              greeted.current = true;
+              mascot.flash('happy', 900);
+              mascot.hop();
             }
+            if (v.trim() === '') greeted.current = false;
           }}
-          className="mt-5 h-13 w-full rounded-card border border-m-line bg-m-card px-4 text-m18 outline-none placeholder:text-muted-foreground focus-visible:border-foreground"
+          className="mt-3 h-13 w-full rounded-card border border-m-line bg-m-card px-4 text-m18 outline-none placeholder:text-muted-foreground focus-visible:border-foreground"
         />
         <p className="mt-2 text-m12 text-muted-foreground">{t.note}</p>
       </form>
-    </SetupLayout>
+    </SetupFrame>
   );
 }
 
 export interface ReminderSample {
   title: string;
-  when: string;
   course: string;
 }
 
-/** Screen 8: a real (or sample) reminder drops in; three time chips; "Pantau tugas baru"; then Android's own permission dialog. */
+const STAGES = [1440, 180, 60] as const;
+
+/** Screen 8: the mascot presents a real-size reminder for the user's nearest task; three short chips; the watch switch with its one line and "Detail". */
 export function Reminders({ w, progress, sample, stages, onStages, watch, watchAllowed, onWatch, onAllow, onLater, onBack }: { w: OnboardingWords; progress: Progress; sample: ReminderSample; stages: ReadonlySet<number>; onStages: (s: Set<number>) => void; watch: boolean; watchAllowed: boolean; onWatch: (on: boolean) => void; onAllow: () => void; onLater: () => void; onBack: (() => void) | null }) {
   const t = w.reminders;
-  const [joy, setJoy] = useState(0);
-  // Happy here; a small hop when the reminder lands and when watching is turned on.
-  useMascotCue({ state: 'all-done', poke: joy });
+  const mascot = useMascot();
+  const [detail, setDetail] = useState(false);
+  /** The stage the banner shows: the one touched last, else the nearest one that is on. */
+  const [shownStage, setShownStage] = useState<number>(() => [...stages].sort((a, b) => a - b)[0] ?? 180);
+  const banner = useRef<HTMLDivElement | null>(null);
+  const when = useRef<HTMLSpanElement | null>(null);
+  const sparks = useRef<HTMLDivElement | null>(null);
+  useExpression('happy');
+  useEffect(() => {
+    const a = act(banner.current, 560, [
+      { at: 0, opacity: 0, transform: 'translateY(-28px)' },
+      { at: 140, opacity: 0, transform: 'translateY(-28px)', easing: EASE_SPRING },
+      { at: 560, opacity: 1, transform: 'translateY(0)' },
+    ]);
+    const id = window.setTimeout(() => mascot.lookAt(banner.current, 900), 200);
+    return () => {
+      window.clearTimeout(id);
+      a?.cancel();
+    };
+  }, [mascot]);
+  const toggleStage = (s: number) => {
+    const next = new Set(stages);
+    // One stage always stays on.
+    if (next.has(s) && next.size === 1) return;
+    if (next.has(s)) next.delete(s);
+    else next.add(s);
+    haptic('light');
+    onStages(next);
+    setShownStage(next.has(s) ? s : ([...next].sort((a, b) => a - b)[0] ?? 180));
+    mascot.lookAt(banner.current, 700);
+    act(when.current, 240, [
+      { at: 0, opacity: 0.2, transform: 'translateY(4px)' },
+      { at: 240, opacity: 1, transform: 'translateY(0)' },
+    ]);
+  };
   return (
-    <SetupLayout
-      stepKey="reminders"
-      progress={progress}
-      title={t.title}
-      body={t.body}
-      barMascot={false}
-      back={onBack ? { label: w.back, onPress: onBack } : null}
-      action={{ label: t.allow, onPress: onAllow }}
-      skip={{ label: t.later, onPress: onLater }}
-    >
-      <div className="relative">
-        <div className="flex items-start gap-3">
-          <div className="relative h-[76px] min-w-0 flex-1">
-            <Piece rest={{ left: 0, top: 0, width: 100, rotate: 0, scale: 1 }} from={{ y: -40 }} delay={120} duration={MS.enterLong} easing={EASE_SPRING} onIn={() => setJoy((n) => n + 1)}>
-              <Card dense>
-                <div className="flex items-center gap-3">
-                  <IconTile color="accent" icon={BellIcon} />
-                  <div className="min-w-0">
-                    <p className="truncate text-m15">{sample.title}</p>
-                    <p className="truncate text-m13 text-muted-foreground">{t.sample.body(sample.when, sample.course)}</p>
-                  </div>
-                </div>
-              </Card>
-            </Piece>
-          </div>
-          <MascotSpot size={72} />
+    <>
+      <SetupFrame w={w} stepKey="reminders" progress={progress} onBack={onBack} title={t.title} primary={{ label: t.allow, onPress: onAllow }} secondary={<TextLink onPress={onLater}>{t.later}</TextLink>} sparksRef={sparks}>
+        <div ref={banner}>
+          <NotifyBanner
+            wrap
+            title={sample.title}
+            body={
+              <>
+                <span ref={when} className="inline-block text-primary">
+                  {t.inTime(t.stages[shownStage] ?? '')}
+                </span>
+                {` · ${sample.course}`}
+              </>
+            }
+          />
         </div>
-        <p className="mt-4 text-m13 text-muted-foreground">
-          {t.stagesLabel}
-        </p>
-        <div role="group" aria-label={t.stagesLabel} className="mt-2 flex flex-wrap gap-2">
-          {[1440, 180, 60].map((s) => (
-            <Chip
-              key={s}
-              selected={stages.has(s)}
-              onPress={() => {
-                const next = new Set(stages);
-                if (next.has(s)) next.delete(s);
-                else next.add(s);
-                onStages(next);
-              }}
-            >
-              {`${t.stages[s]} ${t.before}`}
-            </Chip>
+        <Gap min={16} max={56} />
+        <p className="text-m13 text-muted-foreground">{t.stagesLabel}</p>
+        <div role="group" aria-label={t.stagesLabel} className="mt-2 flex gap-2">
+          {STAGES.map((s) => (
+            <button key={s} type="button" aria-pressed={stages.has(s)} onClick={() => toggleStage(s)} className={`m-hit onb-press h-9 min-w-0 flex-1 rounded-full text-m13 font-medium whitespace-nowrap outline-none focus-ring:ring-2 focus-ring:ring-focus ${stages.has(s) ? 'bg-foreground text-bg' : 'bg-m-inset'}`}>
+              {t.stages[s]}
+            </button>
           ))}
         </div>
         {watchAllowed && (
-          <div className="mt-4">
+          <>
+            <Gap min={16} max={56} />
             <Card dense>
-              <label className="flex items-start gap-3">
-                <span className="min-w-0 flex-1">
-                  <span className="block text-m15">{t.watchTitle}</span>
-                  <span className="mt-0.5 block text-m13 text-muted-foreground">{t.watchBody}</span>
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-m15 font-medium">{t.watchTitle}</p>
+                  <p className="mt-0.5 text-m13 text-muted-foreground">
+                    {t.watchBody}{' '}
+                    <button type="button" onClick={() => setDetail(true)} className="m-hit rounded text-foreground underline underline-offset-4 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                      {t.detail}
+                    </button>
+                  </p>
+                </div>
                 <Toggle
                   checked={watch}
                   label={t.watchTitle}
                   onChange={(on) => {
                     onWatch(on);
-                    if (on) setJoy((n) => n + 1);
+                    haptic('light');
+                    if (on) {
+                      mascot.hop();
+                      mascot.flash('happy', 900);
+                      burstSparks(sparks.current, 8);
+                    }
                   }}
                 />
-              </label>
+              </div>
             </Card>
-          </div>
+          </>
         )}
-      </div>
-    </SetupLayout>
-  );
-}
-
-/** Screen 9: the mascot large in the middle, one celebration, the real count, "Buka Sulo". */
-export function Done({ w, summary, onOpen }: { w: OnboardingWords; summary: string; onOpen: () => void }) {
-  const title = useTitleFocus('done');
-  const [party, setParty] = useState(0);
-  useMascotCue({ state: 'all-done', celebrate: party });
-  useAfter(360, () => setParty(1));
-  // Two seconds, or a tap anywhere.
-  useAfter(2000, onOpen, true);
-  return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pt-[calc(8px+env(safe-area-inset-top))] pb-[calc(24px+env(safe-area-inset-bottom))]" onClick={(e) => e.target === e.currentTarget && onOpen()}>
-      <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <MascotSpot size={120} />
-        <h1 ref={title} tabIndex={-1} className="mt-6 text-m26 outline-none">
-          {w.done.title}
-        </h1>
-        <p className="mt-2 max-w-[32ch] text-m15 text-muted-foreground">{summary}</p>
-      </div>
-      <PillButton kind="primary" full onPress={onOpen}>
-        {w.done.open}
-      </PillButton>
-    </main>
+      </SetupFrame>
+      <Sheet open={detail} onOpenChange={setDetail} title={t.watchTitle}>
+        <p className="text-m15r text-muted-foreground">{w.sheets.watch}</p>
+      </Sheet>
+    </>
   );
 }
