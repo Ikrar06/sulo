@@ -36,14 +36,15 @@ export const CHECKLIST_SOURCES = SOURCES.filter((s) => s.checklist);
 export interface SourceStatus {
   source: Source;
   has: boolean;
-  /** Newest receive time over the source's responses. */
+  /** When the source's main response last came in; null without it. */
   seenAt: UnixSeconds | null;
 }
 
 export function sourceStatuses(snapshots: Snapshots, sources: readonly Source[] = CHECKLIST_SOURCES): SourceStatus[] {
   return sources.map((source) => {
-    const times = source.endpoints.map((e) => snapshots[e]?.seenAt).filter((t): t is number => typeof t === 'number');
-    return { source, has: snapshots[source.primary] !== undefined && snapshots[source.primary]!.data !== null, seenAt: times.length ? Math.max(...times) : null };
+    const main = snapshots[source.primary];
+    const has = main !== undefined && main.data !== null;
+    return { source, has, seenAt: has ? main.seenAt : null };
   });
 }
 

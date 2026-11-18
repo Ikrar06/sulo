@@ -51,7 +51,7 @@ describe('"Lengkapi data dari NEOSIA"', () => {
     const two: Snapshots = { dashboard: snap('dashboard', 50), getStatusPembayaran: snap('getStatusPembayaran', 70), belanja_krs: snap('belanja_krs') };
     const statuses = sourceStatuses(two);
     expect(statuses.map((s) => [s.source.id, s.has, s.seenAt])).toEqual([
-      ['beranda', true, 70],
+      ['beranda', true, 50],
       ['transkrip', false, null],
       ['krs', true, 100],
       ['khs', false, null],

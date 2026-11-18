@@ -37,7 +37,10 @@ export function GpaChart({ points, title, hideValues, note }: { points: readonly
   const axis = yAxisRange(points.map((p) => p.ips));
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
-  const x = (i: number) => PAD.left + (points.length === 1 ? innerW / 2 : (i / (points.length - 1)) * innerW);
+  // The first and last dots keep clear of the y labels and the card's edge.
+  const INSET = 28;
+  const span = innerW - 2 * INSET;
+  const x = (i: number) => PAD.left + INSET + (points.length === 1 ? span / 2 : (i / (points.length - 1)) * span);
   const y = (v: number) => PAD.top + (1 - (Math.max(axis.min, Math.min(axis.max, v)) - axis.min) / (axis.max - axis.min)) * innerH;
   const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.ips).toFixed(1)}`).join(' ');
   const shown = active === null || hideValues ? null : points[active];
