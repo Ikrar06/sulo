@@ -30,6 +30,11 @@ export interface MoodleClientDeps {
   scheduler?: Scheduler;
   /** Adds nosessionupdate=true to batches; default SEND_NOSESSIONUPDATE. */
   noSessionUpdate?: boolean;
+  /**
+   * Session age log (lib/net/session-age.ts), dev and tester builds only:
+   * told about outcomes after the fact. Never changes what is sent.
+   */
+  sessionAge?: { success(now: number): Promise<void>; expired(now: number): Promise<void> };
 }
 
 export type CallResult = { ok: true; data: unknown } | { ok: false; errorcode: string };
@@ -83,18 +88,28 @@ export function createMoodleClient(input: MoodleClientDeps): MoodleClient {
       enqueue(async () => {
         const outcome = await executeBatch(deps, calls, options);
         await recordTech(deps.store, { at: deps.clock.now(), fn: calls.map((c) => c.methodname).join('+'), status: statusOf(outcome) }).catch(() => undefined);
+        await noteSessionAge(deps, outcome.kind);
         return outcome;
       }),
     fetchPage: (path, options = {}) =>
       enqueue(async () => {
         const outcome = await executePage(deps, path, options);
         await recordTech(deps.store, { at: deps.clock.now(), fn: 'page', status: statusOf(outcome) }).catch(() => undefined);
+        await noteSessionAge(deps, outcome.kind);
         return outcome;
       }),
   };
 }
 
 type ResolvedDeps = MoodleClientDeps & { scheduler: Scheduler };
+
+/** A success or a logout seen by a request that was going to happen anyway. */
+async function noteSessionAge(deps: MoodleClientDeps, kind: string): Promise<void> {
+  if (!deps.sessionAge) return;
+  const now = deps.clock.now();
+  if (kind === 'ok') await deps.sessionAge.success(now).catch(() => undefined);
+  else if (kind === 'login_required') await deps.sessionAge.expired(now).catch(() => undefined);
+}
 
 /** The batch endpoint. nosessionupdate keeps Sulo's checks from extending the SIKOLA session. */
 export function batchPath(sesskey: string, noSessionUpdate: boolean = SEND_NOSESSIONUPDATE): string {

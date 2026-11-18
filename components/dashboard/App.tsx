@@ -27,6 +27,13 @@ const PAGES: Record<Page, ComponentType<PageProps>> = {
   tentang: lazy(() => import('./pages/Tentang').then((m) => ({ default: m.TentangPage }))),
 };
 
+/**
+ * #dev-sesi: the session age log, tester and development builds only. The
+ * condition is a build-time constant, so production drops the page.
+ */
+const DevSession = import.meta.env.MODE === 'production' ? null : lazy(() => import('./DevSession'));
+const DEV_SESSION_HASH = '#dev-sesi';
+
 /** Pages whose data changes with a check: only these show "Diperbarui ... / Perbarui". */
 const REFRESH_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender']);
 
@@ -49,11 +56,13 @@ export function DashboardApp() {
 function Router() {
   const { data, actions } = useDashboard();
   const [route, setRoute] = useState<Route>(() => parseRoute(location.hash));
+  const [devSession, setDevSession] = useState(() => DevSession !== null && location.hash === DEV_SESSION_HASH);
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     const onHash = () => {
       setRoute(parseRoute(location.hash));
+      setDevSession(DevSession !== null && location.hash === DEV_SESSION_HASH);
       window.scrollTo({ top: 0 });
     };
     window.addEventListener('hashchange', onHash);
@@ -107,7 +116,11 @@ function Router() {
         hiddenPages={neosiaOn ? undefined : NEOSIA_PAGES}
         privacy={{ on: data.prefs.privacyMode, toggle: () => void actions.setPrefs({ privacyMode: !data.prefs.privacyMode }) }}
       >
-        {blocked ? (
+        {DevSession && devSession ? (
+          <Suspense fallback={null}>
+            <DevSession />
+          </Suspense>
+        ) : blocked ? (
           <NotConnected d={d} mismatch={data.pending !== null} onSetup={() => actions.openTab(browser.runtime.getURL('/onboarding.html'))} />
         ) : (
           <>

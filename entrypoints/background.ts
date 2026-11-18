@@ -16,6 +16,7 @@ import { localParts } from '@/lib/reminders/zoned';
 import { dashboardPath } from '@/lib/dashboard/routes';
 import { CALENDAR_URL, CATCHUP_DELAY_MAX_MIN, DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { createRequestLogger } from '@/lib/net/request-log';
+import { createSessionAgeLogger } from '@/lib/net/session-age';
 import { createScheduler } from '@/lib/net/scheduler';
 import { fetchSlotHour } from '@/lib/remote/fetch-public';
 import { onSesskeyReceived, readSession, writeSession } from '@/lib/moodle/session';
@@ -83,6 +84,9 @@ export default defineBackground(() => {
     onRequest: import.meta.env.MODE === 'production' ? undefined : createRequestLogger(local),
   });
 
+  // Session age log (dev and tester builds): outcomes only, no request of its own.
+  const sessionAge = import.meta.env.MODE === 'production' ? undefined : createSessionAgeLogger(local);
+
   const client = createMoodleClient({
     fetch: (input, init) => fetch(input, init),
     scheduler,
@@ -90,6 +94,7 @@ export default defineBackground(() => {
     clock,
     baseUrl: SIKOLA_ORIGIN,
     getSesskey,
+    sessionAge,
   });
 
   // Public data (kill switch, academic calendar): each file at most once a
@@ -478,6 +483,7 @@ export default defineBackground(() => {
    * behind by a late write are removed too.
    */
   const onAccountChanged = async () => {
+    await sessionAge?.newSession();
     await clearAllNotifications();
     await pruneOrphanUserKeys(local);
   };
@@ -506,8 +512,9 @@ export default defineBackground(() => {
       if (!isContentScriptOn(sender, extensionId, SIKOLA_ORIGIN)) return false;
       // While another account is detected, a new sesskey may run one
       // session-only check (at most every 10 minutes, lib/account/pending.ts).
-      void session
-        .set(SESSKEY_KEY, message.sesskey)
+      void getSesskey()
+        .then((previous) => (previous !== null && previous !== message.sesskey ? sessionAge?.newSession() : undefined))
+        .then(() => session.set(SESSKEY_KEY, message.sesskey))
         .then(() => onSesskeyReceived(local, clock))
         .then(updateBadge)
         .then(async () => {
