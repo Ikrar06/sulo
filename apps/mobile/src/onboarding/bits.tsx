@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { BellIcon } from '@sulo/ui/icons';
 import { Card, IconTile } from '@sulo/ui/mobile/cards';
-import { reducedMotion } from './motion';
+import { reducedMotion, sceneTempo } from './motion';
 
 /** A reminder as the phone shows it: the bell tile, the task, when and where. `bellRef` lets a scene ring the bell. */
 export function NotifyBanner({ title, body, bellRef, wrap = false }: { title: string; body: ReactNode; bellRef?: Ref<HTMLSpanElement>; /** With the user's own task: long names wrap instead of being cut. */ wrap?: boolean }) {
@@ -64,7 +64,10 @@ export function burstSparks(host: HTMLElement | null, count = 10): void {
 }
 
 /** Counts from 0 to `to` in `ms` once `run` is true (the final number at once under reduced motion or when not running). */
-export function useCountUp(to: number, ms: number, run = true, delay = 0): number {
+export function useCountUp(to: number, baseMs: number, run = true, baseDelay = 0): number {
+  // Story motion: at the scenes' tempo.
+  const ms = baseMs * sceneTempo();
+  const delay = baseDelay * sceneTempo();
   const [n, setN] = useState(() => (run && !reducedMotion() ? 0 : to));
   useEffect(() => {
     if (!run || reducedMotion()) return setN(to);
@@ -101,15 +104,24 @@ export function useAfter(ms: number, fn: () => void, pace = false): void {
   }, [ms, pace]);
 }
 
-/** A scene's steps on one clock: each [ms, fn]; all cancelled together. Returns the cancel. */
-export function schedule(steps: readonly (readonly [number, () => void])[]): () => void {
-  const ids = steps.map(([ms, fn]) => window.setTimeout(fn, ms));
+/**
+ * A scene's steps on one clock: each [ms, fn] at the scenes' tempo (story
+ * motion); `story: false` keeps real ms (a response). All cancelled together.
+ */
+export function schedule(steps: readonly (readonly [number, () => void])[], story = true, lead = 0): () => void {
+  const k = story ? sceneTempo() : 1;
+  const ids = steps.map(([ms, fn]) => window.setTimeout(fn, lead + ms * k));
   return () => ids.forEach((id) => window.clearTimeout(id));
 }
 
-/** One element's whole part in a scene: keyframes with `at` in ms on a clock of `total` ms. The end is its resting style. */
-export function act(el: Element | null, total: number, frames: readonly ({ at: number; easing?: string } & Record<string, string | number>)[]): Animation | null {
+/**
+ * One element's whole part in a scene: keyframes with `at` in ms on a clock
+ * of `total` ms, at the scenes' tempo unless `story` is false. The end is
+ * its resting style.
+ */
+export function act(el: Element | null, total: number, frames: readonly ({ at: number; easing?: string } & Record<string, string | number>)[], story = true, lead = 0): Animation | null {
   if (!el || reducedMotion() || typeof (el as HTMLElement).animate !== 'function') return null;
   const keyframes = frames.map(({ at, ...rest }) => ({ ...rest, offset: Math.min(1, at / total) }));
-  return (el as HTMLElement).animate(keyframes as Keyframe[], { duration: total, fill: 'backwards' });
+  // `lead` (real ms): the piece waits at its first pose while its page is still arriving.
+  return (el as HTMLElement).animate(keyframes as Keyframe[], { duration: total * (story ? sceneTempo() : 1), delay: lead, fill: 'backwards' });
 }

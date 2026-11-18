@@ -5,7 +5,8 @@
 // simply stands in its final arrangement. Pieces rest straight: nothing is
 // tilted once it has settled, and nothing connects them with lines.
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { formatCountdown } from '@sulo/core/format/countdown';
 import type { OnboardingWords } from '@sulo/core/i18n/mobile-onboarding';
 import { CheckIcon } from '@sulo/ui/icons';
 import { Card } from '@sulo/ui/mobile/cards';
@@ -14,7 +15,7 @@ import { TaskCardView } from '@sulo/ui/mobile/task-card';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { act, NotifyBanner, schedule, useCountUp } from './bits';
 import { useMascot } from './FlyingMascot';
-import { EASE_IN, EASE_OUT, EASE_SPRING } from './motion';
+import { EASE_IN, EASE_OUT, EASE_SPRING, EASE_STORY } from './motion';
 import { At } from './Scene';
 
 // The canvas is exactly the content plus 8 px above and below, so the free
@@ -33,6 +34,8 @@ export interface SceneProps {
   /** The canvas width (the stage's): full-width pieces span it. */
   width: number;
   play: boolean;
+  /** Real ms the scene waits before it starts: the page (or the step) is still sliding in, and the two never compete. */
+  lead: number;
 }
 
 /** A layer of a page: moves a little faster or slower than the page while the pager slides (`depth` px per page; the pager places it). */
@@ -55,7 +58,7 @@ const FROM = [T(-340, 0, -14), T(360, PITCH, 12), T(-12, PITCH + 220, -8)];
 const MESSY = [T(-14, 8, -6), T(18, PITCH + 4, 5), T(-8, PITCH + 10, -3)];
 
 /** Screen 1: real task cards arrive untidy from three sides, straighten into a stack, the top one is ticked and leaves, the next ones move up. */
-export function SceneTasks({ w, compact, width, play }: SceneProps) {
+export function SceneTasks({ w, compact, width, play, lead }: SceneProps) {
   const mascot = useMascot();
   // The stack ends 24 px above the mascot; each card is CARD_H tall.
   const base = mascotAt(compact, width).y - MASCOT_GAP - CARD_H;
@@ -65,57 +68,59 @@ export function SceneTasks({ w, compact, width, play }: SceneProps) {
   const refs = useRef<(HTMLDivElement | null)[]>([]);
   const [done, setDone] = useState(false);
 
-  useEffect(() => {
+  // Before the first paint: the pieces are at their starting places in the very first frame.
+  useLayoutEffect(() => {
     if (!play) return;
     setDone(false);
-    const total = 2700;
+    // Base times (ms) before SCENE_TEMPO. Acts, with a breath between them:
+    // arrive untidy, hold, tidy (to 1140), rest 250, tick (1390), rest 180
+    // after the tick lands, the top card leaves (1720), the others move up,
+    // the next task rises. About 3.4 s at tempo 1.4.
+    const total = 2450;
     const el = (i: number) => refs.current[i] ?? null;
     const anims: (Animation | null)[] = [];
-    // The top card: in, tidy, ticked, out to the right.
     anims.push(
       act(el(0), total, [
-        { at: 0, opacity: 0, transform: FROM[0]!, easing: EASE_OUT },
+        { at: 0, opacity: 0, transform: FROM[0]!, easing: EASE_STORY },
         { at: 420, opacity: 1, transform: MESSY[0]! },
-        { at: 760, opacity: 1, transform: MESSY[0]!, easing: EASE_OUT },
-        { at: 1120, opacity: 1, transform: T(0, 0) },
-        { at: 1820, opacity: 1, transform: T(0, 0), easing: EASE_IN },
-        { at: 2040, opacity: 0, transform: T(340, 0) },
+        { at: 700, opacity: 1, transform: MESSY[0]!, easing: EASE_STORY },
+        { at: 1060, opacity: 1, transform: T(0, 0) },
+        { at: 1720, opacity: 1, transform: T(0, 0), easing: EASE_IN },
+        { at: 1940, opacity: 0, transform: T(340, 0) },
         { at: total, opacity: 0, transform: T(340, 0) },
-      ]),
+      ], true, lead),
     );
-    // The cards under it: in one slot lower, tidy, then up one slot.
     for (let k = 1; k < n; k++) {
-      const d = 90 * k;
+      const d = 100 * k;
       anims.push(
         act(el(k), total, [
           { at: 0, opacity: 0, transform: FROM[k]! },
-          { at: d, opacity: 0, transform: FROM[k]!, easing: EASE_OUT },
+          { at: d, opacity: 0, transform: FROM[k]!, easing: EASE_STORY },
           { at: d + 420, opacity: 1, transform: MESSY[k]! },
-          { at: 760 + k * 40, opacity: 1, transform: MESSY[k]!, easing: EASE_OUT },
-          { at: 1120 + k * 40, opacity: 1, transform: T(0, PITCH) },
-          { at: 1900 + k * 60, opacity: 1, transform: T(0, PITCH), easing: EASE_OUT },
-          { at: 2260 + k * 60, opacity: 1, transform: T(0, 0) },
+          { at: 700 + k * 40, opacity: 1, transform: MESSY[k]!, easing: EASE_STORY },
+          { at: 1060 + k * 40, opacity: 1, transform: T(0, PITCH) },
+          { at: 1800 + k * 50, opacity: 1, transform: T(0, PITCH), easing: EASE_STORY },
+          { at: 2160 + k * 50, opacity: 1, transform: T(0, 0) },
           { at: total, opacity: 1, transform: T(0, 0) },
-        ]),
+        ], true, lead),
       );
     }
-    // The next task rises into the free slot.
     anims.push(
       act(el(n), total, [
         { at: 0, opacity: 0, transform: T(0, 56) },
-        { at: 2140, opacity: 0, transform: T(0, 56), easing: EASE_OUT },
-        { at: 2500, opacity: 1, transform: T(0, 0) },
+        { at: 2040, opacity: 0, transform: T(0, 56), easing: EASE_STORY },
+        { at: 2400, opacity: 1, transform: T(0, 0) },
         { at: total, opacity: 1, transform: T(0, 0) },
-      ]),
+      ], true, lead),
     );
     const stop = schedule([
       [80, () => mascot.lookAt(el(0), 500)],
       [300, () => mascot.lookAt(el(1), 500)],
-      [760, () => mascot.lookAt(el(0), 900)],
-      [1400, () => setDone(true)],
-      [1480, () => mascot.flash('happy', 900)],
-      [1840, () => mascot.lookAt({ x: window.innerWidth, y: el(0)?.getBoundingClientRect().top ?? 0 }, 500)],
-    ]);
+      [700, () => mascot.lookAt(el(0), 1200)],
+      [1390, () => setDone(true)],
+      [1470, () => mascot.flash('happy', 1200)],
+      [1740, () => mascot.lookAt({ x: window.innerWidth, y: el(0)?.getBoundingClientRect().top ?? 0 }, 500)],
+    ], true, lead);
     return () => {
       stop();
       anims.forEach((a) => a?.cancel());
@@ -137,7 +142,7 @@ export function SceneTasks({ w, compact, width, play }: SceneProps) {
 }
 
 /** Screen 2: a real-size reminder drops in and settles, its bell rings; a countdown that really ticks and the attendance ring sit side by side over the mascot. */
-export function SceneRemind({ w, compact, width, play }: SceneProps) {
+export function SceneRemind({ w, compact, width, play, lead }: SceneProps) {
   const t = w.intro2;
   const mascot = useMascot();
   const banner = useRef<HTMLDivElement | null>(null);
@@ -152,7 +157,8 @@ export function SceneRemind({ w, compact, width, play }: SceneProps) {
     return () => window.clearInterval(id);
   }, []);
 
-  useEffect(() => {
+  // Before the first paint: the pieces are at their starting places in the very first frame.
+  useLayoutEffect(() => {
     if (!play) return;
     const anims = [
       act(banner.current, 620, [
@@ -160,7 +166,7 @@ export function SceneRemind({ w, compact, width, play }: SceneProps) {
         { at: 300, opacity: 1, transform: T(0, 8), easing: EASE_OUT },
         { at: 440, opacity: 1, transform: T(0, -5), easing: 'ease-in-out' },
         { at: 620, opacity: 1, transform: T(0, 0) },
-      ]),
+      ], true, lead),
       act(bell.current, 1300, [
         { at: 0, transform: 'rotate(0deg)' },
         { at: 320, transform: 'rotate(0deg)', easing: 'ease-in-out' },
@@ -169,23 +175,23 @@ export function SceneRemind({ w, compact, width, play }: SceneProps) {
         { at: 820, transform: 'rotate(9deg)', easing: 'ease-in-out' },
         { at: 1000, transform: 'rotate(-5deg)', easing: 'ease-in-out' },
         { at: 1300, transform: 'rotate(0deg)' },
-      ]),
+      ], true, lead),
       act(left.current, 800, [
         { at: 0, opacity: 0, transform: T(-28, 0) },
-        { at: 440, opacity: 0, transform: T(-28, 0), easing: EASE_OUT },
+        { at: 440, opacity: 0, transform: T(-28, 0), easing: EASE_STORY },
         { at: 800, opacity: 1, transform: T(0, 0) },
-      ]),
-      act(right.current, 880, [
+      ], true, lead),
+      act(right.current, 900, [
         { at: 0, opacity: 0, transform: T(28, 0) },
-        { at: 520, opacity: 0, transform: T(28, 0), easing: EASE_OUT },
-        { at: 880, opacity: 1, transform: T(0, 0) },
-      ]),
+        { at: 540, opacity: 0, transform: T(28, 0), easing: EASE_STORY },
+        { at: 900, opacity: 1, transform: T(0, 0) },
+      ], true, lead),
     ];
     const stop = schedule([
       [0, () => mascot.lookAt(banner.current, 700)],
       [320, () => mascot.hop()],
       [520, () => mascot.express('happy')],
-    ]);
+    ], true, lead);
     return () => {
       stop();
       anims.forEach((a) => a?.cancel());
@@ -193,29 +199,28 @@ export function SceneRemind({ w, compact, width, play }: SceneProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [play]);
 
-  const tileH = compact ? 84 : 148;
+  const tileH = compact ? 84 : 136;
   const tileW = (width - 12) / 2;
   // Two tiles 24 px above the mascot, the banner 12 px above them.
   const tileY = mascotAt(compact, width).y - MASCOT_GAP - tileH;
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
   return (
     <>
       <Layer depth={70}>
-        <At x={0} y={tileY - 12 - 68} w={width} h={68} pieceRef={banner} z={3}>
+        <At x={0} y={tileY - 16 - 68} w={width} h={68} pieceRef={banner} z={3}>
           <NotifyBanner title={t.notifyTitle} body={t.notifyCourse} bellRef={bell} />
         </At>
       </Layer>
       <Layer depth={-40}>
         <At x={0} y={tileY} w={tileW} h={tileH} pieceRef={left}>
-          <Card dense className="h-full">
+          <Card dense className="flex h-full flex-col justify-center">
             <p className="text-m12 text-muted-foreground">{t.countdownLabel}</p>
-            <p className="mt-1 text-m22 whitespace-nowrap text-primary tabular-nums">{t.left(h, m, secs % 60)}</p>
-            {!compact && <p className="mt-1 truncate text-m12 text-muted-foreground">{t.notifyTitle}</p>}
+            {/* The app's own countdown format, fixed-width digits, a real second every second. */}
+            <p className="mt-1 text-m22 whitespace-nowrap text-primary tabular-nums">{formatCountdown(secs * 1000, 'id')}</p>
+            {!compact && <p className="mt-1 text-m12 text-muted-foreground">{t.notifyTitle}</p>}
           </Card>
         </At>
         <At x={tileW + 12} y={tileY} w={tileW} h={tileH} pieceRef={right}>
-          <Card dense className="h-full">
+          <Card dense className="flex h-full flex-col justify-center">
             <p className="text-m12 text-muted-foreground">{t.attendanceLabel}</p>
             <div className="mt-1 flex items-center gap-3">
               <ProgressRing value={ring} size={compact ? 48 : 64} stroke={compact ? 6 : 7} label={`${ring}%`} />
@@ -229,7 +234,7 @@ export function SceneRemind({ w, compact, width, play }: SceneProps) {
 }
 
 /** Screen 3: the outline of a phone draws itself around the mascot, small data cards move in and stay, a lock closes on top, three short badges follow. */
-export function ScenePrivate({ w, compact, width, play }: SceneProps) {
+export function ScenePrivate({ w, compact, width, play, lead }: SceneProps) {
   const t = w.intro3;
   const mascot = useMascot();
   const H = compact ? INTRO_COMPACT_H : INTRO_H;
@@ -240,59 +245,69 @@ export function ScenePrivate({ w, compact, width, play }: SceneProps) {
   const data = useRef<(HTMLDivElement | null)[]>([]);
   const badges = useRef<(HTMLDivElement | null)[]>([]);
   const rows = compact ? t.data.slice(0, 2) : t.data;
-  const dataY = (i: number) => phone.y + 44 + i * 42;
-  const zone = dataY(rows.length) + 4;
+  const dataY = (i: number) => phone.y + 40 + i * 40;
+  // The badges: one fixed width, each lying across the phone's outline by the
+  // same amount (left ones over the left edge, the right one over the right
+  // edge), evenly spaced, ending above the mascot.
+  const BADGE_W = 126;
+  const BADGE_H = 26;
+  // Flush with the canvas edges (16 px from the screen), so all three overlap the outline by the same amount.
+  const badgeX = (i: number) => (i % 2 ? width - BADGE_W : 0);
+  const zone = mascotAt(compact, width).y - 6 - (compact ? 2 : 3) * (BADGE_H + 2);
   const tags = compact ? t.badges.slice(0, 2) : t.badges;
 
-  useEffect(() => {
+  // Before the first paint: the pieces are at their starting places in the very first frame.
+  useLayoutEffect(() => {
     if (!play) return;
+    // Base times before SCENE_TEMPO: the outline (to 640), a breath of 140,
+    // the data cards one by one, the lock, then the badges one at a time.
     const anims: (Animation | null)[] = [];
     anims.push(
-      act(outline.current, 760, [
-        { at: 0, strokeDashoffset: 1, easing: EASE_OUT },
-        { at: 760, strokeDashoffset: 0 },
-      ]),
+      act(outline.current, 640, [
+        { at: 0, strokeDashoffset: 1, easing: EASE_STORY },
+        { at: 640, strokeDashoffset: 0 },
+      ], true, lead),
     );
     rows.forEach((_, i) => {
-      const d = 480 + i * 130;
+      const d = 780 + i * 100;
       const from = T(i % 2 ? 190 : -190, 0);
       anims.push(
-        act(data.current[i] ?? null, d + 360, [
+        act(data.current[i] ?? null, d + 340, [
           { at: 0, opacity: 0, transform: from },
-          { at: d, opacity: 0, transform: from, easing: EASE_OUT },
-          { at: d + 360, opacity: 1, transform: T(0, 0) },
-        ]),
+          { at: d, opacity: 0, transform: from, easing: EASE_STORY },
+          { at: d + 340, opacity: 1, transform: T(0, 0) },
+        ], true, lead),
       );
     });
-    const lockAt = 480 + rows.length * 130 + 240;
+    const lockAt = 780 + rows.length * 100 + 320;
     anims.push(
-      act(lock.current, lockAt + 320, [
+      act(lock.current, lockAt + 300, [
         { at: 0, opacity: 0, transform: 'translateY(-14px) scale(0.92)' },
         { at: lockAt, opacity: 0, transform: 'translateY(-14px) scale(0.92)', easing: EASE_SPRING },
-        { at: lockAt + 320, opacity: 1, transform: 'translateY(0) scale(1)' },
-      ]),
-      act(shackle.current, lockAt + 520, [
+        { at: lockAt + 300, opacity: 1, transform: 'translateY(0) scale(1)' },
+      ], true, lead),
+      act(shackle.current, lockAt + 480, [
         { at: 0, transform: 'translateY(-3.5px)' },
-        { at: lockAt + 300, transform: 'translateY(-3.5px)', easing: EASE_OUT },
-        { at: lockAt + 520, transform: 'translateY(0)' },
-      ]),
+        { at: lockAt + 280, transform: 'translateY(-3.5px)', easing: EASE_STORY },
+        { at: lockAt + 480, transform: 'translateY(0)' },
+      ], true, lead),
     );
     tags.forEach((_, i) => {
-      const d = lockAt + 420 + i * 200;
+      const d = lockAt + 380 + i * 150;
       const from = T(i % 2 ? 20 : -20, 0);
       anims.push(
-        act(badges.current[i] ?? null, d + 320, [
+        act(badges.current[i] ?? null, d + 300, [
           { at: 0, opacity: 0, transform: from },
-          { at: d, opacity: 0, transform: from, easing: EASE_OUT },
-          { at: d + 320, opacity: 1, transform: T(0, 0) },
-        ]),
+          { at: d, opacity: 0, transform: from, easing: EASE_STORY },
+          { at: d + 300, opacity: 1, transform: T(0, 0) },
+        ], true, lead),
       );
     });
     const stop = schedule([
-      ...rows.map((_, i) => [480 + i * 130, () => mascot.lookAt(data.current[i] ?? null, 400)] as const),
+      ...rows.map((_, i) => [780 + i * 100, () => mascot.lookAt(data.current[i] ?? null, 400)] as const),
       [lockAt, () => mascot.lookAt(lock.current, 600)],
-      [lockAt + 420, () => mascot.express('proud')],
-    ]);
+      [lockAt + 380, () => mascot.express('proud')],
+    ], true, lead);
     return () => {
       stop();
       anims.forEach((a) => a?.cancel());
@@ -320,7 +335,7 @@ export function ScenePrivate({ w, compact, width, play }: SceneProps) {
       </Layer>
       <Layer depth={-36}>
         {rows.map((label, i) => (
-          <At key={label} x={phone.x + 28} y={dataY(i)} w={phone.w - 56} h={34} pieceRef={(n) => void (data.current[i] = n)}>
+          <At key={label} x={phone.x + 28} y={dataY(i)} w={phone.w - 56} h={32} pieceRef={(n) => void (data.current[i] = n)}>
             <span className="m-card flex h-full items-center gap-2 rounded-ctl px-3 text-m13">
               <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${[1, 4, 6][i]})` }} />
               {label}
@@ -330,8 +345,8 @@ export function ScenePrivate({ w, compact, width, play }: SceneProps) {
       </Layer>
       <Layer depth={64}>
         {tags.map((label, i) => (
-          <At key={label} x={i % 2 ? width - 150 - (width - 328) / 2 : (width - 328) / 2} y={zone + i * (compact ? 34 : 32)} w={150} h={30} pieceRef={(n) => void (badges.current[i] = n)} z={2} className={`flex ${i % 2 ? 'justify-end' : 'justify-start'}`}>
-            <span className="inline-flex h-[30px] items-center gap-1.5 rounded-full bg-m-inset px-3 text-m12 font-medium whitespace-nowrap">
+          <At key={label} x={badgeX(i)} y={zone + i * (BADGE_H + 2)} w={BADGE_W} h={BADGE_H} pieceRef={(n) => void (badges.current[i] = n)} z={2}>
+            <span className="flex h-full w-full items-center justify-center gap-1.5 rounded-full bg-m-inset text-m12 font-medium whitespace-nowrap">
               <CheckIcon aria-hidden="true" className="size-3.5" />
               {label}
             </span>

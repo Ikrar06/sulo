@@ -46,6 +46,8 @@ export interface FlowProps {
   paused: string | null;
   /** A sync finished (the app refreshes its own state). */
   onSynced: (o: SyncOutcome) => void;
+  /** The last setup screen is showing: the app can get Ringkasan ready underneath, so "Buka Sulo" has nothing heavy left to do. */
+  onNearlyDone?: () => void;
   /** "Buka Sulo": the app mounts Ringkasan underneath; the mascot flies to its hero. */
   onFinish: () => void;
   /** Ringkasan is mounted under this layer: the screen fades, the mascot lands on the hero. */
@@ -54,7 +56,7 @@ export interface FlowProps {
   onLanded?: () => void;
 }
 
-export function OnboardingFlow({ platform, locale, initial, paused, onSynced, onFinish, landing = false, onLanded }: FlowProps) {
+export function OnboardingFlow({ platform, locale, initial, paused, onSynced, onFinish, onNearlyDone, landing = false, onLanded }: FlowProps) {
   const w = onboardingWords(locale);
   const app = mobileWords(locale);
   const m = messagesFor(locale);
@@ -127,6 +129,8 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
 
   const signIn = async () => {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return dispatch({ type: 'SIGNIN_OFFLINE' });
+    // Already signed in (a replay from the debug screen): straight on to the sync.
+    if ((await SuloSession.status().catch(() => ({ status: 'none' as const }))).status === 'connected') return dispatch({ type: 'SIGNIN_OK' });
     setBusy(true);
     const r = await SuloSession.login({ close: w.signin.close, offline: w.signin.offline, retry: w.signin.retry }).catch(() => ({ status: 'cancelled' as const }));
     setBusy(false);
@@ -209,6 +213,15 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
   useEffect(() => {
     if (state.step === 'finished') finish();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.step]);
+
+  const nearlyDone = useRef(onNearlyDone);
+  nearlyDone.current = onNearlyDone;
+  useEffect(() => {
+    if (state.step !== 'reminders' && state.step !== 'done') return;
+    // Already on the reminders screen, once it has arrived: by "Buka Sulo" the work is long done.
+    const id = window.setTimeout(() => nearlyDone.current?.(), 900);
+    return () => window.clearTimeout(id);
   }, [state.step]);
 
   // The done screen needs its line even when the reminders step was resumed past.

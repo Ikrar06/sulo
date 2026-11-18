@@ -21,6 +21,8 @@ const PAGES = 3;
 /** The mascot's resting expression on each page. */
 const REST: MascotExpression[] = ['neutral', 'happy', 'proud'];
 const SETTLE_MS = 340;
+/** A step change: the new content waits 110 ms and takes 240 ms (styles.css). */
+const STEP_IN_MS = 300;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 export interface IntroProps {
@@ -42,8 +44,16 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
   const [near, setNear] = useState(index);
   const nearRef = useRef(index);
   /** The page whose scene is playing now (null: all stand in their final arrangement). */
-  const [playing, setPlaying] = useState<number | null>(null);
-  const handled = useRef<number | null>(null);
+  const [playing, setPlaying] = useState<number | null>(() => (played.has(index) ? null : index));
+  // Decided while rendering, so the page's first painted frame is already the start of its scene (never a flash of the final arrangement).
+  /** How long the page now playing takes to arrive: the step's slide for the first one shown, the pager's glide after that. */
+  const arrive = useRef(STEP_IN_MS);
+  const seen = useRef(index);
+  if (seen.current !== index) {
+    seen.current = index;
+    arrive.current = SETTLE_MS;
+    setPlaying(played.has(index) ? null : index);
+  }
   const drag = useRef<{ x: number; y: number; p0: number; on: boolean; samples: { t: number; p: number }[] } | null>(null);
   const titleRef = useTitleFocus(`intro${index}`);
   const pages = [w.intro1, w.intro2, w.intro3];
@@ -126,12 +136,8 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
   // The flow's page changed (a button, a dot, Back, or a swipe that settled).
   useEffect(() => {
     if (!drag.current?.on) settle(index);
-    // Once per page change (an effect may run twice for the same page in development).
-    if (handled.current === index) return;
-    handled.current = index;
-    if (played.has(index)) return setPlaying(null);
+    // Remembered after it was decided: this page's scene will not play again.
     played.add(index);
-    setPlaying(index);
   }, [index, settle, played]);
 
   // The scene may have switched canvas (compact): the parts are collected again.
@@ -224,7 +230,7 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
               <>
                 {[SceneTasks, SceneRemind, ScenePrivate].map((S, i) => (
                   <div key={i} data-pg="page" data-pg-i={i} className="absolute inset-0 will-change-transform">
-                    <S w={w} compact={compact} width={width} play={playing === i} />
+                    <S w={w} compact={compact} width={width} play={playing === i} lead={arrive.current} />
                   </div>
                 ))}
                 {/* The mascot's place: the same on all three pages, so it never moves here. */}

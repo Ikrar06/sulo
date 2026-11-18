@@ -2,10 +2,10 @@
 // The mascot is the middle of each; the rest of the scene is arranged
 // around it on the scene canvas.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { OnboardingWords } from '@sulo/core/i18n/mobile-onboarding';
-import { ArrowLeftIcon, AttendanceIcon, CalendarIcon, EyeOffIcon, ShieldIcon, TasksIcon } from '@sulo/ui/dashboard-icons';
-import { BellIcon, KeyIcon } from '@sulo/ui/icons';
+import { ArrowLeftIcon, EyeOffIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
+import { KeyIcon } from '@sulo/ui/icons';
 import { Card, IconTile } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { Sheet } from '@sulo/ui/mobile/sheet';
@@ -15,7 +15,7 @@ import { act, burstSparks, ResultChip, schedule, useAfter, useCountUp } from './
 import { MascotSpot, useExpression, useMascot } from './FlyingMascot';
 import { BackButton, Frame, TextBlock, TextLink, useTitleFocus } from './Frame';
 import { haptic } from './haptics';
-import { EASE_OUT, EASE_SPRING } from './motion';
+import { EASE_OUT, EASE_SPRING, EASE_STORY, reducedMotion, SCENE_TEMPO_DEFAULT, sceneTempo, SHORT_SCREEN } from './motion';
 import { At, Scene } from './Scene';
 import { PREP_ROWS, shownTimes, type PrepRow, type StageEvent } from './stage-timing';
 
@@ -32,7 +32,8 @@ export function Splash({ w, next }: { w: OnboardingWords; next: () => void }) {
       ]),
     [mascot],
   );
-  useAfter(1600, next, true);
+  // 1.6 s at the default tempo.
+  useAfter((1600 / SCENE_TEMPO_DEFAULT) * sceneTempo(), next, true);
   return (
     <Frame>
       <div className="flex flex-1 flex-col items-center justify-center text-center" onClick={next}>
@@ -41,12 +42,12 @@ export function Splash({ w, next }: { w: OnboardingWords; next: () => void }) {
         </div>
         <p aria-label={w.splash.name} className="onb-title mt-4">
           {[...w.splash.name].map((ch, i) => (
-            <span key={i} aria-hidden="true" className="onb-letter inline-block" style={{ animationDelay: `${420 + i * 70}ms` }}>
+            <span key={i} aria-hidden="true" className="onb-letter inline-block" style={{ animationDelay: `${(420 + i * 100) * sceneTempo()}ms`, animationDuration: `${360 * sceneTempo()}ms` }}>
               {ch}
             </span>
           ))}
         </p>
-        <p className="onb-letter mt-1 text-m13 text-muted-foreground" style={{ animationDelay: '760ms' }}>
+        <p className="onb-letter mt-1 text-m13 text-muted-foreground" style={{ animationDelay: `${820 * sceneTempo()}ms`, animationDuration: `${360 * sceneTempo()}ms` }}>
           {w.splash.tagline}
         </p>
       </div>
@@ -66,20 +67,33 @@ export function SignIn({ w, note, busy, paused, onOpen, onBack }: { w: Onboardin
   const bar = useRef<HTMLDivElement | null>(null);
   const shackle = useRef<SVGPathElement | null>(null);
   useExpression('neutral');
-  useEffect(() => {
-    const a = act(shackle.current, 900, [
-      { at: 0, transform: 'translateY(-4px)' },
-      { at: 520, transform: 'translateY(-4px)', easing: EASE_SPRING },
-      { at: 900, transform: 'translateY(0)' },
-    ]);
-    const b = act(bar.current, 420, [
-      { at: 0, opacity: 0, transform: 'translateY(-16px)', easing: EASE_OUT },
-      { at: 420, opacity: 1, transform: 'translateY(0)' },
-    ]);
-    const stop = schedule([
-      [300, () => mascot.lookAt(bar.current, 1400)],
-      [820, () => haptic('light')],
-    ]);
+  useLayoutEffect(() => {
+    const a = act(
+      shackle.current,
+      900,
+      [
+        { at: 0, transform: 'translateY(-4px)' },
+        { at: 520, transform: 'translateY(-4px)', easing: EASE_SPRING },
+        { at: 900, transform: 'translateY(0)' },
+      ],
+      false,
+    );
+    const b = act(
+      bar.current,
+      420,
+      [
+        { at: 0, opacity: 0, transform: 'translateY(-16px)', easing: EASE_OUT },
+        { at: 420, opacity: 1, transform: 'translateY(0)' },
+      ],
+      false,
+    );
+    const stop = schedule(
+      [
+        [300, () => mascot.lookAt(bar.current, 1400)],
+        [820, () => haptic('light')],
+      ],
+      false,
+    );
     return () => {
       stop();
       a?.cancel();
@@ -188,18 +202,20 @@ export interface PrepCounts {
   courses: number;
 }
 
-/** Where each result chip sits around the mascot (full and compact canvas). */
-const CHIP_AT: Record<PrepRow, { x: 'left' | 'right'; y: number; yc: number }> = {
-  tasks: { x: 'left', y: 6, yc: 4 },
-  courses: { x: 'right', y: 72, yc: 50 },
-  calendar: { x: 'left', y: 424, yc: 276 },
-  attendance: { x: 'right', y: 494, yc: 322 },
+/** The chips sit in a fixed pattern close around the mascot: two above, two below, mirrored, 16 px from it. */
+const CHIP_SLOT: Record<PrepRow, { side: -1 | 1; row: 0 | 1 }> = {
+  tasks: { side: -1, row: 0 },
+  courses: { side: 1, row: 0 },
+  calendar: { side: -1, row: 1 },
+  attendance: { side: 1, row: 1 },
 };
+const CHIP_H = 40;
+const CHIP_GAP = 16;
 
 /**
  * Screen 5: the mascot at work. One status line follows the real sync
- * stages (stage-timing.ts), a four-part bar fills, and a chip with the real
- * number lands beside the mascot as each stage ends. No task: sad, the
+ * stages (stage-timing.ts) under a four-part bar, and a chip with the real
+ * number comes out of the mascot as each stage ends. No task: sad, the
  * chips go, "Coba lagi".
  */
 export function Preparing({ w, events, counts, final, onDone, onRetry, onWithout }: { w: OnboardingWords; events: readonly StageEvent[]; counts: PrepCounts; final: 'pending' | 'ok' | 'partial' | 'failed'; onDone: () => void; onRetry: () => void; onWithout: () => void }) {
@@ -224,45 +240,44 @@ export function Preparing({ w, events, counts, final, onDone, onRetry, onWithout
   // Done: relieved for a moment, then on.
   useEffect(() => {
     if (!allShown) return;
-    mascot.flash('happy', 800);
+    mascot.flash('happy', 900);
     mascot.hop();
-    const id = window.setTimeout(onDone, 700);
+    const id = window.setTimeout(onDone, 650 * sceneTempo());
     return () => window.clearTimeout(id);
   }, [allShown, onDone, mascot]);
 
   const current = PREP_ROWS[Math.min(visible.length, PREP_ROWS.length - 1)]!;
+  const size = SHORT_SCREEN ? 150 : 176;
+  const h = CHIP_H * 2 + CHIP_GAP * 2 + size;
   return (
     <Frame
       primary={failed ? { label: t.retry, onPress: onRetry } : null}
       primarySlot={
-        <div role="progressbar" aria-label={t.title} aria-valuemin={0} aria-valuemax={PREP_ROWS.length} aria-valuenow={visible.length} className="mx-auto flex w-40 gap-1.5">
-          {PREP_ROWS.map((row, i) => (
-            <span key={row} className="h-1 flex-1 overflow-hidden rounded-full bg-m-line">
-              <span className={`onb-seg block h-full w-full rounded-full bg-foreground ${i < visible.length ? 'is-on' : ''}`} />
-            </span>
-          ))}
-        </div>
-      }
-      secondary={
-        failed ? (
-          <TextLink onPress={onWithout}>{t.without}</TextLink>
-        ) : (
-          // What is happening now, right under the bar; each new line fades in over the last.
-          <span key={current} role="status" className="onb-status text-m13 text-muted-foreground">
+        // The bar, about 60 % of the screen wide and 4 thick; what is happening now right under it.
+        <div className="mx-auto flex w-[60vw] max-w-[260px] flex-col items-center">
+          <div role="progressbar" aria-label={t.title} aria-valuemin={0} aria-valuemax={PREP_ROWS.length} aria-valuenow={visible.length} className="flex w-full gap-1.5">
+            {PREP_ROWS.map((row, i) => (
+              <span key={row} className="h-[4px] flex-1 overflow-hidden rounded-full bg-m-line">
+                <span className={`onb-seg block h-full w-full rounded-full bg-foreground ${i < visible.length ? 'is-on' : ''}`} />
+              </span>
+            ))}
+          </div>
+          <span key={current} role="status" className="onb-status mt-[12px] text-m13 text-muted-foreground">
             {t.stages[current]}
           </span>
-        )
+        </div>
       }
+      secondary={failed ? <TextLink onPress={onWithout}>{t.without}</TextLink> : null}
     >
-      <Scene label={t.title} h={536} compactH={366} top>
-        {(compact, width) => (
+      <Scene label={t.title} h={h} compactH={h}>
+        {(_compact, width) => (
           <>
-            <At x={(width - (compact ? 168 : 176)) / 2} y={compact ? 100 : 180}>
-              <MascotSpot size={compact ? 168 : 176} />
+            <At x={(width - size) / 2} y={CHIP_H + CHIP_GAP}>
+              <MascotSpot size={size} />
             </At>
             {!failed &&
               visible.map((v) => (
-                <PrepChip key={v.row} row={v.row} ok={v.result === 'ok'} w={w} counts={counts} compact={compact} width={width} />
+                <PrepChip key={v.row} row={v.row} ok={v.result === 'ok'} w={w} counts={counts} width={width} size={size} />
               ))}
           </>
         )}
@@ -272,20 +287,26 @@ export function Preparing({ w, events, counts, final, onDone, onRetry, onWithout
   );
 }
 
-function PrepChip({ row, ok, w, counts, compact, width }: { row: PrepRow; ok: boolean; w: OnboardingWords; counts: PrepCounts; compact: boolean; width: number }) {
+function PrepChip({ row, ok, w, counts, width, size }: { row: PrepRow; ok: boolean; w: OnboardingWords; counts: PrepCounts; width: number; size: number }) {
   const mascot = useMascot();
   const ref = useRef<HTMLDivElement | null>(null);
-  const at = CHIP_AT[row];
-  const n = useCountUp(row === 'tasks' ? counts.tasks : row === 'courses' ? counts.courses : 0, 500);
-  useEffect(() => {
-    const a = act(ref.current, 360, [
-      { at: 0, opacity: 0, transform: `translate(${at.x === 'left' ? 48 : -48}px, ${at.y < 250 ? 36 : -36}px) scale(0.92)`, easing: EASE_SPRING },
-      { at: 360, opacity: 1, transform: 'translate(0, 0) scale(1)' },
+  const slot = CHIP_SLOT[row];
+  const n = useCountUp(row === 'tasks' ? counts.tasks : row === 'courses' ? counts.courses : 0, 420);
+  // Half the canvas each, meeting 6 px either side of the middle; never nearer than the canvas edge (16 px from the screen).
+  const half = width / 2 - 6;
+  const y = slot.row === 0 ? 0 : CHIP_H + CHIP_GAP * 2 + size;
+  useLayoutEffect(() => {
+    // Out of the mascot: from its middle to the chip's place.
+    const from = `translate(${-slot.side * (half / 2)}px, ${slot.row === 0 ? size / 2 + CHIP_GAP : -(size / 2 + CHIP_GAP)}px) scale(0.92)`;
+    const a = act(ref.current, 380, [
+      { at: 0, opacity: 0, transform: from, easing: EASE_STORY },
+      { at: 120, opacity: 1 },
+      { at: 380, opacity: 1, transform: 'translate(0, 0) scale(1)' },
     ]);
-    mascot.lookAt(ref.current, 500);
+    mascot.lookAt(ref.current, 600);
     haptic('light');
     return () => a?.cancel();
-    // Lands once.
+    // Comes out once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // A stage that did not come through says nothing here; it is tried again later.
@@ -293,7 +314,7 @@ function PrepChip({ row, ok, w, counts, compact, width }: { row: PrepRow; ok: bo
   const c = w.preparing.chips;
   const text = row === 'tasks' ? c.tasks(n) : row === 'courses' ? c.courses(n) : c[row];
   return (
-    <At x={at.x === 'left' ? 4 : width - 4 - 180} y={compact ? at.yc : at.y} w={180} pieceRef={ref} className={`flex ${at.x === 'left' ? 'justify-start' : 'justify-end'}`}>
+    <At x={slot.side < 0 ? 0 : width / 2 + 6} y={y} w={half} h={CHIP_H} pieceRef={ref} className={`flex ${slot.side < 0 ? 'justify-end' : 'justify-start'}`}>
       <ResultChip>{text}</ResultChip>
     </At>
   );
@@ -304,42 +325,42 @@ export interface DoneTile {
   color: number | null;
 }
 
-/** Up to five tiles of 60 over the mascot (left, top): the middle ones high, the outer ones lower, like an arch. */
-function arch(count: number, compact: boolean, width: number): { x: number; y: number }[] {
-  const pitch = 66;
-  return Array.from({ length: count }, (_, i) => {
-    const off = i - (count - 1) / 2;
-    // Three levels: the middle highest, the next pair lower, the outer pair lowest.
-    const level = Math.min(2, Math.round(Math.abs(off)));
-    return { x: width / 2 + off * pitch - 30, y: 6 + level * (compact ? 44 : 100) };
-  });
-}
-
-/** Screen 9: the mascot celebrates once under an arc of the user's own courses; two chips count up from the real data. */
+/** Screen 9: the mascot celebrates once; the user's own courses fly out of it and are gone within 900 ms; what stays is the mascot, the title and two chips that count up from the real data. */
 export function Done({ w, tiles, tasks, next, onOpen }: { w: OnboardingWords; tiles: readonly DoneTile[]; tasks: number; next: string | null; onOpen: () => void }) {
   const mascot = useMascot();
   const title = useTitleFocus('done');
-  const sparks = useRef<HTMLDivElement | null>(null);
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
-  // Fewer than four courses: the things that are ready fill the arch.
-  const shown: (DoneTile | { icon: typeof BellIcon })[] = [...tiles.slice(0, 5), ...[{ icon: BellIcon }, { icon: CalendarIcon }, { icon: AttendanceIcon }, { icon: TasksIcon }, { icon: KeyIcon }].slice(0, Math.max(0, 5 - tiles.length))];
-  const n = useCountUp(tasks, 700, true, 300);
+  const host = useRef<HTMLDivElement | null>(null);
+  const refs = useRef<(HTMLSpanElement | null)[]>([]);
+  const burst = tiles.slice(0, 6);
+  const [flying, setFlying] = useState(() => !reducedMotion() && burst.length > 0);
+  const n = useCountUp(tasks, 500, true, 300);
+  const size = SHORT_SCREEN ? 150 : 176;
   useExpression('happy');
-  useEffect(() => {
-    const anims = shown.map((_, i) =>
-      act(refs.current[i] ?? null, 300 + i * 70 + 320, [
-        { at: 0, opacity: 0, transform: 'translateY(40px) scale(0.92)' },
-        { at: 300 + i * 70, opacity: 0, transform: 'translateY(40px) scale(0.92)', easing: EASE_SPRING },
-        { at: 300 + i * 70 + 320, opacity: 1, transform: 'translateY(0) scale(1)' },
-      ]),
-    );
+  useLayoutEffect(() => {
+    // Part of the celebration only: out of the mascot, fading, gone in 900 ms.
+    const anims = burst.map((_, i) => {
+      const a = -Math.PI / 2 + (i - (burst.length - 1) / 2) * 0.52;
+      const x = Math.cos(a) * 150;
+      const y = Math.sin(a) * 150;
+      return refs.current[i]?.animate(
+        [
+          { opacity: 0, transform: 'translate(0, 0) scale(0.92)' },
+          { opacity: 1, transform: `translate(${x * 0.7}px, ${y * 0.7}px) scale(1)`, offset: 0.35 },
+          { opacity: 1, transform: `translate(${x * 0.95}px, ${y * 0.95}px) scale(1)`, offset: 0.7 },
+          { opacity: 0, transform: `translate(${x}px, ${y - 8}px) scale(0.96)` },
+        ],
+        { duration: 900, delay: 260 + i * 40, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'both' },
+      );
+    });
+    const gone = window.setTimeout(() => setFlying(false), 260 + burst.length * 40 + 920);
     const stop = schedule([
-      [260, () => mascot.celebrate()],
-      [300, () => burstSparks(sparks.current, 12)],
-      [300, () => haptic('firm')],
+      [200, () => mascot.celebrate()],
+      [240, () => burstSparks(host.current, 12)],
+      [240, () => haptic('firm')],
     ]);
     return () => {
       stop();
+      window.clearTimeout(gone);
       anims.forEach((a) => a?.cancel());
     };
     // Once.
@@ -347,44 +368,30 @@ export function Done({ w, tiles, tasks, next, onOpen }: { w: OnboardingWords; ti
   }, []);
   return (
     <Frame primary={{ label: w.done.open, onPress: onOpen }}>
-      <Scene label={w.done.title} h={486} compactH={300} top>
-        {(compact, width) => {
-          const size = compact ? 150 : 176;
-          const spots = arch(shown.length, compact, width);
-          return (
-            <>
-              {shown.map((tile, i) => (
-                <At key={i} x={spots[i]!.x} y={spots[i]!.y} w={60} h={60} pieceRef={(node) => void (refs.current[i] = node)}>
-                  {'icon' in tile ? (
-                    <span className="m-card flex size-[60px] items-center justify-center rounded-card">
-                      <tile.icon aria-hidden="true" className="size-6" />
-                    </span>
-                  ) : (
-                    <span className="flex size-[60px] items-center justify-center rounded-card text-m18 font-semibold" style={tile.color ? { background: tintVar(`course-${tile.color}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}>
-                      {initials(tile.name)}
-                    </span>
-                  )}
-                </At>
-              ))}
-              <At x={(width - size) / 2} y={compact ? 146 : 304} pieceRef={sparks}>
-                <MascotSpot size={size} />
-              </At>
-            </>
-          );
-        }}
-      </Scene>
-      <TextBlock title={w.done.title} titleRef={title}>
-        <div className="mt-3 flex flex-wrap justify-center gap-2">
-          {tasks > 0 ? (
-            <>
-              <ResultChip>{w.done.tasks(n)}</ResultChip>
-              {next && <ResultChip>{w.done.next(next)}</ResultChip>}
-            </>
-          ) : (
-            <ResultChip>{w.done.empty}</ResultChip>
-          )}
+      {/* The group (mascot, title, chips) sits in the middle of the stage. */}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+        <div ref={host} className="relative">
+          <MascotSpot size={size} />
+          {flying &&
+            burst.map((tile, i) => (
+              <span key={i} ref={(node) => void (refs.current[i] = node)} aria-hidden="true" className="absolute top-1/2 left-1/2 -mt-6 -ml-6 flex size-12 items-center justify-center rounded-ctl text-m15 font-semibold opacity-0" style={tile.color ? { background: tintVar(`course-${tile.color}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}>
+                {initials(tile.name)}
+              </span>
+            ))}
         </div>
-      </TextBlock>
+        <TextBlock title={w.done.title} titleRef={title}>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {tasks > 0 ? (
+              <>
+                <ResultChip>{w.done.tasks(n)}</ResultChip>
+                {next && <ResultChip>{w.done.next(next)}</ResultChip>}
+              </>
+            ) : (
+              <ResultChip>{w.done.empty}</ResultChip>
+            )}
+          </div>
+        </TextBlock>
+      </div>
     </Frame>
   );
 }

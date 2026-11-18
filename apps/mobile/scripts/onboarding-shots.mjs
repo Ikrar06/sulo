@@ -38,26 +38,29 @@ try {
     await context.close();
     renameSync(join(dir, readdirSync(dir).find((f) => f.endsWith('.webm'))), join(out, 'klip-perjalanan-penuh.webm'));
   } else if (has('frames')) {
-    // Five frames of each scene: a fresh page per scene, paused by the clock.
+    // Five frames of each story scene (start, 25, 50, 75 %, end): a fresh walk per frame, stopped by the clock.
     const [width, height] = [384, 832];
-    const t = TEXT[lang];
-    const SCENES = [
-      ['0-pembuka', 0, 1500, async () => null],
-      ['1-tenggat', 0, 2800, async (p) => p.getByRole('heading', { name: t.intro1 }).waitFor()],
-      ['2-pengingat', 0, 1500, async (p) => { await p.getByRole('heading', { name: t.intro1 }).waitFor(); await p.waitForTimeout(300); await p.getByRole('button', { name: t.next, exact: true }).click(); }],
-      ['3-privasi', 0, 2400, async (p) => { await p.getByRole('heading', { name: t.intro1 }).waitFor(); await p.waitForTimeout(300); await p.getByRole('tab').nth(2).click(); }],
-      ['4-masuk', 0, 1100, async (p) => { await p.getByRole('heading', { name: t.intro1 }).waitFor(); await p.getByRole('button', { name: t.skip, exact: true }).click(); }],
-      ['5-menyiapkan', 0, 2600, async (p) => { await p.getByRole('heading', { name: t.intro1 }).waitFor(); await p.getByRole('button', { name: t.skip, exact: true }).click(); await p.waitForTimeout(600); await p.getByRole('button', { name: t.signin, exact: true }).click(); }],
-    ];
-    for (const [scene, from, total, go] of SCENES) {
-      for (const [i, share] of [0.04, 0.25, 0.5, 0.75, 1].entries()) {
+    const SCENES = [['1', 3500], ['3', 3400], ['5', 2600], ['9', 1600]];
+    class Stop extends Error {}
+    for (const [scene, total] of SCENES)
+      for (const [i, share] of [0.03, 0.25, 0.5, 0.75, 1].entries()) {
         const { context, page } = await openPage(browser, PORT, { width, height, lang });
-        await go(page);
-        await page.waitForTimeout(from + total * share);
-        await shot(page, `bingkai-${scene}-${i}.png`);
+        try {
+          await walk(page, () => null, {
+            lang,
+            slow: 0.3,
+            onEnter: async (n) => {
+              if (n !== scene) return;
+              await page.waitForTimeout(total * share);
+              await shot(page, `bingkai-layar${scene}-${i}.png`);
+              throw new Stop();
+            },
+          });
+        } catch (e) {
+          if (!(e instanceof Stop)) throw e;
+        }
         await context.close();
       }
-    }
   } else {
     for (const [width, height] of sizes)
       for (const scheme of themes) {

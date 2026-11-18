@@ -8,6 +8,7 @@ import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { TIME_REMAINING_KEY, type TimeRemainingEntry } from './dev-log';
 import { NotifyTests } from './dev/NotifyTests';
+import { OnboardingDev } from './dev/OnboardingDev';
 import { TestConfig } from './dev/TestConfig';
 
 const time = (at: number) => new Date(at * 1000).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
@@ -49,6 +50,7 @@ export function DevScreen({ platform, w, onBack }: { platform: Platform; w: Mobi
           </ul>
         )}
       </Card>
+      <OnboardingDev platform={platform} />
       <NotifyTests platform={platform} />
       <TestConfig platform={platform} />
       <div className="mt-auto pt-3">

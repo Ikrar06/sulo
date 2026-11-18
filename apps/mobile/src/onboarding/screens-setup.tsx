@@ -4,7 +4,7 @@
 // a hop when the switch turns on. The block (mascot, title, content) is
 // centered in the stage when it is short and scrolls when it is long.
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { OnboardingWords } from '@sulo/core/i18n/mobile-onboarding';
 import { NICKNAME_MAX } from '@sulo/core/prefs';
 import { ChevronDownIcon } from '@sulo/ui/icons';
@@ -16,7 +16,7 @@ import { act, burstSparks, NotifyBanner } from './bits';
 import { MascotSpot, useExpression, useMascot } from './FlyingMascot';
 import { BackButton, Frame, ProgressBar, TextLink, useTitleFocus, type FrameAction } from './Frame';
 import { haptic } from './haptics';
-import { EASE_SPRING } from './motion';
+import { EASE_SPRING, SHORT_SCREEN } from './motion';
 
 export interface CourseChoice {
   id: number;
@@ -28,14 +28,42 @@ export interface CourseChoice {
 
 type Progress = { index: number; total: number; label: string } | null;
 
+/** The mascot on the setup screens: 120, or 96 on a short phone. */
+export const SETUP_MASCOT = SHORT_SCREEN ? 96 : 120;
+/**
+ * A gap between groups grows to this at most. 40 was asked for; on a tall
+ * phone that leaves one void of over 100 px under a short screen (the
+ * reminders), which breaks the 72 px rule, so the free height is shared out
+ * evenly, up to 72 between groups and 56 under the last one.
+ */
+const GAP_MAX = 72;
+/** A step change takes this long to bring the new content in (110 ms wait + 240 ms, styles.css). */
+const STEP_IN_MS = 360;
+const SUPPORT = 'mt-1.5 text-center text-m15r text-muted-foreground';
+
 /** A flexible space between two parts of a setup screen: at least `min`, growing up to `max` when the stage has room. */
-export function Gap({ min = 16, max = 40 }: { min?: number; max?: number }) {
-  return <div aria-hidden="true" className="shrink-0" style={{ flex: `1 1 ${min}px`, minHeight: min, maxHeight: max }} />;
+export function Gap({ min = 16, max = GAP_MAX, grow = 2 }: { min?: number; max?: number; grow?: number }) {
+  return <div aria-hidden="true" className="shrink-0" style={{ flex: `${grow} 1 ${min}px`, minHeight: min, maxHeight: max }} />;
 }
 
 /** A setup screen: back and progress on top, the centered block, the fixed action block. */
-function SetupFrame({ w, stepKey, progress, onBack, title, body, hint, primary, secondary, children, sparksRef }: { w: OnboardingWords; stepKey: string; progress: Progress; onBack: (() => void) | null; title: string; body?: string; hint?: ReactNode; primary: FrameAction; secondary?: ReactNode; children: ReactNode; sparksRef?: React.Ref<HTMLDivElement> }) {
+function SetupFrame({ w, stepKey, progress, onBack, title, support, hint, primary, secondary, children, sparksRef }: { w: OnboardingWords; stepKey: string; progress: Progress; onBack: (() => void) | null; title: string; /** The supporting line's slot, centered under the title. */ support?: ReactNode; hint?: ReactNode; primary: FrameAction; secondary?: ReactNode; children: ReactNode; sparksRef?: React.Ref<HTMLDivElement> }) {
   const titleRef = useTitleFocus(stepKey);
+  const scroller = useRef<HTMLDivElement | null>(null);
+  // The edge fade only when the content overflows, and only once the screen has arrived (see styles.css).
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const check = () => el.classList.toggle('is-long', el.scrollHeight > el.clientHeight + 1);
+    const id = window.setTimeout(check, STEP_IN_MS);
+    const ro = new ResizeObserver(() => el.classList.contains('is-long') !== el.scrollHeight > el.clientHeight + 1 && check());
+    const late = window.setTimeout(() => ro.observe(el), STEP_IN_MS);
+    return () => {
+      window.clearTimeout(id);
+      window.clearTimeout(late);
+      ro.disconnect();
+    };
+  }, []);
   return (
     <Frame
       topLeft={
@@ -48,20 +76,19 @@ function SetupFrame({ w, stepKey, progress, onBack, title, body, hint, primary, 
       primary={primary}
       secondary={secondary}
     >
-      {/* Short content sits in the middle; long content scrolls under soft edges. */}
-      <div className="onb-scroll -mx-4 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4">
-        {/* Free height is shared out between the parts (Gap), so a short block never floats in a void. */}
-        <div className="flex min-h-full flex-col justify-center py-2">
+      {/* The mascot hangs from the top, the same size at the same place on all three setup screens, so it never jumps between steps. */}
+      <div ref={scroller} className="onb-scroll -mx-4 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4">
+        <div className="flex min-h-full flex-col pt-[20px]">
           <div ref={sparksRef} className="relative mx-auto">
-            <MascotSpot size={96} />
+            <MascotSpot size={SETUP_MASCOT} />
           </div>
-          <Gap min={12} max={56} />
-          <h1 ref={titleRef} tabIndex={-1} className="onb-title outline-none">
+          <h1 ref={titleRef} tabIndex={-1} className="onb-title mt-[16px] text-center outline-none">
             {title}
           </h1>
-          {body && <p className="mt-1 text-m15r text-muted-foreground">{body}</p>}
-          <Gap min={16} max={72} />
+          {support}
+          {/* Each group of content follows a Gap, and one closes the column: the free height is shared out evenly. */}
           {children}
+          <Gap min={0} max={56} grow={1} />
         </div>
       </div>
     </Frame>
@@ -76,7 +103,8 @@ export function Courses({ w, progress, courses, selected, onToggle, onNext, onBa
   const shown = all ? courses : courses.filter((c) => c.main || selected.has(c.id));
   const hidden = courses.length - shown.length;
   return (
-    <SetupFrame w={w} stepKey="courses" progress={progress} onBack={onBack} title={t.title} body={t.body} hint={<span role="status">{selected.size > 0 ? t.selected(selected.size) : t.none}</span>} primary={{ label: w.next, onPress: onNext, disabled: selected.size === 0 }}>
+    <SetupFrame w={w} stepKey="courses" progress={progress} onBack={onBack} title={t.title} support={<p className={SUPPORT}>{t.body}</p>} hint={<span role="status">{selected.size > 0 ? t.selected(selected.size) : t.none}</span>} primary={{ label: w.next, onPress: onNext, disabled: selected.size === 0 }}>
+      <Gap />
       <ul className="space-y-2">
         {shown.map((c) => (
           <li key={c.id}>
@@ -93,8 +121,9 @@ export function Courses({ w, progress, courses, selected, onToggle, onNext, onBa
           </li>
         ))}
       </ul>
+      {!all && hidden > 0 && <Gap min={12} max={40} grow={1} />}
       {!all && hidden > 0 && (
-        <button type="button" onClick={() => setAll(true)} className="m-hit mt-3 inline-flex items-center gap-1 rounded-full px-1 text-m13 text-muted-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
+        <button type="button" onClick={() => setAll(true)} className="m-hit inline-flex items-center gap-1 self-start rounded-full px-1 text-m13 text-muted-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
           {t.showAll}
           <ChevronDownIcon aria-hidden="true" className="size-4" />
         </button>
@@ -137,15 +166,18 @@ export function Nickname({ w, progress, line1, initial, onNext, onSkip, onBack }
   const input = useRef<HTMLInputElement | null>(null);
   useExpression('neutral');
   useEffect(() => {
-    input.current?.focus({ preventScroll: true });
+    // The field takes the focus once the screen has arrived: the keyboard
+    // resizes the page, and that must not happen in the middle of the slide.
+    const focus = window.setTimeout(() => input.current?.focus({ preventScroll: true }), STEP_IN_MS);
     // The keyboard takes half the screen: the field stays in view when the stage shrinks.
     const show = () => input.current?.scrollIntoView({ block: 'nearest' });
     window.visualViewport?.addEventListener('resize', show);
     window.addEventListener('resize', show);
     // Eyes on the field.
-    const id = window.setTimeout(() => mascot.lookAt(input.current, 0), 400);
+    const id = window.setTimeout(() => mascot.lookAt(input.current, 0), STEP_IN_MS + 60);
     return () => {
       window.clearTimeout(id);
+      window.clearTimeout(focus);
       window.visualViewport?.removeEventListener('resize', show);
       window.removeEventListener('resize', show);
       mascot.lookAt(null);
@@ -155,16 +187,28 @@ export function Nickname({ w, progress, line1, initial, onNext, onSkip, onBack }
   // Without a name: the greeting alone, no comma.
   const preview = clean ? `${line1} ${clean}.` : `${line1.replace(/,\s*$/, '')}.`;
   return (
-    <SetupFrame w={w} stepKey="nickname" progress={progress} onBack={onBack} title={t.title} primary={{ label: w.next, onPress: () => onNext(clean) }} secondary={<TextLink onPress={onSkip}>{w.skip}</TextLink>}>
+    <SetupFrame
+      w={w}
+      stepKey="nickname"
+      progress={progress}
+      onBack={onBack}
+      title={t.title}
+      support={
+        // The live greeting in the supporting line: muted while empty, the text color once there is a letter.
+        <p aria-live="polite" className={`onb-greeting mt-1.5 text-center break-words ${clean ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {preview}
+        </p>
+      }
+      primary={{ label: w.next, onPress: () => onNext(clean) }}
+      secondary={<TextLink onPress={onSkip}>{w.skip}</TextLink>}
+    >
+      <Gap />
       <form
         onSubmit={(e) => {
           e.preventDefault();
           onNext(clean);
         }}
       >
-        <p aria-live="polite" className="onb-greeting min-h-[2lh] break-words">
-          {preview}
-        </p>
         <input
           ref={input}
           aria-label={t.label}
@@ -187,7 +231,7 @@ export function Nickname({ w, progress, line1, initial, onNext, onSkip, onBack }
             }
             if (v.trim() === '') greeted.current = false;
           }}
-          className="mt-3 h-13 w-full rounded-card border border-m-line bg-m-card px-4 text-m18 outline-none placeholder:text-muted-foreground focus-visible:border-foreground"
+          className="h-13 w-full rounded-card border border-m-line bg-m-card px-4 text-m18 outline-none placeholder:text-muted-foreground focus-visible:border-foreground"
         />
         <p className="mt-2 text-m12 text-muted-foreground">{t.note}</p>
       </form>
@@ -213,12 +257,17 @@ export function Reminders({ w, progress, sample, stages, onStages, watch, watchA
   const when = useRef<HTMLSpanElement | null>(null);
   const sparks = useRef<HTMLDivElement | null>(null);
   useExpression('happy');
-  useEffect(() => {
-    const a = act(banner.current, 560, [
-      { at: 0, opacity: 0, transform: 'translateY(-28px)' },
-      { at: 140, opacity: 0, transform: 'translateY(-28px)', easing: EASE_SPRING },
-      { at: 560, opacity: 1, transform: 'translateY(0)' },
-    ]);
+  useLayoutEffect(() => {
+    const a = act(
+      banner.current,
+      560,
+      [
+        { at: 0, opacity: 0, transform: 'translateY(-28px)' },
+        { at: 140, opacity: 0, transform: 'translateY(-28px)', easing: EASE_SPRING },
+        { at: 560, opacity: 1, transform: 'translateY(0)' },
+      ],
+      false,
+    );
     const id = window.setTimeout(() => mascot.lookAt(banner.current, 900), 200);
     return () => {
       window.clearTimeout(id);
@@ -235,14 +284,20 @@ export function Reminders({ w, progress, sample, stages, onStages, watch, watchA
     onStages(next);
     setShownStage(next.has(s) ? s : ([...next].sort((a, b) => a - b)[0] ?? 180));
     mascot.lookAt(banner.current, 700);
-    act(when.current, 240, [
-      { at: 0, opacity: 0.2, transform: 'translateY(4px)' },
-      { at: 240, opacity: 1, transform: 'translateY(0)' },
-    ]);
+    act(
+      when.current,
+      240,
+      [
+        { at: 0, opacity: 0.2, transform: 'translateY(4px)' },
+        { at: 240, opacity: 1, transform: 'translateY(0)' },
+      ],
+      false,
+    );
   };
   return (
     <>
       <SetupFrame w={w} stepKey="reminders" progress={progress} onBack={onBack} title={t.title} primary={{ label: t.allow, onPress: onAllow }} secondary={<TextLink onPress={onLater}>{t.later}</TextLink>} sparksRef={sparks}>
+        <Gap />
         <div ref={banner}>
           <NotifyBanner
             wrap
@@ -257,7 +312,7 @@ export function Reminders({ w, progress, sample, stages, onStages, watch, watchA
             }
           />
         </div>
-        <Gap min={16} max={56} />
+        <Gap />
         <p className="text-m13 text-muted-foreground">{t.stagesLabel}</p>
         <div role="group" aria-label={t.stagesLabel} className="mt-2 flex gap-2">
           {STAGES.map((s) => (
@@ -268,7 +323,7 @@ export function Reminders({ w, progress, sample, stages, onStages, watch, watchA
         </div>
         {watchAllowed && (
           <>
-            <Gap min={16} max={56} />
+            <Gap />
             <Card dense>
               <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">

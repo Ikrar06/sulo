@@ -62,16 +62,22 @@ export async function walk(page, at, opts = {}) {
   const button = (name) => page.getByRole('button', { name, exact: true });
   const slow = opts.slow ?? 1;
   const wait = (ms) => page.waitForTimeout(ms * slow);
-  await wait(1000);
+  /** Called the moment a screen is entered, before its scene has played (frame sheets). */
+  const enter = async (name) => opts.onEnter && (await opts.onEnter(name, page));
+  await enter('0');
+  await wait(1350);
   await at('0-pembuka', page);
   await page.getByRole('heading', { name: t.intro1 }).waitFor({ timeout: 15000 });
-  await wait(3300);
+  await enter('1');
+  await wait(4100);
   await at('1-tenggat', page);
   await button(t.next).click();
-  await wait(2300);
+  await enter('2');
+  await wait(2900);
   await at('2-pengingat', page);
   await button(t.next).click();
-  await wait(2900);
+  await enter('3');
+  await wait(4000);
   await at('3-privasi', page);
   await button(t.start).click();
   await wait(1500);
@@ -85,6 +91,7 @@ export async function walk(page, at, opts = {}) {
     return;
   }
   await button(t.signin).click();
+  await enter('5');
   if (opts.stopAt === 'preparing') {
     await wait(1700);
     await at('5-menyiapkan', page);
@@ -121,7 +128,8 @@ export async function walk(page, at, opts = {}) {
   await at('8-pengingat', page);
   await button(opts.denied ? t.later : t.allow).click();
   await page.getByRole('heading', { name: t.done }).waitFor({ timeout: 15000 });
-  await wait(1700);
+  await enter('9');
+  await wait(2300);
   await at('9-selesai', page);
   await button(t.open).click();
   await page.locator('[data-mascot-spot="hero"]').waitFor({ timeout: 15000 });

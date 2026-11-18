@@ -16,7 +16,8 @@ import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { I18nProvider } from '@sulo/ui/i18n';
 import { PrivacyProvider } from '@sulo/ui/private';
 import { ToastProvider } from '@sulo/ui/ui/toast';
-import { DEV_EVENT } from './events';
+import { DEV_EVENT, REPLAY_ONBOARDING_EVENT } from './events';
+import { SCENE_TEMPO_KEY, setSceneTempo } from './onboarding/motion';
 import { LOCK_KEY, signOutEverything } from './account';
 import { refreshPublicData } from './public-data';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
@@ -26,7 +27,7 @@ import { scheduleReminders } from './reminders';
 import { LockScreen } from './screens/Gate';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
 import { readSavedFlow } from './onboarding/data';
-import { resume, type FlowState } from '@sulo/core/onboarding/mobile-flow';
+import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow';
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
@@ -57,6 +58,8 @@ export function App({ platform }: { platform: Platform }) {
   const [flow, setFlow] = useState<FlowState | null>(null);
   /** The onboarding mascot is landing on Ringkasan (both are mounted). */
   const [landing, setLanding] = useState(false);
+  /** Ringkasan is mounted, hidden, under the done screen: "Buka Sulo" then only reveals it. */
+  const [warm, setWarm] = useState(false);
   const [last, setLast] = useState<UnixSeconds | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
@@ -115,8 +118,19 @@ export function App({ platform }: { platform: Platform }) {
       await applyWatchPlan(platform).catch(() => undefined);
     })();
     const onDev = () => __SULO_DEV__ && setDev(true);
+    // Debug builds: the scenes' pace chosen on the dev screen, and a replay of the onboarding from the first screen.
+    const onReplay = () => {
+      if (!__SULO_DEV__) return;
+      setDev(false);
+      setFlow(start('first'));
+    };
+    if (__SULO_DEV__) void platform.store.get<number>(SCENE_TEMPO_KEY).then((v) => typeof v === 'number' && setSceneTempo(v));
     window.addEventListener(DEV_EVENT, onDev);
-    return () => window.removeEventListener(DEV_EVENT, onDev);
+    if (__SULO_DEV__) window.addEventListener(REPLAY_ONBOARDING_EVENT, onReplay);
+    return () => {
+      window.removeEventListener(DEV_EVENT, onDev);
+      if (__SULO_DEV__) window.removeEventListener(REPLAY_ONBOARDING_EVENT, onReplay);
+    };
   }, [platform, refreshState]);
 
   // Back in the foreground: lock again if on, and sync when the data is older than 15 minutes.
@@ -202,7 +216,11 @@ export function App({ platform }: { platform: Platform }) {
       ) : (
         <>
           {/* One place for Ringkasan, before and after the landing, so it never mounts twice. */}
-          {(flow.step === 'finished' || landing) && <div className={`contents ${landing ? 'm-landing' : ''}`}>{shell}</div>}
+          {(flow.step === 'finished' || landing || warm) && (
+            <div className={landing ? 'contents m-landing' : flow.step === 'finished' ? 'contents' : 'invisible fixed inset-0'} inert={flow.step !== 'finished' && !landing ? true : undefined}>
+              {shell}
+            </div>
+          )}
           {onboarding && (
             <OnboardingFlow
               platform={platform}
@@ -211,12 +229,17 @@ export function App({ platform }: { platform: Platform }) {
               paused={paused}
               landing={landing}
               onSynced={() => void refreshState()}
+              onNearlyDone={() => {
+                void refreshState();
+                setWarm(true);
+              }}
               onFinish={() => {
                 void refreshState();
                 setLanding(true);
               }}
               onLanded={() => {
                 setLanding(false);
+                setWarm(false);
                 setFlow({ ...flow, step: 'finished' });
               }}
             />

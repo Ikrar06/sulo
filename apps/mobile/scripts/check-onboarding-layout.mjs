@@ -12,6 +12,12 @@
 //   4. nothing is cut or ellipsized: no text wider than its box, nothing
 //      outside the viewport, the primary button at the same place on every
 //      screen
+//   6. the mascot is the same size at the same place on the three setup
+//      screens (6, 7, 8); every scene piece keeps 16 px from the screen's
+//      edges
+//   Screens 5 and 9 are a small group around the mascot in the middle of
+//   the stage (the owner's later instruction), so rules 1 and 2 do not
+//   apply to them.
 //   5. never two mascots; the mascot's drawing (both flame layers and the
 //      face) stays inside its box at every size and, on the sign-in screen,
 //      for every expression
@@ -85,8 +91,16 @@ const measure = () => {
     if (out > 2) cut.push(`gambar maskot keluar ${out.toFixed(1)} px dari wadahnya`);
     if (getComputedStyle(mascot).opacity !== '0' && (box.left < -0.5 || box.right > vw + 0.5 || box.bottom > vh + 0.5 || box.top < -0.5)) cut.push('maskot keluar dari layar');
   }
+  // Scene pieces keep 16 px from the screen's edges.
+  for (const el of frame.querySelectorAll('[data-onb-piece]')) {
+    if (!live(el) || !vis(el) || el.closest('[data-pg="page"]')?.style.visibility === 'hidden') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.right < 0 || r.left > vw) continue;
+    if (r.left < 15.5 || r.right > vw - 15.5) cut.push(`keping ${Math.round(Math.min(r.left, vw - r.right))} px dari tepi: "${el.textContent.trim().slice(0, 20)}"`);
+  }
+  const mbox = mascot ? mascot.getBoundingClientRect() : null;
   const primary = [...frame.querySelectorAll('button.h-13')].find(vis);
-  return { gap: Math.round(gap), gapAt: Math.round(gapAt), scene, cut, primaryTop: primary ? Math.round(vh - primary.getBoundingClientRect().top) : null };
+  return { mascot: mbox ? [Math.round(mbox.left), Math.round(mbox.top), Math.round(mbox.width)].join(',') : null, gap: Math.round(gap), gapAt: Math.round(gapAt), scene, cut, primaryTop: primary ? Math.round(vh - primary.getBoundingClientRect().top) : null };
 };
 
 const CASES = [
@@ -101,6 +115,7 @@ try {
       const tag = `${lang} ${c.width}x${c.height}${c.zoom ? ' font 130%' : ''}`;
       const { context, page } = await openPage(browser, PORT, { ...c, lang, reduced: true });
       const primaryTops = new Set();
+      const setupMascots = new Set();
       await walk(
         page,
         async (name) => {
@@ -113,9 +128,12 @@ try {
           if (mascots !== 1 && !steppedOut) findings.push(`${tag} ${name}: ${mascots} maskot terlihat`);
           for (const x of m.cut) findings.push(`${tag} ${name}: ${x}`);
           if (m.primaryTop !== null) primaryTops.add(m.primaryTop);
-          if (c.rules.includes('gap') && !name.startsWith('0') && m.gap > GAP_MAX) findings.push(`${tag} ${name}: celah ${m.gap} px (mulai y=${m.gapAt})`);
+          // (On a short phone the nickname screen scrolls under the keyboard: its mascot is where the scroll put it.)
+          if (/^[678]-/.test(name) && m.mascot && !steppedOut && !(c.height < 700 && name.startsWith('7'))) setupMascots.add(m.mascot);
+          const centered = /^[59]-/.test(name);
+          if (c.rules.includes('gap') && !name.startsWith('0') && !centered && m.gap > GAP_MAX) findings.push(`${tag} ${name}: celah ${m.gap} px (mulai y=${m.gapAt})`);
           if (m.scene) {
-            if (c.rules.includes('scene') && !name.startsWith('0') && m.scene.share < SCENE_MIN) findings.push(`${tag} ${name}: adegan ${(m.scene.share * 100).toFixed(0)}% dari panggung`);
+            if (c.rules.includes('scene') && !name.startsWith('0') && !centered && m.scene.share < SCENE_MIN) findings.push(`${tag} ${name}: adegan ${(m.scene.share * 100).toFixed(0)}% dari panggung`);
             if (c.rules.includes('scale1') && Math.abs(m.scene.scale - 1) > 0.001) findings.push(`${tag} ${name}: skala adegan ${m.scene.scale}`);
             if (m.scene.scale < 0.8 - 0.001) findings.push(`${tag} ${name}: skala adegan ${m.scene.scale} di bawah 0,8`);
           }
@@ -145,6 +163,7 @@ try {
         },
         { lang, keyboard: 300, slow: 0.35 },
       );
+      if (setupMascots.size > 1) findings.push(`${tag}: maskot berpindah di layar 6-8 (${[...setupMascots].join(' | ')})`);
       if (primaryTops.size > 1) findings.push(`${tag}: tombol utama berpindah (${[...primaryTops].join(', ')} px dari bawah)`);
       await context.close();
     }

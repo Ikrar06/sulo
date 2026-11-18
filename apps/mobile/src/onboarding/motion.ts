@@ -7,6 +7,25 @@
 
 /** Confident arrival: fast start, long settle (the sheet's opening curve). */
 export const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)';
+/** Story motion (the scenes): a long, soft slowing at the end, never an abrupt stop. */
+export const EASE_STORY = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
+/**
+ * Two kinds of motion. Response motion (buttons, a tapped row, a switch, a
+ * step change, the pager, sheets) stays quick and never uses this. Story
+ * motion (the scenes of screens 0, 1, 2, 3, 5 and 9) is written at a base
+ * pace and multiplied by SCENE_TEMPO: 1.4 by default, so an element takes
+ * 450 to 560 ms to arrive and siblings follow 130 to 170 ms apart. The
+ * debug screen can change it (0.8 to 2.0) to find the right pace on a phone.
+ */
+export const SCENE_TEMPO_DEFAULT = 1.4;
+export const SCENE_TEMPO_KEY = 'mobile:dev:sceneTempo';
+let tempo = SCENE_TEMPO_DEFAULT;
+export const sceneTempo = (): number => tempo;
+export function setSceneTempo(v: number): void {
+  tempo = Number.isFinite(v) ? Math.min(2, Math.max(0.8, v)) : SCENE_TEMPO_DEFAULT;
+}
+
 /** Leaving: a smooth ease-in, never a bounce. */
 export const EASE_IN = 'cubic-bezier(0.4, 0, 1, 1)';
 /** A small overshoot for the splash mascot and a landing notification (about 4%). */
@@ -23,6 +42,9 @@ export const MS = {
   check: 160,
   reduced: 120,
 } as const;
+
+/** A short phone (360x640): decided once at start, so the keyboard coming up later changes nothing. */
+export const SHORT_SCREEN = typeof window !== 'undefined' && window.innerHeight < 700;
 
 export const reducedMotion = (): boolean => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 

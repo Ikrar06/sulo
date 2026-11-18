@@ -150,8 +150,17 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
       // A correction (the keyboard, a list that grew): a short glide, not a snap.
       const far = !from || Math.hypot(from.x - to.x, from.y - to.y) > 2 || Math.abs(from.size - to.size) > 2;
       if (!far) return arrived.current?.();
+      // While it flies the mascot's own sway and breathing hold still: the
+      // flight is then one texture moved by the compositor, instead of an
+      // animated SVG painted again at a new size every frame.
+      node.classList.add('onb-flying');
       const a = node.animate(reduced ? [{ opacity: 0.6 }, { opacity: 1 }] : keyframes, { duration: reduced ? MS.reduced : animate ? duration : 200, easing: EASE_OUT });
-      a.onfinish = () => arrived.current?.();
+      const land = () => node.classList.remove('onb-flying');
+      a.oncancel = land;
+      a.onfinish = () => {
+        land();
+        arrived.current?.();
+      };
     },
     [selector, duration],
   );
@@ -160,9 +169,12 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
   useLayoutEffect(() => {
     let r2 = 0;
     const r1 = requestAnimationFrame(() => (r2 = requestAnimationFrame(() => move(true))));
+    // Once more when the screen has settled (fonts, the scene's scale): a correction glides.
+    const settle = window.setTimeout(() => move(false), 700);
     return () => {
       cancelAnimationFrame(r1);
       cancelAnimationFrame(r2);
+      window.clearTimeout(settle);
     };
   }, [spotKey, move]);
 
@@ -175,15 +187,20 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
       node.style.opacity = scrolledOut(selector) ? '0' : '1';
       if (node.getAnimations().length === 0) move(false);
     };
-    window.addEventListener('resize', follow);
-    document.addEventListener('scroll', follow, { capture: true, passive: true });
-    window.visualViewport?.addEventListener('resize', follow);
-    const t = window.setInterval(follow, 400);
+    // Only when something can really have moved the spot (no polling: measuring forces a layout).
+    let raf = 0;
+    const soon = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(follow);
+    };
+    window.addEventListener('resize', soon);
+    document.addEventListener('scroll', soon, { capture: true, passive: true });
+    window.visualViewport?.addEventListener('resize', soon);
     return () => {
-      window.removeEventListener('resize', follow);
-      document.removeEventListener('scroll', follow, { capture: true });
-      window.visualViewport?.removeEventListener('resize', follow);
-      window.clearInterval(t);
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', soon);
+      document.removeEventListener('scroll', soon, { capture: true });
+      window.visualViewport?.removeEventListener('resize', soon);
     };
   }, [move, selector]);
 
