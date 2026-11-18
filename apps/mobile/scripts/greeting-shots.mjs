@@ -22,7 +22,9 @@ async function shot(name, { time, lang, demo = 'aman', nick = '', scheme = 'ligh
   await page.clock.setFixedTime(new Date(`2026-11-18T${time}:00+08:00`));
   await page.goto(`http://localhost:5180/?demo=${demo}&lang=${lang}${nick ? `&nick=${encodeURIComponent(nick)}` : ''}`);
   await page.waitForTimeout(600);
-  await page.getByRole('button', { name: lang === 'en' ? 'Sign in to SIKOLA' : 'Masuk ke SIKOLA' }).click();
+  // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+  await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+  await page.evaluate(() => window.__suloEnterDemo());
   await page.waitForTimeout(600);
   const later = page.getByRole('button', { name: lang === 'en' ? 'Later' : 'Nanti' });
   if (await later.isVisible()) await later.click();

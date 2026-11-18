@@ -146,6 +146,16 @@ export function App({ platform }: { platform: Platform }) {
     await sync(() => syncAfterLogin(platform, __SULO_DEV__));
   };
 
+  // pnpm mobile:web only: the screenshot and check scripts enter the demo account past the onboarding.
+  useEffect(() => {
+    if (!(__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web')) return;
+    (window as unknown as { __suloEnterDemo?: () => Promise<void> }).__suloEnterDemo = async () => {
+      await SuloSession.login();
+      await sync(() => syncAfterLogin(platform, false));
+      setFlow((f) => (f ? { ...f, step: 'finished' } : f));
+    };
+  }, [platform, sync]);
+
   if (status === null || flow === null) return null;
   const onboarding = flow.step !== 'finished' || landing;
   const shell = (

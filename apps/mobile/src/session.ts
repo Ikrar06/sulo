@@ -27,6 +27,8 @@ export interface PageReply {
 }
 
 export interface SuloSessionPlugin {
+  /** A light or firm haptic tick (the view's own feedback; the system setting decides). */
+  haptic(options: { kind: 'light' | 'firm' }): Promise<void>;
   /**
    * SIKOLA's own login page under a native bar (lock, host, close); resolves
    * once signed in or closed. "offline": closed while the page could not load.

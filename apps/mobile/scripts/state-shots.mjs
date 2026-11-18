@@ -23,7 +23,9 @@ async function start(context, demo) {
   const page = await context.newPage();
   await page.goto(`http://localhost:5178/${demo ? `?demo=${demo}` : ''}`);
   await page.waitForTimeout(600);
-  await page.getByRole('button', { name: 'Masuk ke SIKOLA' }).click();
+  // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+  await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+  await page.evaluate(() => window.__suloEnterDemo());
   await page.waitForTimeout(600);
   if (await page.getByRole('button', { name: 'Nanti' }).isVisible()) await page.getByRole('button', { name: 'Nanti' }).click();
   await page.waitForTimeout(900);
@@ -88,7 +90,9 @@ try {
     const page = await context.newPage();
     await page.goto('http://localhost:5178/?demo=satu');
     await page.waitForTimeout(500);
-    await page.getByRole('button', { name: 'Masuk ke SIKOLA' }).click();
+    // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+    await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+    await page.evaluate(() => window.__suloEnterDemo());
     await page.waitForTimeout(400);
     if (await page.getByRole('button', { name: 'Nanti' }).isVisible()) await page.getByRole('button', { name: 'Nanti' }).click();
     await page.waitForTimeout(2200);

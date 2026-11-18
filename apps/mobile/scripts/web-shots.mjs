@@ -88,7 +88,9 @@ try {
     await page.goto('http://localhost:5175/');
     await page.waitForTimeout(800);
     await shot('01-onboarding');
-    await page.getByRole('button', { name: 'Masuk ke SIKOLA' }).click();
+    // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+    await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+    await page.evaluate(() => window.__suloEnterDemo());
     await page.waitForTimeout(800);
     if (await page.getByRole('button', { name: 'Nanti' }).isVisible()) {
       await shot('02-izin-notifikasi');

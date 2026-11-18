@@ -76,5 +76,7 @@ export interface Box {
 export function flip(from: Box | null, to: Box, base: number): { keyframes: Keyframe[]; end: string } {
   const at = (b: Box) => `translate(${b.x}px, ${b.y}px) scale(${b.size / base})`;
   const end = at(to);
-  return { end, keyframes: from ? [{ transform: at(from) }, { transform: end }] : [{ transform: end, opacity: 0 }, { transform: end, opacity: 1 }] };
+  // The first appearance (the splash): a spark that grows into the flame from its base, never from nothing.
+  const born = `translate(${to.x + to.size * 0.2}px, ${to.y + to.size * 0.36}px) scale(${(to.size / base) * 0.6})`;
+  return { end, keyframes: from ? [{ transform: at(from) }, { transform: end }] : [{ transform: born, opacity: 0 }, { transform: end, opacity: 1 }] };
 }

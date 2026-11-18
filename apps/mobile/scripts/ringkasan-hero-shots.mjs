@@ -25,7 +25,9 @@ async function shot(width, height, scheme, demo, name) {
   await page.clock.setFixedTime(new Date('2026-11-18T10:00:00+08:00'));
   await page.goto(`http://localhost:${PORT}/?demo=${demo}`);
   await page.waitForTimeout(600);
-  await page.getByRole('button', { name: 'Masuk ke SIKOLA' }).click();
+  // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+  await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+  await page.evaluate(() => window.__suloEnterDemo());
   await page.waitForTimeout(600);
   const later = page.getByRole('button', { name: 'Nanti', exact: true });
   if (await later.isVisible()) await later.click();

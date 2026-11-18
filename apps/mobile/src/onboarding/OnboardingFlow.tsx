@@ -11,7 +11,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { messagesFor, type Locale } from '@sulo/core/i18n';
 import { mobileWords } from '@sulo/core/i18n/mobile';
 import { onboardingWords } from '@sulo/core/i18n/mobile-onboarding';
-import { back as backOf, reduce, setupProgress, type FlowState } from '@sulo/core/onboarding/mobile-flow';
+import { back as backOf, INTRO, reduce, setupProgress, STEPS, type FlowState } from '@sulo/core/onboarding/mobile-flow';
 import type { Platform } from '@sulo/core/platform';
 import { readPrefs, writePrefs } from '@sulo/core/prefs';
 import { greeting } from '@sulo/core/dashboard/mobile-greeting';
@@ -24,12 +24,13 @@ import { SuloSession } from '../session';
 import { syncAfterLogin } from '../sync';
 import { updateWatch } from '../watch';
 import { applyWatchPlan } from '../watch-native';
-import { doneSummary, readCourseChoices, readOfferedStages, readReminderSample, saveCourseChoices, saveFlow, saveStages } from './data';
-import { FlyingMascotLayer, useMascotCue } from './FlyingMascot';
+import { readCounts, readCourseChoices, readDone, readOfferedStages, readReminderSample, saveCourseChoices, saveFlow, saveStages } from './data';
+import { FlyingMascotLayer } from './FlyingMascot';
 import { MS } from './motion';
-import { Intro1, Intro2, Intro3, Splash } from './screens-intro';
-import { Courses, Done, Nickname, Reminders, type CourseChoice, type ReminderSample } from './screens-setup';
-import { Preparing, SignIn } from './screens-signin';
+import { Intro } from './Intro';
+import { Done, Preparing, SignIn, Splash, type DoneTile, type PrepCounts } from './screens-entry';
+import { Courses, Nickname, Reminders, type CourseChoice, type ReminderSample } from './screens-setup';
+import { StepSwap } from './StepSwap';
 import { prepOutcome, PREP_ROWS, type StageEvent } from './stage-timing';
 
 /** Asked once, after the data is here (App.tsx's key). */
@@ -63,10 +64,19 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
   const [courses, setCourses] = useState<{ list: CourseChoice[]; selected: Set<number> }>({ list: [], selected: new Set() });
   const [nickname, setNickname] = useState('');
   const [stages, setStages] = useState<Set<number>>(new Set([1440, 180]));
-  const [sample, setSample] = useState<ReminderSample>({ title: w.reminders.sample.title, when: w.reminders.sampleWhen, course: w.reminders.sampleCourse });
+  const [sample, setSample] = useState<ReminderSample>({ title: w.reminders.sampleTitle, course: w.reminders.sampleCourse });
+  const [counts, setCounts] = useState<PrepCounts>({ tasks: 0, courses: 0 });
+  const [done, setDone] = useState<{ tasks: number; next: string | null; tiles: DoneTile[] } | null>(null);
+  /** Intro pages whose scene has played: going back (or coming back from sign-in) never replays one. */
+  const played = useRef(new Set<number>());
   const [watch, setWatch] = useState(true);
   const [watchAllowed, setWatchAllowed] = useState(false);
-  const [summary, setSummary] = useState('');
+  const [, heroSeen] = useState(0);
+  useEffect(() => {
+    if (!landing) return;
+    const raf = requestAnimationFrame(() => heroSeen((n) => n + 1));
+    return () => cancelAnimationFrame(raf);
+  }, [landing]);
   const finishing = useRef(false);
   // The app's callbacks change every render; the first sync must not restart for that.
   const synced = useRef(onSynced);
@@ -98,7 +108,7 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
       setCourses({ list: choices.courses, selected: choices.selected });
       dispatch({ type: 'SELECT', selected: choices.selected.size });
       const t = words.current;
-      setSample(await readReminderSample(platform, t.w, t.m, t.locale, timeZone()));
+      setSample(await readReminderSample(platform, t.w));
     })();
   }, [platform, initial.step]);
 
@@ -109,7 +119,9 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
       setNickname(prefs.nickname);
       setStages(await readOfferedStages(platform));
       const keep = await readKeepAlive(platform).catch(() => null);
-      setWatchAllowed(paused === null && (keep?.enabled ?? true));
+      // pnpm mobile:web: ?watch=off shows the screen as when the config does not allow watching.
+      const demoOff = __SULO_WEB_FAKE__ && import.meta.env.MODE === 'web' && new URLSearchParams(location.search).get('watch') === 'off';
+      setWatchAllowed(paused === null && !demoOff && (keep?.enabled ?? true));
     })();
   }, [platform, paused]);
 
@@ -128,6 +140,8 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
     const push = (e: StageEvent) => {
       seen.push(e);
       setEvents([...seen]);
+      // The chips show what was really found, as soon as it is stored.
+      if (e.result === 'ok' && (e.row === 'tasks' || e.row === 'courses')) void readCounts(platform).then(setCounts);
     };
     const calendar = refreshPublicData(platform, true)
       .then(() => push({ row: 'calendar', result: 'ok', at: performance.now() }))
@@ -141,7 +155,8 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
     const choices = await readCourseChoices(platform);
     setCourses({ list: choices.courses, selected: choices.selected });
     const t = words.current;
-    setSample(await readReminderSample(platform, t.w, t.m, t.locale, timeZone()));
+    setSample(await readReminderSample(platform, t.w));
+    setCounts(await readCounts(platform));
     const result = prepOutcome(seen, outcome.status === 'ok');
     return { result, courseCount: choices.courses.length, selected: choices.selected.size };
   }, [platform]);
@@ -180,7 +195,7 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
     await platform.store.set(NOTIFY_ASKED_KEY, true);
     await scheduleReminders(platform).catch(() => 0);
     await applyWatchPlan(platform).catch(() => undefined);
-    setSummary(await doneSummary(platform, w, m, locale, timeZone()));
+    setDone(await readDone(platform, m, locale, timeZone()));
     dispatch({ type: allow ? 'NEXT' : 'SKIP' });
   };
 
@@ -198,28 +213,28 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
 
   // The done screen needs its line even when the reminders step was resumed past.
   useEffect(() => {
-    if (state.step === 'done' && summary === '') void doneSummary(platform, w, m, locale, timeZone()).then(setSummary);
-  }, [state.step, summary, platform, w, m, locale]);
+    if (state.step === 'done' && done === null) void readDone(platform, m, locale, timeZone()).then(setDone);
+  }, [state.step, done, platform, m, locale]);
 
   const line1 = greeting({ now: platform.clock.now(), timeZone: timeZone(), nickname: '', overdue: 0, dueToday: 0 }, app).line1;
 
+  const introIndex = INTRO.indexOf(state.step);
   const screen = (() => {
     switch (state.step) {
       case 'splash':
         return <Splash w={w} next={next} />;
       case 'intro1':
-        return <Intro1 w={w} unofficial={app.unofficial} next={next} back={null} skip={skip} />;
       case 'intro2':
-        return <Intro2 w={w} unofficial={app.unofficial} next={next} back={backFn} skip={skip} />;
       case 'intro3':
-        return <Intro3 w={w} unofficial={app.unofficial} next={next} back={backFn} skip={skip} />;
+        return <Intro w={w} index={introIndex} played={played.current} onIndex={(index) => dispatch({ type: 'GOTO_INTRO', index })} onStart={next} onSkip={skip} />;
       case 'signin':
-        return <SignIn w={w} welcomeBack={state.mode === 'relogin'} note={state.signinNote} busy={busy} paused={paused} onOpen={() => void signIn()} onBack={backFn} />;
+        return <SignIn w={w} note={state.signinNote} busy={busy} paused={paused} onOpen={() => void signIn()} onBack={backFn} />;
       case 'preparing':
         return (
           <Preparing
             w={w}
             events={events}
+            counts={counts}
             final={state.prep === 'failed' ? 'failed' : (prepFinal?.result ?? 'pending')}
             onDone={() => prepFinal && dispatch({ type: 'SYNC_DONE', ...prepFinal })}
             onRetry={() => dispatch({ type: 'RETRY' })}
@@ -268,16 +283,18 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
       case 'reminders':
         return <Reminders w={w} progress={progress} sample={sample} stages={stages} onStages={setStages} watch={watch} watchAllowed={watchAllowed} onWatch={setWatch} onAllow={() => void finishReminders(true)} onLater={() => void finishReminders(false)} onBack={backFn} />;
       case 'done':
-        return <Done w={w} summary={summary || w.done.empty} onOpen={finish} />;
+        return done ? <Done w={w} tiles={done.tiles} tasks={done.tasks} next={done.next} onOpen={finish} /> : null;
       case 'finished':
         return null;
     }
   })();
+  // The three intro pages are one screen (the pager); everything else swaps with a slide.
+  const swapKey = introIndex >= 0 ? 'intro' : state.step;
 
   if (landing)
     return (
-      <FlyingMascotLayer spotKey="landing" selector={HERO_SPOT} duration={MS.landing} onArrived={onLanded}>
-        <LandingCue onLanded={onLanded} />
+      <FlyingMascotLayer spotKey="landing" selector={HERO_SPOT} duration={MS.landing} onArrived={onLanded} forced={{ state: heroState() }}>
+        <LandingGuard onLanded={onLanded} />
         {/* The last screen fades away over Ringkasan while it comes in. */}
         <div aria-hidden="true" className="m-onb-leave pointer-events-none fixed inset-0 z-40 bg-m-screen">
           {screen}
@@ -285,10 +302,10 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
       </FlyingMascotLayer>
     );
   return (
-    <FlyingMascotLayer spotKey={state.step} duration={MS.mascotMove}>
-      <div key={state.step} className="m-onb-screen">
+    <FlyingMascotLayer spotKey={swapKey} duration={MS.mascotMove}>
+      <StepSwap stepKey={swapKey} order={STEPS.indexOf(state.step)}>
         {screen}
-      </div>
+      </StepSwap>
     </FlyingMascotLayer>
   );
 }
@@ -296,21 +313,14 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
 /** Ringkasan's hero mascot (HeroMascot.tsx): the landing target. */
 export const HERO_SPOT = '[data-mascot-spot="hero"]';
 
-/** Lands with the hero's own expression, so the swap shows nothing; a guard ends the landing if the hero never shows. */
-function LandingCue({ onLanded }: { onLanded?: () => void }) {
-  const [state, setState] = useState<MascotState>('idle');
-  useMascotCue({ state });
+/** Lands with the hero's own expression, so the swap shows nothing. */
+const heroState = (): MascotState => (document.querySelector<HTMLElement>(HERO_SPOT)?.dataset.mascotState as MascotState | undefined) ?? 'idle';
+
+/** A guard ends the landing if the hero never shows. */
+function LandingGuard({ onLanded }: { onLanded?: () => void }) {
   useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      const hero = document.querySelector<HTMLElement>(HERO_SPOT);
-      const s = hero?.dataset.mascotState as MascotState | undefined;
-      if (s) setState(s);
-    });
     const guard = window.setTimeout(() => onLanded?.(), MS.landing + 600);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(guard);
-    };
+    return () => window.clearTimeout(guard);
   }, [onLanded]);
   return null;
 }

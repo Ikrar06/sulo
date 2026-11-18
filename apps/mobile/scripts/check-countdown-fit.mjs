@@ -32,7 +32,9 @@ async function check(lang, width, zoom) {
   const page = await context.newPage();
   await page.goto(`http://localhost:${PORT}/?lang=${lang}`);
   await page.waitForTimeout(600);
-  await page.getByRole('button', { name: lang === 'en' ? 'Sign in to SIKOLA' : 'Masuk ke SIKOLA' }).click();
+  // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+  await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+  await page.evaluate(() => window.__suloEnterDemo());
   await page.waitForTimeout(600);
   const later = page.getByRole('button', { name: lang === 'en' ? 'Later' : 'Nanti', exact: true });
   if (await later.isVisible()) await later.click();

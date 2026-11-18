@@ -20,6 +20,7 @@ import { SearchIcon } from '@sulo/ui/icons';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Card, Chip, EmptyCard } from '@sulo/ui/mobile/cards';
 import { CheckCircle, IconButton } from '@sulo/ui/mobile/controls';
+import { TaskCardView } from '@sulo/ui/mobile/task-card';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
 import { timeZone, useMobileData } from '../shell/data';
@@ -145,28 +146,18 @@ function TaskCard({ item, now, dueFormat, collapsing, onOpen, onDone, labels: t,
   const tone = due === null || isDone ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(due, now)];
   return (
     <div className={collapsing ? 'db-collapse' : undefined}>
-      <Card dense onPress={onOpen} label={item.task.name}>
-        {/* Row 1: the course; the time left in its urgency color, then the date when it fits. */}
-        <div className="flex items-center gap-2">
-          <span className="min-w-0 shrink">
-            <Chip small color={courseTint(item.courseColor)}>
-              {item.courseName}
-            </Chip>
-          </span>
-          <span className="ml-auto flex min-w-0 shrink-0 items-baseline justify-end overflow-hidden text-m12 whitespace-nowrap tabular-nums">
-            <span className={tone}>{relative}</span>
-            {due !== null && <span className="font-normal text-muted-foreground">&nbsp;· {formatShortDate(due, timeZone, m)}</span>}
-          </span>
-        </div>
-        {/* Row 2: the title (two lines at most) and the check circle at its middle. */}
-        <div className="mt-1 flex items-center gap-3">
-          <p className={`line-clamp-2 min-w-0 flex-1 text-m15 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{item.task.name}</p>
-          {/* 28 px, centered on the title without making the row taller. */}
-          <span className="-my-1 flex">
-            <CheckCircle checked={isDone} onChange={onDone} label={`${isDone ? t.markUndone : t.markDone}: ${item.task.name}`} />
-          </span>
-        </div>
-      </Card>
+      <TaskCardView
+        course={item.courseName}
+        color={courseTint(item.courseColor)}
+        title={item.task.name}
+        relative={relative}
+        tone={tone}
+        date={due !== null ? <span className="font-normal text-muted-foreground">&nbsp;· {formatShortDate(due, timeZone, m)}</span> : undefined}
+        done={isDone}
+        doneLabel={`${isDone ? t.markUndone : t.markDone}: ${item.task.name}`}
+        onDone={onDone}
+        onOpen={onOpen}
+      />
     </div>
   );
 }

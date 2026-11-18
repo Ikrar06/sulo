@@ -60,11 +60,17 @@ const nearestFuture = (items: Awaited<ReturnType<typeof pendingItems>>, now: num
   items.filter((i) => i.task.dueAt !== null && i.task.dueAt > now).sort((a, b) => a.task.dueAt! - b.task.dueAt!)[0] ?? null;
 
 /** The user's nearest task as the sample reminder; a synthetic one when there is none. */
-export async function readReminderSample(platform: Platform, w: OnboardingWords, m: Messages, locale: 'id' | 'en', timeZone: string): Promise<ReminderSample> {
-  const now = platform.clock.now();
-  const next = nearestFuture(await pendingItems(platform), now);
-  if (!next) return { title: w.reminders.sample.title, when: w.reminders.sampleWhen, course: w.reminders.sampleCourse };
-  return { title: next.task.name, when: taskDueLines(next.task.dueAt!, now, timeZone, m, locale, 'remaining').primary, course: next.courseName };
+export async function readReminderSample(platform: Platform, w: OnboardingWords): Promise<ReminderSample> {
+  const next = nearestFuture(await pendingItems(platform), platform.clock.now());
+  return next ? { title: next.task.name, course: next.courseName } : { title: w.reminders.sampleTitle, course: w.reminders.sampleCourse };
+}
+
+/** The real numbers the preparing screen's chips count up to. */
+export async function readCounts(platform: Platform): Promise<{ tasks: number; courses: number }> {
+  const userId = await currentUser(platform.store);
+  if (userId === null) return { tasks: 0, courses: 0 };
+  const courses = await readUser(platform.store, userId, 'courses');
+  return { tasks: (await pendingItems(platform)).length, courses: courses.filter(isCourseActive).length };
 }
 
 /** The three stages offered on screen 8 that are on now. */
@@ -83,12 +89,17 @@ export async function saveStages(platform: Platform, chosen: ReadonlySet<number>
   await writePrefs(platform.store, { reminders: { ...prefs.reminders, stages: all.length > 0 ? all : [180] } });
 }
 
-/** "{n} tugas terpantau, terdekat {waktu}." from the real data, or the empty line. */
-export async function doneSummary(platform: Platform, w: OnboardingWords, m: Messages, locale: 'id' | 'en', timeZone: string): Promise<string> {
+/** The done screen from the real data: how many tasks, when the nearest is due, and the followed courses as tiles. */
+export async function readDone(platform: Platform, m: Messages, locale: 'id' | 'en', timeZone: string): Promise<{ tasks: number; next: string | null; tiles: { name: string; color: number | null }[] }> {
   const now = platform.clock.now();
   const items = await pendingItems(platform);
-  if (items.length === 0) return w.done.empty;
-  const next = nearestFuture(items, now) ?? items.find((i) => i.task.dueAt !== null) ?? null;
-  const when = next?.task.dueAt ? taskDueLines(next.task.dueAt, now, timeZone, m, locale, 'remaining').primary : '';
-  return when ? w.done.summary(items.length, when) : w.done.empty;
+  const next = nearestFuture(items, now);
+  const userId = await currentUser(platform.store);
+  const courses = userId === null ? [] : (await readUser(platform.store, userId, 'courses')).filter(isCourseActive);
+  const colors = assignCourseColors(courses);
+  return {
+    tasks: items.length,
+    next: next?.task.dueAt ? taskDueLines(next.task.dueAt, now, timeZone, m, locale, 'remaining').primary : null,
+    tiles: courses.map((c) => ({ name: courseAlias(c), color: colors.get(c.id) ?? null })),
+  };
 }

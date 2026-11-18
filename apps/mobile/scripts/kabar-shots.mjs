@@ -24,7 +24,9 @@ async function run(scheme) {
   const shot = async (name) => (await page.waitForTimeout(400), page.screenshot({ path: join(out, `kabar-${scheme}-${name}.png`) }));
   await page.goto(`http://localhost:${PORT}/`);
   await page.waitForTimeout(600);
-  await page.getByRole('button', { name: 'Masuk ke SIKOLA' }).click();
+  // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+  await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+  await page.evaluate(() => window.__suloEnterDemo());
   await page.waitForTimeout(600);
   const later = page.getByRole('button', { name: 'Nanti', exact: true });
   if (await later.isVisible()) await later.click();

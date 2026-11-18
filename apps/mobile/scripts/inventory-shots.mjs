@@ -77,7 +77,9 @@ async function session(scheme, { query = '', lock = false, offline = false } = {
   };
   const signIn = async () => {
     await page.waitForTimeout(600);
-    await btn('Masuk ke SIKOLA').click();
+    // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+    await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+    await page.evaluate(() => window.__suloEnterDemo());
     await page.waitForTimeout(700);
     if (await btn('Nanti', true).isVisible().catch(() => false)) await btn('Nanti', true).click();
     await page.waitForTimeout(700);
@@ -99,7 +101,9 @@ async function session(scheme, { query = '', lock = false, offline = false } = {
 const MAIN = [
   ['onboarding', async ({ page, shot }) => (await page.waitForTimeout(700), shot('01-onboarding'))],
   ['izin notifikasi', async ({ page, btn, shot }) => {
-    await btn('Masuk ke SIKOLA').click();
+    // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+    await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
+    await page.evaluate(() => window.__suloEnterDemo());
     await page.waitForTimeout(800);
     await shot('02-izin-notifikasi');
     await btn('Nanti', true).click();

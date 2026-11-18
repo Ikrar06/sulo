@@ -33,6 +33,24 @@ class SuloSessionPlugin : Plugin() {
     private val vault by lazy { SessionVault(context) }
     private val http by lazy { SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)") }
 
+    // ---------- Haptics ----------
+
+    /**
+     * A light or a firm tick through the view's own haptic feedback: no
+     * permission, and Android's touch-feedback setting decides whether it is felt.
+     */
+    @PluginMethod
+    fun haptic(call: PluginCall) {
+        val firm = call.getString("kind") == "firm"
+        val constant = when {
+            firm && android.os.Build.VERSION.SDK_INT >= 30 -> android.view.HapticFeedbackConstants.CONFIRM
+            firm -> android.view.HapticFeedbackConstants.LONG_PRESS
+            else -> android.view.HapticFeedbackConstants.CLOCK_TICK
+        }
+        activity.runOnUiThread { bridge.webView.performHapticFeedback(constant) }
+        call.resolve()
+    }
+
     // ---------- Session ----------
 
     @PluginMethod
