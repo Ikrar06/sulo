@@ -1,6 +1,0 @@
-@import "tailwindcss";
-@import "./tokens.css";
-
-/* Full pages (dashboard, onboarding, privacy, dev pages): Tailwind scans the
-   whole project. The popup has its own entry (assets/popup.css) that scans
-   only what the popup renders, so dashboard classes never reach it. */

@@ -65,13 +65,13 @@ Full policy: [PRIVACY.md](PRIVACY.md).
 | (SIKOLA pages)    |                    |  notifications       |
 +-------------------+                    +----------+-----------+
                                                     |
-                                          lib/moodle/client.ts
+                                packages/core/src/moodle/client.ts
                                    allowlist, queue, budget, backoff
                                                     |
                                    sikola-v2.unhas.ac.id (JSON batch)
 ```
 
-All requests to SIKOLA leave from the service worker through one client. Pages that need HTML ask the service worker for it and parse it themselves. `lib/moodle` and `lib/radar` never touch browser APIs; storage, clock and fetch are injected so they can be tested in Node.
+All requests to SIKOLA leave from the service worker through one client. Pages that need HTML ask the service worker for it and parse it themselves. Everything in `packages/core` (moodle, radar, reminders, sync rules, NEOSIA projection and more) never touches browser APIs or the DOM; storage, clock, fetch and notifications come in through adaptors (`packages/core/src/platform`), so the same logic can be tested in Node and reused by the planned Android app.
 
 ## Tech stack
 
@@ -93,8 +93,9 @@ git config core.hooksPath .githooks   # leak scan and commit message checks
 | `pnpm build` | Production build to `.output/chrome-mv3` |
 | `pnpm zip` | Production zip in `.output/` |
 | `pnpm test` | Vitest, no browser needed |
-| `pnpm typecheck` | `wxt prepare` and `tsc --noEmit` |
-| `node scripts/check-leaks.mjs` | Scans the repository for personal or session data |
+| `pnpm typecheck` | `tsc` for `packages/core` (no DOM), then `wxt prepare` and `tsc --noEmit` for the extension |
+| `pnpm lint` | UI rules, the core's no-platform rule and the leak scan |
+| `pnpm check-leaks` | Scans the repository for personal or session data |
 
 Load the extension in your own Chrome profile, where you are logged in to SIKOLA:
 
@@ -104,20 +105,30 @@ Load the extension in your own Chrome profile, where you are logged in to SIKOLA
 
 Trial testers receive an installation guide directly from the maintainer.
 
-Asset scripts: `node scripts/build-mascot.mjs` rebuilds the static mascots. `sh scripts/build-icons.sh` rebuilds the 128 px icon and needs `rsvg-convert` (librsvg) installed locally.
+Asset scripts (in `apps/extension`): `node scripts/build-mascot.mjs` rebuilds the static mascots. `sh scripts/build-icons.sh` rebuilds the 128 px icon and needs `rsvg-convert` (librsvg) installed locally.
 
 ## Project structure
 
+A pnpm workspace:
+
 ```
-entrypoints/        background, content script, popup, recorder (dev only)
-lib/                shared logic; lib/moodle is the only path to SIKOLA
-components/ui/      shadcn/ui components
-assets/             design tokens (tailwind.css), fonts, brand assets
-public/icon/        extension icons
-tests/              Vitest suites
-fixtures/           sanitized test data only
-scripts/            leak scan, sanitizer, asset builders
+packages/core/            shared logic, no chrome.* and no DOM
+  src/moodle/             the only path to SIKOLA (client, calls, limits)
+  src/platform/           adaptor interfaces the apps implement
+apps/extension/           the browser extension (WXT)
+  entrypoints/            background, content script, popup, recorder (dev only)
+  components/ui/          shadcn/ui components
+  lib/                    extension-only helpers (messages, UI, dev tools)
+  src/platform/           chrome.* implementations of the adaptors
+  assets/                 design tokens (tailwind.css), fonts, brand assets
+  public/icon/            extension icons
+  tests/                  Vitest suites
+  fixtures/               sanitized test data only
+  scripts/                leak scan, sanitizer, asset builders
+apps/mobile/              the Android app (planned)
 ```
+
+Builds and zips still land in `.output/` at the repository root.
 
 ## Roadmap
 

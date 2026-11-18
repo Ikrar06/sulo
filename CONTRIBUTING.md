@@ -24,16 +24,16 @@ The second command enables two git hooks: a scan for personal or session data be
 | `pnpm build` | Production build in `.output/chrome-mv3` |
 | `pnpm test` | Vitest, no browser needed |
 | `pnpm typecheck` | `wxt prepare` and `tsc --noEmit` |
-| `node scripts/check-leaks.mjs` | Scans the repository for personal or session data |
+| `pnpm check-leaks` | Scans the repository for personal or session data |
 | `pnpm notify-icons` | Rebuilds the notification icons in `public/notify/` from the static mascots (needs `rsvg-convert`, see below) |
 
 To try the extension, open `chrome://extensions`, turn on Developer mode, choose "Load unpacked" and select the build folder.
 
-`pnpm build` and `pnpm zip:tester` also run `scripts/check-no-dev-code.mjs`, which fails if development-only code (the fixture recorder or the reminder simulator) ends up in the build.
+`pnpm build` and `pnpm zip:tester` also run `apps/extension/scripts/check-no-dev-code.mjs`, which fails if development-only code (the fixture recorder or the reminder simulator) ends up in the build.
 
 ### Notification icons
 
-Notifications cannot use SVG, so `public/notify/*.png` are built from the static mascots with `rsvg-convert` (librsvg) and committed, like the extension icons. Rebuild them only when the mascot changes (`node scripts/build-mascot.mjs`, then `pnpm notify-icons`). Installing `rsvg-convert`:
+Notifications cannot use SVG, so `apps/extension/public/notify/*.png` are built from the static mascots with `rsvg-convert` (librsvg) and committed, like the extension icons. Rebuild them only when the mascot changes (`node scripts/build-mascot.mjs`, then `pnpm notify-icons`). Installing `rsvg-convert`:
 
 | System | Command |
 |---|---|
@@ -48,7 +48,7 @@ Notifications cannot use SVG, so `public/notify/*.png` are built from the static
 These rules hold for every change, however small.
 
 1. **Read only.** No request may change data in SIKOLA: no submissions, no marking notifications as read, no keeping the session alive.
-2. **One gateway.** Every request to SIKOLA goes through `lib/moodle/client.ts`, which enforces the allowlist, the daily budget, the serial queue and backoff. No other code calls `fetch` against SIKOLA.
+2. **One gateway.** Every request to SIKOLA goes through `packages/core/src/moodle/client.ts`, which enforces the allowlist, the daily budget, the serial queue and backoff. No other code calls `fetch` against SIKOLA.
 3. **Never parallel.** Requests to SIKOLA run one at a time.
 4. **No background scraping.** HTML is fetched only when the user opens a view that needs it, and is then cached.
 5. **No disguise.** No changed user agent, no randomized patterns to avoid detection, no hidden requests.
@@ -60,8 +60,8 @@ These rules hold for every change, however small.
 
 ## Code conventions
 
-- TypeScript strict. Identifiers and comments in English, UI text in Indonesian, collected in `lib/i18n/id.ts`.
-- `lib/moodle/` and `lib/radar/` never import browser APIs. Storage, clock and fetch are injected so the code runs in Vitest.
+- TypeScript strict. Identifiers and comments in English, UI text in Indonesian, collected in `packages/core/src/i18n/id.ts`.
+- `packages/core` never imports browser APIs, WXT or the DOM (`pnpm lint` and its `tsconfig.json` enforce it). Storage, clock, fetch, alarms and notifications come in through the adaptors in `packages/core/src/platform`, so the code runs in Vitest and later in the Android app.
 - The service worker keeps no state in module variables. All state lives in storage.
 - Every Moodle response is validated with Zod. A validation failure is a parser problem, never empty data.
 - Logic never depends on interface text that Moodle translates (`formattedtime`, `activitystr`, `modname`, notification subjects, attendance labels). Identify kinds by codes (`modulename`, `module`, `component`, `eventtype`) and times by timestamps. If an HTML parser must use text, provide English and Indonesian variants with tests, and fall back to `unknown` for other languages.
@@ -87,7 +87,7 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`.
 
 1. Open an issue first for anything larger than a small fix.
 2. Keep each pull request focused on one change.
-3. Run `pnpm typecheck`, `pnpm test`, `pnpm build` and `node scripts/check-leaks.mjs` before pushing.
+3. Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` before pushing.
 4. Update the README, the changelog and code comments in the same pull request when behavior changes.
 5. Fill in the pull request template.
 
@@ -113,7 +113,7 @@ Tests use synthetic fixtures only:
 
 ## Request rules
 
-Sulo runs without official permission from the university for now, so its footprint must stay small and explainable. A change that adds requests to SIKOLA, or changes any limit in `lib/moodle/limits.ts`, needs to be discussed in an issue first. The same applies to any new manifest permission.
+Sulo runs without official permission from the university for now, so its footprint must stay small and explainable. A change that adds requests to SIKOLA, or changes any limit in `packages/core/src/moodle/limits.ts`, needs to be discussed in an issue first. The same applies to any new manifest permission.
 
 ## Changes that will not be accepted
 

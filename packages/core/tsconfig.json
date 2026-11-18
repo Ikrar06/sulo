@@ -1,0 +1,22 @@
+{
+  // No DOM and no extension APIs: the WebWorker library gives fetch, URL,
+  // crypto and timers, but no document, window, chrome or browser. A file
+  // that needs any of those does not belong in packages/core.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "WebWorker", "WebWorker.Iterable", "WebWorker.AsyncIterable"],
+    "types": [],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src"]
+}
