@@ -14,7 +14,7 @@ import { FEED_IDS, feedUrl } from '@sulo/core/calendar/feeds';
 import { monthGrid, shiftMonth } from '@sulo/core/calendar/month';
 import { calendarStatus } from '@sulo/core/calendar/status';
 import { googleSubscribeUrl } from '@sulo/core/calendar/subscribe-links';
-import { nextImportant, SHORT_LABEL_KATEGORI } from '@sulo/core/calendar/upcoming';
+import { nextImportant } from '@sulo/core/calendar/upcoming';
 import { buildTaskItems } from '@sulo/core/dashboard/tasks';
 import { formatClock } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
@@ -25,7 +25,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Card, Chip, EmptyCard, SectionHead, Tile } from '@sulo/ui/mobile/cards';
 import { IconButton, PillButton, Segmented } from '@sulo/ui/mobile/controls';
-import { courseTint, type TintColor } from '@sulo/ui/mobile/tint';
+import { courseTint, tintBg, type TintColor } from '@sulo/ui/mobile/tint';
 import { timeZone, useMobileData } from '../shell/data';
 
 type View = 'list' | 'month';
@@ -135,40 +135,36 @@ function Hero({ calendar, today, d, w }: { calendar: Parameters<typeof useWeekTe
   const range = useRange(d);
   const next = nextImportant(calendar, today);
   const c = next ? countdownOf(next.kegiatan, today) : null;
-  const short = next ? (SHORT_LABEL_KATEGORI.has(next.kegiatan.kategori) ? (w.app.shortKategori[next.kegiatan.kategori] ?? k.kategori[next.kegiatan.kategori]) : next.kegiatan.judul) : '';
-  // A sentence starts with a capital ("Finals in 12 days"); the label is lower case mid-sentence.
-  const label = short.charAt(0).toUpperCase() + short.slice(1);
-  const inDays = c?.kind === 'days' ? w.app.inDays(label, c.n) : null;
+  const days = c?.kind === 'days' ? w.app.daysLeftParts(c.n) : null;
   return (
     <Card hero>
       {next && c ? (
         <>
-          <p className="text-m12 text-muted-foreground">{next.kegiatan.judul}</p>
-          <p className="mt-1 text-m18">
-            {inDays ? (
+          {/* The event's name, how far off it is, then its dates: no label repeating the name. */}
+          <p className="text-m15">{next.kegiatan.judul}</p>
+          <p className="mt-1 text-m26 whitespace-nowrap">
+            {days ? (
               <>
-                {inDays[0]}
-                {/* The number and its unit never part. */}
-                <span className="whitespace-nowrap">
-                  <span className="db-accent-text text-m26 tabular-nums">{inDays[1]}</span>
-                  {inDays[2]}
-                </span>
+                <span className="db-accent-text tabular-nums">{days[0]}</span>
+                {days[1]}
               </>
+            ) : c.kind === 'today' ? (
+              k.countdown.today
+            ) : c.kind === 'tomorrow' ? (
+              k.countdown.tomorrow
             ) : (
-              `${label}: ${c.kind === 'today' ? k.countdown.today : c.kind === 'tomorrow' ? k.countdown.tomorrow : k.countdown.ongoingOpen}`
+              k.countdown.ongoingOpen
             )}
           </p>
-          <p className="text-m13 text-muted-foreground">{range(next.kegiatan)}</p>
+          <p className="text-m13 text-muted-foreground tabular-nums">{range(next.kegiatan)}</p>
         </>
       ) : (
         <p className="text-m15">{k.nothing}</p>
       )}
       {info.kind === 'week' && (
-        <div className="mt-4">
-          <div className="mb-2 flex justify-between text-m12 font-normal text-muted-foreground tabular-nums">
-            <span>{w.app.weekShort(info.nomor, info.total)}</span>
-          </div>
-          <WeekBar nomor={info.nomor} total={info.total} label={w.app.weekShort(info.nomor, info.total)} />
+        <div className="mt-4 flex items-center gap-3">
+          <WeekBar nomor={info.nomor} total={info.total} label={w.app.weekOf(info.nomor, info.total)} className="flex-1" />
+          <span className="shrink-0 text-m13 text-muted-foreground tabular-nums">{w.app.weekOf(info.nomor, info.total)}</span>
         </div>
       )}
     </Card>
@@ -204,7 +200,7 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
                   return (
                     <li key={e.id}>
                       <Card dense className="flex items-center gap-3">
-                        <Tile color={catTint(e.group)} size={44}>
+                        <Tile color={e.source.type === 'tugas' ? courseTint(e.source.courseColor) : catTint(e.group)} size={44}>
                           <span className="text-m18 leading-none tabular-nums">{Number(e.start.slice(8))}</span>
                           <span className="text-m11 text-muted-foreground">{formatDateKey(e.start, m.intl, { month: 'short' })}</span>
                         </Tile>
@@ -215,6 +211,10 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
                             {k2?.perkiraan ? ` · ${k.badge.perkiraan}` : ''}
                           </p>
                         </div>
+                        {/* The kind, small, at the card's lower right (its color is the tile's). */}
+                        <span className="shrink-0 self-end rounded-full px-2 text-m11 leading-5" style={{ background: tintBg(e.source.type === 'tugas' ? courseTint(e.source.courseColor) : catTint(e.group), 16, 'var(--m-card)') }}>
+                          {k.groups[e.group]}
+                        </span>
                       </Card>
                     </li>
                   );

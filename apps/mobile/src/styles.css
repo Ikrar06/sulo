@@ -114,3 +114,9 @@ body {
 .m-bar-grow { transform-origin: bottom; animation: m-bar-grow 240ms ease-out both; animation-delay: calc(var(--i, 0) * 20ms); }
 @keyframes m-bar-grow { from { transform: scaleY(0); } }
 @media (prefers-reduced-motion: reduce) { .m-bar-grow { animation: none; } }
+
+/* Offline and an ended session (M8c.1): the mascot keeps its own colors and
+   only its calm, half-closed eyes; no drifting Z (nothing is asleep). The
+   extension's sleepy look is unchanged (this file is the phone's only). */
+html .sulo-mascot.is-sleepy { --f1: var(--brand-amber); --f2: var(--brand-orange); --f3: var(--brand-crimson); }
+html .sulo-mascot .m-z { display: none; }

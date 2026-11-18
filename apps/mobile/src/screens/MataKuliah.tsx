@@ -16,7 +16,7 @@ import { ChevronDownIcon } from '@sulo/ui/icons';
 import { Card, EmptyCard } from '@sulo/ui/mobile/cards';
 import { Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet } from '@sulo/ui/mobile/sheet';
-import { tintVar } from '@sulo/ui/mobile/tint';
+import { initials, ON_SOLID, tintVar } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
 import { useMobileData } from '../shell/data';
 
@@ -52,9 +52,11 @@ export function MataKuliahScreen() {
             disabled={!on}
             onClick={() => setColorFor(c)}
             aria-label={t.colorButton(display, color === null ? t.colorAuto : t.colorNames[color - 1]!)}
-            className="m-hit m-press size-10 shrink-0 rounded-ctl outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-40"
-            style={{ background: on ? tintVar(color ? `course-${color}` : 'neutral') : 'var(--m-inset)' }}
-          />
+            className="m-hit m-press flex size-10 shrink-0 items-center justify-center rounded-ctl text-m13 font-semibold outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-40"
+            style={on ? { background: tintVar(color ? `course-${color}` : 'neutral'), ...ON_SOLID } : { background: 'var(--m-inset)', color: 'var(--muted)' }}
+          >
+            <span aria-hidden="true">{initials(display)}</span>
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -113,9 +115,9 @@ export function MataKuliahScreen() {
                     setColorFor(null);
                   }}
                   className={`m-hit flex aspect-square items-center justify-center rounded-full text-m12 outline-none focus-ring:ring-2 focus-ring:ring-focus ${chosen ? 'ring-2 ring-foreground ring-offset-2 ring-offset-[var(--m-card)]' : ''}`}
-                  style={{ background: shown ? tintVar(`course-${shown}`) : 'var(--m-inset)' }}
+                  style={shown ? { background: tintVar(`course-${shown}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}
                 >
-                  {n === null && <span className="rounded-full bg-m-card px-2 text-m11">A</span>}
+                  {n === null && <span className="rounded-full bg-m-card px-2 text-m11 text-foreground">A</span>}
                 </button>
               );
             })}

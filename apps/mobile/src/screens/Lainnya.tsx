@@ -1,10 +1,11 @@
 // Lainnya (M8c.1, cards): a profile card (the mascot, "Terhubung ke
 // SIKOLA", when it was updated, a small Keluar pill that asks first), a
 // two-column grid of tiles for the other pages (Kabar terbaru carries its
-// unseen count), and the disclaimer. Jadwal and Nilai come with NEOSIA (M8d).
+// unseen count), a short "Dukung Sulo" card, and the disclaimer last. Jadwal and Nilai come with NEOSIA (M8d).
 
 import { useState, type ComponentType, type SVGProps } from 'react';
 import { formatAgo } from '@sulo/core/format/time';
+import { FEEDBACK_FORM_URL, isShownLink, TRAKTEER_URL } from '@sulo/core/links';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { BookIcon, GearIcon, HelpIcon, InfoIcon, NewsIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
@@ -63,6 +64,26 @@ export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; on
           </li>
         ))}
       </ul>
+
+      {(isShownLink(TRAKTEER_URL) || isShownLink(FEEDBACK_FORM_URL)) && (
+        <Card>
+          <h2 className="text-m15 font-semibold">{d.tentang.supportTitle}</h2>
+          <p className="mt-1 text-m13 text-muted-foreground">{d.tentang.supportNote}</p>
+          <div className="mt-3 flex gap-2">
+            {isShownLink(TRAKTEER_URL) && (
+              <PillButton kind="primary" small href={TRAKTEER_URL}>
+                {d.tentang.coffee}
+                <span className="sr-only"> {d.tentang.coffeeHint}</span>
+              </PillButton>
+            )}
+            {isShownLink(FEEDBACK_FORM_URL) && (
+              <PillButton small href={FEEDBACK_FORM_URL}>
+                {d.tentang.feedback}
+              </PillButton>
+            )}
+          </div>
+        </Card>
+      )}
 
       <p className="text-center text-m12 font-normal text-muted-foreground">{w.unofficial}</p>
 

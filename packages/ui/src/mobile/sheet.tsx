@@ -3,8 +3,8 @@
 // Built on Radix Dialog for focus and Back/Escape handling.
 
 import { Dialog } from 'radix-ui';
-import type { ReactNode } from 'react';
-import { CheckIcon } from '../icons';
+import type { ComponentType, ReactNode, SVGProps } from 'react';
+import { CheckIcon, ChevronRightIcon } from '../icons';
 
 export function Sheet({ open, onOpenChange, title, children }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; children: ReactNode }) {
   return (
@@ -31,6 +31,23 @@ export function SheetOptions<T extends string | number>({ value, options, onChoo
             {o.dot && <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ background: o.dot }} />}
             <span className="min-w-0 flex-1">{o.label}</span>
             {o.value === value && <CheckIcon className="size-4" />}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** A menu in a sheet: one 52 px row per action, an icon, its label and a chevron; rows inside one inset card with hairlines between. */
+export function SheetMenu({ items }: { items: readonly { label: string; icon: ComponentType<SVGProps<SVGSVGElement>>; onPress: () => void }[] }) {
+  return (
+    <ul className="rounded-card bg-m-inset px-4 py-1">
+      {items.map((it) => (
+        <li key={it.label} className="[&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
+          <button type="button" onClick={it.onPress} className="flex min-h-13 w-full items-center gap-3 text-left text-m15 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+            <it.icon aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 flex-1">{it.label}</span>
+            <ChevronRightIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
           </button>
         </li>
       ))}

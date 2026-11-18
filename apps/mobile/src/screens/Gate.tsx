@@ -90,9 +90,10 @@ export function LockScreen({ w, onUnlocked, onSignOut }: { w: MobileWords; onUnl
   }, []);
   const line = state === 'noDeviceLock' ? w.lock.noDeviceLock : state === 'failed' ? w.lock.failed : w.lock.body;
   return (
-    <main className={`${page} justify-end`}>
-      <div className="flex flex-col items-center text-center">
-        <IconTile color="neutral" icon={KeyIcon} size={44} />
+    <main className={page}>
+      {/* The content centered in the free height; the buttons stay at the bottom. */}
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <IconTile color="neutral" icon={KeyIcon} size={64} />
         <h1 className="mt-4 text-m26">{w.lock.title}</h1>
         <p role={state === 'waiting' ? undefined : 'status'} className="mt-2 text-m15 text-muted-foreground">
           {line}

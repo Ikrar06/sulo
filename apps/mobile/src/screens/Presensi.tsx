@@ -25,7 +25,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Card, Chip, EmptyCard, Tile } from '@sulo/ui/mobile/cards';
 import { ProgressRing } from '@sulo/ui/mobile/ring';
-import { courseTint, type TintColor } from '@sulo/ui/mobile/tint';
+import { courseTint, initials, type TintColor } from '@sulo/ui/mobile/tint';
 import { Private, usePrivacy } from '@sulo/ui/private';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
@@ -34,13 +34,7 @@ import { refreshPresensi } from '../sync';
 
 const pct = (v: number, locale: string) => v.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
 /** "Mekanika Fluida" -> "MF". */
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter((w) => /^[A-Za-z]/.test(w))
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join('');
+
 /** Alpa is the one status in the warning color. */
 const STATUS_TINT: Record<AttendanceStatus, TintColor | null> = { present: null, late: null, excused: null, unknown: null, absent: 'soon' };
 
@@ -162,7 +156,7 @@ function CourseCard({ course, color, row, fetched, d, w, locale, onOpen }: { cou
   const body = (
     <>
       <div className="flex items-center gap-3">
-        <Tile color={courseTint(color)} size={40}>
+        <Tile color={courseTint(color)} size={40} solid>
           {initials(name)}
         </Tile>
         <div className="min-w-0 flex-1">

@@ -130,10 +130,13 @@ const MAIN = [
     await page.waitForTimeout(400);
     await shot('07-rincian-tugas');
   }],
-  ['tunda', async ({ page, btn, shot, closeSheet }) => {
-    await btn('Tunda').click();
+  ['menu rincian dan tunda', async ({ page, btn, shot, closeSheet }) => {
+    await btn('Aksi lainnya', true).click();
     await page.waitForTimeout(400);
-    await shot('08-sheet-tunda');
+    await shot('08-sheet-aksi-lainnya');
+    await page.getByRole('dialog').getByRole('button', { name: /^Tunda/ }).click();
+    await page.waitForTimeout(450);
+    await shot('08b-sheet-tunda');
     await closeSheet();
   }],
   ['tugas filter tanggal', async ({ page, tab, shot, scroll }) => {

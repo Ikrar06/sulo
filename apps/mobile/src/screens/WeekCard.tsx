@@ -25,7 +25,10 @@ export function WeekCard({ bars, intl, words, onOpen }: { bars: readonly WeekBar
     <section aria-labelledby="week-title">
       <SectionHead id="week-title" title={words.title} />
       <Card>
-        {allZero && <p className="mb-3 text-m13 text-muted-foreground">{words.empty}</p>}
+        {/* No deadline in the week: the sentence alone, the card as tall as it. */}
+        {allZero ? (
+          <p className="text-m13 text-muted-foreground">{words.empty}</p>
+        ) : (
         <ol className="grid grid-cols-7">
           {bars.map((b, i) => {
             // "Jumat 20 November, 3 tenggat": the weekday and the date without Intl's comma between them.
@@ -58,6 +61,7 @@ export function WeekCard({ bars, intl, words, onOpen }: { bars: readonly WeekBar
             );
           })}
         </ol>
+        )}
       </Card>
     </section>
   );

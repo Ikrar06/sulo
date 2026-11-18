@@ -4,6 +4,9 @@
 // colors the way CSS color-mix(in oklch) does. No dependencies.
 // Usage: node scripts/contrast.mjs   (exit 1 when any pair is below 4.5:1)
 
+
+/** The phone's course colors, the same in both themes (apps/mobile/src/tokens.css). */
+const MOBILE_COURSE = ['#f28788', '#e39849', '#b0b246', '#5ec386', '#00c3cb', '#5db2f7', '#aa9cf7', '#dd8acb'];
 import { readFileSync } from 'node:fs';
 
 const css = readFileSync(new URL('../assets/tokens.css', import.meta.url), 'utf8');
@@ -137,6 +140,10 @@ function pairs(t, theme) {
           'mobile kartu: terlambat (--urgency-overdue di kartu)': [c('urgency-overdue'), L.card],
           'mobile kartu: tombol utama (--ink di oranye)': [c('ink'), orange],
           'mobile kartu: chip mata kuliah 16% (--text di tint)': [c('text'), mix(c('course-1'), L.card, 0.16)],
+          // The phone keeps the bright course set in both themes (apps/mobile/src/tokens.css).
+          ...Object.fromEntries(MOBILE_COURSE.map((h, i) => [`mobile: inisial di ubin mata kuliah ${i + 1} (teks gelap di warna solid)`, [hex('#111114'), hex(h)]])),
+          ...Object.fromEntries(MOBILE_COURSE.map((h, i) => [`mobile: chip mata kuliah ${i + 1} (--text di tint 18%)`, [c('text'), mix(hex(h), L.card, 0.18)]])),
+          ...Object.fromEntries(MOBILE_COURSE.map((h, i) => [`mobile: ikon di tint mata kuliah ${i + 1} (campuran 55%, min 3:1)`, [mix(hex(h), c('text'), 0.55), mix(hex(h), L.card, 0.18)]])),
           'mobile kartu: titik tab aktif (oranye di kartu, min 3:1)': [orange, L.card],
           'mobile kartu: tab tidak aktif (--muted di kartu)': [c('muted'), L.card],
           'mobile kartu: lingkaran centang (--muted di kartu, min 3:1)': [c('muted'), L.card],

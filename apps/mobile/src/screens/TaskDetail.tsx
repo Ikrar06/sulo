@@ -15,13 +15,13 @@ import { urgencyOf } from '@sulo/core/tasks/group';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, STEP_MAX, toggleStep } from '@sulo/core/tasks/local-state';
 import type { UnixSeconds } from '@sulo/core/types';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
-import { ClockIcon, PlusIcon, XIcon } from '@sulo/ui/dashboard-icons';
+import { ClockIcon, MoreIcon, PlusIcon, XIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { CalendarPlusIcon, ExternalIcon } from '@sulo/ui/icons';
 import { Card, Chip } from '@sulo/ui/mobile/cards';
 import { CheckCircle, IconButton, PillButton } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
-import { Sheet } from '@sulo/ui/mobile/sheet';
+import { Sheet, SheetMenu } from '@sulo/ui/mobile/sheet';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
 import { timeZone, useMobileData } from '../shell/data';
@@ -40,6 +40,7 @@ export function TaskScreen({ eventId }: { eventId: number }) {
   const [note, setNoteText] = useState(item?.state.note ?? '');
   const [noteSaved, setNoteSaved] = useState(false);
   const [snoozeOpen, setSnoozeOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const ids = { note: useId(), due: useId() };
   if (!item) return <p className="py-8 text-center text-m13 text-muted-foreground">{t.empty}</p>;
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
@@ -149,11 +150,20 @@ export function TaskScreen({ eventId }: { eventId: number }) {
               {isDone ? t.markUndone : t.markDone}
             </PillButton>
           </div>
-          <IconButton icon={ExternalIcon} inset label={d.common.openInSikola} href={item.task.url} />
-          {due !== null && <IconButton icon={CalendarPlusIcon} inset label={t.addToCalendar} onPress={() => actions.openExternal(googleCalendarUrl({ title: `${item.task.name} (${item.courseName})`, dueAt: due, details: m.popup.row.calendarDetails(item.courseName, item.task.url) }))} />}
-          {due !== null && item.status === 'pending' && <IconButton icon={ClockIcon} inset label={w.app.snoozeMenu} onPress={() => setSnoozeOpen(true)} />}
+          {/* One round button for the rest: a sheet of labeled rows. */}
+          <IconButton icon={MoreIcon} inset label={w.app.moreActions} onPress={() => setMenuOpen(true)} />
         </div>
       </div>
+
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen} title={w.app.moreActions}>
+        <SheetMenu
+          items={[
+            { label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) },
+            ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(googleCalendarUrl({ title: `${item.task.name} (${item.courseName})`, dueAt: due, details: m.popup.row.calendarDetails(item.courseName, item.task.url) }))) }] : []),
+            ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), setSnoozeOpen(true)) }] : []),
+          ]}
+        />
+      </Sheet>
 
       <Sheet open={snoozeOpen} onOpenChange={setSnoozeOpen} title={w.app.snoozeMenu}>
         <div className="space-y-2">
