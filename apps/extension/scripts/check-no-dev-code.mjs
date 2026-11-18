@@ -11,7 +11,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const MARKERS = ['connection/test', 'runConnectionTest', 'dev/record', 'dev/notify/simulate', 'dev/notify/reset', 'dev/radar/inject', 'dev/session/probe', 'recordFixtures', 'installDevTools', 'sulo-dev-diagnostics', 'Diagnostics (dev build only)', 'Info build dev', 'Dev build info', 'Perekam fixture', 'Fixture recorder', 'Panggilan fungsi hari ini', 'Function calls today', 'sulo:observe:v1', 'dev/neosia/observe', 'neosia:dev:observed', 'GPA check (dev build only)', 'Transcript check (dev build only)', 'Statistik pemakaian (lokal)', 'Usage statistics (local)', 'sulo-statistik-'];
-const PRODUCTION_MARKERS = ['global:requestLog', 'createRequestLogger', 'global:sessionAge', '#dev-sesi', 'Umur sesi SIKOLA'];
+const PRODUCTION_MARKERS = ['global:requestLog', 'createRequestLogger', 'global:sessionAge', '#dev-sesi', 'Umur sesi SIKOLA', 'Diagnosis presensi (build penguji)'];
 const args = process.argv.slice(2);
 const production = args.includes('--production');
 const root = args.find((a) => !a.startsWith('--'));

@@ -14,7 +14,7 @@ import { assignCourseColors } from '@sulo/core/courses/colors';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { formatAgo } from '@sulo/core/format/time';
-import { attendanceCmids, type PresensiOutcome } from '@sulo/core/presensi/service';
+import { courseStatus, diagnose, type PresensiOutcome } from '@sulo/core/presensi/service';
 import type { AttendanceStatus, RecapRow, SessionRow } from '@sulo/core/presensi/types';
 import { EMPTY_PRESENSI } from '@sulo/core/presensi/types';
 import type { CourseRecord } from '@sulo/core/types';
@@ -43,7 +43,10 @@ export function PresensiPage({ d, data, actions, route }: PageProps) {
     const outcome = (await actions.send({ type: 'presensi/refresh', target, courseId: courseId ?? undefined, force })) as PresensiOutcome | null;
     setBusy(false);
     setNote(
-      !outcome || outcome.status === 'ok' || outcome.status === 'fresh'
+      // No answer at all is a failure too: Perbarui is never silent.
+      !outcome
+        ? w.failed
+        : outcome.status === 'ok' || outcome.status === 'fresh'
         ? ''
         : outcome.status === 'cooldown'
           ? w.cooldown
@@ -73,7 +76,7 @@ export function PresensiPage({ d, data, actions, route }: PageProps) {
   const row = courseId === null ? undefined : rows.get(courseId);
   const detail = row ? presensi.details[String(row.cmid)] : undefined;
   const fetchedAt = course ? (detail?.fetchedAt ?? null) : (presensi.recap?.fetchedAt ?? null);
-  const withModule = useMemo(() => attendanceCmids(user.snapshots), [user.snapshots]);
+  const monitored = useMemo(() => new Set(followed.map((c) => c.id)), [followed]);
 
   return (
     <div className="space-y-4">
@@ -108,12 +111,37 @@ export function PresensiPage({ d, data, actions, route }: PageProps) {
         <Card>
           <ul className="divide-y divide-border">
             {followed.map((c) => (
-              <CourseRow key={c.id} course={c} color={colors.get(c.id) ?? null} row={rows.get(c.id)} known={presensi.recap !== null} hasModule={withModule.has(c.id)} w={w} locale={locale} />
+              <CourseRow key={c.id} course={c} color={colors.get(c.id) ?? null} row={rows.get(c.id)} fetched={presensi.recap !== null} w={w} locale={locale} />
             ))}
           </ul>
         </Card>
       )}
+      {/* Tester and development builds: how attendance looks in storage (counts and ids, no names). */}
+      {import.meta.env.MODE !== 'production' && <PresensiDiagnosisPanel diagnosis={diagnose(user.snapshots, presensi, monitored)} />}
     </div>
+  );
+}
+
+function PresensiDiagnosisPanel({ diagnosis: g }: { diagnosis: ReturnType<typeof diagnose> }) {
+  const line = (k: string, v: unknown) => (
+    <p>
+      <span className="text-muted-foreground">{k}: </span>
+      {typeof v === 'string' ? v : JSON.stringify(v)}
+    </p>
+  );
+  return (
+    <details className="rounded-xl border border-dashed border-border p-4 text-[12px] tabular-nums">
+      <summary className="cursor-pointer text-muted-foreground">Diagnosis presensi (build penguji)</summary>
+      <div className="mt-2 space-y-1">
+        {line('mata kuliah dengan snapshot struktur', `${g.coursesWithSnapshot} (dipantau ${g.followedWithSnapshot} dari ${g.followed})`)}
+        {line('modul attendance di snapshot', `${g.attendanceModules} (bisa dibuka ${g.attendanceVisible})`)}
+        {line('modul per modname', g.modulesByName)}
+        {line('cmid presensi yang diketahui', g.knownCmids)}
+        {line('rekap', g.recapFetched ? `${g.recapRows} baris dipantau, ${g.followedWithNumbers} dengan sesi tercatat` : 'belum diambil')}
+        {line('dipantau tapi tidak ada di rekap (course id)', g.followedNotInRecap)}
+        {line('hasil terakhir', g.lastOutcome ?? '-')}
+      </div>
+    </details>
   );
 }
 
@@ -132,9 +160,18 @@ function Bar({ percent }: { percent: number }) {
   );
 }
 
-function CourseRow({ course, color, row, known, hasModule, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; known: boolean; hasModule: boolean; w: W; locale: string }) {
+/** The line under a course name, from its status (presensi/service.ts courseStatus). */
+function courseLine(row: RecapRow | undefined, fetched: boolean, w: W): string {
+  const status = courseStatus(row, fetched);
+  if (status === 'not_fetched') return w.notFetched;
+  if (status === 'no_module') return w.noModule;
+  if (status === 'no_sessions') return w.noSessions;
+  return [w.taken(row!.taken), row!.points ? w.points(row!.points.got, row!.points.max) : null].filter(Boolean).join(' · ');
+}
+
+function CourseRow({ course, color, row, fetched, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; fetched: boolean; w: W; locale: string }) {
   const name = courseAlias(course);
-  const line = !row ? (known || !hasModule ? w.noModule : '') : row.taken === 0 ? w.noSessions : [w.taken(row.taken), row.points ? w.points(row.points.got, row.points.max) : null].filter(Boolean).join(' · ');
+  const line = courseLine(row, fetched, w);
   const content = (
     <div className="flex items-center gap-3 py-3">
       <Dot color={color} />
