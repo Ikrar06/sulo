@@ -50,6 +50,17 @@ export function formatClock(at: UnixSeconds, timeZone: string, m: Words = id): s
   return fmt(m.intl, timeZone, { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(at * 1000));
 }
 
+/**
+ * A wall-clock range from minutes after midnight (no date, no zone):
+ * "10.20–12.00" (id) and "10:20 AM–12:00 PM" (en).
+ */
+export function formatMinuteRange(start: number, end: number, locale: 'id' | 'en'): string {
+  const f = locale === 'en' ? fmt('en-US', 'UTC', { hour: 'numeric', minute: '2-digit', hour12: true }) : fmt('id-ID', 'UTC', { hour: '2-digit', minute: '2-digit', hour12: false });
+  // Newer ICU puts a narrow no-break space before AM/PM: one plain space everywhere.
+  const one = (minute: number) => f.format(new Date(Date.UTC(2000, 0, 1, 0, minute))).replace(/[\u202f\u00a0]/g, ' ');
+  return `${one(start)}–${one(end)}`;
+}
+
 export function formatShortDate(at: UnixSeconds, timeZone: string, m: Words = id): string {
   return fmt(m.intl, timeZone, { day: 'numeric', month: 'short' }).format(new Date(at * 1000));
 }

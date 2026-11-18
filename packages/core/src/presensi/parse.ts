@@ -105,6 +105,34 @@ export function startMinuteOf(raw: string): number | null {
   return h < 24 && min < 60 ? h * 60 + min : null;
 }
 
+const CLOCK = /^\s*(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?\s*$/i;
+
+/**
+ * "10:20AM - 12PM", "7:50 AM – 10:20 AM", "07.30 - 10.00", "13:00-15:00",
+ * "10:20 - 12PM" -> minutes after midnight of both ends; null when not a range.
+ */
+export function parseTimeRange(raw: string): { start: number; end: number } | null {
+  const parts = raw.split(/\s*[-–—]\s*|\s+(?:to|s\.?d\.?|sampai)\s+/i);
+  if (parts.length !== 2) return null;
+  const read = (t: string) => {
+    const m = CLOCK.exec(t);
+    return m ? { h: Number(m[1]), min: Number(m[2] ?? 0), ampm: m[3]?.toLowerCase().replace(/\./g, '') as 'am' | 'pm' | undefined } : null;
+  };
+  const a = read(parts[0]!);
+  const b = read(parts[1]!);
+  if (!a || !b) return null;
+  const toMinutes = (c: { h: number; min: number }, ampm: 'am' | 'pm' | undefined) => {
+    if (c.min > 59 || (ampm ? c.h < 1 || c.h > 12 : c.h > 23)) return null;
+    const h = ampm === 'pm' ? (c.h % 12) + 12 : ampm === 'am' ? c.h % 12 : c.h;
+    return h * 60 + c.min;
+  };
+  const end = toMinutes(b, b.ampm);
+  // A start without AM/PM takes the end's, unless that would put it after the end ("10:20 - 12PM").
+  let start = toMinutes(a, a.ampm ?? b.ampm);
+  if (start !== null && end !== null && !a.ampm && b.ampm && start > end) start = toMinutes(a, b.ampm === 'pm' ? 'am' : 'pm');
+  return start !== null && end !== null && end > start ? { start, end } : null;
+}
+
 /**
  * The date cell: "Wed 8.10.25<br>7:30AM - 10AM" (two lines) or, as SIKOLA
  * writes it, "Thu 20 Aug 2026 7:50AM - 10:20AM" (one line): split at the

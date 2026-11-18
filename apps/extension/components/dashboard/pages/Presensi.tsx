@@ -15,6 +15,7 @@ import { courseAlias } from '@sulo/core/courses/display-name';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { formatAgo } from '@sulo/core/format/time';
 import { courseStatus, diagnose, type PresensiOutcome } from '@sulo/core/presensi/service';
+import { remarkText, sessionTimeText } from '@sulo/core/presensi/display';
 import type { AttendanceStatus, RecapRow, SessionRow } from '@sulo/core/presensi/types';
 import { EMPTY_PRESENSI } from '@sulo/core/presensi/types';
 import type { CourseRecord } from '@sulo/core/types';
@@ -224,7 +225,7 @@ function SessionsSkeleton() {
   );
 }
 
-function Detail({ course, color, row, sessions, loading, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; sessions: SessionRow[] | null; loading: boolean; w: W; locale: string }) {
+function Detail({ course, color, row, sessions, loading, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; sessions: SessionRow[] | null; loading: boolean; w: W; locale: 'id' | 'en' }) {
   const masked = usePrivacy();
   return (
     <Card
@@ -249,13 +250,13 @@ function Detail({ course, color, row, sessions, loading, w, locale }: { course: 
             <li key={`${s.dateText}-${i}`} className="flex items-start gap-3 py-3">
               <div className="w-36 shrink-0 text-[12px] tabular-nums">
                 <p className="font-medium">{s.dateText}</p>
-                <p className="text-muted-foreground">{s.timeText}</p>
+                <p className="text-muted-foreground">{sessionTimeText(s.timeText, locale)}</p>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[14px]">{s.description}</p>
                 {s.remarks && !masked && (
                   <p className="text-[12px] text-muted-foreground">
-                    {w.remarks}: <Private>{s.remarks}</Private>
+                    {w.remarks}: <Private>{remarkText(s.remarks, locale)}</Private>
                   </p>
                 )}
               </div>
