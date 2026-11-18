@@ -1,4 +1,4 @@
-package io.github.ikrar06.sulo.session
+package dev.ikrar.sulo.session
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,12 +17,11 @@ class SikolaTextTest {
     }
 
     @Test
-    fun cookieValueAndNamesOnly() {
+    fun cookieValue() {
         val header = "MOODLEID1_=x; MoodleSession=abcdef123456; BIGipServer=y"
         assertEquals("abcdef123456", SikolaText.cookieValue(header, "MoodleSession"))
         assertNull(SikolaText.cookieValue("other=1", "MoodleSession"))
         assertNull(SikolaText.cookieValue(null, "MoodleSession"))
-        assertEquals(listOf("BIGipServer", "MOODLEID1_", "MoodleSession"), SikolaText.cookieNames(header))
     }
 
     @Test

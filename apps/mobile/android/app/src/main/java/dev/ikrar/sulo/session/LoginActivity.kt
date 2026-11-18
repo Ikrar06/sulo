@@ -1,4 +1,4 @@
-package io.github.ikrar06.sulo.session
+package dev.ikrar.sulo.session
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -14,9 +14,9 @@ import android.webkit.WebViewClient
  * any kind is added to the page (CLAUDE.md, mobile rule 8). The user types
  * the password into SIKOLA itself; Sulo never sees it.
  *
- * Once a signed-in SIKOLA page loads, the MoodleSession cookie is read from
- * CookieManager, encrypted into the vault, and the screen closes. The cookie
- * never travels in an Intent and never reaches JavaScript.
+ * On the first signed-in SIKOLA page, the MoodleSession cookie is read from
+ * CookieManager and handed to the vault through [Captured]; the screen then
+ * closes. The cookie never travels in an Intent and never reaches JavaScript.
  */
 class LoginActivity : Activity() {
     private lateinit var webView: WebView
@@ -50,23 +50,20 @@ class LoginActivity : Activity() {
         cookies.flush()
         val session = SikolaText.cookieValue(cookies.getCookie(Sikola.ORIGIN), Sikola.SESSION_COOKIE) ?: return
         done = true
-        SessionVault(this).apply {
-            save(session)
-            expired = false
-        }
-        // Names only, for the spike report (never values).
-        getSharedPreferences(SessionVault.PREFS_DIAG, MODE_PRIVATE).edit()
-            .putString("cookieNames", SikolaText.cookieNames(cookies.getCookie(Sikola.ORIGIN)).joinToString(","))
-            .putString("landedPath", runCatching { java.net.URI(url ?: "").path }.getOrNull() ?: "")
-            .commit()
+        Captured.moodleSession = session
         setResult(RESULT_OK)
         finish()
     }
-
-    private val url: String? get() = webView.url
 
     override fun onDestroy() {
         webView.destroy()
         super.onDestroy()
     }
+}
+
+/** Hand-over from the login screen to the plugin inside this process; emptied as soon as it is read. */
+internal object Captured {
+    @Volatile var moodleSession: String? = null
+
+    fun take(): String? = moodleSession.also { moodleSession = null }
 }

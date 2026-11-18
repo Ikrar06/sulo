@@ -1,4 +1,4 @@
-package io.github.ikrar06.sulo.session
+package dev.ikrar.sulo.session
 
 import java.net.URI
 
@@ -36,8 +36,4 @@ object SikolaText {
     /** "a=1; MoodleSession=x; b=2" -> the value of one cookie. */
     fun cookieValue(header: String?, name: String): String? =
         header?.split(';')?.map { it.trim() }?.firstOrNull { it.startsWith("$name=") }?.substringAfter('=')?.takeIf { it.isNotEmpty() }
-
-    /** Cookie names only, for diagnostics (never values). */
-    fun cookieNames(header: String?): List<String> =
-        header?.split(';')?.mapNotNull { it.trim().substringBefore('=').takeIf { n -> n.isNotEmpty() } }?.sorted() ?: emptyList()
 }

@@ -4,8 +4,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // only in SuloSession's native login screen; its cookie never reaches this
 // WebView or its JavaScript (CLAUDE.md, mobile rules).
 const config: CapacitorConfig = {
-  // Under the maintainer's GitHub namespace; it can never change after the first release.
-  appId: 'io.github.ikrar06.sulo',
+  // Final (M8b): it can never change after the first release.
+  appId: 'dev.ikrar.sulo',
   appName: 'Sulo',
   webDir: 'dist',
   android: {

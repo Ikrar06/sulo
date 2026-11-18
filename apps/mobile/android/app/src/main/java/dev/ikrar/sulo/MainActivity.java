@@ -1,8 +1,8 @@
-package io.github.ikrar06.sulo;
+package dev.ikrar.sulo;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
-import io.github.ikrar06.sulo.session.SuloSessionPlugin;
+import dev.ikrar.sulo.session.SuloSessionPlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override

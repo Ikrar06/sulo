@@ -14,7 +14,8 @@
     "live": "node scripts/live.mjs",
     "web:shots": "node scripts/web-shots.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "lint": "node scripts/check-native-logs.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.6.2",

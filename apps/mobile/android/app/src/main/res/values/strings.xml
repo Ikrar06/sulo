@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Sulo</string>
     <string name="title_activity_main">Sulo</string>
-    <string name="package_name">io.github.ikrar06.sulo</string>
-    <string name="custom_url_scheme">io.github.ikrar06.sulo</string>
+    <string name="package_name">dev.ikrar.sulo</string>
+    <string name="custom_url_scheme">dev.ikrar.sulo</string>
 </resources>
