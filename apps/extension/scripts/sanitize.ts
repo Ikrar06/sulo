@@ -1,11 +1,14 @@
-// Sanitizes a JSON file with the same rules the fixture recorder uses.
-// Usage: node scripts/sanitize.ts <input.json> <output.json> [--shift-days N]
+// Sanitizes a JSON file with the same rules the fixture recorder uses, or a
+// saved SIKOLA attendance page (.html, sanitize/html.ts).
+// Usage: node scripts/sanitize.ts <input.json|.html> <output> [--shift-days N]
 // Runs on Node 24+ (built-in TypeScript type stripping), no build step.
 // Refuses to write the output if a leak pattern survives sanitization.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { sanitizeJson } from '../../../packages/core/src/sanitize/json.ts';
+import { sanitizeAttendanceHtml, signedInNames } from '../../../packages/core/src/sanitize/html.ts';
+import { PAGE_USER_ORDER, pageUserCandidates, pageUserId } from '../../../packages/core/src/presensi/page-user.ts';
 import { findLeaks } from '../../../packages/core/src/sanitize/leak-rules.mjs';
 
 const SIKOLA_ORIGIN = 'https://sikola-v2.unhas.ac.id';
@@ -25,6 +28,8 @@ function main(argv: string[]): number {
     return 2;
   }
 
+  if (input.endsWith('.html')) return sanitizeHtmlFile(input, output);
+
   let raw: unknown;
   try {
     raw = JSON.parse(readFileSync(input, 'utf8'));
@@ -43,6 +48,27 @@ function main(argv: string[]): number {
   }
   writeFileSync(output, text);
   console.log(`Tersanitasi: ${output}`);
+  return 0;
+}
+
+/** HTML: counts only on screen, never a replaced value. */
+function sanitizeHtmlFile(input: string, output: string): number {
+  const raw = readFileSync(input, 'utf8');
+  const { html, report } = sanitizeAttendanceHtml(raw);
+  const leaks = [...new Set(findLeaks(html, 'fixtures/synthetic/page.html'))];
+  // The user's own name must be gone, whatever form it took.
+  const nameLeft = signedInNames(raw).some((n) => html.toLowerCase().includes(n.toLowerCase()));
+  if (leaks.length > 0 || nameLeft || !report.keptRegion || report.personMarkersLeft > 0) {
+    console.error(`Belum aman: ${[...leaks, ...(nameLeft ? ['nama pengguna masih ada'] : []), ...(report.keptRegion ? [] : ['region utama tidak ditemukan']), ...(report.personMarkersLeft > 0 ? [`${report.personMarkersLeft} penanda pengguna tersisa`] : [])].join(', ')}. Berkas tidak ditulis.`);
+    return 1;
+  }
+  writeFileSync(output, html);
+  console.log(`Tersanitasi: ${output}`);
+  // Where the page names its account (counts and agreement only, never an id).
+  const found = pageUserCandidates(raw);
+  const distinct = new Set(PAGE_USER_ORDER.flatMap((s) => found[s]));
+  console.log(`Penanda akun: ${PAGE_USER_ORDER.map((s) => `${s} ${found[s].length}x (${new Set(found[s]).size} nilai)`).join(', ')}; semua sumber sepakat: ${distinct.size === 1 ? 'ya' : distinct.size === 0 ? 'tidak ada' : 'tidak'}; terbaca: ${pageUserId(raw) !== null ? 'ya' : 'tidak'}`);
+  console.log(`Diganti atau dibuang: ${Object.entries(report).filter(([k]) => k !== 'keptRegion').map(([k, v]) => `${k} ${v}`).join(', ')}`);
   return 0;
 }
 

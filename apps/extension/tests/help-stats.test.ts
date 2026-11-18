@@ -16,6 +16,7 @@ describe('help content', () => {
       'macos',
       'kabar-lama',
       'mata-kuliah-aktif',
+      'presensi-diperbarui',
       'akun-lain',
       'hapus-data',
       'resmi',

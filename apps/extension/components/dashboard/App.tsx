@@ -20,6 +20,7 @@ const PAGES: Record<Page, ComponentType<PageProps>> = {
   ringkasan: lazy(() => import('./pages/Ringkasan').then((m) => ({ default: m.RingkasanPage }))),
   tugas: lazy(() => import('./pages/Tugas').then((m) => ({ default: m.TugasPage }))),
   'mata-kuliah': lazy(() => import('./pages/MataKuliah').then((m) => ({ default: m.MataKuliahPage }))),
+  presensi: lazy(() => import('./pages/Presensi').then((m) => ({ default: m.PresensiPage }))),
   kabar: lazy(() => import('./pages/Kabar').then((m) => ({ default: m.KabarPage }))),
   kalender: lazy(() => import('./pages/Kalender').then((m) => ({ default: m.KalenderPage }))),
   jadwal: lazy(() => import('./pages/Jadwal').then((m) => ({ default: m.JadwalPage }))),
@@ -40,7 +41,7 @@ const DEV_SESSION_HASH = '#dev-sesi';
 const REFRESH_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender']);
 
 /** Data pages: they show the status notice (expired session, data that could not be updated). */
-const DATA_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender', 'mata-kuliah']);
+const DATA_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender', 'mata-kuliah', 'presensi']);
 
 /** Pages that work without a connected account. */
 const WITHOUT_ACCOUNT: ReadonlySet<Page> = new Set(['kalender', 'jadwal', 'nilai', 'pengaturan', 'bantuan', 'tentang']);

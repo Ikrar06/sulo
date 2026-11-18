@@ -157,6 +157,16 @@ export const FAQ: FaqEntry[] = [
     ],
   },
   {
+    id: 'presensi-diperbarui',
+    q: { id: 'Seberapa sering presensi diperbarui?', en: 'How often is attendance updated?' },
+    a: [
+      {
+        id: 'Rekap presensi diperbarui otomatis paling sering sekali sehari. Rincian per pertemuan diambil saat kamu membukanya.',
+        en: 'The attendance recap updates automatically at most once a day. Per-session details are fetched when you open them.',
+      },
+    ],
+  },
+  {
     id: 'akun-lain',
     q: { id: 'Apa yang terjadi kalau aku masuk SIKOLA dengan akun lain?', en: 'What happens if I sign in to SIKOLA with another account?' },
     a: [

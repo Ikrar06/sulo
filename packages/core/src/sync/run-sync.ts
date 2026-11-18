@@ -26,6 +26,9 @@ import {
   TTL_TOLERANCE_MIN,
 } from '../moodle/limits';
 import { applyRadarResults, planRadarCalls, type RadarMode } from '../radar/sync-step';
+import { activeCourseIds } from '../courses/active-score';
+import { readPresensi, refreshRecap } from '../presensi/service';
+import { PRESENSI_CACHE_SEC } from '../presensi/rules';
 import { recordFailure } from '../moodle/backoff';
 import { planBatch } from './plan-batch';
 import { ACCOUNT_PENDING_KEY, mayCheckWhilePending, newPending, readPending, resolveCheck, type AccountPending } from '../account/pending';
@@ -36,7 +39,7 @@ import { backgroundBlockReason, type IdleState } from '../schedule';
 import { DEFAULT_SYNC_STATUS, readSyncStatus, readUser, SYNC_STATUS_KEY, switchUser, writeUser, type SyncStatus } from '../storage';
 import { mergeTasks, upcomingCourseIds } from '../tasks/from-calendar';
 import { pruneTaskState } from '../tasks/local-state';
-import type { Clock, CourseRecord, KeyValueStore, SyncOutcome, SyncTrigger, UnixSeconds, UserId } from '../types';
+import type { Clock, CourseRecord, KeyValueStore, SyncOutcome, SyncTrigger, Task, UnixSeconds, UserId } from '../types';
 import { currentUser } from '../storage';
 
 export interface SyncDeps {
@@ -246,26 +249,54 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   // The radar only reads results for the user it planned for (a different
   // account was just wiped by switchUser and starts with its own baseline).
   if (knownUser === userId) {
-    const radar = await applyRadarResults(deps.store, {
-      userId,
-      now,
-      origin: deps.origin ?? SIKOLA_ORIGIN,
-      plan: radarPlan,
-      results: radarResults,
-      previousTasks,
-      nextTasks: calendarMerged ? tasks : null,
-    });
-    broken.push(...radar.broken);
-    // Every course structure failed with a server error while the session
-    // call worked: SIKOLA itself is in trouble. One domain failure for backoff.
-    if (radar.sikolaTrouble) await recordFailure(deps.store, deps.clock, null);
+    // The radar never stops the tasks: an unexpected error is recorded for
+    // the diagnosis (name only) and the sync goes on.
+    try {
+      const radar = await applyRadarResults(deps.store, {
+        userId,
+        now,
+        origin: deps.origin ?? SIKOLA_ORIGIN,
+        plan: radarPlan,
+        results: radarResults,
+        previousTasks,
+        nextTasks: calendarMerged ? tasks : null,
+      });
+      broken.push(...radar.broken);
+      // Every course structure failed with a server error while the session
+      // call worked: SIKOLA itself is in trouble. One domain failure for backoff.
+      if (radar.sikolaTrouble) await recordFailure(deps.store, deps.clock, null);
+    } catch (e) {
+      const meta = await readUser(deps.store, userId, 'radar');
+      await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: radarPlan.courseIds.length, stored: 0, errors: {}, notifications: 'skipped', failure: `exception:${e instanceof Error ? e.name : 'Error'}` } });
+    }
   }
 
+  // An account's first radar pass: its courses were only known from this
+  // batch (first sync, or an account just switched to), so the plan had no
+  // course structures. One follow-up batch now gives every course a
+  // baseline right away instead of a sync or more later; it runs once,
+  // since afterwards courses have check times.
+  let followUp: Awaited<ReturnType<typeof firstSyncRadar>> = 'skipped';
+  const neverChecked = Object.keys((await readUser(deps.store, userId, 'radar')).stateCheckedAt).length === 0;
+  if (knownUser !== userId || (neverChecked && radarPlan.courseIds.length === 0 && activeCourseIds(courses).size > 0)) {
+    followUp = await firstSyncRadar(deps, userId, courses, previousTasks, calendarMerged ? tasks : null, now, mode).catch(async (e: unknown) => {
+      const meta = await readUser(deps.store, userId, 'radar');
+      await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: `first_sync:${e instanceof Error ? e.name : 'Error'}` } });
+      return 'skipped' as const;
+    });
+  }
   const meta = await readUser(deps.store, userId, 'sync');
   await writeUser(deps.store, userId, 'sync', {
     lastSyncAt: broken.length === 0 ? now : meta.lastSyncAt,
     lastCourseListAt: courseListFetched ? now : meta.lastCourseListAt,
   });
+
+  // Attendance recap (M7.3, owner's rule of 18 Nov 2026): a separate GET
+  // after the main batch, in an account's first sync and then at most once
+  // per 24 hours; skipped in saver mode. Its failure never fails the sync.
+  // Not after a follow-up batch that saw another account or no session: the
+  // recap page carries no account to check.
+  if (mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) await autoRecap(deps, userId, courses, now, knownUser !== userId).catch(() => undefined);
 
   if (broken.length > 0) return { status: 'parser_broken', where: broken.join(', ') };
   return { status: 'ok', at: now, tasks: tasks.filter((t) => t.missingSince === null).length, courseListFetched };
@@ -316,4 +347,44 @@ function transportOutcome(result: Exclude<BatchOutcome, { kind: 'ok' }>): SyncOu
 async function setStatus(store: KeyValueStore, patch: Partial<SyncStatus>): Promise<void> {
   const current = await readSyncStatus(store).catch(() => DEFAULT_SYNC_STATUS);
   await store.set(SYNC_STATUS_KEY, { ...current, ...patch });
+}
+
+/** The radar's follow-up batch in an account's first sync (see syncOnce). */
+async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], previousTasks: readonly Task[], nextTasks: readonly Task[] | null, now: UnixSeconds, mode: RadarMode): Promise<'ok' | 'mismatch' | 'unverified' | 'skipped'> {
+  const planned = await planRadarCalls(deps.store, userId, courses, now, mode === 'full' ? 'normal' : mode, nextTasks ?? previousTasks);
+  const plan = planBatch({ now, courseListDue: false, courseListMissing: false, radar: planned, userId, remaining: remainingQuota(await readBudget(deps.store, deps.clock)) }).radar;
+  if (plan.calls.length === 0) {
+    const meta = await readUser(deps.store, userId, 'radar');
+    await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: mode === 'saver' ? 'saver' : 'nothing_to_check' } });
+    return 'skipped';
+  }
+  // Every batch carries the session call: it alone may end the session.
+  const result = await deps.client.callBatch([calls.sessionTimeRemaining(), ...plan.calls], { source: deps.trigger });
+  if (result.kind !== 'ok') {
+    // Retried by the next sync, which plans the radar normally.
+    const meta = await readUser(deps.store, userId, 'radar');
+    await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: plan.courseIds.length, stored: 0, errors: {}, notifications: 'skipped', failure: `first_sync:${result.kind}` } });
+    return 'skipped';
+  }
+  // The session may have changed since the main batch: write nothing unless
+  // this batch answers for the same account (a switch is left to the popup).
+  const session = parseCall('core_session_time_remaining', result.results[0] ?? missing);
+  if (!session.ok) return 'unverified';
+  if (session.data.userid !== userId) {
+    await deps.store.set(ACCOUNT_PENDING_KEY, newPending(session.data.userid, now));
+    return 'mismatch';
+  }
+  await applyRadarResults(deps.store, { userId, now, origin: deps.origin ?? SIKOLA_ORIGIN, plan, results: result.results.slice(1), previousTasks, nextTasks });
+  return 'ok';
+}
+
+/** The attendance recap when due (presensi/service.ts refreshRecap). */
+async function autoRecap(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], now: UnixSeconds, firstForAccount: boolean): Promise<void> {
+  const data = await readPresensi(deps.store, userId);
+  if (data.recap !== null && now - data.recap.fetchedAt < PRESENSI_CACHE_SEC) return;
+  await refreshRecap(
+    { client: deps.client, store: deps.store, clock: deps.clock, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, userId, monitored: activeCourseIds(courses) },
+    // A course structure to find the activity only in the first sync, at most one; otherwise the radar's structures or a known cmid, else tomorrow.
+    { force: false, maxProbes: firstForAccount ? 1 : 0 },
+  );
 }

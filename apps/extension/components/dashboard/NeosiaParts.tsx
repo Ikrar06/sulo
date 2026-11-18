@@ -16,6 +16,7 @@ import type { Messages } from '@sulo/core/i18n';
 import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon, XIcon } from './icons';
 import { Card, CardLink } from './Shell';
 import { routeHash } from '@sulo/core/dashboard/routes';
+import { dashFor } from '@sulo/core/i18n/dashboard';
 import type { LinkedMeeting } from '@sulo/core/neosia/linked';
 import { completion, sourceStatuses } from '@sulo/core/neosia/sources';
 import { NEOSIA_KHS, NEOSIA_KRS } from '@sulo/core/links';
@@ -122,7 +123,47 @@ export function SurveyLine() {
  * and credits passed of the target on a solid neutral bar, GPA behind
  * "Tampilkan" (not remembered), semester GPA only when NEOSIA has one.
  */
-export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksTarget: number }) {
+/** "Presensi rata-rata 96,9%", to the Presensi page (M7.3). From stored data only, no request. */
+/** The Studi card's attendance: average, plus the lowest course when below it. */
+export interface AttendanceSummary {
+  average: number;
+  lowest: { name: string; percent: number } | null;
+}
+
+function AttendanceLine({ summary }: { summary: AttendanceSummary | null }) {
+  const { locale } = useI18n();
+  if (summary === null) return null;
+  const words = dashFor(locale).presensi;
+  const pct = (n: number) => n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+  return (
+    <div className="mt-3 text-[14px]">
+      <p className="flex items-center justify-between gap-2">
+        <span>{words.average(pct(summary.average))}</span>
+        <CardLink href={routeHash('presensi')}>{dashFor(locale).nav.presensi}</CardLink>
+      </p>
+      {summary.lowest && <p className="mt-1 truncate text-muted-foreground">{words.lowest(summary.lowest.name, pct(summary.lowest.percent))}</p>}
+    </div>
+  );
+}
+
+/**
+ * Studies card. NEOSIA parts only while that module is on; the attendance
+ * line whenever attendance data exists (it comes from SIKOLA).
+ */
+export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = null }: { snapshots: Snapshots; sksTarget: number; neosiaOn?: boolean; attendance?: AttendanceSummary | null }) {
+  const { locale } = useI18n();
+  const w = neosiaWords(locale).studi;
+  if (!neosiaOn) {
+    return attendance === null ? null : (
+      <Card title={w.title}>
+        <AttendanceLine summary={attendance} />
+      </Card>
+    );
+  }
+  return <NeosiaStudi snapshots={snapshots} sksTarget={sksTarget} attendance={attendance} />;
+}
+
+function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshots; sksTarget: number; attendance: AttendanceSummary | null }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).studi;
   const [shown, setShown] = useState(false);
@@ -135,6 +176,7 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
     return (
       <Card title={w.title} action={<CardLink href={routeHash('nilai')}>{w.seeGrades}</CardLink>}>
         <p className="text-[14px] text-muted-foreground">{neosiaWords(locale).checklist.waiting}</p>
+        <AttendanceLine summary={attendance} />
       </Card>
     );
   }
@@ -184,6 +226,7 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
           <Private>{w.advisor(advisor)}</Private>
         </p>
       )}
+      <AttendanceLine summary={attendance} />
     </Card>
   );
 }

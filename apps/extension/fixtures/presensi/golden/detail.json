@@ -1,0 +1,93 @@
+{
+  "kind": "ok",
+  "value": [
+    {
+      "dateText": "Wed 3.09.25",
+      "timeText": "7:30AM - 10AM",
+      "at": 1756855800,
+      "description": "Regular class session",
+      "status": "present",
+      "statusText": "Present",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Wed 10.09.25",
+      "timeText": "7:30AM - 10AM",
+      "at": 1757460600,
+      "description": "Regular class session",
+      "status": "late",
+      "statusText": "Late",
+      "points": {
+        "got": 1,
+        "max": 2
+      },
+      "remarks": "Catatan sintetis"
+    },
+    {
+      "dateText": "Wed 17.09.25",
+      "timeText": "7:30AM - 10AM",
+      "at": 1758065400,
+      "description": "Praktikum",
+      "status": "excused",
+      "statusText": "Excused",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": "Catatan sintetis"
+    },
+    {
+      "dateText": "Wed 24.09.25",
+      "timeText": "7:30AM - 10AM",
+      "at": 1758670200,
+      "description": "Regular class session",
+      "status": "absent",
+      "statusText": "Absent",
+      "points": {
+        "got": 0,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Wed 1.10.25",
+      "timeText": "7:30AM - 10AM",
+      "at": 1759275000,
+      "description": "Regular class session",
+      "status": "present",
+      "statusText": "Hadir",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Wed 8.10.25",
+      "timeText": "7:30AM - 10AM",
+      "at": 1759879800,
+      "description": "Kuliah tamu",
+      "status": "excused",
+      "statusText": "Sakit",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Wed 15.10.25",
+      "timeText": "1:00PM - 2:40PM",
+      "at": 1760504400,
+      "description": "Responsi",
+      "status": "unknown",
+      "statusText": "?",
+      "points": null,
+      "remarks": ""
+    }
+  ]
+}

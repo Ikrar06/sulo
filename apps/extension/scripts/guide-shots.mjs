@@ -20,6 +20,7 @@ import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { demoStorage } from './lib/demo-storage.mjs';
 import { demoNeosia } from './lib/demo-neosia.mjs';
+import { demoPresensi } from './lib/demo-presensi.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const ext = join(root, '../../.output/chrome-mv3-dev');
@@ -205,6 +206,20 @@ const STEPS = [
     },
   },
   {
+    // Synthetic attendance (scripts/lib/demo-presensi.mjs): the list, then one course's sessions.
+    id: 'presensi',
+    url: '/dashboard.html#presensi',
+    presensi: true,
+    viewport: { width: 1280, height: 860 },
+    area: async () => ({ x: 232, y: 64, width: 1048, height: 796 }),
+    play: async (p) => {
+      await p.waitForTimeout(700);
+      await moveTo(p, p.getByRole('link', { name: /Mekanika Fluida/i }).first(), 900);
+      await click(p, p.getByRole('link', { name: /Mekanika Fluida/i }).first(), 1400);
+      await moveTo(p, p.getByText(/Alpa|Absent/).first(), 1200);
+    },
+  },
+  {
     // With the synthetic NEOSIA demo data: the overview, then the Schedule page.
     id: 'jadwal',
     url: '/dashboard.html#ringkasan',
@@ -338,7 +353,7 @@ async function run() {
         let [sw] = ctx.serviceWorkers();
         if (!sw) sw = await ctx.waitForEvent('serviceworker');
         const extId = new URL(sw.url()).host;
-        const storage = { ...demoStorage(root), ...(step.neosia ? demoNeosia() : {}) };
+        const storage = { ...demoStorage(root), ...(step.neosia ? demoNeosia() : {}), ...(step.presensi ? demoPresensi() : {}) };
         storage['global:prefs'] = { ...(storage['global:prefs'] ?? {}), locale, theme };
         await sw.evaluate(async (s) => chrome.storage.local.set(s), storage);
         await new Promise((r) => setTimeout(r, 1000));

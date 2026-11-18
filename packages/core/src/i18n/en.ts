@@ -299,7 +299,7 @@ export const en: Messages = {
       checking: 'Checking SIKOLA...',
       waiting: 'Waiting for you to sign in to SIKOLA...',
       connected: 'Connected',
-      loading: 'Getting your course list...',
+      loading: 'Fetching tasks, calendar, and attendance...',
       retry: 'Try again',
       failed: (reason) => reason,
     },

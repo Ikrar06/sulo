@@ -4,6 +4,7 @@ import { pickSesskey } from '@sulo/core/sesskey';
 import { isLoggedOutPage, readPageSignals } from '@sulo/core/sikola/page-signals';
 import { SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import type { Message } from '@/lib/messages';
+import { attendanceCmidFromUrl } from '@sulo/core/presensi/urls';
 
 // Passive: reads the sesskey already present in the page DOM and hands it to
 // the service worker, or reports a logged-out page (login form, no sesskey;
@@ -13,6 +14,10 @@ export default defineContentScript({
   matches: ['https://sikola-v2.unhas.ac.id/*'],
   runAt: 'document_idle',
   main() {
+    // An attendance page the user opened: only the id from its URL, never the page.
+    const cmid = attendanceCmidFromUrl(location.href);
+    if (cmid !== null) browser.runtime.sendMessage({ type: 'presensi/seenCmid', cmid } satisfies Message).catch(() => undefined);
+
     const sesskey = pickSesskey(
       {
         inputValues: Array.from(

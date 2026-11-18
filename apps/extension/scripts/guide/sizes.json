@@ -26,5 +26,9 @@
   "jadwal": {
     "width": 1200,
     "height": 912
+  },
+  "presensi": {
+    "width": 1200,
+    "height": 912
   }
 }

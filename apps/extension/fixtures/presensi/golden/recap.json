@@ -1,0 +1,445 @@
+{
+  "kind": "ok",
+  "value": [
+    {
+      "courseId": 36673,
+      "cmid": 197570,
+      "taken": 16,
+      "points": {
+        "got": 31,
+        "max": 32
+      },
+      "percent": 96.9
+    },
+    {
+      "courseId": 48298,
+      "cmid": 307194,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 48306,
+      "cmid": 307242,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 36696,
+      "cmid": 197616,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 27349,
+      "cmid": 161358,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    },
+    {
+      "courseId": 48302,
+      "cmid": 307218,
+      "taken": 16,
+      "points": {
+        "got": 31,
+        "max": 32
+      },
+      "percent": 96.9
+    },
+    {
+      "courseId": 27337,
+      "cmid": 161298,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    },
+    {
+      "courseId": 36677,
+      "cmid": 197578,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 27329,
+      "cmid": 161258,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    },
+    {
+      "courseId": 99328,
+      "cmid": 1002635,
+      "taken": 16,
+      "points": {
+        "got": 30,
+        "max": 32
+      },
+      "percent": 93.8
+    },
+    {
+      "courseId": 36681,
+      "cmid": 197586,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 65953,
+      "cmid": 507164,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 65949,
+      "cmid": 507136,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 99330,
+      "cmid": 1002645,
+      "taken": 16,
+      "points": {
+        "got": 30,
+        "max": 32
+      },
+      "percent": 93.8
+    },
+    {
+      "courseId": 99341,
+      "cmid": 1002700,
+      "taken": 16,
+      "points": {
+        "got": 28,
+        "max": 32
+      },
+      "percent": 87.5
+    },
+    {
+      "courseId": 57979,
+      "cmid": 437696,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 27345,
+      "cmid": 161338,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    },
+    {
+      "courseId": 90519,
+      "cmid": 753258,
+      "taken": 16,
+      "points": {
+        "got": 31,
+        "max": 32
+      },
+      "percent": 96.9
+    },
+    {
+      "courseId": 65933,
+      "cmid": 507024,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 27341,
+      "cmid": 161318,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    },
+    {
+      "courseId": 36683,
+      "cmid": 197590,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 36669,
+      "cmid": 197562,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 65937,
+      "cmid": 507052,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 90496,
+      "cmid": 753097,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 90525,
+      "cmid": 753300,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 36693,
+      "cmid": 197610,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 90502,
+      "cmid": 753139,
+      "taken": 16,
+      "points": {
+        "got": 30,
+        "max": 32
+      },
+      "percent": 93.8
+    },
+    {
+      "courseId": 90502,
+      "cmid": 836186,
+      "taken": 32,
+      "points": {
+        "got": 2,
+        "max": 64
+      },
+      "percent": 3.1
+    },
+    {
+      "courseId": 48310,
+      "cmid": 307266,
+      "taken": 16,
+      "points": {
+        "got": 31,
+        "max": 32
+      },
+      "percent": 96.9
+    },
+    {
+      "courseId": 90494,
+      "cmid": 753083,
+      "taken": 16,
+      "points": {
+        "got": 29,
+        "max": 32
+      },
+      "percent": 90.6
+    },
+    {
+      "courseId": 48322,
+      "cmid": 307338,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 90488,
+      "cmid": 753041,
+      "taken": 16,
+      "points": {
+        "got": 30,
+        "max": 32
+      },
+      "percent": 93.8
+    },
+    {
+      "courseId": 36686,
+      "cmid": 197596,
+      "taken": 16,
+      "points": {
+        "got": 29,
+        "max": 32
+      },
+      "percent": 90.6
+    },
+    {
+      "courseId": 27325,
+      "cmid": 161238,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    },
+    {
+      "courseId": 48326,
+      "cmid": 307362,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 65945,
+      "cmid": 507108,
+      "taken": 16,
+      "points": {
+        "got": 30,
+        "max": 32
+      },
+      "percent": 93.8
+    },
+    {
+      "courseId": 27333,
+      "cmid": 161278,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    },
+    {
+      "courseId": 90506,
+      "cmid": 753167,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 65941,
+      "cmid": 507080,
+      "taken": 16,
+      "points": {
+        "got": 30,
+        "max": 32
+      },
+      "percent": 93.8
+    },
+    {
+      "courseId": 81772,
+      "cmid": 639058,
+      "taken": 16,
+      "points": {
+        "got": 31,
+        "max": 32
+      },
+      "percent": 96.9
+    },
+    {
+      "courseId": 90533,
+      "cmid": 753356,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 48318,
+      "cmid": 307314,
+      "taken": 16,
+      "points": {
+        "got": 32,
+        "max": 32
+      },
+      "percent": 100
+    },
+    {
+      "courseId": 99326,
+      "cmid": 1002625,
+      "taken": 16,
+      "points": {
+        "got": 27,
+        "max": 32
+      },
+      "percent": 84.4
+    },
+    {
+      "courseId": 27353,
+      "cmid": 161378,
+      "taken": 0,
+      "points": {
+        "got": 0,
+        "max": 0
+      },
+      "percent": null
+    }
+  ]
+}

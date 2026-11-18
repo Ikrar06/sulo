@@ -60,11 +60,14 @@ const run = (client: MoodleClient, store = memoryStore(), trigger: SyncTrigger =
   runSync({ client, store, clock: fixedClock('2026-09-22', hour, NOW), trigger, idleState: idle });
 
 describe('runSync', () => {
-  it('sends one batch with session and calendar, plus the course list on first run', async () => {
+  it('sends one batch with session and calendar, plus the course list on first run; then the radar follow-up once', async () => {
     const client = fakeClient();
     const store = memoryStore();
     const outcome = await run(client, store, 'onboarding');
-    expect(client.batches).toHaveLength(1);
+    // An account's first sync: the radar's follow-up batch (session call first) right after (M7.3 fix).
+    expect(client.batches).toHaveLength(2);
+    expect(client.batches[1]?.calls[0]?.methodname).toBe('core_session_time_remaining');
+    expect(client.batches[1]?.calls.filter((c) => c.methodname === 'core_courseformat_get_state').length).toBeGreaterThan(0);
     expect(client.batches[0]?.calls.map((c) => `${c.methodname}:${String(c.args.classification ?? '')}`)).toEqual([
       'core_session_time_remaining:',
       'core_calendar_get_action_events_by_timesort:',
@@ -87,10 +90,11 @@ describe('runSync', () => {
     await run(client, store, 'onboarding');
     await runSync({ client, store, clock: fixedClock('2026-09-22', 14, NOW + 4 * 3600), trigger: 'manual' });
     const courseListCalls = (i: number) => client.batches[i]?.calls.filter((c) => c.methodname === 'core_course_get_enrolled_courses_by_timeline_classification') ?? [];
-    expect(courseListCalls(1)).toHaveLength(0);
-    expect(client.batches[1]?.options).toEqual({ source: 'manual', withCourseList: false });
+    // Batch 0: first sync, 1: its radar follow-up.
+    expect(courseListCalls(2)).toHaveLength(0);
+    expect(client.batches[2]?.options).toEqual({ source: 'manual', withCourseList: false });
     await runSync({ client, store, clock: fixedClock('2026-09-23', 10, NOW + DAY), trigger: 'manual' });
-    expect(courseListCalls(2)).toHaveLength(2);
+    expect(courseListCalls(3)).toHaveLength(2);
   });
 
   // Replaces "skips a popup sync when data is younger than 15 minutes": the
@@ -101,8 +105,10 @@ describe('runSync', () => {
       const client = fakeClient();
       const store = memoryStore();
       await run(client, store, 'onboarding');
+      // The first sync's own batches (main and the radar follow-up) are not counted.
+      const first = client.batches.length;
       const outcome = await runSync({ client, store, clock: at(minutes), trigger, idleState: 'active' });
-      return { outcome, requests: client.batches.length - 1 };
+      return { outcome, requests: client.batches.length - first };
     };
 
     it('background waits out the 3-hour TTL (with 10 minutes of slack for alarm timing)', async () => {
@@ -132,7 +138,8 @@ describe('runSync', () => {
       await switchUser(store, 1);
       await writeUser(store, 1, 'sync', { lastSyncAt: NOW, lastCourseListAt: null });
       await runSync({ client, store, clock: at(1), trigger: 'onboarding' });
-      expect(client.batches).toHaveLength(1);
+      // The setup batch, then the radar's first pass (no course was ever checked).
+      expect(client.batches).toHaveLength(2);
     });
 
     it('signing in again (M7.2): skipped within 10 minutes of a good sync, otherwise one sync, quiet hours or not', async () => {
@@ -177,9 +184,9 @@ describe('runSync', () => {
       await run(client, store, 'onboarding');
       const lists = (i: number) => client.batches[i]!.calls.filter((c) => c.methodname === 'core_course_get_enrolled_courses_by_timeline_classification').length;
       await runSync({ client, store, clock: at(30), trigger: 'onboarding' });
-      expect(lists(1)).toBe(0);
+      expect(lists(2)).toBe(0);
       await runSync({ client, store, clock: at(60), trigger: 'onboarding', forceCourseList: true });
-      expect(lists(2)).toBe(2);
+      expect(lists(3)).toBe(2);
     });
   });
 
@@ -336,8 +343,9 @@ describe('jitterMinutes', () => {
       const store = memoryStore();
       await run(client, store, 'onboarding');
       await runSync({ client, store, clock: fixedClock('2026-09-22', 14, NOW + 4 * 3600), trigger: 'manual' });
-      const second = client.batches[1]!.calls.map((c) => c.methodname);
-      expect(client.batches).toHaveLength(2);
+      // Batches 0 and 1: the first sync and its radar follow-up; 2: this cycle, still one request.
+      const second = client.batches[2]!.calls.map((c) => c.methodname);
+      expect(client.batches).toHaveLength(3);
       expect(second.filter((m) => m === 'message_popup_get_popup_notifications')).toHaveLength(1);
       expect(second.filter((m) => m === 'core_courseformat_get_state').length).toBeLessThanOrEqual(5);
     });
