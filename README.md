@@ -130,6 +130,18 @@ apps/mobile/              the Android app (planned)
 
 Builds and zips still land in `.output/` at the repository root.
 
+## Verifikasi APK
+
+The Android app (in development) will be distributed as an APK on GitHub Releases, never through another channel. Before installing, check that the file is the one built here:
+
+1. Compare the file's SHA-256 with the `.sha256` file next to it on the release page:
+   `sha256sum sulo-<version>-android.apk` (macOS: `shasum -a 256 sulo-<version>-android.apk`).
+2. Check the signing certificate with `apksigner verify --print-certs sulo-<version>-android.apk` (from the Android build-tools). Its SHA-256 digest must be exactly:
+
+   `Sidik jari sertifikat SHA-256: belum ada (diisi saat kunci rilis dibuat)`
+
+An APK with another fingerprint is not from this project; do not install it. There is no release yet.
+
 ## Roadmap
 
 M0 scaffold and M1 request safety are done. Next: Today view (M2), reminders (M3), change radar (M4), dashboard and academic calendar (M5a), calendar export (M5b), attendance and next-day prep (M6), the optional NEOSIA module (M7), a course registration planner (M8), and course status rules (M9).

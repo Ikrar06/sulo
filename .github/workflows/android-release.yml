@@ -1,0 +1,81 @@
+name: Android rilis
+
+# Manual only. Builds a signed release APK from the repository secrets and
+# keeps it as an artifact with its SHA-256 and the certificate fingerprint.
+# Publishing a GitHub Release is a separate, deliberate step (not here).
+#
+# Secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS (optional, default "sulo"), ANDROID_KEY_PASSWORD
+# (optional, default the keystore password). See docs/MOBILE-SETUP.md.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Web (produksi) dan cap sync
+        working-directory: apps/mobile
+        run: pnpm exec vite build && pnpm exec cap sync android
+
+      - name: Kunci rilis dari secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || { echo "Secret ANDROID_KEYSTORE_BASE64 belum diisi."; exit 1; }
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/sulo-release.jks"
+
+      - name: APK rilis bertanda tangan
+        working-directory: apps/mobile/android
+        env:
+          SULO_KEYSTORE_FILE: ${{ runner.temp }}/sulo-release.jks
+          SULO_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          SULO_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          SULO_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon testReleaseUnitTest assembleRelease
+
+      - name: Verifikasi, SHA-256, sidik jari sertifikat
+        run: |
+          VERSION=$(node -p "require('./apps/mobile/package.json').version")
+          OUT=".output/sulo-$VERSION-android.apk"
+          mkdir -p .output
+          cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk "$OUT"
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          "$APKSIGNER" verify --verbose --print-certs "$OUT" | tee .output/signature.txt
+          (cd .output && sha256sum "sulo-$VERSION-android.apk" > "sulo-$VERSION-android.apk.sha256")
+          cat ".output/sulo-$VERSION-android.apk.sha256"
+          node apps/extension/scripts/check-leaks.mjs --zip "$OUT"
+
+      - name: Hapus kunci dari runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sulo-release.jks"
+
+      - name: Simpan APK rilis
+        uses: actions/upload-artifact@v7
+        with:
+          name: sulo-android-release
+          path: |
+            .output/sulo-*-android.apk
+            .output/sulo-*-android.apk.sha256
+            .output/signature.txt
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

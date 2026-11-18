@@ -28,8 +28,24 @@ android {
     kotlinOptions {
         jvmTarget = '21'
     }
+    // Release signing only on CI (.github/workflows/android-release.yml): the
+    // keystore comes from repository secrets into a temporary file and never
+    // lives in the repository. Without these variables a release build is
+    // unsigned.
+    signingConfigs {
+        release {
+            def keystore = System.getenv("SULO_KEYSTORE_FILE")
+            if (keystore) {
+                storeFile file(keystore)
+                storePassword System.getenv("SULO_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("SULO_KEY_ALIAS") ?: "sulo"
+                keyPassword System.getenv("SULO_KEY_PASSWORD") ?: System.getenv("SULO_KEYSTORE_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (System.getenv("SULO_KEYSTORE_FILE")) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
