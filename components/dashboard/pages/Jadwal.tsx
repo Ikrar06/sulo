@@ -16,7 +16,7 @@ import { setCourseLink } from '@/lib/neosia/course-map';
 import { linkedMeetings, type LinkedMeeting } from '@/lib/neosia/linked';
 import { holidayOn, holidayRanges, mondayOf, scheduleIcs, semesterRange } from '@/lib/neosia/schedule';
 import { classMeetings, krsSemester, neosiaStatus } from '@/lib/neosia/view';
-import { gridDays, gridRange, lanes, SLOT_MIN, toMinutes } from '@/lib/neosia/week-grid';
+import { blockBox, blockLayout, gridDays, gridRange, HOUR_PX, lanes, NO_SCROLL_SPAN, SLOT_MIN } from '@/lib/neosia/week-grid';
 import { localParts } from '@/lib/reminders/zoned';
 import type { CourseRecord } from '@/lib/types';
 import { local, timeZone } from '../data';
@@ -31,7 +31,7 @@ import type { PageProps } from '../types';
 // day. Lecturers and linking to SIKOLA live in the block's popover. The
 // calendar file is built here and downloaded; nothing is sent anywhere.
 
-const SLOT_PX = 32;
+const SLOT_PX = (HOUR_PX * SLOT_MIN) / 60;
 const WIDE = '(min-width: 1100px)';
 
 function useWide(): boolean {
@@ -64,7 +64,12 @@ function weekLabel(monday: string, sunday: string, intl: string): string {
   return `${fmt(monday, { day: 'numeric', month: 'short' })} – ${fmt(sunday, { day: 'numeric', month: 'short', year: 'numeric' })}`;
 }
 
-const tint = (color: number | null) => (color === null ? 'var(--surface-raised)' : `color-mix(in oklch, var(--course-${color}) 22%, var(--surface))`);
+/** About 18% of the course color on the surface, with a 1 px edge of about 40%; a visible neutral when not linked. */
+const blockColors = (color: number | null) => {
+  const base = color === null ? 'var(--muted)' : `var(--course-${color})`;
+  // Not linked: the full --muted edge keeps the block clearly visible on the grid (3:1 or more, scripts/contrast.mjs).
+  return { background: `color-mix(in oklch, ${base} 18%, var(--surface))`, borderColor: color === null ? 'var(--muted)' : `color-mix(in oklch, ${base} 40%, var(--surface))` };
+};
 
 export function JadwalPage({ data, actions }: PageProps) {
   const { m, locale } = useI18n();
@@ -118,6 +123,8 @@ export function JadwalPage({ data, actions }: PageProps) {
     setIcsMissing(text === null);
   };
   const dateOf = (weekday: number) => addDays(monday, (weekday + 6) % 7);
+  // A week outside the semester's teaching weeks has no classes: an empty state, not an empty grid.
+  const noClassesThisWeek = range !== null && (sunday < range.start || monday > range.end);
 
   return (
     <div className="space-y-4">
@@ -158,7 +165,11 @@ export function JadwalPage({ data, actions }: PageProps) {
         </p>
       )}
 
-      {wide ? (
+      {noClassesThisWeek ? (
+        <Card>
+          <p className="text-[14px] text-muted-foreground">{w.schedule.noClassWeek}</p>
+        </Card>
+      ) : wide ? (
         <WeekGrid meetings={meetings} courses={courses} dateOf={dateOf} holidays={holidays} today={data.today} now={data.now} />
       ) : (
         <WeekList meetings={meetings} courses={courses} dateOf={dateOf} holidays={holidays} today={data.today} />
@@ -191,9 +202,11 @@ function WeekGrid({ meetings, courses, dateOf, holidays, today, now }: ViewProps
   const hours = Array.from({ length: (end - start) / 60 + 1 }, (_, i) => start + i * 60);
   const nowMin = localParts(now, timeZone).minuteOfDay;
   const columns = { gridTemplateColumns: `56px repeat(${days.length}, minmax(0, 1fr))` };
+  // Up to 10 hours fit at 1440x900; a longer day scrolls under a sticky row of days.
+  const scrolls = end - start > NO_SCROLL_SPAN;
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-surface">
-      <div className="grid border-b border-border" style={columns}>
+    <div className={`rounded-xl border border-border bg-surface ${scrolls ? 'max-h-[calc(100vh-200px)] overflow-y-auto' : 'overflow-hidden'}`}>
+      <div className="sticky top-0 z-10 grid rounded-t-xl border-b border-border bg-surface" style={columns}>
         <span />
         {days.map((wd) => {
           const day = dateOf(wd);
@@ -217,7 +230,8 @@ function WeekGrid({ meetings, courses, dateOf, holidays, today, now }: ViewProps
       <div className="grid pt-2" style={columns}>
         <div className="relative" style={{ height }}>
           {hours.map((h) => (
-            <span key={h} className="absolute right-2 -translate-y-1/2 text-[12px] text-muted-foreground tabular-nums" style={{ top: ((h - start) / SLOT_MIN) * SLOT_PX }}>
+            // Right-aligned, centred on its own hour line.
+            <span key={h} className="absolute right-2 -translate-y-1/2 text-[12px] leading-4 text-muted-foreground tabular-nums" style={{ top: ((h - start) / 60) * HOUR_PX }}>
               {clockOf(`${String(h / 60).padStart(2, '0')}:00`, locale)}
             </span>
           ))}
@@ -236,14 +250,18 @@ function WeekGrid({ meetings, courses, dateOf, holidays, today, now }: ViewProps
                 <div
                   key={`${x.key}-${x.start}-${i}`}
                   className={`absolute px-1 ${holiday ? 'opacity-50' : ''}`}
-                  style={{ top: ((toMinutes(x.start) - start) / SLOT_MIN) * SLOT_PX + 1, height: ((toMinutes(x.end) - toMinutes(x.start)) / SLOT_MIN) * SLOT_PX - 2, left: `${(lane / n) * 100}%`, width: `${100 / n}%` }}
+                  // Exact to the minute; one pixel of air above and below.
+                  style={{ top: blockBox(x, start).top + 1, height: Math.max(12, blockBox(x, start).height - 2), left: `${(lane / n) * 100}%`, width: `${100 / n}%` }}
                 >
-                  <ClassBlock x={x} courses={courses} />
+                  <ClassBlock x={x} courses={courses} fill />
                 </div>
               ))}
               {/* Now: an accent line across today's column. */}
               {isToday && nowMin >= start && nowMin <= end && (
-                <span role="img" aria-label={w.schedule.now} className="absolute inset-x-0 h-0.5 bg-brand-orange" style={{ top: ((nowMin - start) / SLOT_MIN) * SLOT_PX }} />
+                <span role="img" aria-label={w.schedule.now} className="absolute inset-x-0 z-[1] h-0.5 bg-brand-orange" style={{ top: ((nowMin - start) / 60) * HOUR_PX }}>
+                  {/* A small dot at its left end. */}
+                  <span aria-hidden="true" className="absolute -top-1 -left-1 size-2.5 rounded-full bg-brand-orange" />
+                </span>
               )}
             </div>
           );
@@ -289,26 +307,52 @@ function WeekList({ meetings, courses, dateOf, holidays, today }: ViewProps) {
   );
 }
 
-/** One class: name, room and time; lecturers and linking to SIKOLA in its popover. */
-function ClassBlock({ x, courses }: { x: LinkedMeeting; courses: readonly CourseRecord[] }) {
+/**
+ * One class. In the grid its content fits its length (lib/neosia/week-grid.ts
+ * blockLayout) and never spills over; the full text is in the title and the
+ * popover, with lecturers and linking to SIKOLA.
+ */
+function ClassBlock({ x, courses, fill = false }: { x: LinkedMeeting; courses: readonly CourseRecord[]; fill?: boolean }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale);
   const unmapped = x.course === null && !x.optedOut;
   const sorted = useMemo(() => [...courses].sort((a, b) => courseNameWithClass(a).localeCompare(courseNameWithClass(b), 'id')), [courses]);
   const title = `${x.displayName}${x.classLabel ? ` ${x.classLabel}` : ''}`;
   const time = `${clockOf(x.start, locale)}–${clockOf(x.end, locale)}`;
+  const full = `${title}, ${time}${x.room ? `, ${x.room}` : ''}`;
+  const layout = fill ? blockLayout(x) : 'tall';
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-full w-full flex-col overflow-hidden rounded-lg px-2 py-1 text-left outline-none hover:brightness-110 focus-ring:ring-2 focus-ring:ring-focus"
-          style={{ background: tint(x.color) }}
-          aria-label={`${title}, ${time}${x.room ? `, ${x.room}` : ''}`}
+          title={full}
+          aria-label={full}
+          // Radius 8, padding 6 and 8, 1 px edge; text in the main text color.
+          className={`flex w-full cursor-pointer flex-col overflow-hidden rounded-lg border px-2 py-[6px] text-left text-[12px] leading-4 text-foreground outline-none hover:brightness-110 focus-ring:ring-2 focus-ring:ring-focus ${fill ? 'h-full' : ''}` /* lint-ui-allow: block padding 6 x 8 as specified */}
+          style={blockColors(x.color)}
         >
-          <span className="line-clamp-2 text-[12px] leading-4 font-semibold">{title}</span>
-          {x.room && <span className="truncate text-[12px] leading-4 text-muted-foreground">{x.room}</span>}
-          <span className="text-[12px] leading-4 text-muted-foreground tabular-nums">{time}</span>
+          {layout === 'tall' && (
+            <>
+              <span className="line-clamp-2 font-semibold">{title}</span>
+              <span className="truncate tabular-nums">{time}</span>
+              {x.room && <span className="truncate">{x.room}</span>}
+            </>
+          )}
+          {layout === 'medium' && (
+            <>
+              <span className="truncate font-semibold">{title}</span>
+              <span className="truncate tabular-nums">
+                {time}
+                {x.room ? ` · ${x.room}` : ''}
+              </span>
+            </>
+          )}
+          {layout === 'short' && (
+            <span className="truncate">
+              <span className="tabular-nums">{clockOf(x.start, locale)}</span> <span className="font-semibold">{title}</span>
+            </span>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-72 space-y-2 text-[14px]">

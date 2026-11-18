@@ -109,6 +109,11 @@ function pairs(t, theme) {
       'sidebar: teks tidak aktif (--muted di --bg)': [c('muted'), c('bg')],
       'checkbox belum dicentang: tepi (--control-border di --surface, min 3:1)': [c('control-border'), c('surface')],
       'checkbox belum dicentang: tepi (--control-border di --surface-raised, min 3:1)': [c('control-border'), c('surface-raised')],
+      // Jadwal class blocks (components/dashboard/pages/Jadwal.tsx): --text on ~18% course tint, on the plain column and on today's column.
+      ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8].map((n) => [`jadwal: blok mata kuliah ${n} (--text di tint 18%)`, [c('text'), mix(c(`course-${n}`), c('surface'), 0.18)]])),
+      'jadwal: blok belum terpetakan (--text di tint --muted 18%)': [c('text'), mix(c('muted'), c('surface'), 0.18)],
+      'jadwal: tepi blok belum terpetakan (--muted di --surface, min 3:1)': [c('muted'), c('surface')],
+      'jadwal: tepi blok belum terpetakan (--muted di kolom hari ini --surface-raised, min 3:1)': [c('muted'), c('surface-raised')],
       'tombol traktir: teks dan cangkir (--ink di oranye)': [c('ink'), orange],
       'tombol traktir hover: teks dan cangkir': [c('ink'), supportHover],
       'tombol traktir: panah muted': [supportMuted, orange],

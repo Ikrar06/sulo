@@ -125,6 +125,7 @@ const id = {
     notInSikola: 'Tidak ada di SIKOLA',
     now: 'Sekarang',
     emptyNoData: 'Buka halaman KRS di NEOSIA sekali supaya jadwalmu masuk.',
+    noClassWeek: 'Tidak ada kuliah minggu ini.',
   },
   nilai: {
     title: 'Nilai',
@@ -293,6 +294,7 @@ const en: NeosiaWords = {
     notInSikola: 'Not in SIKOLA',
     now: 'Now',
     emptyNoData: 'Open the KRS page in NEOSIA once so your schedule comes in.',
+    noClassWeek: 'No classes this week.',
   },
   nilai: {
     title: 'Grades',
