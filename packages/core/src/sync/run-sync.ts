@@ -26,6 +26,7 @@ import {
   TTL_TOLERANCE_MIN,
 } from '../moodle/limits';
 import { applyRadarResults, planRadarCalls, type RadarMode } from '../radar/sync-step';
+import { activeCourseIds } from '../courses/active-score';
 import { recordFailure } from '../moodle/backoff';
 import { planBatch } from './plan-batch';
 import { ACCOUNT_PENDING_KEY, mayCheckWhilePending, newPending, readPending, resolveCheck, type AccountPending } from '../account/pending';
@@ -36,7 +37,7 @@ import { backgroundBlockReason, type IdleState } from '../schedule';
 import { DEFAULT_SYNC_STATUS, readSyncStatus, readUser, SYNC_STATUS_KEY, switchUser, writeUser, type SyncStatus } from '../storage';
 import { mergeTasks, upcomingCourseIds } from '../tasks/from-calendar';
 import { pruneTaskState } from '../tasks/local-state';
-import type { Clock, CourseRecord, KeyValueStore, SyncOutcome, SyncTrigger, UnixSeconds, UserId } from '../types';
+import type { Clock, CourseRecord, KeyValueStore, SyncOutcome, SyncTrigger, Task, UnixSeconds, UserId } from '../types';
 import { currentUser } from '../storage';
 
 export interface SyncDeps {
@@ -245,11 +246,6 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
 
   // The radar only reads results for the user it planned for (a different
   // account was just wiped by switchUser and starts with its own baseline).
-  if (knownUser !== userId) {
-    // First sync of an account: no radar yet (recorded for the diagnosis).
-    const meta = await readUser(deps.store, userId, 'radar');
-    await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: knownUser === null ? 'no_known_user' : 'other_user' } });
-  }
   if (knownUser === userId) {
     // The radar never stops the tasks: an unexpected error is recorded for
     // the diagnosis (name only) and the sync goes on.
@@ -273,6 +269,18 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
     }
   }
 
+  // An account's first radar pass: its courses were only known from this
+  // batch (first sync, or an account just switched to), so the plan had no
+  // course structures. One follow-up batch now gives every course a
+  // baseline right away instead of a sync or more later; it runs once,
+  // since afterwards courses have check times.
+  const neverChecked = Object.keys((await readUser(deps.store, userId, 'radar')).stateCheckedAt).length === 0;
+  if (knownUser !== userId || (neverChecked && radarPlan.courseIds.length === 0 && activeCourseIds(courses).size > 0)) {
+    await firstSyncRadar(deps, userId, courses, previousTasks, calendarMerged ? tasks : null, now, mode).catch(async (e: unknown) => {
+      const meta = await readUser(deps.store, userId, 'radar');
+      await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: `first_sync:${e instanceof Error ? e.name : 'Error'}` } });
+    });
+  }
   const meta = await readUser(deps.store, userId, 'sync');
   await writeUser(deps.store, userId, 'sync', {
     lastSyncAt: broken.length === 0 ? now : meta.lastSyncAt,
@@ -328,4 +336,24 @@ function transportOutcome(result: Exclude<BatchOutcome, { kind: 'ok' }>): SyncOu
 async function setStatus(store: KeyValueStore, patch: Partial<SyncStatus>): Promise<void> {
   const current = await readSyncStatus(store).catch(() => DEFAULT_SYNC_STATUS);
   await store.set(SYNC_STATUS_KEY, { ...current, ...patch });
+}
+
+/** The radar's follow-up batch in an account's first sync (see syncOnce). */
+async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], previousTasks: readonly Task[], nextTasks: readonly Task[] | null, now: UnixSeconds, mode: RadarMode): Promise<void> {
+  const planned = await planRadarCalls(deps.store, userId, courses, now, mode === 'full' ? 'normal' : mode, nextTasks ?? previousTasks);
+  const plan = planBatch({ now, courseListDue: false, courseListMissing: false, radar: planned, userId, remaining: remainingQuota(await readBudget(deps.store, deps.clock)) }).radar;
+  if (plan.calls.length === 0) {
+    const meta = await readUser(deps.store, userId, 'radar');
+    await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: mode === 'saver' ? 'saver' : 'nothing_to_check' } });
+    return;
+  }
+  // Every batch carries the session call: it alone may end the session.
+  const result = await deps.client.callBatch([calls.sessionTimeRemaining(), ...plan.calls], { source: deps.trigger });
+  if (result.kind !== 'ok') {
+    // Retried by the next sync, which plans the radar normally.
+    const meta = await readUser(deps.store, userId, 'radar');
+    await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: plan.courseIds.length, stored: 0, errors: {}, notifications: 'skipped', failure: `first_sync:${result.kind}` } });
+    return;
+  }
+  await applyRadarResults(deps.store, { userId, now, origin: deps.origin ?? SIKOLA_ORIGIN, plan, results: result.results.slice(1), previousTasks, nextTasks });
 }

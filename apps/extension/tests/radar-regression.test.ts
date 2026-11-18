@@ -94,4 +94,62 @@ describe('radar regression (M7.3 fix)', () => {
     expect(outcome.status === 'ok' || outcome.status === 'parser_broken').toBe(true);
     expect((await readUser(store, 1, 'radar')).lastRun?.errors).toEqual({ parser_broken: 3 });
   });
+
+  describe('Bug 1: the radar runs in an account\'s very first sync', () => {
+    it('first sync after signing in (new account): structures planned and stored right away', async () => {
+      const store = memoryStore();
+      const k = client(() => fx('courseformat-state.normal'));
+      await runSync({ client: k, store, clock: fixedClock('2026-09-22', 10, NOW), trigger: 'onboarding' });
+      const run = (await readUser(store, 1, 'radar')).lastRun;
+      expect(run?.planned).toBeGreaterThan(0);
+      expect(run?.stored).toBe(run?.planned);
+      expect(run?.failure).toBeUndefined();
+      expect(Object.keys(await readUser(store, 1, 'snapshots')).length).toBe(run?.planned);
+      // A first structure is a baseline: no structure entries in Kabar terbaru.
+      expect((await readUser(store, 1, 'changes')).filter((e) => e.change.kind === 'added')).toEqual([]);
+    });
+
+    it('after switching to another account ("Pakai akun ini"): the new account gets its structures in its first sync', async () => {
+      const store = memoryStore();
+      const k = client(() => fx('courseformat-state.normal'));
+      await runSync({ client: k, store, clock: fixedClock('2026-09-22', 10, NOW), trigger: 'onboarding' });
+      const { useNewAccount } = await import('@sulo/core/account/actions');
+      const { ACCOUNT_PENDING_KEY, newPending } = await import('@sulo/core/account/pending');
+      await store.set(ACCOUNT_PENDING_KEY, newPending(2, NOW + 60));
+      await useNewAccount({ store, clearNotifications: async () => undefined, openSetup: async () => undefined });
+      const other = client(() => fx('courseformat-state.normal'));
+      const asUser2 = Object.assign(Object.create(other), {
+        callBatch: async (calls: readonly MoodleCall[]) => {
+          const r = await other.callBatch(calls);
+          if (r.kind !== 'ok') return r;
+          return { ...r, results: r.results.map((x, i) => (calls[i]!.methodname === 'core_session_time_remaining' ? { ok: true, data: { userid: 2, timeremaining: 7200 } } : x)) };
+        },
+      }) as MoodleClient;
+      await runSync({ client: asUser2, store, clock: fixedClock('2026-09-22', 10, NOW + 600), trigger: 'onboarding' });
+      expect((await readUser(store, 2, 'radar')).lastRun?.planned).toBeGreaterThan(0);
+      expect(Object.keys(await readUser(store, 2, 'snapshots')).length).toBeGreaterThan(0);
+    });
+
+    it('after an update (stored account and courses, no structures yet): the next sync plans and stores them', async () => {
+      const store = memoryStore();
+      const k = client(() => fx('courseformat-state.normal'));
+      await runSync({ client: k, store, clock: fixedClock('2026-09-22', 10, NOW), trigger: 'onboarding' });
+      const { writeUser } = await import('@sulo/core/storage');
+      await writeUser(store, 1, 'snapshots', {});
+      await writeUser(store, 1, 'radar', { stateCheckedAt: {}, notificationsLastId: null, calendarBaseline: true });
+      await runSync({ client: k, store, clock: fixedClock('2026-09-22', 14, NOW + 4 * 3600), trigger: 'background', idleState: 'active' });
+      expect((await readUser(store, 1, 'radar')).lastRun?.planned).toBeGreaterThan(0);
+      expect(Object.keys(await readUser(store, 1, 'snapshots')).length).toBeGreaterThan(0);
+    });
+
+    it('cleaning up other accounts never removes the active account\'s structures', async () => {
+      const store = memoryStore();
+      const k = client(() => fx('courseformat-state.normal'));
+      await runSync({ client: k, store, clock: fixedClock('2026-09-22', 10, NOW), trigger: 'onboarding' });
+      await store.set('u:99:snapshots', { '1': {} });
+      const { pruneOrphanUserKeys } = await import('@sulo/core/storage');
+      expect(await pruneOrphanUserKeys(store)).toEqual(['u:99:snapshots']);
+      expect(Object.keys(await readUser(store, 1, 'snapshots')).length).toBeGreaterThan(0);
+    });
+  });
 });
