@@ -1,0 +1,90 @@
+// The Android app's controls (M8c.1): pill buttons, round icon buttons, the
+// 28 px check circle and the pill segmented control. Every one has a touch
+// target of at least 44 (m-hit), focus rings for keyboards only.
+
+import { Switch as SwitchPrimitive } from 'radix-ui';
+import type { ComponentType, ReactNode, SVGProps } from 'react';
+
+const ring = 'outline-none focus-ring:ring-2 focus-ring:ring-focus';
+
+/** Primary: a 44 pill in the accent. Secondary: a 40 pill on the inset layer. */
+export function PillButton({ children, onPress, kind = 'secondary', disabled = false, full = false, icon: Icon, small = false, danger = false }: { children: ReactNode; onPress: () => void; kind?: 'primary' | 'secondary'; disabled?: boolean; full?: boolean; icon?: ComponentType<SVGProps<SVGSVGElement>>; small?: boolean; danger?: boolean }) {
+  const size = kind === 'primary' ? 'h-11 px-5 text-m15' : small ? 'h-8 px-3 text-m13' : 'h-10 px-4 text-m15';
+  const look = kind === 'primary' ? 'bg-primary text-primary-foreground' : danger ? 'bg-m-inset text-urgency-overdue' : 'bg-m-inset text-foreground';
+  return (
+    <button type="button" onClick={onPress} disabled={disabled} className={`m-hit m-press inline-flex items-center justify-center gap-2 rounded-full ${size} ${look} ${full ? 'w-full' : ''} ${ring} disabled:opacity-50`}>
+      {Icon && <Icon className="size-4" />}
+      {children}
+    </button>
+  );
+}
+
+/** A 40 circle on the card layer, with one icon; its label is for TalkBack. */
+export function IconButton({ icon: Icon, label, onPress, disabled = false, spinning = false, href, inset = false }: { icon: ComponentType<SVGProps<SVGSVGElement>>; label: string; onPress?: () => void; disabled?: boolean; spinning?: boolean; href?: string; inset?: boolean }) {
+  const cls = `m-hit m-press inline-flex size-10 shrink-0 items-center justify-center rounded-full ${inset ? 'bg-m-inset' : 'm-card'} text-foreground ${ring} disabled:opacity-50`;
+  const icon = <Icon className={`size-5 ${spinning ? 'animate-spin motion-reduce:animate-none' : ''}`} />;
+  if (href)
+    return (
+      <a href={href} aria-label={label} className={cls}>
+        {icon}
+      </a>
+    );
+  return (
+    <button type="button" aria-label={label} onClick={onPress} disabled={disabled} className={cls}>
+      {icon}
+    </button>
+  );
+}
+
+/** Done or not: a 28 circle (44 target) that fills when checked. */
+export function CheckCircle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      data-own-press=""
+      aria-checked={checked}
+      aria-label={label}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange(!checked);
+      }}
+      className={`m-hit inline-flex size-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
+    >
+      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M5 12.5 10 17 19 7.5" />
+      </svg>
+    </button>
+  );
+}
+
+/** Pill segmented control (36). */
+export function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: readonly { value: T; label: ReactNode }[]; onChange: (v: T) => void; label: string }) {
+  return (
+    <div role="group" aria-label={label} className="grid h-9 grid-flow-col auto-cols-fr gap-1 rounded-full bg-m-inset p-1">
+      {options.map((o) => (
+        <button key={o.value} type="button" aria-pressed={value === o.value} onClick={() => onChange(o.value)} className={`m-hit rounded-full text-m13 ${ring} ${value === o.value ? 'm-card font-medium text-foreground' : 'text-muted-foreground'}`}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * A switch for the phone (Radix Switch): a 52x32 pill, the knob on the card
+ * layer so it reads on the dark "on" track in both themes; 44 target.
+ */
+export function Toggle({ checked, onChange, label, disabled = false }: { checked: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
+  return (
+    <SwitchPrimitive.Root
+      checked={checked}
+      onCheckedChange={onChange}
+      disabled={disabled}
+      aria-label={label}
+      className={`m-hit relative inline-flex h-8 w-[52px] shrink-0 items-center rounded-full transition-colors duration-150 motion-reduce:transition-none ${checked ? 'bg-foreground' : 'bg-m-inset'} ${ring} disabled:opacity-50`}
+    >
+      <SwitchPrimitive.Thumb className="block size-6 translate-x-1 rounded-full bg-m-card shadow-[0_1px_2px_rgb(0_0_0/0.2)] transition-transform duration-150 data-[state=checked]:translate-x-[24px] motion-reduce:transition-none" />
+    </SwitchPrimitive.Root>
+  );
+}

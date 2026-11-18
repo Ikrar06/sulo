@@ -1,0 +1,156 @@
+/* Sulo for Android: the one set of size tokens every screen uses (M8c.1).
+   Colors, fonts and the focus variants come from the extension's tokens.css;
+   this file only sets the phone's scale.
+
+   Type (px, line height):  26 (32) semibold  screen title, key numbers
+                            22 (28) semibold  hero greeting, big numbers
+                            18 (24) semibold  app bar title, detail title
+                            15 (20) medium    row titles, body, button labels
+                            13 (18) regular   supporting text, course, dates
+                            12 (16) medium    group titles, chips, captions
+                            11 (14) medium    tab bar labels only
+   Long reading (Bantuan, Privasi): 15 (22).
+   Layers (M8c.1, cards): screen (darkest / very light gray), card one step
+   lighter (no border in dark; a hairline in light), inset one step more
+   (chips, date tiles, inputs), category tints at 16% behind tiles and chips.
+   No full-width divider anywhere.
+   Shape: card radius 20, hero 24, control 12, chips and buttons full pill.
+   Spacing 4/8/12/16/24: screen margin 16, card padding 16, 12 between
+   cards, 24 between sections.
+   Controls: primary pill 44 (accent), secondary pill 40 (inset), icon
+   button circle 40 (card), chip 30, segmented 36, check circle 28; every
+   touch target at least 44 whatever its visual size. Tab bar: floating
+   pill 60, 16 from the sides and 12 above the safe area.
+
+   --m-tz is 1 on the phone, where WebView's own textZoom (clamped to
+   85-130% in MainActivity) scales the text; the web preview sets it to
+   emulate Android's font size setting. Only apps/mobile uses the text-m*
+   classes (scripts/check-type-tokens.mjs). */
+
+:root {
+  --m-tz: 1;
+  --m-bar: 52px;
+  --m-tabs: 60px;
+}
+
+@theme {
+  --text-m26: calc(26px * var(--m-tz));
+  --text-m26--line-height: calc(32px * var(--m-tz));
+  --text-m26--font-weight: 600;
+  --text-m22: calc(22px * var(--m-tz));
+  --text-m22--line-height: calc(28px * var(--m-tz));
+  --text-m22--font-weight: 600;
+  --text-m18: calc(18px * var(--m-tz));
+  --text-m18--line-height: calc(24px * var(--m-tz));
+  --text-m18--font-weight: 600;
+  --text-m15: calc(15px * var(--m-tz));
+  --text-m15--line-height: calc(20px * var(--m-tz));
+  --text-m15--font-weight: 500;
+  --text-m15r: calc(15px * var(--m-tz));
+  --text-m15r--line-height: calc(22px * var(--m-tz));
+  --text-m13: calc(13px * var(--m-tz));
+  --text-m13--line-height: calc(18px * var(--m-tz));
+  --text-m12: calc(12px * var(--m-tz));
+  --text-m12--line-height: calc(16px * var(--m-tz));
+  --text-m12--font-weight: 500;
+  --text-m11: calc(11px * var(--m-tz));
+  --text-m11--line-height: calc(14px * var(--m-tz));
+  --text-m11--font-weight: 500;
+  --radius-card: 20px;
+  --radius-hero: 24px;
+  --radius-ctl: 12px;
+  --color-m-screen: var(--m-screen);
+  --color-m-card: var(--m-card);
+  --color-m-inset: var(--m-inset);
+  --color-m-line: var(--m-line);
+}
+
+/* The three layers. Dark: the theme's own bg/surface/raised, cards without
+   borders and without shadows. Light: a very light gray screen so white
+   cards stand off it, a hairline and the faintest shadow. */
+:root {
+  --m-screen: #0b0b0e;
+  --m-card: #17171c;
+  --m-inset: #232329;
+  --m-line: #2c2c34;
+  --m-card-edge: transparent;
+  --m-card-shadow: none;
+  --m-accent-tint: color-mix(in oklch, var(--brand-orange) 18%, var(--m-card));
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --m-screen: #f1f1f4;
+    --m-card: #ffffff;
+    --m-inset: #e7e7ec;
+    --m-line: #e3e3e9;
+    --m-card-edge: #ebebf0;
+    --m-card-shadow: 0 1px 2px rgb(16 16 24 / 0.04), 0 4px 12px rgb(16 16 24 / 0.03);
+    --m-accent-tint: color-mix(in oklch, var(--brand-orange) 14%, var(--m-card));
+  }
+}
+
+/* Shared parts from packages/ui are drawn at the dashboard's scale; on the
+   phone they take the same tokens: 24 -> 22, 20 -> 18, 16/17 -> 15, 14 ->
+   15 (their main text), 12/13 -> 13 (their supporting text). Unlayered, so
+   these win over the utilities without touching the extension. */
+.text-\[24px\] { font-size: calc(22px * var(--m-tz)); line-height: calc(28px * var(--m-tz)); }
+.text-\[20px\] { font-size: calc(18px * var(--m-tz)); line-height: calc(24px * var(--m-tz)); }
+.text-\[17px\], .text-\[16px\] { font-size: calc(15px * var(--m-tz)); line-height: calc(20px * var(--m-tz)); }
+.text-\[14px\] { font-size: calc(15px * var(--m-tz)); line-height: calc(20px * var(--m-tz)); }
+/* shadcn's controls (buttons, select triggers and items, inputs): labels are 15. */
+.text-sm { font-size: calc(15px * var(--m-tz)); line-height: calc(20px * var(--m-tz)); }
+.text-\[13px\], .text-\[12px\], .text-\[0\.8rem\] { font-size: calc(13px * var(--m-tz)); line-height: calc(18px * var(--m-tz)); }
+:root {
+  --fs-body: calc(15px * var(--m-tz));
+  --lh-body: calc(20px * var(--m-tz));
+  --fs-caption: calc(13px * var(--m-tz));
+  --lh-caption: calc(18px * var(--m-tz));
+  --panel-px: 16px;
+}
+/* Their 20 px paddings and bleeds are 16 on the phone (no 20 in its scale). */
+.p-5 { padding: 16px; }
+.px-5 { padding-inline: 16px; }
+.py-5 { padding-block: 16px; }
+.pt-5 { padding-top: 16px; }
+.pb-5 { padding-bottom: 16px; }
+.-mx-5 { margin-inline: -16px; }
+
+/* Shared controls at the phone's sizes. */
+[data-slot="input"] { height: 40px; border-radius: var(--radius-ctl); background: var(--m-inset); border-color: transparent; }
+/* The search field is the one 40 px input. */
+.m-search[data-slot="input"] { height: 40px; }
+[data-slot="button"], [data-slot="select-trigger"], [data-slot="task-action"] { height: 40px; border-radius: 9999px; }
+[data-slot="checkbox"] { width: 20px; height: 20px; }
+[data-slot="select-item"] { min-height: 44px; }
+
+/* Touch targets of 44 around smaller visuals: an invisible hit area. */
+[data-slot="button"], [data-slot="select-trigger"], [data-slot="task-action"], [data-slot="checkbox"], [data-slot="switch"], .m-hit {
+  position: relative;
+}
+[data-slot="button"]::after, [data-slot="select-trigger"]::after, [data-slot="task-action"]::after, .m-hit::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(100%, 44px);
+  transform: translateY(-50%);
+}
+[data-slot="checkbox"]::after, [data-slot="switch"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Ringkasan's one summary line is supporting text (13). */
+.m-summary .text-\[14px\] { font-size: calc(13px * var(--m-tz)); line-height: calc(18px * var(--m-tz)); }
+
+/* A task's actions on its own screen: one full-width row each, left aligned. */
+.m-task [data-slot="task-action"], .m-task [data-slot="select-trigger"] {
+  width: 100%;
+  justify-content: flex-start;
+}
+.m-task [data-slot="select-trigger"] > :last-child { margin-left: auto; }

@@ -12,7 +12,8 @@ export function mountedCount(total: number, pages: number): number {
   return Math.min(total, Math.max(1, pages) * PAGE_ROWS);
 }
 
-export function LongList<T>({ items, keyOf, render, className = '', rowHeight = 64 }: { items: readonly T[]; keyOf: (item: T) => string | number; render: (item: T) => ReactNode; className?: string; rowHeight?: number }) {
+/** sticky: rows that stay at the top while their group scrolls (group headings). */
+export function LongList<T>({ items, keyOf, render, className = '', rowHeight = 64, sticky }: { items: readonly T[]; keyOf: (item: T) => string | number; render: (item: T) => ReactNode; className?: string; rowHeight?: number; sticky?: (item: T) => boolean }) {
   const [pages, setPages] = useState(1);
   const sentinel = useRef<HTMLLIElement | null>(null);
   const shown = mountedCount(items.length, pages);
@@ -29,7 +30,7 @@ export function LongList<T>({ items, keyOf, render, className = '', rowHeight = 
   return (
     <ul className={className}>
       {items.slice(0, shown).map((item) => (
-        <li key={keyOf(item)} style={windowed ? { contentVisibility: 'auto', containIntrinsicSize: `auto ${rowHeight}px` } : undefined}>
+        <li key={keyOf(item)} className={sticky?.(item) ? 'sticky top-0 z-10' : undefined} style={windowed && !sticky?.(item) ? { contentVisibility: 'auto', containIntrinsicSize: `auto ${rowHeight}px` } : undefined}>
           {render(item)}
         </li>
       ))}

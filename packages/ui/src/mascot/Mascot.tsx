@@ -97,9 +97,13 @@ export interface MascotProps {
   label?: string;
   /** Contact shadow under the mascot; it shrinks and fades as the mascot jumps. */
   grounded?: boolean;
+  /** Alert (a deadline within a day): blinks about twice as often. */
+  alert?: boolean;
+  /** Increment for one short reaction: a small hop and a blink (the Android app's tap). */
+  poke?: number;
 }
 
-export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, still = false, effects, className, label, grounded = false }: MascotProps) {
+export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, still = false, effects, className, label, grounded = false, alert = false, poke = 0 }: MascotProps) {
   const motion = useMotionAllowed(still);
   const visible = usePageVisible();
   const active = motion && visible;
@@ -164,6 +168,16 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
     next();
     return () => window.clearTimeout(id);
   }, [active, shown]);
+
+  // A poke: one small hop and a blink, then back to the state.
+  const firstPoke = useRef(poke);
+  useEffect(() => {
+    if (poke === firstPoke.current || !active || !rootRef.current) return;
+    playJump(rootRef.current, shadowRef.current, HOP);
+    setBlink(true);
+    const t = window.setTimeout(() => setBlink(false), 130);
+    return () => window.clearTimeout(t);
+  }, [poke, active]);
 
   // --- Eyes: target position, smoothed in a rAF loop ------------------------
   const target = useRef({ x: 0, y: 0 });
@@ -266,7 +280,7 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
             ids.push(window.setTimeout(() => setBlink(false), 390));
           }
           schedule();
-        }, rand(3000, 6000)),
+        }, alert ? rand(1500, 3000) : rand(3000, 6000)),
       );
     };
     schedule();
@@ -275,7 +289,7 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
       ids.forEach((t) => window.clearTimeout(t));
       setBlink(false);
     };
-  }, [active, shown]);
+  }, [active, shown, alert]);
 
   // --- Particles --------------------------------------------------------------
   useEffect(() => {

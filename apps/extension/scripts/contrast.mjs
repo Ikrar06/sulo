@@ -62,6 +62,16 @@ const ratio = (a, b) => {
 
 const WHITE = [1, 1, 1];
 
+// The Android app's layers (apps/mobile/src/tokens.css): screen, card, inset per theme.
+const mobileCss = readFileSync(new URL('../../mobile/src/tokens.css', import.meta.url), 'utf8');
+const layer = (block, name) => hex(new RegExp(`--m-${name}:\\s*(#[0-9a-fA-F]{6})`).exec(block)[1]);
+const mobileDark = mobileCss.slice(mobileCss.indexOf(':root {\n  --m-screen'));
+const mobileLight = mobileCss.slice(mobileCss.indexOf('@media (prefers-color-scheme: light)'));
+const mobileLayers = (theme) => {
+  const b = theme === 'terang' ? mobileLight : mobileDark;
+  return { screen: layer(b, 'screen'), card: layer(b, 'card'), inset: layer(b, 'inset') };
+};
+
 function pairs(t, theme) {
   const c = (n) => hex(t[n]);
   // Support button (packages/ui/src/ui/support-button.css): same values as the CSS.
@@ -114,6 +124,37 @@ function pairs(t, theme) {
       'jadwal: blok belum terpetakan (--text di tint --muted 18%)': [c('text'), mix(c('muted'), c('surface'), 0.18)],
       'jadwal: tepi blok belum terpetakan (--muted di --surface, min 3:1)': [c('muted'), c('surface')],
       'jadwal: tepi blok belum terpetakan (--muted di kolom hari ini --surface-raised, min 3:1)': [c('muted'), c('surface-raised')],
+      // The Android app's card layers (M8c.1).
+      ...(() => {
+        const L = mobileLayers(theme);
+        return {
+          'mobile kartu: teks (--text di kartu)': [c('text'), L.card],
+          'mobile kartu: teks pendukung (--muted di kartu)': [c('muted'), L.card],
+          'mobile kartu: teks pendukung (--muted di latar layar)': [c('muted'), L.screen],
+          'mobile kartu: chip/sisipan (--text di sisipan)': [c('text'), L.inset],
+          'mobile kartu: teks pendukung di sisipan (--muted di sisipan)': [c('muted'), L.inset],
+          'mobile kartu: hitung mundur (--accent-text di kartu)': [accentText, L.card],
+          'mobile kartu: terlambat (--urgency-overdue di kartu)': [c('urgency-overdue'), L.card],
+          'mobile kartu: tombol utama (--ink di oranye)': [c('ink'), orange],
+          'mobile kartu: chip mata kuliah 16% (--text di tint)': [c('text'), mix(c('course-1'), L.card, 0.16)],
+          'mobile kartu: titik tab aktif (oranye di kartu, min 3:1)': [orange, L.card],
+          'mobile kartu: tab tidak aktif (--muted di kartu)': [c('muted'), L.card],
+          'mobile kartu: lingkaran centang (--muted di kartu, min 3:1)': [c('muted'), L.card],
+        };
+      })(),
+      // The Android app (apps/mobile, M8c.1): new pairs on its dense screens.
+      'mobile: teks pendukung 12/13 (--muted di --surface)': [c('muted'), c('surface')],
+      'mobile: teks pendukung 12/13 (--muted di --bg)': [c('muted'), c('bg')],
+      'mobile: judul grup sticky (--muted di --bg)': [c('muted'), c('bg')],
+      'mobile: tab tidak aktif (--muted di --surface)': [c('muted'), c('surface')],
+      'mobile: badge Tugas (--text di --surface-raised)': [c('text'), c('surface-raised')],
+      'mobile: segmen aktif (--text di --surface)': [c('text'), c('surface')],
+      'mobile: segmen tidak aktif (--muted di --surface-raised)': [c('muted'), c('surface-raised')],
+      'mobile: chip/tanggal dipilih (--bg di --text)': [c('bg'), c('text')],
+      'mobile: waktu tenggat besok (--urgency-soon di --surface)': [c('urgency-soon'), c('surface')],
+      'mobile: waktu tenggat 3 hari (--urgency-week di --surface)': [c('urgency-week'), c('surface')],
+      'mobile: hari ini di kalender bulan (--accent-text di --surface)': [accentText, c('surface')],
+      'mobile: baris ditekan (--text di --surface-raised)': [c('text'), c('surface-raised')],
       'tombol traktir: teks dan cangkir (--ink di oranye)': [c('ink'), orange],
       'tombol traktir hover: teks dan cangkir': [c('ink'), supportHover],
       'tombol traktir: panah muted': [supportMuted, orange],

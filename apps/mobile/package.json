@@ -15,7 +15,7 @@
     "web:shots": "node scripts/web-shots.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "node scripts/check-native-logs.mjs"
+    "lint": "node scripts/check-native-logs.mjs && node scripts/check-type-tokens.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.6.2",

@@ -80,7 +80,7 @@ export function CourseRow({ course, color, row, fetched, w, locale }: { course: 
   );
 }
 
-const STATUS_CLASS: Record<AttendanceStatus, string> = {
+export const STATUS_CLASS: Record<AttendanceStatus, string> = {
   present: 'border-border text-foreground',
   late: 'border-border text-foreground',
   excused: 'border-border text-foreground',

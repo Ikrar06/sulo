@@ -21,22 +21,27 @@ export function PullToRefresh({ children, onRefresh, disabled, labels, scroller 
     if (disabled || (scroller.current?.scrollTop ?? 0) > 0) return;
     start.current = e.touches[0]!.clientY;
   };
+  // The pull, for anything that follows it (Ringkasan's mascot dips up to 10 px).
+  const share = (px: number) => document.documentElement.style.setProperty('--m-pull-y', `${Math.min(10, (px / PULL_THRESHOLD) * 10).toFixed(1)}px`);
   const onMove = (e: React.TouchEvent) => {
     if (start.current === null) return;
     const dy = e.touches[0]!.clientY - start.current;
-    setPull(dy > 0 ? damp(dy) : 0);
+    const next = dy > 0 ? damp(dy) : 0;
+    setPull(next);
+    share(next);
   };
   const onEnd = () => {
     if (start.current === null) return;
     start.current = null;
     if (pull >= PULL_THRESHOLD) onRefresh();
     setPull(0);
+    share(0);
   };
 
   const ready = pull >= PULL_THRESHOLD;
   return (
     <div onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
-      <div aria-hidden={pull === 0} className="flex items-end justify-center overflow-hidden text-[12px] text-muted-foreground transition-[height] duration-150 motion-reduce:transition-none" style={{ height: pull }}>
+      <div aria-hidden={pull === 0} className="flex items-end justify-center overflow-hidden text-m12 text-muted-foreground transition-[height] duration-150 motion-reduce:transition-none" style={{ height: pull }}>
         {pull > 8 && (
           <span className="mb-2 inline-flex items-center gap-2" role="status">
             <RefreshIcon className="size-4" style={{ transform: `rotate(${Math.round((pull / PULL_THRESHOLD) * 270)}deg)` }} />

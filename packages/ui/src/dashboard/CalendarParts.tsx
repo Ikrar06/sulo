@@ -17,7 +17,7 @@ export function useRange(d: DashMessages) {
 }
 
 /** "Semester Awal · Minggu ke-14 dari 16" or why there is no numbered week. */
-function useWeekText(calendar: CalendarFile, today: string, d: DashMessages) {
+export function useWeekText(calendar: CalendarFile, today: string, d: DashMessages) {
   const { m } = useI18n();
   const { semester, info } = currentWeek(calendar, today);
   const w = d.kalender.week;

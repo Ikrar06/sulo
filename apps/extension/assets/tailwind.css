@@ -9,3 +9,5 @@
    to packages/ui in M8c and are scanned the same way. */
 @source "../../../packages/core/src";
 @source "../../../packages/ui/src";
+/* The Android app's card patterns use only its own tokens: not the extension's. */
+@source not "../../../packages/ui/src/mobile";
