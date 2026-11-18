@@ -74,4 +74,7 @@ jobs:
         with:
           name: sulo-android-debug
           path: .output/sulo-*-android-debug.apk
+          # .output/ is a dot folder, which upload-artifact skips unless told otherwise.
+          include-hidden-files: true
+          if-no-files-found: error
           retention-days: 14
