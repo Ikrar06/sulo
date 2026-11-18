@@ -324,6 +324,11 @@ describe('finding an attendance activity for the recap (stop at the first that w
     expect(posts).toHaveLength(MAX_CMID_PROBES);
     expect(posts).not.toContain(6);
     expect(pages).toEqual([]);
+    // Each fetched structure is kept for the radar, as a silent baseline.
+    const stored = await readUserFor(store, 1, 'snapshots');
+    expect(Object.keys(stored).map(Number).sort()).toEqual([...posts, 6].sort());
+    expect(await readUserFor(store, 1, 'changes')).toEqual([]);
+    expect(Object.keys((await readUserFor(store, 1, 'radar')).stateCheckedAt).map(Number).sort()).toEqual([...posts].sort());
     // The probes count against the 2-minute cooldown: a second click right away sends nothing.
     expect((await refreshRecap(deps, { force: true })).status).toBe('cooldown');
     expect(posts).toHaveLength(MAX_CMID_PROBES);

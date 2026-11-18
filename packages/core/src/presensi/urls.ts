@@ -2,6 +2,8 @@
 // never the "take" page, sessions.php, a status or remarks form, or anything
 // with a sesskey. Pure.
 
+import { SIKOLA_ORIGIN } from '../moodle/limits';
+
 export const ATTENDANCE_PATH = '/mod/attendance/view.php';
 
 /** "All courses" tab: the recap of every course in one GET. */
@@ -24,7 +26,7 @@ export function attendanceCmidFromUrl(href: string): number | null {
   } catch {
     return null;
   }
-  if (url.origin !== 'https://sikola-v2.unhas.ac.id' || url.pathname !== ATTENDANCE_PATH) return null;
+  if (url.origin !== SIKOLA_ORIGIN || url.pathname !== ATTENDANCE_PATH) return null;
   const id = url.searchParams.get('id');
   return id !== null && /^\d{1,10}$/.test(id) && Number(id) > 0 ? Number(id) : null;
 }
@@ -39,7 +41,7 @@ const FORBIDDEN = /take|sessions\.php|submit|sesskey|status|remarks|self|passwor
 export function isReadOnlyAttendanceUrl(pathAndQuery: string): boolean {
   let url: URL;
   try {
-    url = new URL(pathAndQuery, 'https://sikola.invalid');
+    url = new URL(pathAndQuery, SIKOLA_ORIGIN);
   } catch {
     return false;
   }

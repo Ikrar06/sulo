@@ -9,6 +9,7 @@ import { calls } from '../moodle/calls';
 import type { MoodleClient } from '../moodle/client';
 import { parseCall } from '../moodle/schemas';
 import { itemsFromState } from '../radar/snapshot';
+import { storeCourseState } from '../radar/sync-step';
 import { readUser, writeUserIfCurrent } from '../storage';
 import type { Clock, CourseId, CourseSnapshot, KeyValueStore, UnixSeconds, UserId } from '../types';
 import { parseDetail, parseRecap } from './parse';
@@ -99,7 +100,10 @@ export async function findRecapCmid(deps: PresensiDeps, data: PresensiData, allo
     if (outcome.kind !== 'ok') break;
     const parsed = parseCall('core_courseformat_get_state', outcome.results[0]!);
     if (!parsed.ok) continue;
-    const items = itemsFromState(parsed.data).filter((i) => i.module === 'attendance');
+    const all = itemsFromState(parsed.data);
+    // The structure is kept like the radar's (a first one is a baseline).
+    await storeCourseState(deps.store, deps.userId, courseId, all, deps.clock.now());
+    const items = all.filter((i) => i.module === 'attendance');
     const cm = items.find((i) => i.uservisible) ?? items[0];
     if (cm) return { cmid: cm.cmId, via: 'probe', probes };
   }
