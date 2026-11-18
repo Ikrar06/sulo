@@ -46,9 +46,9 @@ describe('page mapping (observation of 18 Nov 2026)', () => {
   it('maps each NEOSIA page to the responses it triggers', () => {
     expect(SOURCES.map((s) => [s.id, s.page, s.url, s.endpoints])).toEqual([
       ['beranda', '/', NEOSIA_HOME, ['dashboard', 'prodi_semester/active', 'belanja_krs', 'checkJadwalBelanjaKRS']],
-      ['khs', '/kartu-hasil-studi', NEOSIA_KHS, ['getTranskripMahasiswa', 'kartu_hasil_studi/semester', 'mahasiswa/semester']],
+      ['khs', '/kartu-hasil-studi', NEOSIA_KHS, ['getTranskripMahasiswa', 'kartu_hasil_studi/semester', 'mahasiswa/semester', 'check_survey_status']],
       ['transkrip', '/transkrip-nilai', NEOSIA_TRANSKRIP, ['getTranskripMahasiswa', 'check_survey_status', 'indeks_prestasi/current']],
-      ['krs', '/kartu-rencana-studi', NEOSIA_KRS, ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS']],
+      ['krs', '/kartu-rencana-studi', NEOSIA_KRS, ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS', 'getCurrentPenasihatAkademik']],
       ['matakuliah', '/matakuliah', NEOSIA_MATAKULIAH, ['kelas_kuliah_tersedia']],
     ]);
   });

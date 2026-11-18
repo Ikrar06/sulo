@@ -2,7 +2,7 @@
 // the API responses it triggers. Sulo never requests these itself; a "Buka"
 // button only opens the page in a tab because the user clicked it. Pure.
 //
-// Mapping: final, from the owner's observation of 18 Nov 2026 (the dev list
+// Mapping: final, from the owner's observation of 18 Nov 2026 05:00 UTC (the dev list
 // records the page each response came from).
 
 import { NEOSIA_HOME, NEOSIA_KHS, NEOSIA_KRS, NEOSIA_MATAKULIAH, NEOSIA_TRANSKRIP } from '../links';
@@ -17,7 +17,7 @@ export interface Source {
   /** The NEOSIA page's own path. */
   page: string;
   url: string;
-  /** Responses the page triggers (observation of 18 Nov 2026). */
+  /** Responses the page triggers (observation of 18 Nov 2026 05:00 UTC). */
   endpoints: readonly EndpointId[];
   /** Responses that must all be stored for the source to count as done. */
   requires: readonly EndpointId[];
@@ -26,15 +26,16 @@ export interface Source {
 }
 
 /**
- * Final mapping from the owner's observation of 18 Nov 2026. The KRS page
- * also triggers penasihat_akademik/getCurrentPenasihatAkademik, still
- * observed only (lib/neosia/allowlist.ts OBSERVE_ONLY).
+ * Final mapping from the owner's observation of 18 Nov 2026 05:00 UTC. The
+ * KHS page also brings the survey status; the KRS page the academic
+ * advisor. indeks_prestasi/current (Transkrip) is allowlisted but no item
+ * needs it: getTranskripMahasiswa carries current_indeks_prestasi.
  */
 export const SOURCES: readonly Source[] = [
   { id: 'beranda', page: '/', url: NEOSIA_HOME, endpoints: ['dashboard', 'prodi_semester/active', 'belanja_krs', 'checkJadwalBelanjaKRS'], requires: ['dashboard', 'belanja_krs'], checklist: 'required' },
-  { id: 'khs', page: '/kartu-hasil-studi', url: NEOSIA_KHS, endpoints: ['getTranskripMahasiswa', 'kartu_hasil_studi/semester', 'mahasiswa/semester'], requires: ['getTranskripMahasiswa', 'mahasiswa/semester'], checklist: 'required' },
+  { id: 'khs', page: '/kartu-hasil-studi', url: NEOSIA_KHS, endpoints: ['getTranskripMahasiswa', 'kartu_hasil_studi/semester', 'mahasiswa/semester', 'check_survey_status'], requires: ['getTranskripMahasiswa', 'mahasiswa/semester'], checklist: 'required' },
   { id: 'transkrip', page: '/transkrip-nilai', url: NEOSIA_TRANSKRIP, endpoints: ['getTranskripMahasiswa', 'check_survey_status', 'indeks_prestasi/current'], requires: ['getTranskripMahasiswa'], checklist: null },
-  { id: 'krs', page: '/kartu-rencana-studi', url: NEOSIA_KRS, endpoints: ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS'], requires: ['max_sks'], checklist: 'optional' },
+  { id: 'krs', page: '/kartu-rencana-studi', url: NEOSIA_KRS, endpoints: ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS', 'getCurrentPenasihatAkademik'], requires: ['max_sks'], checklist: 'optional' },
   { id: 'matakuliah', page: '/matakuliah', url: NEOSIA_MATAKULIAH, endpoints: ['kelas_kuliah_tersedia'], requires: ['kelas_kuliah_tersedia'], checklist: null },
 ];
 
