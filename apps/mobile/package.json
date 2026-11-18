@@ -1,0 +1,40 @@
+{
+  "name": "@sulo/mobile",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Sulo for Android (Capacitor). Unofficial, not affiliated with Universitas Hasanuddin.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "web": "vite --mode web",
+    "build:web": "vite build",
+    "doctor": "node scripts/doctor.mjs",
+    "apk:debug": "node scripts/apk-debug.mjs",
+    "install:apk": "node scripts/install-apk.mjs",
+    "live": "node scripts/live.mjs",
+    "web:shots": "node scripts/web-shots.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.2",
+    "@capacitor/core": "8.6.2",
+    "@capacitor/local-notifications": "8.3.1",
+    "@capacitor/preferences": "8.0.1",
+    "@sulo/core": "workspace:*",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.2",
+    "@tailwindcss/vite": "4.3.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "playwright": "1.62.1",
+    "tailwindcss": "4.3.5",
+    "typescript": "5.9.3",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}

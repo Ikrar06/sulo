@@ -1,0 +1,12 @@
+@import "tailwindcss";
+/* The same tokens as the extension: color, type, radius, fonts. */
+@import "../../extension/assets/tokens.css";
+@source "./";
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  /* Clear of the status and gesture bars (edge-to-edge on Android 15+). */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
