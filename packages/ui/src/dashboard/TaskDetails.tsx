@@ -158,12 +158,12 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions 
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-        <a className={action} href={item.task.url} target="_blank" rel="noopener noreferrer">
+        <a className={action} data-slot="task-action" href={item.task.url} target="_blank" rel="noopener noreferrer">
           <ExternalIcon className="size-4" />
           {d.common.openInSikola}
         </a>
         {item.task.dueAt !== null && (
-          <button type="button" className={action} onClick={() => actions.onAddToCalendar(item)}>
+          <button type="button" className={action} data-slot="task-action" onClick={() => actions.onAddToCalendar(item)}>
             <CalendarPlusIcon className="size-4" />
             {t.addToCalendar}
           </button>

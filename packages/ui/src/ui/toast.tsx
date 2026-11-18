@@ -25,7 +25,8 @@ export function useToast() {
   return ctx
 }
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+/** viewportClassName: where the toast sits (the Android app lifts it above its tab bar). */
+export function ToastProvider({ children, viewportClassName = "bottom-6" }: { children: ReactNode; viewportClassName?: string }) {
   const [toast, setToast] = useState<Shown | null>(null)
   const seq = useRef(0)
   const show = useCallback((t: ToastOptions) => setToast({ ...t, id: ++seq.current }), [])
@@ -34,7 +35,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
+      <div aria-live="polite" className={`pointer-events-none fixed inset-x-0 z-50 flex justify-center px-4 ${viewportClassName}`}>
         {toast && <ToastCard key={toast.id} toast={toast} onClose={() => setToast(null)} />}
       </div>
     </ToastContext.Provider>

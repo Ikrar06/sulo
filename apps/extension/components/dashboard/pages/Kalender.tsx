@@ -10,7 +10,7 @@ import { buildTaskItems } from '@sulo/core/dashboard/tasks';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { ListView } from '@sulo/ui/dashboard/calendar/ListView';
 import { MonthView } from '@sulo/ui/dashboard/calendar/MonthView';
-import { SelectedDay, Upcoming } from '../calendar/SidePanels';
+import { SelectedDay, Upcoming } from '@sulo/ui/dashboard/calendar/SidePanels';
 import { Subscribe } from '@sulo/ui/dashboard/calendar/Subscribe';
 import { CalendarStrip, SourceFooter } from '@sulo/ui/dashboard/CalendarParts';
 import { timeZone } from '../data';

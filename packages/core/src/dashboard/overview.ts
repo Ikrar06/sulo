@@ -41,6 +41,18 @@ export function groupOverview<T extends { dueAt: UnixSeconds | null }>(items: re
   return OVERVIEW_GROUPS.map((key) => ({ key, rows: [...buckets[key]].sort((a, b) => (a.dueAt ?? 0) - (b.dueAt ?? 0)) })).filter((g) => g.rows.length > 0);
 }
 
+/**
+ * The whole task list in the same groups (the Android app's Tugas screen):
+ * overdue, today, tomorrow, this week, then "next" with every later task,
+ * the dated ones by due date and the undated ones last. Nothing is dropped.
+ */
+export function groupTaskList<T extends { dueAt: UnixSeconds | null }>(items: readonly T[], now: UnixSeconds, timeZone: string): OverviewGroup<T>[] {
+  const groups = groupOverview(items, now, timeZone);
+  const placed = new Set<T>(groups.flatMap((g) => g.rows));
+  const rest = items.filter((i) => !placed.has(i)).sort((a, b) => (a.dueAt ?? Infinity) - (b.dueAt ?? Infinity));
+  return rest.length > 0 ? [...groups, { key: 'next', rows: rest }] : groups;
+}
+
 /** With other groups to show, overdue rows take at most this many of the card's rows. */
 export const OVERDUE_MAX_ROWS = 3;
 

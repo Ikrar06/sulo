@@ -1,15 +1,17 @@
-import { useI18n } from '@sulo/ui/i18n';
+import { useI18n } from '../../i18n';
 import { formatDateKey, formatRange } from '@sulo/core/calendar/countdown';
 import { eventsOnDay, upcomingEvents, type CalEvent } from '@sulo/core/calendar/groups';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { countdownOrLate, formatClock } from '@sulo/core/format/time';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
-import { timeZone } from '../data';
-import { Card } from '@sulo/ui/card';
-import { EventInfo, HolidayInfo } from '@sulo/ui/dashboard/calendar/EventInfo';
-import { DateBlock } from '@sulo/ui/dashboard/calendar/DateBlock';
+import { Card } from '../../card';
+import { EventInfo, HolidayInfo } from './EventInfo';
+import { DateBlock } from './DateBlock';
 
 export { DateBlock };
+
+/** The device's time zone, as everywhere in Sulo's display layer. */
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 /** Category dot: the group's color, never the only cue (the category is written next to it). */
 export function CategoryDot({ event }: { event: CalEvent }) {

@@ -199,3 +199,25 @@ export const GradeIcon = (p: IconProps) => (
 
 /** A small info mark for "how to" popovers. */
 export const InfoSmallIcon = InfoCircleIcon;
+
+/** "Lainnya" in the Android app's tab bar: three dots in a row. */
+export const MoreIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="5" cy="12" r="1.5" />
+    <circle cx="12" cy="12" r="1.5" />
+    <circle cx="19" cy="12" r="1.5" />
+  </Icon>
+);
+
+/** The Android app's privacy notice. */
+export const ShieldIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z" />
+  </Icon>
+);
+
+export const ArrowLeftIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m15 18-6-6 6-6" />
+  </Icon>
+);

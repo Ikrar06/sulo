@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@sulo/core/dashboard/overview';
+import { buildSummary, groupOverview, groupTaskList, heroMood, limitGroups, withNext } from '@sulo/core/dashboard/overview';
 import { zonedToUnix } from '@sulo/core/reminders/zoned';
 
 const TZ = 'Asia/Makassar';
@@ -125,3 +125,22 @@ describe('"Berikutnya" with many overdue tasks or undated tasks (M7.1 fix)', () 
   });
 });
 
+
+describe('groupTaskList (the Android app\'s Tugas screen)', () => {
+  it('keeps every task: the overview groups, then "next" with later dated tasks by due date and undated ones last', () => {
+    const undated = { dueAt: null };
+    const items = [undated, at('2026-12-01', 9), at('2026-11-16', 10), at('2026-11-17', 8), at('2026-11-25', 9)];
+    const groups = groupTaskList(items, NOW, TZ);
+    expect(groups.map((g) => [g.key, g.rows.length])).toEqual([
+      ['overdue', 1],
+      ['tomorrow', 1],
+      ['next', 3],
+    ]);
+    expect(groups.at(-1)!.rows).toEqual([at('2026-11-25', 9), at('2026-12-01', 9), undated]);
+    expect(groups.flatMap((g) => g.rows)).toHaveLength(items.length);
+  });
+
+  it('no "next" group when everything is within the week', () => {
+    expect(groupTaskList([at('2026-11-17', 8)], NOW, TZ).map((g) => g.key)).toEqual(['tomorrow']);
+  });
+});
