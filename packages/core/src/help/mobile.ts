@@ -59,6 +59,20 @@ const PHONE: FaqEntry[] = [
     ],
   },
   {
+    id: 'baterai-hp',
+    q: { id: 'Apakah pemantauan boros baterai?', en: 'Does watching drain the battery?' },
+    a: [
+      {
+        id: 'Dengan pemantauan menyala, Sulo bangun paling banyak sekitar 58 kali sehari: tiap 20 menit pukul 06.00-22.59 dan tiap jam di malam hari. Setiap kali hanya satu permintaan kecil ke SIKOLA, lalu tidur lagi; tidak ada yang berjalan terus di latar belakang.',
+        en: 'With watching on, Sulo wakes at most about 58 times a day: every 20 minutes from 06.00 to 22.59 and every hour at night. Each time it sends one small request to SIKOLA and sleeps again; nothing keeps running in the background.',
+      },
+      {
+        id: 'Saat Penghemat baterai menyala, Sulo mengecek sekali per jam, siang maupun malam, tanpa memeriksa materi mata kuliah, dan kembali normal saat penghemat dimatikan. Kalau ingin lebih hemat lagi, matikan pemantauan; Sulo tetap memperbarui saat aplikasi dibuka.',
+        en: 'With Battery Saver on, Sulo checks once an hour, day and night, without looking at course materials, and goes back to normal when the saver is off. To save even more, turn watching off; Sulo still updates when you open the app.',
+      },
+    ],
+  },
+  {
     id: 'email-sikola-hp',
     q: { id: 'Bisakah SIKOLA mengirim email juga?', en: 'Can SIKOLA send me email too?' },
     a: [
@@ -134,7 +148,7 @@ export const MOBILE_FAQ: FaqEntry[] = [...PHONE, ...FAQ.filter((e) => SHARED.has
 export const MOBILE_FAQ_TOPICS = [
   { id: 'privasi', title: { id: 'Keamanan dan privasi', en: 'Security and privacy' }, entries: ['aman-hp', 'akun-lain-hp', 'hapus-data-hp'] },
   { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'seberapa-cepat-hp', 'masuk-lagi-hp', 'masuk-lagi-pemantauan-hp', 'sikola-berubah-hp', 'kabar-lama'] },
-  { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'email-sikola-hp'] },
+  { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'baterai-hp', 'email-sikola-hp'] },
   { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
   { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['resmi'] },
