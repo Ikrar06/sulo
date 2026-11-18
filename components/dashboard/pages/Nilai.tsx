@@ -1,0 +1,313 @@
+import { useMemo, useState, type ReactNode } from 'react';
+import { useI18n } from '@/components/i18n';
+import { ChevronDownIcon } from '@/components/icons';
+import { Private, usePrivacy } from '@/components/private';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatAgo } from '@/lib/format/time';
+import { GRADE_LETTERS } from '@/lib/grades/scale';
+import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readTranscript, simulateIpk, type TranscriptRow } from '@/lib/grades/transcript';
+import { neosiaWords } from '@/lib/i18n/neosia';
+import { NEOSIA_LOGIN_URL } from '@/lib/links';
+import { neosiaStatus, profile } from '@/lib/neosia/view';
+import type { Projected } from '@/lib/neosia/project';
+import { GpaChart } from '../GpaChart';
+import { XIcon } from '../icons';
+import { Card } from '../Shell';
+import type { PageProps } from '../types';
+
+// Nilai (M7.1, NEOSIA module on only). Grades and GPA are hidden until
+// "Tampilkan nilai" (not remembered: leaving the page hides them again);
+// privacy mode still masks them. The official GPA is NEOSIA's; Sulo's own
+// count and the simulation are estimates with letter weights still to be
+// verified (lib/grades/scale.ts). No notification, export, copy, calendar
+// file or bug report ever carries anything from this page.
+
+const HIDDEN = '••••';
+const LOW = new Set(['D', 'E']);
+
+type Obj = { [k: string]: Projected };
+const obj = (v: Projected | null | undefined): Obj | null => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Obj) : null);
+
+/** Semester names from /api/mahasiswa/semester, by code ("20251" → "Ganjil 2025/2026"). */
+function semesterNames(data: Projected | null | undefined): Map<string, { jenis: string | null; tahun: string | null }> {
+  const list = obj(data)?.semesters;
+  const out = new Map<string, { jenis: string | null; tahun: string | null }>();
+  if (!Array.isArray(list)) return out;
+  for (const s of list) {
+    const o = obj(s);
+    const kode = o && (typeof o.kode === 'string' || typeof o.kode === 'number') ? String(o.kode) : null;
+    if (kode) out.set(kode, { jenis: typeof o!.jenis === 'string' ? o!.jenis : null, tahun: typeof o!.tahun_ajaran === 'string' ? o!.tahun_ajaran : null });
+  }
+  return out;
+}
+
+export function NilaiPage({ data }: PageProps) {
+  const { m, locale } = useI18n();
+  const w = neosiaWords(locale);
+  const n = w.nilai;
+  const masked = usePrivacy();
+  const [shown, setShown] = useState(false);
+  const snapshots = data.neosia.snapshots;
+  const rows = useMemo(() => readTranscript(snapshots.getTranskripMahasiswa?.data), [snapshots]);
+  const names = useMemo(() => semesterNames(snapshots['mahasiswa/semester']?.data), [snapshots]);
+  const p = profile(snapshots);
+  const status = neosiaStatus(snapshots);
+
+  if (rows.length === 0 && !p) {
+    return (
+      <Card>
+        <p className="text-[14px] font-semibold">{w.noData}</p>
+        <p className="mt-1 text-[14px] text-muted-foreground">{n.empty}</p>
+        <Button className="mt-4" variant="outline" asChild>
+          <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer">
+            {w.openNeosia}
+          </a>
+        </Button>
+      </Card>
+    );
+  }
+
+  const official = p?.ipk ?? null;
+  const computed = computeIpk(rows);
+  const mismatch = differsFromNeosia(computed, official);
+  const passed = p?.sksPassed ?? passedSks(rows);
+  const groups = bySemester(rows);
+  const label = (id: string) => n.semesterLabel(names.get(id)?.jenis ?? null, names.get(id)?.tahun ?? null, id);
+  const reveal = shown && !masked;
+  const fmt = (v: number | null) => (v === null ? '-' : v.toFixed(2));
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[12px] text-muted-foreground">{status.lastSeenAt !== null ? n.source(formatAgo(status.lastSeenAt, data.now, m)) : ''}</p>
+        <Button variant="outline" aria-pressed={shown} onClick={() => setShown(!shown)}>
+          {shown ? n.hide : n.show}
+        </Button>
+      </div>
+
+      <section className="grid gap-4 sm:grid-cols-3" aria-label={n.title}>
+        <Stat label={n.ipk} value={shown ? <Private>{fmt(official ?? computed)}</Private> : HIDDEN} />
+        <Stat label={n.sksPassed} value={<Private>{n.ofTarget(passed, data.prefs.sksTarget)}</Private>} />
+        <Stat label={n.sisa} value={p?.masaStudi?.sisa != null ? n.semesters(p.masaStudi.sisa) : '-'} />
+      </section>
+      {mismatch && <p className="text-[12px] text-muted-foreground">{n.mismatch}</p>}
+      {/* Development builds only: both numbers, to check the count against NEOSIA. */}
+      {import.meta.env.MODE === 'development' && (
+        <p className="text-[12px] text-muted-foreground tabular-nums">
+          GPA check (dev build only): Sulo {fmt(computed)} / NEOSIA {fmt(official)}
+        </p>
+      )}
+
+      <Card title={n.chartTitle} action={<span className="text-[12px] text-muted-foreground">{n.estimate}</span>}>
+        {reveal ? (
+          <GpaChart
+            title={n.chartTitle}
+            points={[...groups]
+              .reverse()
+              .filter((g) => g.ips !== null)
+              .map((g) => ({ label: g.semester, ips: g.ips!, sks: g.sks, text: n.chartPoint(label(g.semester), g.ips!.toFixed(2), g.sks) }))}
+          />
+        ) : (
+          <p className="py-8 text-center text-[14px] text-muted-foreground">{HIDDEN}</p>
+        )}
+        <p className="mt-2 text-[12px] text-muted-foreground">{n.chartNote}</p>
+      </Card>
+
+      <div className="space-y-2">
+        {groups.map((g, i) => (
+          <Semester key={g.semester} title={label(g.semester)} summary={n.semesterSummary(g.sks, reveal && g.ips !== null ? g.ips.toFixed(2) : HIDDEN)} rows={g.rows} reveal={shown} open={i === 0} />
+        ))}
+      </div>
+
+      <Improvable rows={rows} reveal={shown} />
+      <Simulation rows={rows} reveal={reveal} now={computed} />
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-4">
+      <p className="text-[12px] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-[24px] leading-8 font-semibold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function Letter({ letter, reveal }: { letter: string | null; reveal: boolean }) {
+  if (!reveal) return <span className="text-muted-foreground">{HIDDEN}</span>;
+  const low = letter !== null && LOW.has(letter.toUpperCase());
+  return (
+    <Private>
+      {/* Neutral chip; D and E in the warning color (text and edge only). */}
+      <span className={`inline-flex min-w-8 justify-center rounded-md border px-2 text-[12px] leading-5 font-semibold ${low ? 'border-urgency-soon text-urgency-soon' : 'border-border text-foreground'}`}>{letter ?? '-'}</span>
+    </Private>
+  );
+}
+
+function Semester({ title, summary, rows, reveal, open }: { title: string; summary: string; rows: readonly TranscriptRow[]; reveal: boolean; open: boolean }) {
+  const { locale } = useI18n();
+  const n = neosiaWords(locale).nilai;
+  return (
+    <Collapsible defaultOpen={open} className="rounded-xl border border-border bg-surface">
+      <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 rounded-xl px-5 py-4 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
+        <span className="text-[16px] leading-6 font-semibold">{title}</span>
+        <span className="flex items-center gap-3 text-[12px] text-muted-foreground tabular-nums">
+          {summary}
+          <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
+        </span>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-5 pb-4">
+        <table className="w-full text-left text-[14px]">
+          <thead className="text-[12px] text-muted-foreground">
+            <tr>
+              <th className="py-1 pr-3 font-normal">{n.code}</th>
+              <th className="py-1 pr-3 font-normal">{n.course}</th>
+              <th className="py-1 pr-3 text-right font-normal">{n.sks}</th>
+              <th className="py-1 text-right font-normal">{n.grade}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.key} className={`border-t border-border ${r.used ? '' : 'opacity-50'}`} title={r.used ? undefined : n.notCounted}>
+                <td className="py-2 pr-3 font-mono text-[12px] text-muted-foreground">{r.code}</td>
+                <td className="py-2 pr-3">
+                  {r.name}
+                  {r.transfer && <span className="ml-2 rounded border border-border px-1 text-[12px] text-muted-foreground">{n.transfer}</span>}
+                  {r.manual && <span className="ml-2 rounded border border-border px-1 text-[12px] text-muted-foreground">{n.manual}</span>}
+                  {!r.used && <span className="sr-only">, {n.notCounted}</span>}
+                </td>
+                <td className="py-2 pr-3 text-right tabular-nums">{r.sks}</td>
+                <td className="py-2 text-right">
+                  <Letter letter={r.letter} reveal={reveal} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** "Bisa diperbaiki": a plain list from the transcript, never a recommendation. */
+function Improvable({ rows, reveal }: { rows: readonly TranscriptRow[]; reveal: boolean }) {
+  const { locale } = useI18n();
+  const n = neosiaWords(locale).nilai;
+  const [withC, setWithC] = useState(false);
+  const list = improvable(rows, withC);
+  return (
+    <Card title={n.improvable}>
+      <p className="max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{n.improvableNote}</p>
+      <label className="mt-3 flex items-center gap-2 text-[14px]">
+        <Checkbox checked={withC} onCheckedChange={(v) => setWithC(v === true)} />
+        {n.includeC}
+      </label>
+      {!reveal ? (
+        <p className="mt-3 text-[14px] text-muted-foreground">{HIDDEN}</p>
+      ) : list.length === 0 ? (
+        <p className="mt-3 text-[14px] text-muted-foreground">{withC ? n.improvableNoneC : n.improvableNone}</p>
+      ) : (
+        <ul className="mt-3 space-y-1">
+          {list.map((r) => (
+            <li key={r.key} className="flex items-center gap-3 text-[14px]">
+              <span className="min-w-0 flex-1">{r.name}</span>
+              <span className="text-[12px] text-muted-foreground tabular-nums">
+                {r.sks} {n.sks}
+              </span>
+              <Letter letter={r.letter} reveal />
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+/** Pick courses, change their letters, see the estimated GPA. Nothing is saved. */
+function Simulation({ rows, reveal, now }: { rows: readonly TranscriptRow[]; reveal: boolean; now: number | null }) {
+  const { locale } = useI18n();
+  const n = neosiaWords(locale).nilai;
+  const [changes, setChanges] = useState<Record<string, string>>({});
+  const counted = rows.filter((r) => r.used);
+  const chosen = counted.filter((r) => r.key in changes);
+  const available = counted.filter((r) => !(r.key in changes));
+  const result = simulateIpk(rows, changes);
+  return (
+    <Collapsible className="rounded-xl border border-border bg-surface">
+      <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 rounded-xl px-5 py-4 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
+        <span className="text-[16px] leading-6 font-semibold">
+          {n.sim} <span className="text-[12px] font-normal text-muted-foreground">({n.estimate})</span>
+        </span>
+        <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3 px-5 pb-5">
+        <p className="text-[12px] text-muted-foreground">{n.simNote}</p>
+        {!reveal ? (
+          <p className="text-[14px] text-muted-foreground">{HIDDEN}</p>
+        ) : (
+          <>
+            <Select value="" onValueChange={(key) => setChanges({ ...changes, [key]: rows.find((r) => r.key === key)?.letter ?? 'A' })}>
+              <SelectTrigger aria-label={n.simAdd} className="w-full sm:w-96">
+                <SelectValue placeholder={n.simAdd} />
+              </SelectTrigger>
+              <SelectContent>
+                {available.map((r) => (
+                  <SelectItem key={r.key} value={r.key}>
+                    {r.name} ({r.letter ?? '-'})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {chosen.length === 0 ? (
+              <p className="text-[14px] text-muted-foreground">{n.simEmpty}</p>
+            ) : (
+              <ul className="space-y-2">
+                {chosen.map((r) => (
+                  <li key={r.key} className="flex flex-wrap items-center gap-3 text-[14px]">
+                    <span className="min-w-0 flex-1">
+                      {r.name} <span className="text-muted-foreground">({r.letter ?? '-'})</span>
+                    </span>
+                    <Select value={changes[r.key]} onValueChange={(v) => setChanges({ ...changes, [r.key]: v })}>
+                      <SelectTrigger aria-label={`${n.grade}: ${r.name}`} className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GRADE_LETTERS.map((l) => (
+                          <SelectItem key={l} value={l}>
+                            {l}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={n.simRemove(r.name)}
+                      onClick={() => setChanges(Object.fromEntries(Object.entries(changes).filter(([k]) => k !== r.key)))}
+                    >
+                      <XIcon className="size-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <dl className="grid gap-x-6 gap-y-1 text-[14px] tabular-nums sm:grid-cols-[auto_1fr]">
+              <dt className="text-muted-foreground">{n.simNow}</dt>
+              <dd>
+                <Private>{now === null ? '-' : now.toFixed(2)}</Private>
+              </dd>
+              <dt className="text-muted-foreground">{n.simIpk}</dt>
+              <dd className="font-semibold">
+                <Private>{result === null ? '-' : result.toFixed(2)}</Private>
+              </dd>
+            </dl>
+          </>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}

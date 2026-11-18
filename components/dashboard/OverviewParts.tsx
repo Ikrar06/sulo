@@ -1,3 +1,4 @@
+import { neosiaWords } from '@/lib/i18n/neosia';
 import { Fragment } from 'react';
 import { useI18n } from '@/components/i18n';
 import { countdownOf, formatDateKey } from '@/lib/calendar/countdown';
@@ -20,6 +21,7 @@ export function nextForSummary(calendar: CalendarFile, today: string, d: DashMes
 /** "1 tugas terlambat · 0 tenggat minggu ini · UAS mulai 14 hari lagi": late in warning color, countdown in accent, the rest muted. */
 export function SummaryLine({ parts, d }: { parts: SummaryPart[]; d: DashMessages }) {
   const s = d.ringkasan.summary;
+  const { locale } = useI18n();
   const piece = (p: SummaryPart) => {
     if (p.kind === 'overdue') {
       const [a, b] = s.overdue(p.n);
@@ -32,6 +34,7 @@ export function SummaryLine({ parts, d }: { parts: SummaryPart[]; d: DashMessage
       );
     }
     if (p.kind === 'none') return <span>{s.none}</span>;
+    if (p.kind === 'classes') return <span>{neosiaWords(locale).today.summary(p.n)}</span>;
     if (p.kind === 'week') {
       const [a, b] = s.week(p.n);
       return (

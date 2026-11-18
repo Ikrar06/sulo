@@ -150,8 +150,8 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Statistik pemakaian lokal (berapa kali popup dan dashboard dibuka, tugas ditandai selesai, dan pengingat tampil) hanya berupa angka dan tersimpan di browsermu. Sulo tidak pernah mengirimnya. Di Pengaturan kamu bisa mengekspornya sebagai berkas dan memutuskan sendiri mau mengirimnya atau tidak.',
-          en: 'Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. In Settings you can export them as a file and decide yourself whether to share it.',
+          id: 'Statistik pemakaian lokal (berapa kali popup dan dashboard dibuka, tugas ditandai selesai, dan pengingat tampil) hanya berupa angka dan tersimpan di browsermu. Sulo tidak pernah mengirimnya. Angka ini tidak ditampilkan dan tidak bisa diekspor di versi biasa; hanya build pengembangan yang menampilkannya.',
+          en: 'Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. They are not shown and cannot be exported in the regular version; only development builds show them.',
         },
       },
       {

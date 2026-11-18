@@ -161,8 +161,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Bagaimana cara menghapus semua data Sulo?', en: 'How do I delete all of Sulo’s data?' },
     a: [
       {
-        id: 'Di Pengaturan, bagian "Data dan statistik", atau ⚙ di popup, pilih "Hapus semua data". Ini menghapus tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan di browser ini. Data di SIKOLA tidak tersentuh. Mencopot ekstensi juga menghapus semuanya.',
-        en: 'In Settings, "Data and statistics", or ⚙ in the popup, choose "Delete all data". It deletes tasks, courses, reminders, latest updates and settings in this browser. Nothing in SIKOLA is touched. Removing the extension deletes everything too.',
+        id: 'Di Pengaturan, bagian "Data", atau ⚙ di popup, pilih "Hapus semua data". Ini menghapus tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan di browser ini. Data di SIKOLA tidak tersentuh. Mencopot ekstensi juga menghapus semuanya.',
+        en: 'In Settings, "Data", or ⚙ in the popup, choose "Delete all data". It deletes tasks, courses, reminders, latest updates and settings in this browser. Nothing in SIKOLA is touched. Removing the extension deletes everything too.',
       },
     ],
   },
@@ -231,6 +231,20 @@ export const FAQ: FaqEntry[] = [
       {
         id: 'Nilai huruf, IPS, dan IPK memang disimpan di browsermu, tetapi tersembunyi sampai kamu memilih Tampilkan, dan tidak pernah masuk notifikasi, ekspor, daftar yang disalin, berkas kalender, atau info laporan bug.',
         en: 'Letter grades and GPA are kept in your browser, but hidden until you choose Show, and never appear in notifications, exports, copied lists, calendar files or bug report info.',
+      },
+    ],
+  },
+  {
+    id: 'ipk-nilai',
+    q: { id: 'Bagaimana Sulo menghitung IPK di halaman Nilai?', en: 'How does Sulo count the GPA on the Grades page?' },
+    a: [
+      {
+        id: 'IPK yang tampil di atas halaman Nilai adalah angka resmi dari NEOSIA. Sulo juga menghitung sendiri dari transkripmu (mata kuliah yang dihitung NEOSIA, dikali SKS) untuk grafik IPS dan simulasi. Kalau hitungan Sulo berbeda dari NEOSIA, Sulo memberi tahu, dan angka resmi tetap dari NEOSIA.',
+        en: "The GPA at the top of the Grades page is NEOSIA's official figure. Sulo also counts from your transcript itself (the courses NEOSIA counts, weighted by credits) for the semester chart and the simulation. If Sulo's count differs from NEOSIA's, Sulo says so, and the official figure stays NEOSIA's.",
+      },
+      {
+        id: 'Simulasi hanya perkiraan. Bobot nilai huruf yang dipakai (A = 4 sampai E = 0) belum diverifikasi dari aturan resmi, dan simulasi tidak disimpan.',
+        en: 'The simulation is only an estimate. The letter weights it uses (A = 4 down to E = 0) are not yet verified against the official rules, and the simulation is not saved.',
       },
     ],
   },

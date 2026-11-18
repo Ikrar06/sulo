@@ -18,8 +18,14 @@ import { AcademicCard, nextForSummary, SummaryLine } from '../OverviewParts';
 import { timeZone } from '../data';
 import { Card, CardLink } from '../Shell';
 import type { PageProps } from '../types';
-import { KrsReadinessCard, ProfileCard, SurveyLine } from '../NeosiaParts';
-import { krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@/lib/neosia/view';
+import { KrsReadinessCard, NeosiaInvite, StudiCard, SurveyLine, TodayClasses } from '../NeosiaParts';
+import { classMeetings, krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@/lib/neosia/view';
+import { linkedMeetings } from '@/lib/neosia/linked';
+import { holidayRanges } from '@/lib/neosia/schedule';
+import { classesToday } from '@/lib/neosia/today';
+import { dismissInvite, showInvite } from '@/lib/neosia/invite';
+import { local } from '../data';
+import { useNeosiaConnect } from '../neosia-connect';
 
 const LEVELS = [1, 2, 3, 4] as const;
 
@@ -46,37 +52,50 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const loadEmpty = days.every((day) => day.tasks.length === 0 && day.events.length === 0);
   const updates = data.view.updates.slice(0, 6);
   const hour = Math.floor(localParts(data.now, timeZone).minuteOfDay / 60);
-  const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d) });
-
   // NEOSIA (module on only): KRS readiness from 14 days before the window until it closes.
   const neosiaOn = data.neosia.module.enabled;
   const snapshots = data.neosia.snapshots;
   const calendarKrs = useMemo(() => data.calendar.kegiatan.filter((k) => k.kategori === 'krs' && !k.perkiraan && k.audiens !== 'calon_mahasiswa'), [data.calendar]);
+  // "Kuliah hari ini": classes still to come today, none on a calendar holiday.
+  const today = useMemo(
+    () => (neosiaOn ? classesToday(linkedMeetings(classMeetings(snapshots), user.courses, data.neosia.courseMap), data.today, localParts(data.now, timeZone).minuteOfDay, holidayRanges(data.calendar)) : []),
+    [neosiaOn, snapshots, user.courses, data.neosia.courseMap, data.today, data.now, data.calendar],
+  );
+  const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d), classesToday: today.length });
+  const consent = useNeosiaConnect(actions);
+  const invite = showInvite({ moduleOn: neosiaOn, dismissedAt: data.neosia.invite.dismissedAt, dismissedDay: data.neosia.invite.dismissedDay, now: data.now, today: data.today, krsWindows: calendarKrs });
   const krsWin = neosiaOn ? krsWindow(snapshots, data.today, calendarKrs) : null;
   const krsCard = neosiaOn && showKrsCard(krsWin, data.today);
   const surveyOpen = neosiaOn && !krsCard && surveyFilled(snapshots) === false;
 
   return (
     <div className="space-y-4">
-      {/* Hero: no card. One mascot on this page; it idles and stops for reduced motion (Mascot handles both). */}
-      <section className="flex flex-wrap items-center gap-4 pb-2">
+      {/* Hero: full width, no card, nothing else on its row. One mascot on this page; it idles and stops for reduced motion. */}
+      <section className="flex items-center gap-4 pb-2">
         <Mascot state={heroMood(overdue, dueThisWeek)} size={56} />
         <div className="min-w-0 flex-1">
           {/* The greeting always uses the nickname from the settings, never a name from NEOSIA. */}
           <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.privacyMode ? '' : data.prefs.nickname)}</h2>
           <SummaryLine parts={summary} d={d} />
         </div>
-        {neosiaOn && <ProfileCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} />}
       </section>
 
+      {invite && <NeosiaInvite onConnect={consent.start} onLater={() => void dismissInvite(local, data.now, data.today)} />}
+      {consent.dialog}
       {surveyOpen && <SurveyLine />}
       {krsCard && <KrsReadinessCard items={readiness(snapshots, krsWin, data.today)} window={krsWin} seenAt={neosiaStatus(snapshots).lastSeenAt} now={data.now} />}
 
+      {/* Tasks on the left at their own height; the right column (calendar, then studies) stretches beside it. */}
       <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>} className="flex flex-col">
+        <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>} className="self-start">
+          {today.length > 0 && (
+            <div className="mb-4">
+              <TodayClasses classes={today} />
+            </div>
+          )}
           {shown.groups.length === 0 ? (
-            // The card stretches to the calendar card's height; the one line sits in its middle instead of leaving a hole below.
-            <p className="flex flex-1 items-center justify-center py-8 text-center text-[14px] text-muted-foreground">{r.nothingSoon}</p>
+            // Only when no task is pending at all ("Berikutnya" also takes undated tasks).
+            <p className="py-4 text-[14px] text-muted-foreground">{r.nothingSoon}</p>
           ) : (
             <div className="space-y-4">
               {shown.groups.map((g) => (
@@ -123,9 +142,12 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
           )}
         </Card>
 
-        <Card title={r.calendarTitle} action={<CardLink href={routeHash('kalender')}>{r.openCalendar}</CardLink>} className="flex flex-col [&>div:last-child]:flex-1">
-          <AcademicCard calendar={data.calendar} today={data.today} d={d} />
-        </Card>
+        <div className="flex flex-col gap-4">
+          <Card title={r.calendarTitle} action={<CardLink href={routeHash('kalender')}>{r.openCalendar}</CardLink>} className="flex flex-1 flex-col [&>div:last-child]:flex-1">
+            <AcademicCard calendar={data.calendar} today={data.today} d={d} />
+          </Card>
+          {neosiaOn && <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} />}
+        </div>
       </div>
 
       <Card title={r.loadTitle}>

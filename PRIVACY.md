@@ -31,7 +31,7 @@ Everything is stored locally in your browser (chrome.storage) on your own device
 
 From SIKOLA notifications, Sulo keeps only the id, the subject, the component and event type, when it was created, whether it has been read, the related page address (known SIKOLA pages only, with no parameters other than ids) and the course number. Message bodies (text, fullmessage, fullmessagehtml, smallmessage) and extra data (customdata), which may contain grades or lecturer comments, are dropped when read and never stored. Sulo's own notifications about grades never mention the grade or the comment.
 
-Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. In Settings you can export them as a file and decide yourself whether to share it.
+Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. They are not shown and cannot be exported in the regular version; only development builds show them.
 
 Data is tied to your SIKOLA account, recognised by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose "Use this account", or when you use "Delete all data". If you sign in with the previous account again, everything comes back.
 

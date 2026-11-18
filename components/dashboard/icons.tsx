@@ -178,3 +178,15 @@ export const DashCircleIcon = (p: IconProps) => (
     <path d="M8.5 12h7" />
   </Icon>
 );
+
+/** Nilai (grades): a document with a check. */
+export const GradeIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z" />
+    <path d="M14 3v5h5" />
+    <path d="m9 14 2 2 4-4" />
+  </Icon>
+);
+
+/** A small info mark for "how to" popovers. */
+export const InfoSmallIcon = InfoCircleIcon;

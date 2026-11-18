@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentTyp
 import { browser } from 'wxt/browser';
 import { I18nProvider } from '@/components/i18n';
 import { Button } from '@/components/ui/button';
-import { NEOSIA_PAGES, parseRoute, type Page, type Route } from '@/lib/dashboard/routes';
+import { NEOSIA_PAGES, parseRoute, SENSITIVE_PAGES, type Page, type Route } from '@/lib/dashboard/routes';
 import { PrivacyProvider } from '@/components/private';
 import { messagesFor, resolveLocale } from '@/lib/i18n';
 import { dashFor } from '@/lib/i18n/dashboard';
@@ -22,6 +22,7 @@ const PAGES: Record<Page, ComponentType<PageProps>> = {
   kabar: lazy(() => import('./pages/Kabar').then((m) => ({ default: m.KabarPage }))),
   kalender: lazy(() => import('./pages/Kalender').then((m) => ({ default: m.KalenderPage }))),
   jadwal: lazy(() => import('./pages/Jadwal').then((m) => ({ default: m.JadwalPage }))),
+  nilai: lazy(() => import('./pages/Nilai').then((m) => ({ default: m.NilaiPage }))),
   pengaturan: lazy(() => import('./pages/Pengaturan').then((m) => ({ default: m.PengaturanPage }))),
   bantuan: lazy(() => import('./pages/Bantuan').then((m) => ({ default: m.BantuanPage }))),
   tentang: lazy(() => import('./pages/Tentang').then((m) => ({ default: m.TentangPage }))),
@@ -41,7 +42,7 @@ const REFRESH_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar',
 const DATA_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'kalender', 'mata-kuliah']);
 
 /** Pages that work without a connected account. */
-const WITHOUT_ACCOUNT: ReadonlySet<Page> = new Set(['kalender', 'jadwal', 'pengaturan', 'bantuan', 'tentang']);
+const WITHOUT_ACCOUNT: ReadonlySet<Page> = new Set(['kalender', 'jadwal', 'nilai', 'pengaturan', 'bantuan', 'tentang']);
 
 const uiLanguage = browser.i18n.getUILanguage();
 
@@ -114,7 +115,7 @@ function Router() {
         showUpdated={!reloadsCourses}
         onOpenPrivacy={() => actions.openTab(browser.runtime.getURL('/privacy.html'))}
         hiddenPages={neosiaOn ? undefined : NEOSIA_PAGES}
-        privacy={{ on: data.prefs.privacyMode, toggle: () => void actions.setPrefs({ privacyMode: !data.prefs.privacyMode }) }}
+        privacy={SENSITIVE_PAGES.has(page) ? { on: data.prefs.privacyMode, toggle: () => void actions.setPrefs({ privacyMode: !data.prefs.privacyMode }) } : null}
       >
         {DevSession && devSession ? (
           <Suspense fallback={null}>

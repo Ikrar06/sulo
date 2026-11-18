@@ -1,9 +1,8 @@
 // "NEOSIA" in Pengaturan (M7 part D). The switch opens the consent dialog
-// first; only "Hubungkan" asks Chrome for the permissions (it must happen
-// inside that click). Cancel, or a refused permission, leaves the switch off.
+// first (useNeosiaConnect); only "Hubungkan" asks Chrome for the permissions.
+// Cancel, or a refused permission, leaves the switch off.
 
 import { useId, useState } from 'react';
-import { browser } from 'wxt/browser';
 import { useI18n } from '@/components/i18n';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -13,13 +12,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords } from '@/lib/i18n/neosia';
 import { NEOSIA_LOGIN_URL } from '@/lib/links';
-import { neosiaPermissionRequest } from '@/lib/neosia/browser-deps';
-import type { EnableResult } from '@/lib/neosia/module';
 import { neosiaStatus } from '@/lib/neosia/view';
 import type { DashboardActions, DashboardData } from './data';
-import { NeosiaConsent } from './NeosiaConsent';
-
-type Notice = 'denied' | 'failed' | null;
+import { useNeosiaConnect } from './neosia-connect';
 
 export function NeosiaSettings({ data, actions }: { data: DashboardData; actions: DashboardActions }) {
   const { m, locale } = useI18n();
@@ -35,33 +30,11 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
     setTarget(String(next));
     if (next !== data.prefs.sksTarget) void actions.setPrefs({ sksTarget: next });
   };
-  const [consentOpen, setConsentOpen] = useState(false);
+  const consent = useNeosiaConnect(actions);
   const [disconnectOpen, setDisconnectOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<Notice>(null);
   const enabled = data.neosia.module.enabled;
   const status = neosiaStatus(data.neosia.snapshots);
-
-  const connect = () => {
-    setNotice(null);
-    setBusy(true);
-    // Called straight from the click: Chrome shows its own permission prompt now.
-    void browser.permissions
-      .request(neosiaPermissionRequest())
-      .then(async (granted) => {
-        if (!granted) {
-          setNotice('denied');
-          return;
-        }
-        const result = (await actions.send({ type: 'neosia/enable' })) as EnableResult | null;
-        if (result !== 'enabled') setNotice(result === 'no_permission' ? 'denied' : 'failed');
-      })
-      .catch(() => setNotice('failed'))
-      .finally(() => {
-        setBusy(false);
-        setConsentOpen(false);
-      });
-  };
+  const notice = consent.notice;
 
   return (
     <div className="space-y-4">
@@ -75,10 +48,10 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
         <Switch
           id={switchId}
           className="mt-1"
-          checked={enabled || consentOpen}
-          disabled={busy}
+          checked={enabled || consent.open}
+          disabled={consent.busy}
           onCheckedChange={(on) => {
-            if (on) setConsentOpen(true);
+            if (on) consent.start();
             else setDisconnectOpen(true);
           }}
         />
@@ -96,13 +69,14 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
             {status.lastSeenAt === null ? s.openOnce : s.lastUpdated(formatAgo(status.lastSeenAt, data.now, m))}
           </p>
           {status.changedShape.length > 0 && <p className="text-[12px] text-muted-foreground">{w.changedShape}</p>}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Button variant="outline" asChild>
               <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer">
                 {w.openNeosia}
               </a>
             </Button>
-            <Button variant="outline" onClick={() => setDisconnectOpen(true)}>
+            {/* Apart from "Buka NEOSIA": a secondary danger button. */}
+            <Button variant="destructive-outline" onClick={() => setDisconnectOpen(true)}>
               {s.disconnect}
             </Button>
           </div>
@@ -139,7 +113,7 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
         <Switch id={privacyId} className="mt-1" checked={data.prefs.privacyMode} onCheckedChange={(on) => void actions.setPrefs({ privacyMode: on })} />
       </div>
 
-      <NeosiaConsent open={consentOpen} busy={busy} onCancel={() => setConsentOpen(false)} onConnect={connect} />
+      {consent.dialog}
 
       <AlertDialog open={disconnectOpen} onOpenChange={setDisconnectOpen}>
         <AlertDialogContent>

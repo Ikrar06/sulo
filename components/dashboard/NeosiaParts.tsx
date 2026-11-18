@@ -13,8 +13,10 @@ import { NEOSIA_LOGIN_URL } from '@/lib/links';
 import { profile, type ItemState, type KrsWindow, type ReadinessItem } from '@/lib/neosia/view';
 import type { Snapshots } from '@/lib/neosia/store';
 import type { Messages } from '@/lib/i18n';
-import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon } from './icons';
-import { Card } from './Shell';
+import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon, XIcon } from './icons';
+import { Card, CardLink } from './Shell';
+import { routeHash } from '@/lib/dashboard/routes';
+import type { LinkedMeeting } from '@/lib/neosia/linked';
 
 const STATE_ICON: Record<ItemState, ComponentType<SVGProps<SVGSVGElement>>> = {
   ok: CheckCircleIcon,
@@ -102,47 +104,101 @@ export function SurveyLine() {
 }
 
 /**
- * Semester, credits passed (a solid neutral bar), GPA behind "Tampilkan"
- * (not remembered: closing the page hides it again). The bar's scale is the
- * credits to graduate from the settings (144 by default).
- * The greeting above it always uses the nickname from the settings.
+ * "Studi" (overview, right column under the academic calendar): semester
+ * and credits passed of the target on a solid neutral bar, GPA behind
+ * "Tampilkan" (not remembered), semester GPA only when NEOSIA has one.
  */
-export function ProfileCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksTarget: number }) {
+export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksTarget: number }) {
   const { locale } = useI18n();
-  const w = neosiaWords(locale).profile;
+  const w = neosiaWords(locale).studi;
   const [shown, setShown] = useState(false);
   const masked = usePrivacy();
   const p = profile(snapshots);
-  if (!p) return null;
-  const fill = p.sksPassed != null ? Math.min(100, Math.round((p.sksPassed / sksTarget) * 100)) : null;
-  const gpa = (v: number | null) => (v === null ? '-' : v.toFixed(2));
+  if (!p || (p.sksPassed === null && p.ipk === null && p.semester === null)) return null;
+  const fill = p.sksPassed !== null ? Math.min(100, Math.round((p.sksPassed / sksTarget) * 100)) : null;
+  const gpa = (v: number) => v.toFixed(2);
   return (
-    <section className="w-full rounded-xl border border-border bg-surface p-4 sm:w-[280px]" aria-label="NEOSIA">
-      {p.semester != null && <p className="text-[14px] font-semibold">{w.semester(p.semester)}</p>}
-      {p.sksPassed != null && fill !== null && (
-        <div className="mt-2">
-          <p className="text-[12px] text-muted-foreground">
-            <Private>{w.sksPassed(p.sksPassed)}</Private>
-          </p>
-          {/* Solid neutral bar, no gradient; empty in privacy mode (its length would tell the credits). */}
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-raised" role="img" aria-label={w.sksScale(sksTarget)} title={w.sksScale(sksTarget)}>
-            {!masked && <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${fill}%` }} />}
-          </div>
+    <Card title={w.title} action={<CardLink href={routeHash('nilai')}>{w.seeGrades}</CardLink>}>
+      {p.sksPassed !== null ? (
+        <p className="text-[14px] font-semibold">
+          <Private>{w.semesterSks(p.semester, p.sksPassed, sksTarget)}</Private>
+        </p>
+      ) : (
+        p.semester !== null && <p className="text-[14px] font-semibold">{`Semester ${p.semester}`}</p>
+      )}
+      {fill !== null && (
+        // Solid neutral bar, no gradient; empty in privacy mode (its length would tell the credits).
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-raised" role="img" aria-label={neosiaWords(locale).profile.sksScale(sksTarget)}>
+          {!masked && <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${fill}%` }} />}
         </div>
       )}
-      {(p.ipk !== null || p.ips !== null) && (
-        <div className="mt-3 flex items-center gap-3 text-[14px]">
-          <span>
-            {w.ipk} <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ipk)}</Private> : '•••'}</span>
-          </span>
-          <span>
-            {w.ips} <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ips)}</Private> : '•••'}</span>
-          </span>
-          <Button size="sm" variant="ghost" className="ml-auto" aria-pressed={shown} onClick={() => setShown(!shown)}>
+      {p.ipk !== null && (
+        <p className="mt-3 flex items-center gap-2 text-[14px]">
+          <span>{w.ipk}</span>
+          <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ipk)}</Private> : '••••'}</span>
+          <span aria-hidden="true" className="text-muted-foreground">·</span>
+          <button type="button" aria-pressed={shown} onClick={() => setShown(!shown)} className="rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
             {shown ? w.hide : w.show}
-          </Button>
-        </div>
+          </button>
+        </p>
       )}
+      {/* No semester GPA yet: no row at all (never "-"). */}
+      {p.ips !== null && (
+        <p className="mt-1 flex items-center gap-2 text-[14px]">
+          <span>{w.ips}</span>
+          <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ips)}</Private> : '••••'}</span>
+        </p>
+      )}
+    </Card>
+  );
+}
+
+/**
+ * "Hubungkan NEOSIA" while the module is off: one thin full-width line under
+ * the hero, no mascot (the hero has it). "Nanti saja" hides it for 30 days.
+ */
+export function NeosiaInvite({ onConnect, onLater }: { onConnect: () => void; onLater: () => void }) {
+  const { locale } = useI18n();
+  const w = neosiaWords(locale).invite;
+  return (
+    <section className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3" aria-label="NEOSIA">
+      <InfoCircleIcon className="size-4 shrink-0 text-muted-foreground" />
+      <p className="min-w-0 flex-1 text-[14px]">{w.text}</p>
+      <Button variant="outline" onClick={onConnect}>
+        {w.connect}
+      </Button>
+      <Button variant="ghost" size="icon" aria-label={w.later} title={w.later} onClick={onLater}>
+        <XIcon className="size-4" />
+      </Button>
+    </section>
+  );
+}
+
+/** "Kuliah hari ini": time, course and room, before the task groups. */
+export function TodayClasses({ classes }: { classes: readonly LinkedMeeting[] }) {
+  const { locale } = useI18n();
+  const w = neosiaWords(locale).today;
+  const clock = (hhmm: string) => (locale === 'id' ? hhmm.replace(':', '.') : hhmm);
+  return (
+    <section aria-label={w.title}>
+      <h3 className="mb-1 text-[12px] font-semibold text-muted-foreground">{w.title}</h3>
+      <ul>
+        {classes.map((c, i) => (
+          <li key={`${c.key}-${c.start}-${i}`} className="-mx-2 flex items-start gap-3 rounded-lg px-2 py-2">
+            <span className="w-24 shrink-0 pt-px text-[12px] leading-5 text-muted-foreground tabular-nums">
+              {clock(c.start)}–{clock(c.end)}
+            </span>
+            <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: c.color === null ? 'var(--muted)' : `var(--course-${c.color})` }} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-semibold">
+                {c.displayName}
+                {c.classLabel ? ` ${c.classLabel}` : ''}
+              </span>
+              {c.room && <span className="block truncate text-[12px] text-muted-foreground">{c.room}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

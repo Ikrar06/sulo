@@ -8,7 +8,8 @@ import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@/lib/format/time';
 import { PAGES, routeHash, type Page } from '@/lib/dashboard/routes';
 import type { DashMessages } from '@/lib/i18n/dashboard';
-import { BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
+import { BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { neosiaWords } from '@/lib/i18n/neosia';
 import './dashboard.css';
 
@@ -23,6 +24,7 @@ const ICONS: Record<Page, ComponentType<SVGProps<SVGSVGElement>>> = {
   kabar: NewsIcon,
   kalender: CalendarIcon,
   jadwal: ClockIcon,
+  nilai: GradeIcon,
   pengaturan: GearIcon,
   bantuan: HelpIcon,
   tentang: InfoIcon,
@@ -45,8 +47,8 @@ export interface ShellProps {
   onOpenPrivacy: () => void;
   /** Sidebar pages left out (Jadwal while the NEOSIA module is off). */
   hiddenPages?: ReadonlySet<Page>;
-  /** Privacy mode: the eye button in the header. */
-  privacy: { on: boolean; toggle: () => void };
+  /** Privacy mode: the eye button in the header, only on pages with names, grades or credits. */
+  privacy: { on: boolean; toggle: () => void } | null;
   children: ReactNode;
 }
 
@@ -114,10 +116,19 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
               </Button>
             </div>
           )}
-            {/* Privacy mode: masks names, grades, GPA and credits (components/private.tsx). */}
-            <Button variant="outline" size="icon" aria-pressed={privacy.on} aria-label={privacy.on ? nw.privacy.show : nw.privacy.hide} title={privacy.on ? nw.privacy.show : nw.privacy.hide} onClick={privacy.toggle}>
-              {privacy.on ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
-            </Button>
+            {/* Privacy mode: masks names, grades, GPA and credits (components/private.tsx). A crossed eye while on. */}
+            {privacy && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" aria-pressed={privacy.on} aria-label={nw.privacyToggle} onClick={privacy.toggle}>
+                      {privacy.on ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent sideOffset={6}>{nw.privacyToggle}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </header>
         <div className="db-content">{children}</div>

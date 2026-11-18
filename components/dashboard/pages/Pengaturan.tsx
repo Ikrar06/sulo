@@ -13,13 +13,14 @@ import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, t
 import { UPDATE_CATEGORIES } from '@/lib/radar/settings';
 import { timeZone } from '../data';
 import { Card } from '../Shell';
-import { UsageStats } from '../UsageStats';
 import { BugReport } from '../BugReport';
 import { NeosiaSettings } from '../NeosiaSettings';
 import type { PageProps } from '../types';
 
 /** Development builds only: the branch is false in production, so the module is never bundled. */
 const DevDiagnostics = import.meta.env.MODE === 'development' ? lazy(() => import('../DevDiagnostics')) : null;
+/** Usage statistics and their export: development builds only (M7.1). */
+const UsageStats = import.meta.env.MODE === 'development' ? lazy(() => import('../UsageStats')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
 const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data'] as const;
@@ -220,8 +221,13 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
       </Card>
 
       <Card title={<span id="set-data">{t.sections.data}</span>}>
-        <UsageStats d={d} data={data} actions={actions} />
-        <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
+        {UsageStats && (
+          <Suspense fallback={null}>
+            <UsageStats data={data} />
+            <div className="mt-4 border-t border-border" />
+          </Suspense>
+        )}
+        <div className={`flex flex-wrap gap-2 ${UsageStats ? 'pt-4' : ''}`}>
           <Button variant="outline" onClick={() => actions.openTab(browser.runtime.getURL('/onboarding.html#courses'))}>
             {t.manageCourses}
           </Button>

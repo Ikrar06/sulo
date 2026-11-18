@@ -177,7 +177,10 @@ export function readiness(snapshots: Snapshots, window: KrsWindow | null, today:
 export interface ClassMeeting {
   /** Course code from NEOSIA (11 characters, the same pattern as SIKOLA's). */
   code: string | null;
+  /** nama_resmi (or nama_singkat when there is none). */
   name: string;
+  /** nama_singkat, when NEOSIA has one. */
+  shortName: string | null;
   /** The class's own name ("A"). */
   className: string | null;
   sks: number | null;
@@ -209,6 +212,7 @@ export function classMeetings(snapshots: Snapshots): ClassMeeting[] {
       out.push({
         code: str(mk?.kode),
         name,
+        shortName: str(mk?.nama_singkat),
         className: str(kelas.nama),
         sks: num(kelas.sks),
         weekday,
