@@ -1,6 +1,7 @@
 import { defineConfig } from 'wxt';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
+import { stripLocalPaths } from './vite/strip-local-paths';
 import { NEOSIA_HOST_PERMISSIONS } from '../../packages/core/src/neosia/allowlist';
 
 const ICONS = {
@@ -23,7 +24,7 @@ export default defineConfig({
   outDir: '../../.output',
   zip: { name: 'sulo' },
   vite: () => ({
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), stripLocalPaths()],
   }),
   hooks: {
     // Dev-only pages exist only in development builds. The "tester" build
