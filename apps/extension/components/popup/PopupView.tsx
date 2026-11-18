@@ -22,7 +22,7 @@ import { formatDateKey, type Countdown } from '@sulo/core/calendar/countdown';
 import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
 // Rarely opened panels load on demand, so opening the popup stays light.
 const RemindersPanel = lazy(() => import('@sulo/ui/reminders/RemindersPanel').then((mod) => ({ default: mod.RemindersPanel })));
-const UpdatesPanel = lazy(() => import('@/components/updates/UpdatesPanel').then((mod) => ({ default: mod.UpdatesPanel })));
+const UpdatesPanel = lazy(() => import('@sulo/ui/updates/UpdatesPanel').then((mod) => ({ default: mod.UpdatesPanel })));
 const WipeDialog = lazy(() => import('./WipeDialog').then((mod) => ({ default: mod.WipeDialog })));
 import type { UpdateSettings } from '@sulo/core/radar/settings';
 import { StatusLine } from './StatusLine';

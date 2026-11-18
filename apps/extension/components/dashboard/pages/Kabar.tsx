@@ -4,7 +4,7 @@ import { BellIcon } from '@sulo/ui/icons';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Popover, PopoverContent, PopoverTrigger } from '@sulo/ui/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
-import { UpdateSettingsChecks, UpdatesPanel } from '@/components/updates/UpdatesPanel';
+import { UpdateSettingsChecks, UpdatesPanel } from '@sulo/ui/updates/UpdatesPanel';
 import { markAllSeen } from '@sulo/core/radar/log';
 import { categoryOf, UPDATE_CATEGORIES, type UpdateCategory } from '@sulo/core/radar/settings';
 import { timeZone } from '../data';

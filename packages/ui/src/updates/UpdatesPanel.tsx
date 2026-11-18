@@ -1,8 +1,8 @@
 import { useId, type ReactNode } from 'react';
-import { useI18n } from '@sulo/ui/i18n';
-import { BellIcon, ChevronLeftIcon } from '@sulo/ui/icons';
-import { Button } from '@sulo/ui/ui/button';
-import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { useI18n } from '../i18n';
+import { BellIcon, ChevronLeftIcon } from '../icons';
+import { Button } from '../ui/button';
+import { Checkbox } from '../ui/checkbox';
 import { formatClock } from '@sulo/core/format/time';
 import { changeUrl, describeChange } from '@sulo/core/radar/describe';
 import { UPDATE_CATEGORIES, type UpdateCategory, type UpdateSettings } from '@sulo/core/radar/settings';

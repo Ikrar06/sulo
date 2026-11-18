@@ -7,7 +7,7 @@
 @source "../entrypoints/popup";
 @source "../components/popup";
 @source "../../../packages/ui/src/ui";
-@source "../components/updates";
+@source "../../../packages/ui/src/updates";
 @source "../../../packages/ui/src/mascot";
 @source "../../../packages/ui/src/i18n.tsx";
 @source "../../../packages/ui/src/icons.tsx";
