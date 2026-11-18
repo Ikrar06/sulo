@@ -1,109 +1,121 @@
-// Tugas: every task in the overview's groups (core groupTaskList), with
-// Belum selesai / Selesai and a search. Tapping a task opens its details on
-// a full screen; marking one done keeps it in place with "Urungkan" for 5
-// seconds (core done-undo, shared hook), then it slides away.
+// Tugas (M8c.1, cards). Header: the name, a round search button (opens the
+// field) and Perbarui. Pill chips filter: Semua, Terlambat (n), Hari ini,
+// Minggu ini, Selesai. Then the overview's groups (core groupTaskList), each
+// task one card: the course chip and the time left in its urgency color,
+// the title (two lines), the date and a 28 px check circle. Marking one done
+// fills the circle, strikes the title and offers Urungkan for 5 seconds.
 
 import { useMemo, useState } from 'react';
-import { groupTaskList } from '@sulo/core/dashboard/overview';
+import { groupTaskList, type OverviewGroupKey } from '@sulo/core/dashboard/overview';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskItem } from '@sulo/core/dashboard/tasks';
-import { googleCalendarUrl } from '@sulo/core/format/gcal';
-import { taskDueLines } from '@sulo/core/format/time';
-import { mobileDash } from '@sulo/core/i18n/mobile';
+import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
+import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { urgencyOf } from '@sulo/core/tasks/group';
-import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
-import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
+import { XIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { SearchIcon } from '@sulo/ui/icons';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
-import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Card, Chip, EmptyCard } from '@sulo/ui/mobile/cards';
+import { CheckCircle, IconButton } from '@sulo/ui/mobile/controls';
+import { courseTint } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
+import { HeaderTools } from '../shell/screen-header';
 import { LongList } from './LongList';
-import { chip } from './ui';
 
-const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
+export const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
 
-type Status = 'pending' | 'done';
+type Filter = 'all' | 'overdue' | 'today' | 'week' | 'done';
+/** Which overview groups each chip keeps ("Minggu ini" is today through the next seven days). */
+const GROUPS: Record<Exclude<Filter, 'done'>, readonly OverviewGroupKey[] | null> = { all: null, overdue: ['overdue'], today: ['today'], week: ['today', 'tomorrow', 'week'] };
+
 type Row = { kind: 'head'; key: string; label: string } | { kind: 'task'; item: TaskItem };
 
 export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
+  const w = mobileWords(locale);
   const t = d.tugas;
   const { data, actions, platform } = useMobileData();
   const user = data!.user!;
   const now = data!.now;
   const items = useMemo(() => buildTaskItems(user), [user]);
   const counts = useMemo(() => countByStatus(items), [items]);
-  const [status, setStatus] = useState<Status>('pending');
+  const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
   const done = useDoneUndo(actions, d, data!.today, platform.store);
 
-  const rows = useMemo<Row[]>(() => {
-    // Rows just marked done stay in place for the undo window.
+  const groups = useMemo(() => {
+    const status = filter === 'done' ? 'done' : 'pending';
     const matching = filterTasks(items, { ...DEFAULT_TASK_FILTER, status: 'all', query }).filter((i) => i.status === status || done.lingering.has(i.task.eventId));
-    if (status === 'done') return matching.map((item) => ({ kind: 'task', item }));
-    const groups = groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
-    return groups.flatMap((g): Row[] => [{ kind: 'head', key: `h-${g.key}`, label: d.ringkasan.groups[g.key] }, ...g.rows.map((item) => ({ kind: 'task' as const, item }))]);
-  }, [items, query, status, done.lingering, now, d]);
+    return status === 'done' ? [{ key: 'next' as OverviewGroupKey, rows: matching }] : groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
+  }, [items, query, filter, done.lingering, now]);
+  const overdueCount = groups.find((g) => g.key === 'overdue')?.rows.length ?? 0;
+  const keep = filter === 'done' ? null : GROUPS[filter];
+  const rows = useMemo<Row[]>(
+    () =>
+      groups
+        .filter((g) => keep === null || keep.includes(g.key))
+        .flatMap((g): Row[] => [...(filter === 'done' ? [] : [{ kind: 'head' as const, key: `h-${g.key}`, label: d.ringkasan.groups[g.key] }]), ...g.rows.map((item) => ({ kind: 'task' as const, item }))]),
+    [groups, keep, filter, d],
+  );
   const taskCount = rows.filter((r) => r.kind === 'task').length;
-  const allClear = status === 'pending' && counts.pending === 0 && query.trim() === '';
+  const allClear = filter !== 'done' && counts.pending === 0 && query.trim() === '';
+  const chips: { value: Filter; label: string }[] = [
+    { value: 'all', label: w.app.all },
+    { value: 'overdue', label: overdueCount > 0 ? `${d.ringkasan.groups.overdue} (${overdueCount})` : d.ringkasan.groups.overdue },
+    { value: 'today', label: d.ringkasan.groups.today },
+    { value: 'week', label: d.ringkasan.groups.week },
+    { value: 'done', label: w.app.done },
+  ];
 
   return (
     <div className="space-y-3">
-      <div className="relative">
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input type="search" className="pl-8" placeholder={t.search} aria-label={t.search} value={query} onChange={(e) => setQuery(e.target.value)} />
-      </div>
-      <div className="flex gap-2" role="group" aria-label={t.status}>
-        {(['pending', 'done'] as const).map((s) => (
-          <button key={s} type="button" aria-pressed={status === s} className={chip(status === s)} onClick={() => setStatus(s)}>
-            {t.statuses[s]} ({counts[s]})
-          </button>
+      <HeaderTools>
+        <IconButton icon={searching ? XIcon : SearchIcon} label={searching ? w.app.closeSearch : w.app.search} onPress={() => (searching ? (setSearching(false), setQuery('')) : setSearching(true))} />
+      </HeaderTools>
+      {searching && (
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input autoFocus type="search" className="m-search rounded-full pl-10" placeholder={t.search} aria-label={t.search} value={query} onChange={(e) => setQuery(e.target.value)} />{/* lint-ui-allow: pl-10 clears the search icon */}
+        </div>
+      )}
+      <div role="group" aria-label={t.status} className="m-carousel -mx-4 flex gap-2 overflow-x-auto px-4">
+        {chips.map((c) => (
+          <Chip key={c.value} selected={filter === c.value} onPress={() => setFilter(c.value)}>
+            {c.label}
+          </Chip>
         ))}
       </div>
-      <p className="text-[12px] text-muted-foreground" role="status">
+      <p className="sr-only" role="status">
         {t.count(taskCount)}
       </p>
       {taskCount === 0 ? (
-        allClear ? (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-5 py-8 text-center">
-            <Mascot state={done.justCleared ? 'celebrate' : 'all-done'} size={56} />
-            <p className="text-[14px] text-muted-foreground">{t.allClear}</p>
-          </div>
-        ) : (
-          <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-[14px] text-muted-foreground">{t.empty}</p>
-        )
+        <EmptyCard mascot={allClear ? <Mascot state="idle" size={48} /> : undefined} text={allClear ? t.allClear : t.empty} />
       ) : (
         <LongList
           items={rows}
           keyOf={(r) => (r.kind === 'head' ? r.key : r.item.task.eventId)}
-          className="overflow-hidden rounded-xl border border-border bg-surface"
+          className="space-y-2"
+          rowHeight={104}
           render={(r) =>
             r.kind === 'head' ? (
-              <h3 className="border-b border-border px-4 pt-3 pb-1 text-[12px] font-semibold text-muted-foreground">{r.label}</h3>
+              <h2 className="pt-3 pb-0 text-m13 font-semibold text-muted-foreground [li:first-child>&]:pt-0">{r.label}</h2>
             ) : (
-              <div className={`flex items-center gap-1 border-b border-border pr-3 ${done.collapsing.has(r.item.task.eventId) ? 'db-collapse' : ''}`}>
-                <span className="flex size-12 shrink-0 items-center justify-center">
-                  <Checkbox
-                    checked={r.item.status === 'done'}
-                    onCheckedChange={(v) => (v === true ? done.mark(r.item.task.eventId, status === 'pending' && counts.pending === 1) : done.unmark(r.item.task.eventId))}
-                    aria-label={`${r.item.status === 'done' ? t.markUndone : t.markDone}: ${r.item.task.name}`}
-                  />
-                </span>
-                <button type="button" onClick={() => go({ name: 'tugas', detail: String(r.item.task.eventId) })} className="flex min-h-14 min-w-0 flex-1 items-center gap-3 py-2 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
-                  <span className="min-w-0 flex-1">
-                    <span className={`block text-[14px] leading-5 ${r.item.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`}>{r.item.task.name}</span>
-                    <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                      <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: `var(--course-${r.item.courseColor})` }} />
-                      <span className="truncate">{r.item.courseName}</span>
-                    </span>
-                  </span>
-                  <Due item={r.item} now={now} dueFormat={data!.prefs.dueFormat} noDue={t.noDue} m={m} locale={locale} />
-                </button>
-              </div>
+              <TaskCard
+                item={r.item}
+                now={now}
+                dueFormat={data!.prefs.dueFormat}
+                collapsing={done.collapsing.has(r.item.task.eventId)}
+                onOpen={() => go({ name: 'tugas', detail: String(r.item.task.eventId) })}
+                onDone={(v) => (v ? done.mark(r.item.task.eventId, filter !== 'done' && counts.pending === 1) : done.unmark(r.item.task.eventId))}
+                labels={t}
+                m={m}
+                locale={locale}
+              />
             )
           }
         />
@@ -112,65 +124,35 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   );
 }
 
-function Due({ item, now, dueFormat, noDue, m, locale }: { item: TaskItem; now: number; dueFormat: Parameters<typeof taskDueLines>[5]; noDue: string; m: ReturnType<typeof useI18n>['m']; locale: 'id' | 'en' }) {
+function TaskCard({ item, now, dueFormat, collapsing, onOpen, onDone, labels: t, m, locale }: { item: TaskItem; now: number; dueFormat: Parameters<typeof taskDueLines>[5]; collapsing: boolean; onOpen: () => void; onDone: (done: boolean) => void; labels: ReturnType<typeof mobileDash>['tugas']; m: ReturnType<typeof useI18n>['m']; locale: 'id' | 'en' }) {
   const due = item.task.dueAt;
-  if (due === null) return <span className="shrink-0 text-[12px] text-muted-foreground">{noDue}</span>;
-  const lines = taskDueLines(due, now, timeZone, m, locale, dueFormat);
-  const tone = URGENCY_TEXT[item.status === 'pending' ? urgencyOf(due, now) : 'normal'];
+  const isDone = item.status === 'done';
+  const relative = due === null ? t.noDue : taskDueLines(due, now, timeZone, m, locale, dueFormat === 'countdown' ? 'countdown' : 'remaining').primary;
+  const tone = due === null || isDone ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(due, now)];
   return (
-    <span className="shrink-0 text-right text-[12px] leading-5 tabular-nums">
-      <span className={`block ${lines.secondary === null ? '' : tone}`}>{lines.primary}</span>
-      {lines.secondary !== null && <span className="block text-muted-foreground">{lines.secondary}</span>}
-    </span>
-  );
-}
-
-/** One task on a full screen: done with undo, due date, then the shared details (steps, note, snooze, SIKOLA, Google Calendar). */
-export function TaskScreen({ eventId }: { eventId: number }) {
-  const { m, locale } = useI18n();
-  const d = mobileDash(locale);
-  const t = d.tugas;
-  const { data, actions, platform } = useMobileData();
-  const item = useMemo(() => buildTaskItems(data!.user!).find((i) => i.task.eventId === eventId) ?? null, [data, eventId]);
-  const done = useDoneUndo(actions, d, data!.today, platform.store);
-  if (!item) return <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-[14px] text-muted-foreground">{t.empty}</p>;
-  const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
-  const due = item.task.dueAt;
-  return (
-    <div className="space-y-4">
-      <section className="rounded-xl border border-border bg-surface p-4">
-        <p className="flex items-center gap-2 text-[12px] text-muted-foreground">
-          <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${item.courseColor})` }} />
-          {item.courseName}
-        </p>
-        <h2 className={`mt-1 text-[20px] leading-7 font-semibold ${item.status === 'done' ? 'text-muted-foreground line-through' : ''}`}>{item.task.name}</h2>
-        <p className="mt-1 text-[14px] tabular-nums">{due === null ? t.noDue : taskDueLines(due, data!.now, timeZone, m, locale, 'both').primary}</p>
-        {due !== null && <p className="text-[12px] text-muted-foreground tabular-nums">{taskDueLines(due, data!.now, timeZone, m, locale, 'both').secondary}</p>}
-        <label className="mt-3 flex min-h-11 items-center gap-3 text-[16px]">
-          <Checkbox checked={item.status === 'done'} onCheckedChange={(v) => (v === true ? done.mark(item.task.eventId) : done.unmark(item.task.eventId))} />
-          {t.markDone}
-        </label>
-      </section>
-      <section className="m-touch overflow-hidden rounded-xl border border-border bg-surface">
-        <TaskDetails
-          item={item}
-          d={d}
-          now={data!.now}
-          timeZone={timeZone}
-          snoozeMorningMin={data!.prefs.reminders.snoozeMorningMin}
-          inset={false}
-          actions={{
-            onOpen: actions.openExternal,
-            onAddToCalendar: (i) => i.task.dueAt !== null && actions.openExternal(googleCalendarUrl({ title: `${i.task.name} (${i.courseName})`, dueAt: i.task.dueAt, details: m.popup.row.calendarDetails(i.courseName, i.task.url) })),
-            onSnooze: (until) => state((s) => setSnooze(s, item.task.eventId, until)),
-            onCustomDue: (at) => state((s) => setCustomDue(s, item.task.eventId, at)),
-            onAddStep: (text) => state((s) => addStep(s, item.task.eventId, text, crypto.randomUUID())),
-            onToggleStep: (id) => state((s) => toggleStep(s, item.task.eventId, id)),
-            onRemoveStep: (id) => state((s) => removeStep(s, item.task.eventId, id)),
-            onNote: (note) => state((s) => setNote(s, item.task.eventId, note)),
-          }}
-        />
-      </section>
+    <div className={collapsing ? 'db-collapse' : undefined}>
+      <Card dense onPress={onOpen} label={item.task.name}>
+        {/* Row 1: the course; the time left in its urgency color, then the date when it fits. */}
+        <div className="flex items-center gap-2">
+          <span className="min-w-0 shrink">
+            <Chip small color={courseTint(item.courseColor)}>
+              {item.courseName}
+            </Chip>
+          </span>
+          <span className="ml-auto flex min-w-0 shrink-0 items-baseline justify-end overflow-hidden text-m12 whitespace-nowrap tabular-nums">
+            <span className={tone}>{relative}</span>
+            {due !== null && <span className="font-normal text-muted-foreground">&nbsp;· {formatShortDate(due, timeZone, m)}</span>}
+          </span>
+        </div>
+        {/* Row 2: the title (two lines at most) and the check circle at its middle. */}
+        <div className="mt-1 flex items-center gap-3">
+          <p className={`line-clamp-2 min-w-0 flex-1 text-m15 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{item.task.name}</p>
+          {/* 28 px, centered on the title without making the row taller. */}
+          <span className="-my-1 flex">
+            <CheckCircle checked={isDone} onChange={onDone} label={`${isDone ? t.markUndone : t.markDone}: ${item.task.name}`} />
+          </span>
+        </div>
+      </Card>
     </div>
   );
 }

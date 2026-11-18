@@ -1,43 +1,91 @@
-// "Lainnya": the pages that do not get a tab. Jadwal and Nilai come with
-// NEOSIA in M8d, so they are not listed yet.
+// Lainnya (M8c.1, cards): a profile card (the mascot, "Terhubung ke
+// SIKOLA", when it was updated, a small Keluar pill that asks first), a
+// two-column grid of tiles for the other pages (Kabar terbaru carries its
+// unseen count), and the disclaimer. Jadwal and Nilai come with NEOSIA (M8d).
 
-import type { ComponentType, SVGProps } from 'react';
-import { mobileDash } from '@sulo/core/i18n/mobile';
-import { mobileWords } from '@sulo/core/i18n/mobile';
+import { useState, type ComponentType, type SVGProps } from 'react';
+import { formatAgo } from '@sulo/core/format/time';
+import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { BookIcon, GearIcon, HelpIcon, InfoIcon, NewsIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronRightIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Card, IconTile } from '@sulo/ui/mobile/cards';
+import { PillButton } from '@sulo/ui/mobile/controls';
+import { Sheet } from '@sulo/ui/mobile/sheet';
+import type { TintColor } from '@sulo/ui/mobile/tint';
+import { signOutEverything } from '../account';
+import { useMobileData } from '../shell/data';
 import type { Screen, ScreenName } from '../shell/nav';
-import { rowButton } from './ui';
 
-const ITEMS: { name: ScreenName; icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
-  { name: 'kabar', icon: NewsIcon },
-  { name: 'mata-kuliah', icon: BookIcon },
-  { name: 'pengaturan', icon: GearIcon },
-  { name: 'bantuan', icon: HelpIcon },
-  { name: 'tentang', icon: InfoIcon },
-  { name: 'privasi', icon: ShieldIcon },
+const ITEMS: { name: ScreenName; icon: ComponentType<SVGProps<SVGSVGElement>>; tint: TintColor }[] = [
+  { name: 'kabar', icon: NewsIcon, tint: 'course-5' },
+  { name: 'mata-kuliah', icon: BookIcon, tint: 'course-3' },
+  { name: 'pengaturan', icon: GearIcon, tint: 'neutral' },
+  { name: 'bantuan', icon: HelpIcon, tint: 'course-7' },
+  { name: 'tentang', icon: InfoIcon, tint: 'course-2' },
+  { name: 'privasi', icon: ShieldIcon, tint: 'course-6' },
 ];
 
-export function LainnyaScreen({ go }: { go: (s: Screen) => void }) {
-  const { locale } = useI18n();
+export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; onSignedOut: () => void }) {
+  const { m, locale } = useI18n();
   const d = mobileDash(locale);
   const w = mobileWords(locale);
+  const { data, platform } = useMobileData();
+  const [confirm, setConfirm] = useState(false);
   const label = (name: ScreenName) => (name === 'privasi' ? w.app.privasi : d.nav[name as keyof typeof d.nav]);
+  const last = data?.view.lastSyncAt ?? null;
+  const unseen = data?.view.updatesUnseen ?? 0;
+
   return (
-    <div className="space-y-4">
-      <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
-        {ITEMS.map(({ name, icon: Icon }) => (
+    <div className="space-y-6">
+      <Card hero className="flex items-center gap-4">
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-m-inset" aria-hidden="true">
+          <Mascot state="idle" size={40} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-m15 font-semibold">{w.connected.title}</p>
+          <p className="truncate text-m13 text-muted-foreground">{last === null ? w.connected.never : w.connected.updated(formatAgo(last, data!.now, m))}</p>
+        </div>
+        <PillButton small onPress={() => setConfirm(true)}>
+          {w.connected.signOut}
+        </PillButton>
+      </Card>
+
+      <ul className="grid grid-cols-2 gap-3">
+        {ITEMS.map(({ name, icon, tint }) => (
           <li key={name}>
-            <button type="button" className={rowButton} onClick={() => go({ name, detail: null })}>
-              <Icon className="size-5 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1">{label(name)}</span>
-              <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
-            </button>
+            <Card onPress={() => go({ name, detail: null })} label={name === 'kabar' && unseen > 0 ? `${label(name)}, ${unseen}` : label(name)} className="h-full">
+              <div className="flex items-start justify-between">
+                <IconTile color={tint} icon={icon} size={40} />
+                {name === 'kabar' && unseen > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-m-inset px-2 text-m12 tabular-nums">{unseen > 99 ? '99+' : unseen}</span>}
+              </div>
+              <p className="mt-3 text-m15">{label(name)}</p>
+            </Card>
           </li>
         ))}
       </ul>
-      <p className="text-center text-[12px] text-muted-foreground">{w.unofficial}</p>
+
+      <p className="text-center text-m12 font-normal text-muted-foreground">{w.unofficial}</p>
+
+      <Sheet open={confirm} onOpenChange={setConfirm} title={w.connected.signOutTitle}>
+        <p className="text-m15 font-normal text-muted-foreground">{w.connected.signOutBody}</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <PillButton full onPress={() => setConfirm(false)}>
+            {w.connected.cancel}
+          </PillButton>
+          <PillButton
+            full
+            danger
+            onPress={async () => {
+              await signOutEverything(platform);
+              setConfirm(false);
+              onSignedOut();
+            }}
+          >
+            {w.settings.signOutDelete}
+          </PillButton>
+        </div>
+      </Sheet>
     </div>
   );
 }

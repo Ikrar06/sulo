@@ -10,7 +10,8 @@ import { useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
 import { clearScheduledReminders } from '../reminders';
 import { RingkasanScreen } from './Ringkasan';
-import { TaskScreen, TugasScreen } from './Tugas';
+import { TugasScreen } from './Tugas';
+import { TaskScreen } from './TaskDetail';
 import { KalenderScreen } from './Kalender';
 import { PresensiScreen } from './Presensi';
 import { LainnyaScreen } from './Lainnya';
@@ -40,7 +41,7 @@ export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: S
       case 'privasi':
         return <PrivasiScreen />;
       case 'lainnya':
-        return <LainnyaScreen go={go} />;
+        return <LainnyaScreen go={go} onSignedOut={onSignedOut} />;
       default:
         return null;
     }
@@ -78,10 +79,10 @@ function AccountPending() {
   const [later, setLater] = useState(false);
   const a = m.popup.account;
   return (
-    <section className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface p-5 text-center">
-      <Mascot state="sleepy" size={56} />
-      <h2 className="text-[16px] font-semibold">{later ? a.deferredTitle : a.title}</h2>
-      <p className="text-[14px] text-muted-foreground">{later ? a.deferredBody : a.body}</p>
+    <section className="flex flex-col items-center gap-3 rounded-card border border-border bg-surface p-4 text-center">
+      <Mascot state="sleepy" size={48} />
+      <h2 className="text-m15 font-semibold">{later ? a.deferredTitle : a.title}</h2>
+      <p className="text-m13 text-muted-foreground">{later ? a.deferredBody : a.body}</p>
       {!later && (
         <div className="mt-2 flex w-full flex-col gap-2">
           <button
@@ -94,7 +95,7 @@ function AccountPending() {
           >
             {a.useThis}
           </button>
-          <p className="text-[12px] text-muted-foreground">{a.useThisNote}</p>
+          <p className="text-m12 font-normal text-muted-foreground">{a.useThisNote}</p>
           <button type="button" className={secondaryButton} onClick={() => setLater(true)}>
             {a.later}
           </button>

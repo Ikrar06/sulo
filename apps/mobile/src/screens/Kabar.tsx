@@ -1,22 +1,41 @@
-// Kabar terbaru: the same entries as the dashboard (core view), filtered by
-// course and kind, with "Atur notifikasi" under the filters. A course from a
-// tapped reminder opens filtered to it.
+// Kabar terbaru (M8c.1, cards): pill chips filter by kind and by course
+// (both scroll sideways), a round bell opens "Atur notifikasi" in a bottom
+// sheet, and each update is a card (a tile for its kind, the change, the
+// course, the time, a dot while unseen). Tapping one opens it on SIKOLA.
 
 import { useEffect, useState } from 'react';
-import { mobileDash } from '@sulo/core/i18n/mobile';
+import { formatClock } from '@sulo/core/format/time';
+import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { markAllSeen } from '@sulo/core/radar/log';
+import { changeUrl, describeChange } from '@sulo/core/radar/describe';
 import { categoryOf, UPDATE_CATEGORIES, type UpdateCategory } from '@sulo/core/radar/settings';
+import { addDays, localParts } from '@sulo/core/reminders/zoned';
+import type { ChangeLogEntry } from '@sulo/core/types';
+import { BookIcon, GradeIcon, NewsIcon, TasksIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronDownIcon } from '@sulo/ui/icons';
+import { BellIcon } from '@sulo/ui/icons';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
-import { UpdateSettingsChecks, UpdatesPanel } from '@sulo/ui/updates/UpdatesPanel';
+import { Card, Chip, EmptyCard, IconTile } from '@sulo/ui/mobile/cards';
+import { IconButton, PillButton, Toggle } from '@sulo/ui/mobile/controls';
+import { Sheet } from '@sulo/ui/mobile/sheet';
+import type { TintColor } from '@sulo/ui/mobile/tint';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
+import { HeaderTools } from '../shell/screen-header';
+
+const KIND: Record<UpdateCategory, { icon: typeof NewsIcon; tint: TintColor }> = {
+  materials: { icon: BookIcon, tint: 'course-5' },
+  deadlines: { icon: TasksIcon, tint: 'course-1' },
+  grades: { icon: GradeIcon, tint: 'course-7' },
+  forum: { icon: NewsIcon, tint: 'course-3' },
+};
 
 export function KabarScreen({ courseId }: { courseId: number | null; go: (s: Screen) => void }) {
   const { m, locale } = useI18n();
-  const t = mobileDash(locale).kabar;
+  const d = mobileDash(locale);
+  const w = mobileWords(locale);
+  const t = d.kabar;
+  const u = m.popup.updates;
   const { data, actions } = useMobileData();
   const [course, setCourse] = useState<string>(courseId === null ? 'all' : String(courseId));
   useEffect(() => {
@@ -28,68 +47,108 @@ export function KabarScreen({ courseId }: { courseId: number | null; go: (s: Scr
   const entries = view.updates.filter((e) => (course === 'all' || String(e.change.courseId) === course) && (kind === 'all' || categoryOf(e.change) === kind));
   const courseIds = [...new Set(view.updates.map((e) => e.change.courseId).filter((id): id is number => id !== null))];
   const settings = data!.prefs.updates;
+  const today = localParts(data!.now, timeZone).dateKey;
+  const dayOf = (e: ChangeLogEntry) => localParts(e.at, timeZone).dateKey;
+  const days = [...new Set(entries.map(dayOf))];
+  const dayName = (key: string) => (key === today ? u.today : key === addDays(today, -1) ? u.yesterday : new Intl.DateTimeFormat(m.intl, { timeZone, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${key}T12:00:00Z`)));
 
   return (
-    <div className="m-touch space-y-3">
-      <div className="grid grid-cols-2 gap-2">
-        <Select value={course} onValueChange={setCourse}>
-          <SelectTrigger className="w-full" aria-label={t.course}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t.allCourses}</SelectItem>
+    <div className="space-y-4">
+      <HeaderTools>
+        <IconButton icon={BellIcon} label={t.notify} onPress={() => setSettingsOpen(true)} />
+      </HeaderTools>
+      <div className="space-y-2">
+        <div role="group" aria-label={t.kind} className="m-carousel -mx-4 flex gap-2 overflow-x-auto px-4">
+          <Chip selected={kind === 'all'} onPress={() => setKind('all')}>
+            {t.allKinds}
+          </Chip>
+          {UPDATE_CATEGORIES.map((c) => (
+            <Chip key={c} selected={kind === c} onPress={() => setKind(c)}>
+              {u.categories[c]}
+            </Chip>
+          ))}
+        </div>
+        {courseIds.length > 1 && (
+          <div role="group" aria-label={t.course} className="m-carousel -mx-4 flex gap-2 overflow-x-auto px-4">
+            <Chip selected={course === 'all'} onPress={() => setCourse('all')}>
+              {t.allCourses}
+            </Chip>
             {courseIds.map((id) => (
-              <SelectItem key={id} value={String(id)}>
-                {view.courseNames[String(id)] ?? m.popup.updates.otherCourse}
-              </SelectItem>
+              <Chip key={id} selected={course === String(id)} onPress={() => setCourse(String(id))}>
+                {view.courseNames[String(id)] ?? u.otherCourse}
+              </Chip>
             ))}
-          </SelectContent>
-        </Select>
-        <Select value={kind} onValueChange={(v) => setKind(v as UpdateCategory | 'all')}>
-          <SelectTrigger className="w-full" aria-label={t.kind}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t.allKinds}</SelectItem>
-            {UPDATE_CATEGORIES.map((c) => (
-              <SelectItem key={c} value={c}>
-                {m.popup.updates.categories[c]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <section className="rounded-xl border border-border bg-surface">
-        <button type="button" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)} className="flex min-h-12 w-full items-center justify-between px-4 text-left text-[14px] font-medium outline-none focus-ring:ring-2 focus-ring:ring-focus">
-          {t.notify}
-          <ChevronDownIcon className={`size-4 text-muted-foreground transition-transform motion-reduce:transition-none ${settingsOpen ? 'rotate-180' : ''}`} />
-        </button>
-        {settingsOpen && (
-          <div className="border-t border-border px-4 py-3">
-            <UpdateSettingsChecks settings={settings} onChange={(updates) => void actions.setPrefs({ updates })} />
           </div>
         )}
-      </section>
-      <div className="flex flex-col rounded-xl border border-border bg-surface">
-        <UpdatesPanel
-          entries={entries}
-          courseNames={view.courseNames}
-          now={data!.now}
-          timeZone={timeZone}
-          settings={settings}
-          onOpen={actions.openExternal}
-          onMarkAllSeen={() => void actions.updateUser('changes', markAllSeen)}
-          onChangeSettings={(updates) => void actions.setPrefs({ updates })}
-          embedded
-          showSettings={false}
-          empty={
-            <div className="flex flex-col items-center gap-3 px-5 py-8 text-center">
-              <Mascot state="all-done" size={40} />
-              <p className="text-[14px] text-muted-foreground">{m.popup.updates.empty}</p>
-            </div>
-          }
-        />
       </div>
+
+      {entries.length === 0 ? (
+        <EmptyCard mascot={<Mascot state="all-done" size={48} />} text={u.empty} />
+      ) : (
+        <>
+          {view.updatesUnseen > 0 && (
+            <PillButton small onPress={() => void actions.updateUser('changes', markAllSeen)}>
+              {u.markAll}
+            </PillButton>
+          )}
+          {days.map((day) => (
+            <section key={day}>
+              <h2 className="mb-2 text-m13 font-semibold text-muted-foreground">{dayName(day)}</h2>
+              <ul className="space-y-2">
+                {entries
+                  .filter((e) => dayOf(e) === day)
+                  .map((e) => {
+                    const url = changeUrl(e.change);
+                    const k = KIND[categoryOf(e.change) ?? 'forum'];
+                    const courseName = e.change.courseId !== null ? (view.courseNames[String(e.change.courseId)] ?? u.otherCourse) : u.otherCourse;
+                    const text = describeChange(e.change, timeZone, m);
+                    const body = (
+                      <div className="flex items-start gap-3">
+                        <IconTile color={k.tint} icon={k.icon} size={36} />
+                        <div className="min-w-0 flex-1">
+                          <p className={`line-clamp-3 text-m15 ${e.seen ? 'font-normal' : ''}`}>{text}</p>
+                          <p className="truncate text-m13 text-muted-foreground">{courseName}</p>
+                        </div>
+                        <span className="flex shrink-0 flex-col items-end gap-2">
+                          <span className="text-m12 font-normal text-muted-foreground tabular-nums">{formatClock(e.at, timeZone, m)}</span>
+                          {!e.seen && <span aria-label={u.markerNew} role="img" className="size-2 rounded-full bg-foreground" />}
+                        </span>
+                      </div>
+                    );
+                    return (
+                      <li key={e.id}>
+                        {url ? (
+                          <Card dense onPress={() => actions.openExternal(url)} label={`${text}, ${courseName}${e.seen ? '' : `, ${u.markerNew}`}`}>
+                            {body}
+                          </Card>
+                        ) : (
+                          <Card dense>{body}</Card>
+                        )}
+                      </li>
+                    );
+                  })}
+              </ul>
+            </section>
+          ))}
+        </>
+      )}
+
+      <Sheet open={settingsOpen} onOpenChange={setSettingsOpen} title={t.notify}>
+        <div className="rounded-card bg-m-inset px-4 py-1">
+          {UPDATE_CATEGORIES.map((c) => (
+            <label key={c} className="flex min-h-12 items-center gap-3 py-2 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
+              <span className="min-w-0 flex-1 text-m15">{u.categories[c]}</span>
+              <Toggle checked={settings[c]} label={u.categories[c]} onChange={(v) => void actions.setPrefs({ updates: { ...settings, [c]: v } })} />
+            </label>
+          ))}
+        </div>
+        <p className="mt-2 text-m13 text-muted-foreground">{u.settingsNote}</p>
+        <div className="mt-4">
+          <PillButton full onPress={() => setSettingsOpen(false)}>
+            {w.app.doneSheet}
+          </PillButton>
+        </div>
+      </Sheet>
     </div>
   );
 }

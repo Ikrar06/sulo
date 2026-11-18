@@ -13,15 +13,15 @@ export function BantuanScreen() {
   const d = mobileDash(locale);
   return (
     <div className="space-y-4">
-      <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
+      <ul className="-mx-4 divide-y divide-border border-y border-border bg-surface">
         {MOBILE_FAQ.map((e) => (
           <li key={e.id}>
             <details className="group">
-              <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-3 text-[14px] font-semibold outline-none focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-inset [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-3 text-m15 outline-none focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-inset [&::-webkit-details-marker]:hidden">
                 <span className="min-w-0 flex-1">{e.q[locale]}</span>
                 <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none" />
               </summary>
-              <div className="space-y-2 px-4 pb-4 text-[14px] leading-relaxed text-muted-foreground">
+              <div className="space-y-2 px-4 pb-4 text-m15r font-normal text-muted-foreground">
                 {e.a.map((a, i) => (
                   <p key={i}>{a[locale]}</p>
                 ))}

@@ -26,7 +26,7 @@ export function TentangScreen() {
         window.location.hash = '#privasi';
       }}
       versionExtra={
-        <button type="button" className="mt-1 block min-h-11 text-left text-[12px] text-muted-foreground tabular-nums" onClick={tap}>
+        <button type="button" className="mt-1 block min-h-11 text-left text-m12 font-normal text-muted-foreground tabular-nums" onClick={tap}>
           {w.about.apkVersion(__SULO_VERSION__)}
         </button>
       }

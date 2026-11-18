@@ -18,8 +18,8 @@ export function DevScreen({ platform, w, onBack }: { platform: Platform; w: Mobi
   const stats = sessionAgeStats(age?.entries ?? []);
   const hours = medianSessionHours(age?.entries ?? []);
   return (
-    <main className="mx-auto flex max-w-md flex-col gap-4 px-4 py-6 text-[14px] tabular-nums">
-      <h1 className="text-[20px] font-semibold">{w.dev.title}</h1>
+    <main className="mx-auto flex max-w-md flex-col gap-4 px-4 py-6 text-m13 tabular-nums">
+      <h1 className="text-m18 font-semibold">{w.dev.title}</h1>
       <p>Sesi habis tercatat: {stats.count} · median sejak sukses terakhir: {stats.median ?? '-'} menit · median umur sesi: {hours ?? '-'} jam</p>
       <ul className="flex flex-col gap-1">
         {(age?.entries ?? []).map((e) => (
@@ -28,7 +28,7 @@ export function DevScreen({ platform, w, onBack }: { platform: Platform; w: Mobi
           </li>
         ))}
       </ul>
-      <h2 className="text-[16px] font-semibold">{w.dev.remaining}</h2>
+      <h2 className="text-m15 font-semibold">{w.dev.remaining}</h2>
       {left.length === 0 ? (
         <p className="text-muted-foreground">{w.dev.none}</p>
       ) : (
