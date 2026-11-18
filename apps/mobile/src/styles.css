@@ -104,3 +104,13 @@ body {
   .m-mascot-enter, .m-mascot-mood { animation: none; }
   .m-mascot-pull { transform: none; transition: none; }
 }
+
+/* Scroll-edge fades (the one allowed gradient besides the flame): the
+   screen's own color to transparent, never over sheets or the snackbar. */
+.m-fade-top { background: linear-gradient(to bottom, var(--m-screen), transparent); } /* lint-ui-allow: scroll-edge fade, screen color to transparent */
+.m-fade-bottom { background: linear-gradient(to top, var(--m-screen) calc(100% - 32px), transparent); } /* lint-ui-allow: scroll-edge fade, screen color to transparent */
+
+/* Ringkasan's 7-day bars grow once: 240 ms ease-out, 20 ms apart. */
+.m-bar-grow { transform-origin: bottom; animation: m-bar-grow 240ms ease-out both; animation-delay: calc(var(--i, 0) * 20ms); }
+@keyframes m-bar-grow { from { transform: scaleY(0); } }
+@media (prefers-reduced-motion: reduce) { .m-bar-grow { animation: none; } }

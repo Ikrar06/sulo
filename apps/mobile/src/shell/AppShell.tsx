@@ -24,7 +24,8 @@ import { useMobileData } from './data';
 import { PullToRefresh } from './PullToRefresh';
 import { ScreenHeaderProvider } from './screen-header';
 import { ScreenRefreshProvider } from './screen-refresh';
-import { TabBar } from './TabBar';
+import { TabBar, TAB_BAR_SPACE } from './TabBar';
+import { TaskDateProvider } from './task-date';
 import { Screens } from '../screens/Screens';
 import { REFRESHED_EVENT } from '../events';
 
@@ -70,6 +71,8 @@ export function AppShell(props: ShellProps) {
   const [nav, setNav] = useState<NavState>(() => (props.initialScreen ? open(START, props.initialScreen) : START));
   const [online, setOnline] = useState(() => navigator.onLine);
   const [compact, setCompact] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [taskDate, setTaskDate] = useState<string | null>(null);
   const [slotMain, setSlotMain] = useState<HTMLElement | null>(null);
   const [slotEnd, setSlotEnd] = useState<HTMLElement | null>(null);
   const [slotTools, setSlotTools] = useState<HTMLElement | null>(null);
@@ -119,7 +122,12 @@ export function AppShell(props: ShellProps) {
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
     setCompact(false);
+    setScrolled(false);
   }, [top.name, top.detail]);
+  // The date filter from Ringkasan lasts only while Tugas is open.
+  useEffect(() => {
+    if (nav.tab !== 'tugas') setTaskDate(null);
+  }, [nav.tab]);
 
   const { onRefresh } = props;
   // A screen may update in its own way (Presensi); otherwise Perbarui is a sync.
@@ -190,17 +198,33 @@ export function AppShell(props: ShellProps) {
           )}
         </p>
       )}
-      <main ref={scroller} onScroll={(e) => setCompact(e.currentTarget.scrollTop > COMPACT_AT)} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="relative flex min-h-0 flex-1 flex-col">
+      {/* Scroll-edge fade under the header, only once the content has moved. */}
+      <div aria-hidden="true" className={`m-fade-top pointer-events-none absolute inset-x-0 top-0 z-20 h-5 transition-opacity duration-150 motion-reduce:transition-none ${scrolled ? 'opacity-100' : 'opacity-0'}`} />
+      <main
+        ref={scroller}
+        onScroll={(e) => {
+          const y = e.currentTarget.scrollTop;
+          setCompact(y > COMPACT_AT);
+          setScrolled(y > 0);
+        }}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
         <PullToRefresh disabled={!dataScreen || props.expired || props.busy} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
           <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
             <ScreenHeaderProvider value={{ main: slotMain, end: slotEnd, tools: slotTools }}>
               <ScreenRefreshProvider slot={screenRefresh}>
-                <Screens screen={top} go={go} onSignedOut={props.onSignedOut} />
+                <TaskDateProvider value={{ date: taskDate, setDate: setTaskDate }}>
+                  <Screens screen={top} go={go} onSignedOut={props.onSignedOut} />
+                </TaskDateProvider>
               </ScreenRefreshProvider>
             </ScreenHeaderProvider>
           </div>
         </PullToRefresh>
       </main>
+      </div>
+      {/* Above the floating tab bar: a 32 px fade, then the screen color solid beside and below the bar. */}
+      {showTabs && <div aria-hidden="true" className="m-fade-bottom pointer-events-none fixed inset-x-0 bottom-0 z-20" style={{ height: `calc(${TAB_BAR_SPACE + 32}px + env(safe-area-inset-bottom))` }} />}
       {showTabs && <TabBar active={nav.tab} overdue={overdue} onSelect={(tab: Tab) => setNav((s) => selectTab(s, tab))} label={w.app.tabsLabel} labels={{ ...d.nav, lainnya: w.app.lainnya }} overdueLabel={w.app.overdue} />}
     </div>
   );

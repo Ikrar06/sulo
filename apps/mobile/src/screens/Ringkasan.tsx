@@ -3,13 +3,13 @@
 // sitting on the hero card's top edge. The hero card is the focal point: the
 // task that matters most now (the oldest overdue one, else the nearest).
 // Then three small numbers, "Berikutnya" (upcoming tasks only) as a
-// carousel, "Akademik" (calendar and attendance) and the 14-day load. All
+// carousel, "Akademik" (calendar and attendance) and the next 7 days. All
 // numbers come from @sulo/core; classes and GPA come with NEOSIA in M8d.
 
 import { useEffect, useMemo, useState } from 'react';
-import { countdownOf, formatDateKey } from '@sulo/core/calendar/countdown';
+import { countdownOf } from '@sulo/core/calendar/countdown';
 import { nextImportant, SHORT_LABEL_KATEGORI } from '@sulo/core/calendar/upcoming';
-import { loadMap } from '@sulo/core/dashboard/load-map';
+import { weekBars } from '@sulo/core/dashboard/week-bars';
 import { mascotMood } from '@sulo/core/dashboard/mascot-mood';
 import { greeting, greetingState } from '@sulo/core/dashboard/mobile-greeting';
 import { groupOverview } from '@sulo/core/dashboard/overview';
@@ -29,7 +29,9 @@ import { Private } from '@sulo/ui/private';
 import { REFRESHED_EVENT } from '../events';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
+import { useTaskDate } from '../shell/task-date';
 import { HeroMascot } from './HeroMascot';
+import { WeekCard } from './WeekCard';
 import { URGENCY_TEXT } from './Tugas';
 
 /** Cards in "Berikutnya". */
@@ -63,7 +65,8 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   const hero = dated[0] ?? pending[0] ?? null;
   // Upcoming only: overdue tasks are not repeated here.
   const upcoming = dated.filter((i) => i !== hero && i.task.dueAt! >= now).slice(0, CAROUSEL_MAX);
-  const days = useMemo(() => loadMap(pending.map((i) => i.task), calendar.kegiatan, now, timeZone), [pending, calendar, now]);
+  const bars = useMemo(() => weekBars(pending.map((i) => i.task), calendar.kegiatan, now, timeZone), [pending, calendar, now]);
+  const { setDate } = useTaskDate();
   const attendance = useMemo(() => attendanceSummary(user.presensi?.recap?.rows, user.courses), [user.presensi, user.courses]);
   const next = nextImportant(calendar, today);
   const c = next ? countdownOf(next.kegiatan, today) : null;
@@ -159,17 +162,17 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
             <p className="text-m13 text-muted-foreground">{w.app.noUpcoming}</p>
           </Card>
         ) : (
-          <ul className="m-carousel -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+          <ul className="m-carousel -mx-4 flex items-stretch gap-3 overflow-x-auto px-4 pb-1">
             {upcoming.map((i) => {
               const isDone = i.status === 'done';
               return (
-                <li key={i.task.eventId} className="w-[240px] shrink-0">
-                  <Card dense onPress={() => go({ name: 'tugas', detail: String(i.task.eventId) })} label={i.task.name}>
+                <li key={i.task.eventId} className="flex w-[240px] shrink-0">
+                  <Card dense className="flex-1" inner="flex h-full flex-col" onPress={() => go({ name: 'tugas', detail: String(i.task.eventId) })} label={i.task.name}>
                     <Chip small color={courseTint(i.courseColor)}>
                       {i.courseName}
                     </Chip>
-                    <p className={`mt-1 line-clamp-2 min-h-10 text-m15 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{i.task.name}</p>
-                    <div className="mt-1 -mb-1 flex items-center justify-between gap-3">
+                    <p className={`mt-1 line-clamp-2 text-m15 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{i.task.name}</p>
+                    <div className="mt-auto -mb-1 flex items-center justify-between gap-3 pt-1">
                       <span className={`text-m12 tabular-nums ${isDone ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(i.task.dueAt, now)]}`}>{left(i)}</span>
                       <CheckCircle checked={isDone} onChange={(v) => (v ? markDone(i) : done.unmark(i.task.eventId))} label={`${isDone ? d.tugas.markUndone : d.tugas.markDone}: ${i.task.name}`} />
                     </div>
@@ -215,11 +218,12 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
                 </p>
                 {attendance.lowest && (
                   <p className="mt-3 flex min-w-0 text-m12 font-normal text-muted-foreground">
-                    <span className="shrink-0">{w.app.lowest}:&nbsp;</span>
                     <Private>
                       <span className="flex min-w-0">
+                        <span className="shrink-0 tabular-nums">
+                          {w.app.lowest} {pct(attendance.lowest.percent, locale)}%&nbsp;·&nbsp;
+                        </span>
                         <span className="truncate">{attendance.lowest.name}</span>
-                        <span className="shrink-0 tabular-nums">&nbsp;{pct(attendance.lowest.percent, locale)}%</span>
                       </span>
                     </Private>
                   </p>
@@ -232,30 +236,15 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
         </div>
       </section>
 
-      <section aria-labelledby="load-title">
-        <SectionHead id="load-title" title={w.app.load14} />
-        <Card>
-          {days.every((day) => day.tasks.length === 0 && day.events.length === 0) ? (
-            <p className="text-m13 text-muted-foreground">{r.loadEmpty}</p>
-          ) : (
-            <ol className="m-carousel -mx-4 flex gap-2 overflow-x-auto px-4 py-1">
-              {days.map((day) => {
-                const events = day.events.map((e) => k.kategori[e.kategori] ?? e.judul).filter((v, i, a) => a.indexOf(v) === i).join(', ');
-                const label = r.loadDay(formatDateKey(day.dateKey, m.intl, { weekday: 'long', day: 'numeric', month: 'long' }), day.tasks.length, events);
-                const isToday = day.dateKey === today;
-                return (
-                  <li key={day.dateKey} aria-label={label} aria-current={isToday ? 'date' : undefined} className="flex w-10 shrink-0 flex-col items-center gap-1">
-                    <span className={`text-m11 ${isToday ? 'db-accent-text' : 'text-muted-foreground'}`}>{formatDateKey(day.dateKey, m.intl, { weekday: 'narrow' })}</span>
-                    <span className={`db-load-${day.level} flex size-10 items-center justify-center rounded-full text-m13 tabular-nums ${isToday ? 'ring-2 ring-[var(--brand-orange)] ring-offset-2 ring-offset-[var(--m-card)]' : ''}`}>
-                      {formatDateKey(day.dateKey, m.intl, { day: 'numeric' })}
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </Card>
-      </section>
+      <WeekCard
+        bars={bars}
+        intl={m.intl}
+        words={{ title: w.app.week7, empty: w.app.week7Empty, day: w.app.week7Day }}
+        onOpen={(dateKey) => {
+          setDate(dateKey);
+          go({ name: 'tugas', detail: null });
+        }}
+      />
     </div>
   );
 }

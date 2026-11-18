@@ -15,18 +15,19 @@ const ring = 'outline-none focus-ring:ring-2 focus-ring:ring-focus';
  * card settles to 0.98.
  */
 /** dense: 14 all round instead of 16 (list cards: a task is about 84 high). */
-export function Card({ children, className = '', onPress, label, hero = false, dense = false, style }: { children: ReactNode; className?: string; onPress?: () => void; label?: string; hero?: boolean; dense?: boolean; style?: React.CSSProperties }) {
+/** `inner` styles the content wrapper of a pressable card (e.g. a column that fills its height). */
+export function Card({ children, className = '', inner = '', onPress, label, hero = false, dense = false, style }: { children: ReactNode; className?: string; inner?: string; onPress?: () => void; label?: string; hero?: boolean; dense?: boolean; style?: React.CSSProperties }) {
   const radius = hero ? 'rounded-hero' : 'rounded-card';
   const pad = dense ? 'p-3.5' : 'p-4';
   if (onPress)
     return (
       <section className={`m-card m-press-host relative ${radius} ${className}`} style={style}>
         <button type="button" onClick={onPress} aria-label={label} className={`m-cover absolute inset-0 ${radius} ${ring}`} />
-        <div className={`pointer-events-none relative ${pad} [&_[data-own-press]]:pointer-events-auto`}>{children}</div>
+        <div className={`pointer-events-none relative ${pad} ${inner} [&_[data-own-press]]:pointer-events-auto`}>{children}</div>
       </section>
     );
   return (
-    <section className={`m-card ${pad} ${radius} ${className}`} style={style}>
+    <section className={`m-card ${pad} ${radius} ${className} ${inner}`} style={style}>
       {children}
     </section>
   );

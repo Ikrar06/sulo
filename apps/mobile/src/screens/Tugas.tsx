@@ -10,6 +10,8 @@ import { groupTaskList, type OverviewGroupKey } from '@sulo/core/dashboard/overv
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
+import { localParts } from '@sulo/core/reminders/zoned';
+import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { XIcon } from '@sulo/ui/dashboard-icons';
@@ -23,6 +25,7 @@ import { Input } from '@sulo/ui/ui/input';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
 import { HeaderTools } from '../shell/screen-header';
+import { useTaskDate } from '../shell/task-date';
 import { LongList } from './LongList';
 
 export const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
@@ -47,12 +50,17 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const done = useDoneUndo(actions, d, data!.today, platform.store);
+  // A day tapped on Ringkasan's 7-day card: a temporary, removable filter.
+  const { date, setDate } = useTaskDate();
+  const dateLabel = date ? formatDateKey(date, m.intl, { weekday: 'short', day: 'numeric', month: 'short' }) : '';
 
   const groups = useMemo(() => {
     const status = filter === 'done' ? 'done' : 'pending';
-    const matching = filterTasks(items, { ...DEFAULT_TASK_FILTER, status: 'all', query }).filter((i) => i.status === status || done.lingering.has(i.task.eventId));
+    const matching = filterTasks(items, { ...DEFAULT_TASK_FILTER, status: 'all', query })
+      .filter((i) => i.status === status || done.lingering.has(i.task.eventId))
+      .filter((i) => date === null || (i.task.dueAt !== null && localParts(i.task.dueAt, timeZone).dateKey === date));
     return status === 'done' ? [{ key: 'next' as OverviewGroupKey, rows: matching }] : groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
-  }, [items, query, filter, done.lingering, now]);
+  }, [items, query, filter, done.lingering, now, date]);
   const overdueCount = groups.find((g) => g.key === 'overdue')?.rows.length ?? 0;
   const keep = filter === 'done' ? null : GROUPS[filter];
   const rows = useMemo<Row[]>(
@@ -63,7 +71,7 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
     [groups, keep, filter, d],
   );
   const taskCount = rows.filter((r) => r.kind === 'task').length;
-  const allClear = filter !== 'done' && counts.pending === 0 && query.trim() === '';
+  const allClear = filter !== 'done' && counts.pending === 0 && query.trim() === '' && date === null;
   const chips: { value: Filter; label: string }[] = [
     { value: 'all', label: w.app.all },
     { value: 'overdue', label: overdueCount > 0 ? `${d.ringkasan.groups.overdue} (${overdueCount})` : d.ringkasan.groups.overdue },
@@ -84,6 +92,12 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
         </div>
       )}
       <div role="group" aria-label={t.status} className="m-carousel -mx-4 flex gap-2 overflow-x-auto px-4">
+        {date && (
+          <button type="button" onClick={() => setDate(null)} aria-label={w.app.clearDate(dateLabel)} className="m-hit inline-flex h-[30px] shrink-0 items-center gap-1 rounded-full bg-foreground pr-2 pl-3 text-m12 text-bg outline-none focus-ring:ring-2 focus-ring:ring-focus">
+            {dateLabel}
+            <XIcon aria-hidden="true" className="size-3.5" />
+          </button>
+        )}
         {chips.map((c) => (
           <Chip key={c.value} selected={filter === c.value} onPress={() => setFilter(c.value)}>
             {c.label}
