@@ -1,4 +1,4 @@
-// "Mulai pakai" in Bantuan: six steps (the last, NEOSIA, optional), each with a short muted clip and a
+// "Mulai pakai" in Bantuan: seven steps (the last two need NEOSIA), each with a short muted clip and a
 // numbered list of what it shows (plain text, for everyone and for screen
 // readers), after a one-line tip about pinning Sulo. Clips and their
 // posters come from `pnpm guide:shots` (synthetic demo data, public/guide/).
@@ -111,6 +111,22 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     points: [
       { id: 'Saring menurut jenis perubahan.', en: 'Filter by kind of change.' },
       { id: 'Atur notifikasi: pilih jenis yang diberitahukan.', en: 'Notification settings: choose which kinds notify you.' },
+    ],
+  },
+  {
+    id: 'jadwal',
+    title: { id: 'Lihat kuliah dan jadwal (dengan NEOSIA)', en: 'See classes and your schedule (with NEOSIA)' },
+    body: {
+      id: 'Kalau NEOSIA terhubung, Ringkasan menampilkan kuliah hari ini dan kartu Studi, dan halaman Jadwal menampilkan jadwal mingguanmu.',
+      en: 'With NEOSIA connected, the overview shows today\'s classes and a Studies card, and the Schedule page shows your week.',
+    },
+    clip: 'jadwal',
+    size: { width: 1200, height: 796 },
+    alt: { id: 'Ringkasan dengan kuliah hari ini, lalu halaman Jadwal dengan grid jam dan popover kelas.', en: 'The overview with today\'s classes, then the Schedule page with its time grid and a class popover.' },
+    points: [
+      { id: 'Kuliah hari ini muncul paling atas di kartu Tugas.', en: "Today's classes come first in the Tasks card." },
+      { id: 'Kartu Studi menyimpan IPK sampai kamu memilih Tampilkan.', en: 'The Studies card keeps your GPA hidden until you choose Show.' },
+      { id: 'Di Jadwal, klik kelas untuk melihat dosen dan ruang.', en: 'On Schedule, click a class to see its lecturers and room.' },
     ],
   },
   {

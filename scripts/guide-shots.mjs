@@ -205,6 +205,23 @@ const STEPS = [
     },
   },
   {
+    // With the synthetic NEOSIA demo data: the overview, then the Schedule page.
+    id: 'jadwal',
+    url: '/dashboard.html#ringkasan',
+    neosia: true,
+    viewport: { width: 1280, height: 860 },
+    area: async () => ({ x: 232, y: 64, width: 1048, height: 796 }),
+    play: async (p) => {
+      await moveTo(p, p.getByRole('region', { name: re('Kuliah hari ini', 'Classes today') }), 900);
+      await p.waitForTimeout(700);
+      const studi = p.getByRole('button', { name: re('Tampilkan', 'Show') }).first();
+      await click(p, studi, 900);
+      await p.evaluate(() => (location.hash = '#jadwal'));
+      await p.waitForTimeout(1200);
+      await click(p, p.locator('[data-slot="popover-trigger"]').filter({ hasText: /Mekanika|Etika/ }).first(), 1500);
+    },
+  },
+  {
     // Chrome's own permission prompt cannot be recorded (it is browser UI):
     // the clip shows the consent screen, the click on "Hubungkan", then the
     // connected state from the synthetic NEOSIA demo data.
@@ -314,7 +331,7 @@ async function run() {
         let [sw] = ctx.serviceWorkers();
         if (!sw) sw = await ctx.waitForEvent('serviceworker');
         const extId = new URL(sw.url()).host;
-        const storage = demoStorage(root);
+        const storage = { ...demoStorage(root), ...(step.neosia ? demoNeosia() : {}) };
         storage['global:prefs'] = { ...(storage['global:prefs'] ?? {}), locale, theme };
         await sw.evaluate(async (s) => chrome.storage.local.set(s), storage);
         await new Promise((r) => setTimeout(r, 1000));
