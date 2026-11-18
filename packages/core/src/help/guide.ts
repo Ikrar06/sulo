@@ -86,8 +86,8 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     id: 'presensi',
     title: { id: 'Lihat presensi', en: 'See your attendance' },
     body: {
-      id: 'Halaman Presensi merangkum kehadiranmu dari SIKOLA untuk mata kuliah yang dipantau. Datanya diambil hanya saat kamu membuka halaman ini, paling sering sekali sehari.',
-      en: 'The Attendance page sums up your SIKOLA attendance for the courses you follow. It is fetched only when you open the page, at most once a day.',
+      id: 'Halaman Presensi merangkum kehadiranmu dari SIKOLA untuk mata kuliah yang dipantau. Rekapnya diperbarui otomatis sekali sehari, rincian per pertemuan diambil saat kamu membukanya.',
+      en: 'The Attendance page sums up your SIKOLA attendance for the courses you follow. The recap updates automatically once a day; per-session details are fetched when you open them.',
     },
     clip: 'presensi',
     size: { width: 1200, height: 912 },

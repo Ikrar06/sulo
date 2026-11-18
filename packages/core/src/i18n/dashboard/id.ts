@@ -118,7 +118,7 @@ export const dashId = {
     noteSaved: 'Catatan tersimpan.',
   },
   presensi: {
-    lead: 'Rekap presensi dari SIKOLA untuk mata kuliah yang dipantau. Diambil hanya saat kamu membuka halaman ini, paling sering sekali sehari.',
+    lead: 'Rekap presensi dari SIKOLA untuk mata kuliah yang dipantau. Diperbarui otomatis sekali sehari, rincian per pertemuan diambil saat kamu membukanya.',
     updated: (when: string) => `Diperbarui ${when}`,
     never: 'Belum pernah diambil',
     refresh: 'Perbarui',

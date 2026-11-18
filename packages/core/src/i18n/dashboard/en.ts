@@ -117,7 +117,7 @@ export const dashEn: DashMessages = {
     noteSaved: 'Note saved.',
   },
   presensi: {
-    lead: 'Your SIKOLA attendance for the courses Sulo follows. Fetched only when you open this page, at most once a day.',
+    lead: 'Your SIKOLA attendance recap for the courses Sulo follows. Updated automatically once a day; per-session details are fetched when you open them.',
     updated: (when: string) => `Updated ${when}`,
     never: 'Not fetched yet',
     refresh: 'Update',
