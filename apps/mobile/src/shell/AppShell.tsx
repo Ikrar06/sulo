@@ -19,7 +19,7 @@ import { BellIcon, RefreshIcon } from '@sulo/ui/icons';
 import { IconButton } from '@sulo/ui/mobile/controls';
 import { useToast } from '@sulo/ui/ui/toast';
 import { back as goBack, current, open, parseScreen, selectTab, START, type NavState, type Screen, type Tab } from './nav';
-import { screenForNotification } from './notify-route';
+import { opensSignIn, screenForNotification } from './notify-route';
 import { SuloSession } from '../session';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { useMobileData } from './data';
@@ -141,15 +141,18 @@ export function AppShell(props: ShellProps) {
   }, [platform, w]);
 
   // A reminder tapped while the app runs.
-  useEffect(() => platform.notifier.onClick((id) => go(screenForNotification(id))), [platform, go]);
+  // "Masuk lagi" opens SIKOLA's sign-in; after it, the sync runs and background watching starts again (App.signIn).
+  const onSignIn = props.onSignIn;
+  const openNotice = useCallback((id: string) => (opensSignIn(id) ? onSignIn() : go(screenForNotification(id))), [go, onSignIn]);
+  useEffect(() => platform.notifier.onClick(openNotice), [platform, openNotice]);
   // A background-watching notification tapped (posted natively): its id waits in the worker's store.
   useEffect(() => {
-    const take = () => void SuloSession.watchTakeOpen().then(({ id }) => id && go(screenForNotification(id))).catch(() => undefined);
+    const take = () => void SuloSession.watchTakeOpen().then(({ id }) => id && openNotice(id)).catch(() => undefined);
     take();
     const onVisible = () => document.visibilityState === 'visible' && take();
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [go]);
+  }, [openNotice]);
 
   // A tab's first screen comes back where it was left; a detail opens at the top.
   const top = current(nav);

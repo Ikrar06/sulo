@@ -130,3 +130,31 @@ class WatchStoreTest {
         assertTrue(prefs.map.isEmpty())
     }
 }
+
+class WatchExpiryTest {
+    @Test
+    fun theGuardNeverRestartsAfterTheSessionEnded() {
+        assertTrue(WatchGate.guardRestarts(planEnabled = true, sessionStatus = "connected", chainPending = false))
+        assertFalse(WatchGate.guardRestarts(planEnabled = true, sessionStatus = "expired", chainPending = false))
+        assertFalse(WatchGate.guardRestarts(planEnabled = true, sessionStatus = "none", chainPending = false))
+        assertFalse(WatchGate.guardRestarts(planEnabled = false, sessionStatus = "connected", chainPending = false))
+        assertFalse(WatchGate.guardRestarts(planEnabled = true, sessionStatus = "connected", chainPending = true))
+    }
+
+    @Test
+    fun masukLagiOncePerEndedSessionUntilSignedIn() {
+        val prefs = MemoryPrefs()
+        val store = WatchStore(prefs, MemoryPrefs(), dev.ikrar.sulo.session.MemoryCrypto())
+        assertTrue(WatchGate.mayNotifyExpired(store.expiredSent(), "expired"))
+        store.setExpiredSent()
+        // A second check, a guard run or a day later: still not again.
+        assertFalse(WatchGate.mayNotifyExpired(store.expiredSent(), "expired"))
+        // A plan written while watching is off (no session) keeps the mark.
+        store.setPlan(JSONObject().put("enabled", false))
+        assertFalse(WatchGate.mayNotifyExpired(store.expiredSent(), "expired"))
+        // Signed in again: the app writes a plan in force; a later ended session may notify once more.
+        store.setPlan(JSONObject().put("enabled", true))
+        assertTrue(WatchGate.mayNotifyExpired(store.expiredSent(), "expired"))
+        assertFalse(WatchGate.mayNotifyExpired(false, "connected"))
+    }
+}

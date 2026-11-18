@@ -3,7 +3,7 @@
 // reminder cycle is played forward over the next days on a copy of the
 // data, and what it would show is scheduled as local notifications. The
 // planner's rules hold as in the extension (stages, quiet hours, calendar),
-// minus the "session expired" notice, which mobile does not send.
+// with the session notice estimated locally while watching is off.
 
 import { runNotifyCycle } from '@sulo/core/reminders/run';
 import type { NotificationView } from '@sulo/core/reminders/text';
@@ -11,6 +11,10 @@ import type { Platform } from '@sulo/core/platform';
 import type { KeyValueStore, UnixSeconds } from '@sulo/core/types';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { numericId } from './platform/notifications';
+import { currentUser, readUser } from '@sulo/core/storage';
+import { readRemoteConfig } from '@sulo/core/remote/remote-config';
+import { keepAliveFrom } from '@sulo/core/remote/keep-alive';
+import { WATCH_KEY } from './watch';
 
 export const HORIZON_DAYS = 7;
 /** Android keeps a few hundred alarms per app; Sulo stays far below. */
@@ -35,10 +39,30 @@ export async function copyStore(store: KeyValueStore): Promise<KeyValueStore> {
   };
 }
 
+/** A SIKOLA session ends about this long after the last activity (the phone's own estimate, no request). */
+export const SESSION_ESTIMATE_SEC = 2 * 3600;
+
+/**
+ * The session as the reminders see it. Watching on: always fine here, since
+ * the worker itself sends one "Masuk lagi" when a check finds the session
+ * ended. Watching off: no background request, so the end is estimated from
+ * the last sync (activity + 2 hours); core's rules then send it only once
+ * the data is over 24 hours old, at most once per 24 hours, never in quiet
+ * hours. No sync yet: nothing to say.
+ */
+export async function sessionForReminders(store: KeyValueStore, now: UnixSeconds): Promise<{ state: 'OK' | 'EXPIRED'; userId: number | null; checkedAt: UnixSeconds; expiredAt?: UnixSeconds }> {
+  const userId = await currentUser(store);
+  const watch = (await store.get<{ enabled?: boolean }>(WATCH_KEY)) ?? {};
+  const config = await readRemoteConfig(store);
+  const watching = watch.enabled === true && config.enabled && keepAliveFrom(config).enabled;
+  const last = userId === null ? null : (await readUser(store, userId, 'sync')).lastSyncAt;
+  if (watching || last === null) return { state: 'OK', userId, checkedAt: now };
+  return { state: 'EXPIRED', userId, checkedAt: now, expiredAt: last + SESSION_ESTIMATE_SEC };
+}
+
 export async function planReminders(store: KeyValueStore, now: UnixSeconds, timeZone: string, uiLanguage: string): Promise<PlannedReminder[]> {
   const sim = await copyStore(store);
-  // Mobile never notifies about the session; sign-in has its own line in the app.
-  await sim.set('global:session', { state: 'OK', userId: null, checkedAt: now });
+  await sim.set('global:session', await sessionForReminders(store, now));
   const out: PlannedReminder[] = [];
   const end = now + HORIZON_DAYS * 86_400;
   let at: UnixSeconds | null = now;

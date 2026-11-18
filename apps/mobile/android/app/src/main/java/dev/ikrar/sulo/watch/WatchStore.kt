@@ -36,7 +36,13 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
         put(KEY_PLAN, plan.toString())
         put(KEY_OVERLAY, null)
         put(KEY_HELD, null)
+        // A plan in force means a connected session (core writes enabled only then): signed in again.
+        if (plan.optBoolean("enabled", false)) prefs.edit().remove(KEY_EXPIRED_SENT).commit()
     }
+
+    /** The "Masuk lagi" notice was sent for the current ended session. */
+    @Synchronized fun expiredSent(): Boolean = prefs.getBoolean(KEY_EXPIRED_SENT, false)
+    @Synchronized fun setExpiredSent() { prefs.edit().putBoolean(KEY_EXPIRED_SENT, true).commit() }
 
     @Synchronized fun overlay(): JSONObject = json(KEY_OVERLAY) ?: WatchCheck.emptyOverlay()
     @Synchronized fun setOverlay(o: JSONObject) = put(KEY_OVERLAY, o.toString())
@@ -144,6 +150,7 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
         private const val KEY_ENDS = "sessionEnds"
         private const val KEY_OPEN = "pendingOpen"
         private const val KEY_LAST = "lastAnswer"
+        private const val KEY_EXPIRED_SENT = "expiredSent"
         private const val KEY_SIM_HELD = "simHeld"
     }
 }

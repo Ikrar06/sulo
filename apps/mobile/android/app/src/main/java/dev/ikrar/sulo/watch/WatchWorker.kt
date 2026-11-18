@@ -174,8 +174,8 @@ class WatchRun(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     private fun expiredNotice(plan: JSONObject?, now: Long, chainStopped: Boolean) {
-        if (plan == null || vault.status() != "expired") return
-        if (now - store.lastExpiredNoticeAt() < EXPIRED_NOTICE_GAP_SEC) return
+        // Once per ended session: never again until the user signs in (WatchStore.setPlan clears it).
+        if (plan == null || !WatchGate.mayNotifyExpired(store.expiredSent(), vault.status())) return
         val quiet = plan.getJSONObject("quiet")
         if (WatchCheck.inQuiet(minuteOfDay(), quiet)) {
             // Later, when quiet hours end: a one-off that sends nothing to SIKOLA.
@@ -184,6 +184,7 @@ class WatchRun(private val context: Context) {
             if (chainStopped) WatchScheduler.next(context, c.timeInMillis / 1000 - now, now, WatchScheduler.MODE_EXPIRED_NOTICE)
             return
         }
+        store.setExpiredSent()
         store.setLastExpiredNoticeAt(now)
         val t = plan.getJSONObject("templates")
         val e = t.getJSONObject("expired")
@@ -196,7 +197,4 @@ class WatchRun(private val context: Context) {
         store.recordTiming(JSONObject().put("plannedAt", store.plannedAt()).put("ranAt", now).put("ms", System.currentTimeMillis() - startedMs).put("bytes", bytes).put("outcome", outcome).put("changes", changes))
     }
 
-    companion object {
-        const val EXPIRED_NOTICE_GAP_SEC = 24L * 3600
-    }
 }

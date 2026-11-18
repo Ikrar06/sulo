@@ -86,7 +86,13 @@ class WatchGuardWorker(context: Context, params: WorkerParameters) : Worker(cont
             WatchScheduler.stop(applicationContext)
             return Result.success()
         }
-        if (!WatchScheduler.chainPending(applicationContext)) WatchScheduler.next(applicationContext, 60, System.currentTimeMillis() / 1000)
+        val status = dev.ikrar.sulo.session.SessionVault(applicationContext).status()
+        if (status != "connected") {
+            // Ended or signed out: nothing to restart until the user signs in (the app then writes a new plan).
+            WatchScheduler.stop(applicationContext)
+            return Result.success()
+        }
+        if (WatchGate.guardRestarts(true, status, WatchScheduler.chainPending(applicationContext))) WatchScheduler.next(applicationContext, 60, System.currentTimeMillis() / 1000)
         return Result.success()
     }
 }

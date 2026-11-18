@@ -19,3 +19,8 @@ export function screenForNotification(id: string): Screen {
   if (kind === 'changes' || kind === 'changes_summary') return { name: 'kabar', detail: null };
   return { name: 'ringkasan', detail: null };
 }
+
+/** A "Masuk lagi" notice (the planner's or the background worker's): tapping it opens SIKOLA's sign-in. */
+export function opensSignIn(id: string): boolean {
+  return parseNotificationId(id).kind === 'session';
+}
