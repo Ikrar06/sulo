@@ -22,6 +22,14 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('data/wipeAll') }),
   /** "Kirim notifikasi uji" in the reminder settings. */
   z.object({ type: z.literal('notify/test') }),
+  /**
+   * Presensi page (M7.3), only from the user: opening the page or a course's
+   * details (force=false: only when the copy is older than 24 hours), or
+   * "Perbarui" there (force=true, 2-minute cooldown).
+   */
+  /** Content script: the user opened an attendance page on SIKOLA; its cmid (from the URL only). */
+  z.object({ type: z.literal('presensi/seenCmid'), cmid: z.number().int().positive().max(1_000_000_000) }),
+  z.object({ type: z.literal('presensi/refresh'), target: z.enum(['recap', 'detail']), courseId: z.number().int().positive().optional(), force: z.boolean() }),
   /** The dashboard got the NEOSIA permissions in the consent dialog: register the scripts. */
   z.object({ type: z.literal('neosia/enable') }),
   /** "Putuskan dan hapus data": scripts off, permissions removed, NEOSIA data deleted. */

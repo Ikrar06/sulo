@@ -2,6 +2,7 @@
 // with another: when the userid changes, the previous user's data is deleted
 // before anything new is written. Pure: the KeyValueStore is injected.
 
+import { EMPTY_PRESENSI, type PresensiData } from './presensi/types';
 import type { TaskStateMap } from './tasks/local-state';
 import type { ChangeLogEntry, CourseId, CourseRecord, CourseSnapshot, KeyValueStore, SyncOutcome, Task, UnixSeconds, UserId } from './types';
 
@@ -76,6 +77,8 @@ export interface UserData {
   /** Course structure snapshots, keyed by course id (lib/radar/diff.ts). */
   snapshots: Record<string, CourseSnapshot>;
   radar: RadarMeta;
+  /** Attendance (M7.3): monitored courses only, fetched when the Presensi page is opened. */
+  presensi: PresensiData;
 }
 
 export interface RadarMeta {
@@ -91,6 +94,21 @@ export interface RadarMeta {
   notificationsFetchedAt?: UnixSeconds;
   /** The last small page (10) was all new: fetch the full page (20) next time. */
   notificationsWide?: boolean;
+  /** What the last radar pass did (codes and counts only), for the diagnosis in Pengaturan. */
+  lastRun?: RadarRun;
+}
+
+export interface RadarRun {
+  at: UnixSeconds;
+  /** Course structures asked for in this sync. */
+  planned: number;
+  /** Structures stored (baseline or diff). */
+  stored: number;
+  /** Moodle error codes (or "parser_broken") per count. */
+  errors: Record<string, number>;
+  notifications: 'ok' | 'skipped' | 'broken' | 'error';
+  /** Why the radar did not run at all, or the exception that stopped a part (name only). */
+  failure?: string;
 }
 
 export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
@@ -104,6 +122,7 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   changes: [],
   snapshots: {},
   radar: { stateCheckedAt: {}, notificationsLastId: null, calendarBaseline: false },
+  presensi: EMPTY_PRESENSI,
 };
 
 export const userKey = (userId: UserId, name: keyof UserData) => `u:${userId}:${name}`;

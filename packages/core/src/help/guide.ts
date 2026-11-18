@@ -1,4 +1,4 @@
-// "Mulai pakai" in Bantuan: seven steps (the last two need NEOSIA), each with a short muted clip and a
+// "Mulai pakai" in Bantuan: eight steps (the last two need NEOSIA), each with a short muted clip and a
 // numbered list of what it shows (plain text, for everyone and for screen
 // readers), after a one-line tip about pinning Sulo. Clips and their
 // posters come from `pnpm guide:shots` (synthetic demo data, public/guide/).
@@ -80,6 +80,22 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
       { id: 'Klik nama, ketik nama baru, lalu Enter. Kosongkan untuk kembali ke nama SIKOLA.', en: 'Click the name, type a new one and press Enter. Clear it to go back to the SIKOLA name.' },
       { id: 'Klik titik warna, pilih dengan panah, lalu Enter.', en: 'Click the color dot, pick with the arrow keys, then Enter.' },
       { id: 'Matikan sakelar Dipantau untuk berhenti memantau mata kuliah itu.', en: 'Turn the Followed switch off to stop following that course.' },
+    ],
+  },
+  {
+    id: 'presensi',
+    title: { id: 'Lihat presensi', en: 'See your attendance' },
+    body: {
+      id: 'Halaman Presensi merangkum kehadiranmu dari SIKOLA untuk mata kuliah yang dipantau. Rekapnya diperbarui otomatis sekali sehari, rincian per pertemuan diambil saat kamu membukanya.',
+      en: 'The Attendance page sums up your SIKOLA attendance for the courses you follow. The recap updates automatically once a day; per-session details are fetched when you open them.',
+    },
+    clip: 'presensi',
+    size: { width: 1200, height: 912 },
+    alt: { id: 'Halaman Presensi dengan persentase tiap mata kuliah, lalu rincian sesi satu mata kuliah.', en: 'The Attendance page with each course\'s percentage, then one course\'s sessions.' },
+    points: [
+      { id: 'Tiap mata kuliah menampilkan sesi tercatat, poin, dan persentase.', en: 'Each course shows its recorded sessions, points and percentage.' },
+      { id: 'Klik mata kuliah untuk melihat status tiap sesi.', en: 'Click a course to see the status of each session.' },
+      { id: 'Perbarui mengambil data terbaru, paling sering tiap 2 menit.', en: 'Update fetches the latest data, at most every 2 minutes.' },
     ],
   },
   {

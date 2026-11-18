@@ -8,7 +8,7 @@ import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@sulo/core/format/time';
 import { PAGES, routeHash, type Page } from '@sulo/core/dashboard/routes';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
-import { BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
+import { AttendanceIcon, BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import './dashboard.css';
@@ -21,6 +21,7 @@ const ICONS: Record<Page, ComponentType<SVGProps<SVGSVGElement>>> = {
   ringkasan: HomeIcon,
   tugas: TasksIcon,
   'mata-kuliah': BookIcon,
+  presensi: AttendanceIcon,
   kabar: NewsIcon,
   kalender: CalendarIcon,
   jadwal: ClockIcon,

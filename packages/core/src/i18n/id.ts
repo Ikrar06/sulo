@@ -306,7 +306,7 @@ export const id = {
       checking: 'Memeriksa SIKOLA...',
       waiting: 'Menunggu kamu masuk ke SIKOLA...',
       connected: 'Terhubung',
-      loading: 'Mengambil daftar mata kuliahmu...',
+      loading: 'Mengambil tugas, kalender, dan presensi...',
       retry: 'Coba lagi',
       failed: (reason: string) => reason,
     },

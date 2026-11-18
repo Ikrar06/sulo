@@ -36,6 +36,15 @@ export const BookIcon = (p: IconProps) => (
   </Icon>
 );
 
+/** Presensi: a clipboard with a check. */
+export const AttendanceIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M9 4h6v3H9z" />
+    <path d="M15 5h3v16H6V5h3" />
+    <path d="m9 14 2 2 4-4" />
+  </Icon>
+);
+
 export const NewsIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
