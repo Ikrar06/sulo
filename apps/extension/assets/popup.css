@@ -11,6 +11,7 @@
 @source "../../../packages/ui/src/mascot";
 @source "../../../packages/ui/src/i18n.tsx";
 @source "../../../packages/ui/src/icons.tsx";
+@source "../../../packages/ui/src/reminders";
 @source "../lib";
 /* Shared logic moved to packages/core in M8a; scanned as before. */
 @source "../../../packages/core/src";

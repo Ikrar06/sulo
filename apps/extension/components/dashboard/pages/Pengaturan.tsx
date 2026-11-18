@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useId, useState, type ReactNode } from 'reac
 import { browser } from 'wxt/browser';
 import { useI18n } from '@sulo/ui/i18n';
 import { WipeDialog } from '@/components/popup/WipeDialog';
-import { RemindersPanel } from '@/components/popup/RemindersPanel';
+import { RemindersPanel } from '@sulo/ui/reminders/RemindersPanel';
 import { Button } from '@sulo/ui/ui/button';
 import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { Input } from '@sulo/ui/ui/input';
