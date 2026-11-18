@@ -89,10 +89,40 @@ body {
 .m-press-host { transition: transform 100ms ease-out; }
 .m-press-host:has(> .m-cover:active) { transform: scale(0.98); }
 @media (prefers-reduced-motion: reduce) { .m-press-host, .m-press-host:has(> .m-cover:active) { transition: none; transform: none; } }
-/* The header's large-header slots (shell/screen-header.tsx): a filled main
-   slot hides the plain name; the small (scrolled) header shows only the name. */
-.m-head:has(.m-slot-main:not(:empty)):not(.m-head-small) .m-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.m-head-small .m-slot-main, .m-head-small .m-slot-end { display: none; }
+/* The header follows the finger (shell/head-progress.ts): --head-p goes 0 -> 1
+   over the first 56 px of scroll, --head-q 0 -> 1 over 72-120 px (Ringkasan).
+   Written by a CSS scroll timeline where supported (.m-sdt), else by a passive
+   scroll listener once per frame; transform and opacity only, never a timed
+   animation and never a font size. */
+@property --head-p { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --head-q { syntax: '<number>'; inherits: true; initial-value: 0; }
+@keyframes m-head-p { from { --head-p: 0; } to { --head-p: 1; } }
+@keyframes m-head-q { from { --head-q: 0; } to { --head-q: 1; } }
+.m-root.m-sdt {
+  timeline-scope: --m-main;
+  animation: m-head-p linear both, m-head-q linear both;
+  animation-timeline: --m-main, --m-main;
+  animation-range: 0px 56px, 72px 120px;
+}
+.m-root.m-sdt .m-scroll { scroll-timeline: --m-main block; }
+/* The large title rides in the bar: 56 px below its line at the top (over the
+   scrolling title row), on its line at 18/26 of its size once scrolled. */
+.m-title-big {
+  transform-origin: left center;
+  transform: translateY(calc(-50% + (1 - var(--head-p)) * 56px)) scale(calc(1 - var(--head-p) * 0.30769));
+}
+.m-title-row-text { visibility: hidden; }
+.m-title-small { opacity: 0; transform: translateY(-50%); }
+.m-title-small-q { opacity: var(--head-q); transform: translateY(calc(-50% + (1 - var(--head-q)) * 6px)); }
+.m-fade-top { opacity: var(--head-p); }
+/* Reduced motion: still tied to the finger, but no title travels: the large
+   title scrolls away with its row and the bar's small one fades in. */
+@media (prefers-reduced-motion: reduce) {
+  .m-title-big { display: none; }
+  .m-title-row-text { visibility: visible; opacity: calc(1 - var(--head-p)); }
+  .m-title-small { opacity: var(--head-p); }
+  .m-title-small-q { opacity: var(--head-q); transform: translateY(-50%); }
+}
 
 /* Ringkasan's mascot (screens/HeroMascot.tsx): it enters with one small hop
    (320 ms), dips with the pull (up to 10 px), and fades through a change of

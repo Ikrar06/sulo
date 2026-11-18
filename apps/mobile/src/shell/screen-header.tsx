@@ -1,7 +1,7 @@
-// A screen's large header can be its own content (Ringkasan's greeting and
-// mascot): it renders into the header's slots through a portal, so no state
-// goes back and forth. When the main slot is filled, the header's own 26 px
-// name hides (styles.css, .m-head:has); scrolled, the header hides the slots.
+// A screen's own round buttons render into the header bar through a portal
+// (Tugas: search; Kabar: notification settings), so no state goes back and
+// forth. The main and end slots are kept for screens that may need them;
+// none does now (Ringkasan's greeting scrolls with its content).
 
 import { createContext, useContext, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';

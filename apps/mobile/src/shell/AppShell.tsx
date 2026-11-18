@@ -1,6 +1,6 @@
 // The app once signed in (M8c.1, cards): a header without a rule on the
-// screen's own color (the screen's 26 px name left, round buttons right;
-// scrolled, the name settles to 18 on a solid background), the screen, and
+// screen's own color (the screen's 26 px name follows the finger up to the
+// round buttons' line at 18, shell/head-progress.ts), the screen, and
 // the floating tab bar, hidden on details and while the keyboard is open.
 // Details get a round back button and a centered 18 px title. Android's back
 // button follows nav.ts; dashboard hashes and tapped reminders open their
@@ -28,13 +28,12 @@ import { ScreenHeaderProvider } from './screen-header';
 import { ScreenRefreshProvider } from './screen-refresh';
 import { TabBar, TAB_BAR_SPACE } from './TabBar';
 import { TaskDateProvider } from './task-date';
+import { HEAD_P_RANGE, HEAD_Q_RANGE, headProgress, useCssScrollTimeline } from './head-progress';
 import { Screens } from '../screens/Screens';
 import { REFRESHED_EVENT } from '../events';
 
 /** The data's age shows under the header only past an hour. */
 export const STALE_SHOWN_SEC = 3600;
-/** Scrolled this far, the header settles to its small size. */
-const COMPACT_AT = 24;
 
 /** Screens without SIKOLA data: no Perbarui there. */
 const NO_DATA_SCREENS = new Set(['lainnya', 'pengaturan', 'bantuan', 'tentang', 'privasi']);
@@ -87,16 +86,17 @@ export function AppShell(props: ShellProps) {
   const [online, setOnline] = useState(() => navigator.onLine);
   /** The maintainer paused Sulo (config enabled false): its message, else null. */
   const [paused, setPaused] = useState<string | null>(null);
-  const [compact, setCompact] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [taskDate, setTaskDate] = useState<string | null>(null);
-  const [slotMain, setSlotMain] = useState<HTMLElement | null>(null);
-  const [slotEnd, setSlotEnd] = useState<HTMLElement | null>(null);
   const [slotTools, setSlotTools] = useState<HTMLElement | null>(null);
   const keyboard = useKeyboardOpen();
   const navRef = useRef(nav);
   navRef.current = nav;
   const scroller = useRef<HTMLElement | null>(null);
+  const root = useRef<HTMLDivElement | null>(null);
+  /** CSS scroll-driven header where supported (decided once); else a passive listener writes the same variables. */
+  const [cssTimeline] = useState(useCssScrollTimeline);
+  /** Where each tab's first screen was scrolled to, kept across tab switches (no state, no re-render). */
+  const positions = useRef(new Map<string, number>());
 
   const go = useCallback((screen: Screen) => setNav((s) => open(s, screen)), []);
 
@@ -151,13 +151,38 @@ export function AppShell(props: ShellProps) {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [go]);
 
-  // A new screen starts at the top, with its large header. (scrollTo may return a promise: never return it.)
+  // A tab's first screen comes back where it was left; a detail opens at the top.
   const top = current(nav);
+  const screenKey = `${top.name}/${top.detail ?? ''}`;
+  const isDetail = nav.stack.length > 0;
+  const writeHead = useCallback(() => {
+    const el = scroller.current;
+    const r = root.current;
+    if (!el || !r || cssTimeline) return;
+    r.style.setProperty('--head-p', String(headProgress(el.scrollTop, HEAD_P_RANGE)));
+    r.style.setProperty('--head-q', String(headProgress(el.scrollTop, HEAD_Q_RANGE)));
+  }, [cssTimeline]);
   useEffect(() => {
-    scroller.current?.scrollTo({ top: 0 });
-    setCompact(false);
-    setScrolled(false);
-  }, [top.name, top.detail]);
+    const el = scroller.current;
+    if (!el) return;
+    el.scrollTop = isDetail ? 0 : (positions.current.get(screenKey) ?? 0);
+    writeHead();
+  }, [screenKey, isDetail, writeHead]);
+  // Follows the finger: one write per frame at most, passive, no state.
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    let frame = 0;
+    const onScroll = () => {
+      if (!isDetail) positions.current.set(screenKey, el.scrollTop);
+      if (!cssTimeline && frame === 0) frame = requestAnimationFrame(() => ((frame = 0), writeHead()));
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [screenKey, isDetail, cssTimeline, writeHead]);
   // The date filter from Ringkasan lasts only while Tugas is open.
   useEffect(() => {
     if (nav.tab !== 'tugas') setTaskDate(null);
@@ -187,11 +212,13 @@ export function AppShell(props: ShellProps) {
       {dataScreen && !props.expired && paused === null && <IconButton icon={RefreshIcon} label={props.busy ? w.connected.refreshing : w.connected.refresh} onPress={() => void refresh()} disabled={props.busy} spinning={props.busy} />}
     </>
   );
-  const small = detail || compact;
+  const ringkasan = top.name === 'ringkasan';
+  /** Main screens: the large title follows the finger to the bar's line; Ringkasan's greeting is its own large header. */
+  const bigTitle = !detail && !ringkasan;
 
   return (
-    <div className="db-layout m-root bg-m-screen text-foreground">
-      <header className={`m-head relative z-20 flex shrink-0 items-center gap-2 bg-m-screen px-4 ${small ? 'm-head-small h-14' : 'min-h-16 py-3'}`}>
+    <div ref={root} className={`db-layout m-root bg-m-screen text-foreground ${cssTimeline ? 'm-sdt' : ''}`}>
+      <header className="m-head relative z-30 flex h-14 shrink-0 items-center gap-2 bg-m-screen px-4">
         {detail ? (
           // Three columns so the title stays centered whatever sits on the right (a screen's tools, Perbarui).
           <div className="grid w-full grid-cols-[minmax(40px,1fr)_minmax(0,auto)_minmax(40px,1fr)] items-center gap-2">
@@ -215,48 +242,49 @@ export function AppShell(props: ShellProps) {
           </div>
         ) : (
           <>
-            <div className="min-w-0 flex-1">
-              {/* A screen may fill this with its own large header (Ringkasan); the name then stays for TalkBack. */}
-              <div ref={setSlotMain} className="m-slot-main" />
-              <h1 className={`m-title origin-left truncate text-m26 transition-transform duration-200 ease-out motion-reduce:transition-none ${small ? 'scale-[0.6923]' : top.name === 'ringkasan' ? 'sr-only' : ''}`}>{title}</h1>
+            <div className="relative min-w-0 flex-1 self-stretch">
+              {/* 26 px at the top, 18 px on the buttons' line once 56 px have scrolled: transform only, tied to the scroll. */}
+              {bigTitle && <h1 className="m-title-big absolute top-1/2 left-0 text-m26 whitespace-nowrap">{title}</h1>}
+              {/* The bar's own 18 px name: Ringkasan's, fading in near the end of its greeting; others' under reduced motion. */}
+              <p aria-hidden="true" className={`m-title-small absolute top-1/2 left-0 text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
+                {title}
+              </p>
+              {ringkasan && <h1 className="sr-only">{title}</h1>}
             </div>
             <span className="flex shrink-0 items-center gap-2">
               <span ref={setSlotTools} className="contents" />
               {actions}
-              <span ref={setSlotEnd} className="m-slot-end contents" />
             </span>
           </>
         )}
       </header>
-      {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
-      {notice === 'expired' ? (
-        <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-press mx-4 mb-2 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
-          <span role="status" className="min-w-0 truncate">
-            {splitAction(w.connected.expiredLine, w.connected.signInAgain)}
-          </span>
-        </button>
-      ) : (
-        (notice || stale) && (
-          <p role="status" className="mx-4 mb-2 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-m13">
-            <span className="min-w-0 truncate">{notice === 'paused' ? paused : notice === 'offline' ? w.app.offline : stale}</span>
-          </p>
-        )
-      )}
       <div className="relative flex min-h-0 flex-1 flex-col">
-      {/* Scroll-edge fade under the header, only once the content has moved. */}
-      <div aria-hidden="true" className={`m-fade-top pointer-events-none absolute inset-x-0 top-0 z-20 h-5 transition-opacity duration-150 motion-reduce:transition-none ${scrolled ? 'opacity-100' : 'opacity-0'}`} />
-      <main
-        ref={scroller}
-        onScroll={(e) => {
-          const y = e.currentTarget.scrollTop;
-          setCompact(y > COMPACT_AT);
-          setScrolled(y > 0);
-        }}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-      >
+      {/* Scroll-edge fade under the header, its opacity tied to the scroll. */}
+      <div aria-hidden="true" className="m-fade-top pointer-events-none absolute inset-x-0 top-0 z-20 h-5" />
+      <main ref={scroller} className="m-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <PullToRefresh disabled={!dataScreen || props.expired || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
           <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
-            <ScreenHeaderProvider value={{ main: slotMain, end: slotEnd, tools: slotTools }}>
+            {/* The large title's row: part of what scrolls (the title itself is drawn by the bar; reduced motion shows it here). */}
+            {bigTitle && (
+              <div aria-hidden="true" className="flex h-14 items-center">
+                <span className="m-title-row-text text-m26 whitespace-nowrap">{title}</span>
+              </div>
+            )}
+      {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
+            {notice === 'expired' ? (
+              <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-press mb-3 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
+                <span role="status" className="min-w-0 truncate">
+                  {splitAction(w.connected.expiredLine, w.connected.signInAgain)}
+                </span>
+              </button>
+            ) : (
+              (notice || stale) && (
+                <p role="status" className="mb-3 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-m13">
+                  <span className="min-w-0 truncate">{notice === 'paused' ? paused : notice === 'offline' ? w.app.offline : stale}</span>
+                </p>
+              )
+            )}
+            <ScreenHeaderProvider value={{ main: null, end: null, tools: slotTools }}>
               <ScreenRefreshProvider slot={screenRefresh}>
                 <TaskDateProvider value={{ date: taskDate, setDate: setTaskDate }}>
                   <Screens screen={top} go={go} onSignedOut={props.onSignedOut} />
