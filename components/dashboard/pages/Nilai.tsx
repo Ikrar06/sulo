@@ -28,6 +28,9 @@ import type { PageProps } from '../types';
 // file or bug report ever carries anything from this page.
 
 const HIDDEN = '••••';
+
+/** "GANJIL" or "ganjil" → "Ganjil". */
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 const LOW = new Set(['D', 'E']);
 
 export function NilaiPage({ data }: PageProps) {
@@ -64,13 +67,13 @@ export function NilaiPage({ data }: PageProps) {
   /** "Ganjil 2025/2026", or "Semester 3" by order when NEOSIA gave no name. */
   const label = (id: string) => {
     const l = labeler(id);
-    return l.jenis && l.tahunAjaran ? `${l.jenis} ${l.tahunAjaran}` : n.semesterOrdinal(l.index);
+    return l.jenis && l.tahunAjaran ? `${capitalize(l.jenis)} ${l.tahunAjaran}` : n.semesterOrdinal(l.index);
   };
   /** "Ganjil 23/24" on the chart's axis, else "Sem. 3". */
   const shortLabel = (id: string) => {
     const l = labeler(id);
     const years = l.tahunAjaran?.match(/^\d{2}(\d{2})\/\d{2}(\d{2})$/);
-    return l.jenis && years ? `${l.jenis} ${years[1]}/${years[2]}` : n.semesterShort(l.index);
+    return l.jenis && years ? `${capitalize(l.jenis)} ${years[1]}/${years[2]}` : n.semesterShort(l.index);
   };
   const points = [...groups]
     .reverse()
@@ -119,10 +122,9 @@ export function NilaiPage({ data }: PageProps) {
               </a>
             </Button>
           </div>
-        ) : reveal ? (
-          <GpaChart title={n.chartTitle} points={points} />
         ) : (
-          <p className="py-8 text-center text-[14px] text-muted-foreground">{HIDDEN}</p>
+          // Hidden grades or privacy mode: the line stays, numbers go.
+          <GpaChart title={n.chartTitle} points={points} hideValues={!reveal} note={n.axisNote} />
         )}
         {points.length > 0 && <p className="mt-2 text-[12px] text-muted-foreground">{n.chartNote}</p>}
       </Card>
