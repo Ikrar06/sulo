@@ -26,9 +26,12 @@ vi.mock('@capacitor/local-notifications', () => ({
 // SuloSession: record what reaches the "native" side.
 const sent: { body: string; userInitiated: boolean }[] = [];
 let nativeReply: Record<string, unknown> = {};
+const pagesAsked: { path: string; userInitiated: boolean }[] = [];
+let pageReply: Record<string, unknown> = {};
 vi.mock('../src/session', () => ({
   SuloSession: {
     request: async (o: { body: string; userInitiated: boolean }) => (sent.push(o), nativeReply),
+    page: async (o: { path: string; userInitiated: boolean }) => (pagesAsked.push(o), pageReply),
     status: async () => ({ status: 'connected' }),
   },
 }));
@@ -114,5 +117,40 @@ describe('reminders from the data already on the phone', () => {
     expect(planned.some((p) => p.at === due - 86_400)).toBe(true);
     // Nothing real changed: the planner ran on a copy.
     expect(await store.get('u:1:notified')).toBeUndefined();
+  });
+});
+
+describe('attendance pages through SuloSession.page', () => {
+  const origin = 'https://sikola-v2.unhas.ac.id';
+  beforeEach(() => {
+    pagesAsked.length = 0;
+  });
+
+  it('a GET of the attendance page goes native with the user flag and comes back as HTML', async () => {
+    pageReply = { httpStatus: 200, html: '<div data-userid="1"></div>', sessionStatus: 'connected' };
+    const r = await createSessionHttp(true).request(`${origin}/mod/attendance/view.php?id=5&mode=1`, { method: 'GET' });
+    expect(pagesAsked).toEqual([{ path: '/mod/attendance/view.php?id=5&mode=1', userInitiated: true }]);
+    expect(r.status).toBe(200);
+    expect(r.headers.get('content-type')).toBe('text/html');
+    expect(await r.text()).toContain('data-userid');
+  });
+
+  it('no session: a redirect to the login, so core marks it expired', async () => {
+    pageReply = { sessionStatus: 'expired' };
+    const r = await createSessionHttp(true).request(`${origin}/mod/attendance/view.php?id=5&view=5`, { method: 'GET' });
+    expect(r.status).toBe(303);
+  });
+
+  it('a network failure throws like fetch does', async () => {
+    pageReply = { networkError: 'UnknownHostException', sessionStatus: 'connected' };
+    await expect(createSessionHttp(true).request(`${origin}/mod/attendance/view.php?id=5&mode=1`, { method: 'GET' })).rejects.toThrow();
+  });
+
+  it('every other page is refused before anything reaches the native side', async () => {
+    for (const path of ['/my/', '/mod/assign/view.php?id=1', '/mod/attendance/take.php?id=1', '/login/index.php']) {
+      expect((await createSessionHttp(true).request(`${origin}${path}`, { method: 'GET' })).status).toBe(404);
+    }
+    expect((await createSessionHttp(true).request(`https://example.com/mod/attendance/view.php?id=1`, { method: 'GET' })).status).toBe(404);
+    expect(pagesAsked).toEqual([]);
   });
 });

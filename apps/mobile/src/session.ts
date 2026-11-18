@@ -19,12 +19,25 @@ export interface BatchReply {
   needsUser?: boolean;
 }
 
+export interface PageReply {
+  httpStatus?: number;
+  html?: string;
+  sessionStatus: SessionStatus;
+  networkError?: string;
+}
+
 export interface SuloSessionPlugin {
   /** SIKOLA's own login page; resolves once signed in or closed. */
   login(): Promise<{ status: 'connected' | 'cancelled' }>;
   status(): Promise<{ status: SessionStatus }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */
   request(options: { body: string; userInitiated: boolean }): Promise<BatchReply>;
+  /**
+   * One allowlisted SIKOLA page (attendance only: id, mode, view), for
+   * something the user started. The HTML comes stripped of its head,
+   * scripts, forms and every sesskey (native SikolaPage.forJs).
+   */
+  page(options: { path: string; userInitiated: boolean }): Promise<PageReply>;
   /** Cookies, web storage, the encrypted session and its Keystore key. */
   logout(): Promise<{ status: 'none' }>;
   lockAvailable(): Promise<{ available: boolean }>;

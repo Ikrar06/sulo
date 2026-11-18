@@ -10,14 +10,27 @@ import { SuloSession } from '../session';
 /** The core client needs a sesskey to build its URL; the real one is inserted natively. */
 export const NATIVE_SESSKEY = 'nativeSesskey';
 
+/** The only HTML page JavaScript may ask for (native allowlist: id, mode, view). */
+const ATTENDANCE_PAGE = '/mod/attendance/view.php';
+
+/** An attendance page, natively fetched and stripped (no head, scripts, forms or sesskey). */
+async function page(path: string, userInitiated: boolean): Promise<Response> {
+  const reply = await SuloSession.page({ path, userInitiated });
+  if (reply.networkError) throw new TypeError('network');
+  // No usable session: SIKOLA's own answer would be a redirect to its login.
+  if (reply.httpStatus === undefined || reply.html === undefined) return new Response(null, { status: 303, headers: { Location: `${SIKOLA_ORIGIN}/login/index.php` } });
+  return new Response(reply.html, { status: reply.httpStatus, headers: { 'Content-Type': 'text/html' } });
+}
+
 const LOGIN_REQUIRED = JSON.stringify([{ error: true, exception: { errorcode: 'servicerequireslogin', message: '' } }]);
 
 export function createSessionHttp(userInitiated: boolean, onBatch?: (body: string) => void): HttpClient {
   return {
     async request(input, init) {
       const url = new URL(input);
+      if (url.origin === SIKOLA_ORIGIN && url.pathname === ATTENDANCE_PAGE && (init?.method ?? 'GET') === 'GET') return page(`${url.pathname}${url.search}`, userInitiated);
       if (url.origin !== SIKOLA_ORIGIN || url.pathname !== '/lib/ajax/service.php' || init?.method !== 'POST' || typeof init.body !== 'string') {
-        // Pages (HTML) are not read on mobile in M8b.
+        // Anything else is refused here and again natively (SikolaPage, SikolaRequest).
         return new Response('', { status: 404 });
       }
       const reply = await SuloSession.request({ body: init.body, userInitiated });

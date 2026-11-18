@@ -100,6 +100,32 @@ class SuloSessionPlugin : Plugin() {
         }
     }
 
+    /**
+     * One allowlisted SIKOLA page (SikolaPage: attendance only, id/mode/view),
+     * only for something the user started. Answers { httpStatus, html } with
+     * the page stripped for JavaScript (no head, scripts, forms or sesskey),
+     * or { sessionStatus } when there is no usable session.
+     */
+    @PluginMethod
+    fun page(call: PluginCall) {
+        val path = call.getString("path") ?: return call.reject("path missing")
+        val url = SikolaPage.allowedUrl(path) ?: return call.reject("not allowlisted")
+        if (call.getBoolean("userInitiated") != true) return call.reject("user only")
+        io.execute {
+            val session = vault.load() ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
+            try {
+                val reply = http.get(url, session.moodleSession)
+                if (reply.status in 300..399 && reply.location?.contains("/login/") == true) {
+                    vault.markExpired()
+                    return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
+                }
+                call.resolve(JSObject().put("httpStatus", reply.status).put("html", SikolaPage.forJs(reply.body)).put("sessionStatus", vault.status()))
+            } catch (e: Exception) {
+                call.resolve(JSObject().put("networkError", e.javaClass.simpleName).put("sessionStatus", vault.status()))
+            }
+        }
+    }
+
     /** GET /my/ for a fresh sesskey; marks the session expired when SIKOLA sends us to its login. */
     private fun refreshSesskey(session: SikolaSession): SikolaSession? {
         val page = http.get("${Sikola.ORIGIN}/my/", session.moodleSession)
