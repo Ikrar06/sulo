@@ -15,9 +15,8 @@ import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon } from '@sulo/ui/icons';
 import { Card, EmptyCard } from '@sulo/ui/mobile/cards';
 import { Toggle } from '@sulo/ui/mobile/controls';
-import { Sheet } from '@sulo/ui/mobile/sheet';
+import { Sheet, SheetTextForm, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { initials, ON_SOLID, tintVar } from '@sulo/ui/mobile/tint';
-import { Input } from '@sulo/ui/ui/input';
 import { useMobileData } from '../shell/data';
 
 const COLORS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
@@ -34,7 +33,6 @@ export function MataKuliahScreen() {
   const [showOthers, setShowOthers] = useState(false);
   const [colorFor, setColorFor] = useState<CourseRecord | null>(null);
   const [renaming, setRenaming] = useState<CourseRecord | null>(null);
-  const [name, setName] = useState('');
   const edit = (id: number, change: CourseEdit) => void actions.updateUser('courses', (list) => applyCourseEdit(list, id, change));
   /** The color "Otomatis" would give a course right now. */
   const autoColorOf = (c: CourseRecord) => (isCourseActive(c) ? (assignCourseColors(followed.map((x) => (x.id === c.id ? { ...x, color: null } : x))).get(c.id) ?? null) : null);
@@ -60,7 +58,6 @@ export function MataKuliahScreen() {
           <button
             type="button"
             onClick={() => {
-              setName(c.alias ?? '');
               setRenaming(c);
             }}
             aria-label={t.editName(display)}
@@ -111,8 +108,9 @@ export function MataKuliahScreen() {
                   aria-checked={chosen}
                   aria-label={n === null ? t.colorAuto : t.colorNames[n - 1]}
                   onClick={() => {
-                    edit(colorFor.id, { kind: 'color', value: n });
+                    const id = colorFor.id;
                     setColorFor(null);
+                    afterSheetClosed(() => edit(id, { kind: 'color', value: n }));
                   }}
                   className={`m-hit flex aspect-square items-center justify-center rounded-full text-m12 outline-none focus-ring:ring-2 focus-ring:ring-focus ${chosen ? 'ring-2 ring-foreground ring-offset-2 ring-offset-[var(--m-card)]' : ''}`}
                   style={shown ? { background: tintVar(`course-${shown}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}
@@ -126,23 +124,7 @@ export function MataKuliahScreen() {
       </Sheet>
 
       <Sheet open={renaming !== null} onOpenChange={(o) => !o && setRenaming(null)} title={t.displayName}>
-        {renaming && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              edit(renaming.id, { kind: 'alias', value: name });
-              setRenaming(null);
-            }}
-          >
-            <Input autoFocus aria-label={t.displayName} maxLength={ALIAS_MAX} placeholder={sikolaName(renaming)} value={name} onChange={(e) => setName(e.target.value)} />
-            <p className="mt-2 text-m13 text-muted-foreground">{t.displayNameHelp}</p>
-            <div className="mt-4">
-              <button type="submit" className="m-hit m-press inline-flex h-11 w-full items-center justify-center rounded-full bg-primary text-m15 text-primary-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
-                {w.app.doneSheet}
-              </button>
-            </div>
-          </form>
-        )}
+        {renaming && <SheetTextForm label={t.displayName} initial={renaming.alias ?? ''} maxLength={ALIAS_MAX} placeholder={sikolaName(renaming)} help={t.displayNameHelp} submitLabel={w.app.doneSheet} onSave={(v) => edit(renaming.id, { kind: 'alias', value: v })} />}
       </Sheet>
     </div>
   );

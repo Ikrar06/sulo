@@ -21,7 +21,7 @@ import { CalendarPlusIcon, ExternalIcon } from '@sulo/ui/icons';
 import { Card, Chip } from '@sulo/ui/mobile/cards';
 import { CheckCircle, IconButton, PillButton } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
-import { Sheet, SheetMenu } from '@sulo/ui/mobile/sheet';
+import { Sheet, SheetMenu, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
 import { timeZone, useMobileData } from '../shell/data';
@@ -160,7 +160,7 @@ export function TaskScreen({ eventId }: { eventId: number }) {
           items={[
             { label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) },
             ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(googleCalendarUrl({ title: `${item.task.name} (${item.courseName})`, dueAt: due, details: m.popup.row.calendarDetails(item.courseName, item.task.url) }))) }] : []),
-            ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), setSnoozeOpen(true)) }] : []),
+            ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setSnoozeOpen(true))) }] : []),
           ]}
         />
       </Sheet>
@@ -172,8 +172,8 @@ export function TaskScreen({ eventId }: { eventId: number }) {
               key={label}
               full
               onPress={() => {
-                state((s) => setSnooze(s, item.task.eventId, until));
                 setSnoozeOpen(false);
+                afterSheetClosed(() => state((s) => setSnooze(s, item.task.eventId, until)));
               }}
             >
               {label}
@@ -183,8 +183,8 @@ export function TaskScreen({ eventId }: { eventId: number }) {
             <PillButton
               full
               onPress={() => {
-                state((s) => setSnooze(s, item.task.eventId, null));
                 setSnoozeOpen(false);
+                afterSheetClosed(() => state((s) => setSnooze(s, item.task.eventId, null)));
               }}
             >
               {t.cancelSnooze}

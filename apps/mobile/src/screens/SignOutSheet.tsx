@@ -5,7 +5,7 @@
 import { mobileWords } from '@sulo/core/i18n/mobile';
 import { useI18n } from '@sulo/ui/i18n';
 import { PillButton } from '@sulo/ui/mobile/controls';
-import { Sheet } from '@sulo/ui/mobile/sheet';
+import { Sheet, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { signOutEverything } from '../account';
 import { useMobileData } from '../shell/data';
 
@@ -23,7 +23,7 @@ export function SignOutSheet({ open, onOpenChange, onSignedOut }: { open: boolea
           onPress={async () => {
             await signOutEverything(platform);
             onOpenChange(false);
-            onSignedOut();
+            afterSheetClosed(onSignedOut);
           }}
         >
           {w.settings.signOutDelete}

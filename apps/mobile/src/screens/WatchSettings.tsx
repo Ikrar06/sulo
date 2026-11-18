@@ -14,7 +14,7 @@ import { sleepHelpDue } from '@sulo/core/watch/sleep-help';
 import { useI18n } from '@sulo/ui/i18n';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
-import { Sheet } from '@sulo/ui/mobile/sheet';
+import { Sheet, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { LOCK_KEY } from '../account';
 import { readKeepAlive } from '../public-data';
 import { SuloSession } from '../session';
@@ -55,6 +55,8 @@ export function WatchSettings({ lock, lockAvailable, onLockOn }: { lock: boolean
   };
   const turnOnLock = async () => {
     setOffer(false);
+    // The phone's own prompt comes once the sheet is gone.
+    await new Promise<void>((r) => afterSheetClosed(r));
     // Turning the lock on asks for the phone's lock once, so nobody locks themselves out.
     if (!(await SuloSession.unlock()).unlocked) return;
     await platform.store.set(LOCK_KEY, true);

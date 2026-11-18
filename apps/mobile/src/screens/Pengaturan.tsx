@@ -17,8 +17,7 @@ import { readSyncStatus } from '@sulo/core/storage';
 import { buildBugReport } from '@sulo/core/support/bug-report';
 import { useI18n } from '@sulo/ui/i18n';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
-import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
-import { Input } from '@sulo/ui/ui/input';
+import { Sheet, SheetOptions, SheetTextForm, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { stageAmount } from '@sulo/ui/reminders/RemindersPanel';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { LOCK_KEY } from '../account';
@@ -47,7 +46,6 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const [confirm, setConfirm] = useState(false);
   const [bug, setBug] = useState<string | null>(null);
   const [note, setNote] = useState('');
-  const [nickname, setNickname] = useState(prefs.nickname);
 
   useEffect(() => {
     void platform.store.get<boolean>(LOCK_KEY).then((v) => setLock(v === true));
@@ -138,7 +136,6 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
           label={t.nickname}
           value={prefs.nickname || '–'}
           onPress={() => {
-            setNickname(prefs.nickname);
             setPicker('nickname');
           }}
         />
@@ -169,26 +166,14 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
 
       <Sheet open={picker !== null} onOpenChange={(o) => !o && setPicker(null)} title={picker === 'nickname' ? t.nickname : picker === 'due' ? t.dueFormat : picker === 'quietStart' ? `${r.quiet}: ${r.from}` : picker === 'quietEnd' ? `${r.quiet}: ${r.to}` : picker === 'morning' ? r.morning : r.snoozeMorning}>
         {picker === 'nickname' ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void actions.setPrefs({ nickname: normalizeNickname(nickname) });
-              setPicker(null);
-            }}
-          >
-            <Input autoFocus aria-label={t.nickname} maxLength={NICKNAME_MAX} value={nickname} onChange={(e) => setNickname(e.target.value)} />
-            <p className="mt-2 text-m13 text-muted-foreground">{w.settings.nicknameHelp}</p>
-            <button type="submit" className="m-hit m-press mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-primary text-m15 text-primary-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
-              {w.app.doneSheet}
-            </button>
-          </form>
+          <SheetTextForm label={t.nickname} initial={prefs.nickname} maxLength={NICKNAME_MAX} help={w.settings.nicknameHelp} submitLabel={w.app.doneSheet} onSave={(v) => void actions.setPrefs({ nickname: normalizeNickname(v) })} />
         ) : picker === 'due' ? (
           <SheetOptions
             value={prefs.dueFormat}
             options={DUE_FORMATS.map((f) => ({ value: f, label: m.popup.settings.formats[f] }))}
             onChoose={(v: DueFormat) => {
-              void actions.setPrefs({ dueFormat: v });
               setPicker(null);
+              afterSheetClosed(() => void actions.setPrefs({ dueFormat: v }));
             }}
           />
         ) : picker !== null ? (
@@ -197,11 +182,14 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
               value={picker === 'quietStart' ? rem.quiet.startMin : picker === 'quietEnd' ? rem.quiet.endMin : picker === 'morning' ? rem.morning.atMin : rem.snoozeMorningMin}
               options={HOURS.map((h) => ({ value: h, label: hour(h) }))}
               onChoose={(v: number) => {
-                if (picker === 'quietStart') setRem({ quiet: { ...rem.quiet, startMin: v } });
-                else if (picker === 'quietEnd') setRem({ quiet: { ...rem.quiet, endMin: v } });
-                else if (picker === 'morning') setRem({ morning: { ...rem.morning, atMin: v } });
-                else setRem({ snoozeMorningMin: v });
+                const which = picker;
                 setPicker(null);
+                afterSheetClosed(() => {
+                  if (which === 'quietStart') setRem({ quiet: { ...rem.quiet, startMin: v } });
+                  else if (which === 'quietEnd') setRem({ quiet: { ...rem.quiet, endMin: v } });
+                  else if (which === 'morning') setRem({ morning: { ...rem.morning, atMin: v } });
+                  else setRem({ snoozeMorningMin: v });
+                });
               }}
             />
           </div>
@@ -218,7 +206,7 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
             onPress={async () => {
               await navigator.clipboard.writeText(bug ?? '').catch(() => undefined);
               setBug(null);
-              setNote(w.settings.copied);
+              afterSheetClosed(() => setNote(w.settings.copied));
             }}
           >
             {t.bugReport.copy}

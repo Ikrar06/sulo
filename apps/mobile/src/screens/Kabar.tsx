@@ -22,7 +22,7 @@ import { BellIcon } from '@sulo/ui/icons';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Card, EmptyCard, IconTile } from '@sulo/ui/mobile/cards';
 import { FilterPill, IconButton, PillButton, Toggle } from '@sulo/ui/mobile/controls';
-import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
+import { Sheet, SheetOptions, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { courseTint, tintVar, type TintColor } from '@sulo/ui/mobile/tint';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
@@ -147,8 +147,9 @@ export function KabarScreen({ courseId }: { courseId: number | null; go: (s: Scr
           value={kind}
           options={[{ value: 'all' as const, label: t.allKinds }, ...UPDATE_CATEGORIES.map((c) => ({ value: c, label: u.categories[c] }))]}
           onChoose={(v) => {
-            setKind(v);
             setPicker(null);
+            // The list re-filters once the sheet is gone.
+            afterSheetClosed(() => setKind(v));
           }}
         />
       </Sheet>
@@ -157,8 +158,8 @@ export function KabarScreen({ courseId }: { courseId: number | null; go: (s: Scr
           value={course}
           options={[{ value: 'all', label: t.allCourses }, ...courseIds.map((id) => ({ value: String(id), label: courseName(String(id)), dot: tintVar(courseTint(colors.get(id) ?? null)) }))]}
           onChoose={(v) => {
-            setCourse(v);
             setPicker(null);
+            afterSheetClosed(() => setCourse(v));
           }}
         />
       </Sheet>

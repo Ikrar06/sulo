@@ -17,6 +17,7 @@ import { ArrowLeftIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { BellIcon, RefreshIcon } from '@sulo/ui/icons';
 import { IconButton } from '@sulo/ui/mobile/controls';
+import { closeTopSheet } from '@sulo/ui/mobile/sheet-motion';
 import { useToast } from '@sulo/ui/ui/toast';
 import { back as goBack, current, open, parseScreen, selectTab, START, type NavState, type Screen, type Tab } from './nav';
 import { opensSignIn, screenForNotification } from './notify-route';
@@ -68,10 +69,21 @@ function useKeyboardOpen(): boolean {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const editable = (el: Element | null) => !!el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !['checkbox', 'radio', 'button'].includes((el as HTMLInputElement).type)) || (el as HTMLElement).isContentEditable);
-    const update = () => setOpen(editable(document.activeElement));
-    document.addEventListener('focusin', update);
-    document.addEventListener('focusout', () => window.setTimeout(update, 0));
-    return () => document.removeEventListener('focusin', update);
+    // A field inside a sheet never flips this: the sheet covers the tab bar,
+    // and a shell re-render there would land in the sheet's opening or exit frames.
+    const inSheet = (el: EventTarget | null) => el instanceof Element && el.closest('.m-sheet') !== null;
+    const update = () => {
+      const el = document.activeElement;
+      if (!inSheet(el)) setOpen(editable(el));
+    };
+    const onIn = (e: FocusEvent) => !inSheet(e.target) && update();
+    const onOut = (e: FocusEvent) => !inSheet(e.target) && window.setTimeout(update, 0);
+    document.addEventListener('focusin', onIn);
+    document.addEventListener('focusout', onOut);
+    return () => {
+      document.removeEventListener('focusin', onIn);
+      document.removeEventListener('focusout', onOut);
+    };
   }, []);
   return open;
 }
@@ -114,6 +126,8 @@ export function AppShell(props: ShellProps) {
   // Android's back button.
   useEffect(() => {
     const handle = CapApp.addListener('backButton', () => {
+      // An open sheet first, with its own exit animation.
+      if (closeTopSheet()) return;
       const next = goBack(navRef.current);
       if (next === 'exit') void CapApp.exitApp();
       else setNav(next);

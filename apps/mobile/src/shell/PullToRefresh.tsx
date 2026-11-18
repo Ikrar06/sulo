@@ -17,8 +17,11 @@ export function PullToRefresh({ children, onRefresh, disabled, labels, scroller 
   const start = useRef<number | null>(null);
   const [pull, setPull] = useState(0);
 
+  // React touch events also bubble up from portals (a bottom sheet opened on
+  // this screen): only touches on the screen itself pull.
+  const onScreen = (e: React.TouchEvent) => e.currentTarget.contains(e.target as Node);
   const onStart = (e: React.TouchEvent) => {
-    if (disabled || (scroller.current?.scrollTop ?? 0) > 0) return;
+    if (disabled || !onScreen(e) || (scroller.current?.scrollTop ?? 0) > 0) return;
     start.current = e.touches[0]!.clientY;
   };
   // The pull, for anything that follows it (Ringkasan's mascot dips up to 10 px).
