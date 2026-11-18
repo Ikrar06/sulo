@@ -114,6 +114,7 @@ try {
     for (const c of CASES) {
       const tag = `${lang} ${c.width}x${c.height}${c.zoom ? ' font 130%' : ''}`;
       const { context, page } = await openPage(browser, PORT, { ...c, lang, reduced: true });
+      process.stderr.write(`${tag}\n`);
       const primaryTops = new Set();
       const setupMascots = new Set();
       await walk(

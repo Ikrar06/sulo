@@ -10,40 +10,48 @@
 // its wrapper's class changes. It is inert and marked, so the mascot never
 // takes its spot for the live one.
 
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { reducedMotion } from './motion';
 
 const EXIT_MS = 130;
 
 interface Leaving {
   key: string;
-  node: ReactNode;
   dir: 'fwd' | 'back';
 }
 
 export function StepSwap({ stepKey, order, children }: { stepKey: string; /** Larger is later in the flow: decides the direction. */ order: number; children: ReactNode }) {
-  const current = useRef({ key: stepKey, order, node: children });
+  // Which screen is current and which is leaving are plain state, derived
+  // while rendering (safe when React renders twice or drops a render).
+  const [shown, setShown] = useState({ key: stepKey, order });
   const [leaving, setLeaving] = useState<Leaving | null>(null);
   const [dir, setDir] = useState<'fwd' | 'back' | 'none'>('none');
-  const timer = useRef(0);
-  if (current.current.key !== stepKey) {
-    const d = order >= current.current.order ? 'fwd' : 'back';
-    const old = current.current;
-    current.current = { key: stepKey, order, node: children };
+  if (shown.key !== stepKey) {
+    const d = order >= shown.order ? 'fwd' : 'back';
+    setShown({ key: stepKey, order });
     setDir(d);
-    // What the old screen last showed, frozen while it leaves.
-    setLeaving({ key: old.key, node: old.node, dir: d });
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setLeaving(null), reducedMotion() ? 0 : EXIT_MS);
-  } else {
-    current.current.node = children;
+    setLeaving({ key: shown.key, dir: d });
   }
+  // What each screen last showed: the leaving one is drawn from here, frozen.
+  const last = useRef(new Map<string, ReactNode>());
+  last.current.set(stepKey, children);
+  useEffect(() => {
+    if (!leaving) return;
+    const id = window.setTimeout(
+      () => {
+        last.current.delete(leaving.key);
+        setLeaving(null);
+      },
+      reducedMotion() ? 0 : EXIT_MS,
+    );
+    return () => window.clearTimeout(id);
+  }, [leaving]);
   // Coming straight back to the screen that is still leaving: it is the live one again.
-  const out = leaving && leaving.key !== stepKey ? leaving : null;
+  const out = leaving && leaving.key !== stepKey && last.current.has(leaving.key) ? leaving : null;
   const screens: { key: string; node: ReactNode; cls: string; leaving: boolean }[] = [
     // Both wrappers have the same geometry (fixed to the viewport) at all times: a screen that starts leaving does not move by a pixel.
     { key: stepKey, node: children, cls: `fixed inset-0 ${dir === 'none' ? 'onb-in' : `onb-in onb-in-${dir}`}`, leaving: false },
-    ...(out ? [{ key: out.key, node: out.node, cls: `fixed inset-0 z-10 pointer-events-none onb-out onb-out-${out.dir}`, leaving: true }] : []),
+    ...(out ? [{ key: out.key, node: last.current.get(out.key), cls: `fixed inset-0 z-10 pointer-events-none onb-out onb-out-${out.dir}`, leaving: true }] : []),
   ];
   return (
     <>

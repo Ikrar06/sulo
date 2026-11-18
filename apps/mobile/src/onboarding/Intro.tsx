@@ -48,12 +48,14 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
   // Decided while rendering, so the page's first painted frame is already the start of its scene (never a flash of the final arrangement).
   /** How long the page now playing takes to arrive: the step's slide for the first one shown, the pager's glide after that. */
   const arrive = useRef(STEP_IN_MS);
-  const seen = useRef(index);
-  if (seen.current !== index) {
-    seen.current = index;
-    arrive.current = SETTLE_MS;
+  const first = useRef(index);
+  const [seen, setSeen] = useState(index);
+  if (seen !== index) {
+    setSeen(index);
     setPlaying(played.has(index) ? null : index);
   }
+  // Any page after the first one shown arrives by the pager's glide.
+  if (seen !== index || index !== first.current) arrive.current = SETTLE_MS;
   const drag = useRef<{ x: number; y: number; p0: number; on: boolean; samples: { t: number; p: number }[] } | null>(null);
   const titleRef = useTitleFocus(`intro${index}`);
   const pages = [w.intro1, w.intro2, w.intro3];
