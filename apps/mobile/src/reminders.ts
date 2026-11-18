@@ -15,7 +15,7 @@ import { numericId } from './platform/notifications';
 export const HORIZON_DAYS = 7;
 /** Android keeps a few hundred alarms per app; Sulo stays far below. */
 export const MAX_SCHEDULED = 48;
-const SCHEDULED_KEY = 'mobile:scheduledReminders';
+export const SCHEDULED_KEY = 'mobile:scheduledReminders';
 
 export interface PlannedReminder {
   at: UnixSeconds;
@@ -68,4 +68,11 @@ export async function scheduleReminders(platform: Platform): Promise<number> {
   if (notifications.length > 0) await LocalNotifications.schedule({ notifications });
   await platform.store.set(SCHEDULED_KEY, notifications.map((n) => n.id));
   return notifications.length;
+}
+
+/** Cancels every reminder Sulo scheduled (sign-out, account switch). */
+export async function clearScheduledReminders(platform: Platform): Promise<void> {
+  const previous = (await platform.store.get<number[]>(SCHEDULED_KEY)) ?? [];
+  if (previous.length > 0) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
+  await platform.store.remove(SCHEDULED_KEY);
 }
