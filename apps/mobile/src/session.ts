@@ -46,6 +46,7 @@ export interface SuloSessionPlugin {
 }
 
 export const SuloSession = registerPlugin<SuloSessionPlugin>('SuloSession', {
-  // pnpm mobile:web and Vitest: a stand-in with fixtures, no request.
-  web: () => import('./fake/session').then((m) => m.fakeSession()),
+  // pnpm mobile:web and Vitest: a stand-in with fixtures, no request. Left
+  // out of the APK's bundle (the phone always has the native plugin).
+  ...(__SULO_WEB_FAKE__ ? { web: () => import('./fake/session').then((m) => m.fakeSession()) } : {}),
 });
