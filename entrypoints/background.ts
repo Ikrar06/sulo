@@ -39,6 +39,8 @@ import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { messagesFor, resolveLocale } from '@/lib/i18n';
 import type { SyncOutcome, SyncTrigger } from '@/lib/types';
 import { loadPopupInput } from '@/lib/view/load';
+import { browserModuleDeps } from '@/lib/neosia/browser-deps';
+import { disableModule, enableModule, reconcileModule } from '@/lib/neosia/module';
 import { buildPopupView } from '@/lib/view/popup-view';
 
 const SESSKEY_KEY = 'sesskey';
@@ -93,6 +95,15 @@ export default defineBackground(() => {
     const slot = await fetchSlotHour(local);
     await refreshRemoteConfig({ scheduler, store: local, clock, url: REMOTE_CONFIG_URL, fetchSlotHour: slot });
     await refreshCalendar({ scheduler, store: local, clock, url: CALENDAR_URL, fetchSlotHour: slot }).catch(() => 'failed');
+  };
+
+  // ---------- NEOSIA module (optional, off by default) ----------
+
+  const neosia = browserModuleDeps(local, () => clock.now());
+  // One reconcile at a time (startup and a permission change can coincide).
+  let neosiaQueue: Promise<unknown> = Promise.resolve();
+  const reconcileNeosia = () => {
+    neosiaQueue = neosiaQueue.then(() => reconcileModule(neosia)).catch(() => undefined);
   };
 
   // ---------- Badge ----------
@@ -319,6 +330,8 @@ export default defineBackground(() => {
 
   const useNew = async () => {
     const ok = await useNewAccount({ store: local, clearNotifications: clearAllNotifications, openSetup });
+    // The new account's owner has not agreed to the NEOSIA module.
+    if (ok) await disableModule(neosia);
     await updateBadge();
     return { ok };
   };
@@ -334,6 +347,8 @@ export default defineBackground(() => {
       syncRunning: () => isSyncRunning(local, clock.now()),
       sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
       clearAlarms: async () => void (await browser.alarms.clearAll()),
+      // NEOSIA scripts off and permissions removed before the data goes.
+      beforeClear: () => disableModule(neosia),
       clearNotifications: clearAllNotifications,
       clearLocal: () => browser.storage.local.clear(),
       clearSession: () => browser.storage.session.clear(),
@@ -371,6 +386,10 @@ export default defineBackground(() => {
         return wipeAll();
       case 'notify/test':
         return sendTestNotification();
+      case 'neosia/enable':
+        return enableModule(neosia);
+      case 'neosia/disable':
+        return disableModule(neosia).then(() => ({ ok: true }));
       default:
         return null;
     }
@@ -449,6 +468,9 @@ export default defineBackground(() => {
     await pruneOrphanUserKeys(local);
   };
 
+  // A NEOSIA permission removed in Chrome's settings turns the module off and deletes its data.
+  browser.permissions.onRemoved.addListener(reconcileNeosia);
+
   browser.notifications.onClicked.addListener((id) => void onNotificationClick(id));
   browser.notifications.onButtonClicked.addListener((id, index) => void onNotificationButton(id, index));
 
@@ -456,6 +478,7 @@ export default defineBackground(() => {
   // while the browser was closed or the computer slept. Orphaned keys from an
   // earlier account are removed first.
   void pruneOrphanUserKeys(local).then(runReminders);
+  reconcileNeosia();
 
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
     const extensionId = browser.runtime.id;

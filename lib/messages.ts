@@ -22,6 +22,10 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('data/wipeAll') }),
   /** "Kirim notifikasi uji" in the reminder settings. */
   z.object({ type: z.literal('notify/test') }),
+  /** The dashboard got the NEOSIA permissions in the consent dialog: register the scripts. */
+  z.object({ type: z.literal('neosia/enable') }),
+  /** "Putuskan dan hapus data": scripts off, permissions removed, NEOSIA data deleted. */
+  z.object({ type: z.literal('neosia/disable') }),
 ]);
 // Dev-only messages live in lib/dev/messages.ts and are handled by a module
 // that only development builds contain (scripts/check-no-dev-code.mjs).
