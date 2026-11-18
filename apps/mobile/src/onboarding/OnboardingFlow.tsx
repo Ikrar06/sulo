@@ -25,7 +25,7 @@ import { updateWatch } from '../watch';
 import { applyWatchPlan } from '../watch-native';
 import { readCounts, readCourseChoices, readDone, readOfferedStages, readReminderSample, saveCourseChoices, saveFlow, saveStages } from './data';
 import { FlyingMascotLayer } from './FlyingMascot';
-import { MS, reducedMotion } from './motion';
+import { MS } from './motion';
 import { Intro } from './Intro';
 import { Done, Preparing, SignIn, Splash, type DoneTile, type PrepCounts } from './screens-entry';
 import { Courses, Nickname, Reminders, type CourseChoice, type ReminderSample } from './screens-setup';
@@ -297,9 +297,10 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
   // The three intro pages are one screen (the pager); everything else swaps with a slide.
   const swapKey = introIndex >= 0 ? 'intro' : state.step;
 
-  // The landing: the mascot keeps the done screen's face while it flies to
-  // Ringkasan's hero, and there the two cross-fade (260 ms), so the
-  // expression never switches in one frame. The done screen stays the same
+  // The landing: the mascot flies to Ringkasan's hero with the happy face,
+  // and the hero greets with the same one (App sends it a cheer), so the
+  // hand-over is between two identical mascots at the same place, in one
+  // frame, with nothing to see. The hero then eases to its own mood. The done screen stays the same
   // mounted instance and only fades away (no effect of it runs again).
   const landed = useRef(false);
   const arrive = useCallback(() => {
@@ -307,24 +308,24 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
     landed.current = true;
     const hero = document.querySelector<HTMLElement>(HERO_SPOT);
     const fly = document.querySelector<HTMLElement>('[data-onb-mascot]');
-    const ms = reducedMotion() ? MS.reduced : 260;
+    // The hero shows first, then the flying one goes a frame later: the two
+    // are the same mascot at the same place, so there is no fade to dip
+    // through. The hero's own entrance hop stays off for this arrival.
     if (hero) {
-      hero.style.transition = `opacity ${ms}ms ease-out`;
+      hero.style.animation = 'none';
       hero.style.opacity = '1';
     }
-    if (fly) {
-      fly.style.transition = `opacity ${ms}ms ease-out`;
-      fly.style.opacity = '0';
-    }
-    window.setTimeout(() => {
-      hero?.style.removeProperty('transition');
-      hero?.style.removeProperty('opacity');
-      onLanded?.();
-    }, ms + 20);
+    requestAnimationFrame(() => {
+      if (fly) {
+        fly.style.transition = 'none';
+        fly.style.opacity = '0';
+      }
+      requestAnimationFrame(() => onLanded?.());
+    });
   }, [onLanded]);
 
   return (
-    <FlyingMascotLayer spotKey={landing ? 'landing' : swapKey} selector={landing ? HERO_SPOT : undefined} duration={landing ? MS.landing : MS.mascotMove} onArrived={landing ? arrive : undefined}>
+    <FlyingMascotLayer spotKey={landing ? 'landing' : swapKey} selector={landing ? HERO_SPOT : undefined} duration={landing ? MS.landing : MS.mascotMove} onArrived={landing ? arrive : undefined} forced={landing ? { state: 'all-done' } : undefined}>
       {/* While landing, the last screen fades away over Ringkasan as it comes in. */}
       <div key="screens" aria-hidden={landing ? true : undefined} className={landing ? 'm-onb-leave pointer-events-none fixed inset-0 z-40' : 'contents'}>
         <StepSwap stepKey={swapKey} order={STEPS.indexOf(state.step)}>

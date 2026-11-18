@@ -16,7 +16,7 @@ import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { I18nProvider } from '@sulo/ui/i18n';
 import { PrivacyProvider } from '@sulo/ui/private';
 import { ToastProvider } from '@sulo/ui/ui/toast';
-import { DEV_EVENT, REPLAY_ONBOARDING_EVENT } from './events';
+import { DEV_EVENT, REFRESHED_EVENT, REPLAY_ONBOARDING_EVENT } from './events';
 import { SCENE_TEMPO_KEY, setSceneTempo } from './onboarding/motion';
 import { LOCK_KEY, signOutEverything } from './account';
 import { refreshPublicData } from './public-data';
@@ -217,7 +217,8 @@ export function App({ platform }: { platform: Platform }) {
         <>
           {/* One place for Ringkasan, before and after the landing, so it never mounts twice. */}
           {(flow.step === 'finished' || landing || warm) && (
-            <div className={landing ? 'contents m-landing' : flow.step === 'finished' ? 'contents' : 'invisible fixed inset-0'} inert={flow.step !== 'finished' && !landing ? true : undefined}>
+            // One geometry in every phase (no layout work when it is revealed): hidden and inert while it only waits under the onboarding.
+            <div className={`contents ${landing ? 'm-landing' : ''} ${flow.step !== 'finished' && !landing ? 'invisible' : ''}`} inert={flow.step !== 'finished' && !landing ? true : undefined}>
               {shell}
             </div>
           )}
@@ -234,8 +235,11 @@ export function App({ platform }: { platform: Platform }) {
                 setWarm(true);
               }}
               onFinish={() => {
-                void refreshState();
+                // The hero greets with the same happy face the flying mascot wears (its own 1.5 s cheer), so the hand-over shows nothing.
+                window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: true } }));
                 setLanding(true);
+                // After the landing has started: reading the state again must not share its first frame.
+                window.setTimeout(() => void refreshState(), 700);
               }}
               onLanded={() => {
                 setLanding(false);
