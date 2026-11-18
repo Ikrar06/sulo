@@ -1,0 +1,107 @@
+import { describe, expect, it } from 'vitest';
+import { formatCopyList, type CopyItem } from '@sulo/core/format/copy-list';
+import { en } from '@sulo/core/i18n/en';
+import { calendarDaysBetween, formatAgo, formatDue, formatRemaining, localDateKey, taskDueLines } from '@sulo/core/format/time';
+import { id as idWords } from '@sulo/core/i18n/id';
+import type { Task } from '@sulo/core/types';
+
+const TZ = 'Asia/Makassar';
+const at = (y: number, mo: number, d: number, h: number, mi: number) => Date.UTC(y, mo - 1, d, h - 8, mi) / 1000; // WITA wall time
+const NOW = at(2026, 11, 13, 10, 0); // Fri 13 Nov 2026, 10.00 WITA
+
+describe('formatRemaining (docs/UI formats)', () => {
+  it.each([
+    [at(2026, 11, 11, 10, 0), 'terlambat 2 hari'],
+    [at(2026, 11, 13, 7, 0), 'terlambat 3 jam'],
+    [at(2026, 11, 13, 9, 45), 'terlambat 15 menit'],
+    [at(2026, 11, 13, 10, 45), '45 menit'],
+    [at(2026, 11, 13, 16, 30), '6 jam'],
+    [at(2026, 11, 14, 23, 59), 'besok 23.59'],
+    [at(2026, 11, 17, 12, 0), '4 hari'],
+    [at(2026, 12, 12, 12, 0), '12 Des'],
+  ])('%s -> %s', (due, text) => {
+    expect(formatRemaining(due, NOW, TZ)).toBe(text);
+  });
+});
+
+describe('time zones are applied through Intl, never a fixed offset', () => {
+  it('computes local dates per zone', () => {
+    const t = Date.UTC(2026, 10, 13, 17, 0) / 1000; // 01.00 WITA on the 14th, 17.00 UTC on the 13th
+    expect(localDateKey(t, 'Asia/Makassar')).toBe('2026-11-14');
+    expect(localDateKey(t, 'UTC')).toBe('2026-11-13');
+    expect(calendarDaysBetween(NOW, t, 'Asia/Makassar')).toBe(1);
+  });
+
+  // Replaces the full date with a zone name and the copied-list date (M5a.1).
+  it('one absolute due format, without a zone name', () => {
+    expect(formatDue(at(2026, 11, 13, 23, 59), 'id', TZ)).toBe('Jum, 13 Nov, 23.59');
+    expect(formatDue(at(2026, 11, 13, 23, 59), 'en', TZ)).toBe('Fri, 13 Nov, 11:59 PM');
+    expect(formatDue(at(2026, 8, 17, 0, 5), 'id', TZ)).toBe('Sen, 17 Agu, 00.05');
+    expect(formatDue(at(2026, 8, 17, 0, 5), 'en', TZ)).toBe('Mon, 17 Aug, 12:05 AM');
+    expect(formatDue(at(2026, 11, 13, 23, 59), 'id', TZ)).not.toMatch(/WITA|GMT/);
+  });
+
+  it('a deadline at exactly 00.00 names the night before', () => {
+    expect(formatDue(at(2026, 11, 18, 0, 0), 'id', TZ)).toBe('Rab, 18 Nov, 00.00 (Selasa tengah malam)');
+    expect(formatDue(at(2026, 11, 18, 0, 0), 'en', TZ)).toBe('Wed, 18 Nov, 12:00 AM (Tuesday midnight)');
+    expect(formatDue(at(2026, 11, 18, 0, 1), 'id', TZ)).toBe('Rab, 18 Nov, 00.01');
+  });
+
+  // M5a.3: a far due date was shown twice ("5 Des" then "Sab, 5 Des, 22.00").
+  it('task rows: time left on top, the full date below; the due-time mode is one line', () => {
+    const due = NOW + 19 * 86_400;
+    const both = taskDueLines(due, NOW, TZ, idWords, 'id', 'both');
+    expect(both.primary).toBe('19 hari lagi');
+    expect(both.secondary).toBe(formatDue(due, 'id', TZ));
+    expect(taskDueLines(due, NOW, TZ, en, 'en', 'remaining').primary).toMatch(/19 days/);
+    expect(taskDueLines(due, NOW, TZ, idWords, 'id', 'clock')).toEqual({ primary: formatDue(due, 'id', TZ), secondary: null });
+    expect(taskDueLines(NOW - 7200, NOW, TZ, idWords, 'id', 'both').primary).toBe('terlambat 2 jam');
+  });
+
+  it('formats elapsed time', () => {
+    expect([NOW, NOW - 300, NOW - 7200, NOW - 3 * 86_400].map((t) => formatAgo(t, NOW))).toEqual([
+      'baru saja',
+      '5 menit lalu',
+      '2 jam lalu',
+      '3 hari lalu',
+    ]);
+  });
+});
+
+describe('formatCopyList', () => {
+  const item = (courseName: string, name: string, dueAt: number | null): CopyItem => ({
+    courseName,
+    task: { eventId: Math.random(), cmId: null, courseId: 1, name, module: 'assign', dueAt, url: 'https://x', overdue: false, firstSeenAt: 0, lastSeenAt: 0, missingSince: null } as Task,
+  });
+  const items = [
+    item('NLP', 'Tugas 4 Tokenisasi', at(2026, 11, 14, 12, 0)),
+    item('ASD', 'Laporan Praktikum 3', at(2026, 11, 13, 23, 59)),
+    item('PBO', 'Project Akhir', at(2026, 12, 20, 23, 59)),
+  ];
+
+  // Dates use the single formatDue format since M5a.1.
+  it('is plain text that reads well in WhatsApp: no asterisks or Markdown', () => {
+    expect(formatCopyList(items, 'week', NOW, TZ)).toBe(
+      'Tugas minggu ini\n1. ASD - Laporan Praktikum 3 (Jum, 13 Nov, 23.59)\n2. NLP - Tugas 4 Tokenisasi (Sab, 14 Nov, 12.00)',
+    );
+    expect(formatCopyList(items, 'all', NOW, TZ)).not.toMatch(/[*_#`]/);
+  });
+
+  it('covers every pending task with the "all" scope', () => {
+    expect(formatCopyList(items, 'all', NOW, TZ).split('\n')).toHaveLength(4);
+  });
+
+  it('never includes links', () => {
+    expect(formatCopyList(items, 'all', NOW, TZ)).not.toContain('http');
+  });
+
+  it('says so when there is nothing to copy', () => {
+    expect(formatCopyList([], 'week', NOW, TZ)).toBe('Tugas minggu ini: tidak ada');
+  });
+
+  it('follows the chosen language, always with the due date and time', () => {
+    expect(formatCopyList(items, 'week', NOW, TZ, en)).toBe(
+      "This week's tasks\n1. ASD - Laporan Praktikum 3 (Fri, 13 Nov, 11:59 PM)\n2. NLP - Tugas 4 Tokenisasi (Sat, 14 Nov, 12:00 PM)",
+    );
+  });
+});

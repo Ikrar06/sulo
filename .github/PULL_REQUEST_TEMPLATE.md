@@ -15,9 +15,9 @@
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm test` passes, and new logic has tests
 - [ ] `pnpm build` passes
-- [ ] `node scripts/check-leaks.mjs` passes
+- [ ] `pnpm check-leaks` passes
 - [ ] No real student data anywhere (fixtures, screenshots, logs, descriptions)
-- [ ] No new request to SIKOLA, no change to the limits in `lib/moodle/limits.ts` and no new permission, unless agreed in an issue
+- [ ] No new request to SIKOLA, no change to the limits in `packages/core/src/moodle/limits.ts` and no new permission, unless agreed in an issue
 - [ ] README, CHANGELOG and code comments updated where behavior changed
 - [ ] UI text in Indonesian, code and comments in English
 

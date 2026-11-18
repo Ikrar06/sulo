@@ -5,7 +5,7 @@ dist/
 *.log
 .env
 .env.*
-fixtures/raw/
+**/fixtures/raw/
 *.raw.json
 *.raw.html
 web-ext.config.ts
