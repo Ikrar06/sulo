@@ -69,4 +69,31 @@ class SikolaPageTest {
         assertTrue(out.contains("data-userid=\"42\""))
         assertTrue(out.contains("region-main"))
     }
+
+    @Test
+    fun noSesskeyInAnyEscapedForm() {
+        val key = "Zx9Yw8Vu7T"
+        val page = """
+            <body><div class="popover-region" data-userid="42"></div>
+            <div data-config="{&quot;sesskey&quot;:&quot;$key&quot;,&quot;a&quot;:1}"></div>
+            <a href="/x.php?sesskey&#61;$key">x</a>
+            <a href="/y.php?SESSKEY%3D$key">y</a>
+            <span data-k="${key.map { "&#${it.code};" }.joinToString("")}"></span>
+            <span data-k="${key.map { "&#x${Integer.toHexString(it.code)};" }.joinToString("")}"></span>
+            <input type="hidden" name="sesskey" value="$key">
+            <section id="region-main">ok</section></body>
+        """.trimIndent()
+        val out = SikolaPage.forJs(page, listOf(key))
+        assertFalse(out, out.contains(key))
+        assertFalse(out.contains("&#${key[0].code};&#${key[1].code};"))
+        assertFalse(out.contains("<input", ignoreCase = true))
+        assertTrue(out.contains("data-userid=\"42\""))
+    }
+
+    @Test
+    fun theVaultKeyIsRemovedEvenWithoutTheWordSesskey() {
+        val key = "Qq1Ww2Ee3R"
+        val out = SikolaPage.forJs("""<div data-x="$key"></div><p>$key</p>""", listOf(key))
+        assertFalse(out.contains(key))
+    }
 }

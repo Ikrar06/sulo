@@ -30,15 +30,34 @@ object SikolaPage {
         Regex("<script\\b[\\s\\S]*?</script>", RegexOption.IGNORE_CASE),
         Regex("<style\\b[\\s\\S]*?</style>", RegexOption.IGNORE_CASE),
         Regex("<noscript\\b[\\s\\S]*?</noscript>", RegexOption.IGNORE_CASE),
+        Regex("<template\\b[\\s\\S]*?</template>", RegexOption.IGNORE_CASE),
         Regex("<form\\b[\\s\\S]*?</form>", RegexOption.IGNORE_CASE),
+        Regex("<(input|textarea|select|button)\\b[^>]*>", RegexOption.IGNORE_CASE),
         Regex("<!--[\\s\\S]*?-->"),
     )
-    private val SESSKEY = Regex("(sesskey[\"']?\\s*[=:]\\s*[\"']?)[A-Za-z0-9]+", RegexOption.IGNORE_CASE)
 
-    /** What JavaScript may see of a page: no head, scripts, styles, forms or sesskey. */
-    fun forJs(html: String): String {
+    /** "sesskey" then = or : in any spelling Moodle uses: plain, quoted, or HTML-escaped (&quot; &#34; &#61; &#x3D; ...). */
+    private val SESSKEY = Regex(
+        "(sesskey(?:[\"']|&quot;|&#0*34;|&#x0*22;|&#0*39;|&#x0*27;|&apos;)?\\s*(?:[=:]|&#0*61;|&#x0*3d;|&#0*58;|&#x0*3a;|&equals;|&colon;|%3d|%3a)\\s*(?:[\"']|&quot;|&#0*34;|&#x0*22;|&#0*39;|&#x0*27;|&apos;)?)[A-Za-z0-9]+",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /**
+     * What JavaScript may see of a page: no head, scripts, styles, forms or
+     * inputs, and no sesskey. Three layers: the elements that carry one are
+     * removed; every literal value in `secrets` (the vault's sesskey and the
+     * one this page carries) is removed wherever it appears, plainly or as
+     * HTML character references; and any "sesskey=..." left is blanked.
+     */
+    fun forJs(html: String, secrets: Collection<String> = emptyList()): String {
+        val keys = (secrets + listOfNotNull(SikolaText.sesskey(html))).filter { it.length >= 8 }.toSet()
         var out = html
         for (re in REMOVE) out = re.replace(out, "")
+        for (key in keys) {
+            out = out.replace(key, "removed")
+            out = out.replace(key.map { "&#${it.code};" }.joinToString(""), "removed")
+            out = Regex(key.map { "&#x0*${Integer.toHexString(it.code)};" }.joinToString(""), RegexOption.IGNORE_CASE).replace(out, "removed")
+        }
         return SESSKEY.replace(out) { "${it.groupValues[1]}removed" }
     }
 }

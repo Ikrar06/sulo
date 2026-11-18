@@ -119,7 +119,7 @@ class SuloSessionPlugin : Plugin() {
                     vault.markExpired()
                     return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
                 }
-                call.resolve(JSObject().put("httpStatus", reply.status).put("html", SikolaPage.forJs(reply.body)).put("sessionStatus", vault.status()))
+                call.resolve(JSObject().put("httpStatus", reply.status).put("html", SikolaPage.forJs(reply.body, listOfNotNull(session.sesskey))).put("sessionStatus", vault.status()))
             } catch (e: Exception) {
                 call.resolve(JSObject().put("networkError", e.javaClass.simpleName).put("sessionStatus", vault.status()))
             }
