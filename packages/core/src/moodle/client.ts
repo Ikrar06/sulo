@@ -14,6 +14,7 @@ import { readRemoteConfig } from '../remote/remote-config';
 import { isBackingOff, readBackoff } from './backoff';
 import { reserveRequest } from './budget';
 import { isAllowedFunction, isAllowedPage, type MoodleCall } from './calls';
+import { ATTENDANCE_PATH, isReadOnlyAttendanceUrl } from '../presensi/urls';
 import { DAILY_BUDGET, DAILY_CALL_BUDGET, SEND_NOSESSIONUPDATE } from './limits';
 import { batchResponseSchema, topLevelErrorSchema } from './schemas';
 import { readSession, writeSession } from './session';
@@ -148,6 +149,8 @@ async function executeBatch(deps: ResolvedDeps, calls: readonly MoodleCall[], op
 async function executePage(deps: ResolvedDeps, pathAndQuery: string, options: RequestOptions): Promise<PageOutcome> {
   const url = safeUrl(pathAndQuery, deps.baseUrl);
   if (!url || !isAllowedPage(url.pathname)) return refused('NOT_ALLOWLISTED');
+  // Attendance: the read-only student view only (never take, sessions.php or a form).
+  if (url.pathname === ATTENDANCE_PATH && !isReadOnlyAttendanceUrl(`${url.pathname}${url.search}`)) return refused('NOT_ALLOWLISTED');
   const gate = await checkGates(deps);
   if (gate) return gate;
 

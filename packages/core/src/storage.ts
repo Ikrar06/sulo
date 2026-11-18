@@ -2,6 +2,7 @@
 // with another: when the userid changes, the previous user's data is deleted
 // before anything new is written. Pure: the KeyValueStore is injected.
 
+import { EMPTY_PRESENSI, type PresensiData } from './presensi/types';
 import type { TaskStateMap } from './tasks/local-state';
 import type { ChangeLogEntry, CourseId, CourseRecord, CourseSnapshot, KeyValueStore, SyncOutcome, Task, UnixSeconds, UserId } from './types';
 
@@ -76,6 +77,8 @@ export interface UserData {
   /** Course structure snapshots, keyed by course id (lib/radar/diff.ts). */
   snapshots: Record<string, CourseSnapshot>;
   radar: RadarMeta;
+  /** Attendance (M7.3): monitored courses only, fetched when the Presensi page is opened. */
+  presensi: PresensiData;
 }
 
 export interface RadarMeta {
@@ -104,6 +107,7 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   changes: [],
   snapshots: {},
   radar: { stateCheckedAt: {}, notificationsLastId: null, calendarBaseline: false },
+  presensi: EMPTY_PRESENSI,
 };
 
 export const userKey = (userId: UserId, name: keyof UserData) => `u:${userId}:${name}`;
