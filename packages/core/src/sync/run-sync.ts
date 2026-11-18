@@ -276,11 +276,13 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   // course structures. One follow-up batch now gives every course a
   // baseline right away instead of a sync or more later; it runs once,
   // since afterwards courses have check times.
+  let followUp: Awaited<ReturnType<typeof firstSyncRadar>> = 'skipped';
   const neverChecked = Object.keys((await readUser(deps.store, userId, 'radar')).stateCheckedAt).length === 0;
   if (knownUser !== userId || (neverChecked && radarPlan.courseIds.length === 0 && activeCourseIds(courses).size > 0)) {
-    await firstSyncRadar(deps, userId, courses, previousTasks, calendarMerged ? tasks : null, now, mode).catch(async (e: unknown) => {
+    followUp = await firstSyncRadar(deps, userId, courses, previousTasks, calendarMerged ? tasks : null, now, mode).catch(async (e: unknown) => {
       const meta = await readUser(deps.store, userId, 'radar');
       await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: `first_sync:${e instanceof Error ? e.name : 'Error'}` } });
+      return 'skipped' as const;
     });
   }
   const meta = await readUser(deps.store, userId, 'sync');
@@ -292,7 +294,9 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   // Attendance recap (M7.3, owner's rule of 18 Nov 2026): a separate GET
   // after the main batch, in an account's first sync and then at most once
   // per 24 hours; skipped in saver mode. Its failure never fails the sync.
-  if (mode !== 'saver') await autoRecap(deps, userId, courses, now, knownUser !== userId).catch(() => undefined);
+  // Not after a follow-up batch that saw another account or no session: the
+  // recap page carries no account to check.
+  if (mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) await autoRecap(deps, userId, courses, now, knownUser !== userId).catch(() => undefined);
 
   if (broken.length > 0) return { status: 'parser_broken', where: broken.join(', ') };
   return { status: 'ok', at: now, tasks: tasks.filter((t) => t.missingSince === null).length, courseListFetched };
@@ -346,13 +350,13 @@ async function setStatus(store: KeyValueStore, patch: Partial<SyncStatus>): Prom
 }
 
 /** The radar's follow-up batch in an account's first sync (see syncOnce). */
-async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], previousTasks: readonly Task[], nextTasks: readonly Task[] | null, now: UnixSeconds, mode: RadarMode): Promise<void> {
+async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], previousTasks: readonly Task[], nextTasks: readonly Task[] | null, now: UnixSeconds, mode: RadarMode): Promise<'ok' | 'mismatch' | 'unverified' | 'skipped'> {
   const planned = await planRadarCalls(deps.store, userId, courses, now, mode === 'full' ? 'normal' : mode, nextTasks ?? previousTasks);
   const plan = planBatch({ now, courseListDue: false, courseListMissing: false, radar: planned, userId, remaining: remainingQuota(await readBudget(deps.store, deps.clock)) }).radar;
   if (plan.calls.length === 0) {
     const meta = await readUser(deps.store, userId, 'radar');
     await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: mode === 'saver' ? 'saver' : 'nothing_to_check' } });
-    return;
+    return 'skipped';
   }
   // Every batch carries the session call: it alone may end the session.
   const result = await deps.client.callBatch([calls.sessionTimeRemaining(), ...plan.calls], { source: deps.trigger });
@@ -360,9 +364,18 @@ async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly 
     // Retried by the next sync, which plans the radar normally.
     const meta = await readUser(deps.store, userId, 'radar');
     await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: plan.courseIds.length, stored: 0, errors: {}, notifications: 'skipped', failure: `first_sync:${result.kind}` } });
-    return;
+    return 'skipped';
+  }
+  // The session may have changed since the main batch: write nothing unless
+  // this batch answers for the same account (a switch is left to the popup).
+  const session = parseCall('core_session_time_remaining', result.results[0] ?? missing);
+  if (!session.ok) return 'unverified';
+  if (session.data.userid !== userId) {
+    await deps.store.set(ACCOUNT_PENDING_KEY, newPending(session.data.userid, now));
+    return 'mismatch';
   }
   await applyRadarResults(deps.store, { userId, now, origin: deps.origin ?? SIKOLA_ORIGIN, plan, results: result.results.slice(1), previousTasks, nextTasks });
+  return 'ok';
 }
 
 /** The attendance recap when due (presensi/service.ts refreshRecap). */

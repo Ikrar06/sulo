@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { MoodleCall } from '@sulo/core/moodle/calls';
 import type { MoodleClient } from '@sulo/core/moodle/client';
 import { readUser } from '@sulo/core/storage';
+import { ACCOUNT_PENDING_KEY } from '@sulo/core/account/pending';
 import { runSync } from '@sulo/core/sync/run-sync';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { pickCoursesToCheck } from '@sulo/core/radar/schedule';
@@ -12,18 +13,19 @@ import { fixedClock, memoryStore } from './helpers';
 const fx = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/synthetic/${name}.json`, import.meta.url), 'utf8'));
 const NOW = 1_790_000_000;
 
-function client(state: (courseId: number) => string) {
+function client(state: (courseId: number) => string, userFor: (batch: number) => number = () => 1) {
   const all = fx('enrolled-courses.normal');
   const batches: string[][] = [];
   const c: MoodleClient = {
     async callBatch(calls: readonly MoodleCall[]) {
       batches.push(calls.map((x) => x.methodname));
+      const userid = userFor(batches.length);
       return {
         kind: 'ok',
         results: calls.map((x) => ({
           ok: true,
           data:
-            x.methodname === 'core_session_time_remaining' ? { userid: 1, timeremaining: 7200 }
+            x.methodname === 'core_session_time_remaining' ? { userid, timeremaining: 7200 }
             : x.methodname === 'core_calendar_get_action_events_by_timesort' ? fx('calendar-action-events.normal')
             : x.methodname === 'message_popup_get_popup_notifications' ? fx('popup-notifications.normal')
             : x.methodname === 'core_courseformat_get_state' ? state(x.args.courseid as number)
@@ -151,5 +153,24 @@ describe('radar regression (M7.3 fix)', () => {
       expect(await pruneOrphanUserKeys(store)).toEqual(['u:99:snapshots']);
       expect(Object.keys(await readUser(store, 1, 'snapshots')).length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe('first-sync follow-up batch checks the account again', () => {
+  it('another account answering the follow-up writes no snapshots, marks the switch, and skips the recap', async () => {
+    const store = memoryStore();
+    // Batch 1 (main) answers for user 1; batch 2 (follow-up) for user 2.
+    const k = client(() => fx('courseformat-state.normal'), (n) => (n === 1 ? 1 : 2));
+    let pages = 0;
+    k.fetchPage = async () => {
+      pages += 1;
+      return { kind: 'network_error' };
+    };
+    await runSync({ client: k, store, clock: fixedClock('2026-09-22', 10, NOW), trigger: 'onboarding' });
+    expect(k.batches).toHaveLength(2);
+    expect(await readUser(store, 1, 'snapshots')).toEqual({});
+    expect(await readUser(store, 2, 'snapshots')).toEqual({});
+    expect(await store.get(ACCOUNT_PENDING_KEY)).toMatchObject({ userId: 2 });
+    expect(pages).toBe(0);
   });
 });
