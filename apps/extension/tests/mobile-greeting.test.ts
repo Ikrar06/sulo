@@ -66,10 +66,10 @@ describe('line 2: the day\'s phrase, or the nickname', () => {
     expect(g.line2Small).toBe(false);
   });
 
-  it('long phrases are set smaller; one that does not fit at all is not offered', () => {
+  it('long phrases are set smaller', () => {
     expect(greeting({ ...calm, now: at('2026-11-19', 7) }, id)).toMatchObject({ line2: 'semoga harimu lancar.', line2Small: true });
-    const allEn = Object.values(en.greet.phrases).flat().map((p) => p.text);
-    expect(allEn).not.toContain("that's enough for today.");
+    const long = Object.values(en.greet.phrases).flat().find((p) => p.text === "that's enough for today.");
+    expect(long).toMatchObject({ casual: true, small: true });
   });
 });
 

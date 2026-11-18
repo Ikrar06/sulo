@@ -7,6 +7,28 @@ import type { Block, Section, Text } from './content';
 
 export const MOBILE_PRIVACY_UPDATED: Text = { id: '18 November 2026', en: '18 November 2026' };
 
+/** The three points shown first, each restating a section below (no new claim). */
+export const MOBILE_PRIVACY_SUMMARY: readonly { icon: 'key' | 'shield' | 'eye'; title: Text; body: Text }[] = [
+  {
+    icon: 'key',
+    title: { id: 'Password tidak pernah dilihat', en: 'Your password is never seen' },
+    body: { id: 'Kamu masuk di halaman SIKOLA sendiri.', en: 'You sign in on SIKOLA’s own page.' },
+  },
+  {
+    icon: 'shield',
+    title: { id: 'Data tetap di HP ini', en: 'Data stays on this phone' },
+    body: { id: 'Tanpa server Sulo, analitik, iklan, atau pelacakan.', en: 'No Sulo server, analytics, ads or tracking.' },
+  },
+  {
+    icon: 'eye',
+    title: { id: 'SIKOLA hanya dibaca', en: 'SIKOLA is only read' },
+    body: { id: 'Sulo tidak mengubah apa pun di SIKOLA.', en: 'Sulo changes nothing on SIKOLA.' },
+  },
+];
+
+/** The section listing every server: shown as its own card of rows. */
+export const MOBILE_PRIVACY_SERVERS_HEADING = 'Servers the app contacts';
+
 export const MOBILE_PRIVACY_TITLE: Text = { id: 'Privasi di aplikasi Android', en: 'Privacy in the Android app' };
 
 export const MOBILE_PRIVACY_INTRO: Block[] = [

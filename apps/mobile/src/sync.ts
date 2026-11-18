@@ -46,7 +46,8 @@ export async function syncNow(platform: Platform, options: { userInitiated: bool
 
 /** Presensi's Perbarui or an opened view: always the user's own request. */
 export function refreshPresensi(platform: Platform, target: 'recap' | 'detail', courseId: number | null, force: boolean): Promise<PresensiOutcome> {
-  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return Promise.resolve({ status: 'fresh' });
+  // ?presensi=slow keeps it loading, for the skeleton's screenshot.
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return new Promise((resolve) => setTimeout(() => resolve({ status: 'fresh' }), new URLSearchParams(location.search).get('presensi') === 'slow' ? 60_000 : 0));
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve({ status: 'failed', reason: 'offline' });
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return refreshPresensiForCurrent({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock, timeZone }, target, courseId, force);

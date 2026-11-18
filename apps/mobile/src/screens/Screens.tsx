@@ -15,7 +15,8 @@ import { TaskScreen } from './TaskDetail';
 import { KalenderScreen } from './Kalender';
 import { PresensiScreen } from './Presensi';
 import { LainnyaScreen } from './Lainnya';
-import { primaryButton, secondaryButton } from './ui';
+import { Card } from '@sulo/ui/mobile/cards';
+import { PillButton } from '@sulo/ui/mobile/controls';
 
 // Pages under "Lainnya" load when first opened.
 const KabarScreen = lazy(() => import('./Kabar').then((m) => ({ default: m.KabarScreen })));
@@ -79,28 +80,30 @@ function AccountPending() {
   const [later, setLater] = useState(false);
   const a = m.popup.account;
   return (
-    <section className="flex flex-col items-center gap-3 rounded-card border border-border bg-surface p-4 text-center">
-      <Mascot state="sleepy" size={48} />
-      <h2 className="text-m15 font-semibold">{later ? a.deferredTitle : a.title}</h2>
-      <p className="text-m13 text-muted-foreground">{later ? a.deferredBody : a.body}</p>
+    <Card>
+      <div className="flex flex-col items-center text-center">
+        <Mascot state="sleepy" size={48} />
+        <h2 className="mt-3 text-m18 font-semibold">{later ? a.deferredTitle : a.title}</h2>
+        <p className="mt-1 text-m15r text-muted-foreground">{later ? a.deferredBody : a.body}</p>
+      </div>
       {!later && (
-        <div className="mt-2 flex w-full flex-col gap-2">
-          <button
-            type="button"
-            className={primaryButton}
-            onClick={async () => {
+        <div className="mt-4 flex flex-col gap-2">
+          <PillButton
+            kind="primary"
+            full
+            onPress={async () => {
               await useNewAccount({ store: platform.store, clearNotifications: () => clearScheduledReminders(platform), openSetup: async () => undefined });
               await reload();
             }}
           >
             {a.useThis}
-          </button>
-          <p className="text-m12 font-normal text-muted-foreground">{a.useThisNote}</p>
-          <button type="button" className={secondaryButton} onClick={() => setLater(true)}>
+          </PillButton>
+          <p className="text-center text-m12 text-muted-foreground">{a.useThisNote}</p>
+          <PillButton full onPress={() => setLater(true)}>
             {a.later}
-          </button>
+          </PillButton>
         </div>
       )}
-    </section>
+    </Card>
   );
 }

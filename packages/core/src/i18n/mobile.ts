@@ -50,6 +50,8 @@ const id = {
     title: 'Sulo terkunci',
     open: 'Buka',
     noDeviceLock: 'Kunci layar HP sedang mati. Pasang kunci layar lagi untuk membuka Sulo, atau keluar untuk menghapus data Sulo di HP ini.',
+    body: 'Buka dengan kunci layar HP-mu.',
+    failed: 'Belum terbuka. Coba lagi.',
     signOut: 'Keluar',
   },
   app: {
@@ -150,6 +152,13 @@ const id = {
       clear: 'Semua aman hari ini',
     },
   },
+  help: {
+    search: 'Cari pertanyaan',
+    clearSearch: 'Hapus pencarian',
+    noMatch: 'Tidak ada pertanyaan yang cocok.',
+    stillTitle: 'Masih bingung?',
+    stillBody: 'Tulis pertanyaanmu lewat formulir masukan.',
+  },
   dev: {
     title: 'Umur sesi (build debug)',
     remaining: 'Sisa sesi menurut SIKOLA',
@@ -199,6 +208,8 @@ const en: MobileWords = {
     title: 'Sulo is locked',
     open: 'Open',
     noDeviceLock: "The phone's screen lock is off. Turn it back on to open Sulo, or sign out to delete Sulo's data on this phone.",
+    body: "Open it with your phone's screen lock.",
+    failed: 'Not unlocked. Try again.',
     signOut: 'Sign out',
   },
   app: {
@@ -282,9 +293,8 @@ const en: MobileWords = {
       pagi: [{ text: 'have a good one!' }, { text: "let's get started." }, { text: "you've got this." }],
       siang: [{ text: "don't skip lunch." }, { text: 'still going strong?' }, { text: 'take it easy.', casual: true }],
       sore: [{ text: 'almost there.' }, { text: "let's wrap it up." }, { text: 'nearly done.' }],
-      // "that's enough for today." is left out: at 22 px it is 237 px wide, one more than the
-      // greeting's column at 384 (measured in the app's font, M8c.1).
-      malam: [{ text: 'ready for tomorrow?', small: true }, { text: 'time to wind down.', casual: true }],
+      // At 22 px "that's enough for today." is 237 px wide, inside the greeting's 252 px column at 384.
+      malam: [{ text: 'ready for tomorrow?', small: true }, { text: 'time to wind down.', casual: true }, { text: "that's enough for today.", casual: true, small: true }],
       tengahMalam: [{ text: 'still up?' }, { text: "don't stay up too late.", small: true }],
     },
     state: {
@@ -294,6 +304,13 @@ const en: MobileWords = {
       tomorrow: (n: number) => `${n} due tomorrow`,
       clear: 'All clear today',
     },
+  },
+  help: {
+    search: 'Search questions',
+    clearSearch: 'Clear search',
+    noMatch: 'No questions match.',
+    stillTitle: 'Still stuck?',
+    stillBody: 'Ask through the feedback form.',
   },
   dev: {
     title: 'Session age (debug build)',

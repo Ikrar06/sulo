@@ -99,3 +99,39 @@ const PHONE: FaqEntry[] = [
 
 /** The Android app's FAQ: phone answers first, then the shared ones in their usual order. */
 export const MOBILE_FAQ: FaqEntry[] = [...PHONE, ...FAQ.filter((e) => SHARED.has(e.id))];
+
+/** Bantuan's groups on the phone, in order; every MOBILE_FAQ entry is in exactly one (tested). */
+export const MOBILE_FAQ_TOPICS = [
+  { id: 'privasi', title: { id: 'Keamanan dan privasi', en: 'Security and privacy' }, entries: ['aman-hp', 'akun-lain-hp', 'hapus-data-hp'] },
+  { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'masuk-lagi-hp', 'sikola-berubah-hp', 'kabar-lama'] },
+  { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp'] },
+  { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
+  { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
+  { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['resmi'] },
+] as const;
+
+export interface FaqGroup {
+  id: string;
+  title: string;
+  entries: FaqEntry[];
+}
+
+/** Lowercase without accents, so "Apakah" matches "apakah" and "kabar" matches "Kabar". */
+const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+/** The grouped FAQ in one language, keeping only entries whose question or answer holds every word of the query. Empty groups drop out. */
+export function searchFaq(query: string, lang: 'id' | 'en', faq: readonly FaqEntry[] = MOBILE_FAQ): FaqGroup[] {
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  const byId = new Map(faq.map((e) => [e.id, e]));
+  return MOBILE_FAQ_TOPICS.map((t) => ({
+    id: t.id,
+    title: t.title[lang],
+    entries: t.entries
+      .map((id) => byId.get(id))
+      .filter((e): e is FaqEntry => e !== undefined)
+      .filter((e) => {
+        const text = fold([e.q[lang], ...e.a.map((a) => a[lang])].join(' '));
+        return words.every((w) => text.includes(w));
+      }),
+  })).filter((g) => g.entries.length > 0);
+}

@@ -159,20 +159,26 @@ export function AppShell(props: ShellProps) {
     <div className="db-layout m-root bg-m-screen text-foreground">
       <header className={`m-head relative z-20 flex shrink-0 items-center gap-2 bg-m-screen px-4 ${small ? 'm-head-small h-14' : 'min-h-16 py-3'}`}>
         {detail ? (
-          <>
-            <IconButton
-              icon={ArrowLeftIcon}
-              label={w.app.back}
-              onPress={() =>
-                setNav((s) => {
-                  const next = goBack(s);
-                  return next === 'exit' ? s : next;
-                })
-              }
-            />
-            <h1 className="min-w-0 flex-1 truncate text-center text-m18">{title}</h1>
-            <span className="flex w-10 shrink-0 justify-end">{actions}</span>
-          </>
+          // Three columns so the title stays centered whatever sits on the right (a screen's tools, Perbarui).
+          <div className="grid w-full grid-cols-[minmax(40px,1fr)_minmax(0,auto)_minmax(40px,1fr)] items-center gap-2">
+            <span className="flex">
+              <IconButton
+                icon={ArrowLeftIcon}
+                label={w.app.back}
+                onPress={() =>
+                  setNav((s) => {
+                    const next = goBack(s);
+                    return next === 'exit' ? s : next;
+                  })
+                }
+              />
+            </span>
+            <h1 className="min-w-0 truncate text-center text-m18">{title}</h1>
+            <span className="flex items-center justify-end gap-2">
+              <span ref={setSlotTools} className="contents" />
+              {actions}
+            </span>
+          </div>
         ) : (
           <>
             <div className="min-w-0 flex-1">

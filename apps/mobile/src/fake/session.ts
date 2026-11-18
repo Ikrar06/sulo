@@ -5,10 +5,15 @@ import type { BatchReply, PageReply, SessionStatus, SuloSessionPlugin } from '..
 import { FAKE_DATA, FAKE_PAGES } from './fixtures';
 
 let status: SessionStatus = 'none';
+/** Screenshot switches: ?session=expired signs in to an ended session; ?lock=wait, ?lock=fail or ?lock=nolock answers the app lock so. */
+const param = (name: string) => (typeof location === 'undefined' ? null : new URLSearchParams(location.search).get(name));
 
 export function fakeSession(): SuloSessionPlugin {
   return {
-    login: async () => ((status = 'connected'), { status: 'connected' }),
+    login: async () => {
+      status = param('session') === 'expired' ? 'expired' : 'connected';
+      return { status: 'connected' };
+    },
     status: async () => ({ status }),
     request: async ({ body }): Promise<BatchReply> => {
       if (status !== 'connected') return { sessionStatus: status };
@@ -23,7 +28,7 @@ export function fakeSession(): SuloSessionPlugin {
     },
     logout: async () => ((status = 'none'), { status: 'none' }),
     lockAvailable: async () => ({ available: true }),
-    unlock: async () => ({ unlocked: true }),
+    unlock: async () => (param('lock') === 'wait' ? new Promise<never>(() => undefined) : param('lock') === 'nolock' ? { unlocked: false, reason: 'no_device_lock' } : param('lock') === 'fail' ? { unlocked: false } : { unlocked: true }),
   };
 }
 

@@ -13,14 +13,13 @@ import { readPrefs } from '@sulo/core/prefs';
 import type { Platform } from '@sulo/core/platform';
 import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { I18nProvider } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { PrivacyProvider } from '@sulo/ui/private';
 import { ToastProvider } from '@sulo/ui/ui/toast';
 import { DevScreen } from './DevScreen';
 import { DEV_EVENT } from './events';
 import { LOCK_KEY, signOutEverything } from './account';
 import { scheduleReminders } from './reminders';
-import { primaryButton, secondaryButton } from './screens/ui';
+import { LockScreen, NotifyQuestion, Onboarding } from './screens/Gate';
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
@@ -168,79 +167,3 @@ function Shell(props: Parameters<typeof AppShell>[0]) {
     </PrivacyProvider>
   );
 }
-
-function Onboarding({ w, note, busy, onSignIn }: { w: MobileWords; note: string; busy: boolean; onSignIn: () => void }) {
-  return (
-    <main className="mx-auto flex min-h-full max-w-md flex-col gap-6 px-4 py-8">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <Mascot state="onboarding" size={72} />
-        <h1 className="text-m22">{w.onboarding.title}</h1>
-        <p className="text-m15 font-normal text-muted-foreground">{w.onboarding.lead}</p>
-      </div>
-      <section className="rounded-card border border-border bg-surface p-4">
-        <h2 className="text-m15 font-semibold">{w.onboarding.privacyTitle}</h2>
-        <ul className="mt-2 flex list-disc flex-col gap-2 pl-5 text-m13">
-          {w.onboarding.privacy.map((p) => (
-            <li key={p}>{p}</li>
-          ))}
-        </ul>
-      </section>
-      <div className="mt-auto flex flex-col gap-3">
-        <button type="button" className={primaryButton} disabled={busy} onClick={onSignIn}>
-          {w.onboarding.signIn}
-        </button>
-        {note && <p className="text-center text-m13 text-muted-foreground">{note}</p>}
-        <p className="text-center text-m12 font-normal text-muted-foreground">{w.unofficial}</p>
-      </div>
-    </main>
-  );
-}
-
-/** Before Android's own dialog: what the notifications are for, and that they stay on the phone. */
-function NotifyQuestion({ w, onDone }: { w: MobileWords; onDone: (allow: boolean) => void }) {
-  return (
-    <main className="mx-auto flex min-h-full max-w-md flex-col items-center justify-center gap-4 px-4 py-8 text-center">
-      <Mascot state="idle" size={48} />
-      <h1 className="text-m18">{w.notify.title}</h1>
-      <p className="text-m13 text-muted-foreground">{w.notify.body}</p>
-      <div className="mt-2 flex w-full flex-col gap-2">
-        <button type="button" className={primaryButton} onClick={() => onDone(true)}>
-          {w.notify.allow}
-        </button>
-        <button type="button" className={secondaryButton} onClick={() => onDone(false)}>
-          {w.notify.later}
-        </button>
-      </div>
-    </main>
-  );
-}
-
-function LockScreen({ w, onUnlocked, onSignOut }: { w: MobileWords; onUnlocked: () => void; onSignOut: () => void }) {
-  const [noDeviceLock, setNoDeviceLock] = useState(false);
-  const open = async () => {
-    const r = await SuloSession.unlock();
-    // Fail closed: without the phone's own lock, Sulo stays locked.
-    setNoDeviceLock(r.reason === 'no_device_lock');
-    if (r.unlocked) onUnlocked();
-  };
-  useEffect(() => {
-    void open();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return (
-    <main className="flex min-h-full flex-col items-center justify-center gap-4 px-4">
-      <Mascot state="sleepy" size={48} />
-      <h1 className="text-m18">{w.lock.title}</h1>
-      {noDeviceLock && <p className="max-w-sm text-center text-m13 text-muted-foreground">{w.lock.noDeviceLock}</p>}
-      <button type="button" className={primaryButton} onClick={() => void open()}>
-        {w.lock.open}
-      </button>
-      {noDeviceLock && (
-        <button type="button" className={secondaryButton} onClick={onSignOut}>
-          {w.lock.signOut}
-        </button>
-      )}
-    </main>
-  );
-}
-

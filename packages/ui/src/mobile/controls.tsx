@@ -8,13 +8,26 @@ import type { ComponentType, ReactNode, SVGProps } from 'react';
 const ring = 'outline-none focus-ring:ring-2 focus-ring:ring-focus';
 
 /** Primary: a 44 pill in the accent. Secondary: a 40 pill on the inset layer. */
-export function PillButton({ children, onPress, kind = 'secondary', disabled = false, full = false, icon: Icon, small = false, danger = false }: { children: ReactNode; onPress: () => void; kind?: 'primary' | 'secondary'; disabled?: boolean; full?: boolean; icon?: ComponentType<SVGProps<SVGSVGElement>>; small?: boolean; danger?: boolean }) {
+/** A pill button; with `href` it is a plain outside link that opens a new tab (CLAUDE.md, "Tautan ke layanan luar"). */
+export function PillButton({ children, onPress, href, kind = 'secondary', disabled = false, full = false, icon: Icon, small = false, danger = false }: { children: ReactNode; onPress?: () => void; href?: string; kind?: 'primary' | 'secondary'; disabled?: boolean; full?: boolean; icon?: ComponentType<SVGProps<SVGSVGElement>>; small?: boolean; danger?: boolean }) {
   const size = kind === 'primary' ? 'h-11 px-5 text-m15' : small ? 'h-8 px-3 text-m13' : 'h-10 px-4 text-m15';
   const look = kind === 'primary' ? 'bg-primary text-primary-foreground' : danger ? 'bg-m-inset text-urgency-overdue' : 'bg-m-inset text-foreground';
-  return (
-    <button type="button" onClick={onPress} disabled={disabled} className={`m-hit m-press inline-flex items-center justify-center gap-2 rounded-full ${size} ${look} ${full ? 'w-full' : ''} ${ring} disabled:opacity-50`}>
+  const cls = `m-hit m-press inline-flex items-center justify-center gap-2 rounded-full ${size} ${look} ${full ? 'w-full' : ''} ${ring} disabled:opacity-50`;
+  const inner = (
+    <>
       {Icon && <Icon className="size-4" />}
       {children}
+    </>
+  );
+  if (href)
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+        {inner}
+      </a>
+    );
+  return (
+    <button type="button" onClick={onPress} disabled={disabled} className={cls}>
+      {inner}
     </button>
   );
 }

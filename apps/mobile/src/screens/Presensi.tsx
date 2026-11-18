@@ -22,6 +22,7 @@ import { localParts } from '@sulo/core/reminders/zoned';
 import type { CourseRecord } from '@sulo/core/types';
 import { presensiNote } from '@sulo/ui/dashboard/PresensiParts';
 import { useI18n } from '@sulo/ui/i18n';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Card, Chip, EmptyCard, Tile } from '@sulo/ui/mobile/cards';
 import { ProgressRing } from '@sulo/ui/mobile/ring';
 import { courseTint, type TintColor } from '@sulo/ui/mobile/tint';
@@ -126,9 +127,9 @@ export function PresensiScreen({ courseId, go }: { courseId: number | null; go: 
           </p>
         </Card>
       ) : (
-        <p className="text-m13 text-muted-foreground" role="status">
-          {note || when}
-        </p>
+        <div role="status">
+          <EmptyCard mascot={<Mascot state="idle" size={48} />} text={note || when} />
+        </div>
       )}
       {followed.length === 0 ? (
         <EmptyCard text={pw.noneMonitored} />
