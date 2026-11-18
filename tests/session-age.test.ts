@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createMoodleClient } from '../lib/moodle/client';
 import { calls } from '../lib/moodle/calls';
-import { createSessionAgeLogger, EMPTY_SESSION_AGE, onExpired, onNewSession, onSuccess, readSessionAge, SESSION_AGE_MAX, sessionAgeStats } from '../lib/net/session-age';
+import { createSessionAgeLogger, EMPTY_SESSION_AGE, onExpired, onNewSession, onSuccess, readSessionAge, SESSION_AGE_MAX, medianSessionHours, sessionAgeStats } from '../lib/net/session-age';
 import { fixedClock, jsonResponse, memoryStore } from './helpers';
 
 const T = 1_794_000_000;
@@ -46,6 +46,14 @@ describe('session age log', () => {
     expect(sessionAgeStats([])).toEqual({ count: 0, median: null, min: null });
     expect(sessionAgeStats([e(30), e(10), e(50)])).toEqual({ count: 3, median: 30, min: 10 });
     expect(sessionAgeStats([e(30), e(10), e(50), e(70)])).toEqual({ count: 4, median: 40, min: 10 });
+  });
+
+  it('#dev-sesi suggestion: median session lifetime in hours, entries without a session start skipped', () => {
+    const e = (start: number | null) => ({ expiredDetectedAt: 1, sejakSuksesTerakhirMenit: 5, sejakMulaiSesiMenit: start });
+    expect(medianSessionHours([])).toBeNull();
+    expect(medianSessionHours([e(null)])).toBeNull();
+    expect(medianSessionHours([e(120), e(null), e(480), e(300)])).toBe(5);
+    expect(medianSessionHours([e(100), e(200)])).toBe(2.5);
   });
 
   it('is told by the Moodle client after the fact and adds no request', async () => {

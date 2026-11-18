@@ -103,6 +103,16 @@ export const FAQ: FaqEntry[] = [
     ],
   },
   {
+    id: 'masuk-lagi',
+    q: { id: 'Kenapa Sulo minta aku masuk lagi ke SIKOLA?', en: 'Why does Sulo ask me to sign in to SIKOLA again?' },
+    a: [
+      {
+        id: 'Login SIKOLA punya batas waktu. Sulo tidak memperpanjangnya. Begitu kamu masuk lagi di SIKOLA, Sulo langsung memperbarui datanya sendiri. Pengingat tetap jalan walaupun belum masuk lagi.',
+        en: 'A SIKOLA sign-in lasts only so long, and Sulo does not extend it. As soon as you sign in to SIKOLA again, Sulo updates its data by itself. Reminders keep coming even before you sign in again.',
+      },
+    ],
+  },
+  {
     id: 'pengingat',
     q: { id: 'Kenapa pengingat tidak muncul?', en: 'Why do reminders not show up?' },
     a: [

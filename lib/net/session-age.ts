@@ -66,6 +66,19 @@ export function sessionAgeStats(entries: readonly SessionAgeEntry[]): { count: n
   return { count: values.length, median, min: values[0]! };
 }
 
+/**
+ * Median session lifetime in hours (from the session's first success to the
+ * expiry being seen), one decimal; null without such entries. The #dev-sesi
+ * suggestion line.
+ */
+export function medianSessionHours(entries: readonly SessionAgeEntry[]): number | null {
+  const values = entries.map((e) => e.sejakMulaiSesiMenit).filter((v): v is number => typeof v === 'number').sort((a, b) => a - b);
+  if (values.length === 0) return null;
+  const mid = Math.floor(values.length / 2);
+  const minutes = values.length % 2 === 1 ? values[mid]! : (values[mid - 1]! + values[mid]!) / 2;
+  return Math.round((minutes / 60) * 10) / 10;
+}
+
 export async function readSessionAge(store: KeyValueStore): Promise<SessionAgeState> {
   const raw = await store.get<SessionAgeState>(SESSION_AGE_KEY);
   return raw && Array.isArray(raw.entries) ? { ...EMPTY_SESSION_AGE, ...raw } : EMPTY_SESSION_AGE;

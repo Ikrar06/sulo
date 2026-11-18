@@ -11,6 +11,7 @@ describe('help content', () => {
       'password',
       'tugas-tidak-muncul',
       'tidak-diperbarui',
+      'masuk-lagi',
       'pengingat',
       'macos',
       'kabar-lama',

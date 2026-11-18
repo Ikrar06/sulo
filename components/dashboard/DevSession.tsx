@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
-import { EMPTY_SESSION_AGE, SESSION_AGE_KEY, SESSION_AGE_MAX, sessionAgeStats, type SessionAgeState } from '@/lib/net/session-age';
+import { EMPTY_SESSION_AGE, medianSessionHours, SESSION_AGE_KEY, SESSION_AGE_MAX, sessionAgeStats, type SessionAgeState } from '@/lib/net/session-age';
 import { Card } from './Shell';
 
 const time = (at: number | null) => (at === null ? '-' : new Date(at * 1000).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
@@ -19,6 +19,7 @@ export default function DevSession() {
     return () => browser.storage.onChanged.removeListener(read);
   }, []);
   const stats = sessionAgeStats(state.entries);
+  const hours = medianSessionHours(state.entries);
   return (
     <div className="space-y-4">
       <Card title="Umur sesi SIKOLA (build tester)">
@@ -37,6 +38,8 @@ export default function DevSession() {
           <dt className="text-muted-foreground">Minimum sejak sukses terakhir</dt>
           <dd>{stats.min === null ? '-' : `${stats.min} menit`}</dd>
         </dl>
+        {/* Automatic suggestion: the typical session lifetime (session start to expiry). */}
+        <p className="mt-3 text-[14px]">{hours === null ? 'Median umur sesi belum bisa dihitung.' : `Median umur sesi ${hours.toLocaleString('id-ID')} jam.`}</p>
       </Card>
       <Card title="Entri (terbaru di atas)">
         {state.entries.length === 0 ? (
