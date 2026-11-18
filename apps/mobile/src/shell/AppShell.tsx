@@ -28,7 +28,7 @@ import { ScreenHeaderProvider } from './screen-header';
 import { ScreenRefreshProvider } from './screen-refresh';
 import { TabBar, TAB_BAR_SPACE } from './TabBar';
 import { TaskDateProvider } from './task-date';
-import { HEAD_P_RANGE, HEAD_Q_RANGE, headProgress, useCssScrollTimeline } from './head-progress';
+import { effectiveScroll, HEAD_P_RANGE, HEAD_Q_RANGE, HEAD_S_RANGE, headProgress, useCssScrollTimeline } from './head-progress';
 import { Screens } from '../screens/Screens';
 import { REFRESHED_EVENT } from '../events';
 
@@ -159,8 +159,10 @@ export function AppShell(props: ShellProps) {
     const el = scroller.current;
     const r = root.current;
     if (!el || !r || cssTimeline) return;
-    r.style.setProperty('--head-p', String(headProgress(el.scrollTop, HEAD_P_RANGE)));
-    r.style.setProperty('--head-q', String(headProgress(el.scrollTop, HEAD_Q_RANGE)));
+    const y = effectiveScroll(el.scrollTop, el.scrollHeight, el.clientHeight);
+    r.style.setProperty('--head-p', String(headProgress(y, HEAD_P_RANGE)));
+    r.style.setProperty('--head-q', String(headProgress(y, HEAD_Q_RANGE)));
+    r.style.setProperty('--head-s', String(headProgress(y, HEAD_S_RANGE)));
   }, [cssTimeline]);
   useEffect(() => {
     const el = scroller.current;
@@ -168,6 +170,23 @@ export function AppShell(props: ShellProps) {
     el.scrollTop = isDetail ? 0 : (positions.current.get(screenKey) ?? 0);
     writeHead();
   }, [screenKey, isDetail, writeHead]);
+  // The CSS path animates only while there is something to scroll: an inactive scroll
+  // timeline would otherwise leave the header small (the Lainnya bug). A class, not state.
+  useEffect(() => {
+    const el = scroller.current;
+    const r = root.current;
+    if (!el || !r) return;
+    const check = () => {
+      r.classList.toggle('m-scrollable', el.scrollHeight > el.clientHeight + 1);
+      writeHead();
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    if (el.lastElementChild) ro.observe(el.lastElementChild);
+    return () => ro.disconnect();
+  }, [screenKey, writeHead]);
+
   // Follows the finger: one write per frame at most, passive, no state.
   useEffect(() => {
     const el = scroller.current;
@@ -218,58 +237,53 @@ export function AppShell(props: ShellProps) {
 
   return (
     <div ref={root} className={`db-layout m-root bg-m-screen text-foreground ${cssTimeline ? 'm-sdt' : ''}`}>
-      <header className="m-head relative z-30 flex h-14 shrink-0 items-center gap-2 bg-m-screen px-4">
-        {detail ? (
-          // Three columns so the title stays centered whatever sits on the right (a screen's tools, Perbarui).
-          <div className="grid w-full grid-cols-[minmax(40px,1fr)_minmax(0,auto)_minmax(40px,1fr)] items-center gap-2">
-            <span className="flex">
-              <IconButton
-                icon={ArrowLeftIcon}
-                label={w.app.back}
-                onPress={() =>
-                  setNav((s) => {
-                    const next = goBack(s);
-                    return next === 'exit' ? s : next;
-                  })
-                }
-              />
-            </span>
-            <h1 className="min-w-0 truncate text-center text-m18">{title}</h1>
-            <span className="flex items-center justify-end gap-2">
-              <span ref={setSlotTools} className="contents" />
-              {actions}
-            </span>
-          </div>
-        ) : (
-          <>
-            <div className="relative min-w-0 flex-1 self-stretch">
-              {/* 26 px at the top, 18 px on the buttons' line once 56 px have scrolled: transform only, tied to the scroll. */}
-              {bigTitle && <h1 className="m-title-big absolute top-1/2 left-0 text-m26 whitespace-nowrap">{title}</h1>}
-              {/* The bar's own 18 px name: Ringkasan's, fading in near the end of its greeting; others' under reduced motion. */}
-              <p aria-hidden="true" className={`m-title-small absolute top-1/2 left-0 text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
-                {title}
-              </p>
-              {ringkasan && <h1 className="sr-only">{title}</h1>}
-            </div>
-            <span className="flex shrink-0 items-center gap-2">
-              <span ref={setSlotTools} className="contents" />
-              {actions}
-            </span>
-          </>
-        )}
-      </header>
-      <div className="relative flex min-h-0 flex-1 flex-col">
-      {/* Scroll-edge fade under the header, its opacity tied to the scroll. */}
-      <div aria-hidden="true" className="m-fade-top pointer-events-none absolute inset-x-0 top-0 z-20 h-5" />
+      {/* The bar is a sticky layer inside what scrolls: 56 px at rest, rising 8 px to 48 (layout-free, by the compositor). */}
       <main ref={scroller} className="m-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <header className={`m-head sticky z-30 flex h-14 shrink-0 items-center gap-2 bg-m-screen px-4 ${detail ? 'top-0' : 'm-head-shrink'}`}>
+          {detail ? (
+            // Three columns so the title stays centered whatever sits on the right (a screen's tools, Perbarui).
+            <div className="grid w-full grid-cols-[minmax(40px,1fr)_minmax(0,auto)_minmax(40px,1fr)] items-center gap-2">
+              <span className="flex">
+                <IconButton
+                  icon={ArrowLeftIcon}
+                  label={w.app.back}
+                  onPress={() =>
+                    setNav((s) => {
+                      const next = goBack(s);
+                      return next === 'exit' ? s : next;
+                    })
+                  }
+                />
+              </span>
+              <h1 className="min-w-0 truncate text-center text-m18">{title}</h1>
+              <span className="flex items-center justify-end gap-2">
+                <span ref={setSlotTools} className="contents" />
+                {actions}
+              </span>
+            </div>
+          ) : (
+            <>
+              <div className="relative flex min-w-0 flex-1 items-center self-stretch">
+                {/* 26 px on the buttons' line, shrinking in place toward 18 as the finger moves (transform only). */}
+                {bigTitle && <h1 className="m-title-big text-m26 whitespace-nowrap">{title}</h1>}
+                {/* The bar's own 18 px name: Ringkasan's, fading in near the end of its greeting; others' under reduced motion. */}
+                <p aria-hidden="true" className={`m-title-small absolute top-1/2 left-0 text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
+                  {title}
+                </p>
+                {ringkasan && <h1 className="sr-only">{title}</h1>}
+              </div>
+              {/* The round buttons never move: the bar's 8 px sticky rise is offset (m-head-still). */}
+              <span className="m-head-still flex shrink-0 items-center gap-2">
+                <span ref={setSlotTools} className="contents" />
+                {actions}
+              </span>
+            </>
+          )}
+          {/* Scroll-edge fade just under the bar, its opacity tied to the scroll. */}
+          <span aria-hidden="true" className="m-fade-top pointer-events-none absolute inset-x-0 top-full h-5" />
+        </header>
         <PullToRefresh disabled={!dataScreen || props.expired || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
           <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
-            {/* The large title's row: part of what scrolls (the title itself is drawn by the bar; reduced motion shows it here). */}
-            {bigTitle && (
-              <div aria-hidden="true" className="flex h-14 items-center">
-                <span className="m-title-row-text text-m26 whitespace-nowrap">{title}</span>
-              </div>
-            )}
       {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
             {notice === 'expired' ? (
               <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-press mb-3 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
@@ -294,7 +308,6 @@ export function AppShell(props: ShellProps) {
           </div>
         </PullToRefresh>
       </main>
-      </div>
       {/* Above the floating tab bar: a 32 px fade, then the screen color solid beside and below the bar. */}
       {showTabs && <div aria-hidden="true" className="m-fade-bottom pointer-events-none fixed inset-x-0 bottom-0 z-20" style={{ height: `calc(${TAB_BAR_SPACE + 32}px + env(safe-area-inset-bottom))` }} />}
       {showTabs && <TabBar active={nav.tab} overdue={overdue} onSelect={(tab: Tab) => setNav((s) => selectTab(s, tab))} label={w.app.tabsLabel} labels={{ ...d.nav, lainnya: w.app.lainnya }} overdueLabel={w.app.overdue} />}

@@ -10,6 +10,8 @@
 export const HEAD_P_RANGE = [0, 56] as const;
 /** q: Ringkasan's small title fades in over 72-120 px. */
 export const HEAD_Q_RANGE = [72, 120] as const;
+/** s: the bar's sticky rise (56 -> 48 px) over the first 8 px; the title and buttons are offset by it so they stay put. */
+export const HEAD_S_RANGE = [0, 8] as const;
 /** The title at p = 1: 18/26. */
 export const HEAD_SMALL_SCALE = 18 / 26;
 
@@ -18,6 +20,11 @@ export function headProgress(scrollTop: number, range: readonly [number, number]
   const [from, to] = range;
   if (!Number.isFinite(scrollTop) || to <= from) return 0;
   return Math.min(1, Math.max(0, (scrollTop - from) / (to - from)));
+}
+
+/** The scroll offset that counts: 0 whenever there is nothing to scroll (the header then stays large). */
+export function effectiveScroll(scrollTop: number, scrollHeight: number, clientHeight: number): number {
+  return scrollHeight > clientHeight + 1 ? Math.max(0, scrollTop) : 0;
 }
 
 /** Once at start: CSS scroll-driven animations, unless motion is reduced (then the JS path, same look). */

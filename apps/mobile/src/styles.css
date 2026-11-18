@@ -89,39 +89,43 @@ body {
 .m-press-host { transition: transform 100ms ease-out; }
 .m-press-host:has(> .m-cover:active) { transform: scale(0.98); }
 @media (prefers-reduced-motion: reduce) { .m-press-host, .m-press-host:has(> .m-cover:active) { transition: none; transform: none; } }
-/* The header follows the finger (shell/head-progress.ts): --head-p goes 0 -> 1
-   over the first 56 px of scroll, --head-q 0 -> 1 over 72-120 px (Ringkasan).
-   Written by a CSS scroll timeline where supported (.m-sdt), else by a passive
-   scroll listener once per frame; transform and opacity only, never a timed
-   animation and never a font size. */
+/* The header follows the finger (shell/head-progress.ts). The bar is a
+   sticky layer inside the scroller with top -8px: 56 px at rest, 48 px once
+   8 px have scrolled, without any layout animation. --head-s (0 -> 1 over
+   those 8 px) offsets the title and the buttons, so they stay put while the
+   title shrinks in place with --head-p (0 -> 1 over 56 px), toward 18 px.
+   --head-q (72-120 px) brings Ringkasan's small title in. Written by a CSS
+   scroll timeline where supported and only while there is something to
+   scroll (.m-sdt.m-scrollable), else by a passive listener once per frame.
+   Transform and opacity only; never a font size, never a timed animation. */
 @property --head-p { syntax: '<number>'; inherits: true; initial-value: 0; }
 @property --head-q { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --head-s { syntax: '<number>'; inherits: true; initial-value: 0; }
 @keyframes m-head-p { from { --head-p: 0; } to { --head-p: 1; } }
 @keyframes m-head-q { from { --head-q: 0; } to { --head-q: 1; } }
-.m-root.m-sdt {
-  timeline-scope: --m-main;
-  animation: m-head-p linear both, m-head-q linear both;
-  animation-timeline: --m-main, --m-main;
-  animation-range: 0px 56px, 72px 120px;
-}
+@keyframes m-head-s { from { --head-s: 0; } to { --head-s: 1; } }
+.m-root.m-sdt { timeline-scope: --m-main; }
 .m-root.m-sdt .m-scroll { scroll-timeline: --m-main block; }
-/* The large title rides in the bar: 56 px below its line at the top (over the
-   scrolling title row), on its line at 18/26 of its size once scrolled. */
+.m-root.m-sdt.m-scrollable {
+  animation: m-head-p linear both, m-head-q linear both, m-head-s linear both;
+  animation-timeline: --m-main, --m-main, --m-main;
+  animation-range: 0px 56px, 72px 120px, 0px 8px;
+}
+.m-head-shrink { top: -8px; }
+.m-head-shrink .m-head-still { transform: translateY(calc(var(--head-s) * 8px)); }
 .m-title-big {
   transform-origin: left center;
-  transform: translateY(calc(-50% + (1 - var(--head-p)) * 56px)) scale(calc(1 - var(--head-p) * 0.30769));
+  transform: translateY(calc(var(--head-s) * 8px)) scale(calc(1 - var(--head-p) * 0.30769));
 }
-.m-title-row-text { visibility: hidden; }
-.m-title-small { opacity: 0; transform: translateY(-50%); }
-.m-title-small-q { opacity: var(--head-q); transform: translateY(calc(-50% + (1 - var(--head-q)) * 6px)); }
+.m-title-small { opacity: 0; transform: translateY(calc(-50% + var(--head-s) * 8px)); }
+.m-title-small-q { opacity: var(--head-q); transform: translateY(calc(-50% + var(--head-s) * 8px + (1 - var(--head-q)) * 6px)); }
 .m-fade-top { opacity: var(--head-p); }
-/* Reduced motion: still tied to the finger, but no title travels: the large
-   title scrolls away with its row and the bar's small one fades in. */
+/* Reduced motion: still tied to the finger, but the title does not change
+   size: the 26 px title fades out as the 18 px one fades in, in place. */
 @media (prefers-reduced-motion: reduce) {
-  .m-title-big { display: none; }
-  .m-title-row-text { visibility: visible; opacity: calc(1 - var(--head-p)); }
+  .m-title-big { transform: translateY(calc(var(--head-s) * 8px)); opacity: calc(1 - var(--head-p)); }
   .m-title-small { opacity: var(--head-p); }
-  .m-title-small-q { opacity: var(--head-q); transform: translateY(-50%); }
+  .m-title-small-q { opacity: var(--head-q); transform: translateY(calc(-50% + var(--head-s) * 8px)); }
 }
 
 /* Ringkasan's mascot (screens/HeroMascot.tsx): it enters with one small hop

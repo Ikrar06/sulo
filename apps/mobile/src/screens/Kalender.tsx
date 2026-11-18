@@ -179,6 +179,8 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
   const pastCount = events.filter((e) => e.end < today).length;
   const shown = [...events].filter((e) => showPast || e.end >= today).sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end) || a.id.localeCompare(b.id));
   const months = [...new Set(shown.map((e) => e.start.slice(0, 7)))];
+  // pnpm check:fit (web build only): the longest event name in the calendar data.
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') (window as unknown as { __suloEventTitles?: string[] }).__suloEventTitles = events.map((e) => e.title);
   return (
     <div className="space-y-4">
       {pastCount > 0 && (
@@ -199,22 +201,24 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
                   const k2 = e.source.type === 'kegiatan' ? e.source.kegiatan : null;
                   return (
                     <li key={e.id}>
-                      <Card dense className="flex items-center gap-3">
+                      {/* The tile at the title's top; the text takes the rest of the width: the title (two
+                          lines at most), then the dates on the left (they may end in an ellipsis) with the
+                          kind and, for an estimate, a neutral "Perkiraan" chip on the right (never cut). */}
+                      <Card dense className="flex items-start gap-3">
                         <Tile color={e.source.type === 'tugas' ? courseTint(e.source.courseColor) : catTint(e.group)} size={44}>
                           <span className="text-m18 leading-none tabular-nums">{Number(e.start.slice(8))}</span>
                           <span className="text-m11 text-muted-foreground">{formatDateKey(e.start, m.intl, { month: 'short' })}</span>
                         </Tile>
                         <div className="min-w-0 flex-1">
-                          <p className="line-clamp-2 text-m15">{e.title}</p>
-                          <p className="text-m13 text-muted-foreground tabular-nums">
-                            {formatRange({ mulai: e.start, selesai: k2 ? k2.selesai : e.end }, m.intl, k.to, k.badge.ujungTerbuka.toLowerCase())}
-                            {k2?.perkiraan ? ` · ${k.badge.perkiraan}` : ''}
-                          </p>
+                          <p data-fit-event className="line-clamp-2 text-m15">{e.title}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <p className="min-w-0 flex-1 truncate text-m13 text-muted-foreground tabular-nums">{formatRange({ mulai: e.start, selesai: k2 ? k2.selesai : e.end }, m.intl, k.to, k.badge.ujungTerbuka.toLowerCase())}</p>
+                            {k2?.perkiraan && <span className="shrink-0 rounded-full bg-m-inset px-2 text-m11 leading-5 text-muted-foreground">{k.badge.perkiraan}</span>}
+                            <span className="shrink-0 rounded-full px-2 text-m11 leading-5" style={{ background: tintBg(e.source.type === 'tugas' ? courseTint(e.source.courseColor) : catTint(e.group), 16, 'var(--m-card)') }}>
+                              {k.groups[e.group]}
+                            </span>
+                          </div>
                         </div>
-                        {/* The kind, small, at the card's lower right (its color is the tile's). */}
-                        <span className="shrink-0 self-end rounded-full px-2 text-m11 leading-5" style={{ background: tintBg(e.source.type === 'tugas' ? courseTint(e.source.courseColor) : catTint(e.group), 16, 'var(--m-card)') }}>
-                          {k.groups[e.group]}
-                        </span>
                       </Card>
                     </li>
                   );

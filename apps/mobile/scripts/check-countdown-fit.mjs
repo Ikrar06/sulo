@@ -23,6 +23,7 @@ const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const lines = [];
 const greetings = [];
 const attendance = [];
+const events = [];
 let failed = 0;
 
 async function check(lang, width, zoom) {
@@ -59,6 +60,29 @@ async function check(lang, width, zoom) {
     return { name: longest, lines, rowOverflow: row.scrollWidth > row.clientWidth + 0.5, equal: a === b };
   });
   attendance.push({ ...att, lang, width, zoom });
+  // Part 4: Kalender's event cards with the longest event name: the title in two lines at most,
+  // the bottom row (dates, then the chips) never pushing a chip out of the card.
+  await page.getByRole('tab', { name: lang === 'en' ? /^Calendar/ : /^Kalender/ }).click();
+  await page.waitForTimeout(500);
+  const ev = await page.evaluate(() => {
+    const el = document.querySelector('[data-fit-event]');
+    if (!el) return { error: 'kartu acara tidak ditemukan' };
+    const longest = [...(window.__suloEventTitles ?? [])].sort((a, b) => b.length - a.length)[0] ?? '';
+    const row = el.nextElementSibling;
+    const before = el.textContent;
+    const copy = el.cloneNode(false);
+    copy.textContent = longest;
+    copy.style.cssText = 'display:block;-webkit-line-clamp:unset;visibility:hidden;position:absolute';
+    copy.style.width = `${el.getBoundingClientRect().width}px`;
+    el.parentElement.appendChild(copy);
+    const lines = Math.round(copy.getBoundingClientRect().height / parseFloat(getComputedStyle(copy).lineHeight));
+    copy.remove();
+    const chipsCut = [...row.children].slice(1).some((c) => c.scrollWidth > c.clientWidth + 0.5 || c.getBoundingClientRect().right > row.getBoundingClientRect().right + 0.5);
+    return { name: longest, lines, chipsCut, rowOverflow: row.scrollWidth > row.clientWidth + 0.5, before };
+  });
+  events.push({ ...ev, lang, width, zoom });
+  await page.getByRole('tab', { name: lang === 'en' ? /^Home|^Overview|^Ringkasan/ : /^Ringkasan/ }).click().catch(() => undefined);
+  await page.waitForTimeout(300);
   // Greetings first, on the untouched page (part 1 swaps the hero's text).
   const g = await page.evaluate(
     async ({ lang }) => {
@@ -156,6 +180,12 @@ for (const a of attendance) {
   const bad = a.error || a.rowOverflow || !a.equal || tooLong;
   if (bad) failed++;
   console.log(`  ${a.lang} ${a.width}@${Math.round(a.zoom * 100)}%: "${a.name}" ${a.lines} baris${a.lines > 2 ? ' (elipsis di baris 2)' : ''}${a.rowOverflow ? ', baris persen meluap' : ''}${a.equal ? '' : ', tinggi kartu beda'}${a.error ? ` ${a.error}` : ''}${bad ? '  << GAGAL' : ''}`);
+}
+console.log('\nKartu acara Kalender (nama terpanjang):');
+for (const e of events) {
+  const bad = e.error || e.chipsCut || e.rowOverflow;
+  if (bad) failed++;
+  console.log(`  ${e.lang} ${e.width}@${Math.round(e.zoom * 100)}%: "${e.name}" ${e.lines} baris${e.lines > 2 ? ' (elipsis di baris 2)' : ''}${e.chipsCut ? ', chip terpotong' : ''}${e.rowOverflow ? ', baris bawah meluap' : ''}${e.error ? ` ${e.error}` : ''}${bad ? '  << GAGAL' : ''}`);
 }
 if (failed > 0) {
   console.error(`check-countdown-fit: ${failed} kombinasi gagal`);

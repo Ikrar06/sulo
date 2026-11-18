@@ -24,3 +24,15 @@ describe('header progress (follows the finger)', () => {
     expect(headProgress(Number.NaN, HEAD_P_RANGE)).toBe(0);
   });
 });
+
+describe('nothing to scroll: the header stays large', () => {
+  it('a short screen counts as the top whatever scrollTop says', async () => {
+    const { effectiveScroll, HEAD_P_RANGE: P, headProgress: hp } = await import('../src/shell/head-progress');
+    expect(hp(effectiveScroll(0, 600, 700), P)).toBe(0);
+    expect(hp(effectiveScroll(40, 600, 700), P)).toBe(0);
+    expect(hp(effectiveScroll(0, 2000, 700), P)).toBe(0);
+    expect(hp(effectiveScroll(28, 2000, 700), P)).toBe(0.5);
+    // A tab restored at a kept position reads from the real offset.
+    expect(hp(effectiveScroll(140, 2000, 700), P)).toBe(1);
+  });
+});

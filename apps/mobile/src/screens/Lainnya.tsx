@@ -54,12 +54,13 @@ export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; on
       <ul className="grid grid-cols-2 gap-3">
         {ITEMS.map(({ name, icon, tint }) => (
           <li key={name}>
-            <Card onPress={() => go({ name, detail: null })} label={name === 'kabar' && unseen > 0 ? `${label(name)}, ${unseen}` : label(name)} className="h-full">
+            {/* As tall as its icon and label: the whole page, Dukung Sulo and the disclaimer included, sits close. */}
+            <Card dense onPress={() => go({ name, detail: null })} label={name === 'kabar' && unseen > 0 ? `${label(name)}, ${unseen}` : label(name)} className="h-full">
               <div className="flex items-start justify-between">
-                <IconTile color={tint} icon={icon} size={40} />
+                <IconTile color={tint} icon={icon} size={36} />
                 {name === 'kabar' && unseen > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-m-inset px-2 text-m12 tabular-nums">{unseen > 99 ? '99+' : unseen}</span>}
               </div>
-              <p className="mt-3 text-m15">{label(name)}</p>
+              <p className="mt-2 text-m15">{label(name)}</p>
             </Card>
           </li>
         ))}
