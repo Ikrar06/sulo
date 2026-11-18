@@ -135,6 +135,12 @@ describe('runSync', () => {
       expect(client.batches).toHaveLength(1);
     });
 
+    it('signing in again (M7.2): skipped within 10 minutes of a good sync, otherwise one sync, quiet hours or not', async () => {
+      expect(await after('relogin', 9)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
+      expect((await after('relogin', 11)).requests).toBe(1);
+      expect(await runSync({ client: fakeClient(), store: memoryStore(), clock: fixedClock('2026-09-22', 2, NOW), trigger: 'relogin' })).not.toEqual({ status: 'skipped', reason: 'QUIET_HOURS' });
+    });
+
     it('"Perbarui" within 2 minutes of a good sync sends nothing; after that it runs', async () => {
       expect(await after('manual', 1)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
       expect((await after('manual', 2)).requests).toBe(1);

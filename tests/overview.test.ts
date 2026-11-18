@@ -44,10 +44,17 @@ describe('limitGroups', () => {
     ]);
     expect(hidden).toBe(3);
   });
-  it('drops a group that has no room left', () => {
+  it('many overdue rows leave room for the groups after them (at most 3 overdue)', () => {
     const { groups, hidden } = limitGroups([g('overdue', 6), g('week', 2)]);
-    expect(groups.map((x) => x.key)).toEqual(['overdue']);
-    expect(hidden).toBe(2);
+    expect(groups.map((x) => [x.key, x.rows.length])).toEqual([
+      ['overdue', 3],
+      ['week', 2],
+    ]);
+    expect(hidden).toBe(3);
+  });
+  it('drops a group that has no room left', () => {
+    const { groups } = limitGroups([g('today', 6), g('week', 2)]);
+    expect(groups.map((x) => x.key)).toEqual(['today']);
   });
 });
 
@@ -93,3 +100,28 @@ describe('withNext', () => {
     expect(withNext([], [], NOW, TZ)).toEqual([]);
   });
 });
+
+describe('"Berikutnya" with many overdue tasks or undated tasks (M7.1 fix)', () => {
+  it('overdue rows do not count toward the 4: tasks after this week still show', () => {
+    const overdue = [at('2026-11-01', 9), at('2026-11-02', 9), at('2026-11-03', 9), at('2026-11-04', 9), at('2026-11-05', 9)];
+    const items = [...overdue, at('2026-11-30', 9), at('2026-12-05', 9)];
+    const shown = limitGroups(withNext(groupOverview(items, NOW, TZ), items, NOW, TZ));
+    expect(shown.groups.map((g) => [g.key, g.rows.length])).toEqual([
+      ['overdue', 3],
+      ['next', 2],
+    ]);
+    expect(shown.hidden).toBe(2);
+  });
+
+  it('undated tasks fill "Berikutnya" after dated ones, so the empty state means no pending task at all', () => {
+    const items = [at('2026-12-01', 9), { dueAt: null }];
+    expect(withNext(groupOverview(items, NOW, TZ), items, NOW, TZ).map((g) => [g.key, g.rows.length])).toEqual([['next', 2]]);
+    expect(withNext([], [{ dueAt: null }], NOW, TZ)).toEqual([{ key: 'next', rows: [{ dueAt: null }] }]);
+  });
+
+  it('overdue alone keeps up to 6 rows', () => {
+    const overdue = Array.from({ length: 8 }, (_, i) => at(`2026-11-0${i + 1}`, 9));
+    expect(limitGroups(groupOverview(overdue, NOW, TZ)).groups[0]!.rows).toHaveLength(6);
+  });
+});
+

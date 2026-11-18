@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "data": {
+    "transkrip": [
+      {
+        "kode_mata_kuliah": "23D12100010",
+        "nama_mata_kuliah": "KALKULUS I",
+        "sks": 3,
+        "nilai_huruf": "A",
+        "id_semester": 20251,
+        "is_used": true,
+        "is_alih_kredit": false,
+        "is_manual": false,
+        "is_locked": true
+      },
+      {
+        "kode_mata_kuliah": "23D12100011",
+        "nama_mata_kuliah": "FISIKA DASAR",
+        "sks": 3,
+        "nilai_huruf": "B+",
+        "id_semester": 20251,
+        "is_used": true,
+        "is_alih_kredit": false,
+        "is_manual": false,
+        "is_locked": true
+      }
+    ],
+    "current_indeks_prestasi": {
+      "semester_tahun_ajaran": "2026/2027 Ganjil",
+      "indeks_prestasi_semester": 3.6,
+      "indeks_prestasi_kumulatif": 3.51,
+      "jumlah_sks": 64
+    }
+  }
+}

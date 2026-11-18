@@ -11,6 +11,7 @@ describe('help content', () => {
       'password',
       'tugas-tidak-muncul',
       'tidak-diperbarui',
+      'masuk-lagi',
       'pengingat',
       'macos',
       'kabar-lama',
@@ -21,6 +22,10 @@ describe('help content', () => {
       'sikola-berubah',
       'langganan-kalender',
       'langganan-terlambat',
+      'neosia',
+      'tidak-disimpan',
+      'ipk-nilai',
+      'buka-neosia',
     ]);
     for (const text of [...FAQ.flatMap((f) => [f.q, ...f.a]), ...HOW_IT_WORKS.flatMap((s) => [s.heading, ...s.paragraphs])]) {
       expect(text.id.trim()).not.toBe('');

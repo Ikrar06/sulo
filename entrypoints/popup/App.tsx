@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { sikolaUrl } from '@/lib/links';
 import { browser } from 'wxt/browser';
 import { I18nProvider } from '@/components/i18n';
 import { PopupView } from '@/components/popup/PopupView';
@@ -8,7 +9,7 @@ import { formatCopyList, type CopyScope } from '@/lib/format/copy-list';
 import { googleCalendarUrl } from '@/lib/format/gcal';
 import { messagesFor, resolveLocale, type Locale } from '@/lib/i18n';
 import type { Message } from '@/lib/messages';
-import { DAILY_BUDGET, DAILY_CALL_BUDGET, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
+import { DAILY_BUDGET, DAILY_CALL_BUDGET } from '@/lib/moodle/limits';
 import { refreshFeedback } from '@/lib/view/refresh-feedback';
 import { undoDone } from '@/lib/tasks/done-undo';
 import type { SyncOutcome } from '@/lib/types';
@@ -216,7 +217,8 @@ export default function App({ startedAt }: { startedAt: number }) {
         }}
         onCopy={(s) => void onCopy(s)}
         onOpenOnboarding={(hash = '') => void browser.tabs.create({ url: browser.runtime.getURL(`/onboarding.html${hash}`) })}
-        onOpenSikola={() => void browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` })}
+        // Shown only on the expired-session line: the login page.
+        onOpenSikola={() => void browser.tabs.create({ url: sikolaUrl('expired') })}
         onReport={() => void onReport()}
         onOpenPrivacy={() => void browser.tabs.create({ url: browser.runtime.getURL('/privacy.html') })}
         onSetDueFormat={(dueFormat: DueFormat) => void writePrefs(local, { dueFormat })}

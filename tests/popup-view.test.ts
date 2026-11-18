@@ -84,7 +84,7 @@ describe('buildPopupView', () => {
 
   it.each([
     [{ remoteConfig: { ...DEFAULT_REMOTE_CONFIG, enabled: false, message: 'Jeda' } }, { kind: 'disabled_remotely', message: 'Jeda' }],
-    [{ session: 'EXPIRED' as const }, { kind: 'session_expired' }],
+    [{ session: 'EXPIRED' as const }, { kind: 'session_expired', lastSyncAt: NOW - 600 }],
     [{ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'offline' as const } } }, { kind: 'offline' }],
     [{ online: false }, { kind: 'offline' }],
   ])('banner for %o', (patch, banner) => {
@@ -106,7 +106,7 @@ describe('buildPopupView', () => {
       expect(buildPopupView(input({ budget: { date: 'x', used: 999 }, user: old(30) })).banner?.kind).toBe('stale');
     });
     it('an expired session wins over old data (it can be acted on)', () => {
-      expect(buildPopupView(input({ session: 'EXPIRED', user: old(30) })).banner).toEqual({ kind: 'session_expired' });
+      expect(buildPopupView(input({ session: 'EXPIRED', user: old(30) })).banner).toEqual({ kind: 'session_expired', lastSyncAt: NOW - 30 * HOUR });
     });
   });
 
@@ -122,8 +122,13 @@ describe('buildPopupView', () => {
     expect(view.mascot).toBe('stale');
   });
 
-  it('shows "!" when the session expired', () => {
-    expect(buildPopupView(input({ session: 'EXPIRED' })).badge).toEqual({ text: '!', tone: 'expired' });
+  it('an expired session: grey badge with the count from the last data, no "!" and no red (M7.2)', () => {
+    const view = buildPopupView(input({ session: 'EXPIRED' }));
+    expect(view.badge.tone).toBe('neutral');
+    expect(view.badge.text).not.toBe('!');
+    expect(view.badge.text).toBe(buildPopupView(input({ user: user({ sync: { lastSyncAt: NOW - 13 * HOUR, lastCourseListAt: null } }) })).badge.text);
+    // Every task from the last data stays listed.
+    expect(view.pendingCount).toBe(buildPopupView(input({})).pendingCount);
   });
 
   it('is all-done with no pending tasks', () => {
@@ -144,7 +149,7 @@ describe('buildPopupView', () => {
 describe('reminder signals in the popup', () => {
   it('shows a blocked-notifications line only when nothing more important is shown', () => {
     expect(buildPopupView(input({ notificationsAllowed: false })).banner).toEqual({ kind: 'notifications_off' });
-    expect(buildPopupView(input({ notificationsAllowed: false, session: 'EXPIRED' })).banner).toEqual({ kind: 'session_expired' });
+    expect(buildPopupView(input({ notificationsAllowed: false, session: 'EXPIRED' })).banner).toEqual({ kind: 'session_expired', lastSyncAt: NOW - 600 });
   });
 });
 
@@ -163,9 +168,9 @@ describe('another SIKOLA account (mismatch)', () => {
     expect(view.mismatchDeferred).toBe(false);
   });
 
-  it('shows "!" on the badge in the same color as an expired session', () => {
+  it('shows "!" on the badge in red (an expired session is grey since M7.2)', () => {
     expect(buildPopupView(input({ accountPending: pending })).badge).toEqual({ text: '!', tone: 'expired' });
-    expect(buildPopupView(input({ session: 'EXPIRED' })).badge.tone).toBe('expired');
+    expect(buildPopupView(input({ session: 'EXPIRED' })).badge.tone).toBe('neutral');
   });
 
   it('keeps the shorter note after "Nanti"', () => {

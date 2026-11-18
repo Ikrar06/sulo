@@ -11,12 +11,14 @@ import type { ChangeLogEntry, CourseId, SessionState, Task, UnixSeconds } from '
 import { calendarReminders, type CalendarEventLite, type CalendarStage } from '../calendar/notify';
 import type { CalendarNotifySettings } from '../calendar/notify-settings';
 import { lastStage, type ReminderSettings } from './settings';
-import { inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
+import { addDays, inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
 
 /** The morning summary is skipped when the browser opens more than this after its time. */
 export const MORNING_GRACE = 3 * 3600;
-/** The second "session expired" reminder comes this long after the first. */
+/** Session notices: at most one per this long, and only for data at least this old (M7.2). */
 export const SESSION_REPEAT_AFTER = 24 * 3600;
+/** A session notice only once the last good data is older than this; fresher data gets the on-screen notice only. */
+export const SESSION_NOTIFY_DATA_AGE = 24 * 3600;
 
 export type SentKeys = Readonly<Record<string, UnixSeconds>>;
 
@@ -28,10 +30,27 @@ export interface PlanInput {
   activeCourseIds: ReadonlySet<CourseId>;
   settings: ReminderSettings;
   sent: SentKeys;
-  session: { state: SessionState; expiredAt: UnixSeconds | null };
+  /**
+   * dataAt: the last good sync (the data on screen). An expired session
+   * notifies only once that data is older than 24 hours. Task, calendar and
+   * KRS reminders keep running from that data whatever the session state.
+   */
+  session: { state: SessionState; expiredAt: UnixSeconds | null; dataAt?: UnixSeconds | null };
   /** Change log (M4); entries with notify set and not yet sent become update notices. */
   changes?: readonly ChangeLogEntry[];
   updates?: UpdateSettings;
+  /**
+   * NEOSIA KRS windows (M7): reminders 3 days and 1 day before each one's
+   * last day, the change window included. Present only while the module is
+   * on and the KRS calendar reminders are on.
+   */
+  krsWindows?: readonly { start: string; end: string; caption: string | null }[];
+  /**
+   * NEOSIA nudges (M7.1, module on only): academic-calendar periods when a
+   * NEOSIA page is worth opening. "grades": grade input or appeal periods;
+   * "krs": a KRS window opening. One notification per period.
+   */
+  nudges?: readonly { id: string; nudge: 'grades' | 'krs'; mulai: string; selesai: string }[];
   /** Academic calendar reminders (M5a); omitted means none. */
   calendar?: { events: readonly CalendarEventLite[]; settings: CalendarNotifySettings; /** Short source for the body, e.g. "SK Rektor No. 08429/UN4.1/KEP/2026". */ source: string };
 }
@@ -48,7 +67,11 @@ export type Notice =
   /** Updates across more than 3 courses, or held by quiet hours. */
   | { kind: 'changes_summary'; key: string; count: number; courses: number }
   /** An academic calendar date: a week or a day before it, or before a window's last day. */
-  | { kind: 'calendar'; key: string; stage: CalendarStage; event: CalendarEventLite; source: string };
+  | { kind: 'calendar'; key: string; stage: CalendarStage; event: CalendarEventLite; source: string }
+  /** The KRS window from NEOSIA closes in 3 days or tomorrow. */
+  | { kind: 'krs'; key: string; stage: 'h3' | 'h1'; end: string; caption: string | null }
+  /** Open a NEOSIA page so Sulo's copy is fresh: grades may be out, or KRS opened. */
+  | { kind: 'nudge'; key: string; nudge: 'grades' | 'krs' };
 
 export interface Plan {
   send: Notice[];
@@ -113,6 +136,11 @@ function planCalendar(input: PlanInput): { send: Notice[]; mark: string[]; nextA
   const upcoming: UnixSeconds[] = [];
   for (const r of calendarReminders(input.calendar.events, input.calendar.settings)) {
     if (r.key in input.sent) continue;
+    // NEOSIA's own KRS closing reminder replaces the calendar's "ends tomorrow".
+    if ((input.krsWindows ?? []).length > 0 && r.kind === 'krs' && r.stage === 'h1-akhir') {
+      mark.push(r.key);
+      continue;
+    }
     if (r.day < today) {
       mark.push(r.key);
       continue;
@@ -128,6 +156,77 @@ function planCalendar(input: PlanInput): { send: Notice[]; mark: string[]; nextA
     } else {
       upcoming.push(fireAt);
     }
+  }
+  const later = upcoming.filter((t) => t > input.now);
+  return { send, mark, nextAt: later.length ? Math.min(...later) : null };
+}
+
+export const krsKey = (w: { start: string; end: string }, stage: 'h3' | 'h1') => `krs:${w.start}:${w.end}:${stage}`;
+
+/**
+ * KRS closing reminders, like calendar reminders: at the morning time on
+ * their own day, moved past quiet hours, never sent late. One pair per window.
+ */
+function planKrs(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: UnixSeconds | null } {
+  const windows = input.krsWindows ?? [];
+  if (windows.length === 0) return { send: [], mark: [], nextAt: null };
+  const today = localParts(input.now, input.timeZone).dateKey;
+  const atMin = input.settings.snoozeMorningMin;
+  const send: Notice[] = [];
+  const mark: string[] = [];
+  const upcoming: UnixSeconds[] = [];
+  for (const w of windows) {
+    for (const [stage, days] of [['h3', 3], ['h1', 1]] as const) {
+      const key = krsKey(w, stage);
+      if (key in input.sent) continue;
+      const day = addDays(w.end, -days);
+      // A window shorter than the lead time has no such reminder.
+      if (day < today || day < addDays(w.start, -1)) {
+        mark.push(key);
+        continue;
+      }
+      const fireAt = quietAdjusted(zonedToUnix(day, atMin, input.timeZone), false, input);
+      if (day === today && fireAt <= input.now) {
+        const releaseAt = quietAdjusted(input.now, false, input);
+        if (releaseAt > input.now) upcoming.push(releaseAt);
+        else {
+          send.push({ kind: 'krs', key, stage, end: w.end, caption: w.caption });
+          mark.push(key);
+        }
+      } else upcoming.push(fireAt);
+    }
+  }
+  const later = upcoming.filter((t) => t > input.now);
+  return { send, mark, nextAt: later.length ? Math.min(...later) : null };
+}
+
+export const nudgeKey = (n: { id: string; nudge: 'grades' | 'krs' }) => `nudge:${n.nudge}:${n.id}`;
+
+/**
+ * One nudge per period, on a day inside it: from the morning time of its
+ * first day (later days send it right away), moved past quiet hours. A
+ * period that already ended is recorded as handled.
+ */
+function planNudges(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: UnixSeconds | null } {
+  const nudges = input.nudges ?? [];
+  if (nudges.length === 0) return { send: [], mark: [], nextAt: null };
+  const today = localParts(input.now, input.timeZone).dateKey;
+  const send: Notice[] = [];
+  const mark: string[] = [];
+  const upcoming: UnixSeconds[] = [];
+  for (const n of nudges) {
+    const key = nudgeKey(n);
+    if (key in input.sent) continue;
+    if (n.selesai < today) {
+      mark.push(key);
+      continue;
+    }
+    const first = n.mulai > today ? n.mulai : today;
+    const at = quietAdjusted(Math.max(zonedToUnix(first, input.settings.snoozeMorningMin, input.timeZone), n.mulai > today ? 0 : input.now), false, input);
+    if (n.mulai <= today && at <= input.now) {
+      send.push({ kind: 'nudge', key, nudge: n.nudge });
+      mark.push(key);
+    } else upcoming.push(at);
   }
   const later = upcoming.filter((t) => t > input.now);
   return { send, mark, nextAt: later.length ? Math.min(...later) : null };
@@ -196,15 +295,25 @@ function taskCandidates(task: Task, input: PlanInput): Candidate[] {
   return out;
 }
 
+/**
+ * "Masuk lagi ke SIKOLA" (M7.2): no earlier than the expiry, and only once
+ * the data on screen is older than 24 hours (fresher data: the dashboard
+ * and popup notice is enough). At most one per 24 hours, counted from the
+ * last session notice actually sent, and never in quiet hours. Two per
+ * expiry at most: the first, and one 24 hours later.
+ */
 function sessionCandidates(input: PlanInput): { key: string; at: UnixSeconds; repeat: boolean }[] {
   const { state, expiredAt } = input.session;
   if (state !== 'EXPIRED' || expiredAt === null) return [];
-  return [
-    { key: `s:${expiredAt}`, at: expiredAt, repeat: false },
-    { key: `s:${expiredAt}:24h`, at: expiredAt + SESSION_REPEAT_AFTER, repeat: true },
-  ]
-    .filter((c) => !(c.key in input.sent))
-    .map((c) => ({ ...c, at: quietAdjusted(c.at, false, input) }));
+  const dataAt = input.session.dataAt ?? null;
+  const lastSent = Math.max(0, ...Object.entries(input.sent).filter(([k]) => k.startsWith('s:')).map(([, v]) => v));
+  const spaced = (at: UnixSeconds) => Math.max(at, lastSent > 0 ? lastSent + SESSION_REPEAT_AFTER : 0);
+  const firstKey = `s:${expiredAt}`;
+  const first = Math.max(expiredAt, dataAt === null ? 0 : dataAt + SESSION_NOTIFY_DATA_AGE);
+  const candidates = !(firstKey in input.sent)
+    ? [{ key: firstKey, at: spaced(first), repeat: false }]
+    : [{ key: `${firstKey}:24h`, at: spaced(first), repeat: true }].filter((c) => !(c.key in input.sent));
+  return candidates.map((c) => ({ ...c, at: quietAdjusted(c.at, false, input) }));
 }
 
 function morning(input: PlanInput, tasks: readonly Task[]): { notice: Notice | null; mark: string[]; nextAt: UnixSeconds | null } {
@@ -292,6 +401,16 @@ export function planReminders(input: PlanInput): Plan {
   send.push(...calendar.send);
   markSent.push(...calendar.mark);
   if (calendar.nextAt !== null) upcoming.push(calendar.nextAt);
+
+  const nudges = planNudges(input);
+  send.push(...nudges.send);
+  markSent.push(...nudges.mark);
+  if (nudges.nextAt !== null) upcoming.push(nudges.nextAt);
+
+  const krs = planKrs(input);
+  send.push(...krs.send);
+  markSent.push(...krs.mark);
+  if (krs.nextAt !== null) upcoming.push(krs.nextAt);
 
   const later = upcoming.filter((t) => t > now);
   return { send, markSent: [...new Set(markSent)], nextAt: later.length ? Math.min(...later) : null };

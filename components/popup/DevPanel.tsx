@@ -2,7 +2,9 @@
 // session probe. PopupView loads it lazily behind MODE === 'development', so
 // no other build contains it.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { browser } from 'wxt/browser';
+import { SESSION_AGE_KEY, sessionAgeStats, type SessionAgeState } from '@/lib/net/session-age';
 import { useI18n } from '@/components/i18n';
 import { Button } from '@/components/ui/button';
 import { DEV_WORDS } from '@/lib/i18n/dev';
@@ -14,6 +16,11 @@ export default function DevPanel({ view, dev }: { view: PopupViewModel; dev: Non
   const { locale } = useI18n();
   const t = DEV_WORDS[locale === 'en' ? 'en' : 'id'];
   const [probe, setProbe] = useState<string | null>(null);
+  const [age, setAge] = useState<SessionAgeState | null>(null);
+  useEffect(() => {
+    void browser.storage.local.get(SESSION_AGE_KEY).then((r) => setAge((r[SESSION_AGE_KEY] as SessionAgeState | undefined) ?? null));
+  }, []);
+  const ageStats = sessionAgeStats(age?.entries ?? []);
   const sources = Object.entries(view.budget.bySource ?? {}) as [RequestSource, number][];
   const clock = (at: number) => new Date(at * 1000).toTimeString().slice(0, 8);
   return (
@@ -38,6 +45,18 @@ export default function DevPanel({ view, dev }: { view: PopupViewModel; dev: Non
           {probe && <span className="tabular-nums">{probe}</span>}
         </p>
       )}
+      {/* Session age (M7 part F): entries and "since the last success"; the full list is at dashboard.html#dev-sesi. */}
+      <p className="pt-1 font-semibold">Session age: {ageStats.count} expiries</p>
+      <p className="tabular-nums">
+        median {ageStats.median ?? '-'} min, min {ageStats.min ?? '-'} min since the last success
+      </p>
+      <ol className="max-h-24 overflow-y-auto tabular-nums">
+        {(age?.entries ?? []).map((e) => (
+          <li key={e.expiredDetectedAt}>
+            {clock(e.expiredDetectedAt)} +{e.sejakSuksesTerakhirMenit}m / session {e.sejakMulaiSesiMenit ?? '-'}m
+          </li>
+        ))}
+      </ol>
       <p className="pt-1 font-semibold">{t.dev.log(dev.requestLog.length)}</p>
       {dev.requestLog.length === 0 ? (
         <p>{t.dev.logEmpty}</p>

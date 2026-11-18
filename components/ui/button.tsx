@@ -17,6 +17,9 @@ const buttonVariants = cva(
           "hover:bg-muted hover:text-foreground active:bg-[color-mix(in_oklch,var(--muted),var(--foreground)_10%)] aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-ring:ring-destructive dark:bg-destructive/20 dark:hover:bg-destructive/30",
+        /** Secondary danger: soft red text with an outline (Putuskan dan hapus data). */
+        "destructive-outline":
+          "border-destructive/40 bg-transparent text-destructive hover:bg-destructive/10 active:bg-destructive/15 focus-ring:ring-destructive",
         /** Solid, for the one confirming action of a destructive dialog. */
         "destructive-solid":
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80 focus-ring:ring-destructive",

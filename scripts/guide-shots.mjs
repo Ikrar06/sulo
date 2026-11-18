@@ -14,11 +14,12 @@
 // Usage: pnpm guide:shots [--no-build] [--only=<step>]
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { demoStorage } from './lib/demo-storage.mjs';
+import { demoNeosia } from './lib/demo-neosia.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const ext = join(root, '.output/chrome-mv3-dev');
@@ -203,6 +204,65 @@ const STEPS = [
       await click(p, p.getByRole('checkbox').nth(3), 1200);
     },
   },
+  {
+    // With the synthetic NEOSIA demo data: the overview, then the Schedule page.
+    id: 'jadwal',
+    url: '/dashboard.html#ringkasan',
+    neosia: true,
+    viewport: { width: 1280, height: 860 },
+    area: async () => ({ x: 232, y: 64, width: 1048, height: 796 }),
+    play: async (p) => {
+      await moveTo(p, p.getByRole('region', { name: re('Kuliah hari ini', 'Classes today') }), 900);
+      await p.waitForTimeout(700);
+      const studi = p.getByRole('button', { name: re('Tampilkan', 'Show') }).first();
+      await click(p, studi, 900);
+      await p.evaluate(() => (location.hash = '#jadwal'));
+      await p.waitForTimeout(1200);
+      await click(p, p.locator('[data-slot="popover-trigger"]').filter({ hasText: /Mekanika|Etika/ }).first(), 1500);
+    },
+  },
+  {
+    // Chrome's own permission prompt cannot be recorded (it is browser UI):
+    // the clip shows the consent screen, the click on "Hubungkan", then the
+    // overview's checklist card filling up from the synthetic NEOSIA demo data.
+    id: 'neosia',
+    url: '/dashboard.html#pengaturan/neosia',
+    viewport: { width: 1280, height: 720 },
+    // The main column under the header (sidebar 232 px, header 64 px).
+    area: async () => ({ x: 232, y: 64, width: 1048, height: 656 }),
+    play: async (p) => {
+      // The NEOSIA card's title just under the sticky header.
+      const toCard = () => p.evaluate(() => {
+        const card = document.getElementById('set-neosia')?.closest('section');
+        if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 88 });
+      });
+      await toCard();
+      await p.waitForTimeout(500);
+      await click(p, p.getByRole('switch', { name: re('Hubungkan NEOSIA', 'Connect NEOSIA') }), 900);
+      const dialog = p.getByRole('alertdialog');
+      await moveTo(p, dialog.getByRole('heading').first(), 600);
+      await p.mouse.wheel(0, 300);
+      await p.waitForTimeout(900);
+      const connect = dialog.getByRole('button', { name: re('Hubungkan', 'Connect') });
+      await moveTo(p, connect);
+      await p.evaluate(() => window.__guide.ripple());
+      await p.waitForTimeout(400);
+      await p.keyboard.press('Escape');
+      // Connected, with only the home page's data in: the overview's checklist card, "1 dari 2".
+      const all = demoNeosia();
+      const khs = ['neosia:snap:getTranskripMahasiswa', 'neosia:snap:kartu_hasil_studi/semester', 'neosia:snap:mahasiswa/semester', 'neosia:snap:indeks_prestasi/current'];
+      const homeOnly = Object.fromEntries(Object.entries(all).filter(([k]) => !khs.includes(k)));
+      await p.evaluate(async (s) => chrome.storage.local.set(s), homeOnly);
+      await p.evaluate(() => (location.hash = '#ringkasan'));
+      await p.waitForTimeout(1200);
+      await moveTo(p, p.getByRole('link', { name: re('Buka Kartu Hasil Studi', 'Open Study results card') }), 900);
+      await p.evaluate(() => window.__guide.ripple());
+      await p.waitForTimeout(500);
+      // The KHS page's data comes in: "Data NEOSIA lengkap".
+      await p.evaluate(async (s) => chrome.storage.local.set(s), Object.fromEntries(Object.entries(all).filter(([k]) => khs.includes(k))));
+      await p.waitForTimeout(2200);
+    },
+  },
 ];
 
 // ---- Recording ------------------------------------------------------------
@@ -278,7 +338,7 @@ async function run() {
         let [sw] = ctx.serviceWorkers();
         if (!sw) sw = await ctx.waitForEvent('serviceworker');
         const extId = new URL(sw.url()).host;
-        const storage = demoStorage(root);
+        const storage = { ...demoStorage(root), ...(step.neosia ? demoNeosia() : {}) };
         storage['global:prefs'] = { ...(storage['global:prefs'] ?? {}), locale, theme };
         await sw.evaluate(async (s) => chrome.storage.local.set(s), storage);
         await new Promise((r) => setTimeout(r, 1000));
@@ -301,7 +361,10 @@ async function run() {
     }
   }
   mkdirSync(join(root, 'scripts/guide'), { recursive: true });
-  writeFileSync(join(root, 'scripts/guide/sizes.json'), `${JSON.stringify(sizes, null, 2)}\n`);
+  // --only keeps the other steps' sizes.
+  const sizesFile = join(root, 'scripts/guide/sizes.json');
+  const kept = existsSync(sizesFile) ? JSON.parse(readFileSync(sizesFile, 'utf8')) : {};
+  writeFileSync(sizesFile, `${JSON.stringify({ ...kept, ...sizes }, null, 2)}\n`);
   const files = readdirSync(outDir);
   const total = (suffix) => files.filter((f) => f.endsWith(suffix)).reduce((s, f) => s + statSync(join(outDir, f)).size, 0) / 1024;
   console.log(`total: videos ${total('.webm').toFixed(0)} KB, posters ${total('.webp').toFixed(0)} KB`);

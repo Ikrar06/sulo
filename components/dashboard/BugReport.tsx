@@ -7,6 +7,9 @@ import type { DashMessages } from '@/lib/i18n/dashboard';
 import { readTechLog } from '@/lib/net/tech-log';
 import { readSyncStatus } from '@/lib/storage';
 import { buildBugReport } from '@/lib/support/bug-report';
+import { readModuleState } from '@/lib/neosia/module';
+import { readSnapshots } from '@/lib/neosia/store';
+import { neosiaStatus } from '@/lib/neosia/view';
 import { local } from './data';
 
 /** "Salin info untuk laporan bug": the exact text is shown first; nothing leaves the browser unless the user pastes it somewhere. */
@@ -16,8 +19,10 @@ export function BugReport({ d, lastSyncAt }: { d: DashMessages; lastSyncAt: numb
   const [text, setText] = useState<string | null>(null);
 
   const open = async () => {
-    const [log, status] = await Promise.all([readTechLog(local), readSyncStatus(local)]);
-    setText(buildBugReport({ version: browser.runtime.getManifest().version, userAgent: navigator.userAgent, lastSyncAt, lastAttemptAt: status.lastAttemptAt, lastOutcome: status.lastOutcome, log }));
+    const [log, status, module, snapshots] = await Promise.all([readTechLog(local), readSyncStatus(local), readModuleState(local), readSnapshots(local)]);
+    // NEOSIA: only on or off and the time of the last data.
+    const neosia = { enabled: module.enabled, lastSeenAt: module.enabled ? neosiaStatus(snapshots).lastSeenAt : null };
+    setText(buildBugReport({ version: browser.runtime.getManifest().version, userAgent: navigator.userAgent, lastSyncAt, lastAttemptAt: status.lastAttemptAt, lastOutcome: status.lastOutcome, log, neosia }));
   };
 
   return (

@@ -3,9 +3,9 @@ import { findLeaks, ruleApplies } from '../scripts/leak-rules.mjs';
 
 // Sample values are assembled at runtime so this file itself does not trip
 // the repository scan.
-const digits = (n: number, seed = '7351') => seed.repeat(Math.ceil(n / seed.length)).slice(0, n);
-const NIK = digits(16);
-const NIP = digits(18, '1985');
+// Plausible shapes (a real birth date and month inside); a plain digit run is no longer reported.
+const NIK = ['7371', '0141', '0199', '0001'].join('');
+const NIP = ['1985', '0612', '2010', '12', '1', '003'].join('');
 const LONG_KEY = ['Zq81', 'xT02', 'mN55', 'pL9w', 'Ab'].join('');
 
 describe('NIK and NIP patterns', () => {
@@ -70,4 +70,18 @@ describe('Google Form links', () => {
   it('lets the public form link pass', () => {
     expect(findLeaks(`${form}/viewform?usp=sf_link`, 'lib/links.ts')).not.toContain('Tautan edit Google Form');
   });
+
+  // Built from parts so this file itself never holds a plausible ID.
+  const nik = ['7371', '0141', '0199', '0001'].join('');
+  const nip = ['1990', '0101', '2015', '03', '1', '001'].join('');
+  const nim = ['D', '121', '21', '1234'].join('');
+
+  it('reports a student number (letter + 9 digits), a plausible NIK and a plausible NIP', () => {
+    expect(findLeaks(`x ${nim} y ${nik} z ${nip}`, 'lib/x.ts')).toEqual(['Pola mirip NIM', 'Pola mirip NIK (16 digit)', 'Pola mirip NIP (18 digit)']);
+  });
+
+  it('ignores digit runs that cannot be a NIK or NIP (bundled lookup tables, MAX_SAFE_INTEGER)', () => {
+    expect(findLeaks(`${'0'.repeat(18)} ${'2'.repeat(18)} ${Number.MAX_SAFE_INTEGER} ${'2'.repeat(16)}`, 'lib/x.ts')).toEqual([]);
+  });
 });
+

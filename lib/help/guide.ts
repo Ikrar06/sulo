@@ -1,4 +1,4 @@
-// "Mulai pakai" in Bantuan: five steps, each with a short muted clip and a
+// "Mulai pakai" in Bantuan: seven steps (the last two need NEOSIA), each with a short muted clip and a
 // numbered list of what it shows (plain text, for everyone and for screen
 // readers), after a one-line tip about pinning Sulo. Clips and their
 // posters come from `pnpm guide:shots` (synthetic demo data, public/guide/).
@@ -111,6 +111,38 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     points: [
       { id: 'Saring menurut jenis perubahan.', en: 'Filter by kind of change.' },
       { id: 'Atur notifikasi: pilih jenis yang diberitahukan.', en: 'Notification settings: choose which kinds notify you.' },
+    ],
+  },
+  {
+    id: 'jadwal',
+    title: { id: 'Lihat kuliah dan jadwal (dengan NEOSIA)', en: 'See classes and your schedule (with NEOSIA)' },
+    body: {
+      id: 'Kalau NEOSIA terhubung, Ringkasan menampilkan kuliah hari ini dan kartu Studi, dan halaman Jadwal menampilkan jadwal mingguanmu.',
+      en: 'With NEOSIA connected, the overview shows today\'s classes and a Studies card, and the Schedule page shows your week.',
+    },
+    clip: 'jadwal',
+    size: { width: 1200, height: 912 },
+    alt: { id: 'Ringkasan dengan kuliah hari ini, lalu halaman Jadwal dengan grid jam dan popover kelas.', en: 'The overview with today\'s classes, then the Schedule page with its time grid and a class popover.' },
+    points: [
+      { id: 'Kuliah hari ini muncul paling atas di kartu Tugas.', en: "Today's classes come first in the Tasks card." },
+      { id: 'Kartu Studi menyimpan IPK sampai kamu memilih Tampilkan.', en: 'The Studies card keeps your GPA hidden until you choose Show.' },
+      { id: 'Di Jadwal, klik kelas untuk melihat dosen dan ruang.', en: 'On Schedule, click a class to see its lecturers and room.' },
+    ],
+  },
+  {
+    id: 'neosia',
+    title: { id: 'Hubungkan NEOSIA (opsional)', en: 'Connect NEOSIA (optional)' },
+    body: {
+      id: 'Jadwal kuliah, kesiapan KRS, dan nilai baru dari NEOSIA. Sulo hanya membaca saat kamu membuka NEOSIA sendiri, dan tidak pernah menghubungi NEOSIA.',
+      en: 'Class schedule, KRS readiness and new grades from NEOSIA. Sulo only reads while you open NEOSIA yourself and never contacts NEOSIA.',
+    },
+    clip: 'neosia',
+    size: { width: 1200, height: 752 },
+    alt: { id: 'Kartu NEOSIA di Pengaturan, layar persetujuan, lalu kartu yang sudah terhubung.', en: 'The NEOSIA card in Settings, the consent screen, then the connected card.' },
+    points: [
+      { id: 'Di Pengaturan, nyalakan Hubungkan NEOSIA.', en: 'In Settings, turn on Connect NEOSIA.' },
+      { id: 'Baca apa yang disimpan dan apa yang dibuang, lalu pilih Hubungkan. Chrome menanyakan izinnya, lalu Sulo membuka transkripmu di NEOSIA.', en: 'Read what is kept and what is dropped, then choose Connect. Chrome asks for permission, then Sulo opens your transcript in NEOSIA.' },
+      { id: 'Lengkapi data dari NEOSIA: buka halaman yang belum ada datanya. Matikan kapan saja lewat Putuskan dan hapus data.', en: 'Complete your data from NEOSIA: open the pages without data. Turn it off any time with Disconnect and delete data.' },
     ],
   },
 ];

@@ -1,5 +1,6 @@
 import { defineConfig } from 'wxt';
 import tailwindcss from '@tailwindcss/vite';
+import { NEOSIA_HOST_PERMISSIONS } from './lib/neosia/allowlist';
 
 const ICONS = {
   16: 'icon/icon-16.png',
@@ -41,5 +42,9 @@ export default defineConfig({
     action: { default_icon: ICONS, default_title: 'Sulo' },
     permissions: ['storage', 'alarms', 'notifications', 'idle'],
     host_permissions: ['https://sikola-v2.unhas.ac.id/*'],
+    // NEOSIA module (M7): asked for together in the consent dialog, removed
+    // when the module is turned off (lib/neosia/module.ts). Never at install.
+    optional_permissions: ['scripting'],
+    optional_host_permissions: [...NEOSIA_HOST_PERMISSIONS],
   },
 });

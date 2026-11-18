@@ -23,6 +23,7 @@ export function categoryOf(change: Change): UpdateCategory | null {
     case 'due_changed':
       return 'deadlines';
     case 'grade_feedback':
+    case 'neosia_grade':
       return 'grades';
     case 'forum':
       return 'forum';

@@ -19,6 +19,10 @@ import { applyPersonalDue } from '../tasks/personal-due';
 import { readCalendar } from '../calendar/remote';
 import type { KeyValueStore, Task, UnixSeconds } from '../types';
 import { planReminders, type Notice } from './plan';
+import { readModuleState } from '../neosia/module';
+import { readSnapshots } from '../neosia/store';
+import { krsWindows } from '../neosia/view';
+import { neosiaNudges } from '../neosia/nudges';
 import { noticeView, type NotificationView } from './text';
 
 /** Recorded keys are kept this long, then pruned. */
@@ -71,7 +75,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   // Another account is signed in: the stored account's reminders stay silent
   // until the user decides (lib/account/pending.ts).
   if (await readPending(store)) return { nextAt: null, shown: 0 };
-  const [prefs, session, tasks, taskState, courses, notified, changes, calendar] = await Promise.all([
+  const [prefs, session, tasks, taskState, courses, notified, changes, calendar, neosia] = await Promise.all([
     readPrefs(store),
     readSession(store),
     readUser(store, userId, 'tasks'),
@@ -80,7 +84,10 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     readUser(store, userId, 'notified'),
     readUser(store, userId, 'changes'),
     readCalendar(store),
+    readModuleState(store),
   ]);
+  // NEOSIA's KRS windows (module on, KRS reminders on): closing reminders H-3 and H-1 for each.
+  const windows = neosia.enabled && prefs.calendar.krs ? krsWindows(await readSnapshots(store)) : [];
 
   const plan = planReminders({
     now,
@@ -91,10 +98,12 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     activeCourseIds: activeCourseIds(courses),
     settings: prefs.reminders,
     sent: notified,
-    session: { state: session.state, expiredAt: session.expiredAt ?? null },
+    session: { state: session.state, expiredAt: session.expiredAt ?? null, dataAt: (await readUser(store, userId, 'sync'))?.lastSyncAt ?? null },
     changes,
     updates: prefs.updates,
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
+    krsWindows: windows,
+    nudges: neosia.enabled ? neosiaNudges(calendar.kegiatan, prefs.calendar) : [],
   });
 
   // The account captured at the start must still be active before every

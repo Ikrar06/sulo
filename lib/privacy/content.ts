@@ -37,6 +37,61 @@ export const PRIVACY_INTRO: Block[] = [
   },
 ];
 
+
+/**
+ * The NEOSIA consent text (M7). The consent dialog before Chrome's
+ * permission prompt (components/dashboard/NeosiaConsent.tsx, through
+ * lib/neosia/consent.ts) and the NEOSIA section below render this same
+ * object, so the two always say the same thing.
+ */
+export interface ConsentText {
+  title: Text;
+  how: Text;
+  keptTitle: Text;
+  kept: readonly Text[];
+  droppedTitle: Text;
+  dropped: readonly Text[];
+  offTitle: Text;
+  off: Text;
+  unofficial: Text;
+}
+
+export const NEOSIA_CONSENT: ConsentText = {
+  title: { id: 'Hubungkan NEOSIA?', en: 'Connect NEOSIA?' },
+  how: {
+    id: 'Sulo hanya membaca data saat kamu membuka NEOSIA sendiri. Sulo tidak pernah menghubungi NEOSIA.',
+    en: 'Sulo only reads data while you open NEOSIA yourself. Sulo never contacts NEOSIA.',
+  },
+  keptTitle: { id: 'Yang disimpan di browsermu', en: 'What is kept in your browser' },
+  kept: [
+    { id: 'Jadwal kuliah: mata kuliah, kelas, hari, jam, ruang, dan nama dosen', en: 'Class schedule: courses, classes, days, times, rooms and lecturer names' },
+    { id: 'Jendela dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
+    { id: 'Sudah bayar atau belum, tanpa nominal', en: 'Paid or not paid, without amounts' },
+    { id: 'Status survei: sudah diisi atau belum', en: 'The survey status: filled in or not' },
+    { id: 'Nilai huruf, IPS, IPK, dan SKS. Tersembunyi sampai kamu memilih Tampilkan', en: 'Letter grades, semester and overall GPA, and credits. Hidden until you choose Show' },
+    { id: 'Semester dan masa studi', en: 'Your semester and study period' },
+    { id: 'Nama dosen PA', en: 'Your academic advisor’s name' },
+  ],
+  droppedTitle: { id: 'Yang dibuang sebelum keluar dari halaman NEOSIA', en: 'What is dropped before it leaves the NEOSIA page' },
+  dropped: [
+    { id: 'NIM, NIK, dan NISN', en: 'Student number, national ID and school ID numbers' },
+    { id: 'Kontak: email dan nomor HP', en: 'Contact details: email and phone number' },
+    { id: 'Alamat dan tanggal lahir', en: 'Address and date of birth' },
+    { id: 'Nominal dan bank pembayaran', en: 'Payment amounts and bank' },
+    { id: 'Nilai angka', en: 'Numeric grades' },
+    { id: 'NIP, NIDN, dan NUPTK dosen', en: 'Lecturers’ NIP, NIDN and NUPTK numbers' },
+  ],
+  offTitle: { id: 'Mematikan dan menghapus', en: 'Turning it off' },
+  off: {
+    id: 'Kapan saja, lewat Pengaturan lalu "Putuskan dan hapus data". Semua data NEOSIA terhapus dan izinnya dicabut.',
+    en: 'Any time, in Settings with "Disconnect and delete data". All NEOSIA data is deleted and the permission is removed.',
+  },
+  unofficial: {
+    id: 'Sulo bukan aplikasi resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
+    en: 'Sulo is not an official app and is not affiliated with Universitas Hasanuddin.',
+  },
+};
+
 export const PRIVACY_SECTIONS: Section[] = [
   {
     heading: { id: 'Yang dibaca Sulo', en: 'What Sulo reads' },
@@ -96,8 +151,8 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Statistik pemakaian lokal (berapa kali popup dan dashboard dibuka, tugas ditandai selesai, dan pengingat tampil) hanya berupa angka dan tersimpan di browsermu. Sulo tidak pernah mengirimnya. Di Pengaturan kamu bisa mengekspornya sebagai berkas dan memutuskan sendiri mau mengirimnya atau tidak.',
-          en: 'Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. In Settings you can export them as a file and decide yourself whether to share it.',
+          id: 'Statistik pemakaian lokal (berapa kali popup dan dashboard dibuka, tugas ditandai selesai, dan pengingat tampil) hanya berupa angka dan tersimpan di browsermu. Sulo tidak pernah mengirimnya. Angka ini tidak ditampilkan dan tidak bisa diekspor di versi biasa; hanya build pengembangan yang menampilkannya.',
+          en: 'Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. They are not shown and cannot be exported in the regular version; only development builds show them.',
         },
       },
       {
@@ -158,22 +213,49 @@ export const PRIVACY_SECTIONS: Section[] = [
     ],
   },
   {
-    heading: { id: 'Modul opsional', en: 'Optional modules' },
+    heading: { id: 'Modul NEOSIA (opsional)', en: 'NEOSIA module (optional)' },
     blocks: [
       {
         kind: 'p',
         text: {
-          id: 'Modul opsional, seperti modul NEOSIA yang direncanakan, mati secara bawaan. Sebelum diaktifkan, Sulo menampilkan layar persetujuan yang menjelaskan apa yang dibaca, apa yang dibuang, dan cara mematikannya.',
-          en: 'Optional modules, such as the planned NEOSIA module, are off by default. Before one is turned on, Sulo shows a consent screen that explains what it reads, what it discards, and how to turn it off.',
+          id: 'Mati secara bawaan. Kalau kamu menyalakan "Hubungkan NEOSIA" di Pengaturan, Sulo lebih dulu menampilkan layar persetujuan dengan isi di bawah ini, lalu Chrome menanyakan izinnya.',
+          en: 'Off by default. If you turn on "Connect NEOSIA" in Settings, Sulo first shows a consent screen with the text below, then Chrome asks for its permission.',
         },
       },
+      { kind: 'p', text: NEOSIA_CONSENT.how },
+      { kind: 'p', text: NEOSIA_CONSENT.keptTitle },
+      { kind: 'ul', items: [...NEOSIA_CONSENT.kept] },
+      { kind: 'p', text: NEOSIA_CONSENT.droppedTitle },
+      { kind: 'ul', items: [...NEOSIA_CONSENT.dropped] },
+      { kind: 'p', text: NEOSIA_CONSENT.offTitle },
+      { kind: 'p', text: NEOSIA_CONSENT.off },
       {
         kind: 'ul',
         items: [
-          { id: 'Sulo tidak akan pernah mengirim request ke NEOSIA. Sulo hanya membaca data dari halaman NEOSIA yang kamu buka sendiri.', en: 'Sulo would never send requests to NEOSIA. It would only read data from NEOSIA pages you open yourself.' },
-          { id: 'Data identitas (seperti NIK, alamat, tanggal lahir, dan kontak), nominal pembayaran, dan nomor induk dosen dibuang sebelum apa pun disimpan.', en: 'Identity details (such as national ID number, address, date of birth and contact details), payment amounts and lecturer ID numbers are discarded before anything is saved.' },
-          { id: 'Nilai dan IPK tersembunyi secara bawaan dan tidak pernah ikut ekspor.', en: 'Grades and GPA are hidden by default and are never included in exports.' },
-          { id: 'Mematikan modul menghapus datanya dan mencabut izinnya.', en: 'Turning a module off deletes its data and removes its permissions.' },
+          {
+            id: 'Izinnya opsional: "scripting" dan akses ke halaman neosia.unhas.ac.id. Keduanya hanya diminta saat kamu menyalakan modul, dan dicabut saat modul dimatikan. Sulo tidak meminta akses ke alamat API NEOSIA. Kalau kamu mencabut salah satunya lewat pengaturan Chrome, modul mati sendiri dan datanya terhapus.',
+            en: 'Its permissions are optional: "scripting" and access to the neosia.unhas.ac.id pages. Both are asked for only when you turn the module on, and removed when it is turned off. Sulo does not ask for access to the NEOSIA API address. If you remove one in Chrome\'s settings, the module turns itself off and its data is deleted.',
+          },
+          {
+            id: 'Sulo tidak pernah mengirim request ke NEOSIA. Dua skrip kecil di halaman NEOSIA membaca respons yang sudah diminta aplikasi NEOSIA sendiri, memilah field yang boleh disimpan di halaman itu juga, lalu membuang sisanya. Respons lengkapnya tidak pernah disimpan, dicatat, atau dikirim.',
+            en: 'Sulo never sends a request to NEOSIA. Two small scripts on NEOSIA pages read the responses the NEOSIA app already asked for, pick out the fields that may be kept right there on the page, and drop the rest. The full responses are never stored, logged or sent.',
+          },
+          {
+            id: 'Tautan survei, data pribadimu di NEOSIA, dan halaman pengunduran diri tidak pernah dibaca. Token login NEOSIA tidak pernah dibaca.',
+            en: 'The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA login token is never read.',
+          },
+          {
+            id: 'Nilai dan IPK tidak pernah masuk notifikasi, ekspor, daftar yang disalin, berkas kalender, atau info laporan bug. Notifikasi nilai baru hanya menyebut nama mata kuliah.',
+            en: 'Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.',
+          },
+          {
+            id: 'Mode privasi (Pengaturan, atau ikon mata di dashboard) menyamarkan nama, nilai, IPK, IPS, dan SKS di layar.',
+            en: 'Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA and credits on screen.',
+          },
+          {
+            id: 'Tidak ada otomatisasi: Sulo tidak mengisi KRS, survei, atau presensi, dan tidak memantau kuota kelas.',
+            en: 'No automation: Sulo never fills in KRS, surveys or attendance, and never watches class capacity.',
+          },
         ],
       },
     ],
@@ -186,6 +268,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         items: [
           { id: 'Mencopot ekstensi dari browser menghapus semua datanya. Ini sudah berlaku sekarang.', en: 'Removing the extension from your browser deletes all of its data. This works today.' },
           { id: '"Hapus semua data" di menu pengaturan popup menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in the popup settings menu deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.' },
+          { id: '"Putuskan dan hapus data" di kartu NEOSIA (Pengaturan) menghapus semua data NEOSIA dan mencabut izinnya. "Hapus semua data" juga mematikan modul NEOSIA.', en: '"Disconnect and delete data" on the NEOSIA card (Settings) deletes all NEOSIA data and removes its permissions. "Delete all data" also turns the NEOSIA module off.' },
         ],
       },
     ],

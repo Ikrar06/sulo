@@ -1,4 +1,6 @@
 import { browser } from 'wxt/browser';
+import { sikolaUrl } from '@/lib/links';
+import { nudgeTarget } from '@/lib/neosia/nudges';
 import { defineBackground } from 'wxt/utils/define-background';
 import { BADGE_COLORS } from '@/lib/brand';
 import { createBrowserStore } from '@/lib/browser-store';
@@ -12,10 +14,11 @@ import { readBudget } from '@/lib/moodle/budget';
 import { createMoodleClient } from '@/lib/moodle/client';
 import { readCalendar, refreshCalendar } from '@/lib/calendar/remote';
 import { CALENDAR_HIGHLIGHT_KEY, calendarHighlight, type CalendarHighlight } from '@/lib/calendar/highlight';
-import { localParts } from '@/lib/reminders/zoned';
+import { inWindow, localParts } from '@/lib/reminders/zoned';
 import { dashboardPath } from '@/lib/dashboard/routes';
 import { CALENDAR_URL, CATCHUP_DELAY_MAX_MIN, DAILY_BUDGET, IDLE_THRESHOLD_SEC, REMOTE_CONFIG_URL, SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { createRequestLogger } from '@/lib/net/request-log';
+import { createSessionAgeLogger } from '@/lib/net/session-age';
 import { createScheduler } from '@/lib/net/scheduler';
 import { fetchSlotHour } from '@/lib/remote/fetch-public';
 import { onSesskeyReceived, readSession, writeSession } from '@/lib/moodle/session';
@@ -35,17 +38,23 @@ import { bumpUsage } from '@/lib/stats/usage';
 import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@/lib/account/pending';
 import { useNewAccount, wipeAllData } from '@/lib/account/actions';
 import { runSync } from '@/lib/sync/run-sync';
+import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@/lib/sync/relogin';
 import { setDone, setSnooze } from '@/lib/tasks/local-state';
 import { messagesFor, resolveLocale } from '@/lib/i18n';
 import type { SyncOutcome, SyncTrigger } from '@/lib/types';
 import { loadPopupInput } from '@/lib/view/load';
+import { browserModuleDeps } from '@/lib/neosia/browser-deps';
+import { disableModule, enableModule, reconcileModule } from '@/lib/neosia/module';
+import { NEOSIA_APP_ORIGIN } from '@/lib/neosia/allowlist';
+import { ingestCapture, pruneUnlistedSnapshots } from '@/lib/neosia/store';
+import { recordGrades } from '@/lib/neosia/grades';
 import { buildPopupView } from '@/lib/view/popup-view';
 
 const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
 const NOTIFY_ALARM = 'notify';
 /** Storage changes that can move the next reminder. Not notified or stats (written by the cycle itself). */
-const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser|accountPending|calendar))$/;
+const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser|accountPending|calendar|neosia)|neosia:snap:checkJadwalBelanjaKRS)$/;
 /** The popup opens on this panel once (a click on an update summary). */
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
@@ -78,6 +87,9 @@ export default defineBackground(() => {
     onRequest: import.meta.env.MODE === 'production' ? undefined : createRequestLogger(local),
   });
 
+  // Session age log (dev and tester builds): outcomes only, no request of its own.
+  const sessionAge = import.meta.env.MODE === 'production' ? undefined : createSessionAgeLogger(local);
+
   const client = createMoodleClient({
     fetch: (input, init) => fetch(input, init),
     scheduler,
@@ -85,6 +97,7 @@ export default defineBackground(() => {
     clock,
     baseUrl: SIKOLA_ORIGIN,
     getSesskey,
+    sessionAge,
   });
 
   // Public data (kill switch, academic calendar): each file at most once a
@@ -93,6 +106,24 @@ export default defineBackground(() => {
     const slot = await fetchSlotHour(local);
     await refreshRemoteConfig({ scheduler, store: local, clock, url: REMOTE_CONFIG_URL, fetchSlotHour: slot });
     await refreshCalendar({ scheduler, store: local, clock, url: CALENDAR_URL, fetchSlotHour: slot }).catch(() => 'failed');
+  };
+
+  // ---------- NEOSIA module (optional, off by default) ----------
+
+  const neosia = browserModuleDeps(local, () => clock.now());
+  // One reconcile at a time (startup and a permission change can coincide).
+  let neosiaQueue: Promise<unknown> = Promise.resolve();
+  const reconcileNeosia = () => {
+    neosiaQueue = neosiaQueue.then(() => reconcileModule(neosia)).catch(() => undefined);
+  };
+  /** One projected NEOSIA response from the bridge: validated again, stored, compared. */
+  const onNeosiaCapture = (raw: unknown) => {
+    neosiaQueue = neosiaQueue
+      .then(async () => {
+        const result = await ingestCapture(local, clock.now(), raw);
+        await recordGrades(local, clock.now(), result);
+      })
+      .catch(() => undefined);
   };
 
   // ---------- Badge ----------
@@ -195,7 +226,7 @@ export default defineBackground(() => {
       try {
         await browser.action.openPopup();
       } catch {
-        await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
+        await browser.tabs.create({ url: sikolaUrl('connected') });
       }
     } else if (kind === 'task' && eventId !== null) {
       const found = await findTask(eventId);
@@ -206,10 +237,17 @@ export default defineBackground(() => {
       } catch {
         await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/calendar/view.php?view=upcoming` });
       }
+    } else if (kind === 'nudge') {
+      // The user clicked the notification: open the NEOSIA page it names. Sulo never touches that tab.
+      await browser.tabs.create({ url: nudgeTarget(id) });
+    } else if (kind === 'krs') {
+      await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     } else if (kind === 'calendar') {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('kalender')) });
     } else if (kind === 'session') {
-      await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
+      await browser.tabs.create({ url: sikolaUrl('expired') });
+    } else if (kind === 'relogin') {
+      await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     }
   };
 
@@ -284,6 +322,39 @@ export default defineBackground(() => {
   });
   const sync = (trigger: SyncTrigger, forceCourseList = false) => syncFlight({ trigger, forceCourseList });
 
+  // ---------- Signing in to SIKOLA again (M7.2) ----------
+  // Sulo never keeps the session alive. When it had expired and the user
+  // signs in again (a signed-in SIKOLA page loads and its sesskey arrives,
+  // in either order), one ordinary sync runs: cooldown, lock and budget
+  // apply (lib/sync/relogin.ts). The marker lives in session storage.
+  const RELOGIN_KEY = 'relogin:marker';
+  let reloginQueue: Promise<unknown> = Promise.resolve();
+  const onRelogin = (event: ReloginEvent) => {
+    const run = reloginQueue.then(async () => {
+      const marker = (await session.get<ReloginMarker>(RELOGIN_KEY)) ?? null;
+      const state = (await readSession(local)).state;
+      const step = reloginStep({ event, session: state, marker, now: clock.now() });
+      if (step.marker) await session.set(RELOGIN_KEY, step.marker);
+      else if (marker) await session.remove(RELOGIN_KEY);
+      if (!step.sync) return;
+      const outcome = await sync('relogin');
+      const prefs = await readPrefs(local);
+      const quiet = prefs.reminders.quiet.enabled && inWindow(clock.now(), prefs.reminders.quiet, timeZone());
+      if (!announceRelogin({ status: outcome.status, inQuietHours: quiet })) return;
+      const m = messagesFor(resolveLocale(prefs.locale, browser.i18n.getUILanguage()));
+      // A quiet, light notification: no sound, low priority.
+      await browser.notifications.create(`relogin|${clock.now()}`, {
+        type: 'basic',
+        iconUrl: browser.runtime.getURL('/notify/happy.png'),
+        title: m.notify.reloginTitle,
+        message: m.notify.reloginBody,
+        priority: 0,
+        silent: true,
+      });
+    });
+    reloginQueue = run.catch(() => undefined);
+  };
+
   // ---------- Status, popup, tools ----------
 
   const status = async (): Promise<StatusResponse> => {
@@ -319,6 +390,8 @@ export default defineBackground(() => {
 
   const useNew = async () => {
     const ok = await useNewAccount({ store: local, clearNotifications: clearAllNotifications, openSetup });
+    // The new account's owner has not agreed to the NEOSIA module.
+    if (ok) await disableModule(neosia);
     await updateBadge();
     return { ok };
   };
@@ -334,6 +407,8 @@ export default defineBackground(() => {
       syncRunning: () => isSyncRunning(local, clock.now()),
       sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
       clearAlarms: async () => void (await browser.alarms.clearAll()),
+      // NEOSIA scripts off and permissions removed before the data goes.
+      beforeClear: () => disableModule(neosia),
       clearNotifications: clearAllNotifications,
       clearLocal: () => browser.storage.local.clear(),
       clearSession: () => browser.storage.session.clear(),
@@ -371,6 +446,10 @@ export default defineBackground(() => {
         return wipeAll();
       case 'notify/test':
         return sendTestNotification();
+      case 'neosia/enable':
+        return enableModule(neosia);
+      case 'neosia/disable':
+        return disableModule(neosia).then(() => ({ ok: true }));
       default:
         return null;
     }
@@ -445,17 +524,32 @@ export default defineBackground(() => {
    * behind by a late write are removed too.
    */
   const onAccountChanged = async () => {
+    await sessionAge?.newSession();
     await clearAllNotifications();
     await pruneOrphanUserKeys(local);
   };
 
+  // A NEOSIA permission removed in Chrome's settings turns the module off and deletes its data.
+  browser.permissions.onRemoved.addListener(reconcileNeosia);
+
   browser.notifications.onClicked.addListener((id) => void onNotificationClick(id));
+
+  // A SIKOLA tab finished loading. The host permission alone gives the URL of
+  // SIKOLA tabs (no "tabs" permission); other tabs come without a URL and
+  // are ignored here, before any storage read.
+  browser.tabs.onUpdated.addListener((_tabId, change, tab) => {
+    if (change.status !== 'complete' || !isSignedInSikolaPage(tab.url)) return;
+    onRelogin({ kind: 'page', url: tab.url });
+  });
   browser.notifications.onButtonClicked.addListener((id, index) => void onNotificationButton(id, index));
 
   // Every time the worker wakes up, recompute: an alarm may have been missed
   // while the browser was closed or the computer slept. Orphaned keys from an
   // earlier account are removed first.
   void pruneOrphanUserKeys(local).then(runReminders);
+  reconcileNeosia();
+  // Endpoints dropped from the allowlist leave no data behind.
+  void pruneUnlistedSnapshots(local).catch(() => undefined);
 
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
     const extensionId = browser.runtime.id;
@@ -469,13 +563,25 @@ export default defineBackground(() => {
       if (!isContentScriptOn(sender, extensionId, SIKOLA_ORIGIN)) return false;
       // While another account is detected, a new sesskey may run one
       // session-only check (at most every 10 minutes, lib/account/pending.ts).
-      void session
-        .set(SESSKEY_KEY, message.sesskey)
+      // Whether the session had expired, read before the sesskey clears that.
+      let wasExpired = false;
+      void readSession(local)
+        .then((s) => void (wasExpired = s.state === 'EXPIRED'))
+        .then(getSesskey)
+        .then((previous) => (previous !== null && previous !== message.sesskey ? sessionAge?.newSession() : undefined))
+        .then(() => session.set(SESSKEY_KEY, message.sesskey))
         .then(() => onSesskeyReceived(local, clock))
         .then(updateBadge)
         .then(async () => {
           if (await readPending(local)) await sync('sesskey');
+          else onRelogin({ kind: 'sesskey', wasExpired });
         });
+      return false;
+    }
+    if (message.type === 'neosia/capture') {
+      // Only the bridge on a NEOSIA page; anything else is dropped unread.
+      if (!isContentScriptOn(sender, extensionId, NEOSIA_APP_ORIGIN)) return false;
+      onNeosiaCapture(message.capture);
       return false;
     }
     if (message.type === 'session/loggedOut') {
@@ -505,6 +611,7 @@ export default defineBackground(() => {
         origin: SIKOLA_ORIGIN,
         runRemindersAt,
         isExtensionPage: (sender) => isExtensionPageSender(sender, browser.runtime.id, browser.runtime.getURL('/').replace(/\/+$/, '')),
+        isNeosiaPage: (sender) => isContentScriptOn(sender, browser.runtime.id, NEOSIA_APP_ORIGIN),
       }),
     );
   }

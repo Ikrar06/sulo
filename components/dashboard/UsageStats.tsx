@@ -6,15 +6,17 @@ import { formatDateKey } from '@/lib/calendar/countdown';
 import { exportUsage, readUsage, USAGE_COUNTERS, USAGE_KEY, type Usage } from '@/lib/stats/usage';
 import { local } from './data';
 import type { PageProps } from './types';
+import { statsWords } from '@/lib/i18n/stats-dev';
 
 /**
  * Local usage counters with a voluntary export. The file is made in the
  * page and saved through a download link: nothing leaves the browser unless
  * the user sends the file themselves.
  */
-export function UsageStats({ d, data }: Pick<PageProps, 'd' | 'data' | 'actions'>) {
-  const { m } = useI18n();
-  const s = d.pengaturan.stats;
+/** Development builds only (loaded lazily by the settings page). */
+export default function UsageStats({ data }: Pick<PageProps, 'data'>) {
+  const { m, locale } = useI18n();
+  const s = statsWords(locale === 'en' ? 'en' : 'id');
   const [usage, setUsage] = useState<Usage | null>(null);
 
   useEffect(() => {

@@ -53,6 +53,10 @@ export interface Prefs {
   calendar: CalendarNotifySettings;
   /** Which groups the calendar page shows (its chips are legend and filter). */
   calendarFilter: GroupFilter;
+  /** Masks names, grades, GPA and credits on screen (M7); local to this browser. */
+  privacyMode: boolean;
+  /** Credits to graduate, the scale of the overview's credits bar (NEOSIA, 100 to 200). */
+  sksTarget: number;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -65,6 +69,8 @@ export const DEFAULT_PREFS: Prefs = {
   angkatan: null,
   calendar: DEFAULT_CALENDAR_NOTIFY,
   calendarFilter: DEFAULT_GROUP_FILTER,
+  privacyMode: false,
+  sksTarget: 144,
 };
 
 const prefsSchema = z.object({
@@ -78,6 +84,8 @@ const prefsSchema = z.object({
   angkatan: z.number().int().min(1990).max(2100).nullable().catch(null),
   calendar: calendarNotifySchema,
   calendarFilter: groupFilterSchema,
+  privacyMode: z.boolean().catch(false),
+  sksTarget: z.number().int().min(100).max(200).catch(144),
 });
 
 export async function readPrefs(store: KeyValueStore): Promise<Prefs> {

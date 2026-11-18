@@ -41,28 +41,40 @@ export function groupOverview<T extends { dueAt: UnixSeconds | null }>(items: re
   return OVERVIEW_GROUPS.map((key) => ({ key, rows: [...buckets[key]].sort((a, b) => (a.dueAt ?? 0) - (b.dueAt ?? 0)) })).filter((g) => g.rows.length > 0);
 }
 
+/** With other groups to show, overdue rows take at most this many of the card's rows. */
+export const OVERDUE_MAX_ROWS = 3;
+
 /**
- * When the groups hold fewer than OVERVIEW_MIN_ROWS rows, a "next" group
- * adds the nearest dated tasks after this week, up to that many rows in all.
+ * "Berikutnya": when fewer than OVERVIEW_MIN_ROWS upcoming rows (today,
+ * tomorrow, this week) are shown, the nearest tasks after this week fill up
+ * to that many, then tasks without a due date. Overdue rows do not count:
+ * a long overdue list must not hide what comes next (M7.1 fix).
  */
 export function withNext<T extends { dueAt: UnixSeconds | null }>(groups: readonly OverviewGroup<T>[], items: readonly T[], now: UnixSeconds, timeZone: string, min = OVERVIEW_MIN_ROWS): OverviewGroup<T>[] {
-  const shown = groups.reduce((n, g) => n + g.rows.length, 0);
-  if (shown >= min) return [...groups];
+  const upcoming = groups.filter((g) => g.key !== 'overdue').reduce((n, g) => n + g.rows.length, 0);
+  if (upcoming >= min) return [...groups];
   const weekEnd = addDays(localParts(now, timeZone).dateKey, WEEK_DAYS);
   const later = items
     .filter((i) => i.dueAt !== null && i.dueAt >= now && localParts(i.dueAt, timeZone).dateKey > weekEnd)
-    .sort((a, b) => (a.dueAt ?? 0) - (b.dueAt ?? 0))
-    .slice(0, min - shown);
-  return later.length > 0 ? [...groups, { key: 'next', rows: later }] : [...groups];
+    .sort((a, b) => (a.dueAt ?? 0) - (b.dueAt ?? 0));
+  const undated = items.filter((i) => i.dueAt === null);
+  const next = [...later, ...undated].slice(0, min - upcoming);
+  return next.length > 0 ? [...groups, { key: 'next', rows: next }] : [...groups];
 }
 
-/** At most `max` rows across the groups, in order; `hidden` counts the rest. */
+/**
+ * At most `max` rows across the groups, in order; `hidden` counts the rest.
+ * When other groups follow, overdue rows take at most OVERDUE_MAX_ROWS so
+ * today, this week and "Berikutnya" stay visible.
+ */
 export function limitGroups<T>(groups: readonly OverviewGroup<T>[], max = OVERVIEW_ROWS): { groups: OverviewGroup<T>[]; hidden: number } {
   let room = max;
   let hidden = 0;
   const shown: OverviewGroup<T>[] = [];
+  const others = groups.some((g) => g.key !== 'overdue');
   for (const g of groups) {
-    const take = g.rows.slice(0, Math.max(0, room));
+    const cap = g.key === 'overdue' && others ? Math.min(room, OVERDUE_MAX_ROWS) : room;
+    const take = g.rows.slice(0, Math.max(0, cap));
     hidden += g.rows.length - take.length;
     room -= take.length;
     if (take.length > 0) shown.push({ key: g.key, rows: take });
@@ -79,7 +91,7 @@ export function heroMood(overdue: number, dueThisWeek: number): MascotState {
 
 export type SummaryCountdown = { kind: 'days'; n: number } | { kind: 'today' } | { kind: 'tomorrow' } | { kind: 'ongoing' };
 
-export type SummaryPart = { kind: 'overdue'; n: number } | { kind: 'week'; n: number } | { kind: 'none' } | { kind: 'countdown'; label: string; countdown: SummaryCountdown };
+export type SummaryPart = { kind: 'overdue'; n: number } | { kind: 'week'; n: number } | { kind: 'none' } | { kind: 'classes'; n: number } | { kind: 'countdown'; label: string; countdown: SummaryCountdown };
 
 export interface SummaryInput {
   overdue: number;
@@ -87,6 +99,8 @@ export interface SummaryInput {
   dueThisWeek: number;
   /** The next important calendar date, if any. */
   next: { label: string; countdown: SummaryCountdown } | null;
+  /** Classes still to come today (NEOSIA schedule); 0 or absent leaves the part out. */
+  classesToday?: number;
 }
 
 /**
@@ -99,6 +113,7 @@ export function buildSummary(input: SummaryInput): SummaryPart[] {
   if (input.overdue > 0) parts.push({ kind: 'overdue', n: input.overdue });
   if (input.dueThisWeek > 0) parts.push({ kind: 'week', n: input.dueThisWeek });
   if (parts.length === 0) parts.push({ kind: 'none' });
+  if (input.classesToday) parts.push({ kind: 'classes', n: input.classesToday });
   if (input.next) parts.push({ kind: 'countdown', label: input.next.label, countdown: input.next.countdown });
   return parts;
 }

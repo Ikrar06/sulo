@@ -40,7 +40,8 @@ export function StatusLine({ banner, now, actions }: { banner: Banner; now: Unix
     case 'disabled_remotely':
       return line(<PauseIcon className={`${icon} text-status-disabled`} />, banner.message || b.disabledFallback);
     case 'session_expired':
-      return line(<KeyIcon className={`${icon} text-status-stale`} />, b.sessionExpired, [b.openSikola, actions.onOpenSikola]);
+      // Calm: a muted icon, the time of the data still shown, and "Masuk lagi" (M7.2).
+      return line(<KeyIcon className={`${icon} text-muted-foreground`} />, b.sessionExpired(banner.lastSyncAt ? formatDue(banner.lastSyncAt, localeOf(m), browserTimeZone()) : null), [b.signIn, actions.onOpenSikola]);
     case 'offline':
       return line(<OfflineIcon className={`${icon} text-status-offline`} />, b.offline);
     case 'stale':

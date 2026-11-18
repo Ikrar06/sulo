@@ -24,6 +24,8 @@ export function entryId(change: Change): string {
       return `note:${change.notification.id}`;
     case 'renamed':
       return `cm:${change.courseId}:${change.cmId}:renamed:${change.since}:${change.to}`;
+    case 'neosia_grade':
+      return `neosia:grade:${change.key}`;
     default:
       // Derived from the content and the snapshot compared against, never
       // from the current time: the same change seen twice is one entry.
@@ -54,6 +56,7 @@ function mayNotify(change: Change, log: readonly ChangeLogEntry[], batch: readon
     case 'due_changed':
     case 'grade_feedback':
     case 'forum':
+    case 'neosia_grade':
       return true;
     default:
       // removed, hidden, renamed, other notifications: log only.

@@ -130,6 +130,7 @@
   --cat-wisuda: var(--course-7);
   --cat-penerimaan: var(--muted);
   --cat-tugas: var(--muted);
+  --cat-kuliah: var(--course-5);
 }
 
 .db-cat-akademik { --cat: var(--cat-akademik); }
@@ -139,6 +140,7 @@
 .db-cat-wisuda { --cat: var(--cat-wisuda); }
 .db-cat-penerimaan { --cat: var(--cat-penerimaan); }
 .db-cat-tugas { --cat: var(--cat-tugas); }
+.db-cat-kuliah { --cat: var(--cat-kuliah); }
 
 .db-cat-bar { background: color-mix(in oklch, var(--cat) 18%, var(--surface)); color: var(--text); }
 .db-cat-dot { background: var(--cat); }

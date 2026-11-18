@@ -31,6 +31,8 @@ export interface WipeDeps {
   syncRunning: () => Promise<boolean>;
   sleep: (ms: number) => Promise<void>;
   clearAlarms: () => Promise<void>;
+  /** Runs before the storage is cleared (the NEOSIA module turns off). */
+  beforeClear?: () => Promise<void>;
   clearNotifications: () => Promise<void>;
   clearLocal: () => Promise<void>;
   clearSession: () => Promise<void>;
@@ -53,6 +55,7 @@ export async function wipeAllData(deps: WipeDeps): Promise<void> {
   for (let waited = 0; waited < WIPE_WAIT_MS && (await deps.syncRunning()); waited += WIPE_POLL_MS) await deps.sleep(WIPE_POLL_MS);
   await deps.clearAlarms();
   await deps.clearNotifications();
+  await deps.beforeClear?.().catch(() => undefined);
   await deps.clearLocal();
   await deps.clearSession();
   await deps.ensureAlarms();

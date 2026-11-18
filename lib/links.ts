@@ -2,6 +2,28 @@
 // "Tautan ke luar"). Plain links in a new tab; nothing from these services
 // is loaded into any extension page. An empty value hides its link.
 
+/** SIKOLA's dashboard: where "Buka SIKOLA" goes while signed in (SIKOLA itself sends a signed-out visitor to its login). */
+export const SIKOLA_HOME = 'https://sikola-v2.unhas.ac.id/my/';
+/** SIKOLA's login page: only when the session expired or no account was ever connected. */
+export const SIKOLA_LOGIN = 'https://sikola-v2.unhas.ac.id/login/index.php';
+/** NEOSIA's home: every "Buka NEOSIA" (NEOSIA itself asks for a login when needed). */
+export const NEOSIA_HOME = 'https://neosia.unhas.ac.id/';
+/** NEOSIA's login page. Not used in the extension (Sulo cannot know NEOSIA's login state); kept for the mobile version. */
+export const NEOSIA_LOGIN = 'https://neosia.unhas.ac.id/login';
+
+/** What Sulo knows about the SIKOLA account. */
+export type SikolaAccountState = 'connected' | 'expired' | 'mismatch' | 'none';
+
+/** "Buka SIKOLA": the login page only for an expired session or no account yet; otherwise SIKOLA's dashboard. */
+export function sikolaUrl(state: SikolaAccountState): string {
+  return state === 'expired' || state === 'none' ? SIKOLA_LOGIN : SIKOLA_HOME;
+}
+
+/** "Buka NEOSIA": always NEOSIA's home. Sulo sends no request to NEOSIA, so it never knows whether you are signed in. */
+export function neosiaUrl(): string {
+  return NEOSIA_HOME;
+}
+
 /** The public source repository. Empty: the MIT line and its link stay hidden on About. */
 export const REPO_URL = '';
 
@@ -29,3 +51,9 @@ export const FEEDBACK_FORM_URL = 'https://forms.gle/XsBuWXGHNR4pPTs17';
 export function isShownLink(url: string): boolean {
   return /^https:\/\/\S+$/.test(url);
 }
+
+/** NEOSIA pages a "Buka" button opens (no student number or other identity in them). */
+export const NEOSIA_TRANSKRIP = 'https://neosia.unhas.ac.id/transkrip-nilai';
+export const NEOSIA_KRS = 'https://neosia.unhas.ac.id/kartu-rencana-studi';
+export const NEOSIA_KHS = 'https://neosia.unhas.ac.id/kartu-hasil-studi';
+export const NEOSIA_MATAKULIAH = 'https://neosia.unhas.ac.id/matakuliah';

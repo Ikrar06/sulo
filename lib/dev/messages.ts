@@ -16,6 +16,8 @@ export const devMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('dev/radar/inject'), kind: z.enum(['material', 'due', 'grade', 'forum', 'many']) }),
   /** One core_session_time_remaining call, to verify nosessionupdate (docs/ATURAN-REQUEST.md). */
   z.object({ type: z.literal('dev/session/probe') }),
+  /** NEOSIA bridge: one observation (path and key names), checked by lib/dev/neosia-observe.ts. */
+  z.object({ type: z.literal('dev/neosia/observe'), observation: z.unknown() }),
 ]);
 
 export type DevMessage = z.infer<typeof devMessageSchema>;

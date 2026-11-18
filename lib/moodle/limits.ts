@@ -38,6 +38,8 @@ export const TASKS_TTL_MIN = 180;
 export const TTL_TOLERANCE_MIN = 10;
 /** Onboarding reuses data younger than this instead of a new request. */
 export const ONBOARDING_FRESH_MIN = 5;
+/** Sync after signing in again (M7.2): skipped when a good sync happened within this long. */
+export const RELOGIN_FRESH_MIN = 10;
 /** While another account is detected: at most one session-only check per this many minutes, except from "Perbarui". */
 export const MISMATCH_CHECK_GAP_MIN = 10;
 export const QUIET_HOURS = { startHour: 0, endHour: 6 } as const;

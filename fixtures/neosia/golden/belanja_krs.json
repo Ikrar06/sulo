@@ -1,0 +1,112 @@
+{
+  "status": "ok",
+  "data": {
+    "kartu_rencana_studi": {
+      "is_approved": true,
+      "is_locked": false,
+      "is_current": true,
+      "prodi_semester": {
+        "semester": {
+          "kode": "20262",
+          "jenis": "Genap",
+          "tahun_ajaran": "2026/2027"
+        }
+      },
+      "kelas_kuliahs": [
+        {
+          "nama": "A",
+          "is_batal": false,
+          "sks": 3,
+          "mata_kuliah": {
+            "kode": "23D12100001",
+            "nama_resmi": "MEKANIKA FLUIDA",
+            "nama_singkat": "MEKANIKA FLU",
+            "sifat": "W",
+            "semester": 5,
+            "mata_kuliah_sifat": {
+              "nama": "Wajib"
+            }
+          },
+          "jadwal_kuliahs": [
+            {
+              "day_of_week": 1,
+              "start_time": "07:30:00",
+              "end_time": "10:00:00",
+              "ruang": {
+                "kode": "R101",
+                "nama": "Ruang Kuliah 101"
+              }
+            }
+          ],
+          "dosens": [
+            {
+              "nama": "Dosen Satu"
+            }
+          ]
+        },
+        {
+          "nama": "B",
+          "is_batal": false,
+          "sks": 2,
+          "mata_kuliah": {
+            "kode": "23D12100002",
+            "nama_resmi": "STATISTIKA",
+            "nama_singkat": "STATISTIKA",
+            "sifat": "W",
+            "semester": 5,
+            "mata_kuliah_sifat": {
+              "nama": "Wajib"
+            }
+          },
+          "jadwal_kuliahs": [
+            {
+              "day_of_week": 3,
+              "start_time": "13:00:00",
+              "end_time": "14:40:00",
+              "ruang": {
+                "kode": "LK2",
+                "nama": "Lab Komputer 2"
+              }
+            }
+          ],
+          "dosens": [
+            {
+              "nama": "Dosen Dua"
+            }
+          ]
+        },
+        {
+          "nama": "C",
+          "is_batal": true,
+          "sks": 3,
+          "mata_kuliah": {
+            "kode": "23D12100009",
+            "nama_resmi": "MATA KULIAH BATAL",
+            "nama_singkat": "MATA KULIAH ",
+            "sifat": "W",
+            "semester": 5,
+            "mata_kuliah_sifat": {
+              "nama": "Wajib"
+            }
+          },
+          "jadwal_kuliahs": [
+            {
+              "day_of_week": 5,
+              "start_time": "08:00:00",
+              "end_time": "10:30:00",
+              "ruang": {
+                "kode": "R110",
+                "nama": "Ruang Kuliah 110"
+              }
+            }
+          ],
+          "dosens": [
+            {
+              "nama": "Dosen Tiga"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

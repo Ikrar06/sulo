@@ -27,7 +27,8 @@ export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgen
 
 export type Banner =
   | { kind: 'disabled_remotely'; message: string }
-  | { kind: 'session_expired' }
+  /** The session ended; lastSyncAt dates the data still shown (M7.2). */
+  | { kind: 'session_expired'; lastSyncAt: UnixSeconds | null }
   | { kind: 'offline' }
   | { kind: 'stale'; lastSyncAt: UnixSeconds | null }
   /** Lowest priority: notifications are blocked in Chrome, so reminders cannot show. */
@@ -158,7 +159,7 @@ const offline = (input: PopupInput) =>
  */
 export function bannerFor(input: PopupInput, stale: boolean): Banner | null {
   if (!input.remoteConfig.enabled) return { kind: 'disabled_remotely', message: input.remoteConfig.message };
-  if (input.session === 'EXPIRED') return { kind: 'session_expired' };
+  if (input.session === 'EXPIRED') return { kind: 'session_expired', lastSyncAt: input.user?.sync.lastSyncAt ?? null };
   if (offline(input)) return { kind: 'offline' };
   if (stale && input.user?.sync.lastSyncAt) return { kind: 'stale', lastSyncAt: input.user.sync.lastSyncAt };
   if (input.notificationsAllowed === false) return { kind: 'notifications_off' };
@@ -253,9 +254,10 @@ export function buildPopupView(input: PopupInput): PopupView {
       const course = byId.get(task.courseId);
       return { courseName: course ? courseAlias(course) : '', task };
     }),
+    // An expired session reads like stale data (M7.2): the count from the last data, in grey; no "!" and no red.
     badge: {
-      text: sessionExpired ? '!' : urgentCount > 0 ? (urgentCount > 99 ? '99+' : String(urgentCount)) : '',
-      tone: sessionExpired ? 'expired' : stale ? 'neutral' : 'urgent',
+      text: urgentCount > 0 ? (urgentCount > 99 ? '99+' : String(urgentCount)) : '',
+      tone: sessionExpired || stale ? 'neutral' : 'urgent',
     },
     budget: input.budget,
     updatesUnseen: updates.filter((e) => !e.seen).length,

@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "data": {
+    "kartu_hasil_studi": [
+      {
+        "nilai_huruf": "A",
+        "source": "krs",
+        "sks": 3,
+        "mata_kuliah": {
+          "kode": "23D12100010",
+          "nama_resmi": "KALKULUS I"
+        }
+      }
+    ]
+  }
+}

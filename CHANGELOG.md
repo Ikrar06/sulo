@@ -2,6 +2,22 @@
 
 User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - Unreleased
+
+Tester build only; not submitted to any store.
+
+### Added
+
+- **NEOSIA, optional and off by default.** "Connect NEOSIA" in Settings shows what is kept and what is dropped before Chrome asks for permission. Sulo never contacts NEOSIA: it reads what the NEOSIA pages you open already loaded, keeps an allowlist of fields and drops the rest on the page. "Disconnect and delete data" removes everything and the permission.
+- **KRS readiness** on the overview from 14 days before the KRS window until it closes: dates, paid or not, advisor, survey, credit limit and KRS status, with reminders 3 days and 1 day before it closes.
+- **Schedule** page: your weekly classes from Monday to Saturday, holidays marked, and a calendar file for Google Calendar. Classes can also show in the calendar.
+- A short profile on the overview (semester, credits, GPA behind Show) and a note when a new grade is out, naming the course only.
+- Privacy mode: the eye in the dashboard header masks names, grades, GPA and credits.
+
+### Privacy
+
+- Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. The bug report says only whether NEOSIA is on and when its data last came.
+
 ## [0.1.0] - 2026-11-18
 
 The first public version.
