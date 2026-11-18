@@ -4,7 +4,7 @@ import { bundledCalendar } from '../lib/calendar/remote';
 import { DEFAULT_CALENDAR_NOTIFY } from '../lib/calendar/notify-settings';
 
 const BUNDLED_CALENDAR = bundledCalendar();
-import { ENDPOINTS, type EndpointId } from '../lib/neosia/allowlist';
+import { CAPTURE_SCHEMA_VERSION, ENDPOINTS, type EndpointId } from '../lib/neosia/allowlist';
 import { linkCourse } from '../lib/neosia/course-map';
 import { gradeChanges } from '../lib/neosia/grades';
 import { linkedMeetings } from '../lib/neosia/linked';
@@ -23,7 +23,7 @@ import { SYNTHETIC } from './neosia-synthetic';
 const TZ = 'Asia/Makassar';
 
 function snap(endpoint: EndpointId, data: Projected | null): NeosiaSnapshot {
-  return { endpoint, v: 1, data, changedAt: 100, seenAt: 100, unknownShapeAt: null };
+  return { endpoint, v: CAPTURE_SCHEMA_VERSION, data, changedAt: 100, seenAt: 100, unknownShapeAt: null };
 }
 
 function projected(endpoint: EndpointId, raw: unknown = SYNTHETIC[endpoint]): Projected {

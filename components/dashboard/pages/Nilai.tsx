@@ -8,11 +8,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatAgo } from '@/lib/format/time';
 import { GRADE_LETTERS } from '@/lib/grades/scale';
-import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readTranscript, simulateIpk, type TranscriptRow } from '@/lib/grades/transcript';
+import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readSemesters, readTranscript, semesterLabeler, simulateIpk, transcriptDiagnostics, type TranscriptRow } from '@/lib/grades/transcript';
 import { neosiaWords } from '@/lib/i18n/neosia';
 import { NEOSIA_LOGIN_URL } from '@/lib/links';
 import { neosiaStatus, profile } from '@/lib/neosia/view';
-import type { Projected } from '@/lib/neosia/project';
 import { GpaChart } from '../GpaChart';
 import { XIcon } from '../icons';
 import { Card } from '../Shell';
@@ -28,22 +27,6 @@ import type { PageProps } from '../types';
 const HIDDEN = '••••';
 const LOW = new Set(['D', 'E']);
 
-type Obj = { [k: string]: Projected };
-const obj = (v: Projected | null | undefined): Obj | null => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Obj) : null);
-
-/** Semester names from /api/mahasiswa/semester, by code ("20251" → "Ganjil 2025/2026"). */
-function semesterNames(data: Projected | null | undefined): Map<string, { jenis: string | null; tahun: string | null }> {
-  const list = obj(data)?.semesters;
-  const out = new Map<string, { jenis: string | null; tahun: string | null }>();
-  if (!Array.isArray(list)) return out;
-  for (const s of list) {
-    const o = obj(s);
-    const kode = o && (typeof o.kode === 'string' || typeof o.kode === 'number') ? String(o.kode) : null;
-    if (kode) out.set(kode, { jenis: typeof o!.jenis === 'string' ? o!.jenis : null, tahun: typeof o!.tahun_ajaran === 'string' ? o!.tahun_ajaran : null });
-  }
-  return out;
-}
-
 export function NilaiPage({ data }: PageProps) {
   const { m, locale } = useI18n();
   const w = neosiaWords(locale);
@@ -52,7 +35,7 @@ export function NilaiPage({ data }: PageProps) {
   const [shown, setShown] = useState(false);
   const snapshots = data.neosia.snapshots;
   const rows = useMemo(() => readTranscript(snapshots.getTranskripMahasiswa?.data), [snapshots]);
-  const names = useMemo(() => semesterNames(snapshots['mahasiswa/semester']?.data), [snapshots]);
+  const semesters = useMemo(() => readSemesters(snapshots['mahasiswa/semester']?.data), [snapshots]);
   const p = profile(snapshots);
   const status = neosiaStatus(snapshots);
 
@@ -75,13 +58,22 @@ export function NilaiPage({ data }: PageProps) {
   const mismatch = differsFromNeosia(computed, official);
   const passed = p?.sksPassed ?? passedSks(rows);
   const groups = bySemester(rows);
-  const label = (id: string) => n.semesterLabel(names.get(id)?.jenis ?? null, names.get(id)?.tahun ?? null, id);
-  /** "Ganjil 23/24" on the chart's axis; the code when NEOSIA gave no name. */
-  const shortLabel = (id: string) => {
-    const s = names.get(id);
-    const years = s?.tahun?.match(/^\d{2}(\d{2})\/\d{2}(\d{2})$/);
-    return s?.jenis && years ? `${s.jenis} ${years[1]}/${years[2]}` : id;
+  const labeler = semesterLabeler(rows, semesters);
+  /** "Ganjil 2025/2026", or "Semester 3" by order when NEOSIA gave no name. */
+  const label = (id: string) => {
+    const l = labeler(id);
+    return l.jenis && l.tahunAjaran ? `${l.jenis} ${l.tahunAjaran}` : n.semesterOrdinal(l.index);
   };
+  /** "Ganjil 23/24" on the chart's axis, else "Sem. 3". */
+  const shortLabel = (id: string) => {
+    const l = labeler(id);
+    const years = l.tahunAjaran?.match(/^\d{2}(\d{2})\/\d{2}(\d{2})$/);
+    return l.jenis && years ? `${l.jenis} ${years[1]}/${years[2]}` : n.semesterShort(l.index);
+  };
+  const points = [...groups]
+    .reverse()
+    .filter((g) => g.ips !== null && g.semester !== '-')
+    .map((g) => ({ label: shortLabel(g.semester), ips: g.ips!, sks: g.sks, text: n.chartPoint(label(g.semester), g.ips!.toFixed(2), g.sks) }));
   const reveal = shown && !masked;
   const fmt = (v: number | null) => (v === null ? '-' : v.toFixed(2));
 
@@ -108,29 +100,38 @@ export function NilaiPage({ data }: PageProps) {
       )}
 
       <Card title={n.chartTitle} action={<span className="text-[12px] text-muted-foreground">{n.estimate}</span>}>
-        {reveal ? (
-          <GpaChart
-            title={n.chartTitle}
-            points={[...groups]
-              .reverse()
-              .filter((g) => g.ips !== null)
-              .map((g) => ({ label: shortLabel(g.semester), ips: g.ips!, sks: g.sks, text: n.chartPoint(label(g.semester), g.ips!.toFixed(2), g.sks) }))}
-          />
+        {points.length === 0 ? (
+          // No point: no empty axes, one sentence instead.
+          <p className="py-4 text-[14px] text-muted-foreground">{n.chartEmpty}</p>
+        ) : reveal ? (
+          <GpaChart title={n.chartTitle} points={points} />
         ) : (
           <p className="py-8 text-center text-[14px] text-muted-foreground">{HIDDEN}</p>
         )}
-        <p className="mt-2 text-[12px] text-muted-foreground">{n.chartNote}</p>
+        {points.length > 0 && <p className="mt-2 text-[12px] text-muted-foreground">{n.chartNote}</p>}
       </Card>
 
       <div className="space-y-2">
         {groups.map((g, i) => (
-          <Semester key={g.semester} title={label(g.semester)} summary={n.semesterSummary(g.sks, reveal && g.ips !== null ? g.ips.toFixed(2) : HIDDEN)} rows={g.rows} reveal={shown} open={i === 0} />
+          <Semester key={g.semester} title={g.semester === '-' ? n.semesterUnknown : label(g.semester)} summary={n.semesterSummary(g.sks, reveal && g.ips !== null ? g.ips.toFixed(2) : HIDDEN)} rows={g.rows} reveal={shown} open={i === 0} />
         ))}
       </div>
 
-      <Improvable rows={rows} reveal={shown} />
-      <Simulation rows={rows} reveal={reveal} now={computed} />
+      {/* Without a transcript there is nothing to list or simulate. */}
+      {rows.length > 0 && <Improvable rows={rows} reveal={shown} />}
+      {rows.length > 0 && <Simulation rows={rows} reveal={reveal} now={computed} />}
+      {import.meta.env.MODE === 'development' && <DevTranscript rows={rows} semesters={semesters} />}
     </div>
+  );
+}
+
+/** Development builds only: how the stored transcript reads. Counts, never grades. */
+function DevTranscript({ rows, semesters }: { rows: readonly TranscriptRow[]; semesters: ReturnType<typeof readSemesters> }) {
+  const d = transcriptDiagnostics(rows, semesters);
+  return (
+    <p className="text-[12px] text-muted-foreground tabular-nums">
+      Transcript check (dev build only): {d.stored} rows stored, {d.counted} counted, {d.mapped} mapped to a semester ({semesters.length} semesters stored). Not counted because: not used {d.notUsed}, letter off the scale {d.noLetter}, no credits {d.noCredits}, no semester {d.noSemester}.
+    </p>
   );
 }
 

@@ -20,7 +20,13 @@ export const NEOSIA_HOST_PERMISSIONS = [NEOSIA_APP_MATCH] as const;
 
 /** Message type from the page-world script to the bridge. A new version means a new baseline. */
 export const CAPTURE_TYPE = 'sulo:capture:v1';
-export const CAPTURE_SCHEMA_VERSION = 1;
+/**
+ * Bumped whenever a projection changes. Snapshots of another version are
+ * ignored until NEOSIA is opened again (M7.1 fix: transcripts captured with
+ * the pre-observation projection had no course names and read as empty).
+ * 2: allowlist locked to the observation (18 Nov 2026), semesters[].id added.
+ */
+export const CAPTURE_SCHEMA_VERSION = 2;
 
 /**
  * Largest capture message the bridge and the service worker accept, in
@@ -211,7 +217,8 @@ export const ENDPOINTS: readonly Endpoint[] = [
     // indeks_prestasi is kept only when it is an object of this shape (observed without keys).
     spec: { kartu_hasil_studi: [{ nilai_huruf: 'v', source: 'v', sks: SKS_SUM, mata_kuliah: { kode: 'v', nama_resmi: 'v' } }], indeks_prestasi: INDEKS_PRESTASI },
   },
-  { id: 'mahasiswa/semester', path: 'api/mahasiswa/semester', spec: { semesters: [SEMESTER] } },
+  // semesters[].id is the semester's own id (what transcript rows point to with id_semester), never a person's.
+  { id: 'mahasiswa/semester', path: 'api/mahasiswa/semester', spec: { semesters: [{ id: 'v', ...SEMESTER }] } },
   // is_filled only: survey_url is never named.
   { id: 'check_survey_status', path: 'api/mahasiswa/check_survey_status', spec: { is_filled: 'v' } },
 ];

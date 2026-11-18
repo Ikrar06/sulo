@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAPTURE_TYPE, ENDPOINTS, MAX_MESSAGE_CHARS } from '../lib/neosia/allowlist';
+import { CAPTURE_SCHEMA_VERSION, CAPTURE_TYPE, ENDPOINTS, MAX_MESSAGE_CHARS } from '../lib/neosia/allowlist';
 import { createBridge, DEDUP_MS, sha256Hex } from '../lib/neosia/bridge';
 import { NEOSIA_MODULE_KEY } from '../lib/neosia/module';
 import { projectResponse } from '../lib/neosia/project';
@@ -15,7 +15,7 @@ function capture(endpoint: (typeof ENDPOINTS)[number]['id'] = 'max_sks') {
   const e = ENDPOINTS.find((x) => x.id === endpoint)!;
   const result = projectResponse(e.spec, SYNTHETIC[endpoint]);
   if (result.status !== 'ok') throw new Error('fixture');
-  return { type: CAPTURE_TYPE, v: 1, endpoint, status: 'ok' as const, data: result.data, at: 1_794_000_000 };
+  return { type: CAPTURE_TYPE, v: CAPTURE_SCHEMA_VERSION, endpoint, status: 'ok' as const, data: result.data, at: 1_794_000_000 };
 }
 
 function bridge(start = 0) {
@@ -56,7 +56,7 @@ describe('the bridge', () => {
     const bad = [
       { ...capture(), endpoint: 'mahasiswa/mahasiswa' },
       { ...capture(), extra: 1 },
-      { ...capture(), v: 2 },
+      { ...capture(), v: 1 },
       { ...capture(), at: 'now' },
       { ...capture(), data: { max_sks: 24, nim: PLACEHOLDER.nim } },
       { ...capture(), data: { max_sks: 24, context: { current_semester: 4, nik: PLACEHOLDER.nik } } },
@@ -87,8 +87,8 @@ describe('the bridge', () => {
 
   it('accepts unknown_shape without data', async () => {
     const b = bridge();
-    expect(await b.onMessage({ source: self, origin: ORIGIN, data: { type: CAPTURE_TYPE, v: 1, endpoint: 'dashboard', status: 'unknown_shape', at: 1 } })).toBe('sent');
-    expect(await b.onMessage({ source: self, origin: ORIGIN, data: { type: CAPTURE_TYPE, v: 1, endpoint: 'dashboard', status: 'unknown_shape', at: 1, data: {} } })).toBe('rejected');
+    expect(await b.onMessage({ source: self, origin: ORIGIN, data: { type: CAPTURE_TYPE, v: CAPTURE_SCHEMA_VERSION, endpoint: 'dashboard', status: 'unknown_shape', at: 1 } })).toBe('sent');
+    expect(await b.onMessage({ source: self, origin: ORIGIN, data: { type: CAPTURE_TYPE, v: CAPTURE_SCHEMA_VERSION, endpoint: 'dashboard', status: 'unknown_shape', at: 1, data: {} } })).toBe('rejected');
   });
 
   it('accepts every synthetic golden projection', () => {
@@ -132,7 +132,7 @@ describe('the service worker stores snapshots', () => {
   it('keeps the last good data when NEOSIA answers in an unknown shape', async () => {
     const store = memoryStore(on);
     await ingestCapture(store, 100, capture());
-    await ingestCapture(store, 200, { type: CAPTURE_TYPE, v: 1, endpoint: 'max_sks', status: 'unknown_shape', at: 1 });
+    await ingestCapture(store, 200, { type: CAPTURE_TYPE, v: CAPTURE_SCHEMA_VERSION, endpoint: 'max_sks', status: 'unknown_shape', at: 1 });
     const snap = (await store.get<{ data: unknown; unknownShapeAt: number }>(snapshotKey('max_sks')))!;
     expect(snap.data).toEqual(capture().data);
     expect(snap.unknownShapeAt).toBe(200);
@@ -146,5 +146,15 @@ describe('the service worker stores snapshots', () => {
       expect(text, field).not.toContain(`"${field}"`);
     }
     for (const value of Object.values(SECRET)) expect(text, String(value)).not.toContain(String(value));
+  });
+});
+
+describe('snapshots from an older projection (M7.1 fix)', () => {
+  it('are ignored until NEOSIA is opened again, then replaced', async () => {
+    const store = memoryStore({ [NEOSIA_MODULE_KEY]: { enabled: true, changedAt: 1 }, [snapshotKey('getTranskripMahasiswa')]: { endpoint: 'getTranskripMahasiswa', v: 1, data: { transkrip: [{ sks: 3, nilai_huruf: 'A' }] }, changedAt: 1, seenAt: 1, unknownShapeAt: null } });
+    expect(await readSnapshots(store)).toEqual({});
+    const result = await ingestCapture(store, 100, capture('getTranskripMahasiswa'));
+    expect(result).toMatchObject({ kind: 'stored', baseline: true });
+    expect(Object.keys(await readSnapshots(store))).toEqual(['getTranskripMahasiswa']);
   });
 });

@@ -3,6 +3,7 @@
   "data": {
     "semesters": [
       {
+        "id": 20251,
         "kode": "20251",
         "jenis": "Ganjil",
         "tahun": 2025,
@@ -10,6 +11,7 @@
         "is_active": false
       },
       {
+        "id": 20262,
         "kode": "20262",
         "jenis": "Genap",
         "tahun": 2026,

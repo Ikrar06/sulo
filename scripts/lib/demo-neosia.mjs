@@ -23,7 +23,8 @@ const R = (kode, nama) => ({ kode, nama });
 /** The snapshot map (endpoint → snapshot) and the module state. */
 export function demoNeosia(now = Math.floor(Date.now() / 1000)) {
   const seen = now - 2 * 3600;
-  const snap = (endpoint, data) => [`neosia:snap:${endpoint}`, { endpoint, v: 1, data, changedAt: seen, seenAt: seen, unknownShapeAt: null }];
+  // v: the capture schema version (lib/neosia/allowlist.ts CAPTURE_SCHEMA_VERSION).
+  const snap = (endpoint, data) => [`neosia:snap:${endpoint}`, { endpoint, v: 2, data, changedAt: seen, seenAt: seen, unknownShapeAt: null }];
   const data = {
     belanja_krs: {
       kartu_rencana_studi: {

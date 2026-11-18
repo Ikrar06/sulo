@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error plain JS helper shared with the screenshot scripts
 import { demoNeosia } from '../scripts/lib/demo-neosia.mjs';
-import { CAPTURE_TYPE } from '../lib/neosia/allowlist';
+import { CAPTURE_SCHEMA_VERSION, CAPTURE_TYPE } from '../lib/neosia/allowlist';
 import { parseCapture } from '../lib/neosia/schema';
 
 describe('synthetic NEOSIA demo data (guide and screenshots)', () => {
@@ -10,7 +10,7 @@ describe('synthetic NEOSIA demo data (guide and screenshots)', () => {
     const snaps = Object.entries(storage).filter(([k]) => k.startsWith('neosia:snap:'));
     expect(snaps.length).toBeGreaterThan(5);
     for (const [, s] of snaps) {
-      expect(parseCapture({ type: CAPTURE_TYPE, v: 1, endpoint: s.endpoint, status: 'ok', data: s.data, at: 1 }), s.endpoint).not.toBeNull();
+      expect(parseCapture({ type: CAPTURE_TYPE, v: CAPTURE_SCHEMA_VERSION, endpoint: s.endpoint, status: 'ok', data: s.data, at: 1 }), s.endpoint).not.toBeNull();
     }
   });
 });

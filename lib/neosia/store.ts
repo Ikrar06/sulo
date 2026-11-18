@@ -28,9 +28,14 @@ export interface NeosiaSnapshot {
 
 export type Snapshots = Partial<Record<EndpointId, NeosiaSnapshot>>;
 
+/**
+ * Snapshots of the current capture version only. One taken with an older
+ * projection has other field names and would read as empty or wrong; it is
+ * ignored until NEOSIA is opened again and replaces it.
+ */
 export async function readSnapshots(store: KeyValueStore): Promise<Snapshots> {
   const entries = await Promise.all(ENDPOINTS.map(async (e) => [e.id, await store.get<NeosiaSnapshot>(snapshotKey(e.id))] as const));
-  return Object.fromEntries(entries.filter(([, s]) => s !== undefined)) as Snapshots;
+  return Object.fromEntries(entries.filter(([, s]) => s !== undefined && s.v === CAPTURE_SCHEMA_VERSION)) as Snapshots;
 }
 
 export type IngestResult =

@@ -2,7 +2,7 @@
 // axis, drawn with SVG here (no chart library). No gradient, no glow. Each
 // dot is focusable and carries its value as a tooltip and label.
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 export interface GpaPoint {
   label: string;
@@ -12,13 +12,26 @@ export interface GpaPoint {
   text: string;
 }
 
-const W = 640;
+/** Fallback width before the first measure. */
+const DEFAULT_W = 640;
 const H = 200;
 const PAD = { left: 52, right: 44, top: 12, bottom: 28 };
 
 export function GpaChart({ points, title }: { points: readonly GpaPoint[]; title: string }) {
   const id = useId();
   const [active, setActive] = useState<number | null>(null);
+  // The drawing is as wide as the card, in real pixels, so text stays at its size.
+  const box = useRef<HTMLDivElement | null>(null);
+  const [W, setW] = useState(DEFAULT_W);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => setW(Math.max(240, Math.round(el.clientWidth)));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
   const x = (i: number) => PAD.left + (points.length === 1 ? innerW / 2 : (i / (points.length - 1)) * innerW);
@@ -26,9 +39,8 @@ export function GpaChart({ points, title }: { points: readonly GpaPoint[]; title
   const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.ips).toFixed(1)}`).join(' ');
   const shown = active === null ? null : points[active];
   return (
-    // A bounded width keeps the axis text near 12 px.
-    <div className="relative max-w-[720px]">
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-labelledby={`${id}-t`}>
+    <div ref={box} className="relative w-full">
+      <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="block max-w-full" role="img" aria-labelledby={`${id}-t`}>
         <title id={`${id}-t`}>{title}</title>
         {[0, 1, 2, 3, 4].map((v) => (
           <g key={v}>

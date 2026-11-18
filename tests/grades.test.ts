@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import type { Projected } from '../lib/neosia/project';
 import { GRADE_SCALE, gradeWeight } from '../lib/grades/scale';
-import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readTranscript, simulateIpk, type TranscriptRow } from '../lib/grades/transcript';
+import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readSemesters, readTranscript, semesterLabeler, simulateIpk, transcriptDiagnostics, type TranscriptRow } from '../lib/grades/transcript';
 
 const row = (key: string, letter: string | null, sks: number, extra: Partial<TranscriptRow> = {}): TranscriptRow => ({ key, code: key, name: key, sks, letter, semester: '20251', used: true, transfer: false, manual: false, ...extra });
 
@@ -62,5 +63,53 @@ describe('reading the projected transcript', () => {
   it('maps the observed fields', () => {
     const rows = readTranscript({ transkrip: [{ kode_mata_kuliah: 'K1', nama_mata_kuliah: 'N1', sks: 3, nilai_huruf: 'A', id_semester: 20251, is_used: false, is_alih_kredit: true, is_manual: true, is_locked: true }] });
     expect(rows).toEqual([{ key: 'K1|20251', code: 'K1', name: 'N1', sks: 3, letter: 'A', semester: '20251', used: false, transfer: true, manual: true }]);
+  });
+});
+
+describe('transcripts with mixed field types (M7.1 fix)', () => {
+  // Synthetic: ids as numbers and strings, is_used as 0/1, credits as strings, letters with spaces and lower case.
+  const transcript = {
+    transkrip: [
+      { kode_mata_kuliah: 'K1', nama_mata_kuliah: 'SATU', sks: '3', nilai_huruf: 'A', id_semester: 47, is_used: 1 },
+      { kode_mata_kuliah: 'K2', nama_mata_kuliah: 'DUA', sks: 2, nilai_huruf: ' b+ ', id_semester: '47', is_used: '1' },
+      { kode_mata_kuliah: 'K3', nama_mata_kuliah: 'TIGA', sks: '3', nilai_huruf: 'E', id_semester: 48, is_used: 0, is_alih_kredit: 1 },
+      { kode_mata_kuliah: 'K4', nama_mata_kuliah: 'EMPAT', sks: 'x', nilai_huruf: 'T', id_semester: '49', is_used: 1 },
+      { kode_mata_kuliah: 'K5', sks: 3, nilai_huruf: 'c', id_semester: 48 },
+    ],
+  };
+  const semesters = readSemesters({ semesters: [{ id: '47', kode: '20231', jenis: 'Ganjil', tahun_ajaran: '2023/2024' }, { id: 48, kode: '20232', jenis: 'Genap', tahun_ajaran: '2023/2024' }] });
+  const rows = readTranscript(transcript as unknown as Projected);
+
+  it('reads ids, 0/1 flags, string credits and messy letters', () => {
+    expect(rows.map((r) => [r.semester, r.used, r.transfer, r.sks, r.letter, r.name])).toEqual([
+      ['47', true, false, 3, 'A', 'SATU'],
+      ['47', true, false, 2, 'B+', 'DUA'],
+      ['48', false, true, 3, 'E', 'TIGA'],
+      ['49', true, false, 0, 'T', 'EMPAT'],
+      ['48', true, false, 3, 'C', 'K5'],
+    ]);
+    // (4*3 + 3.5*2 + 2*3) / 8
+    expect(computeIpk(rows)).toBe(3.13);
+  });
+
+  it('maps rows to semesters by id (number or string), labels the rest by their order', () => {
+    const label = semesterLabeler(rows, semesters);
+    expect(label('47')).toEqual({ jenis: 'Ganjil', tahunAjaran: '2023/2024', index: 1 });
+    expect(label('48')).toEqual({ jenis: 'Genap', tahunAjaran: '2023/2024', index: 2 });
+    expect(label('49')).toEqual({ jenis: null, tahunAjaran: null, index: 3 });
+    expect(bySemester(rows).map((g) => g.semester)).toEqual(['49', '48', '47']);
+  });
+
+  it('still groups by id_semester when no semester list is stored', () => {
+    expect(bySemester(rows).map((g) => [g.semester, g.rows.length])).toEqual([
+      ['49', 1],
+      ['48', 2],
+      ['47', 2],
+    ]);
+    expect(semesterLabeler(rows, [])('48').index).toBe(2);
+  });
+
+  it('dev diagnostics: counts only', () => {
+    expect(transcriptDiagnostics(rows, semesters)).toEqual({ stored: 5, counted: 3, mapped: 4, notUsed: 1, noLetter: 1, noCredits: 1, noSemester: 0 });
   });
 });
