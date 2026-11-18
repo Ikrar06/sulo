@@ -27,7 +27,7 @@
     "zip:tester": "pnpm --filter @sulo/extension zip:tester",
     "store:shots": "pnpm --filter @sulo/extension store:shots",
     "typecheck": "pnpm --filter @sulo/core typecheck && pnpm --filter @sulo/extension typecheck",
-    "lint": "pnpm --filter @sulo/extension lint && node apps/extension/scripts/check-leaks.mjs",
+    "lint": "pnpm --filter @sulo/core lint && pnpm --filter @sulo/extension lint && node apps/extension/scripts/check-leaks.mjs",
     "test": "pnpm --filter @sulo/extension test",
     "test:watch": "pnpm --filter @sulo/extension test:watch",
     "check-leaks": "node apps/extension/scripts/check-leaks.mjs",

@@ -1,4 +1,5 @@
 import { browser } from 'wxt/browser';
+import type { KeyValueStore as PlatformStore, StorageChange } from '@sulo/core/platform';
 import type { KeyValueStore } from '@sulo/core/types';
 
 type StorageArea = typeof browser.storage.local;
@@ -24,3 +25,19 @@ export function createBrowserStore(area: StorageArea): KeyValueStore {
   };
 }
 
+/**
+ * The platform KeyValueStore (packages/core/src/platform): the same store
+ * plus watch, from chrome.storage.onChanged for this area only.
+ */
+export function createWatchedStore(area: StorageArea, areaName: 'local' | 'session'): PlatformStore {
+  return {
+    ...createBrowserStore(area),
+    watch(listener) {
+      const onChanged = (changes: Record<string, StorageChange>, name: string) => {
+        if (name === areaName) listener(changes);
+      };
+      browser.storage.onChanged.addListener(onChanged);
+      return () => browser.storage.onChanged.removeListener(onChanged);
+    },
+  };
+}
