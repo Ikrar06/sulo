@@ -50,11 +50,11 @@ export function keyShape(value: unknown): string[] {
 }
 
 export function observation(match: UrlMatch, json: unknown, at: number, page = '/'): Observation {
-  const listed = match.kind === 'endpoint';
+  const listed = match.kind === 'endpoint' || match.kind === 'observe';
   return {
     type: OBSERVE_TYPE,
     path: match.path,
-    endpoint: listed ? match.endpoint.id : match.kind,
+    endpoint: match.kind === 'endpoint' ? match.endpoint.id : match.kind === 'observe' ? `${match.id} (observasi)` : match.kind,
     keys: listed && json !== undefined ? keyShape(json) : null,
     page,
     at,

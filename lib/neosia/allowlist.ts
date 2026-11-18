@@ -137,7 +137,6 @@ export type EndpointId =
   | 'indeks_prestasi/current'
   | 'mahasiswa/semester'
   | 'kartu_hasil_studi/semester'
-  | 'getStatusPembayaran'
   | 'check_survey_status';
 
 export interface Endpoint {
@@ -186,12 +185,6 @@ export const ENDPOINTS: readonly Endpoint[] = [
     },
   },
   {
-    id: 'getStatusPembayaran',
-    path: 'api/mahasiswa/pembayaran/getStatusPembayaran',
-    // Paid or not; amount, bank and source of funds are dropped.
-    spec: { status: 'v', pembayaran: { sudah_bayar: 'v' } },
-  },
-  {
     id: 'prodi_semester/active',
     path: 'api/mahasiswa/prodi_semester/active',
     spec: { activeProdiSemester: { is_active: 'v', semester: SEMESTER } },
@@ -222,6 +215,14 @@ export const ENDPOINTS: readonly Endpoint[] = [
   // is_filled only: survey_url is never named.
   { id: 'check_survey_status', path: 'api/mahasiswa/check_survey_status', spec: { is_filled: 'v' } },
 ];
+
+/**
+ * Seen in the owner's observation but not projected yet ("observasi"): only
+ * development builds read these, to list their key names (never values).
+ * Other builds do not read them at all. Once the key names are known, the
+ * academic advisor's projection keeps the name and titles only.
+ */
+export const OBSERVE_ONLY: readonly { id: string; path: string }[] = [{ id: 'getCurrentPenasihatAkademik', path: 'api/mahasiswa/penasihat_akademik/getCurrentPenasihatAkademik' }];
 
 /** Wrapper keys a response may put its payload under. */
 export const UNWRAP_KEYS = ['data', 'result', 'results'] as const;

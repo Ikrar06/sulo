@@ -81,12 +81,14 @@ export function installCapture(win: CaptureWindow, options: CaptureOptions): boo
   };
 
   const handleJson = (match: UrlMatch, json: unknown) => {
-    if (match.kind !== 'endpoint') return;
+    if (match.kind !== 'endpoint' && match.kind !== 'observe') return;
     try {
       options.onSeen?.(match, json);
     } catch {
       // Dev listing only.
     }
+    // Observed only: key names went to the dev listing; nothing is posted.
+    if (match.kind !== 'endpoint') return;
     const base = { type: CAPTURE_TYPE, v: CAPTURE_SCHEMA_VERSION, endpoint: match.endpoint.id, at: options.now() } as const;
     const result = projectResponse(match.endpoint.spec, json);
     if (result.status !== 'ok') {
@@ -111,6 +113,9 @@ export function installCapture(win: CaptureWindow, options: CaptureOptions): boo
       // Dev listing only.
     }
   };
+
+  /** Read the body: allowlisted responses always; observe-only ones in development builds only. */
+  const reads = (match: UrlMatch) => match.kind === 'endpoint' || (match.kind === 'observe' && options.onSeen !== undefined);
 
   const handleText = (match: UrlMatch, text: unknown) => {
     try {
@@ -146,7 +151,7 @@ export function installCapture(win: CaptureWindow, options: CaptureOptions): boo
         const result = original.apply(this, args);
         try {
           const match = matchOf(args[0]);
-          if (match && match.kind !== 'endpoint') skip(match);
+          if (match && !reads(match)) skip(match);
           else if (match && result && typeof (result as Promise<unknown>).then === 'function') {
             (result as Promise<unknown>).then((response) => {
               try {
@@ -193,7 +198,7 @@ export function installCapture(win: CaptureWindow, options: CaptureOptions): boo
           const url = urls.get(this);
           const match = url === undefined ? null : matchOf(url);
           const xhr = this as { addEventListener?: (t: string, l: () => void, o?: unknown) => void; status: number; responseType: string; responseText: string; response: unknown };
-          if (match && match.kind !== 'endpoint') skip(match);
+          if (match && !reads(match)) skip(match);
           else if (match && typeof xhr.addEventListener === 'function') {
             xhr.addEventListener(
               'load',

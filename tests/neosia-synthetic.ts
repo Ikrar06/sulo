@@ -217,14 +217,10 @@ export const SYNTHETIC: Record<EndpointId, unknown> = {
       ],
     },
   },
-  getStatusPembayaran: {
-    pembayaran: { id: 1, id_mahasiswa: 5001, id_semester: 20262, sudah_bayar: true, is_manual: false, bank: SECRET.bank, nominal: SECRET.nominal, sumber_biaya: 'Sumber Sintetis', created_at: 'x', updated_at: 'x' },
-    status: true,
-  },
   'prodi_semester/active': { activeProdiSemester: { id: 3, id_semester: 20262, id_prodi: 9, is_active: true, is_used: true, semester: SEMESTER } },
   dashboard: {
     identitas: { nama_mahasiswa: SECRET.nama_mahasiswa, nim: SECRET.nim, prodi: 'Prodi Sintetis' },
-    pembayaran: { sudah_bayar: true, sumber_biaya: 'Sumber Sintetis' },
+    pembayaran: { sudah_bayar: true, sumber_biaya: 'Sumber Sintetis', bank: SECRET.bank, nominal: SECRET.nominal, id_mahasiswa: 5001 },
     nilai_tes_eksternals: [{ nilai: 550 }],
     indeks_prestasi: { ipk: 3.51, jumlah_sks_dilulusi: 64 },
     masa_studi: { maksimal: 14, sisa: 10 },

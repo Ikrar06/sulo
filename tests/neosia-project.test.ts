@@ -73,8 +73,8 @@ describe('the allowlist', () => {
 });
 
 describe('golden projections (synthetic responses shaped like the observation)', () => {
-  it('covers exactly 12 endpoints', () => {
-    expect(ENDPOINTS).toHaveLength(12);
+  it('covers exactly 11 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(11);
     expect(ENDPOINTS.map((e) => e.id)).not.toContain('getCurrentPenasihatAkademik');
   });
 

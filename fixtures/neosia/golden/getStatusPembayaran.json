@@ -1,9 +1,0 @@
-{
-  "status": "ok",
-  "data": {
-    "status": true,
-    "pembayaran": {
-      "sudah_bayar": true
-    }
-  }
-}

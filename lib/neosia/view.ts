@@ -123,10 +123,8 @@ export type ReadinessItem =
   | { id: 'sks'; state: ItemState; max: number | null; available: number | null }
   | { id: 'krs'; state: ItemState; status: KrsStatus | null };
 
-/** pembayaran.sudah_bayar from the payment status, else from the dashboard. Never an amount. */
+/** dashboard.pembayaran.sudah_bayar only. Never an amount. */
 export function paymentPaid(snapshots: Snapshots): boolean | null {
-  const fromStatus = bool(obj(obj(dataOf(snapshots, 'getStatusPembayaran') as Projected)?.pembayaran)?.sudah_bayar);
-  if (fromStatus !== null) return fromStatus;
   return bool(obj(obj(dataOf(snapshots, 'dashboard') as Projected)?.pembayaran)?.sudah_bayar);
 }
 

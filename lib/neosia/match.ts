@@ -3,9 +3,10 @@
 // every other host, including the app's connectivity check on
 // jsonplaceholder.typicode.com, is ignored. The query string is never looked at.
 
-import { ENDPOINTS, NEOSIA_API_HOST, NEVER_READ_PATHS, type Endpoint } from './allowlist';
+import { ENDPOINTS, NEOSIA_API_HOST, NEVER_READ_PATHS, OBSERVE_ONLY, type Endpoint } from './allowlist';
 
-export type UrlMatch = { kind: 'endpoint'; endpoint: Endpoint; path: string } | { kind: 'never'; path: string } | { kind: 'other'; path: string };
+/** observe: listed for its key names in development builds only, never projected or stored. */
+export type UrlMatch = { kind: 'endpoint'; endpoint: Endpoint; path: string } | { kind: 'observe'; id: string; path: string } | { kind: 'never'; path: string } | { kind: 'other'; path: string };
 
 /** Up to two segments after the endpoint's full path, each an id ("123", "20251", a uuid). */
 const TAIL_SEGMENT = /^(?:\d{1,12}|[0-9a-f-]{8,40})$/i;
@@ -45,6 +46,11 @@ export function matchUrl(raw: string, base?: string): UrlMatch | null {
   const segments = segmentsOf(url.pathname);
   const path = scrubPath(url.pathname);
   if (NEVER_READ_PATHS.some((p) => contains(segments, segmentsOf(p)) >= 0)) return { kind: 'never', path };
+  for (const o of OBSERVE_ONLY) {
+    const pattern = segmentsOf(o.path);
+    const tail = segments.slice(pattern.length);
+    if (contains(segments, pattern) === 0 && tail.length <= MAX_TAIL && tail.every((t) => TAIL_SEGMENT.test(t))) return { kind: 'observe', id: o.id, path };
+  }
   for (const endpoint of BY_LENGTH) {
     const pattern = segmentsOf(endpoint.path);
     // Anchored at the root: "/api/mahasiswa/belanja_krs/max_sks" is max_sks, never belanja_krs.

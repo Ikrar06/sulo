@@ -38,6 +38,14 @@ export async function readSnapshots(store: KeyValueStore): Promise<Snapshots> {
   return Object.fromEntries(entries.filter(([, s]) => s !== undefined && s.v === CAPTURE_SCHEMA_VERSION)) as Snapshots;
 }
 
+/** Snapshot keys of endpoints no longer on the allowlist (getStatusPembayaran): deleted at startup. */
+export async function pruneUnlistedSnapshots(store: KeyValueStore): Promise<string[]> {
+  const listed = new Set(ENDPOINTS.map((e) => snapshotKey(e.id)));
+  const stale = (await store.keys(`${NEOSIA_DATA_PREFIX}snap:`)).filter((k) => !listed.has(k));
+  if (stale.length > 0) await store.remove(stale);
+  return stale;
+}
+
 export type IngestResult =
   | { kind: 'off' | 'rejected' }
   | { kind: 'stored'; endpoint: EndpointId; previous: NeosiaSnapshot | null; next: NeosiaSnapshot; changed: boolean; baseline: boolean };

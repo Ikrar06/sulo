@@ -82,7 +82,6 @@ export function demoNeosia(now = Math.floor(Date.now() / 1000)) {
       ],
     },
     'indeks_prestasi/current': { currentIndeksPrestasi: { semester_tahun_ajaran: '2024/2025 Genap', indeks_prestasi_semester: 3.1, indeks_prestasi_kumulatif: 2.95, jumlah_sks: 27 } },
-    getStatusPembayaran: { status: true, pembayaran: { sudah_bayar: true } },
     check_survey_status: { is_filled: false },
   };
   return {

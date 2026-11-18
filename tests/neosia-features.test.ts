@@ -83,7 +83,8 @@ describe('KRS windows and readiness', () => {
 
   it('reads payment and survey without amounts or ids', () => {
     expect(paymentPaid(all)).toBe(true);
-    expect(paymentPaid({ getStatusPembayaran: snap('getStatusPembayaran', { pembayaran: { sudah_bayar: false } }) })).toBe(false);
+    expect(paymentPaid({ dashboard: snap('dashboard', { pembayaran: { sudah_bayar: false } }) })).toBe(false);
+    expect(paymentPaid({})).toBeNull();
     expect(paymentPaid({ dashboard: snap('dashboard', { pembayaran: { sudah_bayar: true } }) })).toBe(true);
     expect(surveyFilled(all)).toBe(false);
   });
