@@ -21,6 +21,8 @@ import type { PageProps } from '../types';
 const DevDiagnostics = import.meta.env.MODE === 'development' ? lazy(() => import('../DevDiagnostics')) : null;
 /** Usage statistics and their export: development builds only (M7.1). */
 const UsageStats = import.meta.env.MODE === 'development' ? lazy(() => import('../UsageStats')) : null;
+// Tester and development builds: what the radar stored (counts and codes).
+const RadarDiagnosis = import.meta.env.MODE !== 'production' ? lazy(() => import('../RadarDiagnosis')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
 const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data'] as const;
@@ -249,6 +251,11 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         <BugReport d={d} lastSyncAt={data.view.lastSyncAt} />
       </Card>
 
+      {RadarDiagnosis && (
+        <Suspense fallback={null}>
+          <RadarDiagnosis data={data} />
+        </Suspense>
+      )}
       {DevDiagnostics && (
         <Suspense fallback={null}>
           <DevDiagnostics data={data} />
