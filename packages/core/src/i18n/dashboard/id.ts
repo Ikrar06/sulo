@@ -139,6 +139,7 @@ export const dashId = {
     status: { present: 'Hadir', late: 'Terlambat', excused: 'Izin', absent: 'Alpa' },
     remarks: 'Keterangan',
     average: (pct: string) => `Presensi rata-rata ${pct}%`,
+    lowest: (course: string, pct: string) => `Terendah: ${course} ${pct}%`,
     open: (course: string) => `Buka rincian presensi ${course}`,
   },
   mataKuliah: {

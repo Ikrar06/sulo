@@ -80,19 +80,20 @@ export async function recordSeenCmid(store: KeyValueStore, userId: UserId, cmid:
  *    the client (budget, queue, backoff);
  * d. none: null.
  */
-export async function findRecapCmid(deps: PresensiDeps, data: PresensiData, allowProbe: boolean): Promise<{ cmid: number | null; via: CmidSource | null; probes: number }> {
+export async function findRecapCmid(deps: PresensiDeps, data: PresensiData, maxProbes: number | boolean): Promise<{ cmid: number | null; via: CmidSource | null; probes: number }> {
+  const limit = maxProbes === true ? MAX_CMID_PROBES : maxProbes === false ? 0 : Math.min(maxProbes, MAX_CMID_PROBES);
   const snapshots = await readUser(deps.store, deps.userId, 'snapshots');
   const fromSnapshots = attendanceCmids(snapshots);
   const followed = [...fromSnapshots].find(([course]) => deps.monitored.has(course))?.[1] ?? [...fromSnapshots.values()][0];
   if (followed !== undefined) return { cmid: followed, via: 'snapshot', probes: 0 };
   if (data.knownCmids && data.knownCmids.length > 0) return { cmid: data.knownCmids[0]!, via: 'known', probes: 0 };
-  if (!allowProbe) return { cmid: null, via: null, probes: 0 };
+  if (limit <= 0) return { cmid: null, via: null, probes: 0 };
   const checked = (await readUser(deps.store, deps.userId, 'radar')).stateCheckedAt;
   const candidates = [...deps.monitored]
     // A course whose stored structure has no attendance is not asked again.
     .filter((id) => !snapshots[String(id)])
     .sort((a, b) => (checked[String(a)] ?? 0) - (checked[String(b)] ?? 0) || a - b)
-    .slice(0, MAX_CMID_PROBES);
+    .slice(0, limit);
   let probes = 0;
   for (const courseId of candidates) {
     probes += 1;
@@ -117,6 +118,23 @@ export function averagePercent(rows: readonly RecapRow[]): number | null {
   const got = rows.reduce((n, r) => n + (r.points && r.points.max > 0 ? r.points.got : 0), 0);
   const max = rows.reduce((n, r) => n + (r.points && r.points.max > 0 ? r.points.max : 0), 0);
   return max > 0 ? Math.round((got / max) * 1000) / 10 : null;
+}
+
+const rowPercent = (r: RecapRow): number | null => r.percent ?? (r.points && r.points.max > 0 ? (r.points.got / r.points.max) * 100 : null);
+
+/**
+ * The course with the lowest attendance, only when it is below the
+ * average (the Studi card's second line); null without one.
+ */
+export function lowestBelowAverage(rows: readonly RecapRow[]): { courseId: CourseId; percent: number } | null {
+  const average = averagePercent(rows);
+  if (average === null) return null;
+  let lowest: { courseId: CourseId; percent: number } | null = null;
+  for (const r of rows) {
+    const p = rowPercent(r);
+    if (p !== null && r.taken > 0 && (lowest === null || p < lowest.percent)) lowest = { courseId: r.courseId, percent: Math.round(p * 10) / 10 };
+  }
+  return lowest !== null && lowest.percent < average ? lowest : null;
 }
 
 /**
@@ -145,13 +163,19 @@ async function getPage(deps: PresensiDeps, path: string): Promise<{ html: string
 }
 
 /** The recap of every monitored course: one GET of "All courses". */
-export async function refreshRecap(deps: PresensiDeps, options: { force: boolean }): Promise<PresensiOutcome> {
+/**
+ * maxProbes: course structures that may be fetched to find the activity:
+ * 3 for the user's own click (default), 1 in an account's first sync, 0 in
+ * other syncs (then it waits for the radar's structures and retries the
+ * next day).
+ */
+export async function refreshRecap(deps: PresensiDeps, options: { force: boolean; maxProbes?: number }): Promise<PresensiOutcome> {
   const now = deps.clock.now();
   const data = await readPresensi(deps.store, deps.userId);
   const wait = mayRequest(data.recap?.fetchedAt ?? null, data.lastRequestAt, now, options.force);
   if (wait) return wait;
   // Any attendance activity opens the global "All courses" tab.
-  const found = await findRecapCmid(deps, data, true);
+  const found = await findRecapCmid(deps, data, options.maxProbes ?? MAX_CMID_PROBES);
   const note = (status: string, reason?: string) => ({ at: now, status, ...(reason ? { reason } : {}), ...(found.via ? { via: found.via } : {}), probes: found.probes });
   if (found.cmid === null) {
     // Probes count against the cooldown too.

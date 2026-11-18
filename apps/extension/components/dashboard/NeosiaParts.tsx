@@ -124,15 +124,25 @@ export function SurveyLine() {
  * "Tampilkan" (not remembered), semester GPA only when NEOSIA has one.
  */
 /** "Presensi rata-rata 96,9%", to the Presensi page (M7.3). From stored data only, no request. */
-function AttendanceLine({ percent }: { percent: number | null }) {
+/** The Studi card's attendance: average, plus the lowest course when below it. */
+export interface AttendanceSummary {
+  average: number;
+  lowest: { name: string; percent: number } | null;
+}
+
+function AttendanceLine({ summary }: { summary: AttendanceSummary | null }) {
   const { locale } = useI18n();
-  if (percent === null) return null;
+  if (summary === null) return null;
   const words = dashFor(locale).presensi;
+  const pct = (n: number) => n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
   return (
-    <p className="mt-3 flex items-center justify-between gap-2 text-[14px]">
-      <span>{words.average(percent.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 }))}</span>
-      <CardLink href={routeHash('presensi')}>{dashFor(locale).nav.presensi}</CardLink>
-    </p>
+    <div className="mt-3 text-[14px]">
+      <p className="flex items-center justify-between gap-2">
+        <span>{words.average(pct(summary.average))}</span>
+        <CardLink href={routeHash('presensi')}>{dashFor(locale).nav.presensi}</CardLink>
+      </p>
+      {summary.lowest && <p className="mt-1 truncate text-muted-foreground">{words.lowest(summary.lowest.name, pct(summary.lowest.percent))}</p>}
+    </div>
   );
 }
 
@@ -140,20 +150,20 @@ function AttendanceLine({ percent }: { percent: number | null }) {
  * Studies card. NEOSIA parts only while that module is on; the attendance
  * line whenever attendance data exists (it comes from SIKOLA).
  */
-export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = null }: { snapshots: Snapshots; sksTarget: number; neosiaOn?: boolean; attendance?: number | null }) {
+export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = null }: { snapshots: Snapshots; sksTarget: number; neosiaOn?: boolean; attendance?: AttendanceSummary | null }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).studi;
   if (!neosiaOn) {
     return attendance === null ? null : (
       <Card title={w.title}>
-        <AttendanceLine percent={attendance} />
+        <AttendanceLine summary={attendance} />
       </Card>
     );
   }
   return <NeosiaStudi snapshots={snapshots} sksTarget={sksTarget} attendance={attendance} />;
 }
 
-function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshots; sksTarget: number; attendance: number | null }) {
+function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshots; sksTarget: number; attendance: AttendanceSummary | null }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).studi;
   const [shown, setShown] = useState(false);
@@ -166,7 +176,7 @@ function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshot
     return (
       <Card title={w.title} action={<CardLink href={routeHash('nilai')}>{w.seeGrades}</CardLink>}>
         <p className="text-[14px] text-muted-foreground">{neosiaWords(locale).checklist.waiting}</p>
-        <AttendanceLine percent={attendance} />
+        <AttendanceLine summary={attendance} />
       </Card>
     );
   }
@@ -216,7 +226,7 @@ function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshot
           <Private>{w.advisor(advisor)}</Private>
         </p>
       )}
-      <AttendanceLine percent={attendance} />
+      <AttendanceLine summary={attendance} />
     </Card>
   );
 }

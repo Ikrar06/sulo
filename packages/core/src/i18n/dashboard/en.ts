@@ -138,6 +138,7 @@ export const dashEn: DashMessages = {
     status: { present: 'Present', late: 'Late', excused: 'Excused', absent: 'Absent' },
     remarks: 'Remarks',
     average: (pct: string) => `Average attendance ${pct}%`,
+    lowest: (course: string, pct: string) => `Lowest: ${course} ${pct}%`,
     open: (course: string) => `Open attendance details for ${course}`,
   },
   mataKuliah: {

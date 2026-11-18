@@ -18,14 +18,15 @@ import { AcademicCard, nextForSummary, SummaryLine } from '../OverviewParts';
 import { timeZone } from '../data';
 import { Card, CardLink } from '../Shell';
 import type { PageProps } from '../types';
-import { KrsReadinessCard, NeosiaInvite, NextClassLine, StudiCard, SurveyLine, TodayClasses } from '../NeosiaParts';
+import { KrsReadinessCard, NeosiaInvite, NextClassLine, StudiCard, SurveyLine, TodayClasses, type AttendanceSummary } from '../NeosiaParts';
 import { classMeetings, krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@sulo/core/neosia/view';
 import { linkedMeetings } from '@sulo/core/neosia/linked';
 import { holidayRanges } from '@sulo/core/neosia/schedule';
 import { classesToday, nextClass } from '@sulo/core/neosia/today';
 import { dismissInvite, showInvite } from '@sulo/core/neosia/invite';
 import { local } from '../data';
-import { averagePercent } from '@sulo/core/presensi/service';
+import { courseAlias } from '@sulo/core/courses/display-name';
+import { averagePercent, lowestBelowAverage } from '@sulo/core/presensi/service';
 import { useNeosiaConnect } from '../neosia-connect';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
@@ -67,7 +68,14 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d), classesToday: today.length });
   const consent = useNeosiaConnect(actions);
   // Attendance average over monitored courses, from the stored recap (no request).
-  const attendance = useMemo(() => (user.presensi?.recap ? averagePercent(user.presensi.recap.rows) : null), [user.presensi]);
+  const attendance = useMemo((): AttendanceSummary | null => {
+    const rows = user.presensi?.recap?.rows;
+    const average = rows ? averagePercent(rows) : null;
+    if (!rows || average === null) return null;
+    const low = lowestBelowAverage(rows);
+    const course = low ? user.courses.find((c) => c.id === low.courseId) : undefined;
+    return { average, lowest: low && course ? { name: courseAlias(course), percent: low.percent } : null };
+  }, [user.presensi, user.courses]);
   const invite = showInvite({ moduleOn: neosiaOn, dismissedAt: data.neosia.invite.dismissedAt, dismissedDay: data.neosia.invite.dismissedDay, now: data.now, today: data.today, krsWindows: calendarKrs });
   const krsWin = neosiaOn ? krsWindow(snapshots, data.today, calendarKrs) : null;
   const krsCard = neosiaOn && showKrsCard(krsWin, data.today);

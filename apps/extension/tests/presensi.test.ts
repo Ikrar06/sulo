@@ -4,7 +4,7 @@ import type { MoodleCall } from '@sulo/core/moodle/calls';
 import { createMoodleClient, type MoodleClient, type PageOutcome } from '@sulo/core/moodle/client';
 import { parseDetail, parseRecap, statusOf } from '@sulo/core/presensi/parse';
 import { MIN_ATTENDANCE_PERCENT, PRESENSI_CACHE_SEC, PRESENSI_COOLDOWN_SEC } from '@sulo/core/presensi/rules';
-import { attendanceCmids, averagePercent, mayRequest, onlyMonitored, readPresensi, refreshDetail, refreshRecap, type PresensiDeps } from '@sulo/core/presensi/service';
+import { attendanceCmids, averagePercent, lowestBelowAverage, mayRequest, onlyMonitored, readPresensi, refreshDetail, refreshRecap, type PresensiDeps } from '@sulo/core/presensi/service';
 import { detailPath, isReadOnlyAttendanceUrl, recapPath } from '@sulo/core/presensi/urls';
 import { switchUser, writeUser } from '@sulo/core/storage';
 import { runSync } from '@sulo/core/sync/run-sync';
@@ -198,42 +198,96 @@ describe('fetching: monitored courses only, 24-hour cache, 2-minute cooldown', (
   });
 });
 
-describe('background sync never touches attendance', () => {
-  it('runSync (every automatic trigger and "Perbarui") requests no attendance page, even when courses have one', async () => {
-    const stateWithAttendance = () => {
-      const state = JSON.parse(fx('courseformat-state.normal')) as { cm: Record<string, unknown>[] };
-      state.cm.push({ ...state.cm[0], id: 197570, module: 'attendance', name: 'Presensi', url: 'https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=197570' });
-      return JSON.stringify(state);
-    };
-    const all = fx('enrolled-courses.normal');
-    for (const trigger of ['background', 'startup', 'idle', 'manual', 'onboarding'] as SyncTrigger[]) {
-      const pages: string[] = [];
-      const batches: string[] = [];
-      const client: MoodleClient = {
-        async callBatch(calls: readonly MoodleCall[]) {
-          batches.push(...calls.map((c) => c.methodname));
-          return {
-            kind: 'ok',
-            results: calls.map((c) => ({
+describe("automatic recap in syncs (owner's rule of 18 Nov 2026)", () => {
+  const all = fx('enrolled-courses.normal');
+  const state = (withAttendance: boolean) => {
+    const st = JSON.parse(fx('courseformat-state.normal')) as { cm: Record<string, unknown>[] };
+    if (!withAttendance) st.cm = st.cm.filter((c) => c.module !== 'attendance');
+    return JSON.stringify(st);
+  };
+  /** Answers every batch from fixtures; pages: the recap (or a failure). */
+  function syncClient(opts: { attendanceInState?: boolean; recapFails?: boolean } = {}) {
+    const pages: string[] = [];
+    const stateCalls: number[] = [];
+    const client: MoodleClient = {
+      async callBatch(calls: readonly MoodleCall[]) {
+        return {
+          kind: 'ok',
+          results: calls.map((c) => {
+            if (c.methodname === 'core_courseformat_get_state') stateCalls.push(c.args.courseid as number);
+            return {
               ok: true,
               data:
                 c.methodname === 'core_session_time_remaining' ? { userid: 1, timeremaining: 7200 }
                 : c.methodname === 'core_calendar_get_action_events_by_timesort' ? fx('calendar-action-events.normal')
                 : c.methodname === 'message_popup_get_popup_notifications' ? fx('popup-notifications.normal')
-                : c.methodname === 'core_courseformat_get_state' ? stateWithAttendance()
-                : all,
-            })),
-          };
-        },
-        async fetchPage(path) {
-          pages.push(path);
-          return { kind: 'network_error' };
-        },
-      };
-      await runSync({ client, store: memoryStore(), clock: fixedClock('2026-09-22', 10, 1_790_000_000), trigger, idleState: 'active' });
-      expect(batches.length, trigger).toBeGreaterThan(0);
-      expect(pages, trigger).toEqual([]);
-    }
+                : c.methodname === 'core_courseformat_get_state' ? state(opts.attendanceInState ?? true)
+                : c.args.classification === 'inprogress' ? { courses: all.courses.filter((x: { id: number }) => [401, 402, 403].includes(x.id)), nextoffset: 3 } : all,
+            };
+          }),
+        };
+      },
+      async fetchPage(path) {
+        pages.push(path);
+        return opts.recapFails ? { kind: 'http_error', status: 500 } : { kind: 'ok', html: page('attendance-all-courses') };
+      },
+    };
+    return { client, pages, stateCalls };
+  }
+  const at = (h: number) => fixedClock('2026-09-22', 10, 1_790_000_000 + h * 3600);
+  const sync = (client: MoodleClient, store: ReturnType<typeof memoryStore>, h: number, trigger: SyncTrigger = 'background') => runSync({ client, store, clock: at(h), trigger, idleState: 'active' });
+
+  it('the first sync after connecting fetches the recap; within 24 hours no more; after that once', async () => {
+    const store = memoryStore();
+    const { client, pages } = syncClient();
+    await sync(client, store, 0, 'onboarding');
+    expect(pages.filter((p) => p.includes('mode=1'))).toHaveLength(1);
+    await sync(client, store, 4);
+    await sync(client, store, 8, 'manual');
+    expect(pages.filter((p) => p.includes('mode=1'))).toHaveLength(1);
+    await sync(client, store, 24);
+    await sync(client, store, 28);
+    expect(pages.filter((p) => p.includes('mode=1'))).toHaveLength(2);
+  });
+
+  it('details are never fetched in a sync', async () => {
+    const store = memoryStore();
+    const { client, pages } = syncClient();
+    for (const [h, t] of [[0, 'onboarding'], [4, 'background'], [26, 'manual'], [30, 'startup']] as const) await sync(client, store, h, t);
+    expect(pages.every((p) => p.includes('mode=1'))).toBe(true);
+    expect(pages.some((p) => p.includes('view=5'))).toBe(false);
+  });
+
+  it('saver mode skips the automatic recap', async () => {
+    const store = memoryStore();
+    const { client, pages } = syncClient();
+    await sync(client, store, 0, 'onboarding');
+    const { BUDGET_KEY } = await import('@sulo/core/moodle/budget');
+    await store.set(BUDGET_KEY, { date: '2026-09-22', used: 90, calls: 200 });
+    await sync(client, store, 25);
+    expect(pages.filter((p) => p.includes('mode=1'))).toHaveLength(1);
+  });
+
+  it('a failing recap never fails the task sync', async () => {
+    const store = memoryStore();
+    const { client, pages } = syncClient({ recapFails: true });
+    const outcome = await sync(client, store, 0, 'onboarding');
+    expect(outcome.status).toBe('ok');
+    expect(pages).toHaveLength(1);
+    expect((await readPresensi(store, 1)).recap).toBeNull();
+  });
+
+  it('at most 1 extra course structure, only in the first sync; later syncs wait for the radar', async () => {
+    const store = memoryStore();
+    const { client, pages, stateCalls } = syncClient({ attendanceInState: false });
+    await sync(client, store, 0, 'onboarding');
+    // The radar follow-up stores the structures (no attendance there); then 1 probe at most.
+    const firstSyncStates = stateCalls.length;
+    expect(pages).toEqual([]);
+    await sync(client, store, 25);
+    expect(stateCalls.length - firstSyncStates).toBeLessThanOrEqual(4);
+    // No probe outside the first sync: the radar's own turn is the only source of structures.
+    expect(pages).toEqual([]);
   });
 });
 
@@ -384,6 +438,17 @@ describe('a followed course before and after the recap', () => {
   });
 });
 
+describe('probe limits by caller', () => {
+  it("an account's first sync probes at most 1 course structure; other syncs none; a click up to 3", async () => {
+    for (const [limit, expected] of [[1, 1], [0, 0], [3, 3]] as const) {
+      const { store, monitored } = await bareSetup([1, 2, 3, 4, 5]);
+      const { client, posts } = probeClient({});
+      await findRecapCmid({ client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored }, await readPresensi(store, 1), limit);
+      expect(posts, `limit ${limit}`).toHaveLength(expected);
+    }
+  });
+});
+
 describe('details from a real SIKOLA page (sanitized: name, remarks)', () => {
   const parsed = parseDetail(page('attendance-course-sessions'), TZ);
   it('golden', async () => {
@@ -417,5 +482,19 @@ describe('details: per-course cooldown and when the cooldown line shows', () => 
     const { deps } = await setup();
     await refreshRecap(deps, { force: false });
     expect(await refreshRecap(deps, { force: false })).toEqual({ status: 'fresh' });
+  });
+});
+
+describe('Studi card: lowest course below the average', () => {
+  const row = (courseId: number, got: number, max: number, taken = 1) => ({ courseId, cmid: courseId + 1000, taken, points: { got, max }, percent: max > 0 ? Math.round((got / max) * 1000) / 10 : null });
+  it('names the lowest course when it is below the average', () => {
+    const rows = [row(1, 10, 10), row(2, 6, 10), row(3, 9, 10)];
+    expect(averagePercent(rows)).toBe(83.3);
+    expect(lowestBelowAverage(rows)).toEqual({ courseId: 2, percent: 60 });
+  });
+  it('no line when every course is at the average, without sessions, or without data', () => {
+    expect(lowestBelowAverage([row(1, 5, 5), row(2, 4, 4)])).toBeNull();
+    expect(lowestBelowAverage([row(1, 5, 5), row(2, 0, 0, 0)])).toBeNull();
+    expect(lowestBelowAverage([])).toBeNull();
   });
 });

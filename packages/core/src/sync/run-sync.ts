@@ -27,6 +27,8 @@ import {
 } from '../moodle/limits';
 import { applyRadarResults, planRadarCalls, type RadarMode } from '../radar/sync-step';
 import { activeCourseIds } from '../courses/active-score';
+import { readPresensi, refreshRecap } from '../presensi/service';
+import { PRESENSI_CACHE_SEC } from '../presensi/rules';
 import { recordFailure } from '../moodle/backoff';
 import { planBatch } from './plan-batch';
 import { ACCOUNT_PENDING_KEY, mayCheckWhilePending, newPending, readPending, resolveCheck, type AccountPending } from '../account/pending';
@@ -287,6 +289,11 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
     lastCourseListAt: courseListFetched ? now : meta.lastCourseListAt,
   });
 
+  // Attendance recap (M7.3, owner's rule of 18 Nov 2026): a separate GET
+  // after the main batch, in an account's first sync and then at most once
+  // per 24 hours; skipped in saver mode. Its failure never fails the sync.
+  if (mode !== 'saver') await autoRecap(deps, userId, courses, now, knownUser !== userId).catch(() => undefined);
+
   if (broken.length > 0) return { status: 'parser_broken', where: broken.join(', ') };
   return { status: 'ok', at: now, tasks: tasks.filter((t) => t.missingSince === null).length, courseListFetched };
 }
@@ -356,4 +363,15 @@ async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly 
     return;
   }
   await applyRadarResults(deps.store, { userId, now, origin: deps.origin ?? SIKOLA_ORIGIN, plan, results: result.results.slice(1), previousTasks, nextTasks });
+}
+
+/** The attendance recap when due (presensi/service.ts refreshRecap). */
+async function autoRecap(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], now: UnixSeconds, firstForAccount: boolean): Promise<void> {
+  const data = await readPresensi(deps.store, userId);
+  if (data.recap !== null && now - data.recap.fetchedAt < PRESENSI_CACHE_SEC) return;
+  await refreshRecap(
+    { client: deps.client, store: deps.store, clock: deps.clock, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, userId, monitored: activeCourseIds(courses) },
+    // A course structure to find the activity only in the first sync, at most one; otherwise the radar's structures or a known cmid, else tomorrow.
+    { force: false, maxProbes: firstForAccount ? 1 : 0 },
+  );
 }

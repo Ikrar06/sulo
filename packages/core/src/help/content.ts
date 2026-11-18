@@ -157,12 +157,12 @@ export const FAQ: FaqEntry[] = [
     ],
   },
   {
-    id: 'presensi-otomatis',
-    q: { id: 'Kenapa presensi tidak diperbarui otomatis?', en: "Why doesn't attendance update by itself?" },
+    id: 'presensi-diperbarui',
+    q: { id: 'Seberapa sering presensi diperbarui?', en: 'How often is attendance updated?' },
     a: [
       {
-        id: 'Supaya Sulo hemat pemeriksaan ke SIKOLA, presensi hanya diperbarui saat kamu membuka halamannya, paling sering sekali sehari.',
-        en: 'To keep its checks of SIKOLA few, Sulo updates attendance only when you open its page, at most once a day.',
+        id: 'Rekap presensi diperbarui otomatis paling sering sekali sehari. Rincian per pertemuan diambil saat kamu membukanya.',
+        en: 'The attendance recap updates automatically at most once a day. Per-session details are fetched when you open them.',
       },
     ],
   },
