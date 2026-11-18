@@ -14,7 +14,7 @@ export interface GpaPoint {
 
 const W = 640;
 const H = 200;
-const PAD = { left: 32, right: 16, top: 12, bottom: 28 };
+const PAD = { left: 52, right: 44, top: 12, bottom: 28 };
 
 export function GpaChart({ points, title }: { points: readonly GpaPoint[]; title: string }) {
   const id = useId();
@@ -26,13 +26,14 @@ export function GpaChart({ points, title }: { points: readonly GpaPoint[]; title
   const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.ips).toFixed(1)}`).join(' ');
   const shown = active === null ? null : points[active];
   return (
-    <div className="relative">
+    // A bounded width keeps the axis text near 12 px.
+    <div className="relative max-w-[720px]">
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-labelledby={`${id}-t`}>
         <title id={`${id}-t`}>{title}</title>
         {[0, 1, 2, 3, 4].map((v) => (
           <g key={v}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)} stroke="var(--border)" strokeWidth={1} />
-            <text x={PAD.left - 8} y={y(v) + 4} textAnchor="end" fontSize={11} fill="var(--muted)">
+            <text x={PAD.left - 12} y={y(v) + 4} textAnchor="end" fontSize={11} fill="var(--muted)">
               {v}
             </text>
           </g>

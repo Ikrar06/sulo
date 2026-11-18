@@ -121,7 +121,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
       en: 'With NEOSIA connected, the overview shows today\'s classes and a Studies card, and the Schedule page shows your week.',
     },
     clip: 'jadwal',
-    size: { width: 1200, height: 796 },
+    size: { width: 1200, height: 912 },
     alt: { id: 'Ringkasan dengan kuliah hari ini, lalu halaman Jadwal dengan grid jam dan popover kelas.', en: 'The overview with today\'s classes, then the Schedule page with its time grid and a class popover.' },
     points: [
       { id: 'Kuliah hari ini muncul paling atas di kartu Tugas.', en: "Today's classes come first in the Tasks card." },

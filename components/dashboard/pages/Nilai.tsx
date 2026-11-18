@@ -76,6 +76,12 @@ export function NilaiPage({ data }: PageProps) {
   const passed = p?.sksPassed ?? passedSks(rows);
   const groups = bySemester(rows);
   const label = (id: string) => n.semesterLabel(names.get(id)?.jenis ?? null, names.get(id)?.tahun ?? null, id);
+  /** "Ganjil 23/24" on the chart's axis; the code when NEOSIA gave no name. */
+  const shortLabel = (id: string) => {
+    const s = names.get(id);
+    const years = s?.tahun?.match(/^\d{2}(\d{2})\/\d{2}(\d{2})$/);
+    return s?.jenis && years ? `${s.jenis} ${years[1]}/${years[2]}` : id;
+  };
   const reveal = shown && !masked;
   const fmt = (v: number | null) => (v === null ? '-' : v.toFixed(2));
 
@@ -108,7 +114,7 @@ export function NilaiPage({ data }: PageProps) {
             points={[...groups]
               .reverse()
               .filter((g) => g.ips !== null)
-              .map((g) => ({ label: g.semester, ips: g.ips!, sks: g.sks, text: n.chartPoint(label(g.semester), g.ips!.toFixed(2), g.sks) }))}
+              .map((g) => ({ label: shortLabel(g.semester), ips: g.ips!, sks: g.sks, text: n.chartPoint(label(g.semester), g.ips!.toFixed(2), g.sks) }))}
           />
         ) : (
           <p className="py-8 text-center text-[14px] text-muted-foreground">{HIDDEN}</p>

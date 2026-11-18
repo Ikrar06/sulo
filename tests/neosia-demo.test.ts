@@ -14,3 +14,14 @@ describe('synthetic NEOSIA demo data (guide and screenshots)', () => {
     }
   });
 });
+
+describe('GPA check on the synthetic demo transcript', () => {
+  it("Sulo's count matches NEOSIA's GPA (2.95) and passed credits (27)", async () => {
+    const { computeIpk, passedSks, readTranscript, differsFromNeosia } = await import('../lib/grades/transcript');
+    const storage = demoNeosia(1_794_000_000) as Record<string, { data: never }>;
+    const rows = readTranscript(storage['neosia:snap:getTranskripMahasiswa']!.data);
+    expect(computeIpk(rows)).toBe(2.95);
+    expect(passedSks(rows)).toBe(27);
+    expect(differsFromNeosia(computeIpk(rows), 2.95)).toBe(false);
+  });
+});
