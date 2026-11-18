@@ -540,6 +540,7 @@ export default defineBackground(() => {
         origin: SIKOLA_ORIGIN,
         runRemindersAt,
         isExtensionPage: (sender) => isExtensionPageSender(sender, browser.runtime.id, browser.runtime.getURL('/').replace(/\/+$/, '')),
+        isNeosiaPage: (sender) => isContentScriptOn(sender, browser.runtime.id, NEOSIA_APP_ORIGIN),
       }),
     );
   }

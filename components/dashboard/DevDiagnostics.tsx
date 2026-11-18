@@ -13,6 +13,7 @@ import { coursesDueSoon, pickCoursesToCheck } from '@/lib/radar/schedule';
 import type { BackoffState } from '@/lib/types';
 import type { DashboardData } from './data';
 import { Card } from './Shell';
+import { DevNeosia } from './DevNeosia';
 
 export default function DevDiagnostics({ data }: { data: DashboardData }) {
   const [backoff, setBackoff] = useState<BackoffState | null>(null);
@@ -30,6 +31,7 @@ export default function DevDiagnostics({ data }: { data: DashboardData }) {
   const name = (id: number) => data.view.courseNames[String(id)] ?? String(id);
   const age = (at: number | undefined) => (at === undefined ? 'never' : `${Math.round((now - at) / 60)} min ago`);
   return (
+    <>
     <Card title="Diagnostics (dev build only)">
       <dl className="grid gap-x-6 gap-y-1 text-[12px] tabular-nums sm:grid-cols-2">
         <dt className="text-muted-foreground">POSTs today</dt>
@@ -61,5 +63,7 @@ export default function DevDiagnostics({ data }: { data: DashboardData }) {
         ))}
       </ul>
     </Card>
+    <DevNeosia now={now} />
+    </>
   );
 }

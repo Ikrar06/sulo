@@ -9,6 +9,7 @@ import { currentUser, readUser, writeUser } from '../storage';
 import type { Change } from '../types';
 import type { Clock, KeyValueStore, UnixSeconds } from '../types';
 import { devMessageSchema } from './messages';
+import { recordObservation } from './neosia-observe';
 
 // Development builds only (see lib/dev/messages.ts). Registers a separate
 // message listener for the recorder and the reminder simulator.
@@ -21,6 +22,8 @@ export interface DevDeps {
   /** Runs a reminder cycle at a given time and returns what happened. */
   runRemindersAt: (now: UnixSeconds) => Promise<{ nextAt: UnixSeconds | null; shown: number }>;
   isExtensionPage: (sender: Parameters<Parameters<typeof browser.runtime.onMessage.addListener>[0]>[1]) => boolean;
+  /** The NEOSIA bridge (content script on the NEOSIA app). */
+  isNeosiaPage: (sender: Parameters<Parameters<typeof browser.runtime.onMessage.addListener>[0]>[1]) => boolean;
 }
 
 /** Sample updates built from the user's own courses and tasks (dev builds only). */
@@ -62,8 +65,14 @@ async function probeSession(deps: DevDeps) {
 export function installDevTools(deps: DevDeps): void {
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
     const parsed = devMessageSchema.safeParse(raw);
-    if (!parsed.success || !deps.isExtensionPage(sender)) return false;
+    if (!parsed.success) return false;
     const message = parsed.data;
+    if (message.type === 'dev/neosia/observe') {
+      // Only while the module is on (the bridge exists only then), only from a NEOSIA page.
+      if (deps.isNeosiaPage(sender)) void recordObservation(deps.store, message.observation);
+      return false;
+    }
+    if (!deps.isExtensionPage(sender)) return false;
     const work = (async (): Promise<unknown> => {
       switch (message.type) {
         case 'dev/record':
