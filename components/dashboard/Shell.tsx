@@ -8,7 +8,8 @@ import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@/lib/format/time';
 import { PAGES, routeHash, type Page } from '@/lib/dashboard/routes';
 import type { DashMessages } from '@/lib/i18n/dashboard';
-import { BookIcon, CalendarIcon, GearIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
+import { BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
+import { neosiaWords } from '@/lib/i18n/neosia';
 import './dashboard.css';
 
 // One plain background for the whole page, like onboarding: no panels with
@@ -21,6 +22,7 @@ const ICONS: Record<Page, ComponentType<SVGProps<SVGSVGElement>>> = {
   'mata-kuliah': BookIcon,
   kabar: NewsIcon,
   kalender: CalendarIcon,
+  jadwal: ClockIcon,
   pengaturan: GearIcon,
   bantuan: HelpIcon,
   tentang: InfoIcon,
@@ -41,11 +43,16 @@ export interface ShellProps {
   /** "Diperbarui 5 menit lalu" next to the button; off where it would mislead. */
   showUpdated?: boolean;
   onOpenPrivacy: () => void;
+  /** Sidebar pages left out (Jadwal while the NEOSIA module is off). */
+  hiddenPages?: ReadonlySet<Page>;
+  /** Privacy mode: the eye button in the header. */
+  privacy: { on: boolean; toggle: () => void };
   children: ReactNode;
 }
 
-export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRefresh, refreshLabel, showUpdated = true, onOpenPrivacy, children }: ShellProps) {
-  const { m } = useI18n();
+export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRefresh, refreshLabel, showUpdated = true, onOpenPrivacy, hiddenPages, privacy, children }: ShellProps) {
+  const { m, locale } = useI18n();
+  const nw = neosiaWords(locale);
   const quiet = useQuietRefresh(onRefresh ?? (async () => false));
   const updated = syncing ? d.common.updating : quiet.upToDate ? m.popup.upToDate : lastSyncAt ? m.popup.updatedAgo(formatAgo(lastSyncAt, now, m)) : m.popup.neverUpdated;
   return (
@@ -56,7 +63,7 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
           <span className="font-heading text-[20px]">Sulo</span>
         </a>
         <nav aria-label={d.nav.label} className="db-nav">
-          {PAGES.map((p) => {
+          {PAGES.filter((p) => !hiddenPages?.has(p)).map((p) => {
             const Icon = ICONS[p];
             const current = p === page;
             return (
@@ -93,6 +100,7 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
       <main className="db-main">
         <header className="db-header">
           <h1 className="font-heading text-[20px] leading-8">{d.nav[page]}</h1>
+          <div className="flex items-center gap-3">
           {onRefresh && (
             <div className="flex items-center gap-3">
               {showUpdated && (
@@ -106,6 +114,11 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
               </Button>
             </div>
           )}
+            {/* Privacy mode: masks names, grades, GPA and credits (components/private.tsx). */}
+            <Button variant="outline" size="icon" aria-pressed={privacy.on} aria-label={privacy.on ? nw.privacy.show : nw.privacy.hide} title={privacy.on ? nw.privacy.show : nw.privacy.hide} onClick={privacy.toggle}>
+              {privacy.on ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+            </Button>
+          </div>
         </header>
         <div className="db-content">{children}</div>
       </main>

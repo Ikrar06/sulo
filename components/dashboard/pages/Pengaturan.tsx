@@ -15,13 +15,14 @@ import { timeZone } from '../data';
 import { Card } from '../Shell';
 import { UsageStats } from '../UsageStats';
 import { BugReport } from '../BugReport';
+import { NeosiaSettings } from '../NeosiaSettings';
 import type { PageProps } from '../types';
 
 /** Development builds only: the branch is false in production, so the module is never bundled. */
 const DevDiagnostics = import.meta.env.MODE === 'development' ? lazy(() => import('../DevDiagnostics')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
-const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'data'] as const;
+const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data'] as const;
 
 function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
   const id = useId();
@@ -212,6 +213,10 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             {t.calendarKinds[k]}
           </Check>
         ))}
+      </Card>
+
+      <Card title={<span id="set-neosia">NEOSIA</span>}>
+        <NeosiaSettings data={data} actions={actions} />
       </Card>
 
       <Card title={<span id="set-data">{t.sections.data}</span>}>

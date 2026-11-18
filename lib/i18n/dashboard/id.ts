@@ -13,6 +13,7 @@ export const dashId = {
     'mata-kuliah': 'Mata kuliah',
     kabar: 'Kabar terbaru',
     kalender: 'Kalender',
+    jadwal: 'Jadwal',
     pengaturan: 'Pengaturan',
     bantuan: 'Bantuan',
     tentang: 'Tentang',

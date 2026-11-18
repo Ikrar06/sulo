@@ -1,8 +1,11 @@
 // Dashboard pages and their URL hashes (dashboard.html#kalender). Pure, so
 // the popup, notifications and tests share one list.
 
-export const PAGES = ['ringkasan', 'tugas', 'mata-kuliah', 'kabar', 'kalender', 'pengaturan', 'bantuan', 'tentang'] as const;
+export const PAGES = ['ringkasan', 'tugas', 'mata-kuliah', 'kabar', 'kalender', 'jadwal', 'pengaturan', 'bantuan', 'tentang'] as const;
 export type Page = (typeof PAGES)[number];
+
+/** Pages that exist only while the NEOSIA module is on (hidden from the sidebar otherwise). */
+export const NEOSIA_PAGES: ReadonlySet<Page> = new Set(['jadwal']);
 
 export interface Route {
   page: Page;

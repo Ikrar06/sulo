@@ -13,6 +13,7 @@ export const dashEn: DashMessages = {
     'mata-kuliah': 'Courses',
     kabar: 'Latest updates',
     kalender: 'Calendar',
+    jadwal: 'Schedule',
     pengaturan: 'Settings',
     bantuan: 'Help',
     tentang: 'About',

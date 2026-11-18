@@ -52,7 +52,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
       <section className="flex items-center gap-4 pb-2">
         <Mascot state={heroMood(overdue, dueThisWeek)} size={56} />
         <div className="min-w-0">
-          <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.nickname)}</h2>
+          <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.privacyMode ? '' : data.prefs.nickname)}</h2>
           <SummaryLine parts={summary} d={d} />
         </div>
       </section>

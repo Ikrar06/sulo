@@ -14,6 +14,9 @@ import { applyTheme } from '@/lib/ui/theme';
 import { bumpUsage } from '@/lib/stats/usage';
 import { loadPopupInput } from '@/lib/view/load';
 import { buildPopupView, type PopupInput, type PopupView } from '@/lib/view/popup-view';
+import { readModuleState, type NeosiaModuleState } from '@/lib/neosia/module';
+import { readSnapshots, type Snapshots } from '@/lib/neosia/store';
+import { readCourseMap, type CourseMap } from '@/lib/neosia/course-map';
 
 // The dashboard's data: everything comes from chrome.storage, re-read when
 // storage changes. Opening the dashboard sends no request to SIKOLA; only
@@ -36,6 +39,8 @@ export interface DashboardData {
   calendar: CalendarFile;
   /** Today's local date, YYYY-MM-DD. */
   today: string;
+  /** The optional NEOSIA module: its state and the stored projections. */
+  neosia: { module: NeosiaModuleState; snapshots: Snapshots; courseMap: CourseMap };
 }
 
 export interface DashboardActions {
@@ -56,12 +61,15 @@ const DashboardContext = createContext<Ctx | null>(null);
 
 async function load(): Promise<DashboardData> {
   const userId = await currentUser(local);
-  const [input, prefs, user, pending, calendar] = await Promise.all([
+  const [input, prefs, user, pending, calendar, module, snapshots, courseMap] = await Promise.all([
     loadPopupInput(local, systemClock, timeZone),
     readPrefs(local),
     userId === null ? Promise.resolve(null) : readAllUser(local, userId),
     readPending(local),
     readCalendar(local),
+    readModuleState(local),
+    readSnapshots(local),
+    readCourseMap(local),
   ]);
   return {
     now: input.now,
@@ -73,6 +81,8 @@ async function load(): Promise<DashboardData> {
     pending,
     calendar,
     today: localParts(input.now, timeZone).dateKey,
+    // While the module is off nothing of it shows, even if a key were left behind.
+    neosia: { module, snapshots: module.enabled ? snapshots : {}, courseMap: module.enabled ? courseMap : {} },
   };
 }
 
