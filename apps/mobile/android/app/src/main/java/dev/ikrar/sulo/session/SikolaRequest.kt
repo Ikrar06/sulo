@@ -1,6 +1,7 @@
 package dev.ikrar.sulo.session
 
 import org.json.JSONArray
+import org.json.JSONObject
 
 /** Pure rules for requests to SIKOLA (no android.* here; unit-tested). */
 object SikolaRequest {
@@ -38,7 +39,28 @@ object SikolaRequest {
     }
 
     /** Moodle's "please log in again": the session is over. */
-    fun loginRequired(body: String): Boolean = body.contains("\"servicerequireslogin\"") || body.contains("\"requireloginerror\"")
+    fun loginRequired(body: String): Boolean = errorcodes(body).any { it == "servicerequireslogin" || it == "requireloginerror" }
 
-    fun invalidSesskey(body: String): Boolean = body.contains("\"invalidsesskey\"")
+    fun invalidSesskey(body: String): Boolean = "invalidsesskey" in errorcodes(body)
+
+    /**
+     * Moodle's error codes, from where Moodle puts them only: the top-level
+     * object's errorcode, or exception.errorcode of a result with error=true.
+     * Text inside course data never counts (a task named "servicerequireslogin"
+     * must not end the session).
+     */
+    fun errorcodes(body: String): List<String> = runCatching {
+        val text = body.trim()
+        when {
+            text.startsWith("[") -> {
+                val array = JSONArray(text)
+                (0 until array.length()).mapNotNull { i ->
+                    val item = array.optJSONObject(i) ?: return@mapNotNull null
+                    if (item.optBoolean("error", false)) item.optJSONObject("exception")?.optString("errorcode")?.ifEmpty { null } else null
+                }
+            }
+            text.startsWith("{") -> listOfNotNull(JSONObject(text).optString("errorcode").ifEmpty { null })
+            else -> emptyList()
+        }
+    }.getOrDefault(emptyList())
 }

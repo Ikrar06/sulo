@@ -136,6 +136,11 @@ class SuloSessionPlugin : Plugin() {
     /** Asks for the phone's own biometrics or screen lock. Android 11+: BiometricPrompt; older: the system credential screen. */
     @PluginMethod
     fun unlock(call: PluginCall) {
+        val keyguard = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        if (!keyguard.isDeviceSecure) {
+            call.resolve(JSObject().put("unlocked", false).put("reason", "no_device_lock"))
+            return
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val prompt = BiometricPrompt.Builder(context)
                 .setTitle("Buka Sulo")
@@ -151,10 +156,10 @@ class SuloSessionPlugin : Plugin() {
                 }
             })
         } else {
-            val keyguard = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
             @Suppress("DEPRECATION")
             val intent = keyguard.createConfirmDeviceCredentialIntent("Buka Sulo", null)
-            if (intent == null) call.resolve(JSObject().put("unlocked", true)) else startActivityForResult(call, intent, "onUnlockResult")
+            // No screen lock: never open by default; the app decides what to show.
+            if (intent == null) call.resolve(JSObject().put("unlocked", false).put("reason", "no_device_lock")) else startActivityForResult(call, intent, "onUnlockResult")
         }
     }
 

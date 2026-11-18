@@ -41,6 +41,8 @@ const id = {
   lock: {
     title: 'Sulo terkunci',
     open: 'Buka',
+    noDeviceLock: 'Kunci layar HP sedang mati. Pasang kunci layar lagi untuk membuka Sulo, atau keluar untuk menghapus data Sulo di HP ini.',
+    signOut: 'Keluar',
   },
   dev: {
     title: 'Umur sesi (build debug)',
@@ -91,6 +93,8 @@ const en: MobileWords = {
   lock: {
     title: 'Sulo is locked',
     open: 'Open',
+    noDeviceLock: "The phone's screen lock is off. Turn it back on to open Sulo, or sign out to delete Sulo's data on this phone.",
+    signOut: 'Sign out',
   },
   dev: {
     title: 'Session age (debug build)',

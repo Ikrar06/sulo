@@ -91,7 +91,18 @@ export function App({ platform }: { platform: Platform }) {
   };
 
   if (status === null) return null;
-  if (locked) return <LockScreen w={w} onUnlocked={() => setLocked(false)} />;
+  if (locked)
+    return (
+      <LockScreen
+        w={w}
+        onUnlocked={() => setLocked(false)}
+        onSignOut={async () => {
+          await signOutEverything(platform);
+          setLocked(false);
+          await refreshState();
+        }}
+      />
+    );
   if (dev && __SULO_DEV__) return <DevScreen platform={platform} w={w} onBack={() => setDev(false)} />;
   if (status === 'none') return <Onboarding w={w} note={note} busy={busy} onSignIn={signIn} />;
   return (
@@ -165,10 +176,7 @@ function Connected(props: {
   }, [platform]);
 
   const signOut = async () => {
-    await SuloSession.logout();
-    // Every Sulo key in this app, and every scheduled reminder.
-    await platform.store.remove(await platform.store.keys(''));
-    await import('@capacitor/local-notifications').then(({ LocalNotifications }) => LocalNotifications.getPending().then((p) => (p.notifications.length ? LocalNotifications.cancel({ notifications: p.notifications.map((n) => ({ id: n.id })) }) : undefined)));
+    await signOutEverything(platform);
     setConfirm(false);
     props.onSignedOut();
   };
@@ -254,9 +262,22 @@ function Connected(props: {
   );
 }
 
-function LockScreen({ w, onUnlocked }: { w: W; onUnlocked: () => void }) {
+/** "Keluar": the native session and Keystore key, every Sulo key here, every scheduled reminder. */
+async function signOutEverything(platform: Platform) {
+  await SuloSession.logout();
+  await platform.store.remove(await platform.store.keys(''));
+  const { LocalNotifications } = await import('@capacitor/local-notifications');
+  const pending = await LocalNotifications.getPending();
+  if (pending.notifications.length > 0) await LocalNotifications.cancel({ notifications: pending.notifications.map((n) => ({ id: n.id })) });
+}
+
+function LockScreen({ w, onUnlocked, onSignOut }: { w: W; onUnlocked: () => void; onSignOut: () => void }) {
+  const [noDeviceLock, setNoDeviceLock] = useState(false);
   const open = async () => {
-    if ((await SuloSession.unlock()).unlocked) onUnlocked();
+    const r = await SuloSession.unlock();
+    // Fail closed: without the phone's own lock, Sulo stays locked.
+    setNoDeviceLock(r.reason === 'no_device_lock');
+    if (r.unlocked) onUnlocked();
   };
   useEffect(() => {
     void open();
@@ -266,9 +287,15 @@ function LockScreen({ w, onUnlocked }: { w: W; onUnlocked: () => void }) {
     <main className="flex min-h-full flex-col items-center justify-center gap-4 px-4">
       <Mascot state="sleepy" size={72} />
       <h1 className="text-[20px] font-semibold">{w.lock.title}</h1>
+      {noDeviceLock && <p className="max-w-sm text-center text-[14px] text-muted-foreground">{w.lock.noDeviceLock}</p>}
       <button type="button" className={primary} onClick={() => void open()}>
         {w.lock.open}
       </button>
+      {noDeviceLock && (
+        <button type="button" className={secondary} onClick={onSignOut}>
+          {w.lock.signOut}
+        </button>
+      )}
     </main>
   );
 }

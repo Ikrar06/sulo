@@ -28,7 +28,8 @@ export interface SuloSessionPlugin {
   /** Cookies, web storage, the encrypted session and its Keystore key. */
   logout(): Promise<{ status: 'none' }>;
   lockAvailable(): Promise<{ available: boolean }>;
-  unlock(): Promise<{ unlocked: boolean }>;
+  /** Never unlocked by default: with no screen lock on the phone, reason is "no_device_lock". */
+  unlock(): Promise<{ unlocked: boolean; reason?: 'no_device_lock' }>;
 }
 
 export const SuloSession = registerPlugin<SuloSessionPlugin>('SuloSession', {

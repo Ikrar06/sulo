@@ -124,5 +124,10 @@ class SikolaRequestTest {
         assertTrue(SikolaRequest.loginRequired("""[{"error":true,"exception":{"errorcode":"servicerequireslogin"}}]"""))
         assertTrue(SikolaRequest.invalidSesskey("""{"error":"x","errorcode":"invalidsesskey"}"""))
         assertFalse(SikolaRequest.loginRequired("""[{"error":false,"data":{"timeremaining":7140}}]"""))
+        // The same words inside course data never end the session.
+        assertFalse(SikolaRequest.loginRequired("""[{"error":false,"data":{"events":[{"name":"Tugas \"servicerequireslogin\""}]}}]"""))
+        assertFalse(SikolaRequest.invalidSesskey("""[{"error":false,"data":{"text":"\"invalidsesskey\""}}]"""))
+        assertTrue(SikolaRequest.loginRequired("""[{"error":false,"data":{}},{"error":true,"exception":{"errorcode":"requireloginerror"}}]"""))
+        assertFalse(SikolaRequest.loginRequired("<html>servicerequireslogin</html>"))
     }
 }
