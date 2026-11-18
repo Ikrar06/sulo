@@ -10,7 +10,7 @@ import { formatDateKey } from '@/lib/calendar/countdown';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords, type NeosiaWords } from '@/lib/i18n/neosia';
 import { neosiaUrl } from '@/lib/links';
-import { profile, type ItemState, type KrsWindow, type ReadinessItem } from '@/lib/neosia/view';
+import { advisorName, profile, type ItemState, type KrsWindow, type ReadinessItem } from '@/lib/neosia/view';
 import type { Snapshots } from '@/lib/neosia/store';
 import type { Messages } from '@/lib/i18n';
 import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon, XIcon } from './icons';
@@ -18,7 +18,7 @@ import { Card, CardLink } from './Shell';
 import { routeHash } from '@/lib/dashboard/routes';
 import type { LinkedMeeting } from '@/lib/neosia/linked';
 import { completion, sourceStatuses } from '@/lib/neosia/sources';
-import { NEOSIA_KRS, NEOSIA_TRANSKRIP } from '@/lib/links';
+import { NEOSIA_KHS, NEOSIA_KRS } from '@/lib/links';
 
 const STATE_ICON: Record<ItemState, ComponentType<SVGProps<SVGSVGElement>>> = {
   ok: CheckCircleIcon,
@@ -55,16 +55,18 @@ function itemText(item: ReadinessItem, w: NeosiaWords, m: Messages) {
       return <Private>{k.sks(item.available, item.max)}</Private>;
     case 'krs':
       return item.status === null ? k.unknownItem : k.status[item.status];
+    case 'advisor':
+      return <Private>{k.advisor(item.name)}</Private>;
   }
 }
 
 /**
  * Where an item's link goes, if it has one: KRS where something needs doing
- * or the credit limit is missing; the transcript (it holds the survey
+ * or the credit limit is missing; the KHS page (it brings the survey
  * status) while the survey is unchecked during the KRS window.
  */
 export function readinessLink(item: ReadinessItem, windowOpen: boolean): { href: string; label: 'open' | 'surveyCheck' } | null {
-  if (item.id === 'survey' && item.filled === null) return windowOpen ? { href: NEOSIA_TRANSKRIP, label: 'surveyCheck' } : null;
+  if (item.id === 'survey' && item.filled === null) return windowOpen ? { href: NEOSIA_KHS, label: 'surveyCheck' } : null;
   if (item.id === 'sks' && item.max === null) return { href: NEOSIA_KRS, label: 'open' };
   return item.state === 'action' ? { href: NEOSIA_KRS, label: 'open' } : null;
 }
@@ -126,6 +128,7 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
   const [shown, setShown] = useState(false);
   const masked = usePrivacy();
   const profileData = profile(snapshots);
+  const advisor = advisorName(snapshots);
   const incomplete = !completion(sourceStatuses(snapshots)).complete;
   // Required pages missing: one line; the checklist itself is the overview card above.
   if (incomplete) {
@@ -173,6 +176,12 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
         <p className="mt-1 flex items-center gap-2 text-[14px]">
           <span>{w.ips}</span>
           <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ips)}</Private> : '••••'}</span>
+        </p>
+      )}
+      {/* The academic advisor (KRS page), masked in privacy mode. */}
+      {advisor !== null && (
+        <p className="mt-2 text-[12px] text-muted-foreground">
+          <Private>{w.advisor(advisor)}</Private>
         </p>
       )}
     </Card>

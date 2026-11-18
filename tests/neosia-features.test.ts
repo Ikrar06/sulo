@@ -11,7 +11,7 @@ import { linkedMeetings } from '../lib/neosia/linked';
 import { projectResponse, type Projected } from '../lib/neosia/project';
 import { holidayRanges, mondayOf, occurrences, scheduleIcs, semesterRange } from '../lib/neosia/schedule';
 import type { NeosiaSnapshot, Snapshots } from '../lib/neosia/store';
-import { classMeetings, krsStatus, krsWindow, krsWindows, newGrades, paymentPaid, pickWindow, profile, readiness, showKrsCard, surveyFilled, weekdayOf, type KrsWindow } from '../lib/neosia/view';
+import { advisorName, classMeetings, krsStatus, krsWindow, krsWindows, newGrades, paymentPaid, pickWindow, profile, readiness, showKrsCard, surveyFilled, weekdayOf, type KrsWindow } from '../lib/neosia/view';
 import { planReminders } from '../lib/reminders/plan';
 import { DEFAULT_REMINDERS } from '../lib/reminders/settings';
 import { noticeView } from '../lib/reminders/text';
@@ -69,7 +69,7 @@ describe('KRS windows and readiness', () => {
     expect(readiness(all, pickWindow(three, '2027-02-15'), '2027-02-15')[0]).toMatchObject({ phase: 'before', window: { caption: 'Perubahan KRS' } });
   });
 
-  it('lists every item; missing data is "unknown", never a guess; no advisor item', () => {
+  it('lists every item; missing data is "unknown", never a guess; the advisor is information only', () => {
     const items = readiness(all, krsWindow(all, '2027-01-05', []), '2027-01-05');
     expect(items.map((i) => [i.id, i.state])).toEqual([
       ['window', 'info'],
@@ -77,8 +77,17 @@ describe('KRS windows and readiness', () => {
       ['survey', 'action'],
       ['sks', 'info'],
       ['krs', 'ok'],
+      ['advisor', 'info'],
     ]);
+    expect(items.at(-1)).toEqual({ id: 'advisor', state: 'info', name: 'Dr. Dosen Sintetis Pembimbing, S.T., M.T.' });
     expect(readiness({}, null, '2027-01-05').every((i) => i.state === 'unknown')).toBe(true);
+  });
+
+  it('no advisor data: no advisor item and no name', () => {
+    const { getCurrentPenasihatAkademik: _drop, ...rest } = all;
+    expect(readiness(rest, null, '2027-01-05').some((i) => i.id === 'advisor')).toBe(false);
+    expect(advisorName(rest)).toBeNull();
+    expect(advisorName({ getCurrentPenasihatAkademik: snap('getCurrentPenasihatAkademik', { currentPenasihatAkademik: { dosen: { nama: '  ' } } }) })).toBeNull();
   });
 
   it('reads payment and survey without amounts or ids', () => {

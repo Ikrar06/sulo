@@ -61,11 +61,20 @@ describe('page mapping (observation of 18 Nov 2026)', () => {
     const api = 'https://api.neosia.unhas.ac.id/api';
     expect(matchUrl(`${api}/mahasiswa/transkrip/renew`)?.kind).toBe('other');
     expect(matchUrl(`${api}/notice_board`)?.kind).toBe('other');
-    expect(matchUrl(`${api}/mahasiswa/penasihat_akademik/getCurrentPenasihatAkademik`)?.kind).toBe('observe');
+    expect(matchUrl(`${api}/mahasiswa/penasihat_akademik/getCurrentPenasihatAkademik`)?.kind).toBe('endpoint');
   });
-  it('the advisor endpoint is observed only, never captured', () => {
-    expect(OBSERVE_ONLY.map((o) => o.id)).toEqual(['getCurrentPenasihatAkademik']);
-    expect(ENDPOINTS.some((e) => e.path.includes('penasihat_akademik'))).toBe(false);
+  it('getStatusPembayaran (triggered by the KRS page) stays unread', () => {
+    const api = 'https://api.neosia.unhas.ac.id/api';
+    expect(matchUrl(`${api}/mahasiswa/pembayaran/getStatusPembayaran`)?.kind).toBe('other');
+    expect(SOURCES.flatMap((s) => s.endpoints as readonly string[])).not.toContain('getStatusPembayaran');
+  });
+  it('no checklist item needs indeks_prestasi/current', () => {
+    expect(CHECKLIST_SOURCES.flatMap((s) => s.requires)).not.toContain('indeks_prestasi/current');
+    expect(ENDPOINTS.some((e) => e.id === 'indeks_prestasi/current')).toBe(true);
+  });
+  it('the advisor endpoint is captured (name only); nothing is left observe-only', () => {
+    expect(OBSERVE_ONLY).toEqual([]);
+    expect(ENDPOINTS.find((e) => e.path.includes('penasihat_akademik'))?.spec).toEqual({ currentPenasihatAkademik: { dosen: { nama: 'v' } } });
   });
 });
 
@@ -132,9 +141,9 @@ describe('button targets', () => {
     expect(nudgeTarget('nudge:grades:input-nilai')).toBe(NEOSIA_KHS);
     expect(nudgeTarget('nudge:krs:krs-akhir')).toBe(NEOSIA_KRS);
   });
-  it('Kesiapan KRS: survey unchecked links the transcript only in the KRS window; missing credits link KRS', () => {
+  it('Kesiapan KRS: survey unchecked links the KHS only in the KRS window; missing credits link KRS', () => {
     const survey: ReadinessItem = { id: 'survey', state: 'unknown', filled: null };
-    expect(readinessLink(survey, true)).toEqual({ href: NEOSIA_TRANSKRIP, label: 'surveyCheck' });
+    expect(readinessLink(survey, true)).toEqual({ href: NEOSIA_KHS, label: 'surveyCheck' });
     expect(readinessLink(survey, false)).toBeNull();
     expect(readinessLink({ id: 'sks', state: 'unknown', max: null, available: null } as ReadinessItem, false)).toEqual({ href: NEOSIA_KRS, label: 'open' });
     expect(readinessLink({ id: 'payment', state: 'action', paid: false } as ReadinessItem, true)).toEqual({ href: NEOSIA_KRS, label: 'open' });

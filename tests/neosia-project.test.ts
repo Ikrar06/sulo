@@ -73,9 +73,10 @@ describe('the allowlist', () => {
 });
 
 describe('golden projections (synthetic responses shaped like the observation)', () => {
-  it('covers exactly 11 endpoints', () => {
-    expect(ENDPOINTS).toHaveLength(11);
-    expect(ENDPOINTS.map((e) => e.id)).not.toContain('getCurrentPenasihatAkademik');
+  it('covers exactly 12 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(12);
+    expect(ENDPOINTS.map((e) => e.id)).toContain('getCurrentPenasihatAkademik');
+    expect(ENDPOINTS.map((e) => e.id as string)).not.toContain('getStatusPembayaran');
   });
 
   for (const e of ENDPOINTS) {

@@ -70,6 +70,7 @@ export const NEOSIA_CONSENT: ConsentText = {
     { id: 'Status survei: sudah diisi atau belum', en: 'The survey status: filled in or not' },
     { id: 'Nilai huruf, IPS, IPK, dan SKS. Tersembunyi sampai kamu memilih Tampilkan', en: 'Letter grades, semester and overall GPA, and credits. Hidden until you choose Show' },
     { id: 'Semester dan masa studi', en: 'Your semester and study period' },
+    { id: 'Nama dosen PA', en: 'Your academic advisor’s name' },
   ],
   droppedTitle: { id: 'Yang dibuang sebelum keluar dari halaman NEOSIA', en: 'What is dropped before it leaves the NEOSIA page' },
   dropped: [
@@ -78,7 +79,7 @@ export const NEOSIA_CONSENT: ConsentText = {
     { id: 'Alamat dan tanggal lahir', en: 'Address and date of birth' },
     { id: 'Nominal dan bank pembayaran', en: 'Payment amounts and bank' },
     { id: 'Nilai angka', en: 'Numeric grades' },
-    { id: 'Nomor induk dosen', en: 'Lecturers’ ID numbers' },
+    { id: 'NIP, NIDN, dan NUPTK dosen', en: 'Lecturers’ NIP, NIDN and NUPTK numbers' },
   ],
   offTitle: { id: 'Mematikan dan menghapus', en: 'Turning it off' },
   off: {

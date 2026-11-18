@@ -246,4 +246,15 @@ export const SYNTHETIC: Record<EndpointId, unknown> = {
   },
   'mahasiswa/semester': { semesters: [{ id: 20251, tahun: 2025, kode: '20251', jenis: 'Ganjil', is_active: false, tahun_ajaran: '2025/2026' }, { ...SEMESTER }] },
   check_survey_status: { is_filled: false, survey_url: SECRET.survey_url },
+  // Key structure of the observation of 18 Nov 2026 05:00 UTC.
+  getCurrentPenasihatAkademik: {
+    currentPenasihatAkademik: {
+      id: 8101,
+      id_prodi_semester: 3,
+      id_dosen: 7301,
+      id_mahasiswa: 5001,
+      is_active: true,
+      dosen: { id: 7301, id_user: 6301, id_prodi: 9, nama: 'Dr. Dosen Sintetis Pembimbing, S.T., M.T.', nidn: SECRET.nidn, nuptk: SECRET.nuptk, nip: SECRET.nip, is_active: true },
+    },
+  },
 };

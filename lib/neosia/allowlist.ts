@@ -137,7 +137,8 @@ export type EndpointId =
   | 'indeks_prestasi/current'
   | 'mahasiswa/semester'
   | 'kartu_hasil_studi/semester'
-  | 'check_survey_status';
+  | 'check_survey_status'
+  | 'getCurrentPenasihatAkademik';
 
 export interface Endpoint {
   id: EndpointId;
@@ -147,8 +148,8 @@ export interface Endpoint {
 }
 
 /**
- * Locked to the owner's observation of 18 Nov 2026. The academic advisor
- * endpoint was never seen and is not listed (docs/NEOSIA.md, "ditunda").
+ * Locked to the owner's observation of 18 Nov 2026 05:00 UTC
+ * (docs/NEOSIA.md). getStatusPembayaran is not listed: never read.
  */
 export const ENDPOINTS: readonly Endpoint[] = [
   {
@@ -214,15 +215,19 @@ export const ENDPOINTS: readonly Endpoint[] = [
   { id: 'mahasiswa/semester', path: 'api/mahasiswa/semester', spec: { semesters: [{ id: 'v', ...SEMESTER }] } },
   // is_filled only: survey_url is never named.
   { id: 'check_survey_status', path: 'api/mahasiswa/check_survey_status', spec: { is_filled: 'v' } },
+  // The advisor's name only (NEOSIA's name already carries the titles). The
+  // lecturer's NIP, NIDN, NUPTK, user and programme ids, every other id and
+  // is_active are never named; nip/nidn/nuptk/id_user are dropped anywhere.
+  { id: 'getCurrentPenasihatAkademik', path: 'api/mahasiswa/penasihat_akademik/getCurrentPenasihatAkademik', spec: { currentPenasihatAkademik: { dosen: { nama: 'v' } } } },
 ];
 
 /**
- * Seen in the owner's observation but not projected yet ("observasi"): only
+ * Seen in an observation but not projected yet ("observasi"): only
  * development builds read these, to list their key names (never values).
- * Other builds do not read them at all. Once the key names are known, the
- * academic advisor's projection keeps the name and titles only.
+ * Other builds do not read them at all. Empty since the academic advisor
+ * endpoint was projected (18 Nov 2026).
  */
-export const OBSERVE_ONLY: readonly { id: string; path: string }[] = [{ id: 'getCurrentPenasihatAkademik', path: 'api/mahasiswa/penasihat_akademik/getCurrentPenasihatAkademik' }];
+export const OBSERVE_ONLY: readonly { id: string; path: string }[] = [];
 
 /** Wrapper keys a response may put its payload under. */
 export const UNWRAP_KEYS = ['data', 'result', 'results'] as const;

@@ -68,6 +68,7 @@ What is kept in your browser
 - The survey status: filled in or not
 - Letter grades, semester and overall GPA, and credits. Hidden until you choose Show
 - Your semester and study period
+- Your academic advisor’s name
 
 What is dropped before it leaves the NEOSIA page
 
@@ -76,7 +77,7 @@ What is dropped before it leaves the NEOSIA page
 - Address and date of birth
 - Payment amounts and bank
 - Numeric grades
-- Lecturers’ ID numbers
+- Lecturers’ NIP, NIDN and NUPTK numbers
 
 Turning it off
 

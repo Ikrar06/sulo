@@ -83,6 +83,7 @@ export function demoNeosia(now = Math.floor(Date.now() / 1000)) {
     },
     'indeks_prestasi/current': { currentIndeksPrestasi: { semester_tahun_ajaran: '2024/2025 Genap', indeks_prestasi_semester: 3.1, indeks_prestasi_kumulatif: 2.95, jumlah_sks: 27 } },
     check_survey_status: { is_filled: false },
+    getCurrentPenasihatAkademik: { currentPenasihatAkademik: { dosen: { nama: 'Dr. Dosen Contoh Lima, S.T., M.T.' } } },
   };
   return {
     'global:neosia': { enabled: true, changedAt: now - DAY },

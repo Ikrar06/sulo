@@ -151,6 +151,25 @@ describe('the service worker stores snapshots', () => {
   });
 });
 
+describe('academic advisor (getCurrentPenasihatAkademik)', () => {
+  const on = { [NEOSIA_MODULE_KEY]: { enabled: true, changedAt: 1 } };
+  it('projects the advisor name only; NIP, NIDN and NUPTK are in neither projection nor storage', async () => {
+    const c = capture('getCurrentPenasihatAkademik');
+    expect(c.data).toEqual({ currentPenasihatAkademik: { dosen: { nama: 'Dr. Dosen Sintetis Pembimbing, S.T., M.T.' } } });
+    const store = memoryStore(on);
+    expect((await ingestCapture(store, 100, c)).kind).toBe('stored');
+    for (const text of [JSON.stringify(c.data), JSON.stringify(store.dump())]) {
+      for (const field of ['nip', 'nidn', 'nuptk', 'id_user', 'id_prodi', 'id_dosen', 'id_mahasiswa', 'is_active', '"id"']) expect(text, field).not.toContain(field.startsWith('"') ? field : `"${field}"`);
+      for (const value of [SECRET.nip, SECRET.nidn, SECRET.nuptk, '7301', '6301', '8101']) expect(text, value).not.toContain(value);
+    }
+  });
+  it('the bridge rejects an advisor capture that carries an identifier', async () => {
+    const b = bridge();
+    const data = { currentPenasihatAkademik: { dosen: { nama: 'Dosen', nip: PLACEHOLDER.nip } } };
+    expect(await b.onMessage({ source: self, origin: ORIGIN, data: { ...capture('getCurrentPenasihatAkademik'), data } })).not.toBe('sent');
+  });
+});
+
 describe('snapshots from an older projection (M7.1 fix)', () => {
   it('are ignored until NEOSIA is opened again, then replaced', async () => {
     const store = memoryStore({ [NEOSIA_MODULE_KEY]: { enabled: true, changedAt: 1 }, [snapshotKey('getTranskripMahasiswa')]: { endpoint: 'getTranskripMahasiswa', v: 1, data: { transkrip: [{ sks: 3, nilai_huruf: 'A' }] }, changedAt: 1, seenAt: 1, unknownShapeAt: null } });

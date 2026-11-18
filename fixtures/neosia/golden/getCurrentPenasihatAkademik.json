@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "data": {
+    "currentPenasihatAkademik": {
+      "dosen": {
+        "nama": "Dr. Dosen Sintetis Pembimbing, S.T., M.T."
+      }
+    }
+  }
+}

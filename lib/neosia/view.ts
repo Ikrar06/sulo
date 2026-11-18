@@ -121,7 +121,14 @@ export type ReadinessItem =
   | { id: 'payment'; state: ItemState; paid: boolean | null }
   | { id: 'survey'; state: ItemState; filled: boolean | null }
   | { id: 'sks'; state: ItemState; max: number | null; available: number | null }
-  | { id: 'krs'; state: ItemState; status: KrsStatus | null };
+  | { id: 'krs'; state: ItemState; status: KrsStatus | null }
+  | { id: 'advisor'; state: 'info'; name: string };
+
+/** currentPenasihatAkademik.dosen.nama: the advisor's name with titles, as NEOSIA writes it. */
+export function advisorName(snapshots: Snapshots): string | null {
+  const name = obj(obj(obj(dataOf(snapshots, 'getCurrentPenasihatAkademik') as Projected)?.currentPenasihatAkademik)?.dosen)?.nama;
+  return typeof name === 'string' && name.trim() !== '' ? name.trim() : null;
+}
 
 /** dashboard.pembayaran.sudah_bayar only. Never an amount. */
 export function paymentPaid(snapshots: Snapshots): boolean | null {
@@ -161,12 +168,15 @@ export function readiness(snapshots: Snapshots, window: KrsWindow | null, today:
   const filled = surveyFilled(snapshots);
   const quota = sksQuota(snapshots);
   const status = krsStatus(snapshots);
+  const advisor = advisorName(snapshots);
   return [
     { id: 'window', state: window === null ? 'unknown' : 'info', window, phase },
     { id: 'payment', state: paid === null ? 'unknown' : paid ? 'ok' : 'action', paid },
     { id: 'survey', state: filled === null ? 'unknown' : filled ? 'ok' : 'action', filled },
     { id: 'sks', state: quota === null || quota.max === null ? 'unknown' : 'info', max: quota?.max ?? null, available: quota?.available ?? null },
     { id: 'krs', state: status === null ? 'unknown' : status === 'empty' ? (phase === 'open' ? 'action' : 'info') : status === 'submitted' ? 'info' : 'ok', status },
+    // Information only, and only once NEOSIA's KRS page has given a name.
+    ...(advisor === null ? [] : [{ id: 'advisor' as const, state: 'info' as const, name: advisor }]),
   ];
 }
 
