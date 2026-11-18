@@ -14,18 +14,14 @@ await new Promise((resolve) => server.stdout.on('data', (d) => String(d).include
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 try {
   for (const scheme of ['light', 'dark']) {
-    const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'id-ID' });
     await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
     await page.goto('http://localhost:5175/');
-    await page.waitForTimeout(600);
-    await page.screenshot({ path: join(out, `412x915-${scheme}-awal.png`) });
-    const masuk = page.getByRole('button', { name: 'Masuk' });
-    if (await masuk.count()) {
-      await masuk.click();
-      await page.getByRole('button', { name: 'Uji sesi' }).click();
-      await page.waitForTimeout(400);
-      await page.screenshot({ path: join(out, `412x915-${scheme}-terhubung.png`) });
-    }
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: join(out, `412x915-${scheme}-onboarding.png`) });
+    await page.getByRole('button', { name: 'Masuk ke SIKOLA' }).click();
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: join(out, `412x915-${scheme}-terhubung.png`) });
     await page.close();
   }
 } finally {

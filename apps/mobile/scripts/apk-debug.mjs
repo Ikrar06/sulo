@@ -12,7 +12,7 @@ if (!java21() || !sdkRoot()) {
 }
 const env = androidEnv();
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, env, stdio: 'inherit' });
-run('pnpm', ['exec', 'vite', 'build'], MOBILE);
+run('pnpm', ['exec', 'vite', 'build', '--mode', 'debug'], MOBILE);
 run('pnpm', ['exec', 'cap', 'sync', 'android'], MOBILE);
 run(join(ANDROID, 'gradlew'), ['--no-daemon', 'testDebugUnitTest', 'assembleDebug'], ANDROID);
 mkdirSync(dirname(DEBUG_APK), { recursive: true });
