@@ -35,8 +35,8 @@ export const MOBILE_PRIVACY_INTRO: Block[] = [
   {
     kind: 'p',
     text: {
-      id: 'Sulo tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Singkatnya: datamu tetap di HP ini, sesi login disimpan terenkripsi, dan Sulo hanya menghubungi SIKOLA.',
-      en: 'Sulo is unofficial and not affiliated with Universitas Hasanuddin. In short: your data stays on this phone, the sign-in session is stored encrypted, and Sulo only contacts SIKOLA.',
+      id: 'Sulo tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Singkatnya: datamu tetap di HP ini, sesi login disimpan terenkripsi, dan Sulo hanya menghubungi SIKOLA serta repo data publik Sulo.',
+      en: 'Sulo is unofficial and not affiliated with Universitas Hasanuddin. In short: your data stays on this phone, the sign-in session is stored encrypted, and Sulo only contacts SIKOLA and Sulo’s public data repository.',
     },
   },
 ];
@@ -100,8 +100,12 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'sikola-v2.unhas.ac.id: you sign in on SIKOLA’s own page, then Sulo reads tasks, the calendar, courses, updates and attendance. Read only; Sulo changes nothing on SIKOLA. Requests name themselves as Sulo and its version.',
           },
           {
-            id: 'Tidak ada server lain. Tidak ada server Sulo, analitik, iklan, atau pelacakan. Kalender akademik ikut di dalam aplikasi.',
-            en: 'No other server. No Sulo server, analytics, ads or tracking. The academic calendar ships inside the app.',
+            id: 'ikrar06.github.io: repo data publik Sulo, untuk dua berkas data saja, yaitu pengaturan jarak jauh (termasuk sakelar pemantauan) dan kalender akademik terbaru. Dibaca paling sering sekali sehari, ditambah saat aplikasi dibuka kalau bacaan terakhir lebih dari 6 jam. Permintaannya tidak membawa cookie atau apa pun yang mengenali kamu.',
+            en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including the watching switch) and the latest academic calendar. Read at most once a day, plus when you open the app and the last read is over 6 hours old. The request carries no cookie and nothing that identifies you.',
+          },
+          {
+            id: 'Tidak ada server lain. Tidak ada server Sulo, analitik, iklan, atau pelacakan. Kalender akademik juga ikut di dalam aplikasi, jadi tetap ada tanpa jaringan.',
+            en: 'No other server. No Sulo server, analytics, ads or tracking. The academic calendar also ships inside the app, so it is there without a connection.',
           },
           {
             id: 'Tautan yang kamu ketuk (Google Kalender, SIKOLA, formulir masukan) dibuka di browser. Sulo tidak mengirim data apa pun ke sana.',
@@ -117,9 +121,39 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Hanya karena tindakanmu: setelah masuk, saat membuka aplikasi kalau data lebih tua dari 15 menit, tarik untuk memperbarui, atau tombol Perbarui. Tidak ada pemeriksaan di latar belakang, dan Sulo tidak pernah memperpanjang sesi secara buatan. Rekap presensi diperbarui paling sering sekali sehari; rincian per pertemuan diambil saat kamu membukanya. Pengingat dijadwalkan di HP dari data terakhir.',
-          en: 'Only because of something you do: after signing in, when you open the app and the data is older than 15 minutes, pull to update, or the Update button. There is no background checking, and Sulo never keeps the session alive artificially. The attendance recap updates at most once a day; per-session details are fetched when you open them. Reminders are scheduled on the phone from the latest data.',
+          id: 'Karena tindakanmu: setelah masuk, saat membuka aplikasi kalau data lebih tua dari 15 menit, tarik untuk memperbarui, atau tombol Perbarui. Ditambah pemantauan latar belakang kalau kamu menyalakannya (bagian berikut). Rekap presensi diperbarui paling sering sekali sehari saat aplikasi dibuka, tidak pernah di latar belakang; rincian per pertemuan diambil saat kamu membukanya. Pengingat dijadwalkan di HP dari data terakhir.',
+          en: 'Because of something you do: after signing in, when you open the app and the data is older than 15 minutes, pull to update, or the Update button. Plus background watching if you turn it on (next section). The attendance recap updates at most once a day when the app is opened, never in the background; per-session details are fetched when you open them. Reminders are scheduled on the phone from the latest data.',
         },
+      },
+    ],
+  },
+  {
+    heading: { id: 'Pemantauan latar belakang (pilihan)', en: 'Background watching (optional)' },
+    blocks: [
+      {
+        kind: 'ul',
+        items: [
+          {
+            id: 'Kalau "Pantau tugas baru" menyala, Sulo mengecek SIKOLA berkala walau aplikasi tertutup: sekitar tiap 20 menit pukul 06.00-22.59 dan tiap 60 menit di malam hari. Setiap cek satu permintaan yang hanya membaca tugas, kabar, dan sisa waktu sesi.',
+            en: 'With "Watch for new tasks" on, Sulo checks SIKOLA regularly even when the app is closed: about every 20 minutes from 06.00 to 22.59 and every 60 minutes at night. Each check is one request that only reads tasks, updates and the session’s time left.',
+          },
+          {
+            id: 'Selama fitur ini menyala, login SIKOLA-mu tetap aktif di HP ini, karena cek berkala dihitung SIKOLA sebagai aktivitas. Matikan fitur ini kalau kamu tidak mau sesimu tetap aktif.',
+            en: 'While it is on, your SIKOLA sign-in stays active on this phone, because SIKOLA counts the checks as activity. Turn it off if you do not want your session kept active.',
+          },
+          {
+            id: 'Mematikannya: Lainnya, Pengaturan, Notifikasi, "Pantau tugas baru". Cek berhenti seketika; sesudah itu Sulo hanya memeriksa saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
+            en: 'To turn it off: More, Settings, Notifications, "Watch for new tasks". Checks stop at once; after that Sulo only checks when you open the app, pull down, or tap Update.',
+          },
+          {
+            id: 'Pengelola Sulo bisa mematikan atau memperlambat pemantauan untuk semua pengguna lewat pengaturan jarak jauh, misalnya kalau ada keberatan dari kampus.',
+            en: 'Sulo’s maintainer can turn watching off or slow it down for everyone through the remote settings, for example if the university objects.',
+          },
+          {
+            id: 'Cek berkala ikut batas harian yang sama dengan pemeriksaan lain, dan tidak pernah mengambil rekap presensi.',
+            en: 'The checks count against the same daily limits as every other check, and never fetch the attendance recap.',
+          },
+        ],
       },
     ],
   },

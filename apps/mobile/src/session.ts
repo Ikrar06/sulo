@@ -43,6 +43,8 @@ export interface SuloSessionPlugin {
   lockAvailable(): Promise<{ available: boolean }>;
   /** Never unlocked by default: with no screen lock on the phone, reason is "no_device_lock". */
   unlock(): Promise<{ unlocked: boolean; reason?: 'no_device_lock' }>;
+  /** Android's settings page for this app (background use); asks for no permission. */
+  openAppSettings(): Promise<void>;
 }
 
 export const SuloSession = registerPlugin<SuloSessionPlugin>('SuloSession', {

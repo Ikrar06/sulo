@@ -36,7 +36,7 @@ export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: S
       case 'pengaturan':
         return <PengaturanScreen onSignedOut={onSignedOut} />;
       case 'bantuan':
-        return <BantuanScreen />;
+        return <BantuanScreen initialOpen={screen.detail} />;
       case 'tentang':
         return <TentangScreen />;
       case 'privasi':

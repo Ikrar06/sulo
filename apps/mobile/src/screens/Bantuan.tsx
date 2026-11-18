@@ -5,7 +5,7 @@
 // Last a "Masih bingung?" card; with no match, one sentence and the same
 // feedback button.
 
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { searchFaq } from '@sulo/core/help/mobile';
 import { FEEDBACK_FORM_URL, isShownLink } from '@sulo/core/links';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
@@ -16,12 +16,16 @@ import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 
-export function BantuanScreen() {
+/** `initialOpen`: a question to open and bring into view (a link such as #bantuan/seberapa-cepat-hp). */
+export function BantuanScreen({ initialOpen = null }: { initialOpen?: string | null }) {
   const { locale } = useI18n();
   const d = mobileDash(locale);
   const h = mobileWords(locale).help;
   const [query, setQuery] = useState('');
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(initialOpen);
+  useEffect(() => {
+    if (initialOpen) document.getElementById(`faq-q-${initialOpen}`)?.scrollIntoView({ block: 'center' });
+  }, [initialOpen]);
   const groups = useMemo(() => searchFaq(query, locale), [query, locale]);
   const feedback = isShownLink(FEEDBACK_FORM_URL) ? <PillButton href={FEEDBACK_FORM_URL}>{d.tentang.feedback}</PillButton> : null;
 
@@ -62,7 +66,7 @@ export function BantuanScreen() {
               </h2>
               <ul className="space-y-3">
                 {g.entries.map((e) => (
-                  <li key={e.id}>
+                  <li key={e.id} id={`faq-q-${e.id}`}>
                     <Question entry={e} lang={locale} open={open === e.id} onToggle={() => setOpen((v) => (v === e.id ? null : e.id))} />
                   </li>
                 ))}

@@ -193,4 +193,17 @@ class SuloSessionPlugin : Plugin() {
     private fun onUnlockResult(call: PluginCall?, result: ActivityResult) {
         call?.resolve(JSObject().put("unlocked", result.resultCode == android.app.Activity.RESULT_OK))
     }
+
+    /**
+     * Android's own page for this app (battery, background use), so the user
+     * can let Sulo run in the background. No permission asked; Sulo never
+     * requests REQUEST_IGNORE_BATTERY_OPTIMIZATIONS.
+     */
+    @PluginMethod
+    fun openAppSettings(call: PluginCall) {
+        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.fromParts("package", context.packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+        call.resolve()
+    }
 }

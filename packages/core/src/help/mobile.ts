@@ -13,8 +13,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Apakah Sulo aman di HP?', en: 'Is Sulo safe on my phone?' },
     a: [
       {
-        id: 'Kamu masuk di halaman SIKOLA sendiri, jadi Sulo tidak pernah melihat password-mu. Sesi login disimpan terenkripsi dengan kunci di Android Keystore, dan Sulo hanya menghubungi SIKOLA untuk membaca. Tidak ada iklan, pelacakan, atau server Sulo.',
-        en: 'You sign in on SIKOLA’s own page, so Sulo never sees your password. The session is stored encrypted with a key in the Android Keystore, and Sulo only contacts SIKOLA to read. No ads, no tracking, no Sulo server.',
+        id: 'Kamu masuk di halaman SIKOLA sendiri, jadi Sulo tidak pernah melihat password-mu. Sesi login disimpan terenkripsi dengan kunci di Android Keystore, dan Sulo hanya membaca dari SIKOLA. Tidak ada iklan, pelacakan, atau server Sulo.',
+        en: 'You sign in on SIKOLA’s own page, so Sulo never sees your password. The session is stored encrypted with a key in the Android Keystore, and Sulo only reads from SIKOLA. No ads, no tracking, no Sulo server.',
       },
     ],
   },
@@ -23,8 +23,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kapan data di Sulo diperbarui?', en: 'When does Sulo update its data?' },
     a: [
       {
-        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Jarak antarpembaruan paling cepat 2 menit. Sulo tidak memeriksa SIKOLA di latar belakang.',
-        en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. Updates are at least 2 minutes apart. Sulo does not check SIKOLA in the background.',
+        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Jarak antarpembaruan paling cepat 2 menit. Kalau "Pantau tugas baru" menyala, Sulo juga mengecek berkala di latar belakang (sekitar tiap 20 menit siang hari, tiap 60 menit malam hari).',
+        en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. Updates are at least 2 minutes apart. With "Watch for new tasks" on, Sulo also checks regularly in the background (about every 20 minutes by day, every 60 minutes at night).',
       },
     ],
   },
@@ -33,8 +33,38 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo minta aku masuk lagi ke SIKOLA?', en: 'Why does Sulo ask me to sign in to SIKOLA again?' },
     a: [
       {
-        id: 'Sesi SIKOLA berakhir sekitar dua jam setelah kamu terakhir aktif, dan Sulo tidak pernah memperpanjangnya secara buatan. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui.',
-        en: 'A SIKOLA session ends about two hours after you were last active, and Sulo never keeps it alive artificially. The latest data stays on screen; tap Sign in again to update.',
+        id: 'Sesi SIKOLA berakhir sekitar dua jam setelah kamu terakhir aktif. Kalau "Pantau tugas baru" mati, Sulo tidak menjaga sesimu tetap aktif, jadi kamu diminta masuk lagi sesekali. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui.',
+        en: 'A SIKOLA session ends about two hours after you were last active. With "Watch for new tasks" off, Sulo does not keep your session active, so it asks you to sign in now and then. The latest data stays on screen; tap Sign in again to update.',
+      },
+    ],
+  },
+  {
+    id: 'seberapa-cepat-hp',
+    q: { id: 'Seberapa cepat Sulo tahu ada tugas baru?', en: 'How soon does Sulo know about a new task?' },
+    a: [
+      {
+        id: 'Kalau "Pantau tugas baru" menyala dan HP tidak menidurkan Sulo, sekitar 20 menit di siang hari (06.00-22.59) dan sekitar satu jam di malam hari. Kalau mati, saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
+        en: 'With "Watch for new tasks" on and the phone not putting Sulo to sleep, about 20 minutes by day (06.00-22.59) and about an hour at night. With it off, when you open the app, pull down, or tap Update.',
+      },
+    ],
+  },
+  {
+    id: 'masuk-lagi-pemantauan-hp',
+    q: { id: 'Kenapa Sulo minta masuk lagi padahal pemantauan menyala?', en: 'Why does Sulo ask me to sign in again when watching is on?' },
+    a: [
+      {
+        id: 'HP-mu menunda pengecekan terlalu lama (misalnya penghemat baterai), sehingga lebih dari dua jam tidak ada cek dan login SIKOLA berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
+        en: 'Your phone held the checks back too long (a battery saver, for example), so more than two hours passed without one and the SIKOLA sign-in ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
+      },
+    ],
+  },
+  {
+    id: 'email-sikola-hp',
+    q: { id: 'Bisakah SIKOLA mengirim email juga?', en: 'Can SIKOLA send me email too?' },
+    a: [
+      {
+        id: 'Bisa, sebagai pelengkap Sulo. Di SIKOLA, buka menu profil, Preferensi, lalu Preferensi notifikasi, dan nyalakan kolom Email untuk jenis yang kamu mau (misalnya tugas dan forum). Tombol di Lainnya, Pengaturan, Notifikasi membuka halaman preferensi SIKOLA di browser. Sulo tidak mengubah pengaturan itu.',
+        en: 'Yes, alongside Sulo. On SIKOLA, open the profile menu, Preferences, then Notification preferences, and turn on the Email column for the kinds you want (assignments and forums, for example). The button under More, Settings, Notifications opens SIKOLA’s preferences page in your browser. Sulo does not change those settings.',
       },
     ],
   },
@@ -103,8 +133,8 @@ export const MOBILE_FAQ: FaqEntry[] = [...PHONE, ...FAQ.filter((e) => SHARED.has
 /** Bantuan's groups on the phone, in order; every MOBILE_FAQ entry is in exactly one (tested). */
 export const MOBILE_FAQ_TOPICS = [
   { id: 'privasi', title: { id: 'Keamanan dan privasi', en: 'Security and privacy' }, entries: ['aman-hp', 'akun-lain-hp', 'hapus-data-hp'] },
-  { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'masuk-lagi-hp', 'sikola-berubah-hp', 'kabar-lama'] },
-  { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp'] },
+  { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'seberapa-cepat-hp', 'masuk-lagi-hp', 'masuk-lagi-pemantauan-hp', 'sikola-berubah-hp', 'kabar-lama'] },
+  { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'email-sikola-hp'] },
   { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
   { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['resmi'] },

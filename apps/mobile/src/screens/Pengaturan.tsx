@@ -4,7 +4,7 @@
 // Tampilan, Keamanan, Laporan bug, Data. Only what makes sense on a phone;
 // every value is the same prefs field the extension uses.
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
 import { formatClock } from '@sulo/core/format/time';
 import { LANGUAGE_NAMES } from '@sulo/core/i18n';
@@ -16,7 +16,6 @@ import { zonedToUnix } from '@sulo/core/reminders/zoned';
 import { readSyncStatus } from '@sulo/core/storage';
 import { buildBugReport } from '@sulo/core/support/bug-report';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronRightIcon } from '@sulo/ui/icons';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
 import { Input } from '@sulo/ui/ui/input';
@@ -31,6 +30,8 @@ const HOURS = Array.from({ length: 24 }, (_, h) => h * 60);
 type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickname' | null;
 
 import { SignOutSheet } from './SignOutSheet';
+import { Group, Row, ValueRow } from './settings-rows';
+import { WatchSettings } from './WatchSettings';
 export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
@@ -76,6 +77,8 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
 
   return (
     <div className="space-y-6">
+      <WatchSettings lock={lock} lockAvailable={lockAvailable} onLockOn={() => setLock(true)} />
+
       <Group title={t.sections.pengingat}>
         <Row label={r.enabled}>
           <Toggle checked={rem.enabled} label={r.enabled} onChange={(v) => setRem({ enabled: v })} />
@@ -225,39 +228,5 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
 
       <SignOutSheet open={confirm} onOpenChange={setConfirm} onSignedOut={onSignedOut} />
     </div>
-  );
-}
-
-function Group({ title, help, children }: { title: string; help?: string; children: ReactNode }) {
-  return (
-    <section>
-      <h2 className="mb-2 text-m13 font-semibold text-muted-foreground">{title}</h2>
-      <div className="m-card rounded-card px-4 py-1">{children}</div>
-      {help && <p className="mt-2 px-1 text-m12 font-normal text-muted-foreground">{help}</p>}
-    </section>
-  );
-}
-
-/** A setting: its label (and help) on the left, its control on the right; an inset hairline between rows. */
-function Row({ label, help, dim = false, children }: { label: string; help?: string; dim?: boolean; children: ReactNode }) {
-  return (
-    <div className={`flex min-h-12 items-center gap-3 py-2 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line ${dim ? 'opacity-50' : ''}`}>
-      <span className="min-w-0 flex-1">
-        <span className="block text-m15 font-normal">{label}</span>
-        {help && <span className="block text-m12 font-normal text-muted-foreground">{help}</span>}
-      </span>
-      {children}
-    </div>
-  );
-}
-
-/** A value on the right that opens a bottom sheet. */
-function ValueRow({ label, value, onPress, disabled = false }: { label: string; value: string; onPress: () => void; disabled?: boolean }) {
-  return (
-    <button type="button" disabled={disabled} onClick={onPress} className="m-hit flex min-h-12 w-full items-center gap-3 py-2 text-left outline-none disabled:opacity-50 focus-ring:ring-2 focus-ring:ring-focus [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
-      <span className="min-w-0 flex-1 text-m15 font-normal">{label}</span>
-      {value && <span className="text-m13 text-muted-foreground tabular-nums">{value}</span>}
-      <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
-    </button>
   );
 }
