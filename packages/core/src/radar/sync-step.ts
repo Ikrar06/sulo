@@ -7,7 +7,7 @@ import { calls, type MoodleCall } from '../moodle/calls';
 import { MAX_STATE_CALLS_PER_BATCH, NOTIFICATIONS_LIMIT, NOTIFICATIONS_LIMIT_SMALL, TASKS_TTL_MIN, TTL_TOLERANCE_MIN } from '../moodle/limits';
 import type { CallResult } from '../moodle/client';
 import { parseCall } from '../moodle/schemas';
-import { readUser, writeUser, type CourseAccess } from '../storage';
+import { readUser, writeUser, type CourseAccess, type RadarRun } from '../storage';
 import type { Change, CourseRecord, KeyValueStore, Task, UnixSeconds, UserId } from '../types';
 import { diffCourse } from './diff';
 import { appendChanges } from './log';
@@ -103,6 +103,22 @@ export interface RadarOutcome {
   sikolaTrouble: boolean;
 }
 
+/**
+ * A course structure fetched outside a sync (the Presensi page looking for
+ * its attendance activity): stored like the radar's, so the next radar pass
+ * diffs against it. A first structure is a baseline (no entries).
+ */
+export async function storeCourseState(store: KeyValueStore, userId: UserId, courseId: number, items: ReturnType<typeof itemsFromState>, now: UnixSeconds): Promise<void> {
+  const snapshots = { ...(await readUser(store, userId, 'snapshots')) };
+  const key = String(courseId);
+  const diff = diffCourse(snapshots[key] ?? null, items, { userId, courseId, now });
+  snapshots[key] = diff.next;
+  await writeUser(store, userId, 'snapshots', snapshots);
+  if (diff.changes.length > 0) await writeUser(store, userId, 'changes', appendChanges(await readUser(store, userId, 'changes'), diff.changes, now));
+  const radar = await readUser(store, userId, 'radar');
+  await writeUser(store, userId, 'radar', { ...radar, stateCheckedAt: { ...radar.stateCheckedAt, [key]: now } });
+}
+
 /** Applies the radar results. */
 export async function applyRadarResults(store: KeyValueStore, r: RadarResults): Promise<RadarOutcome> {
   const broken: string[] = [];
@@ -120,19 +136,32 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
     calendarBaseline = true;
   }
 
+  const run: RadarRun = { at: r.now, planned: r.plan.courseIds.length, stored: 0, errors: {}, notifications: 'skipped' };
+  const countError = (code: string) => void (run.errors[code] = (run.errors[code] ?? 0) + 1);
+
   let index = 0;
   if (r.plan.withNotifications) {
     const result = r.results[index++];
-    const parsed = result ? parseCall('message_popup_get_popup_notifications', result) : null;
-    if (parsed?.ok) {
-      const ids = parsed.data.notifications.map((n) => n.id);
-      notificationsWide = nextNotificationsWide(r.plan.notificationsLimit, ids, notificationsLastId);
-      const scan = scanNotifications(parsed.data.notifications, notificationsLastId, r.origin);
-      changes.push(...scan.changes);
-      notificationsLastId = scan.lastId;
-      notificationsFetchedAt = r.now;
-    } else if (parsed && parsed.status === 'PARSER_BROKEN') {
-      broken.push('message_popup_get_popup_notifications');
+    // A failure here never stops the course structures below.
+    try {
+      const parsed = result ? parseCall('message_popup_get_popup_notifications', result) : null;
+      if (parsed?.ok) {
+        const ids = parsed.data.notifications.map((n) => n.id);
+        notificationsWide = nextNotificationsWide(r.plan.notificationsLimit, ids, notificationsLastId);
+        const scan = scanNotifications(parsed.data.notifications, notificationsLastId, r.origin);
+        changes.push(...scan.changes);
+        notificationsLastId = scan.lastId;
+        notificationsFetchedAt = r.now;
+        run.notifications = 'ok';
+      } else if (parsed && parsed.status === 'PARSER_BROKEN') {
+        broken.push('message_popup_get_popup_notifications');
+        run.notifications = 'broken';
+      } else {
+        run.notifications = 'error';
+      }
+    } catch (e) {
+      run.notifications = 'error';
+      run.failure = `notifications: ${e instanceof Error ? e.name : 'Error'}`;
     }
   }
 
@@ -143,8 +172,12 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
     const parsed = result ? parseCall('core_courseformat_get_state', result) : null;
     // Only a result that passed validation is diffed. A failed one is never
     // read as "everything was removed".
-    if (!parsed) continue;
+    if (!parsed) {
+      countError('missing');
+      continue;
+    }
     if (!parsed.ok) {
+      countError(parsed.status === 'PARSER_BROKEN' ? 'parser_broken' : parsed.errorcode);
       if (parsed.status === 'PARSER_BROKEN') {
         broken.push('core_courseformat_get_state');
       } else if (courseErrorKind(parsed.errorcode) === 'access') {
@@ -159,9 +192,14 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
       continue;
     }
     delete courseAccess[key];
-    const diff = diffCourse(snapshots[key] ?? null, itemsFromState(parsed.data), { userId: r.userId, courseId, now: r.now });
-    snapshots[key] = diff.next;
-    changes.push(...diff.changes);
+    try {
+      const diff = diffCourse(snapshots[key] ?? null, itemsFromState(parsed.data), { userId: r.userId, courseId, now: r.now });
+      snapshots[key] = diff.next;
+      changes.push(...diff.changes);
+      run.stored += 1;
+    } catch (e) {
+      countError(`exception:${e instanceof Error ? e.name : 'Error'}`);
+    }
   }
 
   if (changes.length > 0) {
@@ -184,6 +222,7 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
     courseAccess,
     ...(notificationsFetchedAt !== undefined ? { notificationsFetchedAt } : {}),
     ...(notificationsWide ? { notificationsWide } : {}),
+    lastRun: run,
   });
   const sikolaTrouble = r.plan.courseIds.length > 0 && otherFailures === r.plan.courseIds.length;
   return { broken: [...new Set(broken)], sikolaTrouble };

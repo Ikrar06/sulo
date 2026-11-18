@@ -94,6 +94,21 @@ export interface RadarMeta {
   notificationsFetchedAt?: UnixSeconds;
   /** The last small page (10) was all new: fetch the full page (20) next time. */
   notificationsWide?: boolean;
+  /** What the last radar pass did (codes and counts only), for the diagnosis in Pengaturan. */
+  lastRun?: RadarRun;
+}
+
+export interface RadarRun {
+  at: UnixSeconds;
+  /** Course structures asked for in this sync. */
+  planned: number;
+  /** Structures stored (baseline or diff). */
+  stored: number;
+  /** Moodle error codes (or "parser_broken") per count. */
+  errors: Record<string, number>;
+  notifications: 'ok' | 'skipped' | 'broken' | 'error';
+  /** Why the radar did not run at all, or the exception that stopped a part (name only). */
+  failure?: string;
 }
 
 export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {

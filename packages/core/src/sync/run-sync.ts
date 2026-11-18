@@ -245,20 +245,32 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
 
   // The radar only reads results for the user it planned for (a different
   // account was just wiped by switchUser and starts with its own baseline).
+  if (knownUser !== userId) {
+    // First sync of an account: no radar yet (recorded for the diagnosis).
+    const meta = await readUser(deps.store, userId, 'radar');
+    await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: knownUser === null ? 'no_known_user' : 'other_user' } });
+  }
   if (knownUser === userId) {
-    const radar = await applyRadarResults(deps.store, {
-      userId,
-      now,
-      origin: deps.origin ?? SIKOLA_ORIGIN,
-      plan: radarPlan,
-      results: radarResults,
-      previousTasks,
-      nextTasks: calendarMerged ? tasks : null,
-    });
-    broken.push(...radar.broken);
-    // Every course structure failed with a server error while the session
-    // call worked: SIKOLA itself is in trouble. One domain failure for backoff.
-    if (radar.sikolaTrouble) await recordFailure(deps.store, deps.clock, null);
+    // The radar never stops the tasks: an unexpected error is recorded for
+    // the diagnosis (name only) and the sync goes on.
+    try {
+      const radar = await applyRadarResults(deps.store, {
+        userId,
+        now,
+        origin: deps.origin ?? SIKOLA_ORIGIN,
+        plan: radarPlan,
+        results: radarResults,
+        previousTasks,
+        nextTasks: calendarMerged ? tasks : null,
+      });
+      broken.push(...radar.broken);
+      // Every course structure failed with a server error while the session
+      // call worked: SIKOLA itself is in trouble. One domain failure for backoff.
+      if (radar.sikolaTrouble) await recordFailure(deps.store, deps.clock, null);
+    } catch (e) {
+      const meta = await readUser(deps.store, userId, 'radar');
+      await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: radarPlan.courseIds.length, stored: 0, errors: {}, notifications: 'skipped', failure: `exception:${e instanceof Error ? e.name : 'Error'}` } });
+    }
   }
 
   const meta = await readUser(deps.store, userId, 'sync');
