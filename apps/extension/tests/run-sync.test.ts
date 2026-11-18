@@ -59,6 +59,23 @@ function fakeClient(
 const run = (client: MoodleClient, store = memoryStore(), trigger: SyncTrigger = 'manual', hour = 10, idle: 'active' | 'idle' = 'active') =>
   runSync({ client, store, clock: fixedClock('2026-09-22', hour, NOW), trigger, idleState: idle });
 
+describe('sync stages (the phone\'s "Menyiapkan Sulo" list)', () => {
+  it('reports tasks, courses and attendance in order as they really finish', async () => {
+    const seen: string[] = [];
+    await runSync({ client: fakeClient(), store: memoryStore(), clock: fixedClock('2026-09-22', 10, NOW), trigger: 'onboarding', onStage: (s, r) => seen.push(`${s}:${r}`) });
+    // The fake has no recap page (network error): attendance fails, the sync does not.
+    expect(seen).toEqual(['tasks:ok', 'courses:ok', 'attendance:failed']);
+  });
+
+  it('a failed request marks the tasks failed; a throwing listener never breaks the sync', async () => {
+    const seen: string[] = [];
+    await runSync({ client: fakeClient(() => ({ kind: 'network_error' })), store: memoryStore(), clock: fixedClock('2026-09-22', 10, NOW), trigger: 'manual', onStage: (s, r) => seen.push(`${s}:${r}`) });
+    expect(seen).toEqual(['tasks:failed']);
+    const outcome = await runSync({ client: fakeClient(), store: memoryStore(), clock: fixedClock('2026-09-22', 10, NOW), trigger: 'onboarding', onStage: () => { throw new Error('x'); } });
+    expect(outcome.status).toBe('ok');
+  });
+});
+
 describe('runSync', () => {
   it('sends one batch with session and calendar, plus the course list on first run; then the radar follow-up once', async () => {
     const client = fakeClient();

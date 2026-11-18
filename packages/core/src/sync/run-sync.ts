@@ -53,6 +53,23 @@ export interface SyncDeps {
   forceCourseList?: boolean;
   /** SIKOLA origin, for filtering notification links; defaults to SIKOLA_ORIGIN. */
   origin?: string;
+  /**
+   * The real stages as they finish (the phone's "Menyiapkan Sulo" list):
+   * tasks when the calendar answer was read, courses after the course list,
+   * attendance after the recap. Never called for a stage that did not run.
+   */
+  onStage?: (stage: SyncStage, result: 'ok' | 'failed') => void;
+}
+
+export type SyncStage = 'tasks' | 'courses' | 'attendance';
+
+/** A stage listener must never break a sync. */
+function stage(deps: Pick<SyncDeps, 'onStage'>, s: SyncStage, result: 'ok' | 'failed') {
+  try {
+    deps.onStage?.(s, result);
+  } catch {
+    // ignored: the list on screen is only a view of the sync
+  }
 }
 
 export async function runSync(deps: SyncDeps): Promise<SyncOutcome> {
@@ -189,7 +206,10 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
     remaining: remainingQuota(budget),
   });
   const result = await deps.client.callBatch(plan.calls, { source: deps.trigger, withCourseList: plan.withCourseList });
-  if (result.kind !== 'ok') return transportOutcome(result);
+  if (result.kind !== 'ok') {
+    stage(deps, 'tasks', 'failed');
+    return transportOutcome(result);
+  }
   return applyBatch(deps, now, { knownUser, mode, plan }, result.results, { followUp: true, recap: true });
 }
 
@@ -207,7 +227,7 @@ export interface BatchContext {
  * followUp and recap false: no follow-up batch and no attendance recap,
  * since those would be new requests. The budget is never touched here.
  */
-export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origin'> & Partial<Pick<SyncDeps, 'client' | 'trigger'>>, now: UnixSeconds, ctx: BatchContext, results: readonly CallResult[], options: { followUp: boolean; recap: boolean }): Promise<SyncOutcome> {
+export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origin'> & Partial<Pick<SyncDeps, 'client' | 'trigger' | 'onStage'>>, now: UnixSeconds, ctx: BatchContext, results: readonly CallResult[], options: { followUp: boolean; recap: boolean }): Promise<SyncOutcome> {
   const { knownUser, mode } = ctx;
   const { withCourseList, radar: radarPlan, radarStart } = ctx.plan;
   const [sessionResult, calendarResult, allResult, inProgressResult] = results;
@@ -239,6 +259,7 @@ export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origi
   } else {
     broken.push('core_calendar_get_action_events_by_timesort');
   }
+  stage(deps, 'tasks', calendar.ok ? 'ok' : 'failed');
 
   const upcoming = upcomingCourseIds(tasks, now);
   const previousCourses = await readUser(deps.store, userId, 'courses');
@@ -262,6 +283,8 @@ export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origi
     }
   }
   await writeUser(deps.store, userId, 'courses', courses);
+  // Known courses count as found when the list was not due this time.
+  stage(deps, 'courses', withCourseList && !courseListFetched ? 'failed' : 'ok');
 
   // The radar only reads results for the user it planned for (a different
   // account was just wiped by switchUser and starts with its own baseline).
@@ -313,7 +336,10 @@ export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origi
   // per 24 hours; skipped in saver mode. Its failure never fails the sync.
   // Not after a follow-up batch that saw another account or no session: the
   // recap page carries no account to check.
-  if (options.recap && deps.client && deps.trigger && mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) await autoRecap(deps as SyncDeps, userId, courses, now, knownUser !== userId).catch(() => undefined);
+  if (options.recap && deps.client && deps.trigger && mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) {
+    const recap = await autoRecap(deps as SyncDeps, userId, courses, now, knownUser !== userId).catch(() => 'failed' as const);
+    stage(deps, 'attendance', recap);
+  }
 
   if (broken.length > 0) return { status: 'parser_broken', where: broken.join(', ') };
   return { status: 'ok', at: now, tasks: tasks.filter((t) => t.missingSince === null).length, courseListFetched };
@@ -396,12 +422,14 @@ async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly 
 }
 
 /** The attendance recap when due (presensi/service.ts refreshRecap). */
-async function autoRecap(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], now: UnixSeconds, firstForAccount: boolean): Promise<void> {
+async function autoRecap(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], now: UnixSeconds, firstForAccount: boolean): Promise<'ok' | 'failed'> {
   const data = await readPresensi(deps.store, userId);
-  if (data.recap !== null && now - data.recap.fetchedAt < PRESENSI_CACHE_SEC) return;
-  await refreshRecap(
+  if (data.recap !== null && now - data.recap.fetchedAt < PRESENSI_CACHE_SEC) return 'ok';
+  const out = await refreshRecap(
     { client: deps.client, store: deps.store, clock: deps.clock, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, userId, monitored: activeCourseIds(courses) },
     // A course structure to find the activity only in the first sync, at most one; otherwise the radar's structures or a known cmid, else tomorrow.
     { force: false, maxProbes: firstForAccount ? 1 : 0 },
   );
+  // No attendance activity anywhere is an answer, not a failure.
+  return out.status === 'ok' || out.status === 'fresh' || out.status === 'no_attendance' || out.status === 'not_monitored' ? 'ok' : 'failed';
 }
