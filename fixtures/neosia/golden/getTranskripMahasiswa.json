@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "data": {
+    "transkrip": [
+      {
+        "kode": "23D12100010",
+        "nama": "KALKULUS I",
+        "sks": 3,
+        "nilai_huruf": "A",
+        "id_semester": 20251,
+        "is_used": true,
+        "is_alih_kredit": false,
+        "is_manual": false
+      },
+      {
+        "kode": "23D12100011",
+        "nama": "FISIKA DASAR",
+        "sks": 3,
+        "nilai_huruf": "B+",
+        "id_semester": 20251,
+        "is_used": true,
+        "is_alih_kredit": false,
+        "is_manual": false
+      }
+    ],
+    "current_indeks_prestasi": {
+      "ipk": 3.51,
+      "ips": 3.6,
+      "jumlah_sks": 64
+    }
+  }
+}

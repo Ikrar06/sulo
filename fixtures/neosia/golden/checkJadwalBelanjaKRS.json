@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "data": {
+    "status": true,
+    "prodiSemesterJadwalKrses": [
+      {
+        "tanggal_mulai": "2027-01-03",
+        "tanggal_berakhir": "2027-02-12",
+        "semester_tipe_jadwal": {
+          "name": "krs",
+          "caption": "Pengisian KRS"
+        }
+      }
+    ]
+  }
+}

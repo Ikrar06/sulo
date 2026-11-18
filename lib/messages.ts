@@ -26,6 +26,12 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('neosia/enable') }),
   /** "Putuskan dan hapus data": scripts off, permissions removed, NEOSIA data deleted. */
   z.object({ type: z.literal('neosia/disable') }),
+  /**
+   * Bridge on a NEOSIA page: one projected response. Checked loosely here;
+   * the service worker validates `capture` with the allowlist schema
+   * (lib/neosia/schema.ts) before anything is stored.
+   */
+  z.object({ type: z.literal('neosia/capture'), capture: z.unknown() }),
 ]);
 // Dev-only messages live in lib/dev/messages.ts and are handled by a module
 // that only development builds contain (scripts/check-no-dev-code.mjs).

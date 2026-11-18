@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "data": {
+    "indeks_prestasi": {
+      "ipk": 3.51,
+      "jumlah_sks_dilulusi": 64
+    },
+    "masa_studi": {
+      "maksimal": 14,
+      "sisa": 10
+    }
+  }
+}

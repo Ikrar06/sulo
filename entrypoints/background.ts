@@ -41,6 +41,8 @@ import type { SyncOutcome, SyncTrigger } from '@/lib/types';
 import { loadPopupInput } from '@/lib/view/load';
 import { browserModuleDeps } from '@/lib/neosia/browser-deps';
 import { disableModule, enableModule, reconcileModule } from '@/lib/neosia/module';
+import { NEOSIA_APP_ORIGIN } from '@/lib/neosia/allowlist';
+import { ingestCapture } from '@/lib/neosia/store';
 import { buildPopupView } from '@/lib/view/popup-view';
 
 const SESSKEY_KEY = 'sesskey';
@@ -104,6 +106,10 @@ export default defineBackground(() => {
   let neosiaQueue: Promise<unknown> = Promise.resolve();
   const reconcileNeosia = () => {
     neosiaQueue = neosiaQueue.then(() => reconcileModule(neosia)).catch(() => undefined);
+  };
+  /** One projected NEOSIA response from the bridge: validated again, stored, compared. */
+  const onNeosiaCapture = (raw: unknown) => {
+    neosiaQueue = neosiaQueue.then(() => ingestCapture(local, clock.now(), raw)).catch(() => undefined);
   };
 
   // ---------- Badge ----------
@@ -499,6 +505,12 @@ export default defineBackground(() => {
         .then(async () => {
           if (await readPending(local)) await sync('sesskey');
         });
+      return false;
+    }
+    if (message.type === 'neosia/capture') {
+      // Only the bridge on a NEOSIA page; anything else is dropped unread.
+      if (!isContentScriptOn(sender, extensionId, NEOSIA_APP_ORIGIN)) return false;
+      onNeosiaCapture(message.capture);
       return false;
     }
     if (message.type === 'session/loggedOut') {

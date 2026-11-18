@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "data": {
+    "max_sks": 24,
+    "current_sks": {
+      "total": 5,
+      "available": 19
+    },
+    "context": {
+      "current_semester": 4,
+      "rules_applied": [
+        "ips_based"
+      ]
+    }
+  }
+}
