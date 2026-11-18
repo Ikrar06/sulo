@@ -1,10 +1,15 @@
 import { useCallback, useReducer, useRef, useState } from 'react';
-import { useToast } from '@sulo/ui/ui/toast';
+import { useToast } from '../ui/toast';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { bumpUsage } from '@sulo/core/stats/usage';
 import { COLLAPSE_MS, EMPTY_UNDO, markDone, UNDO_MS, undoDone, undoReducer } from '@sulo/core/tasks/done-undo';
-import type { DashboardActions } from './data';
-import { local } from './data';
+import type { UserData } from '@sulo/core/storage';
+import type { KeyValueStore } from '@sulo/core/types';
+
+/** What marking a task needs from the app: a compare-and-set write to the current account. */
+export interface UpdateUser {
+  updateUser: <K extends keyof UserData>(name: K, change: (value: UserData[K]) => UserData[K]) => Promise<boolean>;
+}
 
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -14,7 +19,7 @@ const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(pre
  * Urungkan for 5 seconds (paused while hovered or focused). When the window
  * ends, a row the filter would hide collapses (200 ms) and leaves.
  */
-export function useDoneUndo(actions: DashboardActions, d: DashMessages, today: string) {
+export function useDoneUndo(actions: UpdateUser, d: DashMessages, today: string, store: KeyValueStore) {
   const [state, dispatch] = useReducer(undoReducer, EMPTY_UNDO);
   const [collapsing, setCollapsing] = useState<ReadonlySet<number>>(new Set());
   const toast = useToast();
@@ -41,7 +46,7 @@ export function useDoneUndo(actions: DashboardActions, d: DashMessages, today: s
   const mark = useCallback(
     (eventId: number, lastPending = false) => {
       void actions.updateUser('taskState', (m) => markDone(m, eventId));
-      void bumpUsage(local, today, 'tasksMarkedDone');
+      void bumpUsage(store, today, 'tasksMarkedDone');
       // A newer mark takes over the toast; the previous row's window ends now.
       if (latest.current !== null && latest.current !== eventId) leave(latest.current);
       latest.current = eventId;
@@ -65,7 +70,7 @@ export function useDoneUndo(actions: DashboardActions, d: DashMessages, today: s
         },
       });
     },
-    [actions, d, today, toast, leave],
+    [actions, d, today, store, toast, leave],
   );
 
   /** Unchecking a done task is not an undo: it simply marks it pending again. */

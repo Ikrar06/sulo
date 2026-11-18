@@ -9,7 +9,7 @@ import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@s
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { Checkbox } from '@sulo/ui/ui/checkbox';
-import { useDoneUndo } from '../done-undo';
+import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { countdownOrLate, formatRemaining } from '@sulo/core/format/time';
 import { describeChange } from '@sulo/core/radar/describe';
@@ -40,7 +40,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const { locale } = useI18n();
   const countdown = data.prefs.dueFormat === 'countdown';
   const user = data.user!;
-  const done = useDoneUndo(actions, d, data.today);
+  const done = useDoneUndo(actions, d, data.today, local);
   const allItems = useMemo(() => buildTaskItems(user), [user]);
   // Pending tasks, plus the ones just marked done (they stay in place for the undo window).
   const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);

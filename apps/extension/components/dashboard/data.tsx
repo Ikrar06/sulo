@@ -1,23 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { browser } from 'wxt/browser';
-import { readPending, type AccountPending } from '@sulo/core/account/pending';
-import { readCalendar } from '@sulo/core/calendar/remote';
-import type { CalendarFile } from '@sulo/core/calendar/schema';
+import { readPending } from '@sulo/core/account/pending';
 import { createBrowserStore } from '@/src/platform/store';
 import { systemClock } from '@sulo/core/clock';
 import type { Message } from '@/lib/messages';
-import { DEFAULT_PREFS, readPrefs, writePrefs, type Prefs } from '@sulo/core/prefs';
-import { currentUser, readAllUser, readUser, writeUserIfCurrent, type UserData } from '@sulo/core/storage';
-import type { SyncOutcome, UnixSeconds, UserId } from '@sulo/core/types';
+import { writePrefs, type Prefs } from '@sulo/core/prefs';
+import { currentUser, readUser, writeUserIfCurrent, type UserData } from '@sulo/core/storage';
+import type { SyncOutcome } from '@sulo/core/types';
+import { loadDashboardData, type DashboardData } from '@sulo/core/view/dashboard-data';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { applyTheme } from '@/lib/ui/theme';
 import { bumpUsage } from '@sulo/core/stats/usage';
-import { loadPopupInput } from '@sulo/core/view/load';
-import { buildPopupView, type PopupInput, type PopupView } from '@sulo/core/view/popup-view';
-import { readModuleState, type NeosiaModuleState } from '@sulo/core/neosia/module';
-import { readSnapshots, type Snapshots } from '@sulo/core/neosia/store';
-import { readCourseMap, type CourseMap } from '@sulo/core/neosia/course-map';
-import { readInvite, type InviteState } from '@sulo/core/neosia/invite';
 
 // The dashboard's data: everything comes from chrome.storage, re-read when
 // storage changes. Opening the dashboard sends no request to SIKOLA; only
@@ -28,21 +21,7 @@ import { readInvite, type InviteState } from '@sulo/core/neosia/invite';
 export const local = createBrowserStore(browser.storage.local);
 export const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-export interface DashboardData {
-  now: UnixSeconds;
-  userId: UserId | null;
-  user: UserData | null;
-  prefs: Prefs;
-  input: PopupInput;
-  view: PopupView;
-  pending: AccountPending | null;
-  /** Academic calendar: the bundled copy or a newer download (lib/calendar/remote.ts). */
-  calendar: CalendarFile;
-  /** Today's local date, YYYY-MM-DD. */
-  today: string;
-  /** The optional NEOSIA module: its state and the stored projections. */
-  neosia: { module: NeosiaModuleState; snapshots: Snapshots; courseMap: CourseMap; invite: InviteState };
-}
+export type { DashboardData };
 
 export interface DashboardActions {
   /** Applies `change` to one user key, only while that account is still current. */
@@ -60,33 +39,7 @@ interface Ctx {
 
 const DashboardContext = createContext<Ctx | null>(null);
 
-async function load(): Promise<DashboardData> {
-  const userId = await currentUser(local);
-  const [input, prefs, user, pending, calendar, module, snapshots, courseMap, invite] = await Promise.all([
-    loadPopupInput(local, systemClock, timeZone),
-    readPrefs(local),
-    userId === null ? Promise.resolve(null) : readAllUser(local, userId),
-    readPending(local),
-    readCalendar(local),
-    readModuleState(local),
-    readSnapshots(local),
-    readCourseMap(local),
-    readInvite(local),
-  ]);
-  return {
-    now: input.now,
-    userId,
-    user: pending ? null : user,
-    prefs,
-    input,
-    view: buildPopupView({ ...input, online: navigator.onLine }),
-    pending,
-    calendar,
-    today: localParts(input.now, timeZone).dateKey,
-    // While the module is off nothing of it shows, even if a key were left behind.
-    neosia: { module, snapshots: module.enabled ? snapshots : {}, courseMap: module.enabled ? courseMap : {}, invite },
-  };
-}
+const load = () => loadDashboardData(local, systemClock, timeZone, navigator.onLine);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<DashboardData | null>(null);

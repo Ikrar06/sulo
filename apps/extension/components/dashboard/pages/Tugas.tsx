@@ -12,8 +12,8 @@ import { taskDueLines } from '@sulo/core/format/time';
 import { googleCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
 import { urgencyOf } from '@sulo/core/tasks/group';
-import { timeZone } from '../data';
-import { useDoneUndo } from '../done-undo';
+import { local, timeZone } from '../data';
+import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
 import type { PageProps } from '../types';
@@ -40,7 +40,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
     window.requestAnimationFrame(() => document.getElementById(`task-${linked}`)?.scrollIntoView({ block: 'center' }));
   }, [linked]);
 
-  const done = useDoneUndo(actions, d, data.today);
+  const done = useDoneUndo(actions, d, data.today, local);
   // Rows just marked done stay in place for the undo window, whatever the filter.
   const passes = (i: TaskItem) => filter.status === 'all' || i.status === filter.status;
   const shown = filterTasks(items, { ...filter, status: 'all' }).filter((i) => passes(i) || done.lingering.has(i.task.eventId));
