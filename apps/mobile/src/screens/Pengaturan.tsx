@@ -10,7 +10,7 @@ import { formatClock } from '@sulo/core/format/time';
 import { LANGUAGE_NAMES } from '@sulo/core/i18n';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { readTechLog } from '@sulo/core/net/tech-log';
-import { DUE_FORMATS, type DueFormat } from '@sulo/core/prefs';
+import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, type DueFormat } from '@sulo/core/prefs';
 import { STAGE_OPTIONS, type StageMin } from '@sulo/core/reminders/settings';
 import { zonedToUnix } from '@sulo/core/reminders/zoned';
 import { readSyncStatus } from '@sulo/core/storage';
@@ -19,6 +19,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { ChevronRightIcon } from '@sulo/ui/icons';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
+import { Input } from '@sulo/ui/ui/input';
 import { stageAmount } from '@sulo/ui/reminders/RemindersPanel';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { LOCK_KEY, signOutEverything } from '../account';
@@ -27,7 +28,7 @@ import { timeZone, useMobileData } from '../shell/data';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h * 60);
 
-type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | null;
+type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickname' | null;
 
 export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const { m, locale } = useI18n();
@@ -44,6 +45,7 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const [confirm, setConfirm] = useState(false);
   const [bug, setBug] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [nickname, setNickname] = useState(prefs.nickname);
 
   useEffect(() => {
     void platform.store.get<boolean>(LOCK_KEY).then((v) => setLock(v === true));
@@ -128,6 +130,14 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
       </Group>
 
       <Group title={t.sections.tampilan}>
+        <ValueRow
+          label={t.nickname}
+          value={prefs.nickname || '–'}
+          onPress={() => {
+            setNickname(prefs.nickname);
+            setPicker('nickname');
+          }}
+        />
         <ValueRow label={t.dueFormat} value={m.popup.settings.formats[prefs.dueFormat]} onPress={() => setPicker('due')} />
         <Row label={w.settings.privacyOn} help={w.settings.privacyHelp}>
           <Toggle checked={prefs.privacyMode} label={w.settings.privacyOn} onChange={(v) => void actions.setPrefs({ privacyMode: v })} />
@@ -153,8 +163,22 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
         </button>
       </Group>
 
-      <Sheet open={picker !== null} onOpenChange={(o) => !o && setPicker(null)} title={picker === 'due' ? t.dueFormat : picker === 'quietStart' ? `${r.quiet}: ${r.from}` : picker === 'quietEnd' ? `${r.quiet}: ${r.to}` : picker === 'morning' ? r.morning : r.snoozeMorning}>
-        {picker === 'due' ? (
+      <Sheet open={picker !== null} onOpenChange={(o) => !o && setPicker(null)} title={picker === 'nickname' ? t.nickname : picker === 'due' ? t.dueFormat : picker === 'quietStart' ? `${r.quiet}: ${r.from}` : picker === 'quietEnd' ? `${r.quiet}: ${r.to}` : picker === 'morning' ? r.morning : r.snoozeMorning}>
+        {picker === 'nickname' ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void actions.setPrefs({ nickname: normalizeNickname(nickname) });
+              setPicker(null);
+            }}
+          >
+            <Input autoFocus aria-label={t.nickname} maxLength={NICKNAME_MAX} value={nickname} onChange={(e) => setNickname(e.target.value)} />
+            <p className="mt-2 text-m13 text-muted-foreground">{w.settings.nicknameHelp}</p>
+            <button type="submit" className="m-hit m-press mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-primary text-m15 text-primary-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
+              {w.app.doneSheet}
+            </button>
+          </form>
+        ) : picker === 'due' ? (
           <SheetOptions
             value={prefs.dueFormat}
             options={DUE_FORMATS.map((f) => ({ value: f, label: m.popup.settings.formats[f] }))}

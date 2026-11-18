@@ -4,6 +4,14 @@
 import type { Locale } from './index';
 import { dashFor, type DashMessages } from './dashboard';
 
+/** A greeting phrase: casual ones only when nothing is overdue or due today; small ones are set at 22 to fit one line. */
+export interface GreetPhrase {
+  text: string;
+  casual?: boolean;
+  small?: boolean;
+}
+type GreetPhrases = Record<'pagi' | 'siang' | 'sore' | 'malam' | 'tengahMalam', GreetPhrase[]>;
+
 const id = {
   unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
   onboarding: {
@@ -66,6 +74,8 @@ const id = {
     inDays: (label: string, n: number): [string, string, string] => [`${label} `, String(n), ' hari lagi'],
     attendance: 'Presensi',
     academic: 'Akademik',
+    /** Short calendar labels for a running sentence ("Hari ke UAS"). */
+    shortKategori: { uas: 'UAS', uts: 'UTS', krs: 'KRS', kkn: 'KKN', wisuda: 'wisuda', libur: 'libur' } as Record<string, string>,
     /** The one line under the greeting. */
     mood: {
       late: (n: number) => `${n} tugas terlambat`,
@@ -110,11 +120,30 @@ const id = {
     bugHelp: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya versi aplikasi dan catatan teknis pemeriksaan terakhir, tanpa nama, NIM, sesi, atau isi tugas.',
     copied: 'Info disalin.',
     signOutDelete: 'Keluar dan hapus data',
+    nicknameHelp: 'Opsional, maksimal 24 karakter. Hanya untuk menyapamu di Ringkasan, disimpan di HP ini.',
     privacyOn: 'Mode privasi',
     privacyHelp: 'Menyamarkan nama, nilai, dan persentase presensi di layar.',
   },
   about: {
     apkVersion: (v: string) => `Versi APK ${v}`,
+  },
+  /** Ringkasan's greeting (core dashboard/mobile-greeting.ts). [s] marks a casual line, only when nothing is overdue or due today. */
+  greet: {
+    line1: { pagi: 'Selamat pagi,', siang: 'Selamat siang,', sore: 'Selamat sore,', malam: 'Selamat malam,', tengahMalam: 'Selamat malam,' },
+    phrases: <GreetPhrases>{
+      pagi: [{ text: 'semangat hari ini!' }, { text: 'yuk, mulai harimu.' }, { text: 'semoga harimu lancar.', small: true }],
+      siang: [{ text: 'jangan lupa makan.' }, { text: 'masih semangat, kan?', small: true }, { text: 'pelan-pelan saja.', casual: true }],
+      sore: [{ text: 'sedikit lagi, ya.' }, { text: 'yuk, tuntaskan.' }, { text: 'hampir sampai.' }],
+      malam: [{ text: 'siap untuk besok?' }, { text: 'waktunya istirahat.', casual: true }, { text: 'hari ini cukup, kok.', casual: true }],
+      tengahMalam: [{ text: 'belum tidur, nih?' }, { text: 'jangan begadang, ya.', small: true }],
+    },
+    state: {
+      expired: 'Masuk lagi untuk memperbarui',
+      overdue: (n: number) => [String(n), ' tugas terlambat'] as [string, string],
+      today: (n: number) => `${n} tenggat hari ini`,
+      tomorrow: (n: number) => `${n} tenggat besok`,
+      clear: 'Semua aman hari ini',
+    },
   },
   dev: {
     title: 'Umur sesi (build debug)',
@@ -188,6 +217,7 @@ const en: MobileWords = {
     inDays: (label: string, n: number): [string, string, string] => [`${label} in `, String(n), n === 1 ? ' day' : ' days'],
     attendance: 'Attendance',
     academic: 'Academic',
+    shortKategori: { uas: 'finals', uts: 'midterms', krs: 'KRS', kkn: 'KKN', wisuda: 'graduation', libur: 'the break' },
     mood: {
       late: (n: number) => (n === 1 ? '1 overdue task' : `${n} overdue tasks`),
       soon: (n: number) => (n === 1 ? '1 deadline within 24 hours' : `${n} deadlines within 24 hours`),
@@ -215,7 +245,7 @@ const en: MobileWords = {
     lowest: 'Lowest',
     pending: 'To do',
     done: 'Done',
-    sessions: (n: number, got: number | null, max: number | null) => (got !== null && max !== null ? `${n} sessions · ${got}/${max} points` : `${n} sessions`),
+    sessions: (n: number, got: number | null, max: number | null) => `${n === 1 ? '1 session' : `${n} sessions`}${got !== null && max !== null ? ` · ${got}/${max} points` : ''}`,
   },
   notify: {
     title: 'Allow reminders?',
@@ -230,11 +260,31 @@ const en: MobileWords = {
     bugHelp: "If something is wrong, copy this and paste it into the feedback form. It holds the app version and technical notes on the last check: no name, student number, session or task content.",
     copied: 'Info copied.',
     signOutDelete: 'Sign out and delete data',
+    nicknameHelp: 'Optional, up to 24 characters. Only used to greet you on Ringkasan, kept on this phone.',
     privacyOn: 'Privacy mode',
     privacyHelp: 'Masks names, grades and attendance percentages on screen.',
   },
   about: {
     apkVersion: (v: string) => `APK version ${v}`,
+  },
+  greet: {
+    line1: { pagi: 'Good morning,', siang: 'Good afternoon,', sore: 'Good afternoon,', malam: 'Good evening,', tengahMalam: 'Good evening,' },
+    phrases: {
+      pagi: [{ text: 'have a good one!' }, { text: "let's get started." }, { text: "you've got this." }],
+      siang: [{ text: "don't skip lunch." }, { text: 'still going strong?' }, { text: 'take it easy.', casual: true }],
+      sore: [{ text: 'almost there.' }, { text: "let's wrap it up." }, { text: 'nearly done.' }],
+      // "that's enough for today." is left out: at 22 px it is 237 px wide, one more than the
+      // greeting's column at 384 (measured in the app's font, M8c.1).
+      malam: [{ text: 'ready for tomorrow?', small: true }, { text: 'time to wind down.', casual: true }],
+      tengahMalam: [{ text: 'still up?' }, { text: "don't stay up too late.", small: true }],
+    },
+    state: {
+      expired: 'Sign in again to update',
+      overdue: (n: number) => [String(n), n === 1 ? ' overdue task' : ' overdue tasks'] as [string, string],
+      today: (n: number) => `${n} due today`,
+      tomorrow: (n: number) => `${n} due tomorrow`,
+      clear: 'All clear today',
+    },
   },
   dev: {
     title: 'Session age (debug build)',

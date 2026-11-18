@@ -9,12 +9,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { countdownOf, formatDateKey } from '@sulo/core/calendar/countdown';
 import { nextImportant, SHORT_LABEL_KATEGORI } from '@sulo/core/calendar/upcoming';
-import { dayPart } from '@sulo/core/dashboard/greeting';
 import { loadMap } from '@sulo/core/dashboard/load-map';
 import { mascotMood } from '@sulo/core/dashboard/mascot-mood';
+import { greeting, greetingState } from '@sulo/core/dashboard/mobile-greeting';
 import { groupOverview } from '@sulo/core/dashboard/overview';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
-import { countdownOrLate, formatRemaining, taskDueLines } from '@sulo/core/format/time';
+import { countdownOrLate, formatLeft, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { attendanceSummary } from '@sulo/core/presensi/service';
 import { localParts } from '@sulo/core/reminders/zoned';
@@ -67,16 +67,19 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   const attendance = useMemo(() => attendanceSummary(user.presensi?.recap?.rows, user.courses), [user.presensi, user.courses]);
   const next = nextImportant(calendar, today);
   const c = next ? countdownOf(next.kegiatan, today) : null;
-  const nextLabel = next ? (SHORT_LABEL_KATEGORI.has(next.kegiatan.kategori) ? k.kategori[next.kegiatan.kategori] : next.kegiatan.judul) : '';
+  const nextLabel = next ? (SHORT_LABEL_KATEGORI.has(next.kegiatan.kategori) ? (w.app.shortKategori[next.kegiatan.kategori] ?? k.kategori[next.kegiatan.kategori]) : next.kegiatan.judul) : '';
   const week = useWeekText(calendar, today, d);
-  const hour = Math.floor(localParts(now, timeZone).minuteOfDay / 60);
   const nickname = data!.prefs.privacyMode ? '' : data!.prefs.nickname.trim();
   const countdown = data!.prefs.dueFormat === 'countdown';
-  const left = (i: TaskItem) => (i.task.dueAt === null ? d.tugas.noDue : countdown ? countdownOrLate(i.task.dueAt, now, timeZone, m) : formatRemaining(i.task.dueAt, now, timeZone, m));
+  // "2 hari lagi" / "2 days left", "terlambat 1 hari".
+  const left = (i: TaskItem) => (i.task.dueAt === null ? d.tugas.noDue : countdown ? countdownOrLate(i.task.dueAt, now, timeZone, m) : formatLeft(i.task.dueAt, now, timeZone, m));
   const banner = data!.view.banner?.kind;
   const mood = mascotMood({ now, dueTimes: pendingOnly.flatMap((i) => (i.task.dueAt === null ? [] : [i.task.dueAt])), sessionExpired: banner === 'session_expired', offline: banner === 'offline' || !navigator.onLine });
-  const soon = pendingOnly.filter((i) => i.task.dueAt !== null && i.task.dueAt >= now && i.task.dueAt - now < DAY).length;
-  const line = mood.state === 'sleepy' ? w.app.mood.asleep : overdue > 0 ? w.app.mood.late(overdue) : soon > 0 ? w.app.mood.soon(soon) : mood.state === 'all-done' ? w.app.mood.calmWeek : w.app.mood.calmToday;
+  const dueToday = groups.find((g) => g.key === 'today')?.rows.length ?? 0;
+  const dueTomorrow = groups.find((g) => g.key === 'tomorrow')?.rows.length ?? 0;
+  const hello = greeting({ now, timeZone, nickname, overdue, dueToday }, w);
+  const state = greetingState({ sessionExpired: banner === 'session_expired', overdue, dueToday, dueTomorrow, nickname, phrase: hello.phrase }, w);
+  const line = `${state.count ?? ''}${state.text}`;
 
   // Perbarui with new data: a short cheer.
   useEffect(() => {
@@ -99,17 +102,21 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-end gap-3">
+        <div className="flex items-end gap-2">
           <div className="min-w-0 flex-1 pb-4">
-            <h2 className="text-m26">
-              {r.greeting[dayPart(hour)]},
-              <br />
-              <span className="text-muted-foreground">{nickname || w.app.greetLine2}</span>
+            <h2>
+              <span className="block text-m26">{hello.line1}</span>
+              {/* One line at most; a long nickname ends in an ellipsis. */}
+              <span className={`block truncate text-muted-foreground ${hello.line2Small ? 'text-m22 font-semibold' : 'text-m26'}`}>{hello.line2}</span>
             </h2>
-            <p className={`mt-1 text-m13 ${overdue > 0 ? 'text-urgency-overdue' : 'text-muted-foreground'}`}>{line}</p>
+            <p className="mt-1 text-m13 text-muted-foreground">
+              {state.count !== null && <span className="text-urgency-overdue tabular-nums">{state.count}</span>}
+              {state.text}
+            </p>
           </div>
           {/* Sits on the hero card's top edge (12 px over it). */}
-          <div className="relative z-10 -mb-3">
+          {/* 12 px into the side margin: the flame's own whitespace takes it. */}
+          <div className="relative z-10 -mr-3 -mb-3">
             <HeroMascot mood={mood} cheer={cheer} celebrate={celebrate} label={line} />
           </div>
         </div>
@@ -207,10 +214,13 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
                   <span className="text-m13 text-muted-foreground">{w.app.average}</span>
                 </p>
                 {attendance.lowest && (
-                  <p className="mt-3 truncate text-m12 font-normal text-muted-foreground">
-                    {w.app.lowest}:{' '}
+                  <p className="mt-3 flex min-w-0 text-m12 font-normal text-muted-foreground">
+                    <span className="shrink-0">{w.app.lowest}:&nbsp;</span>
                     <Private>
-                      {attendance.lowest.name} {pct(attendance.lowest.percent, locale)}%
+                      <span className="flex min-w-0">
+                        <span className="truncate">{attendance.lowest.name}</span>
+                        <span className="shrink-0 tabular-nums">&nbsp;{pct(attendance.lowest.percent, locale)}%</span>
+                      </span>
                     </Private>
                   </p>
                 )}

@@ -35,7 +35,10 @@ export function demoVariant(tasks: readonly Task[], now: UnixSeconds, variant: s
 
 export async function seedDemo(store: KeyValueStore, now: UnixSeconds): Promise<void> {
   const data = { ...(shiftTimes(seed.storage, now - seed.generatedAt) as Record<string, unknown>), ...demoPresensi(now) };
-  const variant = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('demo');
-  data['u:1:tasks'] = demoVariant(data['u:1:tasks'] as Task[], now, variant);
+  const params = typeof location === 'undefined' ? new URLSearchParams() : new URLSearchParams(location.search);
+  data['u:1:tasks'] = demoVariant(data['u:1:tasks'] as Task[], now, params.get('demo'));
+  // ?lang=en and ?nick=Ikrar: the language and the nickname for a screenshot.
+  const prefs = (data['global:prefs'] ?? {}) as Record<string, unknown>;
+  data['global:prefs'] = { ...prefs, locale: params.get('lang') ?? prefs.locale ?? 'auto', nickname: params.get('nick') ?? '' };
   for (const [key, value] of Object.entries(data)) await store.set(key, value);
 }

@@ -135,16 +135,21 @@ function Hero({ calendar, today, d, w }: { calendar: Parameters<typeof useWeekTe
   const range = useRange(d);
   const next = nextImportant(calendar, today);
   const c = next ? countdownOf(next.kegiatan, today) : null;
-  const label = next ? (SHORT_LABEL_KATEGORI.has(next.kegiatan.kategori) ? k.kategori[next.kegiatan.kategori] : next.kegiatan.judul) : '';
+  const short = next ? (SHORT_LABEL_KATEGORI.has(next.kegiatan.kategori) ? (w.app.shortKategori[next.kegiatan.kategori] ?? k.kategori[next.kegiatan.kategori]) : next.kegiatan.judul) : '';
+  // A sentence starts with a capital ("Finals in 12 days"); the label is lower case mid-sentence.
+  const label = short.charAt(0).toUpperCase() + short.slice(1);
+  const inDays = c?.kind === 'days' ? w.app.inDays(label, c.n) : null;
   return (
     <Card hero>
       {next && c ? (
         <>
           <p className="text-m12 text-muted-foreground">{next.kegiatan.judul}</p>
           <p className="mt-1 text-m18">
-            {c.kind === 'days' ? (
+            {inDays ? (
               <>
-                {label} <span className="db-accent-text text-m26 tabular-nums">{c.n}</span> {w.app.inDays(label, c.n)[2].trim()}
+                {inDays[0]}
+                <span className="db-accent-text text-m26 tabular-nums">{inDays[1]}</span>
+                {inDays[2]}
               </>
             ) : (
               `${label}: ${c.kind === 'today' ? k.countdown.today : c.kind === 'tomorrow' ? k.countdown.tomorrow : k.countdown.ongoingOpen}`
