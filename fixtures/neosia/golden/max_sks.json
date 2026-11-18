@@ -2,11 +2,19 @@
   "status": "ok",
   "data": {
     "max_sks": 24,
+    "limits": {
+      "total": 24,
+      "face_to_face": 24,
+      "non_face_to_face": 0
+    },
     "current_sks": {
       "total": 5,
+      "face_to_face": 5,
+      "non_face_to_face": 0,
       "available": 19
     },
     "context": {
+      "student_level": "S1",
       "current_semester": 4,
       "rules_applied": [
         "ips_based"

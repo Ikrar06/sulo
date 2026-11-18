@@ -2,6 +2,12 @@
 // "Tautan ke luar"). Plain links in a new tab; nothing from these services
 // is loaded into any extension page. An empty value hides its link.
 
+/** "Buka SIKOLA" (expired session, setup, popup): SIKOLA's login page; it returns to SIKOLA once signed in. */
+export const SIKOLA_LOGIN_URL = 'https://sikola-v2.unhas.ac.id/login/index.php';
+
+/** "Buka NEOSIA" (NEOSIA card, KRS readiness, survey line): NEOSIA's login page. */
+export const NEOSIA_LOGIN_URL = 'https://neosia.unhas.ac.id/login';
+
 /** The public source repository. Empty: the MIT line and its link stay hidden on About. */
 export const REPO_URL = '';
 

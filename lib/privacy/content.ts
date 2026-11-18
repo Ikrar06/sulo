@@ -67,7 +67,7 @@ export const NEOSIA_CONSENT: ConsentText = {
     { id: 'Jadwal kuliah: mata kuliah, kelas, hari, jam, ruang, dan nama dosen', en: 'Class schedule: courses, classes, days, times, rooms and lecturer names' },
     { id: 'Jendela dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
     { id: 'Sudah bayar atau belum, tanpa nominal', en: 'Paid or not paid, without amounts' },
-    { id: 'Nama dosen PA dan status survei', en: 'Your academic advisor’s name and the survey status' },
+    { id: 'Status survei: sudah diisi atau belum', en: 'The survey status: filled in or not' },
     { id: 'Nilai huruf, IPS, IPK, dan SKS. Tersembunyi sampai kamu memilih Tampilkan', en: 'Letter grades, semester and overall GPA, and credits. Hidden until you choose Show' },
     { id: 'Semester dan masa studi', en: 'Your semester and study period' },
   ],
@@ -232,8 +232,8 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           {
-            id: 'Izinnya opsional: "scripting" dan akses ke neosia.unhas.ac.id dan api.neosia.unhas.ac.id. Ketiganya hanya diminta saat kamu menyalakan modul, dan dicabut saat modul dimatikan. Kalau kamu mencabut salah satunya lewat pengaturan Chrome, modul mati sendiri dan datanya terhapus.',
-            en: 'Its permissions are optional: "scripting" and access to neosia.unhas.ac.id and api.neosia.unhas.ac.id. All three are asked for only when you turn the module on, and removed when it is turned off. If you remove one in Chrome\'s settings, the module turns itself off and its data is deleted.',
+            id: 'Izinnya opsional: "scripting" dan akses ke halaman neosia.unhas.ac.id. Keduanya hanya diminta saat kamu menyalakan modul, dan dicabut saat modul dimatikan. Sulo tidak meminta akses ke alamat API NEOSIA. Kalau kamu mencabut salah satunya lewat pengaturan Chrome, modul mati sendiri dan datanya terhapus.',
+            en: 'Its permissions are optional: "scripting" and access to the neosia.unhas.ac.id pages. Both are asked for only when you turn the module on, and removed when it is turned off. Sulo does not ask for access to the NEOSIA API address. If you remove one in Chrome\'s settings, the module turns itself off and its data is deleted.',
           },
           {
             id: 'Sulo tidak pernah mengirim request ke NEOSIA. Dua skrip kecil di halaman NEOSIA membaca respons yang sudah diminta aplikasi NEOSIA sendiri, memilah field yang boleh disimpan di halaman itu juga, lalu membuang sisanya. Respons lengkapnya tidak pernah disimpan, dicatat, atau dikirim.',

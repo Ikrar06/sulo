@@ -78,7 +78,8 @@ export function noticeView(
       return { title: n.changesSummaryTitle(notice.count, notice.courses), message: n.changesSummaryBody, icon: 'idle', buttons: [] };
     case 'krs': {
       const end = formatDateKey(notice.end, m.intl, { weekday: 'long', day: 'numeric', month: 'long' });
-      return { title: notice.stage === 'h3' ? n.krsH3 : n.krsH1, message: n.krsBody(end), icon: notice.stage === 'h1' ? 'urgent' : 'idle', buttons: [] };
+      const caption = shorten(notice.caption ?? n.krsDefaultCaption, MAX_CALENDAR_NAME);
+      return { title: notice.stage === 'h3' ? n.krsH3(caption) : n.krsH1(caption), message: n.krsBody(end), icon: notice.stage === 'h1' ? 'urgent' : 'idle', buttons: [] };
     }
     case 'calendar': {
       const c = n.calendar;

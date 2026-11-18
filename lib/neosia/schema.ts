@@ -5,7 +5,7 @@
 // projector would refuse, and anything too large fails.
 
 import { z } from 'zod';
-import { CAPTURE_SCHEMA_VERSION, CAPTURE_TYPE, ENDPOINTS, MAX_ITEMS, MAX_MESSAGE_CHARS, MAX_STRING, type EndpointId, type FieldSpec } from './allowlist';
+import { CAPTURE_SCHEMA_VERSION, CAPTURE_TYPE, ENDPOINTS, isSumSpec, MAX_ITEMS, MAX_MESSAGE_CHARS, MAX_STRING, type EndpointId, type FieldSpec } from './allowlist';
 import { projectValue, type Projected } from './project';
 
 const MAP_KEY = /^[0-9A-Za-z_-]{1,16}$/;
@@ -15,6 +15,7 @@ const primitiveSchema = z.union([z.string().max(MAX_STRING), z.number().finite()
 /** The exact shape a projection with `spec` can have. */
 export function specSchema(spec: FieldSpec): z.ZodType<Projected> {
   if (spec === 'v') return primitiveSchema;
+  if (isSumSpec(spec)) return z.number().finite();
   if (Array.isArray(spec)) return z.array(z.lazy(() => specSchema(spec[0] as FieldSpec))).max(MAX_ITEMS);
   const objectSpec = spec as { readonly [key: string]: FieldSpec };
   const shape: Record<string, z.ZodType> = {};

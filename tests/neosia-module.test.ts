@@ -54,8 +54,8 @@ function fakeBrowser(initial: { granted?: boolean; scripts?: string[]; failRegis
 }
 
 describe('NEOSIA permissions and scripts', () => {
-  it('asks for scripting and both NEOSIA hosts together, nothing else', () => {
-    expect(NEOSIA_PERMISSIONS).toEqual({ permissions: ['scripting'], origins: ['https://neosia.unhas.ac.id/*', 'https://api.neosia.unhas.ac.id/*'] });
+  it('asks for scripting and the NEOSIA app pages together, nothing else (no API host)', () => {
+    expect(NEOSIA_PERMISSIONS).toEqual({ permissions: ['scripting'], origins: ['https://neosia.unhas.ac.id/*'] });
   });
 
   it('registers a page-world script and an isolated bridge, both at document_start and only on the NEOSIA app', () => {

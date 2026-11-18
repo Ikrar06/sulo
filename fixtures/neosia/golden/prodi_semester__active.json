@@ -1,10 +1,15 @@
 {
   "status": "ok",
   "data": {
-    "semester": {
-      "kode": "20262",
-      "jenis": "akhir",
-      "tahun_ajaran": "2026/2027"
+    "activeProdiSemester": {
+      "is_active": true,
+      "semester": {
+        "kode": "20262",
+        "jenis": "Genap",
+        "tahun": 2026,
+        "tahun_ajaran": "2026/2027",
+        "is_active": true
+      }
     }
   }
 }

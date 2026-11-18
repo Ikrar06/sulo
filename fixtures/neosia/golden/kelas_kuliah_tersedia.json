@@ -4,31 +4,42 @@
     "semesters": {
       "4": [
         {
-          "kode": "23D12100003",
-          "nama": "HIDROLOGI",
-          "nama_kelas": "A",
+          "nama": "A",
+          "is_batal": false,
           "sks": 3,
-          "sifat": "W",
           "mata_kuliah": {
             "kode": "23D12100003",
-            "nama": "HIDROLOGI",
-            "sks": 3
+            "nama_resmi": "HIDROLOGI",
+            "nama_singkat": "HIDROLOGI",
+            "sifat": "W",
+            "semester": 5,
+            "mata_kuliah_sifat": {
+              "nama": "Wajib"
+            },
+            "mata_kuliah_prasyarats": [
+              {
+                "kode": "23D12100010"
+              }
+            ]
           },
           "jadwal_kuliahs": [
             {
               "day_of_week": 2,
               "start_time": "09:40:00",
               "end_time": "12:10:00",
-              "ruang": "R102"
+              "ruang": {
+                "kode": "R102",
+                "nama": "Ruang Kuliah 102"
+              }
             }
           ],
           "dosens": [
             {
-              "nama": "Dosen Satu",
-              "gelar_depan": "Dr.",
-              "gelar_belakang": "S.T., M.T."
+              "nama": "Dosen Empat"
             }
           ],
+          "peserta_disetujui_count": 12,
+          "peserta_belum_disetujui_count": 3,
           "max_participant": 40
         }
       ]

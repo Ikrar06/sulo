@@ -1,5 +1,5 @@
 // NEOSIA parts of the overview (M7 part E): KRS readiness, the survey
-// line and the short profile with the academic advisor. All data is NEOSIA
+// line and the short profile. All data is NEOSIA
 // page data validated twice; it is rendered as text only, never as HTML.
 
 import { useState, type ComponentType, type SVGProps } from 'react';
@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { formatDateKey } from '@/lib/calendar/countdown';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords, type NeosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_APP_ORIGIN } from '@/lib/neosia/allowlist';
-import { advisorName, profile, SKS_BAR_SCALE, type ItemState, type KrsWindow, type ReadinessItem } from '@/lib/neosia/view';
+import { NEOSIA_LOGIN_URL } from '@/lib/links';
+import { profile, type ItemState, type KrsWindow, type ReadinessItem } from '@/lib/neosia/view';
 import type { Snapshots } from '@/lib/neosia/store';
 import type { Messages } from '@/lib/i18n';
 import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon } from './icons';
@@ -36,16 +36,14 @@ function itemText(item: ReadinessItem, w: NeosiaWords, m: Messages) {
   const k = w.krs;
   switch (item.id) {
     case 'window':
+    {
       if (!item.window || !item.phase) return k.window.unknown;
-      return item.phase === 'before' ? k.window.before(date(item.window.start, m), date(item.window.end, m)) : item.phase === 'open' ? k.window.open(date(item.window.end, m)) : k.window.closed(date(item.window.end, m));
+      // NEOSIA's own caption ("Perubahan KRS"), shown as text only.
+      const caption = item.window.caption ?? k.window.defaultCaption;
+      return item.phase === 'before' ? k.window.before(caption, date(item.window.start, m), date(item.window.end, m)) : item.phase === 'open' ? k.window.open(caption, date(item.window.end, m)) : k.window.closed(caption, date(item.window.end, m));
+    }
     case 'payment':
       return item.paid === null ? k.unknownItem : item.paid ? k.payment.ok : k.payment.action;
-    case 'pa':
-      return item.name === null ? k.pa.unknown : (
-        <>
-          {w.profile.pa}: <Private>{item.name}</Private>
-        </>
-      );
     case 'survey':
       return item.filled === null ? k.unknownItem : item.filled ? k.survey.ok : k.survey.action;
     case 'sks':
@@ -72,7 +70,7 @@ export function KrsReadinessCard({ items, window, seenAt, now }: { items: Readin
               <Icon className={`mt-1 size-4 shrink-0 ${STATE_CLASS[item.state]}`} aria-label={w.krs.states[item.state]} role="img" aria-hidden={false} />
               <span className="min-w-0 flex-1">{itemText(item, w, m)}</span>
               {needsLink(item) && (
-                <a href={NEOSIA_APP_ORIGIN} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+                <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
                   {w.openInNeosia}
                 </a>
               )}
@@ -96,7 +94,7 @@ export function SurveyLine() {
     <p className="flex flex-wrap items-center gap-2 text-[14px]" role="status">
       <AlertCircleIcon className="size-4 shrink-0 text-urgency-soon" />
       <span>{w.survey.body}</span>
-      <a href={NEOSIA_APP_ORIGIN} target="_blank" rel="noopener noreferrer" className="rounded text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+      <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="rounded text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
         {w.survey.link}
       </a>
     </p>
@@ -105,34 +103,34 @@ export function SurveyLine() {
 
 /**
  * Semester, credits passed (a solid neutral bar), GPA behind "Tampilkan"
- * (not remembered: closing the page hides it again), and the advisor's name.
+ * (not remembered: closing the page hides it again). The bar's scale is the
+ * credits to graduate from the settings (144 by default).
  * The greeting above it always uses the nickname from the settings.
  */
-export function ProfileCard({ snapshots }: { snapshots: Snapshots }) {
+export function ProfileCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksTarget: number }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).profile;
   const [shown, setShown] = useState(false);
   const masked = usePrivacy();
   const p = profile(snapshots);
-  const pa = advisorName(snapshots);
-  if (!p && !pa) return null;
-  const fill = p?.sksPassed != null ? Math.min(100, Math.round((p.sksPassed / SKS_BAR_SCALE) * 100)) : null;
+  if (!p) return null;
+  const fill = p.sksPassed != null ? Math.min(100, Math.round((p.sksPassed / sksTarget) * 100)) : null;
   const gpa = (v: number | null) => (v === null ? '-' : v.toFixed(2));
   return (
     <section className="w-full rounded-xl border border-border bg-surface p-4 sm:w-[280px]" aria-label="NEOSIA">
-      {p?.semester != null && <p className="text-[14px] font-semibold">{w.semester(p.semester)}</p>}
-      {p?.sksPassed != null && fill !== null && (
+      {p.semester != null && <p className="text-[14px] font-semibold">{w.semester(p.semester)}</p>}
+      {p.sksPassed != null && fill !== null && (
         <div className="mt-2">
           <p className="text-[12px] text-muted-foreground">
             <Private>{w.sksPassed(p.sksPassed)}</Private>
           </p>
           {/* Solid neutral bar, no gradient; empty in privacy mode (its length would tell the credits). */}
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-raised" role="img" aria-label={w.sksScale(SKS_BAR_SCALE)} title={w.sksScale(SKS_BAR_SCALE)}>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-raised" role="img" aria-label={w.sksScale(sksTarget)} title={w.sksScale(sksTarget)}>
             {!masked && <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${fill}%` }} />}
           </div>
         </div>
       )}
-      {p && (p.ipk !== null || p.ips !== null) && (
+      {(p.ipk !== null || p.ips !== null) && (
         <div className="mt-3 flex items-center gap-3 text-[14px]">
           <span>
             {w.ipk} <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ipk)}</Private> : '•••'}</span>
@@ -144,13 +142,6 @@ export function ProfileCard({ snapshots }: { snapshots: Snapshots }) {
             {shown ? w.hide : w.show}
           </Button>
         </div>
-      )}
-      {pa && (
-        <p className="mt-3 border-t border-border pt-3 text-[12px] text-muted-foreground">
-          {w.pa}: <span className="text-foreground">
-            <Private>{pa}</Private>
-          </span>
-        </p>
       )}
     </section>
   );

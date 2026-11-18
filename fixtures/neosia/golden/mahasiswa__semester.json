@@ -1,12 +1,21 @@
 {
   "status": "ok",
-  "data": [
-    {
-      "kode": "20251",
-      "nama": "Semester Awal 2025/2026",
-      "id_semester": 20251,
-      "ips": 3.4,
-      "ipk": 3.4
-    }
-  ]
+  "data": {
+    "semesters": [
+      {
+        "kode": "20251",
+        "jenis": "Ganjil",
+        "tahun": 2025,
+        "tahun_ajaran": "2025/2026",
+        "is_active": false
+      },
+      {
+        "kode": "20262",
+        "jenis": "Genap",
+        "tahun": 2026,
+        "tahun_ajaran": "2026/2027",
+        "is_active": true
+      }
+    ]
+  }
 }

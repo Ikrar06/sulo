@@ -10,6 +10,14 @@
           "name": "krs",
           "caption": "Pengisian KRS"
         }
+      },
+      {
+        "tanggal_mulai": "2027-02-22",
+        "tanggal_berakhir": "2027-03-01",
+        "semester_tipe_jadwal": {
+          "name": "perubahan_krs",
+          "caption": "Perubahan KRS"
+        }
       }
     ]
   }

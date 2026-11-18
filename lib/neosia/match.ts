@@ -7,7 +7,7 @@ import { ENDPOINTS, NEOSIA_API_HOST, NEVER_READ_PATHS, type Endpoint } from './a
 
 export type UrlMatch = { kind: 'endpoint'; endpoint: Endpoint; path: string } | { kind: 'never'; path: string } | { kind: 'other'; path: string };
 
-/** Up to two segments after the endpoint's path, each an id ("123", "20251", a uuid). */
+/** Up to two segments after the endpoint's full path, each an id ("123", "20251", a uuid). */
 const TAIL_SEGMENT = /^(?:\d{1,12}|[0-9a-f-]{8,40})$/i;
 const MAX_TAIL = 2;
 
@@ -47,8 +47,9 @@ export function matchUrl(raw: string, base?: string): UrlMatch | null {
   if (NEVER_READ_PATHS.some((p) => contains(segments, segmentsOf(p)) >= 0)) return { kind: 'never', path };
   for (const endpoint of BY_LENGTH) {
     const pattern = segmentsOf(endpoint.path);
+    // Anchored at the root: "/api/mahasiswa/belanja_krs/max_sks" is max_sks, never belanja_krs.
     const at = contains(segments, pattern);
-    if (at < 0) continue;
+    if (at !== 0) continue;
     const tail = segments.slice(at + pattern.length);
     if (tail.length <= MAX_TAIL && tail.every((s) => TAIL_SEGMENT.test(s))) return { kind: 'endpoint', endpoint, path };
   }

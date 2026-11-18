@@ -66,7 +66,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
           <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.privacyMode ? '' : data.prefs.nickname)}</h2>
           <SummaryLine parts={summary} d={d} />
         </div>
-        {neosiaOn && <ProfileCard snapshots={snapshots} />}
+        {neosiaOn && <ProfileCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} />}
       </section>
 
       {surveyOpen && <SurveyLine />}

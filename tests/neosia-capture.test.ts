@@ -5,7 +5,7 @@ import { keyShape, observation } from '../lib/neosia/observe';
 import { matchUrl } from '../lib/neosia/match';
 import { PLACEHOLDER, SYNTHETIC } from './neosia-synthetic';
 
-const API = 'https://api.neosia.unhas.ac.id/api/v1';
+const API = 'https://api.neosia.unhas.ac.id/api/mahasiswa';
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 /** A minimal XHR whose "load" fires on respond(). */
@@ -64,7 +64,7 @@ describe('the page-world capture: fetch', () => {
   it('returns exactly what the original fetch returned and posts the projection to the page origin', async () => {
     const res = response(JSON.stringify(SYNTHETIC.getTranskripMahasiswa));
     const p = page(async () => res);
-    const returned = await p.win.fetch(`${API}/getTranskripMahasiswa`);
+    const returned = await p.win.fetch(`${API}/transkrip/getTranskripMahasiswa`);
     expect(returned).toBe(res);
     await flush();
     expect(p.posted).toHaveLength(1);
@@ -135,7 +135,7 @@ describe('the page-world capture: XMLHttpRequest', () => {
   it('reads text responses on load without changing open/send results', () => {
     const p = page(async () => null);
     const xhr = new p.Xhr();
-    expect(xhr.open('GET', `${API}/max_sks`)).toBe('opened');
+    expect(xhr.open('GET', `${API}/belanja_krs/max_sks`)).toBe('opened');
     expect(xhr.send()).toBe('sent');
     xhr.respond(200, JSON.stringify(SYNTHETIC.max_sks));
     expect(p.posted).toHaveLength(1);
@@ -176,8 +176,11 @@ describe('dev observation listing (development builds only)', () => {
     const keys = keyShape(SYNTHETIC.kelas_kuliah_tersedia);
     expect(keys).toContain('semesters.{n}[].jadwal_kuliahs[].day_of_week');
     expect(keys.join(' ')).not.toContain('HIDROLOGI');
-    const o = observation(matchUrl(`${API}/mahasiswa/${PLACEHOLDER.nim}/belanja_krs`)!, SYNTHETIC.belanja_krs, 1);
-    expect(o.path).toBe('/api/v1/mahasiswa/{id}/belanja_krs');
+    const o = observation(matchUrl(`${API}/belanja_krs`)!, SYNTHETIC.belanja_krs, 1);
+    expect(o.path).toBe('/api/mahasiswa/belanja_krs');
+    expect(o.keys).toContain('kartu_rencana_studi.mahasiswa.nik');
+    // An id in the path is scrubbed; the path is then not an allowlisted one (anchored match).
+    expect(matchUrl(`${API}/${PLACEHOLDER.nim}/belanja_krs`)!.path).toBe('/api/mahasiswa/{id}/belanja_krs');
     expect(JSON.stringify(o)).not.toContain(PLACEHOLDER.nik);
   });
 });

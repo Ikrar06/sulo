@@ -1,7 +1,9 @@
 {
   "status": "ok",
   "data": {
-    "status": "LUNAS",
-    "is_lunas": true
+    "status": true,
+    "pembayaran": {
+      "sudah_bayar": true
+    }
   }
 }

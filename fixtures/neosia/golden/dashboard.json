@@ -8,6 +8,9 @@
     "masa_studi": {
       "maksimal": 14,
       "sisa": 10
+    },
+    "pembayaran": {
+      "sudah_bayar": true
     }
   }
 }

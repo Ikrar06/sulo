@@ -33,10 +33,11 @@ export interface PlanInput {
   changes?: readonly ChangeLogEntry[];
   updates?: UpdateSettings;
   /**
-   * NEOSIA KRS window (M7): reminders 3 days and 1 day before its last day.
-   * Present only while the module is on and the KRS calendar reminders are on.
+   * NEOSIA KRS windows (M7): reminders 3 days and 1 day before each one's
+   * last day, the change window included. Present only while the module is
+   * on and the KRS calendar reminders are on.
    */
-  krs?: { end: string } | null;
+  krsWindows?: readonly { start: string; end: string; caption: string | null }[];
   /** Academic calendar reminders (M5a); omitted means none. */
   calendar?: { events: readonly CalendarEventLite[]; settings: CalendarNotifySettings; /** Short source for the body, e.g. "SK Rektor No. 08429/UN4.1/KEP/2026". */ source: string };
 }
@@ -55,7 +56,7 @@ export type Notice =
   /** An academic calendar date: a week or a day before it, or before a window's last day. */
   | { kind: 'calendar'; key: string; stage: CalendarStage; event: CalendarEventLite; source: string }
   /** The KRS window from NEOSIA closes in 3 days or tomorrow. */
-  | { kind: 'krs'; key: string; stage: 'h3' | 'h1'; end: string };
+  | { kind: 'krs'; key: string; stage: 'h3' | 'h1'; end: string; caption: string | null };
 
 export interface Plan {
   send: Notice[];
@@ -121,7 +122,7 @@ function planCalendar(input: PlanInput): { send: Notice[]; mark: string[]; nextA
   for (const r of calendarReminders(input.calendar.events, input.calendar.settings)) {
     if (r.key in input.sent) continue;
     // NEOSIA's own KRS closing reminder replaces the calendar's "ends tomorrow".
-    if (input.krs && r.kind === 'krs' && r.stage === 'h1-akhir') {
+    if ((input.krsWindows ?? []).length > 0 && r.kind === 'krs' && r.stage === 'h1-akhir') {
       mark.push(r.key);
       continue;
     }
@@ -145,36 +146,40 @@ function planCalendar(input: PlanInput): { send: Notice[]; mark: string[]; nextA
   return { send, mark, nextAt: later.length ? Math.min(...later) : null };
 }
 
-export const krsKey = (end: string, stage: 'h3' | 'h1') => `krs:${end}:${stage}`;
+export const krsKey = (w: { start: string; end: string }, stage: 'h3' | 'h1') => `krs:${w.start}:${w.end}:${stage}`;
 
 /**
  * KRS closing reminders, like calendar reminders: at the morning time on
- * their own day, moved past quiet hours, never sent late.
+ * their own day, moved past quiet hours, never sent late. One pair per window.
  */
 function planKrs(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: UnixSeconds | null } {
-  if (!input.krs) return { send: [], mark: [], nextAt: null };
+  const windows = input.krsWindows ?? [];
+  if (windows.length === 0) return { send: [], mark: [], nextAt: null };
   const today = localParts(input.now, input.timeZone).dateKey;
   const atMin = input.settings.snoozeMorningMin;
   const send: Notice[] = [];
   const mark: string[] = [];
   const upcoming: UnixSeconds[] = [];
-  for (const [stage, days] of [['h3', 3], ['h1', 1]] as const) {
-    const key = krsKey(input.krs.end, stage);
-    if (key in input.sent) continue;
-    const day = addDays(input.krs.end, -days);
-    if (day < today) {
-      mark.push(key);
-      continue;
-    }
-    const fireAt = quietAdjusted(zonedToUnix(day, atMin, input.timeZone), false, input);
-    if (day === today && fireAt <= input.now) {
-      const releaseAt = quietAdjusted(input.now, false, input);
-      if (releaseAt > input.now) upcoming.push(releaseAt);
-      else {
-        send.push({ kind: 'krs', key, stage, end: input.krs.end });
+  for (const w of windows) {
+    for (const [stage, days] of [['h3', 3], ['h1', 1]] as const) {
+      const key = krsKey(w, stage);
+      if (key in input.sent) continue;
+      const day = addDays(w.end, -days);
+      // A window shorter than the lead time has no such reminder.
+      if (day < today || day < addDays(w.start, -1)) {
         mark.push(key);
+        continue;
       }
-    } else upcoming.push(fireAt);
+      const fireAt = quietAdjusted(zonedToUnix(day, atMin, input.timeZone), false, input);
+      if (day === today && fireAt <= input.now) {
+        const releaseAt = quietAdjusted(input.now, false, input);
+        if (releaseAt > input.now) upcoming.push(releaseAt);
+        else {
+          send.push({ kind: 'krs', key, stage, end: w.end, caption: w.caption });
+          mark.push(key);
+        }
+      } else upcoming.push(fireAt);
+    }
   }
   const later = upcoming.filter((t) => t > input.now);
   return { send, mark, nextAt: later.length ? Math.min(...later) : null };

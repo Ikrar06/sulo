@@ -65,7 +65,7 @@ What is kept in your browser
 - Class schedule: courses, classes, days, times, rooms and lecturer names
 - The KRS window and status, and your credit limit
 - Paid or not paid, without amounts
-- Your academic advisor’s name and the survey status
+- The survey status: filled in or not
 - Letter grades, semester and overall GPA, and credits. Hidden until you choose Show
 - Your semester and study period
 
@@ -82,7 +82,7 @@ Turning it off
 
 Any time, in Settings with "Disconnect and delete data". All NEOSIA data is deleted and the permission is removed.
 
-- Its permissions are optional: "scripting" and access to neosia.unhas.ac.id and api.neosia.unhas.ac.id. All three are asked for only when you turn the module on, and removed when it is turned off. If you remove one in Chrome's settings, the module turns itself off and its data is deleted.
+- Its permissions are optional: "scripting" and access to the neosia.unhas.ac.id pages. Both are asked for only when you turn the module on, and removed when it is turned off. Sulo does not ask for access to the NEOSIA API address. If you remove one in Chrome's settings, the module turns itself off and its data is deleted.
 - Sulo never sends a request to NEOSIA. Two small scripts on NEOSIA pages read the responses the NEOSIA app already asked for, pick out the fields that may be kept right there on the page, and drop the rest. The full responses are never stored, logged or sent.
 - The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA login token is never read.
 - Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.

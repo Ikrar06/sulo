@@ -1,9 +1,11 @@
 {
   "status": "ok",
   "data": {
-    "ips": 3.6,
-    "ipk": 3.51,
-    "jumlah_sks": 64,
-    "id_semester": 20261
+    "currentIndeksPrestasi": {
+      "semester_tahun_ajaran": "2026/2027 Ganjil",
+      "indeks_prestasi_semester": 3.6,
+      "indeks_prestasi_kumulatif": 3.51,
+      "jumlah_sks": 64
+    }
   }
 }

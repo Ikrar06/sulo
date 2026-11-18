@@ -21,8 +21,7 @@ import type { KeyValueStore, Task, UnixSeconds } from '../types';
 import { planReminders, type Notice } from './plan';
 import { readModuleState } from '../neosia/module';
 import { readSnapshots } from '../neosia/store';
-import { krsWindowFromNeosia } from '../neosia/view';
-import { localParts } from './zoned';
+import { krsWindows } from '../neosia/view';
 import { noticeView, type NotificationView } from './text';
 
 /** Recorded keys are kept this long, then pruned. */
@@ -86,8 +85,8 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     readCalendar(store),
     readModuleState(store),
   ]);
-  // NEOSIA's KRS window (module on, KRS reminders on): closing reminders H-3 and H-1.
-  const krsWin = neosia.enabled && prefs.calendar.krs ? krsWindowFromNeosia(await readSnapshots(store), localParts(now, timeZone).dateKey) : null;
+  // NEOSIA's KRS windows (module on, KRS reminders on): closing reminders H-3 and H-1 for each.
+  const windows = neosia.enabled && prefs.calendar.krs ? krsWindows(await readSnapshots(store)) : [];
 
   const plan = planReminders({
     now,
@@ -102,7 +101,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     changes,
     updates: prefs.updates,
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
-    krs: krsWin ? { end: krsWin.end } : null,
+    krsWindows: windows,
   });
 
   // The account captured at the start must still be active before every

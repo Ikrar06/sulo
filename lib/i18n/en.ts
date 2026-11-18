@@ -254,8 +254,9 @@ export const en: Messages = {
     neosiaGrade: (course) => `New grade out for ${course}`,
     neosiaGrades: (n) => `New grades out for ${n} courses`,
     neosiaGradeBody: 'Open NEOSIA to see it.',
-    krsH3: 'KRS closes in 3 days',
-    krsH1: 'KRS closes tomorrow',
+    krsH3: (caption) => `${caption} closes in 3 days`,
+    krsDefaultCaption: 'KRS',
+    krsH1: (caption) => `${caption} closes tomorrow`,
     krsBody: (date) => `The last day is ${date}. See your KRS readiness in Sulo.`,
     parts: {
       materials: (n) => plural(n, 'new material', 'new materials'),

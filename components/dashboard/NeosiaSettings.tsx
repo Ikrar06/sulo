@@ -7,10 +7,12 @@ import { browser } from 'wxt/browser';
 import { useI18n } from '@/components/i18n';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { DEFAULT_SKS_TARGET, SKS_TARGET_MAX, SKS_TARGET_MIN } from '@/lib/neosia/view';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_APP_ORIGIN } from '@/lib/neosia/allowlist';
+import { NEOSIA_LOGIN_URL } from '@/lib/links';
 import { neosiaPermissionRequest } from '@/lib/neosia/browser-deps';
 import type { EnableResult } from '@/lib/neosia/module';
 import { neosiaStatus } from '@/lib/neosia/view';
@@ -25,6 +27,14 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
   const s = w.settings;
   const switchId = useId();
   const privacyId = useId();
+  const targetId = useId();
+  const [target, setTarget] = useState(String(data.prefs.sksTarget));
+  const saveTarget = () => {
+    const n = Number(target);
+    const next = Number.isInteger(n) && n >= SKS_TARGET_MIN && n <= SKS_TARGET_MAX ? n : DEFAULT_SKS_TARGET;
+    setTarget(String(next));
+    if (next !== data.prefs.sksTarget) void actions.setPrefs({ sksTarget: next });
+  };
   const [consentOpen, setConsentOpen] = useState(false);
   const [disconnectOpen, setDisconnectOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -88,13 +98,33 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
           {status.changedShape.length > 0 && <p className="text-[12px] text-muted-foreground">{w.changedShape}</p>}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
-              <a href={NEOSIA_APP_ORIGIN} target="_blank" rel="noopener noreferrer">
+              <a href={NEOSIA_LOGIN_URL} target="_blank" rel="noopener noreferrer">
                 {w.openNeosia}
               </a>
             </Button>
             <Button variant="outline" onClick={() => setDisconnectOpen(true)}>
               {s.disconnect}
             </Button>
+          </div>
+          <div className="flex flex-wrap items-start justify-between gap-4 border-t border-border pt-4">
+            <div className="min-w-0">
+              <label htmlFor={targetId} className="text-[14px] leading-6 font-semibold">
+                {s.sksTarget}
+              </label>
+              <p className="max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{s.sksTargetHelp}</p>
+            </div>
+            <Input
+              id={targetId}
+              type="number"
+              inputMode="numeric"
+              min={SKS_TARGET_MIN}
+              max={SKS_TARGET_MAX}
+              className="w-24 tabular-nums"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              onBlur={saveTarget}
+              onKeyDown={(e) => e.key === 'Enter' && saveTarget()}
+            />
           </div>
         </div>
       )}

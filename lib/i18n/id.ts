@@ -261,8 +261,9 @@ export const id = {
     neosiaGrade: (course: string) => `Nilai baru keluar untuk ${course}`,
     neosiaGrades: (n: number) => `Nilai baru keluar untuk ${n} mata kuliah`,
     neosiaGradeBody: 'Buka NEOSIA untuk melihatnya.',
-    krsH3: 'Pengisian KRS ditutup 3 hari lagi',
-    krsH1: 'Pengisian KRS ditutup besok',
+    krsH3: (caption: string) => `${caption} ditutup 3 hari lagi`,
+    krsDefaultCaption: 'Pengisian KRS',
+    krsH1: (caption: string) => `${caption} ditutup besok`,
     krsBody: (date: string) => `Batasnya ${date}. Lihat kesiapan KRS-mu di Sulo.`,
     parts: {
       materials: (n: number) => `${n} materi baru`,

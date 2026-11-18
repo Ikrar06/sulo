@@ -59,42 +59,45 @@ export function weekdayOf(v: Projected | undefined): number | null {
   return n === 7 ? 0 : n;
 }
 
-// ---------- KRS window ----------
+// ---------- KRS windows ----------
 
 export interface KrsWindow {
   start: string;
   end: string;
+  /** NEOSIA's own label ("Pengisian KRS", "Perubahan KRS"); null from the academic calendar. */
+  caption: string | null;
   source: 'neosia' | 'calendar';
 }
 
-/**
- * The KRS window from checkJadwalBelanjaKRS: the one open today, else the
- * next one, else the last. Entries whose type names KRS win over others.
- */
-export function krsWindowFromNeosia(snapshots: Snapshots, today: string): KrsWindow | null {
+/** Every window from checkJadwalBelanjaKRS (filling in, changes …), by start date. */
+export function krsWindows(snapshots: Snapshots): KrsWindow[] {
   const data = obj(dataOf(snapshots, 'checkJadwalBelanjaKRS') as Projected);
-  const windows = list(data?.prodiSemesterJadwalKrses)
+  return list(data?.prodiSemesterJadwalKrses)
     .map((w) => obj(w))
     .filter((w): w is Obj => w !== null)
     .map((w) => {
       const type = obj(w.semester_tipe_jadwal);
-      const label = `${str(type?.name) ?? ''} ${str(type?.caption) ?? ''}`;
-      return { start: dateKeyOf(w.tanggal_mulai), end: dateKeyOf(w.tanggal_berakhir), krs: /krs|rencana studi/i.test(label) };
+      return { start: dateKeyOf(w.tanggal_mulai), end: dateKeyOf(w.tanggal_berakhir), caption: str(type?.caption) ?? str(type?.name), source: 'neosia' as const };
     })
-    .filter((w): w is { start: string; end: string; krs: boolean } => w.start !== null && w.end !== null && w.end >= w.start);
-  const pool = windows.some((w) => w.krs) ? windows.filter((w) => w.krs) : windows;
-  const sorted = [...pool].sort((a, b) => a.start.localeCompare(b.start));
-  const pick = sorted.find((w) => w.start <= today && today <= w.end) ?? sorted.find((w) => w.start > today) ?? sorted.at(-1);
-  return pick ? { start: pick.start, end: pick.end, source: 'neosia' } : null;
+    .flatMap((w) => (w.start !== null && w.end !== null && w.end >= w.start ? [{ ...w, start: w.start, end: w.end }] : []))
+    .sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end));
 }
 
-/** NEOSIA's own window wins; the academic calendar's KRS dates are the fallback. */
+/** The window open today, else the nearest coming one, else the last one that passed. */
+export function pickWindow(windows: readonly KrsWindow[], today: string): KrsWindow | null {
+  return windows.find((w) => w.start <= today && today <= w.end) ?? windows.find((w) => w.start > today) ?? windows.at(-1) ?? null;
+}
+
+export function krsWindowFromNeosia(snapshots: Snapshots, today: string): KrsWindow | null {
+  return pickWindow(krsWindows(snapshots), today);
+}
+
+/** NEOSIA's own windows win; the academic calendar's KRS dates are the fallback. */
 export function krsWindow(snapshots: Snapshots, today: string, calendarKrs: readonly { mulai: string; selesai: string | null }[]): KrsWindow | null {
   const fromNeosia = krsWindowFromNeosia(snapshots, today);
   if (fromNeosia) return fromNeosia;
-  const sorted = calendarKrs.map((k) => ({ start: k.mulai, end: k.selesai ?? k.mulai })).sort((a, b) => a.start.localeCompare(b.start));
-  const pick = sorted.find((w) => w.start <= today && today <= w.end) ?? sorted.find((w) => w.start > today);
-  return pick ? { ...pick, source: 'calendar' } : null;
+  const sorted = calendarKrs.map((k) => ({ start: k.mulai, end: k.selesai ?? k.mulai, caption: null, source: 'calendar' as const })).sort((a, b) => a.start.localeCompare(b.start));
+  return sorted.find((w) => w.start <= today && today <= w.end) ?? sorted.find((w) => w.start > today) ?? null;
 }
 
 /** Days before the window opens that the readiness card appears. */
@@ -111,35 +114,20 @@ export function showKrsCard(window: KrsWindow | null, today: string): boolean {
 // ---------- KRS readiness ----------
 
 export type ItemState = 'ok' | 'action' | 'info' | 'unknown';
+export type KrsStatus = 'locked' | 'approved' | 'submitted' | 'empty';
 
 export type ReadinessItem =
   | { id: 'window'; state: ItemState; window: KrsWindow | null; phase: 'before' | 'open' | 'closed' | null }
   | { id: 'payment'; state: ItemState; paid: boolean | null }
-  | { id: 'pa'; state: ItemState; name: string | null }
   | { id: 'survey'; state: ItemState; filled: boolean | null }
   | { id: 'sks'; state: ItemState; max: number | null; available: number | null }
-  | { id: 'krs'; state: ItemState; status: 'locked' | 'approved' | 'submitted' | 'empty' | null };
+  | { id: 'krs'; state: ItemState; status: KrsStatus | null };
 
+/** pembayaran.sudah_bayar from the payment status, else from the dashboard. Never an amount. */
 export function paymentPaid(snapshots: Snapshots): boolean | null {
-  const data = obj(dataOf(snapshots, 'getStatusPembayaran') as Projected);
-  if (!data) return null;
-  const flag = bool(data.is_lunas) ?? bool(data.lunas);
-  if (flag !== null) return flag;
-  const label = `${str(data.status) ?? ''} ${str(data.status_pembayaran) ?? ''}`.toLowerCase();
-  if (/belum|unpaid|not paid/.test(label)) return false;
-  if (/lunas|paid|sudah/.test(label)) return true;
-  return null;
-}
-
-/** The advisor's name with titles ("Dr. Nama, S.T., M.T."), or null. */
-export function advisorName(snapshots: Snapshots): string | null {
-  const data = obj(dataOf(snapshots, 'getCurrentPenasihatAkademik') as Projected);
-  const person = obj(data?.dosen) ?? data;
-  const name = str(person?.nama);
-  if (!name) return null;
-  const front = str(person?.gelar_depan);
-  const back = str(person?.gelar_belakang);
-  return `${front ? `${front} ` : ''}${name}${back ? `, ${back}` : ''}`;
+  const fromStatus = bool(obj(obj(dataOf(snapshots, 'getStatusPembayaran') as Projected)?.pembayaran)?.sudah_bayar);
+  if (fromStatus !== null) return fromStatus;
+  return bool(obj(obj(dataOf(snapshots, 'dashboard') as Projected)?.pembayaran)?.sudah_bayar);
 }
 
 export function surveyFilled(snapshots: Snapshots): boolean | null {
@@ -149,28 +137,35 @@ export function surveyFilled(snapshots: Snapshots): boolean | null {
 export function sksQuota(snapshots: Snapshots): { max: number | null; available: number | null } | null {
   const data = obj(dataOf(snapshots, 'max_sks') as Projected);
   if (!data) return null;
-  return { max: num(data.max_sks), available: num(obj(data.current_sks)?.available) };
+  return { max: num(data.max_sks) ?? num(obj(data.limits)?.total), available: num(obj(data.current_sks)?.available) };
 }
 
-export function krsStatus(snapshots: Snapshots): 'locked' | 'approved' | 'submitted' | 'empty' | null {
+/**
+ * - locked: is_locked
+ * - approved: is_approved
+ * - submitted: has classes, is the current KRS, not approved yet
+ * - empty: no classes
+ * A KRS with classes that is not the current one says nothing about this semester: null.
+ */
+export function krsStatus(snapshots: Snapshots): KrsStatus | null {
   const krs = obj(obj(dataOf(snapshots, 'belanja_krs') as Projected)?.kartu_rencana_studi);
   if (!krs) return null;
   if (bool(krs.is_locked)) return 'locked';
   if (bool(krs.is_approved)) return 'approved';
-  return list(krs.kelas_kuliahs).length > 0 ? 'submitted' : 'empty';
+  const classes = list(krs.kelas_kuliahs).filter((k) => bool(obj(k)?.is_batal) !== true);
+  if (classes.length === 0) return 'empty';
+  return bool(krs.is_current) ? 'submitted' : null;
 }
 
 export function readiness(snapshots: Snapshots, window: KrsWindow | null, today: string): ReadinessItem[] {
   const phase = window === null ? null : today < window.start ? 'before' : today <= window.end ? 'open' : 'closed';
   const paid = paymentPaid(snapshots);
-  const pa = advisorName(snapshots);
   const filled = surveyFilled(snapshots);
   const quota = sksQuota(snapshots);
   const status = krsStatus(snapshots);
   return [
     { id: 'window', state: window === null ? 'unknown' : 'info', window, phase },
     { id: 'payment', state: paid === null ? 'unknown' : paid ? 'ok' : 'action', paid },
-    { id: 'pa', state: pa === null ? 'unknown' : 'ok', name: pa },
     { id: 'survey', state: filled === null ? 'unknown' : filled ? 'ok' : 'action', filled },
     { id: 'sks', state: quota === null || quota.max === null ? 'unknown' : 'info', max: quota?.max ?? null, available: quota?.available ?? null },
     { id: 'krs', state: status === null ? 'unknown' : status === 'empty' ? (phase === 'open' ? 'action' : 'info') : status === 'submitted' ? 'info' : 'ok', status },
@@ -183,6 +178,7 @@ export interface ClassMeeting {
   /** Course code from NEOSIA (11 characters, the same pattern as SIKOLA's). */
   code: string | null;
   name: string;
+  /** The class's own name ("A"). */
   className: string | null;
   sks: number | null;
   /** 0 Sunday … 6 Saturday. */
@@ -193,24 +189,15 @@ export interface ClassMeeting {
   lecturers: string[];
 }
 
-function lecturerName(v: Projected): string | null {
-  const d = obj(v);
-  const name = str(d?.nama);
-  if (!name) return null;
-  const front = str(d?.gelar_depan);
-  const back = str(d?.gelar_belakang);
-  return `${front ? `${front} ` : ''}${name}${back ? `, ${back}` : ''}`;
-}
-
-/** Weekly meetings from the KRS, sorted by day and start time. */
+/** Weekly meetings from the KRS (cancelled classes left out), by day and start time. */
 export function classMeetings(snapshots: Snapshots): ClassMeeting[] {
   const krs = obj(obj(dataOf(snapshots, 'belanja_krs') as Projected)?.kartu_rencana_studi);
   const out: ClassMeeting[] = [];
   for (const k of list(krs?.kelas_kuliahs)) {
     const kelas = obj(k);
-    if (!kelas) continue;
+    if (!kelas || bool(kelas.is_batal) === true) continue;
     const mk = obj(kelas.mata_kuliah);
-    const name = str(mk?.nama) ?? str(kelas.nama);
+    const name = str(mk?.nama_resmi) ?? str(mk?.nama_singkat);
     if (!name) continue;
     for (const j of list(kelas.jadwal_kuliahs)) {
       const slot = obj(j);
@@ -218,17 +205,17 @@ export function classMeetings(snapshots: Snapshots): ClassMeeting[] {
       const start = hhmm(slot?.start_time);
       const end = hhmm(slot?.end_time);
       if (weekday === null || start === null || end === null || end <= start) continue;
-      const ruang = slot?.ruang;
+      const ruang = obj(slot?.ruang ?? null);
       out.push({
-        code: str(mk?.kode) ?? str(kelas.kode),
+        code: str(mk?.kode),
         name,
-        className: str(kelas.nama_kelas),
-        sks: num(mk?.sks) ?? num(kelas.sks),
+        className: str(kelas.nama),
+        sks: num(kelas.sks),
         weekday,
         start,
         end,
-        room: typeof ruang === 'string' ? ruang : (str(obj(ruang ?? null)?.nama) ?? str(obj(ruang ?? null)?.kode)),
-        lecturers: list(kelas.dosens).map(lecturerName).filter((n): n is string => n !== null),
+        room: str(ruang?.nama) ?? str(ruang?.kode),
+        lecturers: list(kelas.dosens).map((d) => str(obj(d)?.nama)).filter((n): n is string => n !== null),
       });
     }
   }
@@ -237,15 +224,17 @@ export function classMeetings(snapshots: Snapshots): ClassMeeting[] {
 
 /** Semester label of the KRS ("2026/2027", "akhir"), for the ICS uid. */
 export function krsSemester(snapshots: Snapshots): { tahunAjaran: string | null; jenis: string | null; kode: string | null } {
-  const data = obj(dataOf(snapshots, 'belanja_krs') as Projected);
-  const sem = obj(obj(data?.kartu_rencana_studi)?.semester) ?? obj(data?.semester) ?? obj(obj(dataOf(snapshots, 'prodi_semester/active') as Projected)?.semester);
+  const krs = obj(obj(dataOf(snapshots, 'belanja_krs') as Projected)?.kartu_rencana_studi);
+  const sem = obj(obj(krs?.prodi_semester)?.semester) ?? obj(obj(obj(dataOf(snapshots, 'prodi_semester/active') as Projected)?.activeProdiSemester)?.semester);
   return { tahunAjaran: str(sem?.tahun_ajaran), jenis: str(sem?.jenis), kode: str(sem?.kode) };
 }
 
 // ---------- Profile ----------
 
-/** A common S1 total, only as the bar's scale; Sulo never says how many credits are left to graduate. */
-export const SKS_BAR_SCALE = 144;
+/** Default credits to graduate, only as the bar's scale; changeable in Settings (100 to 200). */
+export const DEFAULT_SKS_TARGET = 144;
+export const SKS_TARGET_MIN = 100;
+export const SKS_TARGET_MAX = 200;
 
 export interface Profile {
   semester: number | null;
@@ -258,8 +247,7 @@ export interface Profile {
 export function profile(snapshots: Snapshots): Profile | null {
   const dash = obj(dataOf(snapshots, 'dashboard') as Projected);
   const maxSks = obj(dataOf(snapshots, 'max_sks') as Projected);
-  const transcript = obj(dataOf(snapshots, 'getTranskripMahasiswa') as Projected);
-  const current = obj(dataOf(snapshots, 'indeks_prestasi/current') as Projected);
+  const current = obj(obj(dataOf(snapshots, 'indeks_prestasi/current') as Projected)?.currentIndeksPrestasi) ?? obj(obj(dataOf(snapshots, 'getTranskripMahasiswa') as Projected)?.current_indeks_prestasi);
   const ip = obj(dash?.indeks_prestasi);
   const study = obj(dash?.masa_studi);
   const maksimal = num(study?.maksimal);
@@ -269,9 +257,9 @@ export function profile(snapshots: Snapshots): Profile | null {
   const semester = fromContext ?? (maksimal !== null && sisa !== null ? maksimal - sisa + 1 : null);
   const out: Profile = {
     semester: semester !== null && semester > 0 && semester < 30 ? semester : null,
-    sksPassed: num(ip?.jumlah_sks_dilulusi) ?? num(obj(transcript?.current_indeks_prestasi)?.jumlah_sks),
-    ipk: num(ip?.ipk) ?? num(obj(transcript?.current_indeks_prestasi)?.ipk) ?? num(current?.ipk),
-    ips: num(current?.ips) ?? num(obj(transcript?.current_indeks_prestasi)?.ips),
+    sksPassed: num(ip?.jumlah_sks_dilulusi) ?? num(current?.jumlah_sks),
+    ipk: num(ip?.ipk) ?? num(current?.indeks_prestasi_kumulatif),
+    ips: num(current?.indeks_prestasi_semester),
     masaStudi: study ? { maksimal, sisa } : null,
   };
   return Object.values(out).every((v) => v === null) ? null : out;
@@ -289,14 +277,12 @@ export interface GradeRow {
 }
 
 export function transcriptRows(data: Projected | null | undefined): GradeRow[] {
-  const rows = list(obj(data ?? null)?.transkrip);
-  return rows
+  return list(obj(data ?? null)?.transkrip)
     .map((r) => obj(r))
     .filter((r): r is Obj => r !== null)
     .map((r) => {
-      const mk = obj(r.mata_kuliah);
-      const code = str(r.kode) ?? str(mk?.kode);
-      const name = str(r.nama) ?? str(mk?.nama) ?? code ?? '';
+      const code = str(r.kode_mata_kuliah);
+      const name = str(r.nama_mata_kuliah) ?? code ?? '';
       const semester = str(r.id_semester);
       return { key: `${code ?? name}|${semester ?? ''}`, code, name, semester, letter: str(r.nilai_huruf) };
     })

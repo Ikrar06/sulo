@@ -3,14 +3,14 @@
   "data": {
     "kartu_hasil_studi": [
       {
-        "kode": "23D12100010",
-        "nama": "KALKULUS I",
-        "sks": 3,
         "nilai_huruf": "A",
-        "id_semester": 20251
+        "source": "krs",
+        "sks": 3,
+        "mata_kuliah": {
+          "kode": "23D12100010",
+          "nama_resmi": "KALKULUS I"
+        }
       }
-    ],
-    "ips": 3.6,
-    "ipk": 3.51
+    ]
   }
 }

@@ -10,7 +10,7 @@
 //    dropped, in case a field moves or changes meaning.
 // 4. Lists, strings and nesting are capped.
 
-import { DROPPED_FIELDS, MAX_DEPTH, MAX_ITEMS, MAX_STRING, UNWRAP_KEYS, type FieldSpec } from './allowlist';
+import { DROPPED_FIELDS, isSumSpec, MAX_DEPTH, MAX_ITEMS, MAX_STRING, UNWRAP_KEYS, type FieldSpec } from './allowlist';
 
 export type Primitive = string | number | boolean | null;
 export type Projected = Primitive | Projected[] | { [key: string]: Projected };
@@ -44,10 +44,35 @@ function primitive(value: unknown): Primitive | undefined {
   return undefined;
 }
 
+const asNumber = (v: unknown): number | undefined => {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string' && /^\d{1,3}(?:[.,]\d+)?$/.test(v.trim())) return Number(v.trim().replace(',', '.'));
+  return undefined;
+};
+
+/**
+ * The sum of the numbers at a dotted path from `from` (lists walked), or
+ * undefined when there are none. Only numbers below MAX_SAFE_VALUE count.
+ */
+export function sumAt(from: unknown, path: string): number | undefined {
+  let level: unknown[] = [from];
+  for (const segment of path.split('.')) {
+    if (DROPPED.has(segment.toLowerCase())) return undefined;
+    level = level
+      .flatMap((v) => (Array.isArray(v) ? v.slice(0, MAX_ITEMS) : [v]))
+      .filter(isPlainObject)
+      .map((o) => o[segment])
+      .flatMap((v) => (Array.isArray(v) ? v.slice(0, MAX_ITEMS) : [v]));
+  }
+  const numbers = level.map(asNumber).filter((n): n is number => n !== undefined && Math.abs(n) < MAX_SAFE_VALUE);
+  return numbers.length ? Math.round(numbers.reduce((a, b) => a + b, 0) * 100) / 100 : undefined;
+}
+
 /** One value projected with its spec; undefined means "drop it". */
 export function projectValue(spec: FieldSpec, value: unknown, depth = 0): Projected | undefined {
   if (depth > MAX_DEPTH) return undefined;
   if (spec === 'v') return primitive(value);
+  if (isSumSpec(spec)) return asNumber(value);
   if (Array.isArray(spec)) {
     if (!Array.isArray(value)) return undefined;
     const item = spec[0] as FieldSpec;
@@ -67,8 +92,15 @@ export function projectValue(spec: FieldSpec, value: unknown, depth = 0): Projec
   const any = objectSpec['*'];
   for (const key of Object.keys(objectSpec)) {
     if (key === '*' || key === '$v' || DROPPED.has(key.toLowerCase())) continue;
+    const child = objectSpec[key] as FieldSpec;
+    if (isSumSpec(child)) {
+      // Computed here, on the page; an already projected value (a plain number) stays as it is.
+      const sum = sumAt(value, child.$sum) ?? asNumber(value[key]);
+      if (sum !== undefined) out[key] = sum;
+      continue;
+    }
     if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
-    const p = projectValue(objectSpec[key] as FieldSpec, value[key], depth + 1);
+    const p = projectValue(child, value[key], depth + 1);
     if (p !== undefined) out[key] = p;
   }
   if (any) {

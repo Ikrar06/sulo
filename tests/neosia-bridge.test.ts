@@ -6,7 +6,7 @@ import { projectResponse } from '../lib/neosia/project';
 import { parseCapture } from '../lib/neosia/schema';
 import { ingestCapture, readSnapshots, snapshotKey } from '../lib/neosia/store';
 import { memoryStore } from './helpers';
-import { PLACEHOLDER, SYNTHETIC } from './neosia-synthetic';
+import { PLACEHOLDER, SECRET, SYNTHETIC } from './neosia-synthetic';
 
 const ORIGIN = 'https://neosia.unhas.ac.id';
 const self = { name: 'this window' };
@@ -60,7 +60,9 @@ describe('the bridge', () => {
       { ...capture(), at: 'now' },
       { ...capture(), data: { max_sks: 24, nim: PLACEHOLDER.nim } },
       { ...capture(), data: { max_sks: 24, context: { current_semester: 4, nik: PLACEHOLDER.nik } } },
-      { ...capture('getCurrentPenasihatAkademik'), data: { nama: PLACEHOLDER.nip } },
+      { ...capture('getStatusPembayaran'), data: { status: true, pembayaran: { sudah_bayar: true, nominal: 7654321 } } },
+      { ...capture('belanja_krs'), data: { kartu_rencana_studi: { is_approved: true, mahasiswa: { nik: PLACEHOLDER.nik } } } },
+      { ...capture('check_survey_status'), data: { is_filled: false, survey_url: 'https://survey.example.invalid' } },
       { ...capture('dashboard'), data: { indeks_prestasi: { ipk: { nested: true } } } },
       { ...capture('getStatusPembayaran'), data: { status: 'Rp 2.500.000' } },
       { ...capture(), data: '<img src=x onerror=alert(1)>' },
@@ -140,8 +142,9 @@ describe('the service worker stores snapshots', () => {
     const store = memoryStore(on);
     for (const e of ENDPOINTS) await ingestCapture(store, 100, capture(e.id));
     const text = JSON.stringify(store.dump());
-    for (const field of ['"nim"', '"nik"', '"nisn"', '"nip"', '"nidn"', '"nuptk"', '"nilai_angka"', '"total_nilai"', '"nominal"', '"bank"', '"alamat"', '"tanggal_lahir"', '"survey_url"', '"mahasiswa"', PLACEHOLDER.nim, PLACEHOLDER.nik, PLACEHOLDER.nip]) {
-      expect(text).not.toContain(field);
+    for (const field of ['nim', 'nik', 'nisn', 'nip', 'nidn', 'nuptk', 'whatsapp', 'jalan', 'rt', 'rw', 'dusun', 'nilai_angka', 'total_nilai', 'nominal', 'bank', 'alamat', 'tanggal_lahir', 'survey_url', 'mahasiswa', 'identitas']) {
+      expect(text, field).not.toContain(`"${field}"`);
     }
+    for (const value of Object.values(SECRET)) expect(text, String(value)).not.toContain(String(value));
   });
 });

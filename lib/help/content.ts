@@ -211,8 +211,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Bagaimana Sulo membaca NEOSIA?', en: 'How does Sulo read NEOSIA?' },
     a: [
       {
-        id: 'Hanya kalau kamu menyalakan "Hubungkan NEOSIA" di Pengaturan. Setelah itu, saat kamu membuka NEOSIA sendiri, Sulo membaca data yang sudah dimuat halaman itu: jadwal, KRS, status bayar, dosen PA, survei, dan nilai. Sulo tidak pernah menghubungi NEOSIA, jadi datanya baru diperbarui saat kamu membuka NEOSIA lagi.',
-        en: 'Only if you turn on "Connect NEOSIA" in Settings. After that, when you open NEOSIA yourself, Sulo reads what that page already loaded: schedule, KRS, payment status, advisor, survey and grades. Sulo never contacts NEOSIA, so the data is updated only when you open NEOSIA again.',
+        id: 'Hanya kalau kamu menyalakan "Hubungkan NEOSIA" di Pengaturan. Setelah itu, saat kamu membuka NEOSIA sendiri, Sulo membaca data yang sudah dimuat halaman itu: jadwal, KRS, status bayar, survei, dan nilai. Sulo tidak pernah menghubungi NEOSIA, jadi datanya baru diperbarui saat kamu membuka NEOSIA lagi.',
+        en: 'Only if you turn on "Connect NEOSIA" in Settings. After that, when you open NEOSIA yourself, Sulo reads what that page already loaded: schedule, KRS, payment status, survey and grades. Sulo never contacts NEOSIA, so the data is updated only when you open NEOSIA again.',
       },
       {
         id: 'Data yang tidak boleh disimpan dibuang di halaman NEOSIA itu juga, sebelum sampai ke Sulo. Mematikan modul lewat "Putuskan dan hapus data" menghapus semuanya dan mencabut izinnya.',
@@ -225,8 +225,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Data apa yang tidak pernah disimpan?', en: 'What is never kept?' },
     a: [
       {
-        id: 'Password SIKOLA dan NEOSIA, token login NEOSIA, NIM, NIK, NISN, kontak (email dan nomor HP), alamat, tanggal lahir, nominal dan bank pembayaran, nilai angka, nomor induk dosen, dan tautan survei. Sulo juga tidak membaca data mahasiswa lain.',
-        en: 'SIKOLA and NEOSIA passwords, the NEOSIA login token, student number, national ID, school ID, contact details (email and phone), address, date of birth, payment amounts and bank, numeric grades, lecturers’ ID numbers and the survey link. Sulo never reads other students’ data either.',
+        id: 'Password SIKOLA dan NEOSIA, token login NEOSIA, NIM, NIK, NISN, kontak (email dan nomor HP), alamat, tanggal lahir, nominal dan bank pembayaran, nilai angka, nomor induk dosen, dan tautan survei. Untuk dosen, yang disimpan hanya namanya. Sulo juga tidak membaca data mahasiswa lain.',
+        en: 'SIKOLA and NEOSIA passwords, the NEOSIA login token, student number, national ID, school ID, contact details (email and phone), address, date of birth, payment amounts and bank, numeric grades, lecturers’ ID numbers and the survey link. For lecturers, only the name is kept. Sulo never reads other students’ data either.',
       },
       {
         id: 'Nilai huruf, IPS, dan IPK memang disimpan di browsermu, tetapi tersembunyi sampai kamu memilih Tampilkan, dan tidak pernah masuk notifikasi, ekspor, daftar yang disalin, berkas kalender, atau info laporan bug.',

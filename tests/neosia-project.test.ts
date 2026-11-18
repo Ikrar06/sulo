@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DROPPED_FIELDS, ENDPOINTS, NEVER_READ_PATHS, type FieldSpec } from '../lib/neosia/allowlist';
+import { DROPPED_FIELDS, ENDPOINTS, isSumSpec, NEVER_READ_PATHS, type FieldSpec } from '../lib/neosia/allowlist';
 import { matchUrl, scrubPath } from '../lib/neosia/match';
-import { projectResponse, projectValue } from '../lib/neosia/project';
-import { PLACEHOLDER, SYNTHETIC } from './neosia-synthetic';
+import { projectResponse, projectValue, sumAt } from '../lib/neosia/project';
+import { PLACEHOLDER, SECRET, SYNTHETIC } from './neosia-synthetic';
 
 const DROPPED = new Set<string>(DROPPED_FIELDS);
 
@@ -28,6 +28,11 @@ function allValues(value: unknown, out: string[] = []): string[] {
 
 function specKeys(spec: FieldSpec, out = new Set<string>()): Set<string> {
   if (spec === 'v') return out;
+  // A computed sum names every key on its path.
+  if (isSumSpec(spec)) {
+    spec.$sum.split('.').forEach((k) => out.add(k));
+    return out;
+  }
   if (Array.isArray(spec)) return specKeys(spec[0] as FieldSpec, out);
   for (const [k, v] of Object.entries(spec)) {
     out.add(k);
@@ -45,7 +50,8 @@ function prng(seed: number) {
   };
 }
 
-const SENSITIVE = [PLACEHOLDER.nim, PLACEHOLDER.nik, PLACEHOLDER.nip, 'contoh@example.invalid', 'Jalan Contoh No. 1', '2000-01-01', '080000000001', 'Ibu Contoh', 'Mahasiswa Contoh', '2500000', 'Bank Contoh', 'Rp 2.500.000', 'survey.example.invalid'];
+/** Every synthetic sensitive value, as text. */
+const SENSITIVE = Object.values(SECRET).map(String);
 
 describe('the allowlist', () => {
   it('names no dropped field in any projection', () => {
@@ -66,7 +72,12 @@ describe('the allowlist', () => {
   });
 });
 
-describe('golden projections (synthetic responses)', () => {
+describe('golden projections (synthetic responses shaped like the observation)', () => {
+  it('covers exactly 12 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(12);
+    expect(ENDPOINTS.map((e) => e.id)).not.toContain('getCurrentPenasihatAkademik');
+  });
+
   for (const e of ENDPOINTS) {
     it(e.id, async () => {
       const result = projectResponse(e.spec, SYNTHETIC[e.id]);
@@ -87,9 +98,9 @@ describe('dropped fields never pass', () => {
   });
 
   it('a dropped field moved into a kept object is still dropped', () => {
-    const moved = structuredClone(SYNTHETIC.belanja_krs) as { data: { kartu_rencana_studi: Record<string, unknown> & { kelas_kuliahs: Record<string, unknown>[] } } };
-    Object.assign(moved.data.kartu_rencana_studi, { nim: PLACEHOLDER.nim, nik: PLACEHOLDER.nik, mahasiswa: { nik: PLACEHOLDER.nik } });
-    Object.assign(moved.data.kartu_rencana_studi.kelas_kuliahs[0]!, { nilai_angka: 91, survey_url: 'x', alamat: 'Jalan Contoh No. 1' });
+    const moved = structuredClone(SYNTHETIC.belanja_krs) as { kartu_rencana_studi: Record<string, unknown> & { kelas_kuliahs: Record<string, unknown>[] } };
+    Object.assign(moved.kartu_rencana_studi, { nim: PLACEHOLDER.nim, nik: PLACEHOLDER.nik });
+    Object.assign(moved.kartu_rencana_studi.kelas_kuliahs[0]!, { nilai_angka: 91, survey_url: 'x', alamat: 'Jalan Contoh No. 1', whatsapp: SECRET.whatsapp });
     const result = projectResponse(ENDPOINTS.find((e) => e.id === 'belanja_krs')!.spec, moved);
     expect([...allKeys(result)].filter((k) => DROPPED.has(k))).toEqual([]);
   });
@@ -161,9 +172,13 @@ describe('dropped fields never pass', () => {
 
 describe('which URLs count', () => {
   it('matches allowlisted paths on the API host only, ignoring the query', () => {
-    expect(matchUrl('https://api.neosia.unhas.ac.id/api/v1/mahasiswa/belanja_krs?x=1')).toMatchObject({ kind: 'endpoint', endpoint: { id: 'belanja_krs' } });
-    expect(matchUrl('https://api.neosia.unhas.ac.id/api/kartu_hasil_studi/semester/20251')).toMatchObject({ kind: 'endpoint', endpoint: { id: 'kartu_hasil_studi/semester' } });
+    expect(matchUrl('https://api.neosia.unhas.ac.id/api/mahasiswa/belanja_krs?x=1')).toMatchObject({ kind: 'endpoint', endpoint: { id: 'belanja_krs' } });
+    expect(matchUrl('https://api.neosia.unhas.ac.id/api/mahasiswa/belanja_krs/max_sks')).toMatchObject({ kind: 'endpoint', endpoint: { id: 'max_sks' } });
+    expect(matchUrl('https://api.neosia.unhas.ac.id/api/mahasiswa/belanja_krs/checkJadwalBelanjaKRS')).toMatchObject({ kind: 'endpoint', endpoint: { id: 'checkJadwalBelanjaKRS' } });
+    expect(matchUrl('https://api.neosia.unhas.ac.id/api/mahasiswa/kartu_hasil_studi/semester/20251')).toMatchObject({ kind: 'endpoint', endpoint: { id: 'kartu_hasil_studi/semester' } });
     expect(matchUrl('https://api.neosia.unhas.ac.id/api/mahasiswa/semester')).toMatchObject({ kind: 'endpoint', endpoint: { id: 'mahasiswa/semester' } });
+    // Anchored at the root: the same name elsewhere is not the endpoint.
+    expect(matchUrl('https://api.neosia.unhas.ac.id/api/dosen/semester')?.kind).toBe('other');
     expect(matchUrl('https://neosia.unhas.ac.id/belanja_krs')).toBeNull();
     expect(matchUrl('https://jsonplaceholder.typicode.com/todos/1')).toBeNull();
     expect(matchUrl('http://api.neosia.unhas.ac.id/belanja_krs')).toBeNull();
@@ -177,11 +192,55 @@ describe('which URLs count', () => {
   });
 
   it('other API paths, or an allowlisted name followed by more than ids, are "other"', () => {
-    expect(matchUrl('https://api.neosia.unhas.ac.id/api/pengumuman')?.kind).toBe('other');
-    expect(matchUrl('https://api.neosia.unhas.ac.id/api/dashboard/admin/settings')?.kind).toBe('other');
+    for (const path of ['api/me', 'oauth/token', 'api/notice_board', 'api/feature_flag', 'api/dosen/semester', 'api/mahasiswa/getCurrentPenasihatAkademik']) {
+      expect(matchUrl(`https://api.neosia.unhas.ac.id/${path}`)?.kind, path).toBe('other');
+    }
+    expect(matchUrl('https://api.neosia.unhas.ac.id/api/mahasiswa/dashboard/admin/settings')?.kind).toBe('other');
   });
 
   it('scrubs ids and student numbers from paths', () => {
     expect(scrubPath(`/api/v1/mahasiswa/${PLACEHOLDER.nim}/transkrip/20251`)).toBe('/api/v1/mahasiswa/{id}/transkrip/{id}');
   });
 });
+
+describe('named sensitive values from the observation', () => {
+  const projected = JSON.stringify(ENDPOINTS.map((e) => projectResponse(e.spec, SYNTHETIC[e.id])));
+  const named = ['nik', 'nisn', 'whatsapp', 'jalan', 'rt', 'rw', 'dusun', 'tanggal_lahir', 'nip', 'nidn', 'nuptk', 'nominal', 'bank', 'nilai_angka', 'total_nilai', 'survey_url'] as const;
+  for (const field of named) {
+    it(`${field}: neither its value nor its key is in any projection`, () => {
+      expect(projected).not.toContain(String(SECRET[field]));
+      expect(projected).not.toContain(`"${field}"`);
+    });
+  }
+
+  it('the student object, identity, programme contacts and the survey link never pass', () => {
+    for (const text of [SECRET.nama_mahasiswa, SECRET.nim, SECRET.prodi_email, 'Alamat Prodi Sintetis', 'TELP-RUANG-SINTETIS', 'Catatan ruang sintetis', 'Sumber Sintetis', 'survey.example.invalid']) {
+      expect(projected, text).not.toContain(text);
+    }
+    for (const key of ['"mahasiswa"', '"identitas"', '"pivot"', '"id_user"', '"max_participant":40,"nama"']) expect(projected).not.toContain(key);
+  });
+});
+
+describe('credits from mata_kuliah_jumlah_skses', () => {
+  it('sums every jumlah_sks of the course on the page', () => {
+    expect(sumAt({ mata_kuliah: { mata_kuliah_jumlah_skses: [{ jumlah_sks: 2 }, { jumlah_sks: 1 }] } }, 'mata_kuliah.mata_kuliah_jumlah_skses.jumlah_sks')).toBe(3);
+    expect(sumAt({ mata_kuliah: { mata_kuliah_jumlah_skses: [{ jumlah_sks: '2' }, { jumlah_sks: 'x' }] } }, 'mata_kuliah.mata_kuliah_jumlah_skses.jumlah_sks')).toBe(2);
+    expect(sumAt({ mata_kuliah: { mata_kuliah_jumlah_skses: [] } }, 'mata_kuliah.mata_kuliah_jumlah_skses.jumlah_sks')).toBeUndefined();
+    expect(sumAt({}, 'mata_kuliah.mata_kuliah_jumlah_skses.jumlah_sks')).toBeUndefined();
+  });
+
+  it('puts the sum on each class and each KHS row, without the list itself', () => {
+    const krs = projectResponse(ENDPOINTS.find((e) => e.id === 'belanja_krs')!.spec, SYNTHETIC.belanja_krs);
+    const classes = (krs as unknown as { data: { kartu_rencana_studi: { kelas_kuliahs: { sks: number }[] } } }).data.kartu_rencana_studi.kelas_kuliahs;
+    expect(classes.map((k) => k.sks)).toEqual([3, 2, 3]);
+    const khs = projectResponse(ENDPOINTS.find((e) => e.id === 'kartu_hasil_studi/semester')!.spec, SYNTHETIC['kartu_hasil_studi/semester']);
+    expect((khs as unknown as { data: { kartu_hasil_studi: { sks: number }[] } }).data.kartu_hasil_studi[0]!.sks).toBe(3);
+    expect(JSON.stringify(krs)).not.toContain('mata_kuliah_jumlah_skses');
+  });
+
+  it('drops KHS indeks_prestasi when it is not an object (observed without keys)', () => {
+    const khs = projectResponse(ENDPOINTS.find((e) => e.id === 'kartu_hasil_studi/semester')!.spec, SYNTHETIC['kartu_hasil_studi/semester']);
+    expect((khs as unknown as { data: Record<string, unknown> }).data).not.toHaveProperty('indeks_prestasi');
+  });
+});
+
