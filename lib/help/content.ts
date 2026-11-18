@@ -253,8 +253,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Kenapa harus membuka NEOSIA dulu?', en: 'Why do I have to open NEOSIA first?' },
     a: [
       {
-        id: 'Sulo tidak pernah menghubungi NEOSIA sendiri. Data hanya ikut terbaca saat kamu membuka halamannya. Transkrip cukup dibuka setiap ada nilai baru, dan KRS setiap awal semester.',
-        en: 'Sulo never contacts NEOSIA by itself. Data is only read along while you open its pages. Open your transcript whenever new grades are out, and KRS at the start of each semester.',
+        id: 'Sulo tidak pernah menghubungi NEOSIA sendiri. Buka Beranda dan Kartu Hasil Studi sekali. Setelah itu cukup buka Kartu Hasil Studi setiap ada nilai baru, dan Beranda atau KRS di awal semester.',
+        en: 'Sulo never contacts NEOSIA by itself. Open the Home page and the study results card (KHS) once. After that, open the KHS whenever new grades are out, and Home or KRS at the start of each semester.',
       },
     ],
   },

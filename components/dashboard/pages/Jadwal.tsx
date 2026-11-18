@@ -11,8 +11,8 @@ import { formatDateKey } from '@/lib/calendar/countdown';
 import { courseNameWithClass } from '@/lib/courses/display-name';
 import { formatAgo } from '@/lib/format/time';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_KRS } from '@/lib/links';
-import { fromOtherSemester } from '@/lib/neosia/sources';
+import { NEOSIA_HOME, NEOSIA_KRS } from '@/lib/links';
+import { fromOtherSemester, sourceDone } from '@/lib/neosia/sources';
 import { NeosiaChecklist } from '../NeosiaChecklist';
 import { setCourseLink } from '@/lib/neosia/course-map';
 import { linkedMeetings, type LinkedMeeting } from '@/lib/neosia/linked';
@@ -101,13 +101,28 @@ export function JadwalPage({ data, actions }: PageProps) {
     );
   }
 
-  // No KRS data yet: the checklist, with KRS first in line.
-  if (meetings.length === 0) {
+  // Home page data missing (the schedule comes with it): the checklist, with Beranda first in line.
+  if (!sourceDone(data.neosia.snapshots, 'beranda')) {
     return (
       <div className="space-y-4">
         {status.changedShape.includes('belanja_krs') && <p className="text-[12px] text-muted-foreground">{w.changedShape}</p>}
-        <NeosiaChecklist snapshots={data.neosia.snapshots} now={data.now} highlight="krs" />
+        <NeosiaChecklist snapshots={data.neosia.snapshots} now={data.now} highlight="beranda" />
       </div>
+    );
+  }
+  // Home data is in but the KRS holds no class: one line, and the KRS page.
+  if (meetings.length === 0) {
+    return (
+      <Card>
+        <p className="flex flex-wrap items-center gap-3 text-[14px]">
+          <span className="text-muted-foreground">{w.krs.status.empty}</span>
+          <Button variant="outline" size="sm" asChild>
+            <a href={NEOSIA_KRS} target="_blank" rel="noopener noreferrer">
+              {w.refresh.openKrs}
+            </a>
+          </Button>
+        </p>
+      </Card>
     );
   }
 
@@ -187,7 +202,7 @@ export function JadwalPage({ data, actions }: PageProps) {
 
       <p className="flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
         {status.lastSeenAt !== null && <span>{w.jadwal.updated(formatAgo(status.lastSeenAt, data.now, m))}</span>}
-        <a href={NEOSIA_KRS} target="_blank" rel="noopener noreferrer" className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+        <a href={NEOSIA_HOME} target="_blank" rel="noopener noreferrer" className="rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
           {w.openNeosia}
         </a>
       </p>

@@ -2,59 +2,90 @@
 // the API responses it triggers. Sulo never requests these itself; a "Buka"
 // button only opens the page in a tab because the user clicked it. Pure.
 //
-// Mapping: the owner's starting guess (18 Nov 2026), to be checked with the
-// dev observation list, which now records the page each response came from.
+// Mapping: final, from the owner's observation of 18 Nov 2026 (the dev list
+// records the page each response came from).
 
 import { NEOSIA_HOME, NEOSIA_KHS, NEOSIA_KRS, NEOSIA_MATAKULIAH, NEOSIA_TRANSKRIP } from '../links';
 import type { EndpointId } from './allowlist';
 import type { Snapshots } from './store';
 import type { UnixSeconds } from '../types';
 
-export type SourceId = 'beranda' | 'transkrip' | 'krs' | 'khs' | 'matakuliah';
+export type SourceId = 'beranda' | 'khs' | 'transkrip' | 'krs' | 'matakuliah';
 
 export interface Source {
   id: SourceId;
+  /** The NEOSIA page's own path. */
+  page: string;
   url: string;
-  /** Responses the page triggers. */
+  /** Responses the page triggers (observation of 18 Nov 2026). */
   endpoints: readonly EndpointId[];
-  /** The response that tells the source has data. */
-  primary: EndpointId;
-  /** Other responses the source must also have given to count as done. */
-  alsoNeeds?: readonly EndpointId[];
-  /** Shown in "Lengkapi data dari NEOSIA" (Mata kuliah is only for the future schedule planner). */
-  checklist: boolean;
+  /** Responses that must all be stored for the source to count as done. */
+  requires: readonly EndpointId[];
+  /** In "Lengkapi data dari NEOSIA": required (counted in "x dari 2"), optional, or not listed. */
+  checklist: 'required' | 'optional' | null;
 }
 
+/**
+ * Final mapping from the owner's observation of 18 Nov 2026. The KRS page
+ * also triggers penasihat_akademik/getCurrentPenasihatAkademik, still
+ * observed only (lib/neosia/allowlist.ts OBSERVE_ONLY).
+ */
 export const SOURCES: readonly Source[] = [
-  { id: 'beranda', url: NEOSIA_HOME, endpoints: ['dashboard', 'prodi_semester/active', 'getStatusPembayaran'], primary: 'dashboard', checklist: true },
-  { id: 'transkrip', url: NEOSIA_TRANSKRIP, endpoints: ['getTranskripMahasiswa', 'check_survey_status'], primary: 'getTranskripMahasiswa', checklist: true },
-  { id: 'krs', url: NEOSIA_KRS, endpoints: ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS'], primary: 'belanja_krs', checklist: true },
-  // The semester list names the transcript's semesters; without it the Grades page could only say "Semester 3".
-  { id: 'khs', url: NEOSIA_KHS, endpoints: ['kartu_hasil_studi/semester', 'mahasiswa/semester', 'indeks_prestasi/current'], primary: 'kartu_hasil_studi/semester', alsoNeeds: ['mahasiswa/semester'], checklist: true },
-  { id: 'matakuliah', url: NEOSIA_MATAKULIAH, endpoints: ['kelas_kuliah_tersedia'], primary: 'kelas_kuliah_tersedia', checklist: false },
+  { id: 'beranda', page: '/', url: NEOSIA_HOME, endpoints: ['dashboard', 'prodi_semester/active', 'belanja_krs', 'checkJadwalBelanjaKRS'], requires: ['dashboard', 'belanja_krs'], checklist: 'required' },
+  { id: 'khs', page: '/kartu-hasil-studi', url: NEOSIA_KHS, endpoints: ['getTranskripMahasiswa', 'kartu_hasil_studi/semester', 'mahasiswa/semester'], requires: ['getTranskripMahasiswa', 'mahasiswa/semester'], checklist: 'required' },
+  { id: 'transkrip', page: '/transkrip-nilai', url: NEOSIA_TRANSKRIP, endpoints: ['getTranskripMahasiswa', 'check_survey_status', 'indeks_prestasi/current'], requires: ['getTranskripMahasiswa'], checklist: null },
+  { id: 'krs', page: '/kartu-rencana-studi', url: NEOSIA_KRS, endpoints: ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS'], requires: ['max_sks'], checklist: 'optional' },
+  { id: 'matakuliah', page: '/matakuliah', url: NEOSIA_MATAKULIAH, endpoints: ['kelas_kuliah_tersedia'], requires: ['kelas_kuliah_tersedia'], checklist: null },
 ];
 
-export const CHECKLIST_SOURCES = SOURCES.filter((s) => s.checklist);
+export const CHECKLIST_SOURCES = SOURCES.filter((s) => s.checklist !== null);
+
+export const sourceById = (id: SourceId): Source => SOURCES.find((s) => s.id === id)!;
 
 export interface SourceStatus {
   source: Source;
   has: boolean;
-  /** When the source's main response last came in; null without it. */
+  /** When the last of its required responses came in; null until all are there. */
   seenAt: UnixSeconds | null;
+}
+
+/** Stored with data; the semester list must carry its ids (capture version 2). */
+function stored(snapshots: Snapshots, e: EndpointId): boolean {
+  const snap = snapshots[e];
+  if (!snap || snap.data === null) return false;
+  if (e !== 'mahasiswa/semester') return true;
+  const list = (snap.data as { semesters?: unknown }).semesters;
+  return Array.isArray(list) && list.length > 0 && list.every((x) => x !== null && typeof x === 'object' && 'id' in x);
 }
 
 export function sourceStatuses(snapshots: Snapshots, sources: readonly Source[] = CHECKLIST_SOURCES): SourceStatus[] {
   return sources.map((source) => {
-    const main = snapshots[source.primary];
-    const has = main !== undefined && main.data !== null && (source.alsoNeeds ?? []).every((e) => snapshots[e] !== undefined && snapshots[e]!.data !== null);
-    return { source, has, seenAt: has ? main.seenAt : null };
+    const has = source.requires.every((e) => stored(snapshots, e));
+    return { source, has, seenAt: has ? Math.max(...source.requires.map((e) => snapshots[e]!.seenAt)) : null };
   });
 }
 
-/** "2 dari 4": sources with data and the total. */
+/** "1 dari 2": only required sources count; optional ones never hold the checklist open. */
 export function completion(statuses: readonly SourceStatus[]): { done: number; total: number; complete: boolean } {
-  const done = statuses.filter((s) => s.has).length;
-  return { done, total: statuses.length, complete: done === statuses.length };
+  const required = statuses.filter((s) => s.source.checklist === 'required');
+  const done = required.filter((s) => s.has).length;
+  return { done, total: required.length, complete: done === required.length };
+}
+
+/** Done or not for one source. */
+export function sourceDone(snapshots: Snapshots, id: SourceId): boolean {
+  return sourceStatuses(snapshots, [sourceById(id)])[0]!.has;
+}
+
+/**
+ * The overview's NEOSIA card: the invite while the module is off (decided
+ * elsewhere), the checklist while it is on and incomplete, "Data NEOSIA
+ * lengkap" once when it became complete during this visit, else nothing.
+ */
+export function overviewNeosiaCard(input: { moduleOn: boolean; complete: boolean; sawIncomplete: boolean; doneShown: boolean }): 'checklist' | 'done' | null {
+  if (!input.moduleOn) return null;
+  if (!input.complete) return 'checklist';
+  return input.sawIncomplete && !input.doneShown ? 'done' : null;
 }
 
 /** Endpoints whose snapshot is new or newer than before (for the "Data dari NEOSIA masuk" toast). */

@@ -5,6 +5,7 @@
 
 import type { CalendarNotifySettings } from '../calendar/notify-settings';
 import type { Kegiatan } from '../calendar/schema';
+import { NEOSIA_KHS, NEOSIA_KRS } from '../links';
 
 export interface Nudge {
   id: string;
@@ -21,4 +22,9 @@ export function neosiaNudges(kegiatan: readonly Kegiatan[], settings: CalendarNo
       if (k.kategori === 'krs' && settings.krs) return [{ id: k.id, nudge: 'krs' as const, mulai: k.mulai, selesai: k.selesai ?? k.mulai }];
       return [];
     });
+}
+
+/** The page a nudge's click opens (user click on the notification): grades → KHS, KRS → KRS. */
+export function nudgeTarget(notificationId: string): string {
+  return notificationId.includes('nudge:grades:') ? NEOSIA_KHS : NEOSIA_KRS;
 }

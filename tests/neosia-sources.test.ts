@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CALENDAR_NOTIFY } from '../lib/calendar/notify-settings';
-import { NEOSIA_HOME, NEOSIA_KHS, NEOSIA_KRS, NEOSIA_TRANSKRIP } from '../lib/links';
-import { CAPTURE_SCHEMA_VERSION, type EndpointId } from '../lib/neosia/allowlist';
+import { NEOSIA_HOME, NEOSIA_KHS, NEOSIA_KRS, NEOSIA_MATAKULIAH, NEOSIA_TRANSKRIP } from '../lib/links';
+import { CAPTURE_SCHEMA_VERSION, ENDPOINTS, OBSERVE_ONLY, type EndpointId } from '../lib/neosia/allowlist';
+import { showInvite } from '../lib/neosia/invite';
+import { matchUrl } from '../lib/neosia/match';
+import { projectResponse } from '../lib/neosia/project';
+import type { ReadinessItem } from '../lib/neosia/view';
+import { readinessLink } from '../components/dashboard/NeosiaParts';
+import { SECRET, SYNTHETIC } from './neosia-synthetic';
 import { connectFlow } from '../lib/neosia/connect-flow';
-import { neosiaNudges } from '../lib/neosia/nudges';
-import { arrivalMessage, arrivals, CHECKLIST_SOURCES, completion, fromOtherSemester, isOlderThan, SOURCES, sourceStatuses } from '../lib/neosia/sources';
-import type { NeosiaSnapshot, Snapshots } from '../lib/neosia/store';
+import { neosiaNudges, nudgeTarget } from '../lib/neosia/nudges';
+import { arrivalMessage, arrivals, CHECKLIST_SOURCES, completion, fromOtherSemester, isOlderThan, overviewNeosiaCard, SOURCES, sourceDone, sourceStatuses } from '../lib/neosia/sources';
+import { pruneUnlistedSnapshots, type NeosiaSnapshot, type Snapshots } from '../lib/neosia/store';
 import { planReminders } from '../lib/reminders/plan';
 import { DEFAULT_REMINDERS } from '../lib/reminders/settings';
 import { zonedToUnix } from '../lib/reminders/zoned';
@@ -26,8 +32,8 @@ describe('Hubungkan: the NEOSIA tab', () => {
     });
     return outcome.then((o) => ({ o, opened }));
   };
-  it('opens the transcript only after the permission is given and the module is on', async () => {
-    expect(await run(true)).toEqual({ o: 'connected', opened: [NEOSIA_TRANSKRIP] });
+  it('opens the NEOSIA home page only after the permission is given and the module is on', async () => {
+    expect(await run(true)).toEqual({ o: 'connected', opened: [NEOSIA_HOME] });
   });
   it('opens nothing when the permission is refused or the module fails', async () => {
     expect(await run(false)).toEqual({ o: 'denied', opened: [] });
@@ -36,32 +42,132 @@ describe('Hubungkan: the NEOSIA tab', () => {
   });
 });
 
-describe('"Lengkapi data dari NEOSIA"', () => {
-  it('lists four pages (not the course list) with their NEOSIA URLs', () => {
-    expect(CHECKLIST_SOURCES.map((s) => [s.id, s.url])).toEqual([
-      ['beranda', NEOSIA_HOME],
-      ['transkrip', NEOSIA_TRANSKRIP],
-      ['krs', NEOSIA_KRS],
-      ['khs', NEOSIA_KHS],
+describe('page mapping (observation of 18 Nov 2026)', () => {
+  it('maps each NEOSIA page to the responses it triggers', () => {
+    expect(SOURCES.map((s) => [s.id, s.page, s.url, s.endpoints])).toEqual([
+      ['beranda', '/', NEOSIA_HOME, ['dashboard', 'prodi_semester/active', 'belanja_krs', 'checkJadwalBelanjaKRS']],
+      ['khs', '/kartu-hasil-studi', NEOSIA_KHS, ['getTranskripMahasiswa', 'kartu_hasil_studi/semester', 'mahasiswa/semester']],
+      ['transkrip', '/transkrip-nilai', NEOSIA_TRANSKRIP, ['getTranskripMahasiswa', 'check_survey_status', 'indeks_prestasi/current']],
+      ['krs', '/kartu-rencana-studi', NEOSIA_KRS, ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS']],
+      ['matakuliah', '/matakuliah', NEOSIA_MATAKULIAH, ['kelas_kuliah_tersedia']],
     ]);
-    expect(SOURCES.find((s) => s.id === 'matakuliah')?.checklist).toBe(false);
   });
-  it('marks a page done when its main response is stored, and counts "x of 4"', () => {
-    expect(completion(sourceStatuses({}))).toEqual({ done: 0, total: 4, complete: false });
-    const two: Snapshots = { dashboard: snap('dashboard', 50), getStatusPembayaran: snap('getStatusPembayaran', 70), belanja_krs: snap('belanja_krs') };
-    const statuses = sourceStatuses(two);
-    expect(statuses.map((s) => [s.source.id, s.has, s.seenAt])).toEqual([
-      ['beranda', true, 50],
-      ['transkrip', false, null],
-      ['krs', true, 100],
-      ['khs', false, null],
+  it('every mapped response is on the allowlist; the payment status endpoint is gone', () => {
+    const listed = new Set(ENDPOINTS.map((e) => e.id as string));
+    for (const s of SOURCES) for (const e of s.endpoints) expect(listed.has(e)).toBe(true);
+    expect(listed.has('getStatusPembayaran')).toBe(false);
+  });
+  it('transcript renew and the notice board stay unread', () => {
+    const api = 'https://api.neosia.unhas.ac.id/api';
+    expect(matchUrl(`${api}/mahasiswa/transkrip/renew`)?.kind).toBe('other');
+    expect(matchUrl(`${api}/notice_board`)?.kind).toBe('other');
+    expect(matchUrl(`${api}/mahasiswa/penasihat_akademik/getCurrentPenasihatAkademik`)?.kind).toBe('observe');
+  });
+  it('the advisor endpoint is observed only, never captured', () => {
+    expect(OBSERVE_ONLY.map((o) => o.id)).toEqual(['getCurrentPenasihatAkademik']);
+    expect(ENDPOINTS.some((e) => e.path.includes('penasihat_akademik'))).toBe(false);
+  });
+});
+
+describe('"Lengkapi data dari NEOSIA": completion', () => {
+  const semesterList = (withId: boolean): NeosiaSnapshot => ({ ...snap('mahasiswa/semester'), data: { semesters: [withId ? { id: 20251, nama: 'Ganjil' } : { nama: 'Ganjil' }] } });
+  it('lists Beranda and KHS (required) and KRS (optional), not the transcript or course list', () => {
+    expect(CHECKLIST_SOURCES.map((s) => [s.id, s.checklist])).toEqual([
+      ['beranda', 'required'],
+      ['khs', 'required'],
+      ['krs', 'optional'],
     ]);
-    expect(completion(statuses)).toEqual({ done: 2, total: 4, complete: false });
-    // KHS counts only with the semester list too (it names the transcript's semesters).
-    const khsOnly: Snapshots = { ...two, getTranskripMahasiswa: snap('getTranskripMahasiswa'), 'kartu_hasil_studi/semester': snap('kartu_hasil_studi/semester') };
-    expect(completion(sourceStatuses(khsOnly))).toEqual({ done: 3, total: 4, complete: false });
-    const all: Snapshots = { ...khsOnly, 'mahasiswa/semester': snap('mahasiswa/semester') };
-    expect(completion(sourceStatuses(all)).complete).toBe(true);
+  });
+  it('Beranda needs dashboard and belanja_krs', () => {
+    expect(sourceDone({ dashboard: snap('dashboard') }, 'beranda')).toBe(false);
+    expect(sourceDone({ dashboard: snap('dashboard', 50), belanja_krs: snap('belanja_krs', 80) }, 'beranda')).toBe(true);
+    expect(sourceStatuses({ dashboard: snap('dashboard', 50), belanja_krs: snap('belanja_krs', 80) })[0]!.seenAt).toBe(80);
+  });
+  it('KHS needs the transcript and the semester list with ids (capture version 2)', () => {
+    const t = { getTranskripMahasiswa: snap('getTranskripMahasiswa') };
+    expect(sourceDone(t, 'khs')).toBe(false);
+    expect(sourceDone({ ...t, 'mahasiswa/semester': semesterList(false) }, 'khs')).toBe(false);
+    expect(sourceDone({ ...t, 'mahasiswa/semester': semesterList(true) }, 'khs')).toBe(true);
+    expect(sourceDone({ ...t, 'mahasiswa/semester': { ...semesterList(true), data: null } }, 'khs')).toBe(false);
+  });
+  it('KRS needs max_sks', () => {
+    expect(sourceDone({ belanja_krs: snap('belanja_krs') }, 'krs')).toBe(false);
+    expect(sourceDone({ max_sks: snap('max_sks') }, 'krs')).toBe(true);
+  });
+  it('"x dari 2" counts required pages only; the optional one never holds it open', () => {
+    expect(completion(sourceStatuses({}))).toEqual({ done: 0, total: 2, complete: false });
+    expect(completion(sourceStatuses({ max_sks: snap('max_sks') }))).toEqual({ done: 0, total: 2, complete: false });
+    const beranda: Snapshots = { dashboard: snap('dashboard'), belanja_krs: snap('belanja_krs') };
+    expect(completion(sourceStatuses(beranda))).toEqual({ done: 1, total: 2, complete: false });
+    const both: Snapshots = { ...beranda, getTranskripMahasiswa: snap('getTranskripMahasiswa'), 'mahasiswa/semester': semesterList(true) };
+    expect(completion(sourceStatuses(both))).toEqual({ done: 2, total: 2, complete: true });
+  });
+});
+
+describe('overview: the NEOSIA card', () => {
+  const card = (moduleOn: boolean, complete: boolean, sawIncomplete = false, doneShown = false) => overviewNeosiaCard({ moduleOn, complete, sawIncomplete, doneShown });
+  it('module off: never the checklist (the invite takes that place)', () => {
+    expect(card(false, false)).toBeNull();
+    expect(card(false, true, true)).toBeNull();
+  });
+  it('module on and incomplete: the checklist', () => {
+    expect(card(true, false)).toBe('checklist');
+  });
+  it('completed during this visit: "Data NEOSIA lengkap" once, then gone', () => {
+    expect(card(true, true, true, false)).toBe('done');
+    expect(card(true, true, true, true)).toBeNull();
+  });
+  it('already complete when the page opens: nothing', () => {
+    expect(card(true, true, false)).toBeNull();
+  });
+  it('the invite shows only while the module is off, so the two never meet', () => {
+    const base = { dismissedAt: null, dismissedDay: null, now: 1_800_000_000, today: '2027-01-05', krsWindows: [] };
+    expect(showInvite({ ...base, moduleOn: true })).toBe(false);
+    for (const complete of [true, false]) expect(showInvite({ ...base, moduleOn: true }) && card(true, complete) !== null).toBe(false);
+  });
+});
+
+describe('button targets', () => {
+  it('nudges: grades open the KHS, KRS opens the KRS page', () => {
+    expect(nudgeTarget('nudge:grades:input-nilai')).toBe(NEOSIA_KHS);
+    expect(nudgeTarget('nudge:krs:krs-akhir')).toBe(NEOSIA_KRS);
+  });
+  it('Kesiapan KRS: survey unchecked links the transcript only in the KRS window; missing credits link KRS', () => {
+    const survey: ReadinessItem = { id: 'survey', state: 'unknown', filled: null };
+    expect(readinessLink(survey, true)).toEqual({ href: NEOSIA_TRANSKRIP, label: 'surveyCheck' });
+    expect(readinessLink(survey, false)).toBeNull();
+    expect(readinessLink({ id: 'sks', state: 'unknown', max: null, available: null } as ReadinessItem, false)).toEqual({ href: NEOSIA_KRS, label: 'open' });
+    expect(readinessLink({ id: 'payment', state: 'action', paid: false } as ReadinessItem, true)).toEqual({ href: NEOSIA_KRS, label: 'open' });
+    expect(readinessLink({ id: 'payment', state: 'ok', paid: true } as ReadinessItem, true)).toBeNull();
+  });
+});
+
+describe('storage: no payment data besides sudah_bayar', () => {
+  it('the dashboard projection keeps pembayaran.sudah_bayar only', () => {
+    const dashboard = ENDPOINTS.find((e) => e.id === 'dashboard')!;
+    const result = projectResponse(dashboard.spec, SYNTHETIC.dashboard);
+    expect(result.status).toBe('ok');
+    const data = (result as { data: Record<string, unknown> }).data;
+    expect(data.pembayaran).toEqual({ sudah_bayar: true });
+    const text = JSON.stringify(data);
+    expect(text).not.toContain(String(SECRET.nominal));
+    expect(text).not.toContain(SECRET.bank);
+  });
+  it('no endpoint spec mentions an amount or a bank', () => {
+    const text = JSON.stringify(ENDPOINTS.map((e) => e.spec));
+    expect(text).not.toMatch(/nominal|bank|tagihan|jumlah_bayar/);
+  });
+  it('old payment snapshots are deleted', async () => {
+    const data = new Map<string, unknown>([
+      ['neosia:snap:getStatusPembayaran', { x: 1 }],
+      ['neosia:snap:dashboard', { x: 1 }],
+    ]);
+    const store = {
+      keys: async (prefix: string) => [...data.keys()].filter((k) => k.startsWith(prefix)),
+      remove: async (keys: string[]) => void keys.forEach((k) => data.delete(k)),
+    };
+    expect(await pruneUnlistedSnapshots(store as never)).toEqual(['neosia:snap:getStatusPembayaran']);
+    expect([...data.keys()]).toEqual(['neosia:snap:dashboard']);
   });
 });
 

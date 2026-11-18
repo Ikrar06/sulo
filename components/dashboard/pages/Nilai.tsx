@@ -10,7 +10,8 @@ import { formatAgo } from '@/lib/format/time';
 import { GRADE_LETTERS } from '@/lib/grades/scale';
 import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readSemesters, readTranscript, semesterLabeler, simulateIpk, transcriptDiagnostics, type TranscriptRow } from '@/lib/grades/transcript';
 import { neosiaWords } from '@/lib/i18n/neosia';
-import { NEOSIA_TRANSKRIP } from '@/lib/links';
+import { NEOSIA_KHS } from '@/lib/links';
+import { sourceDone } from '@/lib/neosia/sources';
 import { formatDateKey } from '@/lib/calendar/countdown';
 import { isOlderThan } from '@/lib/neosia/sources';
 import { NeosiaChecklist } from '../NeosiaChecklist';
@@ -47,14 +48,15 @@ export function NilaiPage({ data }: PageProps) {
   const status = neosiaStatus(snapshots);
   const transcriptAt = snapshots.getTranskripMahasiswa?.seenAt ?? null;
 
-  // No transcript yet: the page is the checklist, with the transcript first in line.
-  if (rows.length === 0) {
+  // KHS page data missing (the transcript, or the semester list that names its
+  // semesters): the page is the checklist, with the KHS first in line.
+  if (rows.length === 0 || !sourceDone(snapshots, 'khs')) {
     return (
       <div className="space-y-4">
         <div className="flex justify-end">
           <RefreshButton label={w.refresh.grades} />
         </div>
-        <NeosiaChecklist snapshots={snapshots} now={data.now} highlight="transkrip" />
+        <NeosiaChecklist snapshots={snapshots} now={data.now} highlight="khs" />
       </div>
     );
   }
@@ -119,8 +121,8 @@ export function NilaiPage({ data }: PageProps) {
           <div className="flex flex-wrap items-center gap-3 py-4">
             <p className="text-[14px] text-muted-foreground">{w.refresh.chartEmpty}</p>
             <Button variant="outline" size="sm" asChild>
-              <a href={NEOSIA_TRANSKRIP} target="_blank" rel="noopener noreferrer">
-                {w.refresh.openTranscript}
+              <a href={NEOSIA_KHS} target="_blank" rel="noopener noreferrer">
+                {w.refresh.openKhs}
               </a>
             </Button>
           </div>
@@ -133,9 +135,6 @@ export function NilaiPage({ data }: PageProps) {
           <p className="mt-2 text-[12px] text-muted-foreground">{n.chartNote(axisMin > 0 ? axisMin.toFixed(2) : null)}</p>
         )}
       </Card>
-
-      {/* No semester list stored (it comes with the KHS page): say so instead of quietly showing "Semester 3". */}
-      {semesters.length === 0 && <NeosiaChecklist snapshots={snapshots} now={data.now} highlight="khs" />}
 
       <div className="space-y-2">
         {groups.map((g, i) => (
@@ -161,11 +160,11 @@ function DevTranscript({ rows, semesters }: { rows: readonly TranscriptRow[]; se
   );
 }
 
-/** "Perbarui dari NEOSIA": opens the NEOSIA transcript in a new tab on the user's click. */
+/** "Perbarui dari NEOSIA": opens the NEOSIA KHS page in a new tab on the user's click. */
 function RefreshButton({ label }: { label: string }) {
   return (
     <Button variant="outline" asChild>
-      <a href={NEOSIA_TRANSKRIP} target="_blank" rel="noopener noreferrer">
+      <a href={NEOSIA_KHS} target="_blank" rel="noopener noreferrer">
         {label}
       </a>
     </Button>

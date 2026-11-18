@@ -18,8 +18,7 @@ import { Card, CardLink } from './Shell';
 import { routeHash } from '@/lib/dashboard/routes';
 import type { LinkedMeeting } from '@/lib/neosia/linked';
 import { completion, sourceStatuses } from '@/lib/neosia/sources';
-import { NeosiaChecklistLine } from './NeosiaChecklist';
-import { NEOSIA_KRS } from '@/lib/links';
+import { NEOSIA_KRS, NEOSIA_TRANSKRIP } from '@/lib/links';
 
 const STATE_ICON: Record<ItemState, ComponentType<SVGProps<SVGSVGElement>>> = {
   ok: CheckCircleIcon,
@@ -50,33 +49,43 @@ function itemText(item: ReadinessItem, w: NeosiaWords, m: Messages) {
     case 'payment':
       return item.paid === null ? k.unknownItem : item.paid ? k.payment.ok : k.payment.action;
     case 'survey':
-      return item.filled === null ? k.unknownItem : item.filled ? k.survey.ok : k.survey.action;
+      return item.filled === null ? k.surveyUnchecked : item.filled ? k.survey.ok : k.survey.action;
     case 'sks':
-      if (item.max === null) return k.unknownItem;
+      if (item.max === null) return k.sksMissing;
       return <Private>{k.sks(item.available, item.max)}</Private>;
     case 'krs':
       return item.status === null ? k.unknownItem : k.status[item.status];
   }
 }
 
-/** "Buka di NEOSIA" only where something needs doing. */
-const needsLink = (item: ReadinessItem) => item.state === 'action';
+/**
+ * Where an item's link goes, if it has one: KRS where something needs doing
+ * or the credit limit is missing; the transcript (it holds the survey
+ * status) while the survey is unchecked during the KRS window.
+ */
+export function readinessLink(item: ReadinessItem, windowOpen: boolean): { href: string; label: 'open' | 'surveyCheck' } | null {
+  if (item.id === 'survey' && item.filled === null) return windowOpen ? { href: NEOSIA_TRANSKRIP, label: 'surveyCheck' } : null;
+  if (item.id === 'sks' && item.max === null) return { href: NEOSIA_KRS, label: 'open' };
+  return item.state === 'action' ? { href: NEOSIA_KRS, label: 'open' } : null;
+}
 
 export function KrsReadinessCard({ items, window, seenAt, now }: { items: ReadinessItem[]; window: KrsWindow | null; seenAt: number | null; now: number }) {
   const { m, locale } = useI18n();
   const w = neosiaWords(locale);
+  const windowOpen = items.some((i) => i.id === 'window' && i.phase === 'open');
   return (
     <Card title={w.krs.title}>
       <ul className="space-y-2">
         {items.map((item) => {
           const Icon = STATE_ICON[item.state];
+          const link = readinessLink(item, windowOpen);
           return (
             <li key={item.id} className="flex items-start gap-2 text-[14px] leading-6">
               <Icon className={`mt-1 size-4 shrink-0 ${STATE_CLASS[item.state]}`} aria-label={w.krs.states[item.state]} role="img" aria-hidden={false} />
               <span className="min-w-0 flex-1">{itemText(item, w, m)}</span>
-              {needsLink(item) && (
-                <a href={NEOSIA_KRS} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
-                  {w.openInNeosia}
+              {link && (
+                <a href={link.href} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+                  {link.label === 'surveyCheck' ? w.krs.surveyCheck : w.openInNeosia}
                 </a>
               )}
             </li>
@@ -118,8 +127,15 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
   const masked = usePrivacy();
   const profileData = profile(snapshots);
   const incomplete = !completion(sourceStatuses(snapshots)).complete;
-  if (!profileData && !incomplete) return null;
-  // Nothing from NEOSIA yet: the card holds only the "Lengkapi data" line.
+  // Required pages missing: one line; the checklist itself is the overview card above.
+  if (incomplete) {
+    return (
+      <Card title={w.title} action={<CardLink href={routeHash('nilai')}>{w.seeGrades}</CardLink>}>
+        <p className="text-[14px] text-muted-foreground">{neosiaWords(locale).checklist.waiting}</p>
+      </Card>
+    );
+  }
+  if (!profileData) return null;
   const p = profileData ?? { semester: null, sksPassed: null, ipk: null, ips: null, masaStudi: null };
   const fill = p.sksPassed !== null ? Math.min(100, Math.round((p.sksPassed / sksTarget) * 100)) : null;
   const gpa = (v: number) => v.toFixed(2);
@@ -159,7 +175,6 @@ export function StudiCard({ snapshots, sksTarget }: { snapshots: Snapshots; sksT
           <span className="font-semibold tabular-nums">{shown ? <Private>{gpa(p.ips)}</Private> : '••••'}</span>
         </p>
       )}
-      <NeosiaChecklistLine snapshots={snapshots} />
     </Card>
   );
 }

@@ -224,7 +224,7 @@ const STEPS = [
   {
     // Chrome's own permission prompt cannot be recorded (it is browser UI):
     // the clip shows the consent screen, the click on "Hubungkan", then the
-    // connected state from the synthetic NEOSIA demo data.
+    // overview's checklist card filling up from the synthetic NEOSIA demo data.
     id: 'neosia',
     url: '/dashboard.html#pengaturan/neosia',
     viewport: { width: 1280, height: 720 },
@@ -248,12 +248,19 @@ const STEPS = [
       await p.evaluate(() => window.__guide.ripple());
       await p.waitForTimeout(400);
       await p.keyboard.press('Escape');
-      await p.evaluate(async (s) => chrome.storage.local.set(s), demoNeosia());
-      await p.waitForTimeout(900);
-      await toCard();
-      await p.waitForTimeout(300);
-      await moveTo(p, p.getByRole('link', { name: re('Buka NEOSIA', 'Open NEOSIA') }), 700);
+      // Connected, with only the home page's data in: the overview's checklist card, "1 dari 2".
+      const all = demoNeosia();
+      const khs = ['neosia:snap:getTranskripMahasiswa', 'neosia:snap:kartu_hasil_studi/semester', 'neosia:snap:mahasiswa/semester', 'neosia:snap:indeks_prestasi/current'];
+      const homeOnly = Object.fromEntries(Object.entries(all).filter(([k]) => !khs.includes(k)));
+      await p.evaluate(async (s) => chrome.storage.local.set(s), homeOnly);
+      await p.evaluate(() => (location.hash = '#ringkasan'));
       await p.waitForTimeout(1200);
+      await moveTo(p, p.getByRole('link', { name: re('Buka Kartu Hasil Studi', 'Open Study results card') }), 900);
+      await p.evaluate(() => window.__guide.ripple());
+      await p.waitForTimeout(500);
+      // The KHS page's data comes in: "Data NEOSIA lengkap".
+      await p.evaluate(async (s) => chrome.storage.local.set(s), Object.fromEntries(Object.entries(all).filter(([k]) => khs.includes(k))));
+      await p.waitForTimeout(2200);
     },
   },
 ];

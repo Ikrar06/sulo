@@ -26,6 +26,7 @@ import { classesToday, nextClass } from '@/lib/neosia/today';
 import { dismissInvite, showInvite } from '@/lib/neosia/invite';
 import { local } from '../data';
 import { useNeosiaConnect } from '../neosia-connect';
+import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
 const LEVELS = [1, 2, 3, 4] as const;
 
@@ -81,7 +82,9 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
         </div>
       </section>
 
-      {invite && <NeosiaInvite onConnect={consent.start} onLater={() => void dismissInvite(local, data.now, data.today)} />}
+      {/* Module off: the invite. Module on: the checklist until the required pages came in. Never both. */}
+      {!neosiaOn && invite && <NeosiaInvite onConnect={consent.start} onLater={() => void dismissInvite(local, data.now, data.today)} />}
+      {neosiaOn && <NeosiaOverviewChecklist snapshots={snapshots} now={data.now} />}
       {consent.dialog}
       {surveyOpen && <SurveyLine />}
       {krsCard && <KrsReadinessCard items={readiness(snapshots, krsWin, data.today)} window={krsWin} seenAt={neosiaStatus(snapshots).lastSeenAt} now={data.now} />}

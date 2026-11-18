@@ -1,5 +1,6 @@
 import { browser } from 'wxt/browser';
-import { NEOSIA_KRS, NEOSIA_TRANSKRIP, sikolaUrl } from '@/lib/links';
+import { sikolaUrl } from '@/lib/links';
+import { nudgeTarget } from '@/lib/neosia/nudges';
 import { defineBackground } from 'wxt/utils/define-background';
 import { BADGE_COLORS } from '@/lib/brand';
 import { createBrowserStore } from '@/lib/browser-store';
@@ -44,7 +45,7 @@ import { loadPopupInput } from '@/lib/view/load';
 import { browserModuleDeps } from '@/lib/neosia/browser-deps';
 import { disableModule, enableModule, reconcileModule } from '@/lib/neosia/module';
 import { NEOSIA_APP_ORIGIN } from '@/lib/neosia/allowlist';
-import { ingestCapture } from '@/lib/neosia/store';
+import { ingestCapture, pruneUnlistedSnapshots } from '@/lib/neosia/store';
 import { recordGrades } from '@/lib/neosia/grades';
 import { buildPopupView } from '@/lib/view/popup-view';
 
@@ -237,7 +238,7 @@ export default defineBackground(() => {
       }
     } else if (kind === 'nudge') {
       // The user clicked the notification: open the NEOSIA page it names. Sulo never touches that tab.
-      await browser.tabs.create({ url: id.includes('nudge:grades:') ? NEOSIA_TRANSKRIP : NEOSIA_KRS });
+      await browser.tabs.create({ url: nudgeTarget(id) });
     } else if (kind === 'krs') {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     } else if (kind === 'calendar') {
@@ -503,6 +504,8 @@ export default defineBackground(() => {
   // earlier account are removed first.
   void pruneOrphanUserKeys(local).then(runReminders);
   reconcileNeosia();
+  // Endpoints dropped from the allowlist leave no data behind.
+  void pruneUnlistedSnapshots(local).catch(() => undefined);
 
   browser.runtime.onMessage.addListener((raw, sender, sendResponse) => {
     const extensionId = browser.runtime.id;

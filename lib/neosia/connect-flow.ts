@@ -1,10 +1,10 @@
 // "Hubungkan" after the consent dialog (M7.1). Pure, the browser calls are
 // injected (tests/neosia-sources.test.ts). All of it runs from the user's
 // click: Chrome's permission prompt, turning the module on, then opening
-// the NEOSIA transcript in a new active tab so its data comes in. A refused
+// the NEOSIA home page in a new active tab so its data comes in. A refused
 // permission opens nothing. Sulo never closes or touches that tab.
 
-import { NEOSIA_TRANSKRIP } from '../links';
+import { NEOSIA_HOME } from '../links';
 
 export type ConnectOutcome = 'connected' | 'denied' | 'failed';
 
@@ -22,6 +22,6 @@ export async function connectFlow(deps: {
   if (!granted) return 'denied';
   const result = await deps.enable().catch(() => 'failed' as const);
   if (result !== 'enabled') return result === 'no_permission' ? 'denied' : 'failed';
-  await deps.openTab(NEOSIA_TRANSKRIP).catch(() => undefined);
+  await deps.openTab(NEOSIA_HOME).catch(() => undefined);
   return 'connected';
 }
