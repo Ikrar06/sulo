@@ -20,8 +20,8 @@ export const dashEn: DashMessages = {
     tentang: 'About',
   },
   notice: {
-    sessionExpired: 'Your SIKOLA session ended. Sign in to SIKOLA again, then click Update.',
-    openSikola: 'Open SIKOLA',
+    sessionExpired: (since: string | null) => (since ? `Your SIKOLA session ended. The data below is from ${since}.` : 'Your SIKOLA session ended.'),
+    signIn: 'Sign in again',
     stale: (since) => `Sulo couldn't update since ${since}. Try Update later.`,
   },
   common: {

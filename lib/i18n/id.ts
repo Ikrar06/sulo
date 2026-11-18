@@ -207,8 +207,8 @@ export const id = {
 
   banner: {
     disabledFallback: 'Sulo sedang istirahat sebentar.',
-    sessionExpired: 'Daftar ini mungkin belum terbaru. Masuk ke SIKOLA lagi supaya Sulo bisa memperbaruinya.',
-    openSikola: 'Buka SIKOLA',
+    sessionExpired: (since: string | null) => (since ? `Sesi SIKOLA habis. Data di bawah dari ${since}.` : 'Sesi SIKOLA habis.'),
+    signIn: 'Masuk lagi',
     parserBroken: 'Sulo belum bisa membaca SIKOLA dengan benar. Coba lagi nanti.',
     report: 'Salin info',
     reportCopied: 'Info disalin. Kirim ke pengelola Sulo.',

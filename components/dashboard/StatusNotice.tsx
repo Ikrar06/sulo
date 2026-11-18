@@ -16,16 +16,18 @@ export function StatusNotice({ banner, d, locale, timeZone, className = '' }: { 
   const n = d.notice;
   if (banner.kind === 'session_expired')
     return (
-      <div role="status" className={`db-notice flex flex-wrap items-center gap-3 rounded-xl border border-border px-5 py-3 ${className}`}>
-        <KeyIcon aria-hidden="true" className="size-4 shrink-0 text-foreground" />
-        <p className="min-w-0 flex-1 text-[14px]">{n.sessionExpired}</p>
+      // Plain surface, not the stale tint: an expired session is not a warning (M7.2).
+      <div role="status" className={`flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-5 py-3 ${className}`}>
+        <KeyIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+        {/* Calm (M7.2): no warning color; the data below stays and says how old it is. */}
+        <p className="min-w-0 flex-1 text-[14px]">{n.sessionExpired(banner.lastSyncAt === null ? null : formatDue(banner.lastSyncAt, locale, timeZone))}</p>
         <a
           href={sikolaUrl('expired')}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex h-8 shrink-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-[14px] font-medium outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus"
         >
-          {n.openSikola}
+          {n.signIn}
           <ExternalIcon className="size-3.5 text-muted-foreground" />
         </a>
       </div>

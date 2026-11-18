@@ -20,8 +20,8 @@ export const dashId = {
     tentang: 'Tentang',
   },
   notice: {
-    sessionExpired: 'Sesi SIKOLA kamu habis. Masuk lagi di SIKOLA, lalu klik Perbarui.',
-    openSikola: 'Buka SIKOLA',
+    sessionExpired: (since: string | null) => (since ? `Sesi SIKOLA habis. Data di bawah dari ${since}.` : 'Sesi SIKOLA habis.'),
+    signIn: 'Masuk lagi',
     stale: (since: string) => `Sulo belum bisa memperbarui sejak ${since}. Coba Perbarui nanti.`,
   },
   common: {

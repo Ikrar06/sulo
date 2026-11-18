@@ -202,8 +202,8 @@ export const en: Messages = {
 
   banner: {
     disabledFallback: 'Sulo is taking a short break.',
-    sessionExpired: 'This list may be out of date. Sign in to SIKOLA again so Sulo can update it.',
-    openSikola: 'Open SIKOLA',
+    sessionExpired: (since: string | null) => (since ? `Your SIKOLA session ended. The data below is from ${since}.` : 'Your SIKOLA session ended.'),
+    signIn: 'Sign in again',
     parserBroken: "Sulo can't read SIKOLA properly yet. Try again later.",
     report: 'Copy info',
     reportCopied: 'Info copied. Send it to the Sulo maintainer.',
