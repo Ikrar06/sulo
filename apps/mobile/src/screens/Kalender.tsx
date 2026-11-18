@@ -189,7 +189,7 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
         </button>
       )}
       {shown.length === 0 ? (
-        <EmptyCard mascot={<Mascot state="all-done" size={48} />} text={k.listEmpty} />
+        <EmptyCard mascot={<Mascot state="all-done" boldHappy size={48} />} text={k.listEmpty} />
       ) : (
         months.map((month) => (
           <section key={month}>

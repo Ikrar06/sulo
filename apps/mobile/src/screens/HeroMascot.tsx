@@ -61,7 +61,7 @@ export function HeroMascot({ mood, cheer, celebrate, label }: { mood: Mood; chee
     >
       <div className="m-mascot-pull">
         <div ref={face}>
-          <Mascot state={state} size={104} alert={mood.alert && happyUntil === 0} poke={poke} celebrate={celebrate} effects={false} />
+          <Mascot state={state} boldHappy size={104} alert={mood.alert && happyUntil === 0} poke={poke} celebrate={celebrate} effects={false} />
         </div>
       </div>
     </div>

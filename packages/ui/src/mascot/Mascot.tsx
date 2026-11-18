@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import type { MascotVariant } from '@sulo/core/dashboard/mascot-mood';
 import type { MascotState } from '@sulo/core/view/popup-view';
 import { BASE, EYE_CENTERS, GLANCE, MASCOT_CENTER, spiralPath, STAR_CENTERS, STAR_PATH, Z_PATH } from './geometry';
 import { playJump, playSquash } from './jump';
@@ -40,6 +41,9 @@ const EYES_FOR: Record<Shown, EyesKey> = {
   stale: 'sleepy',
   dizzy: 'spiral',
 };
+
+/** Bold happy eyes: an arch over each eye center, stroked as thick as the open eyes are wide enough to read at 96 px. */
+const BOLD_HAPPY = EYE_CENTERS.map((c) => `<path d="M${c.x - 27} ${c.y + 14}C${c.x - 27} ${c.y - 32} ${c.x + 27} ${c.y - 32} ${c.x + 27} ${c.y + 14}" fill="none" stroke="white" stroke-width="23" stroke-linecap="round"/>`);
 
 const STAR_MS = 2750;
 const HAPPY_AFTER_MS = 2000;
@@ -101,9 +105,18 @@ export interface MascotProps {
   alert?: boolean;
   /** Increment for one short reaction: a small hop and a blink (the Android app's tap). */
   poke?: number;
+  /** A named expression's extra on top of `state` (core MASCOT_EXPRESSIONS): tilted eyes, a wink, a smaller flame. */
+  variant?: MascotVariant;
+  /**
+   * Happy eyes as two bold arches (owner's choice, 19 Nov 2026), everywhere:
+   * the popup, the dashboard and the phone. False draws the earlier thin arcs.
+   */
+  boldHappy?: boolean;
+  /** Where the eyes look, -1..1 of their travel (x right, y down); null leaves the state's own glances. */
+  look?: { x: number; y: number } | null;
 }
 
-export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, still = false, effects, className, label, grounded = false, alert = false, poke = 0 }: MascotProps) {
+export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, still = false, effects, className, label, grounded = false, alert = false, poke = 0, variant, look = null, boldHappy = true }: MascotProps) {
   const motion = useMotionAllowed(still);
   const visible = usePageVisible();
   const active = motion && visible;
@@ -217,11 +230,11 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
       ids.push(
         window.setTimeout(() => {
           if (cancelled) return;
-          if (!cursorNear.current) lookAt(rand(-GLANCE.x, GLANCE.x), rand(-GLANCE.y, GLANCE.y));
+          if (!cursorNear.current && !lookRef.current) lookAt(rand(-GLANCE.x, GLANCE.x), rand(-GLANCE.y, GLANCE.y));
           ids.push(
             window.setTimeout(() => {
               if (cancelled) return;
-              if (!cursorNear.current) lookAt(0, 0);
+              if (!cursorNear.current && !lookRef.current) lookAt(0, 0);
               loop();
             }, rand(800, 1500)),
           );
@@ -235,6 +248,24 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, shown]);
+
+  // A given gaze wins over the state's own glances (and eases back when released).
+  const lookRef = useRef(look);
+  lookRef.current = look;
+  const lookX = look?.x;
+  const lookY = look?.y;
+  const hadLook = useRef(false);
+  useEffect(() => {
+    if (lookX === undefined || lookY === undefined) {
+      if (hadLook.current) lookAt(0, shown === 'urgent' ? GLANCE.y * 0.7 : 0);
+      hadLook.current = false;
+      return;
+    }
+    hadLook.current = true;
+    if (!active) return;
+    lookAt(Math.max(-1, Math.min(1, lookX)) * GLANCE.x, Math.max(-1, Math.min(1, lookY)) * GLANCE.y);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lookX, lookY, active, shown]);
 
   // Follow the cursor within 400 px, only where asked and with a fine pointer.
   useEffect(() => {
@@ -266,7 +297,8 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
 
   // Blinks every 3 to 6 s, sometimes twice.
   useEffect(() => {
-    if (!active || !['idle', 'onboarding', 'syncing', 'urgent'].includes(shown)) return;
+    // Under reduced motion the mascot stands still but, where a variant is in use (the phone's onboarding), still blinks.
+    if (!(active || (variant !== undefined && visible && !still)) || !['idle', 'onboarding', 'syncing', 'urgent'].includes(shown)) return;
     let cancelled = false;
     const ids: number[] = [];
     const schedule = () => {
@@ -289,7 +321,7 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
       ids.forEach((t) => window.clearTimeout(t));
       setBlink(false);
     };
-  }, [active, shown, alert]);
+  }, [active, shown, alert, variant, visible, still]);
 
   // --- Particles --------------------------------------------------------------
   useEffect(() => {
@@ -321,7 +353,7 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
 
   // --- Render -----------------------------------------------------------------
   const eyesKey = EYES_FOR[shown];
-  const parts = useMemo(() => (eyesKey === 'spiral' ? [] : eyeParts(eyesKey)), [eyesKey]);
+  const parts = useMemo(() => (eyesKey === 'spiral' ? [] : eyesKey === 'happy' && boldHappy ? BOLD_HAPPY : eyeParts(eyesKey)), [eyesKey, boldHappy]);
   const [g0, g1] = MASCOT_SHAPES.gradients;
   const cssSize = typeof size === 'number' ? `${size}px` : size;
   const style = { width: cssSize, height: cssSize } as CSSProperties;
@@ -342,7 +374,7 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
                   // Safe: generated at build time from our own brand assets, never user content.
                   <g
                     key={`${eyesKey}-${i}`}
-                    className={eyesKey === 'star' ? 'm-eye m-eye-pivot' : 'm-eye'}
+                    className={eyesKey === 'star' ? 'm-eye m-eye-pivot' : variant && (eyesKey === 'open' || eyesKey === 'wide') ? `m-eye m-eye-x m-eye-x${i}` : 'm-eye'}
                     style={eyesKey === 'star' && STAR_CENTERS[i] ? { transformOrigin: `${STAR_CENTERS[i].x}px ${STAR_CENTERS[i].y}px` } : undefined}
                     dangerouslySetInnerHTML={{ __html: markup }}
                   />
@@ -358,6 +390,7 @@ export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, 
     `is-${shown === 'happy-after' ? 'celebrate-after' : shown}`,
     active ? 'is-animated' : 'is-still',
     blink ? 'is-blinking' : '',
+    variant ? `is-x-${variant}` : '',
     className,
   ]
     .filter(Boolean)

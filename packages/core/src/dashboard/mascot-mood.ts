@@ -33,3 +33,35 @@ export function mascotMood({ now, dueTimes, sessionExpired, offline }: MoodInput
   if (!dueTimes.some((t) => t - now < 7 * DAY)) return { state: 'all-done', alert: false };
   return { state: 'idle', alert: false };
 }
+
+/**
+ * The mascot's named expressions (M8c.2), for any screen: which state draws
+ * it (eyes, flame colors, idle motion), an optional variant on top (a tilt of
+ * the eyes, one eye closed, a smaller flame), and where it looks (-1..1 of
+ * the eyes' travel; x right, y down). The component blinks on its own.
+ */
+export type MascotVariant = 'sad' | 'proud' | 'wink' | 'surprised' | 'busy';
+
+export interface MascotExpressionSpec {
+  state: MascotState;
+  variant?: MascotVariant;
+  look?: { x: number; y: number };
+}
+
+export const MASCOT_EXPRESSIONS = {
+  neutral: { state: 'onboarding' },
+  happy: { state: 'all-done' },
+  lookUp: { state: 'onboarding', look: { x: 0, y: -1 } },
+  lookLeft: { state: 'onboarding', look: { x: -1, y: 0 } },
+  lookRight: { state: 'onboarding', look: { x: 1, y: 0 } },
+  lookDown: { state: 'onboarding', look: { x: 0, y: 1 } },
+  proud: { state: 'all-done', variant: 'proud' },
+  busy: { state: 'syncing', variant: 'busy' },
+  sad: { state: 'onboarding', variant: 'sad', look: { x: 0, y: 0.8 } },
+  celebrate: { state: 'celebrate' },
+  wink: { state: 'onboarding', variant: 'wink' },
+  surprised: { state: 'urgent', variant: 'surprised', look: { x: 0, y: 0 } },
+} as const satisfies Record<string, MascotExpressionSpec>;
+
+export type MascotExpression = keyof typeof MASCOT_EXPRESSIONS;
+export const MASCOT_EXPRESSION_NAMES = Object.keys(MASCOT_EXPRESSIONS) as MascotExpression[];

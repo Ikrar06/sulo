@@ -255,3 +255,27 @@
     transition: none !important;
   }
 }
+
+/* Named expressions (core MASCOT_EXPRESSIONS): a variant on top of a state.
+   Each eye turns or closes around its own center; the flame's size and pace
+   say the rest. Only where a variant is passed (the phone's onboarding). */
+.sulo-mascot .m-eye-x { transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* Sad: the eyes slant down outward, the flame burns lower. */
+.sulo-mascot.is-x-sad .m-eye-x0 { transform: rotate(16deg) scaleY(0.82); }
+.sulo-mascot.is-x-sad .m-eye-x1 { transform: rotate(-16deg) scaleY(0.82); }
+.sulo-mascot.is-x-sad .m-size { transform: scale(0.86); opacity: 0.9; }
+.sulo-mascot.is-animated.is-x-sad .m-flame,
+.sulo-mascot.is-animated.is-x-sad .m-follow { animation-duration: 5.5s; }
+/* Proud: chin up, a taller flame. */
+.sulo-mascot.is-x-proud .m-size { transform: scale(1.05); }
+.sulo-mascot.is-x-proud .m-look { transform: translateY(-10px); }
+.sulo-mascot.is-animated.is-x-proud .m-look { animation: none; }
+/* A wink: one eye closes. */
+.sulo-mascot.is-x-wink .m-eye-x1 { transform: scaleY(0.12); }
+/* A small surprise: taller eyes for a moment (the state gives the wide eyes). */
+.sulo-mascot.is-x-surprised .m-eye-x { transform: scale(1.08); }
+.sulo-mascot.is-animated.is-x-surprised .m-pose { animation: none; }
+/* Busy: a livelier flame while it works. */
+.sulo-mascot.is-animated.is-x-busy .m-flame { animation-duration: 1.6s; }
+.sulo-mascot.is-animated.is-x-busy .m-follow { animation-duration: 1.6s; }
+.sulo-mascot.is-animated.is-x-busy .m-flame-front { animation-duration: 1.2s; }

@@ -81,7 +81,7 @@ export function KabarScreen({ courseId }: { courseId: number | null; go: (s: Scr
       )}
 
       {view.updates.length === 0 ? (
-        <EmptyCard mascot={<Mascot state="all-done" size={48} />} text={u.empty} />
+        <EmptyCard mascot={<Mascot state="all-done" boldHappy size={48} />} text={u.empty} />
       ) : entries.length === 0 ? (
         <Card>
           <p role="status" className="text-m15">
