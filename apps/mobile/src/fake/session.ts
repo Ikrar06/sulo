@@ -5,12 +5,16 @@ import type { BatchReply, PageReply, SessionStatus, SuloSessionPlugin } from '..
 import { FAKE_DATA, FAKE_PAGES } from './fixtures';
 
 let status: SessionStatus = 'none';
-/** Screenshot switches: ?session=expired signs in to an ended session; ?lock=wait, ?lock=fail or ?lock=nolock answers the app lock so. */
+/** Screenshot switches: ?session=expired signs in to an ended session; ?signin=cancel|offline closes the sign-in page; ?lock=wait, ?lock=fail or ?lock=nolock answers the app lock so. */
 const param = (name: string) => (typeof location === 'undefined' ? null : new URLSearchParams(location.search).get(name));
 
 export function fakeSession(): SuloSessionPlugin {
   return {
     login: async () => {
+      // ?signin=cancel or ?signin=offline: the sign-in page closed without signing in (screenshots).
+      const signin = param('signin');
+      if (signin === 'cancel') return { status: 'cancelled' };
+      if (signin === 'offline') return { status: 'offline' };
       status = param('session') === 'expired' ? 'expired' : 'connected';
       return { status: 'connected' };
     },

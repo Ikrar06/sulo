@@ -27,8 +27,12 @@ export interface PageReply {
 }
 
 export interface SuloSessionPlugin {
-  /** SIKOLA's own login page; resolves once signed in or closed. */
-  login(): Promise<{ status: 'connected' | 'cancelled' }>;
+  /**
+   * SIKOLA's own login page under a native bar (lock, host, close); resolves
+   * once signed in or closed. "offline": closed while the page could not load.
+   * The bar's words come from the app.
+   */
+  login(labels?: { close: string; offline: string; retry: string }): Promise<{ status: 'connected' | 'cancelled' | 'offline' }>;
   status(): Promise<{ status: SessionStatus }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */
   request(options: { body: string; userInitiated: boolean }): Promise<BatchReply>;

@@ -37,7 +37,15 @@ class SuloSessionPlugin : Plugin() {
 
     @PluginMethod
     fun login(call: PluginCall) {
-        startActivityForResult(call, Intent(context, LoginActivity::class.java), "onLoginResult")
+        // The bar's words come from core's dictionary (the app's language).
+        val intent = Intent(context, LoginActivity::class.java)
+            .putExtra(LoginActivity.EXTRA_CLOSE, call.getString("close"))
+            .putExtra(LoginActivity.EXTRA_OFFLINE, call.getString("offline"))
+            .putExtra(LoginActivity.EXTRA_RETRY, call.getString("retry"))
+        startActivityForResult(call, intent, "onLoginResult")
+        // Before Android 14 the activity cannot pick its own opening animation.
+        @Suppress("DEPRECATION")
+        if (android.os.Build.VERSION.SDK_INT < 34) activity.overridePendingTransition(dev.ikrar.sulo.R.anim.sulo_slide_up, dev.ikrar.sulo.R.anim.sulo_stay)
     }
 
     @ActivityCallback
@@ -45,7 +53,7 @@ class SuloSessionPlugin : Plugin() {
         call ?: return
         val session = Captured.take()
         if (session == null) {
-            call.resolve(JSObject().put("status", "cancelled"))
+            call.resolve(JSObject().put("status", if (result.resultCode == LoginActivity.RESULT_OFFLINE) "offline" else "cancelled"))
             return
         }
         io.execute {
