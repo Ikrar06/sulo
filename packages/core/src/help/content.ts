@@ -157,6 +157,16 @@ export const FAQ: FaqEntry[] = [
     ],
   },
   {
+    id: 'presensi-otomatis',
+    q: { id: 'Kenapa presensi tidak diperbarui otomatis?', en: "Why doesn't attendance update by itself?" },
+    a: [
+      {
+        id: 'Supaya Sulo hemat pemeriksaan ke SIKOLA, presensi hanya diperbarui saat kamu membuka halamannya, paling sering sekali sehari.',
+        en: 'To keep its checks of SIKOLA few, Sulo updates attendance only when you open its page, at most once a day.',
+      },
+    ],
+  },
+  {
     id: 'akun-lain',
     q: { id: 'Apa yang terjadi kalau aku masuk SIKOLA dengan akun lain?', en: 'What happens if I sign in to SIKOLA with another account?' },
     a: [

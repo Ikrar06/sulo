@@ -135,6 +135,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'mata kuliah, tugas, dan tenggat', en: 'courses, assignments and due dates' },
+          { id: 'rekap presensi dari SIKOLA, diambil hanya saat kamu membuka halaman Presensi (untuk mata kuliah yang dipantau: sesi tercatat, poin, persentase, dan rincian sesi yang kamu buka)', en: 'your attendance recap from SIKOLA, fetched only when you open the Attendance page (for the courses you follow: sessions recorded, points, percentage, and the session details you open)' },
           { id: 'susunan mata kuliah terakhir yang terlihat dan log "Kabar terbaru" (paling banyak 200 entri)', en: 'the last seen structure of each course and the "Latest updates" log (at most 200 entries)' },
           { id: 'pilihanmu: mata kuliah yang dipantau, tugas yang ditandai selesai, nama tampilan dan warna mata kuliah, serta nama panggilan yang kamu isi sendiri', en: 'your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself' },
           { id: 'log teknis 300 pemeriksaan terakhir ke SIKOLA: hanya waktu, nama fungsi, dan status, tanpa isi apa pun; tidak pernah dikirim, dan hanya ikut kalau kamu sendiri menyalin "info untuk laporan bug"', en: 'a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself' },
