@@ -48,6 +48,9 @@ export function HeroMascot({ mood, cheer, celebrate, label }: { mood: Mood; chee
   return (
     <div
       className="m-mascot-enter shrink-0"
+      // The onboarding mascot lands here (onboarding/OnboardingFlow.tsx) with this expression.
+      data-mascot-spot="hero"
+      data-mascot-state={state}
       role="img"
       aria-label={label}
       onClick={() => {

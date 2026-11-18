@@ -12,7 +12,7 @@ import { writeSession, readSession } from '@sulo/core/moodle/session';
 import { createSessionAgeLogger } from '@sulo/core/net/session-age';
 import type { Platform } from '@sulo/core/platform';
 import { readUser, currentUser } from '@sulo/core/storage';
-import { runSync } from '@sulo/core/sync/run-sync';
+import { runSync, type SyncDeps } from '@sulo/core/sync/run-sync';
 import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { NATIVE_SESSKEY, createSessionHttp } from './platform/http';
 import { recordTimeRemaining } from './dev-log';
@@ -36,12 +36,12 @@ export function sikolaClient(platform: Platform, options: { userInitiated: boole
   });
 }
 
-export async function syncNow(platform: Platform, options: { userInitiated: boolean; dev?: boolean }): Promise<SyncOutcome> {
+export async function syncNow(platform: Platform, options: { userInitiated: boolean; dev?: boolean; onStage?: SyncDeps['onStage'] }): Promise<SyncOutcome> {
   // pnpm mobile:web: the demo account stays as it is (no request ever leaves the browser).
-  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return { status: 'ok', at: platform.clock.now(), tasks: 0, courseListFetched: false };
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return fakeStages(platform, options.onStage);
   // Offline: nothing to try, the latest data stays.
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'offline' };
-  return runSync({ client: sikolaClient(platform, options), store: platform.store, clock: platform.clock, trigger: 'manual' });
+  return runSync({ client: sikolaClient(platform, options), store: platform.store, clock: platform.clock, trigger: 'manual', onStage: options.onStage });
 }
 
 /** Presensi's Perbarui or an opened view: always the user's own request. */
@@ -54,14 +54,14 @@ export function refreshPresensi(platform: Platform, target: 'recap' | 'detail', 
 }
 
 /** After a successful sign-in: forget "expired" and fetch right away. */
-export async function syncAfterLogin(platform: Platform, dev = false): Promise<SyncOutcome> {
+export async function syncAfterLogin(platform: Platform, dev = false, onStage?: SyncDeps['onStage']): Promise<SyncOutcome> {
   if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') {
     const { seedDemo } = await import('./fake/demo');
     await seedDemo(platform.store, platform.clock.now());
-    return { status: 'ok', at: platform.clock.now(), tasks: 0, courseListFetched: false };
+    return fakeStages(platform, onStage);
   }
   if ((await readSession(platform.store)).state === 'EXPIRED') await writeSession(platform.store, platform.clock, 'UNKNOWN');
-  return syncNow(platform, { userInitiated: true, dev });
+  return syncNow(platform, { userInitiated: true, dev, onStage });
 }
 
 export async function lastSyncAt(platform: Platform): Promise<UnixSeconds | null> {
@@ -72,4 +72,24 @@ export async function lastSyncAt(platform: Platform): Promise<UnixSeconds | null
 /** Back in the foreground: sync only when the data is older than 15 minutes. */
 export function resumeNeedsSync(last: UnixSeconds | null, now: UnixSeconds): boolean {
   return last === null || now - last >= RESUME_STALE_SEC;
+}
+
+/**
+ * pnpm mobile:web: the demo's stages at a believable pace (no request ever
+ * leaves the browser). ?prep=fail fails the tasks, ?prep=partial the attendance.
+ */
+async function fakeStages(platform: Platform, onStage?: SyncDeps['onStage']): Promise<SyncOutcome> {
+  const mode = new URLSearchParams(location.search).get('prep');
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  await wait(500);
+  if (mode === 'fail') {
+    onStage?.('tasks', 'failed');
+    return { status: 'server_error' };
+  }
+  onStage?.('tasks', 'ok');
+  await wait(300);
+  onStage?.('courses', 'ok');
+  await wait(400);
+  onStage?.('attendance', mode === 'partial' ? 'failed' : 'ok');
+  return { status: 'ok', at: platform.clock.now(), tasks: 0, courseListFetched: false };
 }

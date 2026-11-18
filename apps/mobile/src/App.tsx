@@ -1,14 +1,14 @@
-// The Android app's gate: the optional app lock, sign-in, the one-time
-// notification question at the end of setup, then the data screens
-// (shell/AppShell). Syncs happen only when the user acts: after signing in,
+// The Android app's gate: the optional app lock, the onboarding (sign-in,
+// the first sync, setup and the notification question; onboarding/), then
+// the data screens (shell/AppShell), which the onboarding mascot lands on. Syncs happen only when the user acts: after signing in,
 // on opening the app with data older than 15 minutes, pull to refresh and
 // Perbarui; each is the user's own activity (nosessionupdate=false). An
 // ended session keeps the data on screen with one calm line.
 
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { resolveLocale, type Locale } from '@sulo/core/i18n';
 import { mobileWords, type MobileWords } from '@sulo/core/i18n/mobile';
+import { onboardingWords } from '@sulo/core/i18n/mobile-onboarding';
 import { readPrefs } from '@sulo/core/prefs';
 import type { Platform } from '@sulo/core/platform';
 import { readBudget, restKind } from '@sulo/core/moodle/budget';
@@ -23,7 +23,10 @@ import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { applyWatchPlan, processWatchQueue } from './watch-native';
 import { markChangesHandled } from '@sulo/core/watch/queue';
 import { scheduleReminders } from './reminders';
-import { LockScreen, NotifyQuestion, Onboarding } from './screens/Gate';
+import { LockScreen } from './screens/Gate';
+import { OnboardingFlow } from './onboarding/OnboardingFlow';
+import { readSavedFlow } from './onboarding/data';
+import { resume, type FlowState } from '@sulo/core/onboarding/mobile-flow';
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
@@ -32,8 +35,7 @@ import { lastSyncAt, resumeNeedsSync, syncAfterLogin, syncNow } from './sync';
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
 const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({ default: m.DevScreen }))) : null;
 
-/** Set once the notification question was answered (either way). */
-export const NOTIFY_ASKED_KEY = 'mobile:notifyAsked';
+export { NOTIFY_ASKED_KEY } from './onboarding/OnboardingFlow';
 
 /** `rest` says which pause refused the request when the budget did (moodle/budget.ts restKind). */
 export function outcomeNote(o: SyncOutcome, w: MobileWords, rest: 'short' | 'day' = 'day'): string {
@@ -51,7 +53,10 @@ export function App({ platform }: { platform: Platform }) {
   const [locale, setLocale] = useState<Locale>('id');
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [locked, setLocked] = useState(false);
-  const [askNotify, setAskNotify] = useState(false);
+  /** Where the onboarding is (null: not decided yet); 'finished' shows the app. */
+  const [flow, setFlow] = useState<FlowState | null>(null);
+  /** The onboarding mascot is landing on Ringkasan (both are mounted). */
+  const [landing, setLanding] = useState(false);
   const [last, setLast] = useState<UnixSeconds | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
@@ -99,6 +104,8 @@ export function App({ platform }: { platform: Platform }) {
       setLocale(loc);
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
+      const signedIn = (await SuloSession.status()).status !== 'none';
+      setFlow(resume(await readSavedFlow(platform), { signedIn, hasData: (await lastSyncAt(platform)) !== null }));
       // The worker's answers first (before any sync), then reminders and a fresh plan.
       await processWatchQueue(platform).catch(() => null);
       await scheduleReminders(platform).catch(() => 0);
@@ -130,17 +137,34 @@ export function App({ platform }: { platform: Platform }) {
   }, [platform, refresh]);
 
   const signIn = async () => {
-    const r = await SuloSession.login();
-    if (r.status === 'cancelled') {
-      setNote(w.onboarding.cancelled);
+    const bar = onboardingWords(locale).signin;
+    const r = await SuloSession.login({ close: bar.close, offline: bar.offline, retry: bar.retry });
+    if (r.status !== 'connected') {
+      setNote(r.status === 'offline' ? w.app.offline : w.onboarding.cancelled);
       return;
     }
     await sync(() => syncAfterLogin(platform, __SULO_DEV__));
-    // The end of setup: ask about notifications once, after the data is here.
-    if ((await platform.store.get<boolean>(NOTIFY_ASKED_KEY)) !== true && (await LocalNotifications.checkPermissions()).display !== 'granted') setAskNotify(true);
   };
 
-  if (status === null) return null;
+  if (status === null || flow === null) return null;
+  const onboarding = flow.step !== 'finished' || landing;
+  const shell = (
+    <MobileDataProvider platform={platform}>
+      <Shell
+        expired={status === 'expired'}
+        busy={busy}
+        lastSyncAt={last}
+        onRefresh={refresh}
+        onSignIn={() => void signIn()}
+        onSignedOut={async () => {
+          setNote('');
+          await refreshState();
+          // Keluar: back to sign-in, without the splash and intro (onboarding/data.ts keeps that mark).
+          setFlow(resume(await readSavedFlow(platform), { signedIn: false, hasData: false }));
+        }}
+      />
+    </MobileDataProvider>
+  );
   return (
     <I18nProvider locale={locale}>
       {locked ? (
@@ -165,32 +189,29 @@ export function App({ platform }: { platform: Platform }) {
             }}
           />
         </Suspense>
-      ) : status === 'none' ? (
-        <Onboarding w={w} note={note} busy={busy} paused={paused} onSignIn={() => void signIn()} />
-      ) : askNotify ? (
-        <NotifyQuestion
-          w={w}
-          onDone={async (allow) => {
-            if (allow) await LocalNotifications.requestPermissions().catch(() => null);
-            await platform.store.set(NOTIFY_ASKED_KEY, true);
-            setAskNotify(false);
-            await scheduleReminders(platform).catch(() => 0);
-          }}
-        />
       ) : (
-        <MobileDataProvider platform={platform}>
-          <Shell
-            expired={status === 'expired'}
-            busy={busy}
-            lastSyncAt={last}
-            onRefresh={refresh}
-            onSignIn={() => void signIn()}
-            onSignedOut={async () => {
-              setNote('');
-              await refreshState();
-            }}
-          />
-        </MobileDataProvider>
+        <>
+          {/* One place for Ringkasan, before and after the landing, so it never mounts twice. */}
+          {(flow.step === 'finished' || landing) && <div className={`contents ${landing ? 'm-landing' : ''}`}>{shell}</div>}
+          {onboarding && (
+            <OnboardingFlow
+              platform={platform}
+              locale={locale}
+              initial={flow}
+              paused={paused}
+              landing={landing}
+              onSynced={() => void refreshState()}
+              onFinish={() => {
+                void refreshState();
+                setLanding(true);
+              }}
+              onLanded={() => {
+                setLanding(false);
+                setFlow({ ...flow, step: 'finished' });
+              }}
+            />
+          )}
+        </>
       )}
     </I18nProvider>
   );

@@ -1,6 +1,7 @@
 // Signing out of the app, and the optional app lock's setting.
 import type { Platform } from '@sulo/core/platform';
 import { clearScheduledReminders } from './reminders';
+import { ONBOARDING_KEY } from './onboarding/data';
 import { SuloSession } from './session';
 
 /** The app lock is off by default; this key holds the user's choice. */
@@ -11,6 +12,8 @@ export async function signOutEverything(platform: Platform): Promise<void> {
   await SuloSession.logout();
   await clearScheduledReminders(platform).catch(() => undefined);
   await platform.store.remove(await platform.store.keys(''));
+  // Only the mark that this phone has seen the intro (no personal data): signing in again starts at sign-in.
+  await platform.store.set(ONBOARDING_KEY, { step: 'finished', mode: 'first' });
   // Anything else still pending (a test notification, an old plan).
   const { LocalNotifications } = await import('@capacitor/local-notifications');
   const pending = await LocalNotifications.getPending();

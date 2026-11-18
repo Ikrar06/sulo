@@ -170,3 +170,33 @@ body {
    extension's sleepy look is unchanged (this file is the phone's only). */
 html .sulo-mascot.is-sleepy { --f1: var(--brand-amber); --f2: var(--brand-orange); --f3: var(--brand-crimson); }
 html .sulo-mascot .m-z { display: none; }
+
+/* Onboarding (M8c.2, onboarding/). The stage takes about 52 % of the height,
+   44 % on short screens; a screen fades in over 200 ms (its pieces bring
+   their own entrances, onboarding/motion.ts). The spinner turns slowly and
+   stands still under reduced motion. */
+.m-stage { height: 52dvh; }
+@media (max-height: 699px) { .m-stage { height: 44dvh; } }
+.m-onb-screen { animation: m-fade-in 200ms ease-out; }
+.m-spin { animation: m-spin 1.1s linear infinite; }
+@keyframes m-spin { to { transform: rotate(360deg); } }
+.m-check-draw { stroke-dasharray: 24; animation: m-check-draw 160ms cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes m-check-draw { from { stroke-dashoffset: 24; } }
+.m-text-balance { text-wrap-style: balance; }
+/* The landing on Ringkasan: the last onboarding screen fades out while
+   Ringkasan comes in from below in order (hero, stats, carousel), the tab
+   bar last; the hero mascot stays hidden until the flying one lands on it. */
+.m-onb-leave { animation: m-fade-out 180ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+.m-landing [data-mascot-spot="hero"] { opacity: 0; }
+.m-landing .m-mascot-enter { animation: none; }
+.m-landing main .space-y-6 > * { animation: m-land 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.m-landing main .space-y-6 > :nth-child(2) { animation-delay: 70ms; }
+.m-landing main .space-y-6 > :nth-child(3) { animation-delay: 140ms; }
+.m-landing main .space-y-6 > :nth-child(n + 4) { animation-delay: 210ms; }
+.m-landing nav[aria-label] { animation: m-land 280ms cubic-bezier(0.22, 1, 0.36, 1) 300ms backwards; }
+@keyframes m-land { from { opacity: 0; transform: translateY(16px); } }
+@media (prefers-reduced-motion: reduce) {
+  .m-onb-screen, .m-onb-leave { animation-duration: 120ms !important; }
+  .m-spin, .m-check-draw { animation: none !important; }
+  .m-landing main .space-y-6 > *, .m-landing nav[aria-label] { animation: m-fade-in 120ms linear !important; animation-duration: 120ms !important; animation-delay: 0ms !important; }
+}
