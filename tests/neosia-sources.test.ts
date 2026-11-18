@@ -57,7 +57,10 @@ describe('"Lengkapi data dari NEOSIA"', () => {
       ['khs', false, null],
     ]);
     expect(completion(statuses)).toEqual({ done: 2, total: 4, complete: false });
-    const all: Snapshots = { ...two, getTranskripMahasiswa: snap('getTranskripMahasiswa'), 'kartu_hasil_studi/semester': snap('kartu_hasil_studi/semester') };
+    // KHS counts only with the semester list too (it names the transcript's semesters).
+    const khsOnly: Snapshots = { ...two, getTranskripMahasiswa: snap('getTranskripMahasiswa'), 'kartu_hasil_studi/semester': snap('kartu_hasil_studi/semester') };
+    expect(completion(sourceStatuses(khsOnly))).toEqual({ done: 3, total: 4, complete: false });
+    const all: Snapshots = { ...khsOnly, 'mahasiswa/semester': snap('mahasiswa/semester') };
     expect(completion(sourceStatuses(all)).complete).toBe(true);
   });
 });

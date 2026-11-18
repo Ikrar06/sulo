@@ -19,6 +19,8 @@ export interface Source {
   endpoints: readonly EndpointId[];
   /** The response that tells the source has data. */
   primary: EndpointId;
+  /** Other responses the source must also have given to count as done. */
+  alsoNeeds?: readonly EndpointId[];
   /** Shown in "Lengkapi data dari NEOSIA" (Mata kuliah is only for the future schedule planner). */
   checklist: boolean;
 }
@@ -27,7 +29,8 @@ export const SOURCES: readonly Source[] = [
   { id: 'beranda', url: NEOSIA_HOME, endpoints: ['dashboard', 'prodi_semester/active', 'getStatusPembayaran'], primary: 'dashboard', checklist: true },
   { id: 'transkrip', url: NEOSIA_TRANSKRIP, endpoints: ['getTranskripMahasiswa', 'check_survey_status'], primary: 'getTranskripMahasiswa', checklist: true },
   { id: 'krs', url: NEOSIA_KRS, endpoints: ['belanja_krs', 'max_sks', 'checkJadwalBelanjaKRS'], primary: 'belanja_krs', checklist: true },
-  { id: 'khs', url: NEOSIA_KHS, endpoints: ['kartu_hasil_studi/semester', 'mahasiswa/semester', 'indeks_prestasi/current'], primary: 'kartu_hasil_studi/semester', checklist: true },
+  // The semester list names the transcript's semesters; without it the Grades page could only say "Semester 3".
+  { id: 'khs', url: NEOSIA_KHS, endpoints: ['kartu_hasil_studi/semester', 'mahasiswa/semester', 'indeks_prestasi/current'], primary: 'kartu_hasil_studi/semester', alsoNeeds: ['mahasiswa/semester'], checklist: true },
   { id: 'matakuliah', url: NEOSIA_MATAKULIAH, endpoints: ['kelas_kuliah_tersedia'], primary: 'kelas_kuliah_tersedia', checklist: false },
 ];
 
@@ -43,7 +46,7 @@ export interface SourceStatus {
 export function sourceStatuses(snapshots: Snapshots, sources: readonly Source[] = CHECKLIST_SOURCES): SourceStatus[] {
   return sources.map((source) => {
     const main = snapshots[source.primary];
-    const has = main !== undefined && main.data !== null;
+    const has = main !== undefined && main.data !== null && (source.alsoNeeds ?? []).every((e) => snapshots[e] !== undefined && snapshots[e]!.data !== null);
     return { source, has, seenAt: has ? main.seenAt : null };
   });
 }

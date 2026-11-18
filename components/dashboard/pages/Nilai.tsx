@@ -16,6 +16,7 @@ import { isOlderThan } from '@/lib/neosia/sources';
 import { NeosiaChecklist } from '../NeosiaChecklist';
 import { neosiaStatus, profile } from '@/lib/neosia/view';
 import { GpaChart } from '../GpaChart';
+import { yAxisRange } from '@/lib/grades/axis';
 import { XIcon } from '../icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
@@ -79,6 +80,7 @@ export function NilaiPage({ data }: PageProps) {
     .reverse()
     .filter((g) => g.ips !== null && g.semester !== '-')
     .map((g) => ({ label: shortLabel(g.semester), ips: g.ips!, sks: g.sks, text: n.chartPoint(label(g.semester), g.ips!.toFixed(2), g.sks) }));
+  const axisMin = yAxisRange(points.map((pt) => pt.ips)).min;
   const reveal = shown && !masked;
   const fmt = (v: number | null) => (v === null ? '-' : v.toFixed(2));
 
@@ -111,7 +113,7 @@ export function NilaiPage({ data }: PageProps) {
         </p>
       )}
 
-      <Card title={n.chartTitle} action={<span className="text-[12px] text-muted-foreground">{n.estimate}</span>}>
+      <Card title={n.chartTitle}>
         {points.length === 0 ? (
           // No point: no empty axes, one sentence and the page that fills it.
           <div className="flex flex-wrap items-center gap-3 py-4">
@@ -124,10 +126,16 @@ export function NilaiPage({ data }: PageProps) {
           </div>
         ) : (
           // Hidden grades or privacy mode: the line stays, numbers go.
-          <GpaChart title={n.chartTitle} points={points} hideValues={!reveal} note={n.axisNote} />
+          <GpaChart title={n.chartTitle} points={points} hideValues={!reveal} />
         )}
-        {points.length > 0 && <p className="mt-2 text-[12px] text-muted-foreground">{n.chartNote}</p>}
+        {/* One line: an estimate, and where the axis starts when not at 0. */}
+        {points.length > 0 && (
+          <p className="mt-2 text-[12px] text-muted-foreground">{n.chartNote(axisMin > 0 ? axisMin.toFixed(2) : null)}</p>
+        )}
       </Card>
+
+      {/* No semester list stored (it comes with the KHS page): say so instead of quietly showing "Semester 3". */}
+      {semesters.length === 0 && <NeosiaChecklist snapshots={snapshots} now={data.now} highlight="khs" />}
 
       <div className="space-y-2">
         {groups.map((g, i) => (
