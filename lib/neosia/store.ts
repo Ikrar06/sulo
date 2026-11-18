@@ -8,6 +8,7 @@ import { CAPTURE_SCHEMA_VERSION, ENDPOINTS, type EndpointId } from './allowlist'
 import { NEOSIA_DATA_PREFIX, readModuleState } from './module';
 import type { Projected } from './project';
 import { parseCapture, stableStringify } from './schema';
+import { readRemoteConfig } from '../remote/remote-config';
 
 export const snapshotKey = (endpoint: EndpointId) => `${NEOSIA_DATA_PREFIX}snap:${endpoint}`;
 
@@ -44,6 +45,8 @@ export type IngestResult =
  */
 export async function ingestCapture(store: KeyValueStore, now: UnixSeconds, raw: unknown): Promise<IngestResult> {
   if (!(await readModuleState(store)).enabled) return { kind: 'off' };
+  // The remote kill switch stops the NEOSIA module too (docs/NEOSIA.md): captures are dropped unread.
+  if (!(await readRemoteConfig(store)).enabled) return { kind: 'off' };
   const capture = parseCapture(raw);
   if (!capture) return { kind: 'rejected' };
   const key = snapshotKey(capture.endpoint);

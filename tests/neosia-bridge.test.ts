@@ -103,6 +103,12 @@ describe('the service worker stores snapshots', () => {
     expect(await store.keys('neosia:')).toEqual([]);
   });
 
+  it('stores nothing while Sulo is switched off remotely', async () => {
+    const store = memoryStore({ ...on, 'global:remoteConfig': { enabled: false, minIntervalMinutes: 180, message: '', fetchedAt: 1 } });
+    expect((await ingestCapture(store, 100, capture())).kind).toBe('off');
+    expect(await store.keys('neosia:snap')).toEqual([]);
+  });
+
   it('validates again and rejects what the bridge should have stopped', async () => {
     const store = memoryStore(on);
     expect((await ingestCapture(store, 100, { ...capture(), data: { max_sks: 24, nim: PLACEHOLDER.nim } })).kind).toBe('rejected');
