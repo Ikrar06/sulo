@@ -110,7 +110,11 @@ describe('schedule', () => {
     ]);
   });
 
-  it('day_of_week: 1 = Monday … 7 or 0 = Sunday (to be verified)', () => {
+  it('day_of_week: 1 = Monday … 7 or 0 = Sunday (verified: a known Wednesday class is 3)', () => {
+    // Synthetic class shaped like the owner's check: day_of_week 3 lands on Wednesday 18 Nov 2026.
+    const magang = classMeetings({ belanja_krs: snap('belanja_krs', { kartu_rencana_studi: { is_current: true, kelas_kuliahs: [{ nama: 'A', is_batal: false, mata_kuliah: { kode: 'K9', nama_resmi: 'MAGANG' }, jadwal_kuliahs: [{ day_of_week: 3, start_time: '08:00:00', end_time: '10:00:00' }] }] } }) });
+    expect(magang[0]!.weekday).toBe(3);
+    expect(occurrences(magang, '2026-11-16', '2026-11-22', []).map((o) => o.day)).toEqual(['2026-11-18']);
     expect([1, 6, 7, 0, 8, 'x'].map((v) => weekdayOf(v as Projected))).toEqual([1, 6, 0, 0, null, null]);
   });
 

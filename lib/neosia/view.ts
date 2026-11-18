@@ -50,8 +50,8 @@ export function hhmm(v: Projected | undefined): string | null {
 }
 
 /**
- * day_of_week to 0 (Sunday) … 6 (Saturday). Assumed 1 = Monday … 7 = Sunday,
- * 0 = Sunday: still to be verified against one known class (docs/NEOSIA.md).
+ * day_of_week to 0 (Sunday) … 6 (Saturday): 1 = Monday … 7 = Sunday, and
+ * 0 = Sunday. Verified 18 Nov 2026 against a known class (Wednesday is 3).
  */
 export function weekdayOf(v: Projected | undefined): number | null {
   const n = num(v);
