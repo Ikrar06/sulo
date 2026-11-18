@@ -42,6 +42,7 @@ const plan = buildWatchPlan({
     summary: { title: '{n} kabar baru dari {courses} mata kuliah', body: 'Buka Sulo untuk melihat semuanya.' },
     expired: { title: 'Sulo', body: 'Masuk lagi ke SIKOLA supaya Sulo bisa memantau tugas baru.' },
     otherCourse: 'Mata kuliah lain',
+    channel: 'Kabar dari SIKOLA',
   },
 });
 

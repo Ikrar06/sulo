@@ -6,7 +6,10 @@ import { parseNotificationId } from '@sulo/core/reminders/run';
 import type { Screen } from './nav';
 
 export function screenForNotification(id: string): Screen {
-  const { kind, eventId, courseId } = parseNotificationId(id);
+  const { kind, eventId, courseId, entryId } = parseNotificationId(id);
+  // One piece of news about a task (background watching): its detail.
+  const task = kind === 'changes' && entryId ? /^task:(\d+):/.exec(entryId) : null;
+  if (task) return { name: 'tugas', detail: task[1]! };
   if (kind === 'task' && eventId !== null && Number.isFinite(eventId)) return { name: 'tugas', detail: String(eventId) };
   if (kind === 'summary' || kind === 'morning') return { name: 'tugas', detail: null };
   if (kind === 'calendar') return { name: 'kalender', detail: null };

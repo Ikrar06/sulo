@@ -20,6 +20,7 @@ import { readKeepAlive } from '../public-data';
 import { SuloSession } from '../session';
 import { useMobileData } from '../shell/data';
 import { DEFAULT_WATCH, readWatch, updateWatch, type WatchState } from '../watch';
+import { applyWatchPlan, readWatchStatus, type WatchTiming } from '../watch-native';
 import { Group, Row } from './settings-rows';
 
 /** SIKOLA's preferences page (its "Notification preferences" link is there); opened in the browser, never changed by Sulo. */
@@ -35,10 +36,12 @@ export function WatchSettings({ lock, lockAvailable, onLockOn }: { lock: boolean
   const [watch, setWatch] = useState<WatchState>(DEFAULT_WATCH);
   const [remote, setRemote] = useState<KeepAliveConfig | null>(null);
   const [offer, setOffer] = useState(false);
+  const [timings, setTimings] = useState<WatchTiming[]>([]);
 
   useEffect(() => {
     void readWatch(platform).then(setWatch);
     void readKeepAlive(platform).then(setRemote);
+    void readWatchStatus().then((s) => setTimings(s.timings));
   }, [platform]);
 
   const remoteOff = remote !== null && !remote.enabled;
@@ -46,6 +49,8 @@ export function WatchSettings({ lock, lockAvailable, onLockOn }: { lock: boolean
   const toggle = async (on: boolean) => {
     const offerNow = on && !lock && lockAvailable && !watch.lockOffered;
     setWatch(await updateWatch(platform, { enabled: on, ...(offerNow ? { lockOffered: true } : {}) }));
+    // On: the first check a full interval from now. Off: every check stops at once.
+    await applyWatchPlan(platform);
     if (offerNow) setOffer(true);
   };
   const turnOnLock = async () => {
@@ -55,8 +60,9 @@ export function WatchSettings({ lock, lockAvailable, onLockOn }: { lock: boolean
     await platform.store.set(LOCK_KEY, true);
     onLockOn();
   };
-  const showSleepHelp = watch.enabled && !remoteOff && !watch.sleepHelpDismissed && sleepHelpDue(watch.recent);
-  const status = watch.lastCheckAt !== null ? k.lastCheck(formatAgo(watch.lastCheckAt, data!.now, m)) : k.noCheck;
+  const lastOk = [...timings].reverse().find((x) => x.outcome === 'ok')?.ranAt ?? null;
+  const showSleepHelp = watch.enabled && !remoteOff && !watch.sleepHelpDismissed && sleepHelpDue(timings.filter((x) => x.plannedAt > 0));
+  const status = lastOk !== null ? k.lastCheck(formatAgo(lastOk, data!.now, m)) : k.noCheck;
 
   return (
     <>

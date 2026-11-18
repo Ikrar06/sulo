@@ -2,10 +2,10 @@
 // show about it. A key of the app's own (not the shared prefs), so the
 // extension is untouched. New installs turn it on during onboarding;
 // installs from before it stay off until the user turns it on. The checks
-// themselves (scheduling, the batch) are part B of M8c.3.
+// themselves run natively (watch-native.ts, WatchWorker); their timings
+// come from the worker (readWatchStatus).
 
 import type { Platform } from '@sulo/core/platform';
-import type { CheckTiming } from '@sulo/core/watch/sleep-help';
 
 export const WATCH_KEY = 'mobile:watch';
 
@@ -14,15 +14,11 @@ export interface WatchState {
   enabled: boolean;
   /** The app-lock offer is made once, the first time watching is turned on. */
   lockOffered: boolean;
-  /** The last finished background check (unix seconds), for "Cek terakhir". */
-  lastCheckAt: number | null;
-  /** Recent checks' timing, for the "phone puts Sulo to sleep" help. */
-  recent: CheckTiming[];
   /** The sleep help was closed; it shows once. */
   sleepHelpDismissed: boolean;
 }
 
-export const DEFAULT_WATCH: WatchState = { enabled: false, lockOffered: false, lastCheckAt: null, recent: [], sleepHelpDismissed: false };
+export const DEFAULT_WATCH: WatchState = { enabled: false, lockOffered: false, sleepHelpDismissed: false };
 
 export async function readWatch(platform: Platform): Promise<WatchState> {
   return { ...DEFAULT_WATCH, ...((await platform.store.get<Partial<WatchState>>(WATCH_KEY)) ?? {}) };

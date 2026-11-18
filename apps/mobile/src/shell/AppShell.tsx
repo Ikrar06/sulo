@@ -20,6 +20,8 @@ import { IconButton } from '@sulo/ui/mobile/controls';
 import { useToast } from '@sulo/ui/ui/toast';
 import { back as goBack, current, open, parseScreen, selectTab, START, type NavState, type Screen, type Tab } from './nav';
 import { screenForNotification } from './notify-route';
+import { SuloSession } from '../session';
+import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { useMobileData } from './data';
 import { PullToRefresh } from './PullToRefresh';
 import { ScreenHeaderProvider } from './screen-header';
@@ -83,6 +85,8 @@ export function AppShell(props: ShellProps) {
   const { data, platform } = useMobileData();
   const [nav, setNav] = useState<NavState>(() => (props.initialScreen ? open(START, props.initialScreen) : START));
   const [online, setOnline] = useState(() => navigator.onLine);
+  /** The maintainer paused Sulo (config enabled false): its message, else null. */
+  const [paused, setPaused] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [taskDate, setTaskDate] = useState<string | null>(null);
@@ -127,8 +131,25 @@ export function AppShell(props: ShellProps) {
     };
   }, []);
 
+  // The global switch: no request from anywhere, no sign-in offered, one calm line.
+  useEffect(() => {
+    const read = () => void readRemoteConfig(platform.store).then((c) => setPaused(c.enabled ? null : c.message.trim() || w.watch.paused));
+    read();
+    const onVisible = () => document.visibilityState === 'visible' && read();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [platform, w]);
+
   // A reminder tapped while the app runs.
   useEffect(() => platform.notifier.onClick((id) => go(screenForNotification(id))), [platform, go]);
+  // A background-watching notification tapped (posted natively): its id waits in the worker's store.
+  useEffect(() => {
+    const take = () => void SuloSession.watchTakeOpen().then(({ id }) => id && go(screenForNotification(id))).catch(() => undefined);
+    take();
+    const onVisible = () => document.visibilityState === 'visible' && take();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [go]);
 
   // A new screen starts at the top, with its large header. (scrollTo may return a promise: never return it.)
   const top = current(nav);
@@ -158,12 +179,12 @@ export function AppShell(props: ShellProps) {
   const title = top.name === 'tugas' && top.detail !== null ? w.app.taskTitle : top.name === 'presensi' && top.detail !== null ? w.app.presensiCourse : top.name === 'lainnya' ? w.app.lainnya : top.name === 'privasi' ? w.app.privasi : d.nav[top.name];
   const dataScreen = !NO_DATA_SCREENS.has(top.name);
   const stale = dataScreen && props.lastSyncAt !== null && data.now - props.lastSyncAt > STALE_SHOWN_SEC ? w.connected.updated(formatAgo(props.lastSyncAt, data.now, m)) : null;
-  const notice = props.expired ? 'expired' : !online ? 'offline' : null;
+  const notice = paused !== null ? 'paused' : props.expired ? 'expired' : !online ? 'offline' : null;
   const showTabs = !detail && !keyboard;
   const actions = (
     <>
       {top.name === 'kalender' && <IconButton icon={BellIcon} label={d.kalender.notifyAria} href={routeHash('pengaturan', 'kalender')} />}
-      {dataScreen && !props.expired && <IconButton icon={RefreshIcon} label={props.busy ? w.connected.refreshing : w.connected.refresh} onPress={() => void refresh()} disabled={props.busy} spinning={props.busy} />}
+      {dataScreen && !props.expired && paused === null && <IconButton icon={RefreshIcon} label={props.busy ? w.connected.refreshing : w.connected.refresh} onPress={() => void refresh()} disabled={props.busy} spinning={props.busy} />}
     </>
   );
   const small = detail || compact;
@@ -217,7 +238,7 @@ export function AppShell(props: ShellProps) {
       ) : (
         (notice || stale) && (
           <p role="status" className="mx-4 mb-2 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-m13">
-            <span className="min-w-0 truncate">{notice === 'offline' ? w.app.offline : stale}</span>
+            <span className="min-w-0 truncate">{notice === 'paused' ? paused : notice === 'offline' ? w.app.offline : stale}</span>
           </p>
         )
       )}
@@ -233,7 +254,7 @@ export function AppShell(props: ShellProps) {
         }}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
-        <PullToRefresh disabled={!dataScreen || props.expired || props.busy} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
+        <PullToRefresh disabled={!dataScreen || props.expired || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
           <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
             <ScreenHeaderProvider value={{ main: slotMain, end: slotEnd, tools: slotTools }}>
               <ScreenRefreshProvider slot={screenRefresh}>

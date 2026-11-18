@@ -9,7 +9,7 @@ import java.net.URL
  * is logged.
  */
 class SikolaHttp(private val userAgent: String) {
-    data class Reply(val status: Int, val location: String?, val body: String)
+    data class Reply(val status: Int, val location: String?, val body: String, val retryAfter: String? = null)
 
     fun get(url: String, moodleSession: String): Reply = exchange(url, moodleSession, null)
 
@@ -33,7 +33,7 @@ class SikolaHttp(private val userAgent: String) {
             }
             val status = conn.responseCode
             val stream = if (status in 200..299) conn.inputStream else conn.errorStream
-            Reply(status, conn.getHeaderField("Location"), stream?.bufferedReader()?.use { it.readText() } ?: "")
+            Reply(status, conn.getHeaderField("Location"), stream?.bufferedReader()?.use { it.readText() } ?: "", conn.getHeaderField("Retry-After"))
         } finally {
             conn.disconnect()
         }

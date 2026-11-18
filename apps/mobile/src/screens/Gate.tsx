@@ -18,7 +18,8 @@ const PRIVACY_ICONS: ComponentType<SVGProps<SVGSVGElement>>[] = [KeyIcon, Shield
 /** A full-height column clear of the gesture bar. */
 const page = 'mx-auto flex min-h-full max-w-md flex-col px-4 pt-8 pb-[calc(24px+env(safe-area-inset-bottom))]'; // lint-ui-allow: 24 over the gesture bar
 
-export function Onboarding({ w, note, busy, onSignIn }: { w: MobileWords; note: string; busy: boolean; onSignIn: () => void }) {
+/** `paused`: the maintainer paused Sulo; sign-in is not offered, the message shows instead. */
+export function Onboarding({ w, note, busy, paused = null, onSignIn }: { w: MobileWords; note: string; busy: boolean; paused?: string | null; onSignIn: () => void }) {
   return (
     <main className={page}>
       <div className="flex flex-col items-center text-center">
@@ -41,9 +42,15 @@ export function Onboarding({ w, note, busy, onSignIn }: { w: MobileWords; note: 
         </ul>
       </section>
       <div className="mt-auto flex flex-col gap-3 pt-8">
-        <PillButton kind="primary" full disabled={busy} onPress={onSignIn}>
-          {w.onboarding.signIn}
-        </PillButton>
+        {paused !== null ? (
+          <p role="status" className="rounded-full bg-m-inset px-4 py-2 text-center text-m13">
+            {paused}
+          </p>
+        ) : (
+          <PillButton kind="primary" full disabled={busy} onPress={onSignIn}>
+            {w.onboarding.signIn}
+          </PillButton>
+        )}
         {note && (
           <p role="status" className="text-center text-m13 text-muted-foreground">
             {note}

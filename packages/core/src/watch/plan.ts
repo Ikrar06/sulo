@@ -56,6 +56,8 @@ export interface WatchTemplates {
   expired: WatchTemplate;
   /** Name used when a course is unknown. */
   otherCourse: string;
+  /** The Android notification channel's name, as Settings shows it. */
+  channel: string;
 }
 
 export interface WatchBaselineTask {

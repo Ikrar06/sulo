@@ -29,6 +29,10 @@ export function fakeSession(): SuloSessionPlugin {
     logout: async () => ((status = 'none'), { status: 'none' }),
     lockAvailable: async () => ({ available: true }),
     openAppSettings: async () => undefined,
+    watchApply: async () => undefined,
+    watchTake: async () => ({ answers: [], fullSync: false }),
+    watchStatus: async () => ({ timings: '[]', sessionEnds: '[]', plannedAt: 0, queued: 0 }),
+    watchTakeOpen: async () => ({ id: null }),
     unlock: async () => (param('lock') === 'wait' ? new Promise<never>(() => undefined) : param('lock') === 'nolock' ? { unlocked: false, reason: 'no_device_lock' } : param('lock') === 'fail' ? { unlocked: false } : { unlocked: true }),
   };
 }

@@ -1,5 +1,5 @@
-// Reminders on Android come from the data already on the phone: no sync
-// happens in the background. After every sync (and at start), the core
+// Reminders on Android come from the data already on the phone (with
+// background watching on, the worker's answers are read into it first). After every sync (and at start), the core
 // reminder cycle is played forward over the next days on a copy of the
 // data, and what it would show is scheduled as local notifications. The
 // planner's rules hold as in the extension (stages, quiet hours, calendar),

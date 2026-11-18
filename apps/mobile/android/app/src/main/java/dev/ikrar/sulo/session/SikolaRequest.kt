@@ -21,6 +21,15 @@ object SikolaRequest {
      */
     fun noSessionUpdate(userInitiated: Boolean): Boolean = !userInitiated
 
+    /**
+     * The background watching check (M8c.3, owner's decision of 18 Nov
+     * 2026): only while the user has "Pantau tugas baru" on and the remote
+     * config allows it (the worker runs only then), it keeps the session
+     * active on purpose, so it sends nosessionupdate=false like a sync the
+     * user started. No other request does.
+     */
+    fun watchBatchUrl(sesskey: String, functions: List<String>): String = batchUrl(sesskey, functions, userInitiated = true)
+
     /** The function names of a batch body, or null when it is not a valid, allowlisted batch. */
     fun allowedFunctions(body: String): List<String>? = runCatching {
         val array = JSONArray(body)

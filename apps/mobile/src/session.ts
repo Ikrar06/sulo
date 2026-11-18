@@ -45,6 +45,14 @@ export interface SuloSessionPlugin {
   unlock(): Promise<{ unlocked: boolean; reason?: 'no_device_lock' }>;
   /** Android's settings page for this app (background use); asks for no permission. */
   openAppSettings(): Promise<void>;
+  /** Background watching (M8c.3): the plan the native worker follows (watch-native.ts). */
+  watchApply(options: { plan: string }): Promise<void>;
+  /** The worker's queued answers, each a JSON string, handed over once. */
+  watchTake(): Promise<{ answers: string[]; fullSync: boolean }>;
+  /** Timings and session ends as JSON strings, the next planned check, the queue length. */
+  watchStatus(): Promise<{ timings: string; sessionEnds: string; plannedAt: number; queued: number }>;
+  /** A tapped background notification's id, once. */
+  watchTakeOpen(): Promise<{ id: string | null }>;
 }
 
 export const SuloSession = registerPlugin<SuloSessionPlugin>('SuloSession', {

@@ -246,6 +246,7 @@ export function detect(plan: WatchPlan, overlay: Overlay, now: UnixSeconds, resu
     for (const cm of state.cm) {
       if (!obj(cm) || !int(cm.id) || typeof cm.module !== 'string' || typeof cm.name !== 'string') return { status: 'unsure' };
       if (seen.has(cm.id)) continue;
+      seen.add(cm.id);
       next.cms[String(courseId)] = [...(next.cms[String(courseId)] ?? []), cm.id];
       const visible = cm.visible !== false && cm.uservisible !== false;
       if (cm.module === 'label' || !visible) continue;

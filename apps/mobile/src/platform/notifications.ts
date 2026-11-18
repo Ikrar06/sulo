@@ -31,7 +31,7 @@ export function createNotifier(): Notifier {
 
 /**
  * Alarms are scheduled notifications on Android: no code runs at the alarm
- * time (no background sync on mobile). A name maps to one pending
+ * time (from the latest data on the phone). A name maps to one pending
  * notification; the text is set by whoever schedules it (reminders.ts).
  */
 export function createAlarmScheduler(): AlarmScheduler {

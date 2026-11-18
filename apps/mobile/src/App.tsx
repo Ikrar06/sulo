@@ -19,6 +19,9 @@ import { DevScreen } from './DevScreen';
 import { DEV_EVENT } from './events';
 import { LOCK_KEY, signOutEverything } from './account';
 import { refreshPublicData } from './public-data';
+import { readRemoteConfig } from '@sulo/core/remote/remote-config';
+import { applyWatchPlan, processWatchQueue } from './watch-native';
+import { markChangesHandled } from '@sulo/core/watch/queue';
 import { scheduleReminders } from './reminders';
 import { LockScreen, NotifyQuestion, Onboarding } from './screens/Gate';
 import { SuloSession, type SessionStatus } from './session';
@@ -32,6 +35,8 @@ export const NOTIFY_ASKED_KEY = 'mobile:notifyAsked';
 export function outcomeNote(o: SyncOutcome, w: MobileWords): string {
   if (o.status === 'ok' || o.status === 'session_expired') return '';
   if (o.status === 'skipped' && o.reason === 'FRESH') return w.connected.upToDate;
+  // Paused by the maintainer: the calm notice says so; no failure line.
+  if (o.status === 'skipped' && o.reason === 'DISABLED_REMOTELY') return '';
   if (o.status === 'offline') return w.app.offline;
   return w.connected.failed;
 }
@@ -45,6 +50,7 @@ export function App({ platform }: { platform: Platform }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [dev, setDev] = useState(false);
+  const [paused, setPaused] = useState<string | null>(null);
   const w = mobileWords(locale);
 
   const refreshState = useCallback(async () => {
@@ -60,7 +66,11 @@ export function App({ platform }: { platform: Platform }) {
       let line = w.connected.failed;
       try {
         line = outcomeNote(await run(), w);
+        // News found while the app is open lands in Kabar terbaru without a notification.
+        await markChangesHandled(platform.store, platform.clock.now()).catch(() => 0);
         await scheduleReminders(platform).catch(() => 0);
+        // A sync the user started restarts the background interval.
+        await applyWatchPlan(platform).catch(() => undefined);
       } catch {
         line = w.connected.failed;
       } finally {
@@ -77,11 +87,17 @@ export function App({ platform }: { platform: Platform }) {
   // Start: language, lock, state, and reminders from the data already here.
   useEffect(() => {
     void (async () => {
-      setLocale(resolveLocale((await readPrefs(platform.store)).locale, navigator.language));
+      const loc = resolveLocale((await readPrefs(platform.store)).locale, navigator.language);
+      setLocale(loc);
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
+      // The worker's answers first (before any sync), then reminders and a fresh plan.
+      await processWatchQueue(platform).catch(() => null);
       await scheduleReminders(platform).catch(() => 0);
-      void refreshPublicData(platform, true);
+      await refreshPublicData(platform, true);
+      const config = await readRemoteConfig(platform.store);
+      setPaused(config.enabled ? null : config.message.trim() || mobileWords(loc).watch.paused);
+      await applyWatchPlan(platform).catch(() => undefined);
     })();
     const onDev = () => __SULO_DEV__ && setDev(true);
     window.addEventListener(DEV_EVENT, onDev);
@@ -96,7 +112,10 @@ export function App({ platform }: { platform: Platform }) {
       void refreshPublicData(platform, true);
       const s = (await SuloSession.status()).status;
       setStatus(s);
-      if (s === 'connected' && resumeNeedsSync(await lastSyncAt(platform), platform.clock.now())) void refresh();
+      const queue = await processWatchQueue(platform).catch(() => ({ applied: 0, fullSync: false }));
+      if (queue.applied > 0) await scheduleReminders(platform).catch(() => 0);
+      if (s === 'connected' && (queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
+      else void applyWatchPlan(platform);
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
@@ -129,7 +148,7 @@ export function App({ platform }: { platform: Platform }) {
       ) : dev && __SULO_DEV__ ? (
         <DevScreen platform={platform} w={w} onBack={() => setDev(false)} />
       ) : status === 'none' ? (
-        <Onboarding w={w} note={note} busy={busy} onSignIn={() => void signIn()} />
+        <Onboarding w={w} note={note} busy={busy} paused={paused} onSignIn={() => void signIn()} />
       ) : askNotify ? (
         <NotifyQuestion
           w={w}

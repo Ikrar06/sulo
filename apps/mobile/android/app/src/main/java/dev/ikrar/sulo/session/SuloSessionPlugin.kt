@@ -145,6 +145,9 @@ class SuloSessionPlugin : Plugin() {
             WebStorage.getInstance().deleteAllData()
             io.execute {
                 vault.wipe()
+                // Keluar also ends background watching: no check, no queue, no plan.
+                runCatching { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
+                runCatching { dev.ikrar.sulo.watch.WatchStore(context).clear() }
                 call.resolve(JSObject().put("status", "none"))
             }
         }
@@ -205,5 +208,61 @@ class SuloSessionPlugin : Plugin() {
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }
         call.resolve()
+    }
+
+    // ---------- Background watching (M8c.3) ----------
+
+    /**
+     * The plan core wrote (packages/core/src/watch/plan.ts). Enabled: the next
+     * check is scheduled a full interval from now (a sync the user started
+     * restarts the count). Disabled: every check stops at once.
+     */
+    @PluginMethod
+    fun watchApply(call: PluginCall) {
+        val raw = call.getString("plan") ?: return call.reject("plan missing")
+        io.execute {
+            val plan = runCatching { org.json.JSONObject(raw) }.getOrNull() ?: return@execute call.reject("bad plan")
+            val store = dev.ikrar.sulo.watch.WatchStore(context)
+            store.setPlan(plan)
+            val now = System.currentTimeMillis() / 1000
+            if (plan.optBoolean("enabled", false)) {
+                val schedule = plan.getJSONObject("schedule")
+                val minute = java.util.Calendar.getInstance().let { it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE) }
+                val power = (context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager)?.isPowerSaveMode == true
+                val day = minute >= schedule.getInt("dayStartMin") && minute < schedule.getInt("nightStartMin")
+                val minutes = if (power || !day) schedule.getInt("nightIntervalMin") else schedule.getInt("dayIntervalMin")
+                dev.ikrar.sulo.watch.WatchScheduler.next(context, minutes * 60L, now)
+            } else {
+                dev.ikrar.sulo.watch.WatchScheduler.stop(context)
+            }
+            call.resolve()
+        }
+    }
+
+    /** The queued background answers (decrypted, handed over once) and whether a full sync is asked. */
+    @PluginMethod
+    fun watchTake(call: PluginCall) {
+        io.execute {
+            val (answers, full) = dev.ikrar.sulo.watch.WatchStore(context).takeQueue()
+            call.resolve(JSObject().put("answers", org.json.JSONArray(answers.map { it.toString() })).put("fullSync", full))
+        }
+    }
+
+    /** For the screens: the last checks (times, durations, sizes, outcomes), session ends, the next planned check. */
+    @PluginMethod
+    fun watchStatus(call: PluginCall) {
+        io.execute {
+            val store = dev.ikrar.sulo.watch.WatchStore(context)
+            call.resolve(JSObject().put("timings", store.timings().toString()).put("sessionEnds", store.sessionEnds().toString()).put("plannedAt", store.plannedAt()).put("queued", store.queueSize()))
+        }
+    }
+
+    /** A tapped background notification's id, once. */
+    @PluginMethod
+    fun watchTakeOpen(call: PluginCall) {
+        io.execute {
+            val id = dev.ikrar.sulo.watch.WatchStore(context).takePendingOpen()
+            call.resolve(JSObject().put("id", id ?: org.json.JSONObject.NULL))
+        }
     }
 }
