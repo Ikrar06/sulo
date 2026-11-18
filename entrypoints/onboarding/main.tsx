@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { SIKOLA_LOGIN_URL } from '@/lib/links';
 import ReactDOM from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { AccountMismatch } from '@/components/onboarding/AccountMismatch';
@@ -18,7 +19,6 @@ import { Button } from '@/components/ui/button';
 import { messagesFor, resolveLocale, type Messages } from '@/lib/i18n';
 import { readPrefs } from '@/lib/prefs';
 import type { Message } from '@/lib/messages';
-import { SIKOLA_ORIGIN } from '@/lib/moodle/limits';
 import { readSession } from '@/lib/moodle/session';
 import { isValidSesskey } from '@/lib/sesskey';
 import { CURRENT_USER_KEY, currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUserIfCurrent } from '@/lib/storage';
@@ -407,7 +407,7 @@ function App() {
           lead={mode === 'switch-account' ? m.onboarding.switchAccount.lead : undefined}
           onOpenSikola={() => {
             setConnect('waiting');
-            void browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
+            void browser.tabs.create({ url: SIKOLA_LOGIN_URL });
           }}
           onRetry={() => void tryConnect('retry')}
         />

@@ -1,4 +1,5 @@
 import { browser } from 'wxt/browser';
+import { SIKOLA_LOGIN_URL } from '@/lib/links';
 import { defineBackground } from 'wxt/utils/define-background';
 import { BADGE_COLORS } from '@/lib/brand';
 import { createBrowserStore } from '@/lib/browser-store';
@@ -239,7 +240,7 @@ export default defineBackground(() => {
     } else if (kind === 'calendar') {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('kalender')) });
     } else if (kind === 'session') {
-      await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/my/` });
+      await browser.tabs.create({ url: SIKOLA_LOGIN_URL });
     }
   };
 
