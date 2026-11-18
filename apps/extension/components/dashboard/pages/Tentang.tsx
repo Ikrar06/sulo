@@ -6,7 +6,7 @@ import { DocLayout } from '@sulo/ui/ui/doc-layout';
 import { SupportButton } from '@sulo/ui/ui/support-button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import { GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '@sulo/ui/dashboard-icons';
-import { Card } from '../Shell';
+import { Card } from '@sulo/ui/card';
 import type { PageProps } from '../types';
 
 const external = { target: '_blank', rel: 'noopener noreferrer' } as const;

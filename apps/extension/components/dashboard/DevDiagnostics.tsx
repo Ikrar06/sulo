@@ -12,7 +12,7 @@ import { DAILY_BUDGET, DAILY_CALL_BUDGET, MANUAL_COOLDOWN_SEC, SOFT_DAILY_POSTS 
 import { coursesDueSoon, pickCoursesToCheck } from '@sulo/core/radar/schedule';
 import type { BackoffState } from '@sulo/core/types';
 import type { DashboardData } from './data';
-import { Card } from './Shell';
+import { Card } from '@sulo/ui/card';
 import { DevNeosia } from './DevNeosia';
 
 export default function DevDiagnostics({ data }: { data: DashboardData }) {

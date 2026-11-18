@@ -24,7 +24,7 @@ import type { CourseRecord } from '@sulo/core/types';
 import { local, timeZone } from '../data';
 import { InfoCircleIcon } from '@sulo/ui/dashboard-icons';
 import { useNeosiaConnect } from '../neosia-connect';
-import { Card } from '../Shell';
+import { Card } from '@sulo/ui/card';
 import type { PageProps } from '../types';
 
 // Weekly class schedule from NEOSIA (M7.1). Wide screens (1100 px and up):

@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { useI18n } from '../../i18n';
+import { Mascot } from '../../mascot/Mascot';
 import { formatDateKey, formatRange } from '@sulo/core/calendar/countdown';
 import type { CalEvent } from '@sulo/core/calendar/groups';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
-import { DateBlock } from './SidePanels';
+import { DateBlock } from './DateBlock';
 
 /** Events by month: date block, name and range, category chip. Past events hide behind a button. */
 export function ListView({ events, today, d }: { events: readonly CalEvent[]; today: string; d: DashMessages }) {

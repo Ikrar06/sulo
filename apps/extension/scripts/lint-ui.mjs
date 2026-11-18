@@ -67,7 +67,10 @@ const TEXT_OK = new Set(['12', '14', '16', '20', '24']);
 const NAMED_TEXT_BAD = /\btext-(?:2xs|lg|3xl|4xl)\b/;
 const SPACING = /(?<![\w-])(?:-)?(p|px|py|pt|pb|pl|pr|ps|pe|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y|space-y|space-x)-(\[[^\]]+\]|[0-9.]+)(?![\w.])/g;
 const STEP_OK = new Set(['0', '1', '2', '3', '4', '6', '8']);
-for (const file of walk(join(root, 'components', 'dashboard'), ['.tsx'])) {
+// The dashboard's type and spacing scale: its own pages, the parts it shares with
+// the Android app (packages/ui/src/dashboard, card.tsx) and the app's screens.
+const scaled = [...walk(join(root, 'components', 'dashboard'), ['.tsx']), ...walk(join(root, '../../packages/ui/src/dashboard'), ['.tsx']), join(root, '../../packages/ui/src/card.tsx')];
+for (const file of scaled) {
   eachLine(file, (text, line) => {
     // A deliberate exception, explained on the same line.
     if (text.includes('lint-ui-allow')) return;

@@ -1,4 +1,4 @@
-import { ClockIcon, ExternalIcon, KeyIcon } from '@sulo/ui/icons';
+import { ClockIcon, ExternalIcon, KeyIcon } from '../icons';
 import { sikolaUrl } from '@sulo/core/links';
 import { formatDue } from '@sulo/core/format/time';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';

@@ -12,7 +12,7 @@ import { LANGUAGE_NAMES, LOCALES, type Locale } from '@sulo/core/i18n';
 import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, type Theme } from '@sulo/core/prefs';
 import { UPDATE_CATEGORIES } from '@sulo/core/radar/settings';
 import { timeZone } from '../data';
-import { Card } from '../Shell';
+import { Card } from '@sulo/ui/card';
 import { BugReport } from '../BugReport';
 import { NeosiaSettings } from '../NeosiaSettings';
 import type { PageProps } from '../types';

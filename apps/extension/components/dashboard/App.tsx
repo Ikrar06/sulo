@@ -9,7 +9,7 @@ import { messagesFor, resolveLocale } from '@sulo/core/i18n';
 import { dashFor } from '@sulo/core/i18n/dashboard';
 import { DashboardProvider, timeZone, useDashboard } from './data';
 import { DashboardShell } from './Shell';
-import { StatusNotice } from './StatusNotice';
+import { StatusNotice } from '@sulo/ui/dashboard/StatusNotice';
 import { useCountdownTicker } from '@/components/countdown-ticker';
 import { ToastProvider } from '@sulo/ui/ui/toast';
 import { refreshFeedback } from '@sulo/core/view/refresh-feedback';

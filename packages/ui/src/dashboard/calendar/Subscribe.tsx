@@ -1,6 +1,6 @@
-import { useToast } from '@sulo/ui/ui/toast';
-import { MoreIcon } from '@sulo/ui/icons';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@sulo/ui/ui/dropdown-menu';
+import { useToast } from '../../ui/toast';
+import { MoreIcon } from '../../icons';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../ui/dropdown-menu';
 import { FEED_IDS, feedUrl } from '@sulo/core/calendar/feeds';
 import { appleUrl, googleSubscribeUrl, outlookSubscribeUrl } from '@sulo/core/calendar/subscribe-links';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';

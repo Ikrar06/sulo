@@ -5,8 +5,11 @@ import { countdownLabel } from '@sulo/core/format/countdown';
 import { countdownOrLate, formatClock } from '@sulo/core/format/time';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { timeZone } from '../data';
-import { Card } from '../Shell';
-import { EventInfo, HolidayInfo } from './EventInfo';
+import { Card } from '@sulo/ui/card';
+import { EventInfo, HolidayInfo } from '@sulo/ui/dashboard/calendar/EventInfo';
+import { DateBlock } from '@sulo/ui/dashboard/calendar/DateBlock';
+
+export { DateBlock };
 
 /** Category dot: the group's color, never the only cue (the category is written next to it). */
 export function CategoryDot({ event }: { event: CalEvent }) {
@@ -67,16 +70,6 @@ export function SelectedDay({ day, events, angkatan, d, countdown = false, now =
   );
 }
 
-/** A small date block: the day large, the month small. */
-export function DateBlock({ day }: { day: string }) {
-  const { m } = useI18n();
-  return (
-    <span aria-hidden="true" className="flex w-10 shrink-0 flex-col items-center rounded-lg border border-border py-1 leading-none">
-      <span className="text-[16px] font-semibold tabular-nums">{Number(day.slice(8))}</span>
-      <span className="mt-1 text-[12px] text-muted-foreground">{formatDateKey(day, m.intl, { month: 'short' })}</span>
-    </span>
-  );
-}
 
 /** "Akan datang": the next five events from today. */
 export function Upcoming({ events, today, d, onSelect }: { events: readonly CalEvent[]; today: string; d: DashMessages; onSelect: (day: string) => void }) {

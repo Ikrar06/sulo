@@ -7,7 +7,7 @@ import { FAQ, HOW_IT_WORKS } from '@sulo/core/help/content';
 import { GUIDE_TITLE } from '@sulo/core/help/guide';
 import { Guide } from '../Guide';
 import { FEEDBACK_FORM_URL, isShownLink } from '@sulo/core/links';
-import { Card } from '../Shell';
+import { Card } from '@sulo/ui/card';
 import type { PageProps } from '../types';
 
 const secondary =

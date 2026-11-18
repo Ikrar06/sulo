@@ -7,7 +7,7 @@ import { browser } from 'wxt/browser';
 import { Button } from '@sulo/ui/ui/button';
 import { ENDPOINTS } from '@sulo/core/neosia/allowlist';
 import { OBSERVED_KEY, observationsMarkdown, type StoredObservation } from '@/lib/dev/neosia-observe';
-import { Card } from './Shell';
+import { Card } from '@sulo/ui/card';
 
 export function DevNeosia({ now }: { now: number }) {
   const [list, setList] = useState<StoredObservation[]>([]);

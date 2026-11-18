@@ -20,7 +20,7 @@ import type { AttendanceStatus, RecapRow, SessionRow } from '@sulo/core/presensi
 import { EMPTY_PRESENSI } from '@sulo/core/presensi/types';
 import type { CourseRecord } from '@sulo/core/types';
 import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
-import { Card } from '../Shell';
+import { Card } from '@sulo/ui/card';
 import type { PageProps } from '../types';
 
 const pct = (v: number, locale: string) => v.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });

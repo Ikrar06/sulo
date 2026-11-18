@@ -19,7 +19,7 @@ import { neosiaStatus, profile } from '@sulo/core/neosia/view';
 import { GpaChart } from '../GpaChart';
 import { yAxisRange } from '@sulo/core/grades/axis';
 import { XIcon } from '@sulo/ui/dashboard-icons';
-import { Card } from '../Shell';
+import { Card } from '@sulo/ui/card';
 import type { PageProps } from '../types';
 
 // Nilai (M7.1, NEOSIA module on only). Grades and GPA are hidden until

@@ -3,9 +3,9 @@
 // page data validated twice; it is rendered as text only, never as HTML.
 
 import { useState, type ComponentType, type SVGProps } from 'react';
-import { useI18n } from '@sulo/ui/i18n';
-import { Private, usePrivacy } from '@sulo/ui/private';
-import { Button } from '@sulo/ui/ui/button';
+import { useI18n } from '../i18n';
+import { Private, usePrivacy } from '../private';
+import { Button } from '../ui/button';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { formatAgo } from '@sulo/core/format/time';
 import { neosiaWords, type NeosiaWords } from '@sulo/core/i18n/neosia';
@@ -13,8 +13,8 @@ import { neosiaUrl } from '@sulo/core/links';
 import { advisorName, profile, type ItemState, type KrsWindow, type ReadinessItem } from '@sulo/core/neosia/view';
 import type { Snapshots } from '@sulo/core/neosia/store';
 import type { Messages } from '@sulo/core/i18n';
-import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon, XIcon } from '@sulo/ui/dashboard-icons';
-import { Card, CardLink } from './Shell';
+import { AlertCircleIcon, CheckCircleIcon, DashCircleIcon, InfoCircleIcon, XIcon } from '../dashboard-icons';
+import { Card, CardLink } from '../card';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { dashFor } from '@sulo/core/i18n/dashboard';
 import type { LinkedMeeting } from '@sulo/core/neosia/linked';

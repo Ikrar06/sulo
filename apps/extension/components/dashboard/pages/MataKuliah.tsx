@@ -10,9 +10,9 @@ import { ALIAS_MAX } from '@sulo/core/courses/edit';
 import { applyCourseEdit, partitionCourses, sikolaName, type CourseEdit } from '@sulo/core/courses/row';
 import type { CourseAccess } from '@sulo/core/storage';
 import type { CourseRecord } from '@sulo/core/types';
-import { ColorSwatches } from '../ColorSwatches';
+import { ColorSwatches } from '@sulo/ui/dashboard/ColorSwatches';
 import { PencilIcon } from '@sulo/ui/dashboard-icons';
-import { Card } from '../Shell';
+import { Card } from '@sulo/ui/card';
 import type { PageProps } from '../types';
 import { NeosiaMapping } from '../NeosiaMapping';
 

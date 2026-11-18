@@ -15,7 +15,7 @@ import { urgencyOf } from '@sulo/core/tasks/group';
 import { timeZone } from '../data';
 import { useDoneUndo } from '../done-undo';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
-import { TaskDetails } from '../TaskDetails';
+import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
 import type { PageProps } from '../types';
 
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];

@@ -16,7 +16,7 @@ import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { completion, overviewNeosiaCard, sourceStatuses, type SourceId } from '@sulo/core/neosia/sources';
 import type { Snapshots } from '@sulo/core/neosia/store';
 import { CheckCircleIcon } from '@sulo/ui/dashboard-icons';
-import { Card } from './Shell';
+import { Card } from '@sulo/ui/card';
 
 /** How long "Data NEOSIA lengkap" stays on the overview. */
 const DONE_MS = 5000;

@@ -11,7 +11,7 @@ import { setCourseLink } from '@sulo/core/neosia/course-map';
 import { distinctCourses, linkedMeetings } from '@sulo/core/neosia/linked';
 import { classMeetings } from '@sulo/core/neosia/view';
 import { local, type DashboardData } from './data';
-import { Card } from './Shell';
+import { Card } from '@sulo/ui/card';
 
 const NONE = 'none';
 
