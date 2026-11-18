@@ -70,6 +70,8 @@ export interface RemoteConfig {
   minIntervalMinutes: number;
   message: string;
   fetchedAt: UnixSeconds;
+  /** The Android app's own section (remote/keep-alive.ts validates it on read); the extension ignores it. */
+  mobile?: unknown;
 }
 
 export type ClientRefusal =

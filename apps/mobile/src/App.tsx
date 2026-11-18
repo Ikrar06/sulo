@@ -18,6 +18,7 @@ import { ToastProvider } from '@sulo/ui/ui/toast';
 import { DevScreen } from './DevScreen';
 import { DEV_EVENT } from './events';
 import { LOCK_KEY, signOutEverything } from './account';
+import { refreshPublicData } from './public-data';
 import { scheduleReminders } from './reminders';
 import { LockScreen, NotifyQuestion, Onboarding } from './screens/Gate';
 import { SuloSession, type SessionStatus } from './session';
@@ -80,6 +81,7 @@ export function App({ platform }: { platform: Platform }) {
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
       await scheduleReminders(platform).catch(() => 0);
+      void refreshPublicData(platform, true);
     })();
     const onDev = () => __SULO_DEV__ && setDev(true);
     window.addEventListener(DEV_EVENT, onDev);
@@ -91,6 +93,7 @@ export function App({ platform }: { platform: Platform }) {
     const onVisible = async () => {
       if (document.visibilityState !== 'visible') return;
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
+      void refreshPublicData(platform, true);
       const s = (await SuloSession.status()).status;
       setStatus(s);
       if (s === 'connected' && resumeNeedsSync(await lastSyncAt(platform), platform.clock.now())) void refresh();

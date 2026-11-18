@@ -17,6 +17,9 @@ export const remoteConfigSchema = z.object({
   enabled: z.boolean(),
   minIntervalMinutes: z.number().int().nonnegative(),
   message: z.string().max(500).default(''),
+  // The phone's section, kept as is and validated field by field on read
+  // (remote/keep-alive.ts): a bad value there never voids the extension's config.
+  mobile: z.unknown().optional(),
 });
 
 export const DEFAULT_REMOTE_CONFIG: RemoteConfig = {
@@ -44,6 +47,8 @@ export interface RefreshDeps {
   url: string;
   /** The installation's fetch hour; undefined: any hour once 24 hours passed. */
   fetchSlotHour?: number;
+  /** Hours since the last read before another (default 24; the phone uses 6 when the app is opened). */
+  minGapHours?: number;
 }
 
 /**
@@ -58,7 +63,7 @@ export async function refreshRemoteConfig(deps: RefreshDeps): Promise<RemoteConf
   if (!scheduler) return current;
 
   const outcome = await fetchPublicJson(
-    { scheduler, store: deps.store, clock: deps.clock, url: deps.url, stateKey: REMOTE_CONFIG_FILE_KEY, fetchSlotHour: deps.fetchSlotHour, trigger: 'remote-config' },
+    { scheduler, store: deps.store, clock: deps.clock, url: deps.url, stateKey: REMOTE_CONFIG_FILE_KEY, fetchSlotHour: deps.fetchSlotHour, minGapHours: deps.minGapHours, trigger: 'remote-config' },
     current.fetchedAt,
   );
   if (outcome.kind === 'not_due') return current;
@@ -70,5 +75,5 @@ export async function refreshRemoteConfig(deps: RefreshDeps): Promise<RemoteConf
 }
 
 function stripFetchedAt(config: RemoteConfig): Omit<RemoteConfig, 'fetchedAt'> {
-  return { enabled: config.enabled, minIntervalMinutes: config.minIntervalMinutes, message: config.message };
+  return { enabled: config.enabled, minIntervalMinutes: config.minIntervalMinutes, message: config.message, ...(config.mobile !== undefined ? { mobile: config.mobile } : {}) };
 }
