@@ -148,8 +148,11 @@ function Hero({ calendar, today, d, w }: { calendar: Parameters<typeof useWeekTe
             {inDays ? (
               <>
                 {inDays[0]}
-                <span className="db-accent-text text-m26 tabular-nums">{inDays[1]}</span>
-                {inDays[2]}
+                {/* The number and its unit never part. */}
+                <span className="whitespace-nowrap">
+                  <span className="db-accent-text text-m26 tabular-nums">{inDays[1]}</span>
+                  {inDays[2]}
+                </span>
               </>
             ) : (
               `${label}: ${c.kind === 'today' ? k.countdown.today : c.kind === 'tomorrow' ? k.countdown.tomorrow : k.countdown.ongoingOpen}`

@@ -20,12 +20,17 @@ type Task = { dueAt: number | null };
 /**
  * ?demo=aman: nothing overdue; ?demo=kosong: no task at all; ?demo=satu: a
  * single task, three hours overdue (worried, then the celebration when it
- * is done).
+ * is done); ?demo=panjang: the hero 59 minutes late, the widest time text.
  * Without it, the demo account as it is (three overdue tasks).
  */
 export function demoVariant(tasks: readonly Task[], now: UnixSeconds, variant: string | null): Task[] {
   if (variant === 'kosong') return [];
   if (variant === 'aman') return tasks.filter((t) => t.dueAt === null || t.dueAt >= now + 86_400);
+  // ?demo=panjang: the widest time text (core formatters, check-countdown-fit.mjs) on the hero, then the rest upcoming.
+  if (variant === 'panjang') {
+    const upcoming = tasks.filter((t) => t.dueAt !== null && t.dueAt > now);
+    return upcoming.length > 0 ? [{ ...upcoming[0]!, dueAt: now - 59 * 60 - 30 }, ...upcoming.slice(1)] : [];
+  }
   if (variant === 'satu') {
     const first = tasks.find((t) => t.dueAt !== null && t.dueAt > now);
     return first ? [{ ...first, dueAt: now - 3 * 3600 }] : [];

@@ -20,6 +20,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { CalendarPlusIcon, ExternalIcon } from '@sulo/ui/icons';
 import { Card, Chip } from '@sulo/ui/mobile/cards';
 import { CheckCircle, IconButton, PillButton } from '@sulo/ui/mobile/controls';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { Sheet } from '@sulo/ui/mobile/sheet';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
@@ -61,7 +62,9 @@ export function TaskScreen({ eventId }: { eventId: number }) {
       <Card>
         <Chip color={courseTint(item.courseColor)}>{item.courseName}</Chip>
         <h2 className={`mt-3 text-m18 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{item.task.name}</h2>
-        <p className={`mt-3 text-m22 tabular-nums ${tone}`}>{lines === null ? t.noDue : lines.primary}</p>
+        <FitLine size="text-m22" text={lines === null ? t.noDue : lines.primary} className={`mt-3 font-semibold tabular-nums ${tone}`}>
+          {lines === null ? t.noDue : lines.primary}
+        </FitLine>
         {lines?.secondary && <p className="text-m13 text-muted-foreground tabular-nums">{lines.secondary}</p>}
         {snoozed && <p className="mt-2 text-m13 text-muted-foreground">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
       </Card>

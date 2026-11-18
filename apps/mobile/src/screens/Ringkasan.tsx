@@ -6,7 +6,7 @@
 // carousel, "Akademik" (calendar and attendance) and the next 7 days. All
 // numbers come from @sulo/core; classes and GPA come with NEOSIA in M8d.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { countdownOf } from '@sulo/core/calendar/countdown';
 import { nextImportant, SHORT_LABEL_KATEGORI } from '@sulo/core/calendar/upcoming';
 import { weekBars } from '@sulo/core/dashboard/week-bars';
@@ -24,6 +24,7 @@ import { useWeekText, WeekBar } from '@sulo/ui/dashboard/CalendarParts';
 import { useI18n } from '@sulo/ui/i18n';
 import { Card, Chip, SectionHead, StatCard } from '@sulo/ui/mobile/cards';
 import { CheckCircle } from '@sulo/ui/mobile/controls';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Private } from '@sulo/ui/private';
 import { REFRESHED_EVENT } from '../events';
@@ -67,6 +68,11 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   const upcoming = dated.filter((i) => i !== hero && i.task.dueAt! >= now).slice(0, CAROUSEL_MAX);
   const bars = useMemo(() => weekBars(pending.map((i) => i.task), calendar.kegiatan, now, timeZone), [pending, calendar, now]);
   const { setDate } = useTaskDate();
+  // The carousel opens on its first card, 16 px from the edge (snapping never starts it mid-card).
+  const carousel = useRef<HTMLUListElement>(null);
+  useLayoutEffect(() => {
+    if (carousel.current) carousel.current.scrollLeft = 0;
+  }, []);
   const attendance = useMemo(() => attendanceSummary(user.presensi?.recap?.rows, user.courses), [user.presensi, user.courses]);
   const next = nextImportant(calendar, today);
   const c = next ? countdownOf(next.kegiatan, today) : null;
@@ -126,13 +132,14 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
 
         {hero ? (
           <Card hero onPress={() => go({ name: 'tugas', detail: String(hero.task.eventId) })} label={`${w.app.nearest}: ${hero.task.name}`}>
+            {/* Chip, title (two lines), the time left across the card on one line, then the date with the actions. */}
             <Chip color={courseTint(hero.courseColor)}>{hero.courseName}</Chip>
-            <p className={`mt-3 line-clamp-2 text-m18 ${hero.status === 'done' ? 'text-muted-foreground line-through' : ''}`}>{hero.task.name}</p>
-            <div className="mt-3 flex items-end justify-between gap-3">
-              <div className="min-w-0">
-                <p className={`text-m22 tabular-nums ${heroTone}`}>{left(hero)}</p>
-                {heroDue !== null && <p className="text-m13 text-muted-foreground tabular-nums">{taskDueLines(heroDue, now, timeZone, m, locale, 'both').secondary}</p>}
-              </div>
+            <p className={`mt-2 line-clamp-2 text-m18 ${hero.status === 'done' ? 'text-muted-foreground line-through' : ''}`}>{hero.task.name}</p>
+            <FitLine size="text-m22" text={left(hero)} className={`mt-3 font-semibold tabular-nums ${heroTone}`}>
+              {left(hero)}
+            </FitLine>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="min-w-0 truncate text-m13 text-muted-foreground tabular-nums">{heroDue !== null ? taskDueLines(heroDue, now, timeZone, m, locale, 'both').secondary : d.tugas.noDue}</p>
               <span className="flex shrink-0 items-center gap-2">
                 <CheckCircle checked={hero.status === 'done'} onChange={(v) => (v ? markDone(hero) : done.unmark(hero.task.eventId))} label={`${hero.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${hero.task.name}`} />
                 {/* The whole card opens the task; this is its visible label (no second button inside). */}
@@ -162,18 +169,22 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
             <p className="text-m13 text-muted-foreground">{w.app.noUpcoming}</p>
           </Card>
         ) : (
-          <ul className="m-carousel -mx-4 flex items-stretch gap-3 overflow-x-auto px-4 pb-1">
+          <ul ref={carousel} className="m-carousel -mx-4 flex items-stretch gap-3 overflow-x-auto px-4 pb-1">
             {upcoming.map((i) => {
               const isDone = i.status === 'done';
               return (
                 <li key={i.task.eventId} className="flex w-[240px] shrink-0">
                   <Card dense className="flex-1" inner="flex h-full flex-col" onPress={() => go({ name: 'tugas', detail: String(i.task.eventId) })} label={i.task.name}>
-                    <Chip small color={courseTint(i.courseColor)}>
-                      {i.courseName}
-                    </Chip>
-                    <p className={`mt-1 line-clamp-2 text-m15 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{i.task.name}</p>
-                    <div className="mt-auto -mb-1 flex items-center justify-between gap-3 pt-1">
-                      <span className={`text-m12 tabular-nums ${isDone ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(i.task.dueAt, now)]}`}>{left(i)}</span>
+                    {/* The chip as wide as its name (ellipsis at the card's width), not stretched. */}
+                    <span className="flex min-w-0">
+                      <Chip small color={courseTint(i.courseColor)}>
+                        {i.courseName}
+                      </Chip>
+                    </span>
+                    <p className={`mt-2 line-clamp-2 text-m15 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{i.task.name}</p>
+                    {/* Equal heights add room only above the footer: one title line at most (titles are two lines at most). */}
+                    <div className="mt-auto flex items-center justify-between gap-3 pt-3">
+                      <span className={`min-w-0 truncate text-m12 whitespace-nowrap tabular-nums ${isDone ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(i.task.dueAt, now)]}`}>{left(i)}</span>
                       <CheckCircle checked={isDone} onChange={(v) => (v ? markDone(i) : done.unmark(i.task.eventId))} label={`${isDone ? d.tugas.markUndone : d.tugas.markDone}: ${i.task.name}`} />
                     </div>
                   </Card>
@@ -193,7 +204,7 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
               <>
                 <p className="mt-1 line-clamp-2 text-m15">{next.kegiatan.judul}</p>
                 <p className="text-m13">
-                  {c.kind === 'days' ? <span className="db-accent-text font-medium tabular-nums">{w.app.daysLeft(c.n)}</span> : c.kind === 'today' ? k.countdown.today : c.kind === 'tomorrow' ? k.countdown.tomorrow : k.countdown.ongoingOpen}
+                  {c.kind === 'days' ? <span className="db-accent-text font-medium whitespace-nowrap tabular-nums">{w.app.daysLeft(c.n)}</span> : c.kind === 'today' ? k.countdown.today : c.kind === 'tomorrow' ? k.countdown.tomorrow : k.countdown.ongoingOpen}
                 </p>
               </>
             ) : (
