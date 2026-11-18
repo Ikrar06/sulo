@@ -1,51 +1,63 @@
-// The Android app's screens in M8b: onboarding, "Terhubung" (or a calm
-// "sesi habis" line), the optional app lock and a hidden debug screen.
-// Data screens come in M8c.
+// The Android app's gate: the optional app lock, sign-in, the one-time
+// notification question at the end of setup, then the data screens
+// (shell/AppShell). Syncs happen only when the user acts: after signing in,
+// on opening the app with data older than 15 minutes, pull to refresh and
+// Perbarui; each is the user's own activity (nosessionupdate=false). An
+// ended session keeps the data on screen with one calm line.
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { formatAgo } from '@sulo/core/format/time';
-import { messagesFor, resolveLocale, type Locale } from '@sulo/core/i18n';
-import { mobileWords } from '@sulo/core/i18n/mobile';
+import { useCallback, useEffect, useState } from 'react';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { resolveLocale, type Locale } from '@sulo/core/i18n';
+import { mobileWords, type MobileWords } from '@sulo/core/i18n/mobile';
 import { readPrefs } from '@sulo/core/prefs';
 import type { Platform } from '@sulo/core/platform';
 import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
+import { I18nProvider } from '@sulo/ui/i18n';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { PrivacyProvider } from '@sulo/ui/private';
+import { ToastProvider } from '@sulo/ui/ui/toast';
 import { DevScreen } from './DevScreen';
+import { DEV_EVENT } from './events';
+import { LOCK_KEY, signOutEverything } from './account';
 import { scheduleReminders } from './reminders';
+import { primaryButton, secondaryButton } from './screens/ui';
 import { SuloSession, type SessionStatus } from './session';
+import { AppShell } from './shell/AppShell';
+import { MobileDataProvider, useMobileData } from './shell/data';
 import { lastSyncAt, resumeNeedsSync, syncAfterLogin, syncNow } from './sync';
 
-export const LOCK_KEY = 'mobile:lockEnabled';
+/** Set once the notification question was answered (either way). */
+export const NOTIFY_ASKED_KEY = 'mobile:notifyAsked';
 
-const button = 'inline-flex h-11 items-center justify-center rounded-lg px-4 text-[16px] font-medium outline-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-focus';
-const primary = `${button} bg-primary text-primary-foreground`;
-const secondary = `${button} border border-border bg-surface`;
+export function outcomeNote(o: SyncOutcome, w: MobileWords): string {
+  if (o.status === 'ok' || o.status === 'session_expired') return '';
+  if (o.status === 'skipped' && o.reason === 'FRESH') return w.connected.upToDate;
+  if (o.status === 'offline') return w.app.offline;
+  return w.connected.failed;
+}
 
 export function App({ platform }: { platform: Platform }) {
   const [locale, setLocale] = useState<Locale>('id');
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [locked, setLocked] = useState(false);
+  const [askNotify, setAskNotify] = useState(false);
   const [last, setLast] = useState<UnixSeconds | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [dev, setDev] = useState(false);
   const w = mobileWords(locale);
-  const m = useMemo(() => messagesFor(locale), [locale]);
 
   const refreshState = useCallback(async () => {
     setStatus((await SuloSession.status()).status);
     setLast(await lastSyncAt(platform));
   }, [platform]);
 
-  const explain = (o: SyncOutcome) => (o.status === 'ok' ? '' : o.status === 'skipped' && o.reason === 'FRESH' ? w.connected.upToDate : o.status === 'offline' ? w.connected.offline : o.status === 'session_expired' ? '' : w.connected.failed);
-
   const sync = useCallback(
-    async (after: () => Promise<SyncOutcome>) => {
+    async (run: () => Promise<SyncOutcome>) => {
       setBusy(true);
       setNote('');
       try {
-        const outcome = await after();
-        setNote(explain(outcome));
+        setNote(outcomeNote(await run(), w));
         await scheduleReminders(platform).catch(() => 0);
       } catch {
         setNote(w.connected.failed);
@@ -54,11 +66,11 @@ export function App({ platform }: { platform: Platform }) {
         setBusy(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [platform, refreshState, locale],
+    [platform, refreshState, w],
   );
+  const refresh = useCallback(() => void sync(() => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__ })), [platform, sync]);
 
-  // Start: language, lock, state, and the reminders from the data already here.
+  // Start: language, lock, state, and reminders from the data already here.
   useEffect(() => {
     void (async () => {
       setLocale(resolveLocale((await readPrefs(platform.store)).locale, navigator.language));
@@ -66,6 +78,9 @@ export function App({ platform }: { platform: Platform }) {
       await refreshState();
       await scheduleReminders(platform).catch(() => 0);
     })();
+    const onDev = () => __SULO_DEV__ && setDev(true);
+    window.addEventListener(DEV_EVENT, onDev);
+    return () => window.removeEventListener(DEV_EVENT, onDev);
   }, [platform, refreshState]);
 
   // Back in the foreground: lock again if on, and sync when the data is older than 15 minutes.
@@ -75,11 +90,11 @@ export function App({ platform }: { platform: Platform }) {
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       const s = (await SuloSession.status()).status;
       setStatus(s);
-      if (s === 'connected' && resumeNeedsSync(await lastSyncAt(platform), platform.clock.now())) await sync(() => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__ }));
+      if (s === 'connected' && resumeNeedsSync(await lastSyncAt(platform), platform.clock.now())) refresh();
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [platform, sync]);
+  }, [platform, refresh]);
 
   const signIn = async () => {
     const r = await SuloSession.login();
@@ -88,45 +103,70 @@ export function App({ platform }: { platform: Platform }) {
       return;
     }
     await sync(() => syncAfterLogin(platform, __SULO_DEV__));
+    // The end of setup: ask about notifications once, after the data is here.
+    if ((await platform.store.get<boolean>(NOTIFY_ASKED_KEY)) !== true && (await LocalNotifications.checkPermissions()).display !== 'granted') setAskNotify(true);
   };
 
   if (status === null) return null;
-  if (locked)
-    return (
-      <LockScreen
-        w={w}
-        onUnlocked={() => setLocked(false)}
-        onSignOut={async () => {
-          await signOutEverything(platform);
-          setLocked(false);
-          await refreshState();
-        }}
-      />
-    );
-  if (dev && __SULO_DEV__) return <DevScreen platform={platform} w={w} onBack={() => setDev(false)} />;
-  if (status === 'none') return <Onboarding w={w} note={note} busy={busy} onSignIn={signIn} />;
   return (
-    <Connected
-      w={w}
-      expired={status === 'expired'}
-      updated={last === null ? w.connected.never : w.connected.updated(formatAgo(last, platform.clock.now(), m))}
-      busy={busy}
-      note={note}
-      platform={platform}
-      onRefresh={() => sync(() => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__ }))}
-      onSignIn={signIn}
-      onSignedOut={async () => {
-        setNote('');
-        await refreshState();
-      }}
-      onDev={() => setDev(true)}
-    />
+    <I18nProvider locale={locale}>
+      {locked ? (
+        <LockScreen
+          w={w}
+          onUnlocked={() => setLocked(false)}
+          onSignOut={async () => {
+            await signOutEverything(platform);
+            setLocked(false);
+            await refreshState();
+          }}
+        />
+      ) : dev && __SULO_DEV__ ? (
+        <DevScreen platform={platform} w={w} onBack={() => setDev(false)} />
+      ) : status === 'none' ? (
+        <Onboarding w={w} note={note} busy={busy} onSignIn={() => void signIn()} />
+      ) : askNotify ? (
+        <NotifyQuestion
+          w={w}
+          onDone={async (allow) => {
+            if (allow) await LocalNotifications.requestPermissions().catch(() => null);
+            await platform.store.set(NOTIFY_ASKED_KEY, true);
+            setAskNotify(false);
+            await scheduleReminders(platform).catch(() => 0);
+          }}
+        />
+      ) : (
+        <MobileDataProvider platform={platform}>
+          <Shell
+            expired={status === 'expired'}
+            busy={busy}
+            note={note}
+            lastSyncAt={last}
+            onRefresh={refresh}
+            onSignIn={() => void signIn()}
+            onSignedOut={async () => {
+              setNote('');
+              await refreshState();
+            }}
+          />
+        </MobileDataProvider>
+      )}
+    </I18nProvider>
   );
 }
 
-type W = ReturnType<typeof mobileWords>;
+/** Privacy mode and the toast sit inside the data provider (they read settings). */
+function Shell(props: Parameters<typeof AppShell>[0]) {
+  const { data } = useMobileData();
+  return (
+    <PrivacyProvider value={data?.prefs.privacyMode ?? false}>
+      <ToastProvider viewportClassName="bottom-[calc(80px+env(safe-area-inset-bottom))]">
+        <AppShell {...props} />
+      </ToastProvider>
+    </PrivacyProvider>
+  );
+}
 
-function Onboarding({ w, note, busy, onSignIn }: { w: W; note: string; busy: boolean; onSignIn: () => void }) {
+function Onboarding({ w, note, busy, onSignIn }: { w: MobileWords; note: string; busy: boolean; onSignIn: () => void }) {
   return (
     <main className="mx-auto flex min-h-full max-w-md flex-col gap-6 px-4 py-8">
       <div className="flex flex-col items-center gap-3 text-center">
@@ -143,7 +183,7 @@ function Onboarding({ w, note, busy, onSignIn }: { w: W; note: string; busy: boo
         </ul>
       </section>
       <div className="mt-auto flex flex-col gap-3">
-        <button type="button" className={primary} disabled={busy} onClick={onSignIn}>
+        <button type="button" className={primaryButton} disabled={busy} onClick={onSignIn}>
           {w.onboarding.signIn}
         </button>
         {note && <p className="text-center text-[14px] text-muted-foreground">{note}</p>}
@@ -153,125 +193,26 @@ function Onboarding({ w, note, busy, onSignIn }: { w: W; note: string; busy: boo
   );
 }
 
-function Connected(props: {
-  w: W;
-  expired: boolean;
-  updated: string;
-  busy: boolean;
-  note: string;
-  platform: Platform;
-  onRefresh: () => void;
-  onSignIn: () => void;
-  onSignedOut: () => void;
-  onDev: () => void;
-}) {
-  const { w, expired, busy, platform } = props;
-  const [confirm, setConfirm] = useState(false);
-  const [lock, setLock] = useState(false);
-  const [lockAvailable, setLockAvailable] = useState(false);
-  const [taps, setTaps] = useState(0);
-  useEffect(() => {
-    void platform.store.get<boolean>(LOCK_KEY).then((v) => setLock(v === true));
-    void SuloSession.lockAvailable().then((r) => setLockAvailable(r.available));
-  }, [platform]);
-
-  const signOut = async () => {
-    await signOutEverything(platform);
-    setConfirm(false);
-    props.onSignedOut();
-  };
-
-  const toggleLock = async () => {
-    if (!lock && !(await SuloSession.unlock()).unlocked) return;
-    await platform.store.set(LOCK_KEY, !lock);
-    setLock(!lock);
-  };
-
+/** Before Android's own dialog: what the notifications are for, and that they stay on the phone. */
+function NotifyQuestion({ w, onDone }: { w: MobileWords; onDone: (allow: boolean) => void }) {
   return (
-    <main className="mx-auto flex min-h-full max-w-md flex-col gap-4 px-4 py-6">
-      <header>
-        <h1 className="text-[20px] leading-7 font-semibold">{expired ? w.connected.expiredTitle : w.connected.title}</h1>
-        <p className="mt-1 text-[14px] text-muted-foreground">{props.updated}</p>
-      </header>
-
-      {/* Expired: one calm line and one button, the data stays. */}
-      {expired ? (
-        <p className="flex items-center gap-3 text-[14px]" role="status">
-          <span className="min-w-0 flex-1">{w.connected.expiredLine}</span>
-          <button type="button" className={primary} disabled={busy} onClick={props.onSignIn}>
-            {w.connected.signInAgain}
-          </button>
-        </p>
-      ) : (
-        <button type="button" className={secondary} disabled={busy} onClick={props.onRefresh}>
-          {busy ? w.connected.refreshing : w.connected.refresh}
+    <main className="mx-auto flex min-h-full max-w-md flex-col items-center justify-center gap-4 px-4 py-8 text-center">
+      <Mascot state="idle" size={72} />
+      <h1 className="text-[20px] leading-7 font-semibold">{w.notify.title}</h1>
+      <p className="text-[14px] text-muted-foreground">{w.notify.body}</p>
+      <div className="mt-2 flex w-full flex-col gap-2">
+        <button type="button" className={primaryButton} onClick={() => onDone(true)}>
+          {w.notify.allow}
         </button>
-      )}
-      {props.note && <p className="text-[14px] text-muted-foreground">{props.note}</p>}
-
-      <p className="rounded-xl border border-border bg-surface p-4 text-[14px] text-muted-foreground">{w.connected.dataSoon}</p>
-
-      <section className="rounded-xl border border-border bg-surface p-4">
-        <label className="flex items-center gap-3">
-          <span className="min-w-0 flex-1">
-            <span className="block text-[16px] font-medium">{w.connected.lock}</span>
-            <span className="block text-[12px] text-muted-foreground">{lockAvailable ? w.connected.lockHelp : w.connected.lockUnavailable}</span>
-          </span>
-          <input type="checkbox" role="switch" className="size-5" checked={lock} disabled={!lockAvailable} onChange={() => void toggleLock()} />
-        </label>
-      </section>
-
-      <div className="mt-auto flex flex-col gap-3">
-        {confirm ? (
-          <section className="rounded-xl border border-border bg-surface p-4" role="alertdialog" aria-labelledby="signout-title">
-            <h2 id="signout-title" className="text-[16px] font-semibold">
-              {w.connected.signOutTitle}
-            </h2>
-            <p className="mt-1 text-[14px] text-muted-foreground">{w.connected.signOutBody}</p>
-            <div className="mt-3 flex gap-2">
-              <button type="button" className={secondary} onClick={() => setConfirm(false)}>
-                {w.connected.cancel}
-              </button>
-              <button type="button" className={`${button} border border-urgency-overdue text-urgency-overdue`} onClick={() => void signOut()}>
-                {w.connected.signOut}
-              </button>
-            </div>
-          </section>
-        ) : (
-          <button type="button" className={secondary} onClick={() => setConfirm(true)}>
-            {w.connected.signOut}
-          </button>
-        )}
-        {/* Debug builds: seven taps on the version open the session-age screen. */}
-        <button
-          type="button"
-          className="text-center text-[12px] text-muted-foreground"
-          onClick={() => {
-            const n = taps + 1;
-            setTaps(n);
-            if (n >= 7 && __SULO_DEV__) {
-              setTaps(0);
-              props.onDev();
-            }
-          }}
-        >
-          Sulo {__SULO_VERSION__} · {w.unofficial}
+        <button type="button" className={secondaryButton} onClick={() => onDone(false)}>
+          {w.notify.later}
         </button>
       </div>
     </main>
   );
 }
 
-/** "Keluar": the native session and Keystore key, every Sulo key here, every scheduled reminder. */
-async function signOutEverything(platform: Platform) {
-  await SuloSession.logout();
-  await platform.store.remove(await platform.store.keys(''));
-  const { LocalNotifications } = await import('@capacitor/local-notifications');
-  const pending = await LocalNotifications.getPending();
-  if (pending.notifications.length > 0) await LocalNotifications.cancel({ notifications: pending.notifications.map((n) => ({ id: n.id })) });
-}
-
-function LockScreen({ w, onUnlocked, onSignOut }: { w: W; onUnlocked: () => void; onSignOut: () => void }) {
+function LockScreen({ w, onUnlocked, onSignOut }: { w: MobileWords; onUnlocked: () => void; onSignOut: () => void }) {
   const [noDeviceLock, setNoDeviceLock] = useState(false);
   const open = async () => {
     const r = await SuloSession.unlock();
@@ -288,14 +229,15 @@ function LockScreen({ w, onUnlocked, onSignOut }: { w: W; onUnlocked: () => void
       <Mascot state="sleepy" size={72} />
       <h1 className="text-[20px] font-semibold">{w.lock.title}</h1>
       {noDeviceLock && <p className="max-w-sm text-center text-[14px] text-muted-foreground">{w.lock.noDeviceLock}</p>}
-      <button type="button" className={primary} onClick={() => void open()}>
+      <button type="button" className={primaryButton} onClick={() => void open()}>
         {w.lock.open}
       </button>
       {noDeviceLock && (
-        <button type="button" className={secondary} onClick={onSignOut}>
+        <button type="button" className={secondaryButton} onClick={onSignOut}>
           {w.lock.signOut}
         </button>
       )}
     </main>
   );
 }
+

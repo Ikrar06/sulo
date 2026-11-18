@@ -1,12 +1,43 @@
 @import "tailwindcss";
-/* The same tokens as the extension: color, type, radius, fonts. */
+/* The same tokens as the extension: color, type, radius, fonts, the focus
+   variants. Then the dashboard's own visual classes (load map, calendar
+   categories, accent text, collapse), so both apps share one source. */
 @import "../../extension/assets/tokens.css";
+@import "../../extension/components/dashboard/dashboard.css";
 @source "./";
+@source "../../../packages/ui/src";
+@source "../../../packages/core/src";
 
 html, body, #root { height: 100%; }
 body {
   background: var(--bg);
   color: var(--text);
-  /* Clear of the status and gesture bars (edge-to-edge on Android 15+). */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* Clear of the status bar and notch (edge-to-edge on Android 15+); the
+     tab bar adds the gesture bar's inset itself. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The dashboard's variables (category colors, accent text) without its
+   desktop grid: the app's root is a column. */
+.db-layout.m-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+/* Touch targets of at least 44 px for the shared controls on a phone. */
+.m-touch [data-slot="button"],
+.m-touch [data-slot="input"],
+.m-touch [data-slot="select-trigger"],
+.m-touch [data-slot="task-action"] {
+  min-height: 44px;
+}
+.m-touch [data-slot="select-item"] {
+  min-height: 44px;
+}
+/* A checkbox's whole row is the target (reminder stages, update kinds). */
+.m-touch label:has([data-slot="checkbox"]) {
+  min-height: 44px;
 }
