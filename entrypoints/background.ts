@@ -43,13 +43,14 @@ import { browserModuleDeps } from '@/lib/neosia/browser-deps';
 import { disableModule, enableModule, reconcileModule } from '@/lib/neosia/module';
 import { NEOSIA_APP_ORIGIN } from '@/lib/neosia/allowlist';
 import { ingestCapture } from '@/lib/neosia/store';
+import { recordGrades } from '@/lib/neosia/grades';
 import { buildPopupView } from '@/lib/view/popup-view';
 
 const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
 const NOTIFY_ALARM = 'notify';
 /** Storage changes that can move the next reminder. Not notified or stats (written by the cycle itself). */
-const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser|accountPending|calendar))$/;
+const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs|session|currentUser|accountPending|calendar|neosia)|neosia:snap:checkJadwalBelanjaKRS)$/;
 /** The popup opens on this panel once (a click on an update summary). */
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
@@ -109,7 +110,12 @@ export default defineBackground(() => {
   };
   /** One projected NEOSIA response from the bridge: validated again, stored, compared. */
   const onNeosiaCapture = (raw: unknown) => {
-    neosiaQueue = neosiaQueue.then(() => ingestCapture(local, clock.now(), raw)).catch(() => undefined);
+    neosiaQueue = neosiaQueue
+      .then(async () => {
+        const result = await ingestCapture(local, clock.now(), raw);
+        await recordGrades(local, clock.now(), result);
+      })
+      .catch(() => undefined);
   };
 
   // ---------- Badge ----------
@@ -223,6 +229,8 @@ export default defineBackground(() => {
       } catch {
         await browser.tabs.create({ url: `${SIKOLA_ORIGIN}/calendar/view.php?view=upcoming` });
       }
+    } else if (kind === 'krs') {
+      await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     } else if (kind === 'calendar') {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('kalender')) });
     } else if (kind === 'session') {

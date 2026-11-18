@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { addDays } from './dates.ts';
 import type { CalendarFile, Kategori, Kegiatan, Libur } from './schema.ts';
 
-export const CALENDAR_GROUPS = ['akademik', 'ujian', 'administrasi', 'libur', 'wisuda', 'tugas', 'penerimaan'] as const;
+export const CALENDAR_GROUPS = ['akademik', 'ujian', 'administrasi', 'libur', 'wisuda', 'tugas', 'kuliah', 'penerimaan'] as const;
 export type CalendarGroup = (typeof CALENDAR_GROUPS)[number];
 
 /** Every category in the data belongs to exactly one group (and so one color). */
@@ -39,8 +39,11 @@ export const STATUS_PERIOD_KATEGORI: ReadonlySet<Kategori> = new Set(['libur', '
 
 export type GroupFilter = Record<CalendarGroup, boolean>;
 
-/** Everything on except admissions, which matter to applicants only. */
-export const DEFAULT_GROUP_FILTER: GroupFilter = { akademik: true, ujian: true, administrasi: true, libur: true, wisuda: true, tugas: true, penerimaan: false };
+/**
+ * Everything on except admissions, which matter to applicants only, and
+ * classes (NEOSIA, M7), which would fill every weekday of the month grid.
+ */
+export const DEFAULT_GROUP_FILTER: GroupFilter = { akademik: true, ujian: true, administrasi: true, libur: true, wisuda: true, tugas: true, kuliah: false, penerimaan: false };
 
 export const groupFilterSchema = z
   .object(Object.fromEntries(CALENDAR_GROUPS.map((g) => [g, z.boolean().catch(DEFAULT_GROUP_FILTER[g])])) as Record<CalendarGroup, z.ZodCatch<z.ZodBoolean>>)
@@ -55,7 +58,24 @@ export interface CalEvent {
   end: string;
   /** Status periods are tints, not bars. */
   period: boolean;
-  source: { type: 'kegiatan'; kegiatan: Kegiatan } | { type: 'libur'; libur: Libur } | { type: 'tugas'; eventId: number; courseName: string; courseColor: number; dueAt: number };
+  source:
+    | { type: 'kegiatan'; kegiatan: Kegiatan }
+    | { type: 'libur'; libur: Libur }
+    | { type: 'tugas'; eventId: number; courseName: string; courseColor: number; dueAt: number }
+    /** A class meeting from the NEOSIA schedule (M7); `holiday` names the holiday it falls on. */
+    | { type: 'kuliah'; courseName: string; courseColor: number | null; start: string; end: string; room: string | null; holiday: string | null };
+}
+
+/** One class meeting on one day (lib/neosia/schedule.ts occurrences, with the linked course). */
+export interface ClassForCalendar {
+  id: string;
+  dateKey: string;
+  name: string;
+  courseColor: number | null;
+  start: string;
+  end: string;
+  room: string | null;
+  holiday: string | null;
 }
 
 export interface TaskForCalendar {
@@ -72,7 +92,7 @@ export interface TaskForCalendar {
  * estimates are left out of the grid (they would span whole months); the
  * list asks for them. An open end lasts one day.
  */
-export function calendarEvents(file: CalendarFile, tasks: readonly TaskForCalendar[], filter: GroupFilter, options: { estimates?: boolean } = {}): CalEvent[] {
+export function calendarEvents(file: CalendarFile, tasks: readonly TaskForCalendar[], filter: GroupFilter, options: { estimates?: boolean; classes?: readonly ClassForCalendar[] } = {}): CalEvent[] {
   const events: CalEvent[] = file.kegiatan
     .filter((k) => (options.estimates || !k.perkiraan) && filter[GROUP_OF_KATEGORI[k.kategori]] && (k.audiens !== 'calon_mahasiswa' || filter.penerimaan))
     .map((k) => ({ id: k.id, group: GROUP_OF_KATEGORI[k.kategori], title: k.judul, start: k.mulai, end: k.selesai ?? k.mulai, period: STATUS_PERIOD_KATEGORI.has(k.kategori), source: { type: 'kegiatan', kegiatan: k } }));
@@ -80,20 +100,24 @@ export function calendarEvents(file: CalendarFile, tasks: readonly TaskForCalend
   const due: CalEvent[] = filter.tugas
     ? tasks.map((t) => ({ id: `tugas-${t.eventId}`, group: 'tugas', title: t.name, start: t.dateKey, end: t.dateKey, period: false, source: { type: 'tugas', eventId: t.eventId, courseName: t.courseName, courseColor: t.courseColor, dueAt: t.dueAt } }))
     : [];
-  return [...holidays, ...events, ...due];
+  const classes: CalEvent[] = filter.kuliah
+    ? (options.classes ?? []).map((c) => ({ id: c.id, group: 'kuliah', title: `${c.start} ${c.name}`, start: c.dateKey, end: c.dateKey, period: false, source: { type: 'kuliah', courseName: c.name, courseColor: c.courseColor, start: c.start, end: c.end, room: c.room, holiday: c.holiday } }))
+    : [];
+  return [...holidays, ...events, ...due, ...classes];
 }
 
 /** Events on one day, holidays first, then academic events, then tasks by due time. */
 export function eventsOnDay(events: readonly CalEvent[], day: string): CalEvent[] {
-  const rank = (e: CalEvent) => (e.source.type === 'libur' ? 0 : e.source.type === 'kegiatan' ? 1 : 2);
+  const rank = (e: CalEvent) => (e.source.type === 'libur' ? 0 : e.source.type === 'kegiatan' ? 1 : e.source.type === 'kuliah' ? 2 : 3);
   const due = (e: CalEvent) => (e.source.type === 'tugas' ? e.source.dueAt : 0);
-  return events.filter((e) => e.start <= day && day <= e.end).sort((a, b) => rank(a) - rank(b) || due(a) - due(b) || a.start.localeCompare(b.start));
+  const time = (e: CalEvent) => (e.source.type === 'kuliah' ? e.source.start : '');
+  return events.filter((e) => e.start <= day && day <= e.end).sort((a, b) => rank(a) - rank(b) || due(a) - due(b) || time(a).localeCompare(time(b)) || a.start.localeCompare(b.start));
 }
 
-/** The next `n` events starting today or later (tasks left out), nearest first. */
+/** The next `n` events starting today or later (tasks and classes left out), nearest first. */
 export function upcomingEvents(events: readonly CalEvent[], today: string, n = 5): CalEvent[] {
   return events
-    .filter((e) => e.source.type !== 'tugas' && e.start >= today)
+    .filter((e) => e.source.type !== 'tugas' && e.source.type !== 'kuliah' && e.start >= today)
     .sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end) || a.id.localeCompare(b.id))
     .slice(0, n);
 }

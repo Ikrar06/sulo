@@ -11,6 +11,7 @@ import { EventInfo, HolidayInfo } from './EventInfo';
 /** Category dot: the group's color, never the only cue (the category is written next to it). */
 export function CategoryDot({ event }: { event: CalEvent }) {
   if (event.source.type === 'tugas') return <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: `var(--course-${event.source.courseColor})` }} />;
+  if (event.source.type === 'kuliah' && event.source.courseColor !== null) return <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: `var(--course-${event.source.courseColor})` }} />;
   return <span aria-hidden="true" className={`db-cat-${event.group} db-cat-dot mt-2 size-2 shrink-0 rounded-full`} />;
 }
 
@@ -32,6 +33,16 @@ export function SelectedDay({ day, events, angkatan, d, countdown = false, now =
                   <EventInfo k={e.source.kegiatan} d={d} angkatan={angkatan} />
                 ) : e.source.type === 'libur' ? (
                   <HolidayInfo l={e.source.libur} d={d} />
+                ) : e.source.type === 'kuliah' ? (
+                  // A class on a holiday stays visible, dimmed, with the holiday's name.
+                  <div className={e.source.holiday ? 'opacity-60' : ''}>
+                    <p className="text-[14px] font-semibold">{e.source.courseName}</p>
+                    <p className="text-[12px] text-muted-foreground">
+                      {e.source.start}–{e.source.end}
+                      {e.source.room ? ` · ${e.source.room}` : ''}
+                      {e.source.holiday ? ` · ${d.kalender.groups.libur}: ${e.source.holiday}` : ''}
+                    </p>
+                  </div>
                 ) : (
                   <div>
                     <p className="text-[14px] font-semibold">{e.title}</p>

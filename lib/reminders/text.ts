@@ -10,7 +10,7 @@ import { dueShift, isMovedEarlier } from '../radar/describe';
 import { categoryOf, type UpdateCategory } from '../radar/settings';
 import type { ChangeLogEntry, CourseId } from '../types';
 import type { Notice } from './plan';
-import { formatRange } from '../calendar/countdown';
+import { formatDateKey, formatRange } from '../calendar/countdown';
 
 export type NotifyIcon = 'idle' | 'urgent' | 'sleepy' | 'happy';
 
@@ -76,6 +76,10 @@ export function noticeView(
       return changesView(notice.entries, ctx.courseNameById?.(notice.courseId) ?? null, ctx);
     case 'changes_summary':
       return { title: n.changesSummaryTitle(notice.count, notice.courses), message: n.changesSummaryBody, icon: 'idle', buttons: [] };
+    case 'krs': {
+      const end = formatDateKey(notice.end, m.intl, { weekday: 'long', day: 'numeric', month: 'long' });
+      return { title: notice.stage === 'h3' ? n.krsH3 : n.krsH1, message: n.krsBody(end), icon: notice.stage === 'h1' ? 'urgent' : 'idle', buttons: [] };
+    }
     case 'calendar': {
       const c = n.calendar;
       const e = notice.event;
@@ -101,6 +105,12 @@ function changesView(entries: readonly ChangeLogEntry[], course: string | null, 
   const nameOf = (c: (typeof changes)[number]) => ('name' in c ? shorten(c.name) : 'notification' in c ? shorten(c.notification.subject) : '');
   const list = (cs: typeof changes) => n.names(cs.slice(0, 2).map(nameOf), Math.max(0, cs.length - 2));
   const place = course ?? m.popup.updates.otherCourse;
+
+  // NEOSIA grades: only that a grade is out, and for which course; never the letter.
+  if (changes.every((c) => c.kind === 'neosia_grade')) {
+    const title = changes.length === 1 ? n.neosiaGrade(shorten((changes[0] as { name: string }).name)) : n.neosiaGrades(changes.length);
+    return { title, message: n.neosiaGradeBody, icon: 'happy', buttons: [] };
+  }
 
   // More than one change for a course: one summary, "3 hal baru di Hidrolika".
   if (buckets.size > 1) {

@@ -18,6 +18,8 @@ import { AcademicCard, nextForSummary, SummaryLine } from '../OverviewParts';
 import { timeZone } from '../data';
 import { Card, CardLink } from '../Shell';
 import type { PageProps } from '../types';
+import { KrsReadinessCard, ProfileCard, SurveyLine } from '../NeosiaParts';
+import { krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@/lib/neosia/view';
 
 const LEVELS = [1, 2, 3, 4] as const;
 
@@ -46,16 +48,29 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const hour = Math.floor(localParts(data.now, timeZone).minuteOfDay / 60);
   const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d) });
 
+  // NEOSIA (module on only): KRS readiness from 14 days before the window until it closes.
+  const neosiaOn = data.neosia.module.enabled;
+  const snapshots = data.neosia.snapshots;
+  const calendarKrs = useMemo(() => data.calendar.kegiatan.filter((k) => k.kategori === 'krs' && !k.perkiraan && k.audiens !== 'calon_mahasiswa'), [data.calendar]);
+  const krsWin = neosiaOn ? krsWindow(snapshots, data.today, calendarKrs) : null;
+  const krsCard = neosiaOn && showKrsCard(krsWin, data.today);
+  const surveyOpen = neosiaOn && !krsCard && surveyFilled(snapshots) === false;
+
   return (
     <div className="space-y-4">
       {/* Hero: no card. One mascot on this page; it idles and stops for reduced motion (Mascot handles both). */}
-      <section className="flex items-center gap-4 pb-2">
+      <section className="flex flex-wrap items-center gap-4 pb-2">
         <Mascot state={heroMood(overdue, dueThisWeek)} size={56} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
+          {/* The greeting always uses the nickname from the settings, never a name from NEOSIA. */}
           <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.privacyMode ? '' : data.prefs.nickname)}</h2>
           <SummaryLine parts={summary} d={d} />
         </div>
+        {neosiaOn && <ProfileCard snapshots={snapshots} />}
       </section>
+
+      {surveyOpen && <SurveyLine />}
+      {krsCard && <KrsReadinessCard items={readiness(snapshots, krsWin, data.today)} window={krsWin} seenAt={neosiaStatus(snapshots).lastSeenAt} now={data.now} />}
 
       <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card title={r.tasksTitle} action={<CardLink href={routeHash('tugas')}>{r.allTasks}</CardLink>} className="flex flex-col">

@@ -157,7 +157,7 @@ export const dashId = {
     nextMonth: 'Bulan berikutnya',
     thisMonth: 'Bulan ini',
     today: 'Hari ini',
-    groups: { akademik: 'Akademik', ujian: 'Ujian', administrasi: 'Administrasi', libur: 'Libur', wisuda: 'Wisuda', tugas: 'Tugas', penerimaan: 'Penerimaan maba' },
+    groups: { akademik: 'Akademik', ujian: 'Ujian', administrasi: 'Administrasi', libur: 'Libur', wisuda: 'Wisuda', tugas: 'Tugas', kuliah: 'Kuliah', penerimaan: 'Penerimaan maba' },
     filterLabel: 'Kategori yang ditampilkan',
     selectedTitle: 'Hari dipilih',
     dayEmpty: 'Tidak ada acara.',

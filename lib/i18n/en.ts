@@ -251,6 +251,12 @@ export const en: Messages = {
       more > 0 ? `${names.join(', ')} and ${more} more.` : names.length === 2 ? `${names[0]} and ${names[1]}.` : `${names.join(', ')}.`,
     dueBody: (course, clock) => (course ? `${course}. New due date ${clock}.` : `New due date ${clock}.`),
     gradeBody: 'Open it on SIKOLA to see it.',
+    neosiaGrade: (course) => `New grade out for ${course}`,
+    neosiaGrades: (n) => `New grades out for ${n} courses`,
+    neosiaGradeBody: 'Open NEOSIA to see it.',
+    krsH3: 'KRS closes in 3 days',
+    krsH1: 'KRS closes tomorrow',
+    krsBody: (date) => `The last day is ${date}. See your KRS readiness in Sulo.`,
     parts: {
       materials: (n) => plural(n, 'new material', 'new materials'),
       tasks: (n) => plural(n, 'new task', 'new tasks'),

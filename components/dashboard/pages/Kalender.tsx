@@ -15,6 +15,10 @@ import { Subscribe } from '../calendar/Subscribe';
 import { CalendarStrip, SourceFooter } from '../CalendarParts';
 import { timeZone } from '../data';
 import type { PageProps } from '../types';
+import { linkedMeetings } from '@/lib/neosia/linked';
+import { holidayRanges, occurrences, semesterRange } from '@/lib/neosia/schedule';
+import { classMeetings } from '@/lib/neosia/view';
+import { addDays } from '@/lib/calendar/dates';
 
 type View = 'month' | 'list';
 
@@ -38,7 +42,27 @@ export function KalenderPage({ d, data, actions }: PageProps) {
         : [],
     [data.user],
   );
-  const events = useMemo(() => calendarEvents(calendar, tasks, filter), [calendar, tasks, filter]);
+  // Classes from NEOSIA (module on): this semester's meetings, or 20 weeks from today without teaching weeks.
+  const neosiaOn = data.neosia.module.enabled;
+  const classes = useMemo(() => {
+    if (!neosiaOn) return [];
+    const meetings = linkedMeetings(classMeetings(data.neosia.snapshots), data.user?.courses ?? [], data.neosia.courseMap);
+    if (meetings.length === 0) return [];
+    const range = semesterRange(calendar, data.today);
+    const from = range?.start ?? data.today;
+    const to = range?.end ?? addDays(data.today, 140);
+    return occurrences(meetings, from, to, holidayRanges(calendar)).map((o, i) => ({
+      id: `kuliah-${o.day}-${i}`,
+      dateKey: o.day,
+      name: o.meeting.className ? `${o.meeting.displayName} ${o.meeting.className}` : o.meeting.displayName,
+      courseColor: o.meeting.color,
+      start: o.meeting.start,
+      end: o.meeting.end,
+      room: o.meeting.room,
+      holiday: o.holiday,
+    }));
+  }, [neosiaOn, data.neosia, data.user, calendar, data.today]);
+  const events = useMemo(() => calendarEvents(calendar, tasks, filter, { classes }), [calendar, tasks, filter, classes]);
   const listEvents = useMemo(() => calendarEvents(calendar, [], filter, { estimates: true }), [calendar, filter]);
   const holidays = useMemo(() => holidayDays(calendar), [calendar]);
 
@@ -104,7 +128,7 @@ export function KalenderPage({ d, data, actions }: PageProps) {
           </div>
         )}
         <div role="group" aria-label={k.filterLabel} className="flex flex-wrap gap-2">
-          {CALENDAR_GROUPS.map((g) => (
+          {CALENDAR_GROUPS.filter((g) => g !== 'kuliah' || neosiaOn).map((g) => (
             <button
               key={g}
               type="button"

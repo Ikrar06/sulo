@@ -14,6 +14,7 @@ import { ColorSwatches } from '../ColorSwatches';
 import { PencilIcon } from '../icons';
 import { Card } from '../Shell';
 import type { PageProps } from '../types';
+import { NeosiaMapping } from '../NeosiaMapping';
 
 /**
  * Courses as a compact list: color dot (popover with the swatches), the
@@ -68,6 +69,7 @@ export function MataKuliahPage({ d, data, actions }: PageProps) {
           </CollapsibleContent>
         </Collapsible>
       )}
+      <NeosiaMapping data={data} />
     </div>
   );
 }

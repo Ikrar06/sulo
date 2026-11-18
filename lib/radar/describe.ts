@@ -38,6 +38,8 @@ export function describeChange(change: Change, timeZone: string, m: Messages): s
       return u.dueChanged(change.name, dueShift(change.from, change.to, timeZone, m));
     case 'grade_feedback':
       return u.grade;
+    case 'neosia_grade':
+      return m.notify.neosiaGrade(change.name);
     case 'forum':
     case 'other_notification':
       return change.notification.subject;

@@ -201,6 +201,11 @@ export type Change =
   /** Grades and feedback are one kind: component alone cannot tell them apart reliably. */
   | { kind: 'grade_feedback'; courseId: CourseId | null; notification: KeptNotification }
   | { kind: 'forum'; courseId: CourseId | null; notification: KeptNotification }
+  /**
+   * A new grade in the NEOSIA transcript (M7). Never the letter: only the
+   * course. `key` is the NEOSIA course code + semester.
+   */
+  | { kind: 'neosia_grade'; courseId: CourseId | null; key: string; name: string }
   /** Unknown component and eventtype pair: log only, no system notification. */
   | { kind: 'other_notification'; courseId: CourseId | null; notification: KeptNotification };
 

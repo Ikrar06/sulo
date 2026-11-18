@@ -11,7 +11,7 @@ import type { ChangeLogEntry, CourseId, SessionState, Task, UnixSeconds } from '
 import { calendarReminders, type CalendarEventLite, type CalendarStage } from '../calendar/notify';
 import type { CalendarNotifySettings } from '../calendar/notify-settings';
 import { lastStage, type ReminderSettings } from './settings';
-import { inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
+import { addDays, inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
 
 /** The morning summary is skipped when the browser opens more than this after its time. */
 export const MORNING_GRACE = 3 * 3600;
@@ -32,6 +32,11 @@ export interface PlanInput {
   /** Change log (M4); entries with notify set and not yet sent become update notices. */
   changes?: readonly ChangeLogEntry[];
   updates?: UpdateSettings;
+  /**
+   * NEOSIA KRS window (M7): reminders 3 days and 1 day before its last day.
+   * Present only while the module is on and the KRS calendar reminders are on.
+   */
+  krs?: { end: string } | null;
   /** Academic calendar reminders (M5a); omitted means none. */
   calendar?: { events: readonly CalendarEventLite[]; settings: CalendarNotifySettings; /** Short source for the body, e.g. "SK Rektor No. 08429/UN4.1/KEP/2026". */ source: string };
 }
@@ -48,7 +53,9 @@ export type Notice =
   /** Updates across more than 3 courses, or held by quiet hours. */
   | { kind: 'changes_summary'; key: string; count: number; courses: number }
   /** An academic calendar date: a week or a day before it, or before a window's last day. */
-  | { kind: 'calendar'; key: string; stage: CalendarStage; event: CalendarEventLite; source: string };
+  | { kind: 'calendar'; key: string; stage: CalendarStage; event: CalendarEventLite; source: string }
+  /** The KRS window from NEOSIA closes in 3 days or tomorrow. */
+  | { kind: 'krs'; key: string; stage: 'h3' | 'h1'; end: string };
 
 export interface Plan {
   send: Notice[];
@@ -113,6 +120,11 @@ function planCalendar(input: PlanInput): { send: Notice[]; mark: string[]; nextA
   const upcoming: UnixSeconds[] = [];
   for (const r of calendarReminders(input.calendar.events, input.calendar.settings)) {
     if (r.key in input.sent) continue;
+    // NEOSIA's own KRS closing reminder replaces the calendar's "ends tomorrow".
+    if (input.krs && r.kind === 'krs' && r.stage === 'h1-akhir') {
+      mark.push(r.key);
+      continue;
+    }
     if (r.day < today) {
       mark.push(r.key);
       continue;
@@ -128,6 +140,41 @@ function planCalendar(input: PlanInput): { send: Notice[]; mark: string[]; nextA
     } else {
       upcoming.push(fireAt);
     }
+  }
+  const later = upcoming.filter((t) => t > input.now);
+  return { send, mark, nextAt: later.length ? Math.min(...later) : null };
+}
+
+export const krsKey = (end: string, stage: 'h3' | 'h1') => `krs:${end}:${stage}`;
+
+/**
+ * KRS closing reminders, like calendar reminders: at the morning time on
+ * their own day, moved past quiet hours, never sent late.
+ */
+function planKrs(input: PlanInput): { send: Notice[]; mark: string[]; nextAt: UnixSeconds | null } {
+  if (!input.krs) return { send: [], mark: [], nextAt: null };
+  const today = localParts(input.now, input.timeZone).dateKey;
+  const atMin = input.settings.snoozeMorningMin;
+  const send: Notice[] = [];
+  const mark: string[] = [];
+  const upcoming: UnixSeconds[] = [];
+  for (const [stage, days] of [['h3', 3], ['h1', 1]] as const) {
+    const key = krsKey(input.krs.end, stage);
+    if (key in input.sent) continue;
+    const day = addDays(input.krs.end, -days);
+    if (day < today) {
+      mark.push(key);
+      continue;
+    }
+    const fireAt = quietAdjusted(zonedToUnix(day, atMin, input.timeZone), false, input);
+    if (day === today && fireAt <= input.now) {
+      const releaseAt = quietAdjusted(input.now, false, input);
+      if (releaseAt > input.now) upcoming.push(releaseAt);
+      else {
+        send.push({ kind: 'krs', key, stage, end: input.krs.end });
+        mark.push(key);
+      }
+    } else upcoming.push(fireAt);
   }
   const later = upcoming.filter((t) => t > input.now);
   return { send, mark, nextAt: later.length ? Math.min(...later) : null };
@@ -292,6 +339,11 @@ export function planReminders(input: PlanInput): Plan {
   send.push(...calendar.send);
   markSent.push(...calendar.mark);
   if (calendar.nextAt !== null) upcoming.push(calendar.nextAt);
+
+  const krs = planKrs(input);
+  send.push(...krs.send);
+  markSent.push(...krs.mark);
+  if (krs.nextAt !== null) upcoming.push(krs.nextAt);
 
   const later = upcoming.filter((t) => t > now);
   return { send, markSent: [...new Set(markSent)], nextAt: later.length ? Math.min(...later) : null };

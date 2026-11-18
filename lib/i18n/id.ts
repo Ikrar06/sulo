@@ -257,6 +257,13 @@ export const id = {
       more > 0 ? `${names.join(', ')}, dan ${more} lainnya.` : names.length === 2 ? `${names[0]} dan ${names[1]}.` : `${names.join(', ')}.`,
     dueBody: (course: string, clock: string) => (course ? `${course}. Tenggat baru ${clock}.` : `Tenggat baru ${clock}.`),
     gradeBody: 'Buka untuk melihatnya di SIKOLA.',
+    /** NEOSIA (M7): never the letter grade. */
+    neosiaGrade: (course: string) => `Nilai baru keluar untuk ${course}`,
+    neosiaGrades: (n: number) => `Nilai baru keluar untuk ${n} mata kuliah`,
+    neosiaGradeBody: 'Buka NEOSIA untuk melihatnya.',
+    krsH3: 'Pengisian KRS ditutup 3 hari lagi',
+    krsH1: 'Pengisian KRS ditutup besok',
+    krsBody: (date: string) => `Batasnya ${date}. Lihat kesiapan KRS-mu di Sulo.`,
     parts: {
       materials: (n: number) => `${n} materi baru`,
       tasks: (n: number) => `${n} tugas baru`,

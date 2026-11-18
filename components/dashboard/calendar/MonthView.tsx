@@ -129,9 +129,10 @@ function Bar({ bar, twoLines, onClick }: { bar: WeekBar; twoLines: boolean; onCl
       onClick={onClick}
       title={e.title}
       style={{ gridColumn: `${bar.startCol + 1} / span ${bar.span}`, gridRow: twoLines ? `${bar.lane + 1} / span 2` : bar.lane + 1 }}
-      className={`db-cat-${e.group} db-cat-bar pointer-events-auto flex min-w-0 cursor-pointer gap-1 px-2 text-[12px] ${twoLines ? 'items-start py-1 leading-4' : 'items-center leading-5'} ${ends}`}
+      className={`db-cat-${e.group} db-cat-bar pointer-events-auto flex min-w-0 cursor-pointer gap-1 px-2 text-[12px] ${twoLines ? 'items-start py-1 leading-4' : 'items-center leading-5'} ${ends} ${e.source.type === 'kuliah' && e.source.holiday ? 'opacity-50' : ''}`}
     >
       {e.source.type === 'tugas' && <span className={`size-2 shrink-0 rounded-full ${twoLines ? 'mt-1' : ''}`} style={{ background: `var(--course-${e.source.courseColor})` }} />}
+      {e.source.type === 'kuliah' && e.source.courseColor !== null && <span className={`size-2 shrink-0 rounded-full ${twoLines ? 'mt-1' : ''}`} style={{ background: `var(--course-${e.source.courseColor})` }} />}
       <span className={twoLines ? 'line-clamp-2' : 'truncate'}>{e.title}</span>
     </div>
   );

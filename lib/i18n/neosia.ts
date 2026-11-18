@@ -95,16 +95,6 @@ const id = {
     none: 'Tidak dihubungkan',
   },
   calendarChip: 'Kuliah',
-  grade: {
-    title: (course: string) => `Nilai baru keluar untuk ${course}`,
-    body: 'Buka NEOSIA untuk melihatnya.',
-    kind: 'Nilai',
-  },
-  reminder: {
-    h3: 'Pengisian KRS ditutup 3 hari lagi',
-    h1: 'Pengisian KRS ditutup besok',
-    body: (date: string) => `Batasnya ${date}. Lihat kesiapan KRS-mu di Sulo.`,
-  },
 };
 
 export type NeosiaWords = typeof id;
@@ -200,16 +190,6 @@ const en: NeosiaWords = {
     none: 'Not linked',
   },
   calendarChip: 'Classes',
-  grade: {
-    title: (course: string) => `New grade out for ${course}`,
-    body: 'Open NEOSIA to see it.',
-    kind: 'Grade',
-  },
-  reminder: {
-    h3: 'KRS closes in 3 days',
-    h1: 'KRS closes tomorrow',
-    body: (date: string) => `The last day is ${date}. See your KRS readiness in Sulo.`,
-  },
 };
 
 export function neosiaWords(locale: Locale): NeosiaWords {

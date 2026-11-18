@@ -156,7 +156,7 @@ export const dashEn: DashMessages = {
     nextMonth: 'Next month',
     thisMonth: 'This month',
     today: 'Today',
-    groups: { akademik: 'Academic', ujian: 'Exams', administrasi: 'Administration', libur: 'Holidays', wisuda: 'Graduation', tugas: 'Tasks', penerimaan: 'Admissions' },
+    groups: { akademik: 'Academic', ujian: 'Exams', administrasi: 'Administration', libur: 'Holidays', wisuda: 'Graduation', tugas: 'Tasks', kuliah: 'Classes', penerimaan: 'Admissions' },
     filterLabel: 'Categories shown',
     selectedTitle: 'Selected day',
     dayEmpty: 'Nothing on this day.',
