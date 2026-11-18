@@ -135,7 +135,8 @@ function ClassBlock({ x, locale }: { x: LinkedMeeting; locale: string }) {
       <p className="mt-1 text-[12px] text-muted-foreground tabular-nums">
         {clock(x.start, locale)}–{clock(x.end, locale)}
       </p>
-      {x.room && <p className="text-[12px] text-muted-foreground">{j.room(x.room)}</p>}
+      {/* NEOSIA's room name already says what it is ("Ruang Kuliah 101", "Lab Hidrolika"). */}
+      {x.room && <p className="text-[12px] text-muted-foreground">{x.room}</p>}
       {x.lecturers.length > 0 && (
         <p className="text-[12px] text-muted-foreground">
           <Private>{x.lecturers.join(', ')}</Private>

@@ -4,7 +4,7 @@
 
 import { useState, type ComponentType, type SVGProps } from 'react';
 import { useI18n } from '@/components/i18n';
-import { Private } from '@/components/private';
+import { Private, usePrivacy } from '@/components/private';
 import { Button } from '@/components/ui/button';
 import { formatDateKey } from '@/lib/calendar/countdown';
 import { formatAgo } from '@/lib/format/time';
@@ -112,6 +112,7 @@ export function ProfileCard({ snapshots }: { snapshots: Snapshots }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).profile;
   const [shown, setShown] = useState(false);
+  const masked = usePrivacy();
   const p = profile(snapshots);
   const pa = advisorName(snapshots);
   if (!p && !pa) return null;
@@ -125,9 +126,9 @@ export function ProfileCard({ snapshots }: { snapshots: Snapshots }) {
           <p className="text-[12px] text-muted-foreground">
             <Private>{w.sksPassed(p.sksPassed)}</Private>
           </p>
-          {/* Solid neutral bar, no gradient. */}
+          {/* Solid neutral bar, no gradient; empty in privacy mode (its length would tell the credits). */}
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-raised" role="img" aria-label={w.sksScale(SKS_BAR_SCALE)} title={w.sksScale(SKS_BAR_SCALE)}>
-            <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${fill}%` }} />
+            {!masked && <div className="h-full rounded-full bg-muted-foreground" style={{ width: `${fill}%` }} />}
           </div>
         </div>
       )}
