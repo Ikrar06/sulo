@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <title>Sulo</title>
+    <!--
+      WebView version guard, for every brand (Huawei's own WebView included):
+      the Chromium version from the user agent ("Chrome/NN"). Below the minimum,
+      or unreadable on Android, the update page replaces this one before the main
+      bundle loads. ES5 only, so it runs on WebView 69. It sends nothing and
+      stores nothing. The minimum matches capacitor.config.ts minWebViewVersion
+      (checked in tests/webview-guard.test.ts).
+    -->
+    <script id="sulo-webview-guard">
+      (function () {
+        var MIN = 111;
+        var ua = String(navigator.userAgent || '');
+        if (ua.indexOf('Android') === -1) return;
+        var m = /Chrome\/(\d+)\./.exec(ua);
+        if (m && parseInt(m[1], 10) >= MIN) return;
+        window.__suloWebViewTooOld = true;
+        if (window.stop) window.stop();
+        window.location.replace('/perlu-pembaruan.html');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

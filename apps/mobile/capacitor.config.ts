@@ -15,6 +15,9 @@ const config: CapacitorConfig = {
     // docs/UI.md "WebView minimum"). Older: the static update page instead of the app,
     // no request to SIKOLA and no background watching (watch/WebViewGate.kt).
     minWebViewVersion: 111,
+    // minHuaweiWebViewVersion stays Capacitor's default: Huawei numbers its WebView
+    // on its own scale and no published table maps it to Chromium 111. Every brand,
+    // Huawei included, is held to Chromium 111 by the user-agent guard in index.html.
   },
   server: {
     // Plain HTML and CSS that works on WebView 69 (public/perlu-pembaruan.html).

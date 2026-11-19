@@ -48,9 +48,10 @@
     -webkit-tap-highlight-color: transparent;
   }
   .button:active { background: #e64f22; }
+  .note { font-size: 14px; line-height: 20px; color: #5f5f6b; margin: 16px 0 0; max-width: 320px; }
   @media (prefers-color-scheme: dark) {
     body { background: #0b0b0e; color: #f4f4f7; }
-    p { color: #8a8a96; }
+    p, .note { color: #8a8a96; }
   }
 </style>
 </head>
@@ -60,6 +61,7 @@
   <h1 id="title">Perlu pembaruan</h1>
   <p id="body">Sulo butuh versi terbaru Android System WebView.</p>
   <a id="update" class="button" href="market://details?id=com.google.android.webview">Perbarui</a>
+  <p id="store" class="note" hidden>Perbarui lewat toko aplikasi HP-mu.</p>
 </main>
 <script>
   (function () {
@@ -69,12 +71,18 @@
       document.getElementById('title').textContent = 'Update needed';
       document.getElementById('body').textContent = 'Sulo needs the latest Android System WebView.';
       document.getElementById('update').textContent = 'Update';
+      document.getElementById('store').textContent = "Update it from your phone's app store.";
     }
     var WEB = 'https://play.google.com/store/apps/details?id=com.google.android.webview';
-    document.getElementById('update').addEventListener('click', function () {
-      // No Play Store: the market link opens nothing and the page stays; then the web page of it.
+    var button = document.getElementById('update');
+    button.addEventListener('click', function () {
+      if (button.getAttribute('href') === WEB) return;
+      // No Play Store: the market link opens nothing and the page stays. Then the
+      // line about the phone's own app store, and the button opens the web page.
       setTimeout(function () {
-        if (!document.hidden) window.location.href = WEB;
+        if (document.hidden) return;
+        document.getElementById('store').hidden = false;
+        button.setAttribute('href', WEB);
       }, 1500);
     });
   })();
