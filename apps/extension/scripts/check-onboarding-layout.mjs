@@ -10,7 +10,8 @@
 //   4. under it: 24 to the title (at most two lines), 12 to the line, 28 to
 //      the actions; the right block centred on the scene's axis
 //   5. the course list's card is as tall as its rows, at most 70 % of the area
-// One column (1024x768, 900x700): mascot 120 first, the scene at most 3 pieces.
+// One column (900x700): mascot 120 first, the scene at most 3 pieces, the
+// primary button in sight without scrolling (the actions stick to the bottom).
 // Everywhere: nothing cut or ellipsized or outside the viewport, one mascot,
 // no technical term in the page, and the connect scene holds no field, no
 // button and no sign-in words (it is a picture, hidden from screen readers).
@@ -44,6 +45,9 @@ const SCREENS = [
 /** Words that are not for a student: storage, protocol and code names. */
 const TECHNICAL = /chrome\.|storage|sesskey|token|cookie|\bAPI\b|JSON|webservice|moodle|localhost|extension id/i;
 const SIGN_IN = /username|password|sign in|nama pengguna|kata sandi/i;
+/** Scenes the owner sized to their content (19 Nov 2026: intro 2 tiles about 96, intro 3 window
+ *  about 200, one no-task card): exempt from the 40 % floor only; the 75 % ceiling still holds. */
+const SHORT_BY_DESIGN = new Set(['intro-2', 'intro-3', 'selesai-tanpa-tugas']);
 
 const measure = () => {
   const vis = (el) => {
@@ -109,6 +113,7 @@ const measure = () => {
     title: box(frame.querySelector('#ob-title')),
     line: box(frame.querySelector('.obj-line')),
     actions: box(frame.querySelector('.obj-actions')),
+    primary: box(frame.querySelector('.obj-actions [data-variant="default"]')),
     blockBottom: blocks.length ? Math.max(...blocks.map((b) => b.bottom)) : null,
     listSlack,
     list: box(list),
@@ -188,6 +193,8 @@ for (const [w, h] of [[1280, 800], [1440, 900], [1024, 768], [900, 700]]) {
         if (!two) {
           if (m.scene && m.title && m.scene.top < m.title.bottom) findings.push(`${tag}: satu kolom, adegan di atas judul`);
           if (m.mascot.top > (m.title?.top ?? 0)) findings.push(`${tag}: satu kolom, maskot tidak paling atas`);
+          // The page may scroll, but the primary button is in sight from the start.
+          if (m.primary && (m.primary.bottom > h + 0.5 || m.primary.top < 0)) findings.push(`${tag}: satu kolom, tombol utama terpotong tepi bawah`);
           continue;
         }
         if (!full) continue;
@@ -199,7 +206,7 @@ for (const [w, h] of [[1280, 800], [1440, 900], [1024, 768], [900, 700]]) {
         if (m.line && m.actions && !near(m.actions.top - m.line.bottom, 28)) findings.push(`${tag}: pendukung ke aksi ${Math.round(m.actions.top - m.line.bottom)} px (28)`);
         if (m.scene) {
           const share = m.scene.height / area;
-          if (share < 0.4 || share > 0.75) findings.push(`${tag}: adegan ${(share * 100).toFixed(0)}% tinggi area (40 sampai 75)`);
+          if ((share < 0.4 && !SHORT_BY_DESIGN.has(name)) || share > 0.75) findings.push(`${tag}: adegan ${(share * 100).toFixed(0)}% tinggi area (40 sampai 75)`);
           if (m.scene.width < 440 - 0.5 || m.scene.width > 480 + 0.5) findings.push(`${tag}: lebar adegan ${Math.round(m.scene.width)} (440 sampai 480)`);
           const sceneMid = m.scene.top + m.scene.height / 2;
           if (!near(sceneMid, 64 + area / 2, 2)) findings.push(`${tag}: adegan tidak di tengah area (${Math.round(sceneMid)} vs ${Math.round(64 + area / 2)})`);
