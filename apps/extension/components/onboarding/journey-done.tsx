@@ -45,7 +45,7 @@ export function SceneDone({ tasks }: { tasks: TaskRow[] }) {
     <div className="obj-scene pointer-events-none">
       {shown.map((t, i) => (
         <In key={t.eventId} i={i}>
-          <TaskCardView course={t.courseName} color={courseTint(t.courseColor)} title={t.name} relative={t.left || t.remaining} tone={URGENCY_TEXT[t.urgency]} done={false} doneLabel="" onDone={() => undefined} />
+          <TaskCardView course={t.courseName} color={courseTint(t.courseColor)} title={t.name} relative={t.left || t.remaining} tone={URGENCY_TEXT[t.urgency]} done={false} doneLabel="" onDone={() => undefined} still />
         </In>
       ))}
     </div>

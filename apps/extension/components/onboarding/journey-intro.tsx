@@ -88,7 +88,7 @@ function SceneTasks() {
   }, [h, n, level]);
 
   const card = (c: (typeof cards)[number], k: number) => (
-    <TaskCardView course={c.course} color={courseTint(COLORS[k % COLORS.length]!)} title={c.title} relative={c.due} tone={k === 0 && done ? 'text-muted-foreground' : (TONE[c.tone] ?? '')} done={k === 0 && done} doneLabel={c.title} onDone={() => undefined} />
+    <TaskCardView course={c.course} color={courseTint(COLORS[k % COLORS.length]!)} title={c.title} relative={c.due} tone={k === 0 && done ? 'text-muted-foreground' : (TONE[c.tone] ?? '')} done={k === 0 && done} doneLabel={c.title} onDone={() => undefined} still />
   );
   if (h === null) {
     return (

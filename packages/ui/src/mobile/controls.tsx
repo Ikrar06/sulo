@@ -52,7 +52,20 @@ export function IconButton({ icon: Icon, label, onPress, disabled = false, spinn
 }
 
 /** Done or not: a 28 circle (44 target) that fills when checked. `sm` is the desktop size (22), for the extension's rows. */
-export function CheckCircle({ checked, onChange, label, size = 'md' }: { checked: boolean; onChange: (v: boolean) => void; label: string; size?: 'md' | 'sm' }) {
+export function CheckCircle({ checked, onChange, label, size = 'md', still = false }: { checked: boolean; onChange: (v: boolean) => void; label: string; size?: 'md' | 'sm'; still?: boolean }) {
+  const look = `inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'}`;
+  const tick = (
+    <svg viewBox="0 0 24 24" className={size === 'sm' ? 'size-3' : 'size-4'} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12.5 10 17 19 7.5" />
+    </svg>
+  );
+  // A picture of the circle (the onboarding's scenes): the same look, not a control.
+  if (still)
+    return (
+      <span aria-hidden="true" className={look}>
+        {tick}
+      </span>
+    );
   return (
     <button
       type="button"
