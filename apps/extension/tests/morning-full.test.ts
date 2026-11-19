@@ -54,6 +54,10 @@ describe('full morning summary (the phone)', () => {
     // ... and it comes at the window's end instead.
     const later = planReminders({ now: NOW + H, timeZone: TZ, tasks: [task(1, NOW - H)], taskState: {}, activeCourseIds: new Set([1]), settings: { ...DEFAULT_REMINDERS, morning: { enabled: true, atMin: 7 * 60 }, quiet: { ...DEFAULT_REMINDERS.quiet, enabled: true, startMin: 22 * 60, endMin: 8 * 60 } }, sent: {}, session: { state: 'OK', expiredAt: null }, morningStyle: 'full' });
     expect(later.send.filter((n) => n.kind === 'morning')).toHaveLength(1);
+    // Once: the next cycle (08.30), with that day's key marked sent, sends nothing more.
+    const sent = Object.fromEntries(later.markSent.map((k) => [k, NOW + H]));
+    const again = planReminders({ now: NOW + 1.5 * H, timeZone: TZ, tasks: [task(1, NOW - H)], taskState: {}, activeCourseIds: new Set([1]), settings: { ...DEFAULT_REMINDERS, morning: { enabled: true, atMin: 7 * 60 }, quiet: { ...DEFAULT_REMINDERS.quiet, enabled: true, startMin: 22 * 60, endMin: 8 * 60 } }, sent, session: { state: 'OK', expiredAt: null }, morningStyle: 'full' });
+    expect(again.send.filter((n) => n.kind === 'morning')).toEqual([]);
   });
   it('never a grade or GPA: only counts and calendar event names, both languages', () => {
     for (const m of [id, en]) {
