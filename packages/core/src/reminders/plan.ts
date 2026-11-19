@@ -323,9 +323,10 @@ function morning(input: PlanInput, tasks: readonly Task[]): { notice: Notice | n
   const { morning: m } = input.settings;
   if (!input.settings.enabled || !m.enabled) return { notice: null, mark: [], nextAt: null };
   const today = localParts(input.now, input.timeZone).dateKey;
-  const todayAt = zonedToUnix(today, m.atMin, input.timeZone);
+  // Quiet hours hold the summary too: a morning time inside the window moves to its end (Tahap 2).
+  const todayAt = quietAdjusted(zonedToUnix(today, m.atMin, input.timeZone), false, input);
   const key = `m:${today}`;
-  const nextAt = nextLocalTime(Math.max(input.now, todayAt), m.atMin, input.timeZone);
+  const nextAt = quietAdjusted(nextLocalTime(Math.max(input.now, todayAt), m.atMin, input.timeZone), false, input);
   if (input.now < todayAt || key in input.sent) return { notice: null, mark: [], nextAt: input.now < todayAt ? todayAt : nextAt };
   if (input.now - todayAt > MORNING_GRACE) return { notice: null, mark: [key], nextAt };
   if (input.morningStyle === 'full') {

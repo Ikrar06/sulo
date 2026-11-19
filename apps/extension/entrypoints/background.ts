@@ -191,7 +191,8 @@ export default defineBackground(() => {
   let reminderQueue: Promise<unknown> = Promise.resolve();
   const runRemindersAt = (now: number) => {
     const run = reminderQueue.then(async () => {
-      const result = await runNotifyCycle({ store: local, now, timeZone: timeZone(), uiLanguage: browser.i18n.getUILanguage(), notifier });
+      // The phone's full morning summary (Tahap 2): overdue, today, tomorrow and today's calendar events; none when all are empty.
+      const result = await runNotifyCycle({ store: local, now, timeZone: timeZone(), uiLanguage: browser.i18n.getUILanguage(), morningStyle: 'full', notifier });
       await countShown(result.shownKinds ?? []);
       if (result.nextAt === null) await browser.alarms.clear(NOTIFY_ALARM);
       else await browser.alarms.create(NOTIFY_ALARM, { when: result.nextAt * 1000 });

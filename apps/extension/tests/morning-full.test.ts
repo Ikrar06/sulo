@@ -47,4 +47,18 @@ describe('full morning summary (the phone)', () => {
     const morning = plan.send.find((n) => n.kind === 'morning');
     expect(morning && 'full' in morning ? morning.full : null).toEqual({ overdue: 1, today: 0, tomorrow: 0, events: [] });
   });
+  // Tahap 2: the extension sends the same summary (background.ts runNotifyCycle morningStyle 'full').
+  it('quiet hours hold it: nothing at the morning time inside the window', () => {
+    const plan = planReminders({ now: NOW, timeZone: TZ, tasks: [task(1, NOW - H)], taskState: {}, activeCourseIds: new Set([1]), settings: { ...DEFAULT_REMINDERS, morning: { enabled: true, atMin: 7 * 60 }, quiet: { ...DEFAULT_REMINDERS.quiet, enabled: true, startMin: 22 * 60, endMin: 8 * 60 } }, sent: {}, session: { state: 'OK', expiredAt: null }, morningStyle: 'full' });
+    expect(plan.send.filter((n) => n.kind === 'morning')).toEqual([]);
+    // ... and it comes at the window's end instead.
+    const later = planReminders({ now: NOW + H, timeZone: TZ, tasks: [task(1, NOW - H)], taskState: {}, activeCourseIds: new Set([1]), settings: { ...DEFAULT_REMINDERS, morning: { enabled: true, atMin: 7 * 60 }, quiet: { ...DEFAULT_REMINDERS.quiet, enabled: true, startMin: 22 * 60, endMin: 8 * 60 } }, sent: {}, session: { state: 'OK', expiredAt: null }, morningStyle: 'full' });
+    expect(later.send.filter((n) => n.kind === 'morning')).toHaveLength(1);
+  });
+  it('never a grade or GPA: only counts and calendar event names, both languages', () => {
+    for (const m of [id, en]) {
+      const view = morningFullView({ overdue: 2, today: 1, tomorrow: 3, events: ['UTS'] }, m);
+      expect(`${view.title} ${view.message}`).not.toMatch(/IPK|IPS|GPA|nilai|grade|score|\b[0-4][.,]\d{2}\b/i);
+    }
+  });
 });
