@@ -18,9 +18,23 @@ export const remoteConfigSchema = z.object({
   minIntervalMinutes: z.number().int().nonnegative(),
   message: z.string().max(500).default(''),
   // The phone's section, kept as is and validated field by field on read
-  // (remote/keep-alive.ts): a bad value there never voids the extension's config.
+  // (remote/keep-alive.ts): an out-of-range interval takes its default.
+  // One exception: a switch that is there but not a boolean makes the whole
+  // file invalid, so a broken switch is never read as permission.
   mobile: z.unknown().optional(),
-});
+}).refine((c) => keepAliveSwitchReadable(c.mobile), { message: 'mobile.backgroundKeepAlive.enabled must be a boolean' });
+
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/** The switch's path, when present, is readable: `mobile` and `backgroundKeepAlive` are objects, `enabled` a boolean. */
+function keepAliveSwitchReadable(mobile: unknown): boolean {
+  if (mobile === undefined) return true;
+  if (!isObject(mobile)) return false;
+  const k = mobile.backgroundKeepAlive;
+  if (k === undefined) return true;
+  if (!isObject(k)) return false;
+  return k.enabled === undefined || typeof k.enabled === 'boolean';
+}
 
 export const DEFAULT_REMOTE_CONFIG: RemoteConfig = {
   enabled: true,
@@ -69,7 +83,10 @@ export async function refreshRemoteConfig(deps: RefreshDeps): Promise<RemoteConf
   if (outcome.kind === 'not_due') return current;
 
   const parsed = outcome.kind === 'changed' ? remoteConfigSchema.safeParse(outcome.json) : null;
-  const next = { ...(parsed?.success ? parsed.data : stripFetchedAt(current)), fetchedAt: deps.clock.now() };
+  // A good read: valid new content, or the same content confirmed. A failure or invalid content keeps the last good one and its time.
+  const good = parsed?.success === true || outcome.kind === 'unchanged';
+  const okAt = good ? deps.clock.now() : current.okAt;
+  const next = { ...(parsed?.success ? parsed.data : stripFetchedAt(current)), fetchedAt: deps.clock.now(), ...(okAt ? { okAt } : {}) };
   await deps.store.set(REMOTE_CONFIG_KEY, next);
   return next;
 }

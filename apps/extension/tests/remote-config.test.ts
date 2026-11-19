@@ -28,7 +28,7 @@ describe('remote config', () => {
     const store = memoryStore();
     const fetch = fakeFetch(() => jsonResponse({ enabled: false, minIntervalMinutes: 240, message: 'Jeda' }));
     const result = await refreshRemoteConfig({ fetch, store, clock, url: URL_ });
-    expect(result).toEqual({ enabled: false, minIntervalMinutes: 240, message: 'Jeda', fetchedAt: NOW });
+    expect(result).toEqual({ enabled: false, minIntervalMinutes: 240, message: 'Jeda', fetchedAt: NOW, okAt: NOW });
     expect(fetch.calls[0]?.init?.credentials).toBe('omit');
     expect(store.dump()[REMOTE_CONFIG_KEY]).toEqual(result);
   });
@@ -50,12 +50,21 @@ describe('remote config', () => {
       const store = memoryStore({ [REMOTE_CONFIG_KEY]: stored });
       const result = await refreshRemoteConfig({ fetch: fakeFetch(respond), store, clock, url: URL_ });
       if (respond.toString().includes('alert')) {
-        // Unknown keys are dropped; only data fields survive.
-        expect(result).toEqual({ enabled: true, minIntervalMinutes: 180, message: '', fetchedAt: NOW });
+        // Unknown keys are dropped; only data fields survive. A valid read records its success time.
+        expect(result).toEqual({ enabled: true, minIntervalMinutes: 180, message: '', fetchedAt: NOW, okAt: NOW });
       } else {
+        // A failed or invalid read keeps the last good value and never counts as a success (no okAt).
         expect(result).toEqual({ ...stored, fetchedAt: NOW });
       }
     }
+  });
+
+  it('a failed read keeps the time of the last good one; an unchanged file confirms it', async () => {
+    const stored = { enabled: true, minIntervalMinutes: 180, message: '', fetchedAt: NOW - 2 * 86_400, okAt: NOW - 2 * 86_400 };
+    const failed = await refreshRemoteConfig({ fetch: fakeFetch(() => new Response('', { status: 500 })), store: memoryStore({ [REMOTE_CONFIG_KEY]: stored }), clock, url: URL_ });
+    expect(failed.okAt).toBe(NOW - 2 * 86_400);
+    const broken = await refreshRemoteConfig({ fetch: fakeFetch(() => jsonResponse({ enabled: true, minIntervalMinutes: 180, mobile: { backgroundKeepAlive: { enabled: 'false' } } })), store: memoryStore({ [REMOTE_CONFIG_KEY]: stored }), clock, url: URL_ });
+    expect(broken).toMatchObject({ enabled: true, okAt: NOW - 2 * 86_400 });
   });
 
   it('can only slow background sync down', () => {

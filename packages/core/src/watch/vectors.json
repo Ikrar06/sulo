@@ -4,6 +4,20 @@
   "writtenAt": 1794996400,
   "userId": 4242,
   "enabled": true,
+  "remote": {
+   "config": {
+    "globalEnabled": true,
+    "keepAlive": {
+     "enabled": true,
+     "dayIntervalMinutes": 20,
+     "nightIntervalMinutes": 60,
+     "radarEvery": 3
+    }
+   },
+   "okAt": 1794992800,
+   "readAt": 1794992800,
+   "url": "https://ikrar06.github.io/sulo-data/config.json"
+  },
   "schedule": {
    "dayIntervalMin": 20,
    "nightIntervalMin": 60,
@@ -183,6 +197,10 @@
    "expired": {
     "title": "Sulo",
     "body": "Masuk lagi ke SIKOLA supaya Sulo bisa memantau tugas baru."
+   },
+   "paused": {
+    "title": "Sulo",
+    "body": "Pemantauan dijeda. Buka Sulo untuk melanjutkan."
    },
    "otherCourse": "Mata kuliah lain",
    "channel": "Kabar dari SIKOLA"
@@ -1907,6 +1925,619 @@
      }
     ],
     "hold": []
+   }
+  }
+ ],
+ "remoteParse": [
+  {
+   "name": "no-mobile-section",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\"}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "unknown-keys-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"future\":{\"x\":1},\"mobile\":{\"other\":true}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "keepalive-off",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":false,\"dayIntervalMinutes\":30}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": false,
+      "dayIntervalMinutes": 30,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "global-off",
+   "status": 200,
+   "body": "{\"enabled\":false,\"minIntervalMinutes\":30,\"message\":\"\"}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": false,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "tuned",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":true,\"dayIntervalMinutes\":15,\"nightIntervalMinutes\":110,\"radarEvery\":6}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 15,
+      "nightIntervalMinutes": 110,
+      "radarEvery": 6
+     }
+    }
+   }
+  },
+  {
+   "name": "out-of-range-take-defaults",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":true,\"dayIntervalMinutes\":14,\"nightIntervalMinutes\":111,\"radarEvery\":0}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "non-integer-takes-default",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"dayIntervalMinutes\":30.5,\"radarEvery\":2.5}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "wrong-type-interval-takes-default",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"dayIntervalMinutes\":\"30\"}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "switch-not-boolean",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":\"false\"}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "switch-null",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":null}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "keepalive-not-object",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":\"off\"}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "keepalive-array",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":[]}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "mobile-not-object",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":\"x\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "missing-enabled",
+   "status": 200,
+   "body": "{\"minIntervalMinutes\":30}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "missing-min-interval",
+   "status": 200,
+   "body": "{\"enabled\":true}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "enabled-not-boolean",
+   "status": 200,
+   "body": "{\"enabled\":\"true\",\"minIntervalMinutes\":30,\"message\":\"\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "min-interval-negative",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":-1,\"message\":\"\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "min-interval-fraction",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":2.5,\"message\":\"\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "message-missing-is-fine",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":0}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "message-too-long",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "message-not-string",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":5}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "broken-json",
+   "status": 200,
+   "body": "{\"enabled\": tru",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "json-array",
+   "status": 200,
+   "body": "[]",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "json-null",
+   "status": 200,
+   "body": "null",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "empty-body",
+   "status": 200,
+   "body": "",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "no-body",
+   "status": 200,
+   "body": null,
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "not-modified",
+   "status": 304,
+   "body": null,
+   "out": {
+    "kind": "not_modified"
+   }
+  },
+  {
+   "name": "not-found",
+   "status": 404,
+   "body": "<html>",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "server-error",
+   "status": 503,
+   "body": null,
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "network-failure",
+   "status": 0,
+   "body": null,
+   "out": {
+    "kind": "failed"
+   }
+  }
+ ],
+ "remoteReadDue": [
+  {
+   "lastReadAt": 0,
+   "now": 1800000000,
+   "out": true
+  },
+  {
+   "lastReadAt": 1799978400,
+   "now": 1800000000,
+   "out": true
+  },
+  {
+   "lastReadAt": 1799978401,
+   "now": 1800000000,
+   "out": false
+  },
+  {
+   "lastReadAt": 1799999940,
+   "now": 1800000000,
+   "out": false
+  }
+ ],
+ "remoteDecide": [
+  {
+   "name": "on-defaults",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 20,
+     "nightIntervalMin": 60,
+     "softDayIntervalMin": 40,
+     "radarEvery": 3
+    }
+   }
+  },
+  {
+   "name": "on-config-intervals-used-directly",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 50,
+      "nightIntervalMinutes": 90,
+      "radarEvery": 1
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 50,
+     "nightIntervalMin": 90,
+     "softDayIntervalMin": 50,
+     "radarEvery": 1
+    }
+   }
+  },
+  {
+   "name": "global-off",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": false,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "global_off",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "keepalive-off",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": false,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "keepalive_off",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "never-read",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 0,
+    "config": null
+   },
+   "out": {
+    "action": "hold",
+    "reason": "no_config",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "config-without-success-time",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 0,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "no_config",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "no-read-72h",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799740800,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "stale_config",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "read-just-under-72h",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799740801,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 20,
+     "nightIntervalMin": 60,
+     "softDayIntervalMin": 40,
+     "radarEvery": 3
+    }
+   }
+  },
+  {
+   "name": "app-not-opened-7-days",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799395200,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "paused"
+   }
+  },
+  {
+   "name": "app-opened-just-under-7-days",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799395201,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 20,
+     "nightIntervalMin": 60,
+     "softDayIntervalMin": 40,
+     "radarEvery": 3
+    }
+   }
+  },
+  {
+   "name": "paused-before-stale",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799308800,
+    "configOkAt": 1799568000,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "paused"
+   }
+  },
+  {
+   "name": "paused-even-when-off",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799308800,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": false,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "paused"
    }
   }
  ]

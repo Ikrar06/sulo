@@ -56,13 +56,17 @@ describe('paused by the maintainer', () => {
     expect(background).toMatchObject({ status: 'skipped', reason: 'DISABLED_REMOTELY' });
   });
 
-  it('the background plan is written switched off, even with the user switch on', async () => {
+  it('the plan carries the switch-off to the worker, which then sends nothing to SIKOLA (watch/remote.ts)', async () => {
     const platform = createMobilePlatform();
-    await platform.store.set(REMOTE_CONFIG_KEY, { enabled: false, minIntervalMinutes: 180, message: '', fetchedAt: platform.clock.now() });
+    await platform.store.set(REMOTE_CONFIG_KEY, { enabled: false, minIntervalMinutes: 180, message: '', fetchedAt: platform.clock.now(), okAt: platform.clock.now() });
     await switchUser(platform.store, 7);
     await updateWatch(platform, { enabled: true });
     await applyWatchPlan(platform);
-    expect(JSON.parse(plans.at(-1)!)).toMatchObject({ enabled: false });
+    const plan = JSON.parse(plans.at(-1)!);
+    // The chain stays (enabled: the user's switch and a session), so watching can resume without the app; the worker holds while off.
+    expect(plan).toMatchObject({ enabled: true, remote: { config: { globalEnabled: false }, okAt: platform.clock.now(), url: 'https://ikrar06.github.io/sulo-data/config.json' } });
+    const { decideRemote } = await import('@sulo/core/watch/remote');
+    expect(decideRemote({ now: platform.clock.now(), lastAppAt: plan.writtenAt, configOkAt: plan.remote.okAt, config: plan.remote.config })).toMatchObject({ action: 'hold', reason: 'global_off' });
   });
 
   it('back on: the plan follows the user switch again', async () => {

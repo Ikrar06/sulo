@@ -8,6 +8,8 @@ import { describe, expect, it } from 'vitest';
 import { afterFailure, buildBatch, detect, emptyOverlay, inQuiet, nextDelayMinutes, notices, numericId, pickRadar, radarDue, radarFits, reserve, watchStopped, type Detected } from '@sulo/core/watch/check';
 import { buildWatchPlan } from '@sulo/core/watch/plan';
 import { DEFAULT_KEEP_ALIVE } from '@sulo/core/remote/keep-alive';
+import { configReadDue, decideRemote, parseConfigResponse } from '@sulo/core/watch/remote';
+import { remoteDecideCases, remoteParseCases, remoteReadDueCases } from './watch-remote-cases';
 
 const FILE = new URL('../../../packages/core/src/watch/vectors.json', import.meta.url);
 const NOW = 1_795_000_000; // a fixed moment; only differences matter
@@ -20,6 +22,7 @@ const plan = buildWatchPlan({
   keepAlive: DEFAULT_KEEP_ALIVE,
   globalEnabled: true,
   sessionConnected: true,
+  remoteRead: { okAt: NOW - 2 * H, readAt: NOW - 2 * H, url: 'https://ikrar06.github.io/sulo-data/config.json' },
   tasks: [
     { eventId: 101, dueAt: NOW + 2 * 86_400, cmId: 501, missingSince: null },
     { eventId: 102, dueAt: NOW + 5 * 86_400, cmId: 502, missingSince: null },
@@ -41,6 +44,7 @@ const plan = buildWatchPlan({
     mixed: { title: '{n} hal baru di {course}', body: 'Buka Sulo untuk melihatnya.' },
     summary: { title: '{n} kabar baru dari {courses} mata kuliah', body: 'Buka Sulo untuk melihat semuanya.' },
     expired: { title: 'Sulo', body: 'Masuk lagi ke SIKOLA supaya Sulo bisa memantau tugas baru.' },
+    paused: { title: 'Sulo', body: 'Pemantauan dijeda. Buka Sulo untuk melanjutkan.' },
     otherCourse: 'Mata kuliah lain',
     channel: 'Kabar dari SIKOLA',
   },
@@ -221,6 +225,10 @@ function compute() {
     batch: cases.batch.map((c) => ({ ...c, out: buildBatch(plan, c.now, c.radarIds) })),
     detect: cases.detect.map((c) => ({ ...c, now: NOW, out: detect(plan, c.overlay, NOW, c.results, c.radarIds) })),
     notices: noticeCases.map((c) => ({ ...c, now: NOW, out: notices(plan, c.changes, c.held, NOW, c.minute) })),
+    // The worker's own config reading (watch/remote.ts, WatchRemote.kt).
+    remoteParse: remoteParseCases.map(({ want: _, ...c }) => ({ ...c, out: parseConfigResponse(c.status, c.body) })),
+    remoteReadDue: remoteReadDueCases.map(({ want: _, ...c }) => ({ ...c, out: configReadDue(c.lastReadAt, c.now) })),
+    remoteDecide: remoteDecideCases.map(({ want: _, ...c }) => ({ ...c, out: decideRemote(c.state) })),
   };
 }
 
@@ -229,6 +237,11 @@ describe('watch shared vectors', () => {
   if (process.env.UPDATE_WATCH_VECTORS === '1') writeFileSync(FILE, `${JSON.stringify(fresh, null, 1)}\n`);
   it('the reference still gives the stored vectors (Kotlin reads the same file)', () => {
     expect(JSON.parse(readFileSync(FILE, 'utf8'))).toEqual(fresh);
+  });
+  it('the worker reads the config as the rules say (every remote case)', () => {
+    for (const c of remoteParseCases) expect([c.name, parseConfigResponse(c.status, c.body)]).toEqual([c.name, c.want]);
+    for (const c of remoteReadDueCases) expect(configReadDue(c.lastReadAt, c.now)).toBe(c.want);
+    for (const c of remoteDecideCases) expect([c.name, decideRemote(c.state)]).toEqual([c.name, c.want]);
   });
   it('key cases read as intended', () => {
     const byName = Object.fromEntries(fresh.detect.map((c: { name: string; out: unknown }) => [c.name, c.out]));

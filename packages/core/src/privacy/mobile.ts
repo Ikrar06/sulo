@@ -101,8 +101,8 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'sikola-v2.unhas.ac.id: you sign in on SIKOLA’s own page, then Sulo reads tasks, the calendar, courses, updates and attendance. Read only; Sulo changes nothing on SIKOLA. Requests name themselves as Sulo and its version.',
           },
           {
-            id: 'ikrar06.github.io: repo data publik Sulo, untuk dua berkas data saja, yaitu pengaturan jarak jauh (termasuk sakelar pemantauan) dan kalender akademik terbaru. Dibaca paling sering sekali sehari, ditambah saat aplikasi dibuka kalau bacaan terakhir lebih dari 6 jam. Permintaannya tidak membawa cookie atau apa pun yang mengenali kamu.',
-            en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including the watching switch) and the latest academic calendar. Read at most once a day, plus when you open the app and the last read is over 6 hours old. The request carries no cookie and nothing that identifies you.',
+            id: 'ikrar06.github.io: repo data publik Sulo, untuk dua berkas data saja, yaitu pengaturan jarak jauh (termasuk sakelar pemantauan) dan kalender akademik terbaru. Kalender dibaca paling sering sekali sehari, ditambah saat aplikasi dibuka kalau bacaan terakhir lebih dari 6 jam. Pengaturan jarak jauh dibaca paling sering tiap 6 jam, oleh aplikasi saat dibuka atau oleh pemantauan latar belakang kalau menyala. Permintaannya tidak membawa cookie atau apa pun yang mengenali kamu.',
+            en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including the watching switch) and the latest academic calendar. The calendar is read at most once a day, plus when you open the app and the last read is over 6 hours old. The remote settings are read at most every 6 hours, by the app when you open it or by background watching if it is on. The request carries no cookie and nothing that identifies you.',
           },
           {
             id: 'Tidak ada server lain. Tidak ada server Sulo, analitik, iklan, atau pelacakan. Kalender akademik juga ikut di dalam aplikasi, jadi tetap ada tanpa jaringan.',
@@ -147,8 +147,12 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'To turn it off: More, Settings, Notifications, "Watch for new tasks". Checks stop at once; after that Sulo only checks when you open the app, pull down, or tap Update.',
           },
           {
-            id: 'Pengelola Sulo bisa mematikan atau memperlambat pemantauan untuk semua pengguna lewat pengaturan jarak jauh, misalnya kalau ada keberatan dari kampus.',
-            en: 'Sulo’s maintainer can turn watching off or slow it down for everyone through the remote settings, for example if the university objects.',
+            id: 'Pengelola Sulo bisa mematikan atau memperlambat pemantauan untuk semua pengguna lewat pengaturan jarak jauh, misalnya kalau ada keberatan dari kampus. Pemantauan membaca pengaturan itu sendiri paling sering tiap 6 jam, jadi perubahannya berlaku tanpa kamu membuka aplikasi. Kalau pengaturan tidak terbaca selama 72 jam, pemantauan berhenti mengecek SIKOLA sampai terbaca lagi.',
+            en: 'Sulo’s maintainer can turn watching off or slow it down for everyone through the remote settings, for example if the university objects. Watching reads those settings itself at most every 6 hours, so a change applies without you opening the app. If the settings cannot be read for 72 hours, watching stops checking SIKOLA until they can.',
+          },
+          {
+            id: 'Kalau kamu tidak membuka Sulo selama 7 hari, pemantauan berhenti dengan satu notifikasi. Buka Sulo untuk melanjutkannya.',
+            en: 'If you do not open Sulo for 7 days, watching stops with one notification. Open Sulo to resume it.',
           },
           {
             id: 'Cek berkala ikut batas harian yang sama dengan pemeriksaan lain, dan tidak pernah mengambil rekap presensi.',

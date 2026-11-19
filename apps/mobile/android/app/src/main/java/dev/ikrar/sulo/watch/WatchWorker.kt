@@ -40,7 +40,8 @@ class WatchRun(private val context: Context) {
     private var runGen = 0L
     private val store = WatchStore(context)
     private val vault = SessionVault(context)
-    private val http = SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)")
+    private val userAgent = "Sulo/${BuildConfig.VERSION_NAME} (Android)"
+    private val http = SikolaHttp(userAgent)
 
     private fun nowSec() = System.currentTimeMillis() / 1000
     private fun minuteOfDay(): Int = Calendar.getInstance().let { it.get(Calendar.HOUR_OF_DAY) * 60 + it.get(Calendar.MINUTE) }
@@ -54,15 +55,16 @@ class WatchRun(private val context: Context) {
         // A reset after this point ("Pakai akun ini") makes this check's writes void.
         val gen = store.generation()
         runGen = gen
-        val plan = store.plan()
-        if (mode == WatchScheduler.MODE_EXPIRED_NOTICE) return expiredNotice(plan, now, chainStopped = true)
+        val stored = store.plan()
+        if (mode == WatchScheduler.MODE_EXPIRED_NOTICE) return expiredNotice(stored, now, chainStopped = true)
+        if (mode == WatchScheduler.MODE_PAUSED_NOTICE) return if (stored != null && pausedFor(stored, now)) pausedNotice(stored, now) else Unit
 
         val session = if (userUnlocked()) vault.load() else null
         val backoff = store.backoff()
         val action = WatchGate.decide(
             WatchGate.Input(
-                planPresent = plan != null,
-                planEnabled = plan?.optBoolean("enabled", false) == true,
+                planPresent = stored != null,
+                planEnabled = stored?.optBoolean("enabled", false) == true,
                 userUnlocked = userUnlocked(),
                 sessionStatus = vault.status(),
                 // "Jalankan cek sekarang" (debug build) runs with the app open on purpose.
@@ -73,11 +75,25 @@ class WatchRun(private val context: Context) {
         )
         when (action) {
             WatchGate.Action.STOP -> return WatchScheduler.stop(context)
-            WatchGate.Action.EXPIRED -> return sessionEnded(plan!!, now)
-            WatchGate.Action.WAIT -> return scheduleNext(plan!!, now, waitUntil = backoff?.optLong("nextAllowedAt", 0) ?: 0)
+            WatchGate.Action.EXPIRED -> return sessionEnded(stored!!, now)
+            WatchGate.Action.WAIT -> return scheduleNext(stored!!, now, waitUntil = backoff?.optLong("nextAllowedAt", 0) ?: 0)
             WatchGate.Action.RUN -> Unit
         }
-        plan!!
+        // The kill switch, read by the worker itself (WatchRemote): decided before anything goes to SIKOLA.
+        val plan = when (val d = remoteDecision(stored!!, now)) {
+            is WatchRemote.Decision.Paused -> {
+                record(now, started, 0, "paused")
+                WatchScheduler.stop(context)
+                return pausedNotice(stored, now)
+            }
+            is WatchRemote.Decision.Hold -> {
+                // Off, or no fresh config: nothing to SIKOLA; wake again in 6 hours only to read the config.
+                record(now, started, 0, "hold_${d.reason}")
+                if (runGen == store.generation()) WatchScheduler.next(context, d.intervalMin * 60L, now)
+                return
+            }
+            is WatchRemote.Decision.Check -> WatchRemote.withSchedule(stored, d)
+        }
         val budget = store.budget()
         val ctx = dayCtx(budget)
         if (WatchCheck.nextDelayMinutes(plan, ctx) == null) return untilReset(now)
@@ -148,6 +164,55 @@ class WatchRun(private val context: Context) {
             }
         }
         scheduleNext(plan, now)
+    }
+
+    /**
+     * Reads config.json when the last read (the worker's or the app's) is 6
+     * hours old, then decides from the newest good config either side has.
+     */
+    private fun remoteDecision(plan: JSONObject, now: Long): WatchRemote.Decision {
+        val seed = plan.optJSONObject("remote")
+        val url = PublicConfig.urlFor(seed?.optString("url", "")?.takeIf { it.isNotEmpty() })
+        val readAt = maxOf(store.remoteReadAt(), seed?.optLong("readAt", 0) ?: 0)
+        if (WatchRemote.readDue(readAt, now)) readConfig(url, now)
+        val planOk = seed?.optLong("okAt", 0) ?: 0
+        val workerOk = store.remoteOkAt()
+        val fromPlan = WatchRemote.fromJson(seed?.optJSONObject("config"))
+        val fromWorker = WatchRemote.fromJson(store.remoteConfig())
+        val config = if (workerOk >= planOk) fromWorker ?: fromPlan else fromPlan ?: fromWorker
+        return WatchRemote.decide(WatchRemote.State(now, plan.optLong("writtenAt", 0), maxOf(workerOk, planOk), config))
+    }
+
+    private fun readConfig(url: String, now: Long) {
+        store.setRemoteAttempt(now)
+        val etag = store.remoteEtag(url)
+        val reply = PublicConfig.fetch(url, etag, userAgent)
+        when (val r = WatchRemote.parse(reply.status, reply.body)) {
+            is WatchRemote.Read.Ok -> store.setRemoteGood(now, url, WatchRemote.toJson(r.config), reply.etag)
+            // Only a 304 to our own If-None-Match confirms the file we kept.
+            WatchRemote.Read.NotModified -> if (etag != null) store.setRemoteGood(now, url, null, null)
+            WatchRemote.Read.Failed -> Unit
+        }
+    }
+
+    private fun pausedFor(plan: JSONObject, now: Long): Boolean = now - plan.optLong("writtenAt", 0) >= WatchRemote.APP_PAUSE_SEC
+
+    /** The app not opened for 7 days: one calm notice, never in quiet hours (then once they end). */
+    @SuppressLint("MissingPermission")
+    private fun pausedNotice(plan: JSONObject, now: Long) {
+        if (store.pausedSent()) return
+        val t = plan.getJSONObject("templates")
+        val p = t.optJSONObject("paused") ?: return
+        val quiet = plan.getJSONObject("quiet")
+        if (WatchCheck.inQuiet(minuteOfDay(), quiet)) {
+            val end = quiet.getInt("endMin")
+            val c = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, end / 60); set(Calendar.MINUTE, end % 60); set(Calendar.SECOND, 0); if (timeInMillis <= System.currentTimeMillis()) add(Calendar.DAY_OF_YEAR, 1) }
+            WatchScheduler.next(context, c.timeInMillis / 1000 - now, now, WatchScheduler.MODE_PAUSED_NOTICE)
+            return
+        }
+        store.setPausedSent()
+        val id = "watch|paused:$now"
+        WatchNotifier.show(context, t.getString("channel"), WatchCheck.Notice(id, WatchCheck.numericId(id), p.getString("title"), p.getString("body")))
     }
 
     @SuppressLint("MissingPermission")

@@ -38,7 +38,35 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
         put(KEY_HELD, null)
         // A plan in force means a connected session (core writes enabled only then): signed in again.
         if (plan.optBoolean("enabled", false)) prefs.edit().remove(KEY_EXPIRED_SENT).commit()
+        // A new plan means the app was opened: a 7-day pause ends, and its notice may come again next time.
+        prefs.edit().remove(KEY_PAUSED_SENT).commit()
     }
+
+    // ---- The worker's own config reads (WatchRemote, PublicConfig) ----
+
+    /** The last good config the worker read itself, when it read it, the attempt time, and the ETag of that file (per URL). */
+    @Synchronized fun remoteConfig(): JSONObject? = json(KEY_REMOTE_CONFIG)
+    @Synchronized fun remoteOkAt(): Long = prefs.getLong(KEY_REMOTE_OK, 0)
+    @Synchronized fun remoteReadAt(): Long = prefs.getLong(KEY_REMOTE_READ, 0)
+    @Synchronized fun remoteEtag(url: String): String? = if (prefs.getString(KEY_REMOTE_URL, null) == url) prefs.getString(KEY_REMOTE_ETAG, null) else null
+
+    @Synchronized fun setRemoteAttempt(now: Long) { prefs.edit().putLong(KEY_REMOTE_READ, now).commit() }
+
+    /** A good read: a valid file (with its ETag) or a 304 confirming the stored one. */
+    @Synchronized fun setRemoteGood(now: Long, url: String, config: JSONObject?, etag: String?) {
+        prefs.edit().apply {
+            putLong(KEY_REMOTE_OK, now)
+            if (config != null) {
+                putString(KEY_REMOTE_CONFIG, config.toString())
+                putString(KEY_REMOTE_URL, url)
+                if (etag != null) putString(KEY_REMOTE_ETAG, etag) else remove(KEY_REMOTE_ETAG)
+            }
+        }.commit()
+    }
+
+    /** The "Pemantauan dijeda" notice was sent for this pause. */
+    @Synchronized fun pausedSent(): Boolean = prefs.getBoolean(KEY_PAUSED_SENT, false)
+    @Synchronized fun setPausedSent() { prefs.edit().putBoolean(KEY_PAUSED_SENT, true).commit() }
 
     /** The "Masuk lagi" notice was sent for the current ended session. */
     @Synchronized fun expiredSent(): Boolean = prefs.getBoolean(KEY_EXPIRED_SENT, false)
@@ -169,5 +197,11 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
         private const val KEY_LAST = "lastAnswer"
         private const val KEY_EXPIRED_SENT = "expiredSent"
         private const val KEY_SIM_HELD = "simHeld"
+        private const val KEY_REMOTE_CONFIG = "remoteConfig"
+        private const val KEY_REMOTE_OK = "remoteOkAt"
+        private const val KEY_REMOTE_READ = "remoteReadAt"
+        private const val KEY_REMOTE_ETAG = "remoteEtag"
+        private const val KEY_REMOTE_URL = "remoteUrl"
+        private const val KEY_PAUSED_SENT = "pausedSent"
     }
 }

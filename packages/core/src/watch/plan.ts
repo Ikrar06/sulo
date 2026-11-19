@@ -15,6 +15,7 @@ import { MAX_COURSE_NOTICES } from '../reminders/plan';
 import { FAR_TASK_DAYS } from '../radar/log';
 import { TASK_MODULES } from '../radar/task-modules';
 import type { KeepAliveConfig } from '../remote/keep-alive';
+import type { WorkerConfig } from './remote';
 import type { UpdateSettings } from '../radar/settings';
 import type { CourseId, UnixSeconds, UserId } from '../types';
 
@@ -54,6 +55,8 @@ export interface WatchTemplates {
   mixed: WatchTemplate;
   summary: WatchTemplate;
   expired: WatchTemplate;
+  /** The app not opened for 7 days: watching stops with this one notice (watch/remote.ts). */
+  paused: WatchTemplate;
   /** Name used when a course is unknown. */
   otherCourse: string;
   /** The Android notification channel's name, as Settings shows it. */
@@ -70,8 +73,14 @@ export interface WatchPlan {
   version: typeof WATCH_PLAN_VERSION;
   writtenAt: UnixSeconds;
   userId: UserId;
-  /** In force only when all hold: the user's switch, the keep-alive config, the global config, a connected session. */
+  /**
+   * The user's switch and a connected session. The remote switches are not
+   * folded in any more: the worker reads the config itself (watch/remote.ts)
+   * and, while they are off, keeps a 6-hour chain that only reads it again.
+   */
   enabled: boolean;
+  /** The app's last good config and its read times, the worker's starting point; `url`: where the worker reads it. */
+  remote: { config: WorkerConfig | null; okAt: UnixSeconds; readAt: UnixSeconds; url: string };
   schedule: {
     dayIntervalMin: number;
     nightIntervalMin: number;
@@ -122,6 +131,8 @@ export interface WatchPlanInput {
   keepAlive: KeepAliveConfig;
   globalEnabled: boolean;
   sessionConnected: boolean;
+  /** The app's last read of config.json: when it last succeeded (0: never) and was attempted, and the URL. */
+  remoteRead: { okAt: UnixSeconds; readAt: UnixSeconds; url: string };
   tasks: readonly { eventId: number; dueAt: UnixSeconds | null; cmId: number | null; missingSince: UnixSeconds | null }[];
   calendarBaseline: boolean;
   notificationLastId: number | null;
@@ -141,7 +152,13 @@ export function buildWatchPlan(input: WatchPlanInput): WatchPlan {
     version: WATCH_PLAN_VERSION,
     writtenAt: input.now,
     userId: input.userId,
-    enabled: input.userEnabled && k.enabled && input.globalEnabled && input.sessionConnected,
+    enabled: input.userEnabled && input.sessionConnected,
+    remote: {
+      config: input.remoteRead.okAt > 0 ? { globalEnabled: input.globalEnabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery } } : null,
+      okAt: input.remoteRead.okAt,
+      readAt: input.remoteRead.readAt,
+      url: input.remoteRead.url,
+    },
     schedule: {
       dayIntervalMin: k.dayIntervalMinutes,
       nightIntervalMin: k.nightIntervalMinutes,

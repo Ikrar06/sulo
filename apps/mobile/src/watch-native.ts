@@ -14,12 +14,20 @@ import type { Platform } from '@sulo/core/platform';
 import { readPrefs } from '@sulo/core/prefs';
 import { keepAliveFrom } from '@sulo/core/remote/keep-alive';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
+import { REMOTE_CONFIG_URL } from '@sulo/core/moodle/limits';
 import { currentUser, readUser } from '@sulo/core/storage';
 import type { CheckTiming } from '@sulo/core/watch/sleep-help';
 import { buildWatchPlan } from '@sulo/core/watch/plan';
 import { applyWatchAnswers, markChangesHandled, type WatchAnswer } from '@sulo/core/watch/queue';
 import { SuloSession } from './session';
 import { readWatch } from './watch';
+
+/** Where the worker reads the config: the official file, or in a debug build the dev screen's test config (the worker re-checks both). */
+async function workerConfigUrl(platform: Platform): Promise<string> {
+  if (!__SULO_DEV__) return REMOTE_CONFIG_URL;
+  const test = await platform.store.get<{ url: string }>('mobile:dev:testConfig').catch(() => null);
+  return test?.url ?? REMOTE_CONFIG_URL;
+}
 
 /** Writes the plan the worker follows (disabled when anything is off: it then stops at once). */
 export async function applyWatchPlan(platform: Platform): Promise<void> {
@@ -50,6 +58,7 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
     keepAlive: keepAliveFrom(config),
     globalEnabled: config.enabled,
     sessionConnected: session.status === 'connected',
+    remoteRead: { okAt: config.okAt ?? 0, readAt: config.fetchedAt, url: await workerConfigUrl(platform) },
     tasks,
     calendarBaseline: radar.calendarBaseline,
     notificationLastId: radar.notificationsLastId,

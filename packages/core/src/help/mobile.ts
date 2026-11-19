@@ -73,6 +73,20 @@ const PHONE: FaqEntry[] = [
     ],
   },
   {
+    id: 'pemantauan-dijeda-hp',
+    q: { id: 'Kenapa pemantauan berhenti sendiri?', en: 'Why did watching stop by itself?' },
+    a: [
+      {
+        id: 'Pemantauan dijeda kalau Sulo tidak dibuka selama 7 hari, supaya tidak terus mengecek SIKOLA atas namamu tanpa kamu sadari. Kamu mendapat satu notifikasi "Pemantauan dijeda"; buka Sulo dan pemantauan jalan lagi.',
+        en: 'Watching pauses when Sulo has not been opened for 7 days, so it does not keep checking SIKOLA for you without you noticing. You get one "Watching is paused" notification; open Sulo and it starts again.',
+      },
+      {
+        id: 'Pemantauan juga berhenti mengecek kalau pengelola mematikannya lewat pengaturan jarak jauh, atau kalau pengaturan itu tidak terbaca selama 72 jam. Sulo membacanya lagi tiap 6 jam dan melanjutkan sendiri begitu boleh.',
+        en: 'Watching also stops checking when the maintainer turns it off through the remote settings, or when those settings cannot be read for 72 hours. Sulo reads them again every 6 hours and resumes on its own once allowed.',
+      },
+    ],
+  },
+  {
     id: 'email-sikola-hp',
     q: { id: 'Bisakah SIKOLA mengirim email juga?', en: 'Can SIKOLA send me email too?' },
     a: [
@@ -148,7 +162,7 @@ export const MOBILE_FAQ: FaqEntry[] = [...PHONE, ...FAQ.filter((e) => SHARED.has
 export const MOBILE_FAQ_TOPICS = [
   { id: 'privasi', title: { id: 'Keamanan dan privasi', en: 'Security and privacy' }, entries: ['aman-hp', 'akun-lain-hp', 'hapus-data-hp'] },
   { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'seberapa-cepat-hp', 'masuk-lagi-hp', 'masuk-lagi-pemantauan-hp', 'sikola-berubah-hp', 'kabar-lama'] },
-  { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'baterai-hp', 'email-sikola-hp'] },
+  { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'baterai-hp', 'pemantauan-dijeda-hp', 'email-sikola-hp'] },
   { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
   { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['resmi'] },

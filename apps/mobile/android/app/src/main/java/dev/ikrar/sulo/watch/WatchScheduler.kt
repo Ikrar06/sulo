@@ -30,6 +30,8 @@ object WatchScheduler {
     const val MODE_CHECK = "check"
     /** After the session ended during quiet hours: only the calm notice, once quiet hours end. */
     const val MODE_EXPIRED_NOTICE = "expired-notice"
+    /** The app not opened for 7 days, paused during quiet hours: only the notice, once they end (no request). */
+    const val MODE_PAUSED_NOTICE = "paused-notice"
     /** Debug build: one check now, the same work (gate, budget, one POST), even with the app open. */
     const val MODE_CHECK_NOW = "check-now"
     /** Debug build: send the simulated held notices as one summary (no request). */
@@ -72,6 +74,11 @@ object WatchScheduler {
         WatchStore(context).setPlannedAt(0)
     }
 
+    /** The guard alone: a one-off notice waiting in the chain stays. */
+    fun stopGuard(context: Context) {
+        WorkManager.getInstance(context).cancelUniqueWork(GUARD)
+    }
+
     fun chainPending(context: Context): Boolean = runCatching {
         WorkManager.getInstance(context).getWorkInfosForUniqueWork(CHAIN).get(5, TimeUnit.SECONDS).any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.BLOCKED }
     }.getOrDefault(true)
@@ -86,10 +93,17 @@ class WatchGuardWorker(context: Context, params: WorkerParameters) : Worker(cont
             WatchScheduler.stop(applicationContext)
             return Result.success()
         }
+        // Paused (the app not opened for 7 days): nothing to restart until it is opened; a notice
+        // waiting for quiet hours to end stays in the chain.
+        if (System.currentTimeMillis() / 1000 - plan.optLong("writtenAt", 0) >= WatchRemote.APP_PAUSE_SEC) {
+            WatchScheduler.stopGuard(applicationContext)
+            return Result.success()
+        }
         val status = dev.ikrar.sulo.session.SessionVault(applicationContext).status()
         if (status != "connected") {
             // Ended or signed out: nothing to restart until the user signs in (the app then writes a new plan).
-            WatchScheduler.stop(applicationContext)
+            // Only the guard stops, so a "Masuk lagi" notice waiting for quiet hours to end is not cancelled.
+            WatchScheduler.stopGuard(applicationContext)
             return Result.success()
         }
         if (WatchGate.guardRestarts(true, status, WatchScheduler.chainPending(applicationContext))) WatchScheduler.next(applicationContext, 60, System.currentTimeMillis() / 1000)
