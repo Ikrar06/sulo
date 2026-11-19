@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sulo</title>
+<!--
+  Shown by Capacitor instead of the app when Android System WebView is older
+  than capacitor.config.ts minWebViewVersion (server.errorPath). It must work
+  on WebView 69: plain CSS (no custom properties), simple flex, ES5 only, no
+  Capacitor bridge. Nothing here sends anything anywhere: the button only
+  opens the Play Store page of Android System WebView, or the web page of it
+  when the Play Store is not on the phone.
+-->
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: #f1f1f4;
+    color: #0b0b10;
+    font-family: Roboto, "Noto Sans", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .page {
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+    -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+    min-height: 100%;
+    padding: 24px 24px 32px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .mascot { width: 160px; height: 160px; display: block; }
+  h1 { font-size: 22px; line-height: 28px; font-weight: 700; margin: 24px 0 8px; }
+  p { font-size: 15px; line-height: 22px; color: #5f5f6b; margin: 0 0 32px; max-width: 320px; }
+  .button {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: 52px;
+    line-height: 52px;
+    border-radius: 26px;
+    background: #ff5a2a;
+    color: #0b0b10;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .button:active { background: #e64f22; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0b0b0e; color: #f4f4f7; }
+    p { color: #8a8a96; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <img class="mascot" src="perlu-pembaruan-maskot.png" alt="" width="160" height="160">
+  <h1 id="title">Perlu pembaruan</h1>
+  <p id="body">Sulo butuh versi terbaru Android System WebView.</p>
+  <a id="update" class="button" href="market://details?id=com.google.android.webview">Perbarui</a>
+</main>
+<script>
+  (function () {
+    var lang = String(navigator.language || 'id').toLowerCase();
+    if (lang.indexOf('id') !== 0) {
+      document.documentElement.lang = 'en';
+      document.getElementById('title').textContent = 'Update needed';
+      document.getElementById('body').textContent = 'Sulo needs the latest Android System WebView.';
+      document.getElementById('update').textContent = 'Update';
+    }
+    var WEB = 'https://play.google.com/store/apps/details?id=com.google.android.webview';
+    document.getElementById('update').addEventListener('click', function () {
+      // No Play Store: the market link opens nothing and the page stays; then the web page of it.
+      setTimeout(function () {
+        if (!document.hidden) window.location.href = WEB;
+      }, 1500);
+    });
+  })();
+</script>
+</body>
+</html>

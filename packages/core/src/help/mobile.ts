@@ -87,6 +87,20 @@ const PHONE: FaqEntry[] = [
     ],
   },
   {
+    id: 'webview-hp',
+    q: { id: 'Sulo tampil kosong atau minta pembaruan', en: 'Sulo shows a blank screen or asks for an update' },
+    a: [
+      {
+        id: 'Sulo memakai Android System WebView bawaan HP untuk menampilkan layarnya, dan butuh versi 111 atau lebih baru. Versi yang lebih lama menampilkan halaman "Perlu pembaruan"; selama itu Sulo tidak mengecek SIKOLA sama sekali.',
+        en: 'Sulo uses the phone’s Android System WebView to draw its screens and needs version 111 or newer. Older versions show the "Update needed" page; until then Sulo does not check SIKOLA at all.',
+      },
+      {
+        id: 'Langkahnya: ketuk Perbarui di halaman itu, atau buka Play Store, cari "Android System WebView", lalu ketuk Perbarui. Perbarui juga Google Chrome kalau ada. Setelah itu tutup Sulo sepenuhnya dan buka lagi.',
+        en: 'To fix it: tap Update on that page, or open the Play Store, search for "Android System WebView" and tap Update. Update Google Chrome too if it is installed. Then close Sulo completely and open it again.',
+      },
+    ],
+  },
+  {
     id: 'email-sikola-hp',
     q: { id: 'Bisakah SIKOLA mengirim email juga?', en: 'Can SIKOLA send me email too?' },
     a: [
@@ -165,7 +179,7 @@ export const MOBILE_FAQ_TOPICS = [
   { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'baterai-hp', 'pemantauan-dijeda-hp', 'email-sikola-hp'] },
   { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
-  { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['resmi'] },
+  { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['webview-hp', 'resmi'] },
 ] as const;
 
 export interface FaqGroup {

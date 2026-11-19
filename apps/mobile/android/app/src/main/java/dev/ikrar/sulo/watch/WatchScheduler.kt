@@ -89,7 +89,7 @@ class WatchGuardWorker(context: Context, params: WorkerParameters) : Worker(cont
     override fun doWork(): Result {
         val store = WatchStore(applicationContext)
         val plan = store.plan()
-        if (plan == null || !plan.optBoolean("enabled", false)) {
+        if (plan == null || !plan.optBoolean("enabled", false) || !WebViewGate.supported(applicationContext)) {
             WatchScheduler.stop(applicationContext)
             return Result.success()
         }

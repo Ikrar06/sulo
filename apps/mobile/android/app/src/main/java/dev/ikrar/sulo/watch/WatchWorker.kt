@@ -52,6 +52,8 @@ class WatchRun(private val context: Context) {
     fun run(mode: String) {
         val started = System.currentTimeMillis()
         val now = nowSec()
+        // A WebView too old for the app: the app shows the update page, and nothing runs here either.
+        if (!WebViewGate.supported(context)) return WatchScheduler.stop(context)
         // A reset after this point ("Pakai akun ini") makes this check's writes void.
         val gen = store.generation()
         runGen = gen

@@ -11,6 +11,14 @@ const config: CapacitorConfig = {
   android: {
     // No mixed content, no remote debugging in release builds (Capacitor's default).
     allowMixedContent: false,
+    // The oldest Android System WebView the UI renders correctly in (CSS color-mix, see
+    // docs/UI.md "WebView minimum"). Older: the static update page instead of the app,
+    // no request to SIKOLA and no background watching (watch/WebViewGate.kt).
+    minWebViewVersion: 111,
+  },
+  server: {
+    // Plain HTML and CSS that works on WebView 69 (public/perlu-pembaruan.html).
+    errorPath: 'perlu-pembaruan.html',
   },
 };
 

@@ -88,3 +88,16 @@ class WatchRemoteTest {
         assertEquals(PublicConfig.OFFICIAL_URL, PublicConfig.urlFor(null, debug = true))
     }
 }
+
+class WebViewGateTest {
+    @Test
+    fun theFirstNumberAgainstTheMinimum() {
+        assertFalse(WebViewGate.supportedVersion("69.0.3497.100", "com.google.android.webview", 111, 10))
+        assertFalse(WebViewGate.supportedVersion("110.0.5481.153", "com.google.android.webview", 111, 10))
+        assertTrue(WebViewGate.supportedVersion("111.0.5563.116", "com.google.android.webview", 111, 10))
+        assertTrue(WebViewGate.supportedVersion("140.0.7339.51", "com.android.chrome", 111, 10))
+        assertTrue(WebViewGate.supportedVersion("14.0.0.331", "com.huawei.webview", 111, 10))
+        assertFalse(WebViewGate.supportedVersion(null, "com.google.android.webview", 111, 10))
+        assertFalse(WebViewGate.supportedVersion("beta", "com.google.android.webview", 111, 10))
+    }
+}
