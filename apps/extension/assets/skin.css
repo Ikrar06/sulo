@@ -142,8 +142,19 @@
 [data-slot="dropdown-menu-sub-content"][data-state="closed"],
 [data-slot="select-content"][data-state="closed"] { animation: ext-fade-out 120ms ease-in forwards; }
 
-/* The dashboard's toasts sit at the bottom right, clear of the content's middle (audit a4). */
-.db-toasts { justify-content: flex-end; padding-right: 32px; }
+/* The dashboard's toasts never cover a card: from 900 wide (a sidebar) they sit in the
+   sidebar's column, just above its footnote, outside the card column (Tahap 2); a long
+   message wraps there. Narrower, bottom centre as before. */
+@media (min-width: 900px) {
+  .db-toasts {
+    right: auto;
+    width: 232px;
+    padding-inline: 14px;
+    bottom: 64px;
+    justify-content: flex-start;
+  }
+  .db-toasts .sulo-toast { width: 100%; }
+}
 
 /* A toast rises in (180 ms). */
 .sulo-toast { animation: ext-rise-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
