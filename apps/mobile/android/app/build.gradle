@@ -65,6 +65,8 @@ dependencies {
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     // Background watching (M8c.3): one-off checks in a chain plus a 6-hour guard. Pinned.
     implementation "androidx.work:work-runtime:2.12.0"
+    // M8d: WebViewCompat.addDocumentStartJavaScript and addWebMessageListener (the NEOSIA screen).
+    implementation "androidx.webkit:webkit:1.15.0"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     // org.json for JVM unit tests (Android's own copy is a stub off-device).

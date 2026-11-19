@@ -3,6 +3,7 @@ package dev.ikrar.sulo;
 import android.content.Intent;
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
+import dev.ikrar.sulo.neosia.SuloNeosiaPlugin;
 import dev.ikrar.sulo.session.SuloSessionPlugin;
 import dev.ikrar.sulo.watch.WatchNotifier;
 import dev.ikrar.sulo.watch.WatchStore;
@@ -23,6 +24,8 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // The app's own native plugin (login, session, SIKOLA requests).
         registerPlugin(SuloSessionPlugin.class);
+        // M8d: the NEOSIA screen (debug builds only in B0).
+        registerPlugin(SuloNeosiaPlugin.class);
         super.onCreate(savedInstanceState);
         // Honor the phone's text size, clamped so screens never break (src/tokens.css).
         if (getBridge() != null && getBridge().getWebView() != null) {

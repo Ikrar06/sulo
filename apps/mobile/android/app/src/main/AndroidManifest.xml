@@ -33,6 +33,12 @@
             android:exported="false"
             android:theme="@style/AppTheme.NoActionBar" />
 
+        <!-- NEOSIA's own pages (M8d), opened from a tap only; the capture script never on its login page. -->
+        <activity
+            android:name=".neosia.NeosiaActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
