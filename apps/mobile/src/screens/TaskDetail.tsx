@@ -159,7 +159,7 @@ export function TaskScreen({ eventId }: { eventId: number }) {
         <SheetMenu
           items={[
             { label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) },
-            ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due }, m.popup.row.calendarDetails))) }] : []),
+            ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due, url: item.task.url }, m.popup.row.calendarDetails))) }] : []),
             ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setSnoozeOpen(true))) }] : []),
           ]}
         />

@@ -125,7 +125,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onOpen: actions.openTab,
                     onAddToCalendar: (i) =>
                       i.task.dueAt !== null &&
-                      actions.openTab(taskCalendarUrl({ name: i.task.name, courseName: i.courseName, dueAt: i.task.dueAt }, m.popup.row.calendarDetails)),
+                      actions.openTab(taskCalendarUrl({ name: i.task.name, courseName: i.courseName, dueAt: i.task.dueAt, url: i.task.url }, m.popup.row.calendarDetails)),
                     onSnooze: (until) => state((s) => setSnooze(s, item.task.eventId, until)),
                     onCustomDue: (at) => state((s) => setCustomDue(s, item.task.eventId, at)),
                     onAddStep: (text) => state((s) => addStep(s, item.task.eventId, text, crypto.randomUUID())),
@@ -176,7 +176,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
                 <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} tickAt={dueFormat === 'countdown' && due >= now ? due : null} label={countdownLabel((due - now) * 1000, locale)} />
               </span>
               <span className="absolute top-0 right-0">
-                <CalendarHoverButton name={item.task.name} courseName={item.courseName} dueAt={due} onOpen={onOpenTab} />
+                <CalendarHoverButton name={item.task.name} courseName={item.courseName} dueAt={due} url={item.task.url} onOpen={onOpenTab} />
               </span>
             </>
           )}

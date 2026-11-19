@@ -178,7 +178,7 @@ export default function App({ startedAt }: { startedAt: number }) {
   // A link opened by the user's click. Sulo sends nothing to Google.
   const onAddToCalendar = (row: TaskRow) => {
     if (row.dueAt === null) return;
-    const url = taskCalendarUrl({ name: row.name, courseName: row.courseName, dueAt: row.dueAt }, m.popup.row.calendarDetails);
+    const url = taskCalendarUrl({ name: row.name, courseName: row.courseName, dueAt: row.dueAt, url: row.url }, m.popup.row.calendarDetails);
     void browser.tabs.create({ url });
   };
 
