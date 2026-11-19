@@ -60,6 +60,15 @@ export function selectTab(state: NavState, tab: Tab): NavState {
   return tab === state.tab ? { ...state, stack: [] } : switchTab(state, tab);
 }
 
+/**
+ * A tab tapped: the tab already shown on its first screen scrolls back to
+ * the top; anything else is selectTab (switch, or close what is open on top).
+ */
+export function tapTab(state: NavState, tab: Tab): { kind: 'scroll-top' } | { kind: 'nav'; next: NavState } {
+  if (tab === state.tab && state.stack.length === 0) return { kind: 'scroll-top' };
+  return { kind: 'nav', next: selectTab(state, tab) };
+}
+
 /** Opens a screen: in its own tab, on top of that tab's first screen or of what is open there. */
 export function open(state: NavState, screen: Screen): NavState {
   const tab = tabOf(screen.name);

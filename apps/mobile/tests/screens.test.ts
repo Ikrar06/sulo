@@ -37,7 +37,7 @@ const { damp, PULL_THRESHOLD } = await import('../src/shell/PullToRefresh');
 const { systemClock } = await import('@sulo/core/clock');
 
 describe('Android back button and tabs', () => {
-  const { START, open, back, selectTab, current, parseScreen } = nav;
+  const { START, open, back, selectTab, current, parseScreen, tapTab } = nav;
 
   it('back closes the detail on top, then returns to the previous tab, then leaves the app', () => {
     let s = open(START, { name: 'tugas', detail: null });
@@ -72,6 +72,15 @@ describe('Android back button and tabs', () => {
     s = open(s, { name: 'tugas', detail: '2' });
     expect(s.stack).toEqual([{ name: 'tugas', detail: '2' }]);
     expect(selectTab(s, 'tugas').stack).toEqual([]);
+  });
+
+  it('tapping the tab already shown scrolls its first screen to the top, or closes what is open on it', () => {
+    expect(tapTab(START, START.tab)).toEqual({ kind: 'scroll-top' });
+    const other = tapTab(START, 'kalender');
+    expect(other.kind).toBe('nav');
+    const deep = open(START, { name: 'tugas', detail: '42' });
+    const back = tapTab(deep, deep.tab);
+    expect(back).toMatchObject({ kind: 'nav', next: { stack: [] } });
   });
 
   it('a tab is in the history once; back from a tab with no history goes to Ringkasan', () => {

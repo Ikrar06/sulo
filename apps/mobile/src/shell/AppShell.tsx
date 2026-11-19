@@ -19,7 +19,7 @@ import { BellIcon, RefreshIcon } from '@sulo/ui/icons';
 import { IconButton } from '@sulo/ui/mobile/controls';
 import { closeTopSheet } from '@sulo/ui/mobile/sheet-motion';
 import { useToast } from '@sulo/ui/ui/toast';
-import { back as goBack, current, open, parseScreen, selectTab, START, type NavState, type Screen, type Tab } from './nav';
+import { back as goBack, current, open, parseScreen, START, tapTab, type NavState, type Screen, type Tab } from './nav';
 import { opensSignIn, screenForNotification } from './notify-route';
 import { SuloSession } from '../session';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
@@ -167,6 +167,26 @@ export function AppShell(props: ShellProps) {
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [openNotice]);
+
+  /**
+   * A tab tapped. Another tab: switch. The tab already shown: a screen open on
+   * top of its first one closes; already on its first screen, the list
+   * scrolls back to the top (smoothly; at once under reduced motion).
+   */
+  const onTab = useCallback(
+    (tab: Tab) => {
+      const action = tapTab(navRef.current, tab);
+      if (action.kind === 'scroll-top') {
+        const el = scroller.current;
+        if (!el || el.scrollTop === 0) return;
+        const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        el.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+        return;
+      }
+      setNav(action.next);
+    },
+    [],
+  );
 
   // A tab's first screen comes back where it was left; a detail opens at the top.
   const top = current(nav);
@@ -327,7 +347,7 @@ export function AppShell(props: ShellProps) {
       </main>
       {/* Above the floating tab bar: a 32 px fade, then the screen color solid beside and below the bar. */}
       {showTabs && <div aria-hidden="true" className="m-fade-bottom pointer-events-none fixed inset-x-0 bottom-0 z-20" style={{ height: `calc(${TAB_BAR_SPACE + 32}px + env(safe-area-inset-bottom))` }} />}
-      {showTabs && <TabBar active={nav.tab} overdue={overdue} onSelect={(tab: Tab) => setNav((s) => selectTab(s, tab))} label={w.app.tabsLabel} labels={{ ...d.nav, lainnya: w.app.lainnya }} overdueLabel={w.app.overdue} />}
+      {showTabs && <TabBar active={nav.tab} overdue={overdue} onSelect={onTab} label={w.app.tabsLabel} labels={{ ...d.nav, lainnya: w.app.lainnya }} overdueLabel={w.app.overdue} />}
     </div>
   );
 }
