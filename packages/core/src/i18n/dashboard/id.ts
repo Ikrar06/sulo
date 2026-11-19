@@ -285,13 +285,20 @@ export const dashId = {
     feedback: 'Kirim masukan',
   },
   tentang: {
-    intro: 'Sulo adalah aplikasi pendamping untuk mahasiswa Unhas. Sulo mengumpulkan tugas dan perubahan dari SIKOLA serta jadwal dari kalender akademik di satu tempat, lengkap dengan pengingat. Kalau kamu mau, jadwal kuliah dan kesiapan KRS dari NEOSIA bisa ikut masuk lewat Pengaturan.',
-    points: ['Semua data tersimpan di browser kamu. Tidak ada server Sulo, tidak ada pelacakan.', 'Bukan aplikasi resmi Unhas.'],
+    tagline: 'Pendamping akademik mahasiswa Unhas',
+    aboutTitle: 'Tentang Sulo',
+    intro: 'Tugas dan perubahan dari SIKOLA, plus kalender akademik, di satu tempat dengan pengingat.',
+    /** The extension only: one short line on the optional NEOSIA module. */
+    neosia: 'Jadwal kuliah dan kesiapan KRS dari NEOSIA bisa ikut lewat Pengaturan.',
+    points: ['Data tersimpan di browser ini', 'Tanpa server Sulo dan tanpa pelacakan', 'Bukan aplikasi resmi Unhas'],
     version: (v: string) => `Versi ${v}`,
     license: 'Kode Sulo berlisensi MIT.',
     links: { instagram: 'Instagram', linkedin: 'LinkedIn', github: 'GitHub', web: 'Portofolio' },
     privacy: 'Kebijakan privasi',
-    madeBy: (name: string) => `Dibuat oleh ${name}`,
+    behindTitle: 'Di balik Sulo',
+    behindBody: 'Sulo dibuat di sela kuliah oleh satu mahasiswa Unhas yang capek bolak-balik membuka SIKOLA hanya untuk mengecek tenggat.',
+    /** The maker's name appears only here, at 13 and muted, never as a title. */
+    signature: (name: string) => `${name} · Teknik Informatika Unhas`,
     versionTitle: 'Info versi',
     supportTitle: 'Dukung Sulo',
     supportNote: 'Sulo gratis. Kalau terbantu, traktiran kecil bikin aku semangat lanjut.',

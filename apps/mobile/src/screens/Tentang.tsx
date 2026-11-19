@@ -1,23 +1,26 @@
-// Tentang (M8c.1, cards): the identity card (app icon, name, version; seven
-// taps on the APK version open the debug screen in debug builds), what Sulo
-// is, the maker with links as pill chips, support (Traktir kopi primary,
-// Kirim masukan secondary, both full width) and one 12 px note on outside
-// links. Every outside link is a plain link opening a new tab; nothing from
-// those sites is loaded here.
+// Tentang: the identity card (app icon, name, tagline, version; seven
+// taps on the version open the debug screen in debug builds), "Tentang
+// Sulo" (one sentence and three facts with icons), "Di balik Sulo" (a short
+// story, the maker's name only as a 13 px muted signature, the links as
+// neutral round icon buttons), support, a row to the privacy policy, and
+// one 12 px note on outside links. The maker's name appears nowhere else in
+// the app. Every outside link is a plain link opening a new tab; nothing
+// from those sites is loaded here.
 
 import { useRef } from 'react';
 import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, REPO_URL, TRAKTEER_URL, type CreatorLinkId } from '@sulo/core/links';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
-import { GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '@sulo/ui/dashboard-icons';
+import { EyeOffIcon, GitHubIcon, GlobeIcon, InfoCircleIcon, InstagramIcon, LinkedInIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
-import { Card } from '@sulo/ui/mobile/cards';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import { Card, GroupCard, IconTile } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import tile from '../../../extension/assets/brand/tile-dark.svg';
 import { DEV_EVENT } from '../events';
 
 const LINK_ICONS = { instagram: InstagramIcon, linkedin: LinkedInIcon, github: GitHubIcon, web: GlobeIcon } satisfies Record<CreatorLinkId, unknown>;
-const chip = 'inline-flex h-8 items-center gap-2 rounded-full bg-m-inset px-3 text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus';
-const textLink = 'rounded underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-focus';
+const FACT_ICONS = [ShieldIcon, EyeOffIcon, InfoCircleIcon];
+const row = 'flex min-h-12 w-full items-center gap-3 py-3 text-left text-m15 outline-none focus-ring:ring-2 focus-ring:ring-focus rounded-[8px] [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line';
 
 export function TentangScreen() {
   const { locale } = useI18n();
@@ -43,55 +46,46 @@ export function TentangScreen() {
           <img src={tile} alt="" width={56} height={56} className="size-14 shrink-0 rounded-ctl" />
           <div className="min-w-0">
             <h2 className="text-m18 font-semibold">Sulo</h2>
-            <button type="button" onClick={tap} className="m-hit block rounded text-left text-m13 text-muted-foreground tabular-nums outline-none focus-ring:ring-2 focus-ring:ring-focus">
+            <p className="text-m13 text-muted-foreground">{t.tagline}</p>
+            <button type="button" onClick={tap} className="m-hit mt-1 block rounded text-left text-m12 text-muted-foreground tabular-nums outline-none focus-ring:ring-2 focus-ring:ring-focus">
               {w.about.apkVersion(__SULO_VERSION__)}
             </button>
           </div>
         </div>
-        <p className="mt-3 text-m12 text-muted-foreground">
-          {isShownLink(REPO_URL) && (
-            <>
-              <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className={textLink}>
-                {t.license}
-              </a>{' '}
-            </>
-          )}
-          <a href="#privasi" className={textLink}>
-            {t.privacy}
-          </a>
-        </p>
       </Card>
 
       <Card>
-        <p className="text-m15r">{t.intro}</p>
-        <ul className="mt-3 space-y-2 text-m15r">
-          {t.points.map((p) => (
-            <li key={p} className="flex gap-3">
-              <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-muted-foreground" />
-              <span>{p}</span>
+        <h2 className="text-m15 font-semibold">{t.aboutTitle}</h2>
+        <p className="mt-1 text-m15r">{t.intro}</p>
+        <ul className="mt-3 space-y-2">
+          {t.points.map((p, i) => (
+            <li key={p} className="flex items-center gap-3">
+              <IconTile color="neutral" icon={FACT_ICONS[i] ?? InfoCircleIcon} />
+              <span className="min-w-0 text-m15r">{p}</span>
             </li>
           ))}
         </ul>
       </Card>
 
-      {creators.length > 0 && (
-        <Card>
-          <h2 className="text-m15 font-semibold">{t.madeBy(CREATOR_NAME)}</h2>
-          <ul className="mt-3 flex flex-wrap gap-2">
+      <Card>
+        <h2 className="text-m15 font-semibold">{t.behindTitle}</h2>
+        <p className="mt-1 text-m15r">{t.behindBody}</p>
+        <p className="mt-2 text-m13 text-muted-foreground">{t.signature(CREATOR_NAME)}</p>
+        {creators.length > 0 && (
+          <ul className="mt-3 flex gap-2">
             {creators.map((l) => {
               const Icon = LINK_ICONS[l.id];
               return (
                 <li key={l.id}>
-                  <a href={l.url} target="_blank" rel="noopener noreferrer" className={chip}>
-                    <Icon aria-hidden="true" className="size-4 shrink-0" />
-                    {t.links[l.id]}
+                  <a href={l.url} target="_blank" rel="noopener noreferrer" aria-label={t.links[l.id]} className="m-hit m-press inline-flex size-11 items-center justify-center rounded-full bg-m-inset text-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                    <Icon aria-hidden="true" className="size-5" />
                   </a>
                 </li>
               );
             })}
           </ul>
-        </Card>
-      )}
+        )}
+      </Card>
 
       {(coffee || feedback) && (
         <Card>
@@ -113,6 +107,19 @@ export function TentangScreen() {
           {feedback && <p className="mt-2 text-m12 text-muted-foreground">{t.feedbackNote}</p>}
         </Card>
       )}
+
+      <GroupCard>
+        <a href="#privasi" className={row}>
+          <span className="min-w-0 flex-1">{t.privacy}</span>
+          <ChevronRightIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+        </a>
+        {isShownLink(REPO_URL) && (
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className={row}>
+            <span className="min-w-0 flex-1">{t.license}</span>
+            <ChevronRightIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+          </a>
+        )}
+      </GroupCard>
 
       <p className="px-1 text-m12 text-muted-foreground">{t.externalNote}</p>
     </div>

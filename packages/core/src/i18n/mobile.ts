@@ -424,14 +424,14 @@ export function mobileDash(locale: Locale): DashMessages {
       ? {
           customDueHelp: 'SIKOLA gives this task no due date. A personal one is kept only on this phone and used for reminders.',
           stepsHelp: 'Break the task into small steps. Kept only on this phone.',
-          intro: 'Sulo is a companion app for Unhas students. It brings your tasks and changes from SIKOLA and the dates from the academic calendar together in one place, with reminders.',
-          points: ['All data stays on this phone. There is no Sulo server and no tracking.', 'Not an official Unhas app.'],
+          intro: 'Your SIKOLA tasks and changes, plus the academic calendar, in one place with reminders.',
+          points: ['Data stays on this phone', 'No Sulo server, no tracking', 'Not an official Unhas app'],
         }
       : {
           customDueHelp: 'SIKOLA tidak memberi tenggat untuk tugas ini. Tenggat pribadi hanya disimpan di HP ini dan dipakai untuk pengingat.',
           stepsHelp: 'Pecah tugas jadi langkah kecil. Hanya tersimpan di HP ini.',
-          intro: 'Sulo adalah aplikasi pendamping untuk mahasiswa Unhas. Sulo mengumpulkan tugas dan perubahan dari SIKOLA serta jadwal dari kalender akademik di satu tempat, lengkap dengan pengingat.',
-          points: ['Semua data tersimpan di HP ini. Tidak ada server Sulo, tidak ada pelacakan.', 'Bukan aplikasi resmi Unhas.'],
+          intro: 'Tugas dan perubahan dari SIKOLA, plus kalender akademik, di satu tempat dengan pengingat.',
+          points: ['Data tersimpan di HP ini', 'Tanpa server Sulo dan tanpa pelacakan', 'Bukan aplikasi resmi Unhas'],
         };
   return {
     ...d,

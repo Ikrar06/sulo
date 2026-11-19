@@ -4,7 +4,7 @@ import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, REPO_URL, 
 import { DocLayout } from '../ui/doc-layout';
 import { SupportButton } from '../ui/support-button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { GitHubIcon, GlobeIcon, InstagramIcon, LinkedInIcon } from '../dashboard-icons';
+import { EyeOffIcon, GitHubIcon, GlobeIcon, InfoCircleIcon, InstagramIcon, LinkedInIcon, ShieldIcon } from '../dashboard-icons';
 import { Card } from '../card';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 
@@ -17,8 +17,11 @@ const LINK_ICONS: Record<CreatorLinkId, ComponentType<SVGProps<SVGSVGElement>>> 
   web: GlobeIcon,
 };
 
-const textLink =
-  'inline-flex items-center gap-2 rounded text-[14px] underline-offset-4 outline-none hover:underline focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background';
+const FACT_ICONS: ComponentType<SVGProps<SVGSVGElement>>[] = [ShieldIcon, EyeOffIcon, InfoCircleIcon];
+
+/** A neutral round icon button: no brand colours, the name only as its accessible label. */
+const iconLink =
+  'inline-flex size-10 items-center justify-center rounded-full border border-border text-foreground outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background';
 
 /**
  * About. Every outside link is a plain link opened by a click; nothing from
@@ -61,35 +64,45 @@ export function TentangContent({ d, version: appVersion, onOpenPrivacy, versionE
   return (
     <DocLayout aside={version}>
       <section id="tentang-sulo">
-        <Card>
-          <p className="text-[14px] leading-normal">{t.intro}</p>
-          <ul className="mt-3 list-disc space-y-1 pl-6 text-[14px] leading-normal">
-            {t.points.map((p) => (
-              <li key={p}>{p}</li>
-            ))}
+        <Card title={t.aboutTitle}>
+          <p className="text-[14px] leading-normal">
+            {t.intro} {t.neosia}
+          </p>
+          <ul className="mt-3 space-y-2">
+            {t.points.map((p, i) => {
+              const Icon = FACT_ICONS[i] ?? InfoCircleIcon;
+              return (
+                <li key={p} className="flex items-center gap-2 text-[14px] leading-normal">
+                  <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+                  <span>{p}</span>
+                </li>
+              );
+            })}
           </ul>
         </Card>
       </section>
 
-      {creators.length > 0 && (
-        <section id="pembuat">
-          <Card title={t.madeBy(CREATOR_NAME)}>
-            <ul className="flex flex-wrap gap-x-6 gap-y-2">
+      {/* The maker's name only as a small muted signature, never as a title. */}
+      <section id="di-balik-sulo">
+        <Card title={t.behindTitle}>
+          <p className="text-[14px] leading-normal">{t.behindBody}</p>
+          <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{t.signature(CREATOR_NAME)}</p>
+          {creators.length > 0 && (
+            <ul className="mt-3 flex gap-2">
               {creators.map((l) => {
                 const Icon = LINK_ICONS[l.id];
                 return (
                   <li key={l.id}>
-                    <a href={l.url} {...external} className={textLink}>
-                      <Icon className="size-4 shrink-0" />
-                      <span>{t.links[l.id]}</span>
+                    <a href={l.url} {...external} aria-label={t.links[l.id]} title={t.links[l.id]} className={iconLink}>
+                      <Icon aria-hidden="true" className="size-4" />
                     </a>
                   </li>
                 );
               })}
             </ul>
-          </Card>
-        </section>
-      )}
+          )}
+        </Card>
+      </section>
 
       {/* Support (primary) and feedback (secondary, same 40 px height) side by side, stacked 8 px apart on narrow screens; one sentence under them. The "don't send" warning belongs to feedback only, as its tooltip. */}
       <section id="dukung">
