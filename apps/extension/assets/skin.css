@@ -184,6 +184,7 @@
    at the extension's layers and radius. */
 .m-card { background-color: var(--layer-card); border: 1px solid var(--layer-card-edge); box-shadow: var(--layer-card-shadow); }
 .rounded-card { border-radius: var(--radius-card); }
+.rounded-ctl { border-radius: var(--radius-ctl); }
 .rounded-hero { border-radius: 20px; }
 .m-hit { position: relative; }
 

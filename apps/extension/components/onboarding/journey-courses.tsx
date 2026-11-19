@@ -38,11 +38,11 @@ function CourseRow({ course, color, onToggle }: { course: CourseRecord; color: n
         aria-checked={on}
         title={course.fullname}
         onClick={(e) => onToggle(course.id, !on, e.currentTarget)}
-        className="flex min-h-14 w-full items-center gap-3 rounded-[14px] px-3 py-2 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus"
+        className="flex min-h-14 w-full items-center gap-3 rounded-[14px] py-2 pr-3 pl-2.5 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus"
         style={{ background: on ? tintBg(tint, 16, 'var(--layer-card)') : 'var(--layer-card)' }}
       >
         <span className={`transition-opacity duration-150 ${on ? '' : 'opacity-60'}`}>
-          <Tile color={tint} size={40} solid>
+          <Tile color={tint} size={32} solid>
             {initials(name)}
           </Tile>
         </span>

@@ -50,11 +50,13 @@ export function SectionHead({ title, action, id }: { title: string; action?: { l
 }
 
 /** A square tile: a soft tint behind an icon or a date, or (solid) a course's own color behind its initials in dark text. */
-export function Tile({ color, size = 36, children, label, solid = false }: { color: TintColor | null | undefined; size?: 36 | 40 | 44 | 64; children: ReactNode; label?: string; solid?: boolean }) {
-  const box = size === 64 ? 'size-16' : size === 44 ? 'size-11' : size === 40 ? 'size-10' : 'size-9';
+export function Tile({ color, size = 36, children, label, solid = false }: { color: TintColor | null | undefined; size?: 32 | 36 | 40 | 44 | 64; children: ReactNode; label?: string; solid?: boolean }) {
+  const box = size === 64 ? 'size-16' : size === 44 ? 'size-11' : size === 40 ? 'size-10' : size === 32 ? 'size-8' : 'size-9';
+  // 32: the course initial tile in a list row (radius 10, initials 12 bold).
+  const shape = size === 64 ? 'rounded-[18px] text-m13 font-semibold' : size === 32 ? 'rounded-[10px] text-[12px] font-bold' : 'rounded-ctl text-m13 font-semibold';
   const style = solid ? { background: tintVar(color), ...ON_SOLID } : { background: tintBg(color, 18), color: 'var(--text)' };
   return (
-    <span role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} className={`${box} flex shrink-0 flex-col items-center justify-center ${size === 64 ? 'rounded-[18px]' : 'rounded-ctl'} text-m13 font-semibold`} style={style}>
+    <span role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} className={`${box} flex shrink-0 flex-col items-center justify-center ${shape}`} style={style}>
       {children}
     </span>
   );
