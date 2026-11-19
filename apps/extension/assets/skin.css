@@ -1,0 +1,270 @@
+/* The extension's skin (Tahap 2): the phone's card language at desktop
+   sizes. Only the extension imports this file (assets/tailwind.css and
+   assets/popup.css); the phone keeps its own (apps/mobile/src/tokens.css),
+   so shared components look the same on the phone as before.
+
+   Unlayered on purpose: these rules win over Tailwind's utilities without
+   editing the shared components. Card selectors sit in :where() (no
+   specificity), so a floating surface's own rule below still wins.
+
+   Layers (packages/ui/src/tokens/palette.css): the page on the screen
+   layer, cards one step above it, without an edge in dark and with a
+   hairline in light. Shape: card 16, control 10, primary buttons and chips
+   a full pill, icon buttons a circle. Desktop control heights unchanged. */
+
+:root {
+  --radius-card: 16px;
+  --radius-ctl: 10px;
+}
+
+/* ---------- Layers ---------- */
+
+.db-layout,
+.db-side {
+  background-color: var(--layer-screen);
+}
+.db-side {
+  border-color: var(--layer-line);
+}
+/* The raised fill (active nav item, the contents list, hovers, row highlights) is the inset
+   layer, as the phone marks a selection: on the light screen layer the old raised gray
+   (#f2f2f5 on #f1f1f4) all but vanished. */
+.db-layout {
+  --surface-raised: var(--layer-inset);
+}
+
+:where(.rounded-xl.border.border-border.bg-surface),
+:where([data-slot="card"]) {
+  border-radius: var(--radius-card);
+  background-color: var(--layer-card);
+  border-color: var(--layer-card-edge);
+  box-shadow: var(--layer-card-shadow);
+}
+/* Rows divided inside a card keep a quiet line of the layer. */
+:where(.rounded-xl.border.border-border.bg-surface).divide-y > * + * {
+  border-color: var(--layer-line);
+}
+
+/* Floating surfaces sit over cards: in dark they keep an edge, or they would
+   melt into the card under them. */
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"],
+[data-slot="alert-dialog-content"],
+.sulo-toast {
+  background-color: var(--layer-card);
+  border: 1px solid var(--layer-line);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+[data-slot="alert-dialog-content"] {
+  border-radius: var(--radius-card);
+}
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"],
+.sulo-toast {
+  border-radius: 14px;
+}
+
+/* ---------- Controls ---------- */
+
+/* Buttons are matched by their variant and size, not data-slot: a Radix
+   trigger rendered asChild (menus, tooltips) passes its own data-slot down. */
+[data-slot="input"],
+[data-slot="select-trigger"],
+:is(button, a)[data-size]:is([data-variant="outline"], [data-variant="secondary"], [data-variant="ghost"], [data-variant="destructive"], [data-variant="destructive-outline"]) {
+  border-radius: var(--radius-ctl);
+}
+/* Primary actions are pills; icon buttons are circles. */
+:is(button, a)[data-size]:is([data-variant="default"], [data-variant="destructive-solid"]),
+:is(a, button).bg-primary,
+:is(button, a)[data-variant][data-size^="icon"] {
+  border-radius: 9999px;
+}
+
+/* Motion of controls: color and transform only (never size or layout), 150 ms. */
+:is(button, a)[data-variant][data-size],
+[data-slot="switch"],
+[data-slot="switch-thumb"] {
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: 150ms;
+}
+
+/* ---------- The phone's shared parts at desktop sizes ---------- */
+/* Chip, check circle and the one-line time come from packages/ui/src/mobile
+   (Tahap 2: the same components on both). Their phone-only names get the
+   desktop scale here: 12 for chips and times, 11 as FitLine's step down. */
+:root {
+  --m-card: var(--layer-card);
+  --m-inset: var(--layer-inset);
+  --m-line: var(--layer-line);
+}
+.text-m11 { font-size: 11px; line-height: 14px; font-weight: 500; }
+.text-m12 { font-size: 12px; line-height: 16px; font-weight: 500; }
+.text-m13 { font-size: 13px; line-height: 18px; }
+.text-m15 { font-size: 14px; line-height: 20px; font-weight: 500; }
+.border-m-line { border-color: var(--layer-line); }
+.bg-m-inset { background-color: var(--layer-inset); }
+.bg-m-card { background-color: var(--layer-card); }
+/* A switch that is off keeps a visible edge (3:1 or more, like the unchecked checkbox):
+   in dark the inset track on a card was too close to the card itself. */
+[role="switch"][data-state="unchecked"] {
+  box-shadow: inset 0 0 0 1px var(--control-border);
+}
+
+/* ---------- Motion (Tahap 2, audit group b) ---------- */
+/* Response motion 120 to 220 ms, transform and opacity only, never from scale(0).
+   All of it stops under prefers-reduced-motion (tokens.css cuts every duration;
+   the rules below also say so). Extension only: the phone keeps its own motion. */
+
+@keyframes ext-rise-in { from { opacity: 0; transform: translateY(4px); } }
+@keyframes ext-drop-in { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes ext-pop-in { from { opacity: 0; transform: scale(0.97); } }
+@keyframes ext-fade-out { to { opacity: 0; } }
+@keyframes ext-fade-in { from { opacity: 0; } }
+@keyframes ext-row-out { to { opacity: 0; transform: translateX(8px); } }
+
+/* Dialogs: rise in 180 ms, fade out 120 ms (Radix waits for the animation). */
+[data-slot="alert-dialog-content"][data-state="open"] { animation: ext-rise-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+[data-slot="alert-dialog-content"][data-state="closed"],
+[data-slot="alert-dialog-overlay"][data-state="closed"] { animation: ext-fade-out 120ms ease-in forwards; }
+[data-slot="alert-dialog-overlay"][data-state="open"] { animation: ext-fade-in 180ms ease-out; }
+
+/* Popovers, menus and select lists: from 0.97 at their own origin, 140 ms; out 120 ms. */
+[data-slot="popover-content"][data-state="open"] { transform-origin: var(--radix-popover-content-transform-origin); animation: ext-pop-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+[data-slot="dropdown-menu-content"][data-state="open"],
+[data-slot="dropdown-menu-sub-content"][data-state="open"] { transform-origin: var(--radix-dropdown-menu-content-transform-origin); animation: ext-pop-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+[data-slot="select-content"][data-state="open"] { transform-origin: var(--radix-select-content-transform-origin); animation: ext-pop-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+[data-slot="popover-content"][data-state="closed"],
+[data-slot="dropdown-menu-content"][data-state="closed"],
+[data-slot="dropdown-menu-sub-content"][data-state="closed"],
+[data-slot="select-content"][data-state="closed"] { animation: ext-fade-out 120ms ease-in forwards; }
+
+/* The dashboard's toasts never cover a card: from 900 wide (a sidebar) they sit in the
+   sidebar's column, just above its footnote, outside the card column (Tahap 2); a long
+   message wraps there. Narrower, bottom centre as before. */
+@media (min-width: 900px) {
+  .db-toasts {
+    right: auto;
+    width: 232px;
+    padding-inline: 14px;
+    bottom: 64px;
+    justify-content: flex-start;
+  }
+  .db-toasts .sulo-toast { width: 100%; }
+}
+
+/* A toast rises in (180 ms). */
+.sulo-toast { animation: ext-rise-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* A fold that opens: its content drops in (160 ms); the height itself changes at once. */
+[data-slot="collapsible-content"][data-state="open"] { animation: ext-drop-in 160ms ease-out; }
+
+/* A new page of the dashboard: its content rises in (160 ms); the sidebar stays. */
+.ext-page-in { animation: ext-rise-in 160ms ease-out; }
+
+/* A row marked done leaves: fade and slide 8 px (180 ms), never its height; the rows
+   below move up with a transform (lib/ui/flip.ts). Replaces db-collapse's height
+   animation in the extension only (the phone keeps its own). */
+.db-collapse { overflow: visible; animation: ext-row-out 180ms ease-in forwards; }
+
+/* The teaching-week bar fills once, 400 ms (was 600): a fill, not a response. */
+.db-week-fill { animation-duration: 400ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="alert-dialog-content"], [data-slot="alert-dialog-overlay"], [data-slot="popover-content"], [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"], [data-slot="select-content"], [data-slot="collapsible-content"], .sulo-toast, .ext-page-in, .db-collapse {
+    animation: none !important;
+  }
+}
+
+/* The phone's card (packages/ui/src/mobile/cards.tsx Card, used by its task card)
+   at the extension's layers and radius. */
+.m-card { background-color: var(--layer-card); border: 1px solid var(--layer-card-edge); box-shadow: var(--layer-card-shadow); }
+.rounded-card { border-radius: var(--radius-card); }
+.rounded-hero { border-radius: 20px; }
+.m-hit { position: relative; }
+
+/* ---------- Menus, selects and choice lists: the phone's sheet rows (Tahap 2, e9) ---------- */
+/* Rows 36 high at the desktop's 14, 12 from the sides, 10 between an icon and its text,
+   the check on the right; group labels muted 12; separators in the layer's line. The
+   popup's settings menu stays text only (its items carry no icon). */
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"] {
+  padding: 6px;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"]) {
+  min-height: 36px;
+  padding-block: 6px;
+  padding-left: 12px;
+  gap: 10px;
+  border-radius: var(--radius-ctl);
+  font-size: 14px;
+  line-height: 20px;
+}
+:is([data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="select-item"]) {
+  padding-right: 36px;
+}
+:is([data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="select-item"]) > span:first-child {
+  right: 12px;
+}
+[data-slot="dropdown-menu-item"] {
+  padding-right: 12px;
+}
+[data-slot="dropdown-menu-label"] {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+[data-slot="dropdown-menu-separator"] {
+  margin: 6px 0;
+  background-color: var(--layer-line);
+}
+
+/* ---------- Row hover and row focus (Tahap 2) ---------- */
+/* A list row's hover fill reaches 10 px past its content left and right and 6 px above
+   and below, radius 14, drawn by ::before behind the content, so nothing in the row
+   moves. Each list says where the fill sits against the row's own box with --rh-x and
+   --rh-y (negative reaches outside it). Keyboard focus on the row: the same shape, with
+   the focus ring. Fills of neighbouring rows never overlap (their gap is at least 12). */
+.row-hover { position: relative; isolation: isolate; }
+.row-hover::before {
+  content: "";
+  position: absolute;
+  inset: var(--rh-y, 0px) var(--rh-x, 0px);
+  border-radius: 14px;
+  z-index: -1;
+  pointer-events: none;
+  transition: background-color 120ms ease-out;
+}
+.row-hover:hover::before { background-color: var(--surface-raised); }
+:root:not([data-input="mouse"]) .row-hover:is(:focus-visible, :has(.row-main:focus-visible))::before {
+  background-color: var(--surface-raised);
+  box-shadow: 0 0 0 2px var(--focus);
+}
+
+/* Menu and select rows: the same fill, 10 past the text (which sits 12 in) and 6 above and below. */
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"]) {
+  isolation: isolate;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])[data-highlighted] {
+  background-color: transparent;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 14px;
+  z-index: -1;
+  pointer-events: none;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])[data-highlighted]::before {
+  background-color: var(--surface-raised);
+}
+:root:not([data-input="mouse"]) :is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])[data-highlighted]::before {
+  box-shadow: 0 0 0 2px var(--focus);
+}

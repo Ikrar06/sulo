@@ -108,30 +108,20 @@
   }
 }
 
-/* Load map cells: solid fills mixed from brand tokens (never a gradient),
-   darker means heavier. Level 4 uses ink text: light text on bright orange
-   fell to 3.4:1 in the dark theme, ink gives 5.1 (dark) and 7.1 (light).
-   Level 3 keeps --text (5.4 / 9.2); ink there was only 3.2 in the dark
-   theme (scripts/contrast.mjs). */
+/* Load map cells (Tahap 2, e5): a neutral scale from the card to the text color,
+   four levels, never a gradient and never orange (orange marks only today, as a
+   ring). Levels 1 and 2 carry the text color, 3 and 4 the card's color
+   (scripts/contrast.mjs checks each pair, both themes). The phone does not use them. */
 .db-load-0 { background: var(--surface-raised); color: var(--text); }
-.db-load-1 { background: color-mix(in oklch, var(--brand-amber) 22%, var(--surface-raised)); color: var(--text); }
-.db-load-2 { background: color-mix(in oklch, var(--brand-amber) 45%, var(--surface-raised)); color: var(--text); }
-.db-load-3 { background: color-mix(in oklch, var(--brand-orange) 62%, var(--surface-raised)); color: var(--text); }
-.db-load-4 { background: color-mix(in oklch, var(--brand-orange) 88%, var(--surface-raised)); color: var(--ink); }
+.db-load-1 { background: color-mix(in oklch, var(--text) 12%, var(--surface)); color: var(--text); }
+.db-load-2 { background: color-mix(in oklch, var(--text) 26%, var(--surface)); color: var(--text); }
+.db-load-3 { background: color-mix(in oklch, var(--text) 58%, var(--surface)); color: var(--surface); }
+.db-load-4 { background: color-mix(in oklch, var(--text) 80%, var(--surface)); color: var(--surface); }
 
-/* Calendar categories (lib/calendar/groups.ts). One hue per group; bars
-   and chips use a low tint with strong text, dots the full color, status
-   periods an even fainter cell tint. Pairs checked by scripts/contrast.mjs. */
-.db-layout {
-  --cat-akademik: var(--muted);
-  --cat-ujian: var(--brand-amber);
-  --cat-administrasi: var(--urgency-week);
-  --cat-libur: var(--danger);
-  --cat-wisuda: var(--course-7);
-  --cat-penerimaan: var(--muted);
-  --cat-tugas: var(--muted);
-  --cat-kuliah: var(--course-5);
-}
+/* Calendar categories (lib/calendar/groups.ts), colors --cat-* in
+   packages/ui/src/tokens/palette.css. One hue per group; bars and chips use
+   a low tint with strong text, dots the full color, status periods an even
+   fainter cell tint. Pairs checked by scripts/contrast.mjs. */
 
 .db-cat-akademik { --cat: var(--cat-akademik); }
 .db-cat-ujian { --cat: var(--cat-ujian); }

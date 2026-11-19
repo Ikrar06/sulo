@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
-import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { Input } from '@sulo/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
@@ -9,18 +8,24 @@ import { courseAlias } from '@sulo/core/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { taskDueLines } from '@sulo/core/format/time';
-import { googleCalendarUrl } from '@sulo/core/format/gcal';
+import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
+import { Chip } from '@sulo/ui/mobile/cards';
+import { courseTint } from '@sulo/ui/mobile/tint';
+import { URGENCY_TEXT } from '@sulo/ui/urgency';
+import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
+import { CheckCircle } from '@sulo/ui/mobile/controls';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
+import { useFlip } from '@/lib/ui/flip';
 import type { PageProps } from '../types';
 
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
 
-const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
 
 export function TugasPage({ d, data, actions, route }: PageProps) {
   const { m } = useI18n();
@@ -48,6 +53,8 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const active = activeCourseIds(user.courses);
   const courses = user.courses.filter((c) => active.has(c.id)).sort((a, b) => courseAlias(a).localeCompare(courseAlias(b), 'id'));
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef);
 
   return (
     <div className="space-y-4">
@@ -98,7 +105,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
           <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-[14px] text-muted-foreground">{t.empty}</p>
         )
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
+        <ul ref={listRef} className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
           {shown.map((item) => (
             <TaskRowItem
               key={item.task.eventId}
@@ -110,6 +117,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
               d={d}
               now={data.now}
               dueFormat={data.prefs.dueFormat}
+              onOpenTab={actions.openTab}
               details={
                 <TaskDetails
                   item={item}
@@ -121,7 +129,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onOpen: actions.openTab,
                     onAddToCalendar: (i) =>
                       i.task.dueAt !== null &&
-                      actions.openTab(googleCalendarUrl({ title: `${i.task.name} (${i.courseName})`, dueAt: i.task.dueAt, details: m.popup.row.calendarDetails(i.courseName, i.task.url) })),
+                      actions.openTab(taskCalendarUrl({ name: i.task.name, courseName: i.courseName, dueAt: i.task.dueAt, url: i.task.url }, m.popup.row.calendarDetails)),
                     onSnooze: (until) => state((s) => setSnooze(s, item.task.eventId, until)),
                     onCustomDue: (at) => state((s) => setCustomDue(s, item.task.eventId, at)),
                     onAddStep: (text) => state((s) => addStep(s, item.task.eventId, text, crypto.randomUUID())),
@@ -139,7 +147,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   );
 }
 
-function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, details, collapsing = false }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; details: ReactNode; collapsing?: boolean }) {
+function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, onOpenTab, details, collapsing = false }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; onOpenTab: (url: string) => void; details: ReactNode; collapsing?: boolean }) {
   const { m, locale } = useI18n();
   const t = d.tugas;
   const due = item.task.dueAt;
@@ -147,28 +155,43 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   const steps = item.state.steps;
   const panelId = `task-panel-${item.task.eventId}`;
   return (
-    <li id={`task-${item.task.eventId}`} className={collapsing ? 'db-collapse' : undefined}>
-      <div className="flex items-start gap-3 px-4 py-3">
-        <Checkbox className="mt-1" checked={item.status === 'done'} onCheckedChange={(v) => onDone(v === true)} aria-label={item.status === 'done' ? t.markUndone : t.markDone} />
-        <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
+    <li id={`task-${item.task.eventId}`} data-flip-key={item.task.eventId} className={collapsing ? 'db-collapse' : undefined}>
+      {/* The hover and focus fill (skin.css .row-hover): 10 past the content left and right, 6 above and below. */}
+      <div className="row-hover group relative flex items-start gap-3 px-4 py-3" style={{ ['--rh-x' as string]: '6px', ['--rh-y' as string]: '6px' }}>
+        <span className="mt-px flex">
+          <CheckCircle size="sm" checked={item.status === 'done'} onChange={onDone} label={`${item.status === 'done' ? t.markUndone : t.markDone}: ${item.task.name}`} />
+        </span>
+        <button type="button" className="row-main min-w-0 flex-1 text-left outline-none" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <span className={`block text-[14px] leading-6 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`}>{item.task.name}</span>
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-normal text-muted-foreground">
-            <span className="inline-flex items-center gap-2">
-              <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${item.courseColor})` }} />
-              {item.courseName}
+            <span className="inline-flex min-w-0 text-foreground">
+              <Chip small color={courseTint(item.courseColor)}>
+                {item.courseName}
+              </Chip>
             </span>
             {item.status !== 'pending' && <span>{t.statuses[item.status]}</span>}
             {item.personalDue && <span className="rounded border border-border px-1 text-[12px]">{t.personalDue}</span>}
             {steps.length > 0 && <span className="tabular-nums">{t.stepsDone(steps.filter((s) => s.done).length, steps.length)}</span>}
           </span>
         </button>
-        <span className="shrink-0 text-right text-[14px] leading-6 tabular-nums">
+        <span className="relative min-w-7 shrink-0 text-right text-[14px] leading-6 tabular-nums">
           {due === null ? (
             <span className="text-muted-foreground">{t.noDue}</span>
           ) : (
-            <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} tickAt={dueFormat === 'countdown' && due >= now ? due : null} label={countdownLabel((due - now) * 1000, locale)} />
+            <>
+              <span className={`block ${FADES_FOR_CALENDAR}`}>
+                <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} tickAt={dueFormat === 'countdown' && due >= now ? due : null} label={countdownLabel((due - now) * 1000, locale)} />
+              </span>
+
+            </>
           )}
         </span>
+        {/* Over the due time, centred on the row, 8 px left of the details chevron. */}
+        {due !== null && (
+          <span className="absolute top-1/2 right-[52px] -translate-y-1/2">
+            <CalendarHoverButton name={item.task.name} courseName={item.courseName} dueAt={due} url={item.task.url} onOpen={onOpenTab} />
+          </span>
+        )}
         <button type="button" className="mt-1 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <ChevronDownIcon className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
@@ -183,9 +206,11 @@ function DueLines({ lines, tone, tickAt = null, label = null }: { lines: { prima
   return (
     <>
       {/* In countdown mode the shared ticker (App) rewrites this text each second; the label only changes per minute. */}
-      <span className={`block tabular-nums ${lines.secondary === null ? '' : tone}`} data-due-at={tickAt ?? undefined} aria-label={tickAt !== null ? (label ?? undefined) : undefined}>
-        {lines.primary}
-      </span>
+      <FitLine size="text-m15" text={lines.primary} className={`tabular-nums ${lines.secondary === null ? '' : tone}`}>
+        <span data-due-at={tickAt ?? undefined} aria-label={tickAt !== null ? (label ?? undefined) : undefined}>
+          {lines.primary}
+        </span>
+      </FitLine>
       {lines.secondary !== null && <span className="block text-[12px] leading-normal text-muted-foreground">{lines.secondary}</span>}
     </>
   );

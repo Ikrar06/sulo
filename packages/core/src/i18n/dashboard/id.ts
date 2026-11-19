@@ -327,6 +327,7 @@ export const dashId = {
       kalender: 'Notifikasi kalender akademik',
       tentangKamu: 'Tentang kamu',
       data: 'Data',
+      hapus: 'Hapus data',
     },
     theme: 'Tema',
     themes: { system: 'Ikuti sistem', light: 'Terang', dark: 'Gelap' },

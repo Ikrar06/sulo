@@ -68,213 +68,6 @@
   font-size: 16px;
 }
 
-/* ---------- Example card (steps 1 and 4) ---------- */
-
-.ob-sample {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  /* Room above the card for the perched mascot. */
-  padding-top: 92px;
-}
-
-.ob-sample-label {
-  font-size: 12.5px;
-  color: var(--muted);
-  text-align: center;
-}
-
-.ob-sample-frame {
-  position: relative;
-}
-
-.ob-sample-card {
-  overflow: hidden;
-  /* Keep the whole card on screen on short displays; the list scrolls inside. */
-  --card-max: min(560px, calc(100dvh - 250px));
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  /* Raised one step: the popup paints --background, so point it at --surface. */
-  --background: var(--surface);
-  background: var(--surface);
-  /* A little larger than the real popup. */
-  zoom: 1.1;
-}
-
-@media (max-height: 820px) {
-  .ob-sample-card {
-    zoom: 1;
-  }
-}
-
-.ob-sample-card > div {
-  max-height: var(--card-max);
-}
-
-/* The mascot sits on the card's top edge, near the right. The SVG frame has
-   padding below the face (about 5% of its height), hence the offset. Its
-   contact shadow is part of the mascot (grounded), so it follows the jump. */
-.ob-perch {
-  position: absolute;
-  right: 28px;
-  bottom: calc(100% - 9px);
-  z-index: 1;
-  width: 128px;
-  height: 128px;
-}
-
-/* ---------- Step 2: SIKOLA window wired to the mascot ---------- */
-
-.ob-connect {
-  display: flex;
-  align-items: center;
-}
-
-.ob-window {
-  position: relative;
-  width: 230px;
-  flex-shrink: 0;
-  overflow: visible;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-}
-
-.ob-window-bar {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-}
-
-.ob-window-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--border);
-}
-
-.ob-window-url {
-  margin-left: 6px;
-  overflow: hidden;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--bg);
-  color: var(--muted);
-  font-size: 10.5px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.ob-window-body {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding: 16px 14px 18px;
-}
-
-.ob-skeleton {
-  display: block;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--border);
-}
-
-.ob-window-check {
-  position: absolute;
-  top: -9px;
-  right: -9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  background: var(--brand-amber);
-  color: #1a1206;
-  animation: ob-pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes ob-pop {
-  from { transform: scale(0.4); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.ob-wire {
-  width: 96px;
-  height: 8px;
-  flex-shrink: 0;
-  /* Clear space at both ends: the line never touches the window or the mascot. */
-  margin-inline: 18px 14px;
-  overflow: visible;
-}
-
-.ob-wire path {
-  fill: none;
-  stroke-linecap: round;
-}
-
-/* Before the connection: a fine dashed line whose dashes drift slowly toward the mascot. */
-.ob-wire-base {
-  stroke: var(--border);
-  stroke-width: 2;
-  stroke-dasharray: 3 7;
-  animation: ob-wire-flow 2.4s linear infinite;
-}
-
-.ob-connect[data-wire='trying'] .ob-wire-base {
-  stroke: var(--muted);
-  animation-duration: 1.2s;
-}
-
-@keyframes ob-wire-flow {
-  to { stroke-dashoffset: -20; }
-}
-
-/* Connected: a solid brand line draws in over the dashes... */
-.ob-wire-lit {
-  stroke: var(--brand-amber);
-  stroke-width: 3;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: ob-wire-draw 280ms ease-out forwards;
-}
-
-@keyframes ob-wire-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-/* ...then one small dot travels from SIKOLA to the mascot. */
-.ob-wire-dot {
-  fill: var(--brand-orange);
-  opacity: 0;
-  animation: ob-wire-dot 620ms cubic-bezier(0.45, 0, 0.55, 1) 280ms forwards;
-}
-
-@keyframes ob-wire-dot {
-  0% { transform: translateX(0); opacity: 1; }
-  85% { opacity: 1; }
-  100% { transform: translateX(92px); opacity: 0; }
-}
-
-/* ---------- Small pieces ---------- */
-
-/* Waiting indicator for step 2. */
-.ob-pulse {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--brand-amber);
-  animation: ob-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes ob-pulse {
-  0%, 100% { opacity: 0.35; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1); }
-}
-
 /* Step change: slide and fade, under 300 ms. */
 .ob-step {
   animation: ob-step-in 260ms ease-out both;
@@ -286,14 +79,86 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Reduced motion: the lit line appears at once, no travelling dot. */
-  .ob-wire-lit { animation: none !important; stroke-dashoffset: 0; }
-  .ob-wire-dot { display: none; }
-  .ob-step,
-  .ob-pulse,
-  .ob-window-check,
-  .ob-wire-base,
-  .ob-wire-dot {
-    animation: none !important;
-  }
+  .ob-step { animation: none !important; }
 }
+
+/* ---------- Tahap 2: the journey (components/onboarding/journey.tsx) ---------- */
+/* The screen layer, content at most 1040 wide and centred. The stage takes the
+   height the top bar and the footnote leave; its scene fills it with pieces at
+   their real size (check:onboarding-layout: no vertical gap over 72 px, the
+   scene at least 70 % of the stage, the stage about 55 % of the width). */
+.obj {
+  --obj-top: 64px;
+  --obj-foot: 40px;
+  min-height: 100vh;
+  background: var(--layer-screen);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+.obj-top,
+.obj-main,
+.obj-foot {
+  width: min(1040px, 100% - 48px);
+  margin-inline: auto;
+}
+.obj-top {
+  height: var(--obj-top);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.obj-main {
+  flex: 1;
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+.obj-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-block: 16px;
+}
+/* A scene: its pieces stacked, 12 apart, at their real size; the big mascot under them
+   (24 from the last piece). */
+.obj-scene {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.obj-scene > [data-mascot-slot] { margin-top: 12px; }
+/* The course list: in one card as tall as the stage, scrolling inside it (few courses or
+   many, the stage stays filled and the page never grows). */
+.obj-scene.obj-scene-list { max-width: 520px; align-self: center; align-items: stretch; justify-content: flex-start; padding: 16px; overflow-y: auto; }
+@media (min-width: 1024px) {
+  .obj-scene.obj-scene-list { height: calc(100vh - var(--obj-top) - var(--obj-foot) - 32px); }
+}
+.obj-text { max-width: 440px; }
+.obj-actions [data-variant="default"][data-size] { height: 44px; min-width: 180px; padding-inline: 24px; font-size: 15px; }
+.obj-foot {
+  height: var(--obj-foot);
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+@media (min-width: 1024px) {
+  .obj-main {
+    grid-template-columns: 55% minmax(0, 1fr);
+    column-gap: 64px;
+    align-items: center;
+    min-height: calc(100vh - var(--obj-top) - var(--obj-foot));
+  }
+  .obj-stage { min-height: calc(100vh - var(--obj-top) - var(--obj-foot)); }
+  .obj-main.is-alone { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+}
+/* A scene piece arrives (story motion; delays set inline). */
+@keyframes obj-in { from { opacity: 0; transform: translateY(12px); } }
+.obj-in { animation: obj-in var(--obj-dur, 504ms) cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--obj-delay, 0ms); }
+@media (prefers-reduced-motion: reduce) { .obj-in { animation: none; } }

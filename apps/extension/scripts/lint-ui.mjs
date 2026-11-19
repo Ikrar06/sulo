@@ -37,7 +37,8 @@ function eachLine(file, fn) {
     .forEach((text, i) => fn(text, i + 1));
 }
 
-const GRADIENT_OK = /mascot|brand|logo|icons\/|tokens\.css/;
+// The flame gradient (mascot, logo) is the one allowed; it is defined in the palette.
+const GRADIENT_OK = /mascot|brand|logo|icons\/|tokens\.css|tokens\/palette\.css/;
 const sources = [...walk(join(root, 'components'), ['.tsx', '.ts', '.css']), ...walk(join(root, 'entrypoints'), ['.tsx', '.ts', '.html', '.css']), ...walk(join(root, 'assets'), ['.css']), ...walk(join(root, '../../packages/ui/src'), ['.tsx', '.ts', '.css']), ...walk(join(root, '../mobile/src'), ['.tsx', '.ts', '.css'])];
 
 for (const file of sources) {

@@ -71,47 +71,16 @@
   --color-m-line: var(--m-line);
 }
 
-/* The three layers. Dark: the theme's own bg/surface/raised, cards without
-   borders and without shadows. Light: a very light gray screen so white
-   cards stand off it, a hairline and the faintest shadow. */
+/* The three layers and the course colors come from the shared palette
+   (packages/ui/src/tokens/palette.css); the phone's names are aliases. */
 :root {
-  --m-screen: #0b0b0e;
-  --m-card: #17171c;
-  --m-inset: #232329;
-  --m-line: #2c2c34;
-  --m-card-edge: transparent;
-  --m-card-shadow: none;
-  --m-accent-tint: color-mix(in oklch, var(--brand-orange) 18%, var(--m-card));
-}
-@media (prefers-color-scheme: light) {
-  :root {
-    --m-screen: #f1f1f4;
-    --m-card: #ffffff;
-    --m-inset: #e7e7ec;
-    --m-line: #e3e3e9;
-    --m-card-edge: #ebebf0;
-    --m-card-shadow: 0 1px 2px rgb(16 16 24 / 0.04), 0 4px 12px rgb(16 16 24 / 0.03);
-    --m-accent-tint: color-mix(in oklch, var(--brand-orange) 14%, var(--m-card));
-  }
-}
-
-/* Course colors on the phone (M8c.1): the same bright set in both themes,
-   so a course looks the same everywhere (swatches, tiles, chips, sheets).
-   Initials on the solid color are always dark text (7.7-8.7:1); chips are
-   the text color on an 18% tint (16.3-16.6:1 light, 12.1-12.2:1 dark).
-   Solid swatches on a white card are 2.2-2.4:1, so they carry a hairline
-   edge and never stand alone (the course name is beside them). Icons on a
-   tint mix 55% of the color with the text color (5.3-5.7:1 light, 8.1-8.5:1
-   dark). Checked by apps/extension/scripts/contrast.mjs. */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --course-1: #f28788; --course-2: #e39849; --course-3: #b0b246; --course-4: #5ec386;
-    --course-5: #00c3cb; --course-6: #5db2f7; --course-7: #aa9cf7; --course-8: #dd8acb;
-  }
-}
-[data-theme="light"] {
-  --course-1: #f28788; --course-2: #e39849; --course-3: #b0b246; --course-4: #5ec386;
-  --course-5: #00c3cb; --course-6: #5db2f7; --course-7: #aa9cf7; --course-8: #dd8acb;
+  --m-screen: var(--layer-screen);
+  --m-card: var(--layer-card);
+  --m-inset: var(--layer-inset);
+  --m-line: var(--layer-line);
+  --m-card-edge: var(--layer-card-edge);
+  --m-card-shadow: var(--layer-card-shadow);
+  --m-accent-tint: var(--accent-tint);
 }
 
 /* Shared parts from packages/ui are drawn at the dashboard's scale; on the

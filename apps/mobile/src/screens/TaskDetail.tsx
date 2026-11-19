@@ -7,7 +7,7 @@
 
 import { useId, useMemo, useState } from 'react';
 import { buildTaskItems } from '@sulo/core/dashboard/tasks';
-import { googleCalendarUrl } from '@sulo/core/format/gcal';
+import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { formatClock, formatDue, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
@@ -159,7 +159,7 @@ export function TaskScreen({ eventId }: { eventId: number }) {
         <SheetMenu
           items={[
             { label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) },
-            ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(googleCalendarUrl({ title: `${item.task.name} (${item.courseName})`, dueAt: due, details: m.popup.row.calendarDetails(item.courseName, item.task.url) }))) }] : []),
+            ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due, url: item.task.url }, m.popup.row.calendarDetails))) }] : []),
             ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setSnoozeOpen(true))) }] : []),
           ]}
         />

@@ -9,7 +9,7 @@ const VAR: Record<string, string> = { accent: 'var(--brand-orange)', warn: 'var(
 export const tintVar = (color: TintColor | null | undefined): string => (color ? (VAR[color] ?? `var(--${color})`) : 'var(--muted)');
 
 /** Background for a tile or chip in this color. */
-export const tintBg = (color: TintColor | null | undefined, pct = 16, over = 'var(--m-card)'): string => `color-mix(in oklch, ${tintVar(color)} ${pct}%, ${over})`;
+export const tintBg = (color: TintColor | null | undefined, pct = 16, over = 'var(--layer-card)'): string => `color-mix(in oklch, ${tintVar(color)} ${pct}%, ${over})`;
 
 export const courseTint = (n: number | null | undefined): TintColor => (n ? `course-${n}` : 'neutral');
 

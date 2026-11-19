@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @import "./tokens.css";
+@import "./skin.css";
 
 /* The popup's stylesheet: only the files the popup renders are scanned, so
    classes used by the dashboard and other pages stay out of it. Add a path
@@ -11,7 +12,14 @@
 @source "../../../packages/ui/src/mascot";
 @source "../../../packages/ui/src/i18n.tsx";
 @source "../../../packages/ui/src/icons.tsx";
+@source "../../../packages/ui/src/urgency.ts";
+@source "../../../packages/ui/src/status-line.tsx";
+@source "../../../packages/ui/src/row-actions.ts";
 @source "../../../packages/ui/src/reminders";
+/* The phone's chip, check circle and one-line time (rows of the task list). */
+@source "../../../packages/ui/src/mobile/cards.tsx";
+@source "../../../packages/ui/src/mobile/controls.tsx";
+@source "../../../packages/ui/src/mobile/fit-line.tsx";
 @source "../lib";
 /* Shared logic moved to packages/core in M8a; scanned as before. */
 @source "../../../packages/core/src";

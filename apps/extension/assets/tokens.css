@@ -2,9 +2,11 @@
    (assets/tailwind.css for full pages, assets/popup.css for the popup). */
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../../../packages/ui/src/tokens/palette.css";
 
 /*
- * Sulo design tokens. Single source of truth for color, type and radius.
+ * Sulo design tokens: type and radius for the extension. Colors come from
+ * packages/ui/src/tokens/palette.css, the one source shared with the phone.
  * Components use these through Tailwind utilities and shadcn/ui variables;
  * no color literals in components. Urgency tokens are kept off brand hues
  * and all pass WCAG AA contrast in both themes.
@@ -65,157 +67,10 @@
 
 @custom-variant dark (&:is([data-theme="dark"] *, :root:not([data-theme="light"]) *));
 
-/* ---------- Brand (same in every theme, extracted from assets/brand) ---------- */
+/* ---------- Colors: packages/ui/src/tokens/palette.css (shared with the Android app) ---------- */
 
 :root {
-  --brand-amber: #ffa51f;
-  --brand-orange: #ff5a2a;
-  --brand-crimson: #e8204a;
-  --ink: #0b0b10;
-  /* Flame direction in the SVGs: top right (amber) to bottom left (crimson). */
-  --brand-flame: linear-gradient(208deg, var(--brand-amber) 0%, var(--brand-orange) 50%, var(--brand-crimson) 100%);
   --radius: 0.625rem;
-}
-
-/* ---------- Dark (default) ---------- */
-
-:root {
-  color-scheme: dark;
-  /* Keyboard focus ring: 2px solid, at least 3:1 against bg and surface. */
-  --focus: #ffb020;
-  --bg: #0b0b0e;
-  --surface: #17171c;
-  --surface-raised: #1f1f25;
-  --border: #26262e;
-  --control-border: #6b6b75; /* unchecked checkbox edge: 3:1 or more on bg, surface, surface-raised */
-  --text: #f2f2f5;
-  --muted: #8a8a96;
-
-  /* Urgency: dot and text only, never backgrounds. Not brand hues. */
-  --urgency-overdue: #f87171;
-  --urgency-soon: #facc15;
-  --urgency-week: #60a5fa;
-  --urgency-normal: #8a8a96;
-
-  --danger: #f87171;
-  --danger-foreground: var(--ink);
-
-  /* Data status (banners, borders, "perkiraan" labels). Not brand, not urgency. */
-  --status-stale: #a1a1aa;
-  --status-offline: #94a3b8;
-  --status-broken: #c4b5fd;
-  --status-estimate: #a1a1aa;
-  --status-disabled: #a1a1aa;
-
-  /* Course dots: 8 colors, repeated, never next to each other (lib/courses/colors.ts). */
-  --course-1: #f28788;
-  --course-2: #e39849;
-  --course-3: #b0b246;
-  --course-4: #5ec386;
-  --course-5: #00c3cb;
-  --course-6: #5db2f7;
-  --course-7: #aa9cf7;
-  --course-8: #dd8acb;
-}
-
-/* ---------- Light ---------- */
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    color-scheme: light;
-    --focus: #b45309;
-    --bg: #fafafb;
-    --surface: #ffffff;
-    --surface-raised: #f2f2f5;
-    --border: #e4e4ea;
-    --control-border: #84848e;
-    --text: #111114;
-    --muted: #5f5f6b;
-    --urgency-overdue: #b91c1c;
-    --urgency-soon: #735c00;
-    --urgency-week: #1d4ed8;
-    --urgency-normal: #5f5f6b;
-    --danger: #b91c1c;
-  --danger-foreground: #ffffff;
-    --status-stale: #52525b;
-    --status-offline: #475569;
-    --status-broken: #6d28d9;
-    --status-estimate: #52525b;
-    --status-disabled: #52525b;
-    --course-1: #b84c51;
-    --course-2: #ab5f00;
-    --course-3: #7a7a00;
-    --course-4: #008b4e;
-    --course-5: #008b95;
-    --course-6: #037ac0;
-    --course-7: #7563c0;
-    --course-8: #a55095;
-  }
-}
-
-/* Any element can force a theme (the dev preview shows both side by side). */
-[data-theme="light"] {
-  color-scheme: light;
-  --focus: #b45309;
-  --bg: #fafafb;
-  --surface: #ffffff;
-  --surface-raised: #f2f2f5;
-  --border: #e4e4ea;
-  --control-border: #84848e;
-  --text: #111114;
-  --muted: #5f5f6b;
-  --urgency-overdue: #b91c1c;
-  --urgency-soon: #735c00;
-  --urgency-week: #1d4ed8;
-  --urgency-normal: #5f5f6b;
-  --danger: #b91c1c;
-  --danger-foreground: #ffffff;
-  --status-stale: #52525b;
-  --status-offline: #475569;
-  --status-broken: #6d28d9;
-  --status-estimate: #52525b;
-  --status-disabled: #52525b;
-  --course-1: #b84c51;
-  --course-2: #ab5f00;
-  --course-3: #7a7a00;
-  --course-4: #008b4e;
-  --course-5: #008b95;
-  --course-6: #037ac0;
-  --course-7: #7563c0;
-  --course-8: #a55095;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-  --focus: #ffb020;
-  --bg: #0b0b0e;
-  --surface: #17171c;
-  --surface-raised: #1f1f25;
-  --border: #26262e;
-  --control-border: #6b6b75; /* unchecked checkbox edge: 3:1 or more on bg, surface, surface-raised */
-  --text: #f2f2f5;
-  --muted: #8a8a96;
-  --urgency-overdue: #f87171;
-  --urgency-soon: #facc15;
-  --urgency-week: #60a5fa;
-  --urgency-normal: #8a8a96;
-  --danger: #f87171;
-  --danger-foreground: var(--ink);
-  --status-stale: #a1a1aa;
-  --status-offline: #94a3b8;
-  --status-broken: #c4b5fd;
-  --status-estimate: #a1a1aa;
-  --status-disabled: #a1a1aa;
-
-  /* Course dots: 8 colors, repeated, never next to each other (lib/courses/colors.ts). */
-  --course-1: #f28788;
-  --course-2: #e39849;
-  --course-3: #b0b246;
-  --course-4: #5ec386;
-  --course-5: #00c3cb;
-  --course-6: #5db2f7;
-  --course-7: #aa9cf7;
-  --course-8: #dd8acb;
 }
 
 /* ---------- shadcn/ui variables, mapped onto Sulo tokens ---------- */
@@ -292,6 +147,14 @@
   --color-course-6: var(--course-6);
   --color-course-7: var(--course-7);
   --color-course-8: var(--course-8);
+  --color-layer-screen: var(--layer-screen);
+  --color-layer-card: var(--layer-card);
+  --color-layer-inset: var(--layer-inset);
+  --color-layer-line: var(--layer-line);
+  --color-att-present: var(--att-present);
+  --color-att-late: var(--att-late);
+  --color-att-excused: var(--att-excused);
+  --color-att-absent: var(--att-absent);
 
   /* shadcn/ui names */
   --color-background: var(--background);

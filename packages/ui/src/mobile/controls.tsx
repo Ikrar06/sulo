@@ -51,8 +51,8 @@ export function IconButton({ icon: Icon, label, onPress, disabled = false, spinn
   );
 }
 
-/** Done or not: a 28 circle (44 target) that fills when checked. */
-export function CheckCircle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+/** Done or not: a 28 circle (44 target) that fills when checked. `sm` is the desktop size (22), for the extension's rows. */
+export function CheckCircle({ checked, onChange, label, size = 'md' }: { checked: boolean; onChange: (v: boolean) => void; label: string; size?: 'md' | 'sm' }) {
   return (
     <button
       type="button"
@@ -64,9 +64,9 @@ export function CheckCircle({ checked, onChange, label }: { checked: boolean; on
         e.stopPropagation();
         onChange(!checked);
       }}
-      className={`m-hit inline-flex size-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
+      className={`m-hit inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
     >
-      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 24 24" className={size === 'sm' ? 'size-3' : 'size-4'} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M5 12.5 10 17 19 7.5" />
       </svg>
     </button>
@@ -90,9 +90,11 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
  * A switch for the phone (Radix Switch): a 52x32 pill, the knob on the card
  * layer so it reads on the dark "on" track in both themes; 44 target.
  */
-export function Toggle({ checked, onChange, label, disabled = false }: { checked: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
+/** `id` lets a <label htmlFor> name it (the extension's setting rows); `label` names it otherwise. */
+export function Toggle({ checked, onChange, label, disabled = false, id }: { checked: boolean; onChange: (v: boolean) => void; label?: string; disabled?: boolean; id?: string }) {
   return (
     <SwitchPrimitive.Root
+      id={id}
       checked={checked}
       onCheckedChange={onChange}
       disabled={disabled}

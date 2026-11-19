@@ -1,12 +1,14 @@
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useI18n } from '../i18n';
 import { BellIcon, ChevronLeftIcon } from '../icons';
 import { Button } from '../ui/button';
-import { Checkbox } from '../ui/checkbox';
 import { formatClock } from '@sulo/core/format/time';
 import { changeUrl, describeChange } from '@sulo/core/radar/describe';
 import { UPDATE_CATEGORIES, type UpdateCategory, type UpdateSettings } from '@sulo/core/radar/settings';
 import { addDays, localParts } from '@sulo/core/reminders/zoned';
+import { Chip } from '../mobile/cards';
+import { SwitchRow } from '../ui/switch-row';
+import { courseTint } from '../mobile/tint';
 import type { ChangeLogEntry, UnixSeconds } from '@sulo/core/types';
 
 // "Kabar terbaru": the change log grouped by local day, newest first. Built
@@ -15,6 +17,8 @@ import type { ChangeLogEntry, UnixSeconds } from '@sulo/core/types';
 export interface UpdatesPanelProps {
   entries: readonly ChangeLogEntry[];
   courseNames: Readonly<Record<string, string>>;
+  /** Course color numbers by id: the course shows as a tinted chip (the phone's), or as plain text without one. */
+  courseColors?: Readonly<Record<string, number>>;
   now: UnixSeconds;
   timeZone: string;
   settings: UpdateSettings;
@@ -39,17 +43,25 @@ function dayLabel(at: UnixSeconds, now: UnixSeconds, timeZone: string, today: st
   return new Intl.DateTimeFormat(intl, { timeZone, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(at * 1000));
 }
 
-function Entry({ entry, course, timeZone, onOpen }: { entry: ChangeLogEntry; course: string; timeZone: string; onOpen: (url: string) => void }) {
+function Entry({ entry, course, color, timeZone, onOpen }: { entry: ChangeLogEntry; course: string; color?: number; timeZone: string; onOpen: (url: string) => void }) {
   const { m } = useI18n();
   const url = changeUrl(entry.change);
   const body = (
     <>
       <span className="flex items-start gap-2">
-        {!entry.seen && <span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-brand-amber" />}
+        {!entry.seen && <span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-foreground" />}
         <span className={`min-w-0 flex-1 text-(length:--fs-body) leading-(--lh-body) ${entry.seen ? 'text-foreground/85' : 'font-semibold'}`}>{describeChange(entry.change, timeZone, m)}</span>
         <span className="shrink-0 text-[12px] leading-(--lh-body) text-muted-foreground tabular-nums">{formatClock(entry.at, timeZone, m)}</span>
       </span>
-      <span className={`mt-0.5 block truncate text-[12px] leading-(--lh-caption) text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`} title={course}>{course}</span>
+      {color === undefined ? (
+        <span className={`mt-0.5 block truncate text-[12px] leading-(--lh-caption) text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`} title={course}>{course}</span>
+      ) : (
+        <span className={`mt-1 flex text-foreground ${entry.seen ? '' : 'pl-3.5'}`} title={course}>
+          <Chip small color={courseTint(color)}>
+            {course}
+          </Chip>
+        </span>
+      )}
     </>
   );
   return (
@@ -58,7 +70,9 @@ function Entry({ entry, course, timeZone, onOpen }: { entry: ChangeLogEntry; cou
         <button
           type="button"
           onClick={() => onOpen(url)}
-          className="block w-full rounded-lg px-3 py-2 text-left outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus"
+          // The hover and focus fill (the extension's skin.css .row-hover): 10 past the text, 6 above and below.
+          className="row-hover block w-full px-3 py-2 text-left outline-none"
+          style={{ ['--rh-x' as string]: '2px', ['--rh-y' as string]: '2px' }}
         >
           {body}
           {!entry.seen && <span className="sr-only">{m.popup.updates.markerNew}</span>}
@@ -70,18 +84,6 @@ function Entry({ entry, course, timeZone, onOpen }: { entry: ChangeLogEntry; cou
   );
 }
 
-function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
-  const id = useId();
-  return (
-    <div className="flex items-start gap-2 py-1">
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-px" />
-      <label htmlFor={id} className="text-(length:--fs-body) leading-(--lh-body)">
-        {children}
-      </label>
-    </div>
-  );
-}
-
 /** "Beri tahu saya tentang": the four kinds and the quiet-hours note. Shared by the panel and the dashboard's popover; one source (prefs.updates). */
 export function UpdateSettingsChecks({ settings, onChange }: { settings: UpdatesPanelProps['settings']; onChange: UpdatesPanelProps['onChangeSettings'] }) {
   const { m } = useI18n();
@@ -89,16 +91,16 @@ export function UpdateSettingsChecks({ settings, onChange }: { settings: Updates
   return (
     <>
       {UPDATE_CATEGORIES.map((c: UpdateCategory) => (
-        <Check key={c} checked={settings[c]} onChange={(v) => onChange({ ...settings, [c]: v })}>
+        <SwitchRow key={c} checked={settings[c]} onChange={(v) => onChange({ ...settings, [c]: v })}>
           {u.categories[c]}
-        </Check>
+        </SwitchRow>
       ))}
       <p className="pt-1 text-[12px] leading-(--lh-caption) text-muted-foreground">{u.settingsNote}</p>
     </>
   );
 }
 
-export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack, embedded = false, showSettings = true, empty }: UpdatesPanelProps) {
+export function UpdatesPanel({ entries, courseNames, courseColors, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack, embedded = false, showSettings = true, empty }: UpdatesPanelProps) {
   const { m } = useI18n();
   const u = m.popup.updates;
   const days = new Map<string, ChangeLogEntry[]>();
@@ -107,25 +109,32 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
     days.set(label, [...(days.get(label) ?? []), e]);
   }
   const unseen = entries.some((e) => !e.seen);
+  const showHeader = !embedded || !!onBack || unseen;
   const courseOf = (e: ChangeLogEntry) => (e.change.courseId === null ? u.otherCourse : (courseNames[String(e.change.courseId)] ?? u.otherCourse));
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex items-center gap-1 px-2 pt-2.5 pb-1.5">
-        {onBack && (
-          <Button size="icon-sm" variant="ghost" aria-label={u.back} onClick={onBack}>
-            <ChevronLeftIcon className="size-4" />
-          </Button>
-        )}
-        {embedded ? <h2 className="sr-only">{u.title}</h2> : <h1 className="flex-1 font-heading text-[17px] leading-5">{u.title}</h1>}
-        {embedded && <span className="flex-1" />}
-        {unseen && (
-          <Button size="sm" variant="ghost" onClick={onMarkAllSeen}>
-            {u.markAll}
-          </Button>
-        )}
-      </header>
-      <div className="flex-1 overflow-y-auto pb-2">
+      {/* The header only when it holds something (back, a visible title, "Tandai semua"): an empty one left
+          a 16 px band above the list when every entry was seen (Tahap 2, e8). */}
+      {showHeader ? (
+        <header className="flex items-center gap-1 px-2 pt-2.5 pb-1.5">
+          {onBack && (
+            <Button size="icon-sm" variant="ghost" aria-label={u.back} onClick={onBack}>
+              <ChevronLeftIcon className="size-4" />
+            </Button>
+          )}
+          {embedded ? <h2 className="sr-only">{u.title}</h2> : <h1 className="flex-1 font-heading text-[17px] leading-5">{u.title}</h1>}
+          {embedded && <span className="flex-1" />}
+          {unseen && (
+            <Button size="sm" variant="ghost" onClick={onMarkAllSeen}>
+              {u.markAll}
+            </Button>
+          )}
+        </header>
+      ) : (
+        <h2 className="sr-only">{u.title}</h2>
+      )}
+      <div className={`flex-1 overflow-y-auto pb-2 ${showHeader ? '' : 'pt-2'}`}>
         {entries.length === 0 ? (
           (empty ?? <p className="px-4 py-6 text-center text-(length:--fs-body) text-muted-foreground">{u.empty}</p>)
         ) : (
@@ -134,7 +143,7 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
               <h2 className="px-3 py-1.5 text-(length:--fs-caption) font-semibold text-muted-foreground">{label}</h2>
               <ul>
                 {list.map((e) => (
-                  <Entry key={e.id} entry={e} course={courseOf(e)} timeZone={timeZone} onOpen={onOpen} />
+                  <Entry key={e.id} entry={e} course={courseOf(e)} color={e.change.courseId === null ? undefined : courseColors?.[String(e.change.courseId)]} timeZone={timeZone} onOpen={onOpen} />
                 ))}
               </ul>
             </section>

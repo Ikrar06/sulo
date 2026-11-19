@@ -7,9 +7,9 @@ import { ChevronRightIcon } from './icons';
  * A section with a quiet heading; depth from the border and --surface only.
  * Padding 20, title 16 px semibold, 12 px between title and body.
  */
-export function Card({ title, action, children, className = '' }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
+export function Card({ id, title, action, children, className = '' }: { id?: string; title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-xl border border-border bg-surface p-5 ${className}`}>
+    <section id={id} className={`rounded-xl border border-border bg-surface p-5 ${className}`}>
       {(title || action) && (
         // Baseline-aligned with the title; in a narrow card the action moves under it instead of breaking into two lines.
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">

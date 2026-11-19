@@ -3,8 +3,9 @@ import { browser } from 'wxt/browser';
 import { useI18n } from '@sulo/ui/i18n';
 import { WipeDialog } from '@/components/popup/WipeDialog';
 import { RemindersPanel } from '@sulo/ui/reminders/RemindersPanel';
+import { DocLayout } from '@sulo/ui/ui/doc-layout';
+import { SwitchRow } from '@sulo/ui/ui/switch-row';
 import { Button } from '@sulo/ui/ui/button';
-import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { Input } from '@sulo/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
@@ -25,19 +26,7 @@ const UsageStats = import.meta.env.MODE === 'development' ? lazy(() => import('.
 const RadarDiagnosis = import.meta.env.MODE !== 'production' ? lazy(() => import('../RadarDiagnosis')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
-const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data'] as const;
-
-function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
-  const id = useId();
-  return (
-    <div className="flex items-start gap-2 py-1">
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-1" />
-      <label htmlFor={id} className="text-[14px] leading-6">
-        {children}
-      </label>
-    </div>
-  );
-}
+const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data', 'laporan', 'hapus'] as const;
 
 function Field({ label, help, children }: { label: string; help?: string; children: (id: string) => ReactNode }) {
   const id = useId();
@@ -69,9 +58,12 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
     if (route.detail && (SECTIONS as readonly string[]).includes(route.detail)) document.getElementById(`set-${route.detail}`)?.scrollIntoView();
   }, [route.detail]);
 
+  // The sections on the right, as on Bantuan (DocLayout's scrollspy, core's pure getActiveSection). Delete stays last.
+  const toc = SECTIONS.map((id) => ({ id: `set-${id}`, label: id === 'neosia' ? 'NEOSIA' : id === 'laporan' ? t.bugReport.cardTitle : t.sections[id] }));
+
   return (
-    <div className="space-y-4">
-      <Card title={<span id="set-tampilan">{t.sections.tampilan}</span>}>
+    <DocLayout toc={toc} tocLabel={d.bantuan.onThisPage} hashFor={(id) => `pengaturan/${id.slice(4)}`}>
+      <Card id="set-tampilan" title={t.sections.tampilan}>
         <Field label={t.theme}>
           {(id) => (
             <Select value={prefs.theme} onValueChange={(v) => void actions.setPrefs({ theme: v as Theme })}>
@@ -123,7 +115,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         </Field>
       </Card>
 
-      <Card title={<span id="set-tentangKamu">{t.sections.tentangKamu}</span>}>
+      <Card id="set-tentangKamu" title={t.sections.tentangKamu}>
         <Field label={t.nickname} help={t.nicknameHelp}>
           {(id) => (
             <Input
@@ -161,7 +153,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
       </Card>
 
       {/* One test for every kind of notification (tasks, updates, calendar): they share one path. */}
-      <Card title={<span id="set-notifikasi">{t.sections.notifikasi}</span>}>
+      <Card id="set-notifikasi" title={t.sections.notifikasi}>
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="outline"
@@ -187,7 +179,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
       </Card>
 
       {/* The panel's sections use the dashboard padding (--panel-px: 20) so they line up with the card title. */}
-      <Card title={<span id="set-pengingat">{t.sections.pengingat}</span>} className="!px-0 !pb-0 [&>div:first-child]:px-5">
+      <Card id="set-pengingat" title={t.sections.pengingat} className="!px-0 !pb-0 [&>div:first-child]:px-5">
         <RemindersPanel
           settings={prefs.reminders}
           timeZone={timeZone}
@@ -200,29 +192,29 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         />
       </Card>
 
-      <Card title={<span id="set-kabar">{t.sections.kabar}</span>}>
+      <Card id="set-kabar" title={t.sections.kabar}>
         <p className="mb-2 text-[12px] text-muted-foreground">{t.updatesHelp}</p>
         {UPDATE_CATEGORIES.map((c) => (
-          <Check key={c} checked={prefs.updates[c]} onChange={(v) => void actions.setPrefs({ updates: { ...prefs.updates, [c]: v } })}>
+          <SwitchRow key={c} checked={prefs.updates[c]} onChange={(v) => void actions.setPrefs({ updates: { ...prefs.updates, [c]: v } })}>
             {m.popup.updates.categories[c]}
-          </Check>
+          </SwitchRow>
         ))}
       </Card>
 
-      <Card title={<span id="set-kalender">{t.sections.kalender}</span>}>
+      <Card id="set-kalender" title={t.sections.kalender}>
         <p className="mb-2 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{t.calendarHelp}</p>
         {CALENDAR_NOTIFY_KINDS.map((k) => (
-          <Check key={k} checked={prefs.calendar[k]} onChange={(v) => void actions.setPrefs({ calendar: { ...prefs.calendar, [k]: v } })}>
+          <SwitchRow key={k} checked={prefs.calendar[k]} onChange={(v) => void actions.setPrefs({ calendar: { ...prefs.calendar, [k]: v } })}>
             {t.calendarKinds[k]}
-          </Check>
+          </SwitchRow>
         ))}
       </Card>
 
-      <Card title={<span id="set-neosia">NEOSIA</span>}>
+      <Card id="set-neosia" title="NEOSIA">
         <NeosiaSettings data={data} actions={actions} />
       </Card>
 
-      <Card title={<span id="set-data">{t.sections.data}</span>}>
+      <Card id="set-data" title={t.sections.data}>
         {UsageStats && (
           <Suspense fallback={null}>
             <UsageStats data={data} />
@@ -237,16 +229,9 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             {t.openPrivacy}
           </Button>
         </div>
-        <div className="mt-4 space-y-2 border-t border-border pt-4">
-          <p className="text-[12px] text-muted-foreground">{t.wipeHelp}</p>
-          <Button variant="destructive" onClick={() => setWipeOpen(true)}>
-            {m.popup.settings.wipe}
-          </Button>
-        </div>
-        <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={() => void actions.send({ type: 'data/wipeAll' }).then(() => window.close())} />
       </Card>
 
-      <Card title={t.bugReport.cardTitle}>
+      <Card id="set-laporan" title={t.bugReport.cardTitle}>
         <p className="mb-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{t.bugReport.help}</p>
         <BugReport d={d} lastSyncAt={data.view.lastSyncAt} store={local} version={browser.runtime.getManifest().version} />
       </Card>
@@ -261,6 +246,15 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
           <DevDiagnostics data={data} />
         </Suspense>
       )}
-    </div>
+
+      {/* Always the last section: the one destructive action, behind a confirmation dialog. */}
+      <Card id="set-hapus" title={t.sections.hapus}>
+        <p className="mb-3 text-[12px] text-muted-foreground">{t.wipeHelp}</p>
+        <Button variant="destructive" onClick={() => setWipeOpen(true)}>
+          {m.popup.settings.wipe}
+        </Button>
+        <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={() => void actions.send({ type: 'data/wipeAll' }).then(() => window.close())} />
+      </Card>
+    </DocLayout>
   );
 }

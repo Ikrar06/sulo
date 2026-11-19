@@ -36,19 +36,18 @@ export function Splash({ w, next }: { w: OnboardingWords; next: () => void }) {
   useAfter((1600 / SCENE_TEMPO_DEFAULT) * sceneTempo(), next, true);
   return (
     <Frame>
-      <div className="flex flex-1 flex-col items-center justify-center text-center" onClick={next}>
+      {/* Centred on the whole screen, not between the frame's top bar and button area (the splash has no button). */}
+      <div className="fixed inset-0 flex flex-col items-center justify-center text-center" onClick={next}>
         <div ref={sparks} className="relative">
           <MascotSpot size={176} />
         </div>
-        <p aria-label={w.splash.name} className="onb-title mt-4">
+        {/* The mascot and the name only (Tahap 2): the name 32 bold, 16 under the mascot, the pair centred. */}
+        <p aria-label={w.splash.name} className="onb-name mt-4">
           {[...w.splash.name].map((ch, i) => (
             <span key={i} aria-hidden="true" className="onb-letter inline-block" style={{ animationDelay: `${(420 + i * 100) * sceneTempo()}ms`, animationDuration: `${360 * sceneTempo()}ms` }}>
               {ch}
             </span>
           ))}
-        </p>
-        <p className="onb-letter mt-1 text-m13 text-muted-foreground" style={{ animationDelay: `${820 * sceneTempo()}ms`, animationDuration: `${360 * sceneTempo()}ms` }}>
-          {w.splash.tagline}
         </p>
       </div>
     </Frame>

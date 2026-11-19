@@ -1,24 +1,21 @@
 import { useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
+import { CalendarPlusIcon, ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
+import { Chip } from '@sulo/ui/mobile/cards';
+import { CheckCircle } from '@sulo/ui/mobile/controls';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
+import { courseTint } from '@sulo/ui/mobile/tint';
+import { URGENCY_TEXT } from '@sulo/ui/urgency';
+import { FADES_FOR_ACTIONS, ROW_ACTION, ROW_ACTION_SHOWN } from '@sulo/ui/row-actions';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatDueClock, localeOf } from '@sulo/core/format/time';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { DueFormat } from '@sulo/core/prefs';
-import type { Urgency } from '@sulo/core/tasks/group';
 import type { UnixSeconds } from '@sulo/core/types';
 import { dueText, type TaskGroupView, type TaskRow } from '@sulo/core/view/popup-view';
 import { RowMenu, type SnoozeOption } from './Menus';
 
-const URGENCY_TEXT: Record<Urgency, string> = {
-  overdue: 'text-urgency-overdue',
-  day: 'text-urgency-soon',
-  threeDays: 'text-urgency-week',
-  normal: 'text-muted-foreground',
-};
-
-const COURSE_DOT = ['', 'bg-course-1', 'bg-course-2', 'bg-course-3', 'bg-course-4', 'bg-course-5', 'bg-course-6', 'bg-course-7', 'bg-course-8'];
 
 export interface RowActions {
   onDone: (eventId: number) => void;
@@ -46,20 +43,24 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
   const { m } = useI18n();
   const text = dueText(row, due.format, due.now, due.timeZone, m);
   return (
-    <li className="group relative flex items-start gap-3 rounded-lg py-2.5 pr-10 pl-3 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
+    // The right column: the due time, then the check circle, whose right edge is the group chevron's.
+    // The hover and focus fill (skin.css .row-hover) reaches 10 past the content left and right and 6 above
+    // and below (the row's own 10 px padding less 4); nothing in the row moves.
+    <li data-flip-key={row.eventId} className="row-hover group relative mx-3 flex items-start gap-3 py-2.5" style={{ ['--rh-x' as string]: '-10px', ['--rh-y' as string]: '4px' }}>
       <button
         type="button"
         onClick={() => actions.onOpenTask(row.url)}
         aria-label={m.popup.openTask(row.name)}
-        className="min-w-0 flex-1 text-left outline-none after:absolute after:inset-0 after:rounded-lg focus-ring:after:ring-2 focus-ring:after:ring-focus"
+        className="row-main min-w-0 flex-1 text-left outline-none after:absolute after:inset-0"
       >
         <span className="line-clamp-2 text-[14px] leading-[19px] font-semibold" title={row.name}>
           {row.name}
         </span>
         <span className="mt-1 flex items-center gap-1.5 text-[12px] leading-4 text-muted-foreground">
-          <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${COURSE_DOT[row.courseColor] ?? COURSE_DOT[1]}`} />
-          <span className="truncate" title={row.courseName}>
-            {row.courseName}
+          <span className="min-w-0 shrink text-foreground" title={row.courseName}>
+            <Chip small color={courseTint(row.courseColor)}>
+              {row.courseName}
+            </Chip>
           </span>
           {row.marker !== null && (
             <span className="shrink-0 rounded-full border border-border px-1.5 text-[11px] leading-4 font-medium text-foreground">
@@ -74,31 +75,53 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
           )}
         </span>
       </button>
-      <div className="flex shrink-0 flex-col items-end text-right">
+      {/* At least as wide as the two buttons that take its place, so the row never shifts. */}
+      <div className="relative flex min-w-[60px] shrink-0 flex-col items-end text-right">
+        <div className={`flex flex-col items-end ${FADES_FOR_ACTIONS}`}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span
-              className={`text-[12.5px] leading-[19px] font-medium tabular-nums ${URGENCY_TEXT[row.urgency]}`}
-              data-due-at={text.ticking && row.dueAt !== null ? row.dueAt : undefined}
-              aria-label={text.ticking && row.dueAt !== null ? (countdownLabel((row.dueAt - due.now) * 1000, localeOf(m)) ?? undefined) : undefined}
-            >
-              {text.primary}
+            {/* One line always (the phone's FitLine); the shared ticker rewrites the inner span in countdown mode. */}
+            <span className="block">
+              <FitLine size="text-m12" text={text.primary} className={`py-0.5 tabular-nums ${URGENCY_TEXT[row.urgency]}`}>
+                <span
+                  data-due-at={text.ticking && row.dueAt !== null ? row.dueAt : undefined}
+                  aria-label={text.ticking && row.dueAt !== null ? (countdownLabel((row.dueAt - due.now) * 1000, localeOf(m)) ?? undefined) : undefined}
+                >
+                  {text.primary}
+                </span>
+              </FitLine>
             </span>
           </TooltipTrigger>
           {row.fullDate && <TooltipContent>{row.fullDate}</TooltipContent>}
         </Tooltip>
         {text.secondary && <span className="mt-1 text-[12px] leading-4 text-muted-foreground tabular-nums">{text.secondary}</span>}
+        </div>
       </div>
-      {/* The row menu has its own 32 px slot on the right, so the due time is never covered. */}
-      <div className="absolute top-1/2 right-1 -translate-y-1/2">
-        <RowMenu
-          row={row}
-          snoozeOptions={due.snoozeOptions}
-          onDone={() => actions.onDone(row.eventId)}
-          onAddToCalendar={() => actions.onAddToCalendar(row)}
-          onSnooze={(until) => actions.onSnooze(row.eventId, until)}
-        />
+      {/* While the row is hovered or focused, the due time gives its place to two circles, centred on the
+          row like the check circle: from the right, the circle, "add to calendar" 8 px from it, the row
+          menu (snooze) 4 px further; in that order for the keyboard too, left to right. A calendar link opens only on the user's click; nothing is sent. */}
+      <div className="absolute top-1/2 right-[30px] flex -translate-y-1/2 items-center gap-1">
+          <RowMenu
+            row={row}
+            snoozeOptions={due.snoozeOptions}
+            onDone={() => actions.onDone(row.eventId)}
+            onAddToCalendar={() => actions.onAddToCalendar(row)}
+            onSnooze={(until) => actions.onSnooze(row.eventId, until)}
+          />
+          {row.dueAt !== null && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label={m.popup.row.addToCalendar} onClick={() => actions.onAddToCalendar(row)} className={`${ROW_ACTION} ${ROW_ACTION_SHOWN}`}>
+                  <CalendarPlusIcon />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{m.popup.row.addToCalendar}</TooltipContent>
+            </Tooltip>
+          )}
       </div>
+      <span className="relative z-10 flex self-center">
+        <CheckCircle size="sm" checked={false} onChange={() => actions.onDone(row.eventId)} label={`${m.popup.row.markDone}: ${row.name}`} />
+      </span>
     </li>
   );
 }
@@ -114,7 +137,7 @@ export interface DoneLinger {
 function DoneRow({ linger, onUndo }: { linger: DoneLinger; onUndo?: (eventId: number) => void }) {
   const { m } = useI18n();
   return (
-    <li className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
+    <li data-flip-key={linger.row.eventId} className={`mx-3 flex items-center gap-3 py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-[19px] text-muted-foreground line-through" title={linger.row.name}>
         {linger.row.name}
       </span>
@@ -135,6 +158,8 @@ function DoneRow({ linger, onUndo }: { linger: DoneLinger; onUndo?: (eventId: nu
           </button>
         </>
       )}
+      {/* The same circle, filled, at the same place: unticking it is the undo. */}
+      <CheckCircle size="sm" checked onChange={() => onUndo?.(linger.row.eventId)} label={`${m.popup.row.undo}: ${linger.row.name}`} />
     </li>
   );
 }

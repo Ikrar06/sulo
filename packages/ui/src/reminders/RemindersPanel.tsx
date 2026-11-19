@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import { ChevronLeftIcon } from '../icons';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
+import { SwitchRow } from '../ui/switch-row';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { formatClock } from '@sulo/core/format/time';
 import type { Messages } from '@sulo/core/i18n';
@@ -99,9 +100,9 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
       )}
       <div className="flex-1 overflow-y-auto">
         <section className="border-b border-border px-(--panel-px) pt-1 pb-3">
-          <Check checked={settings.enabled} onChange={(enabled) => set({ enabled })}>
+          <SwitchRow checked={settings.enabled} onChange={(enabled) => set({ enabled })}>
             {r.enabled}
-          </Check>
+          </SwitchRow>
         </section>
 
         <Section title={r.stages}>
@@ -118,24 +119,24 @@ export function RemindersPanel({ settings, timeZone, onChange, onTest, onBack, o
         </Section>
 
         <Section title={r.quiet}>
-          <Check checked={settings.quiet.enabled} disabled={off} onChange={(enabled) => set({ quiet: { ...settings.quiet, enabled } })}>
+          <SwitchRow checked={settings.quiet.enabled} disabled={off} onChange={(enabled) => set({ quiet: { ...settings.quiet, enabled } })}>
             {r.quietOn}
-          </Check>
+          </SwitchRow>
           <div className="flex items-center gap-2 py-1 pl-6 text-(length:--fs-body) leading-8">
             <span>{r.from}</span>
             <HourSelect label={`${r.quiet}: ${r.from}`} value={settings.quiet.startMin} disabled={off || !settings.quiet.enabled} timeZone={timeZone} onChange={(startMin) => set({ quiet: { ...settings.quiet, startMin } })} />
             <span>{r.to}</span>
             <HourSelect label={`${r.quiet}: ${r.to}`} value={settings.quiet.endMin} disabled={off || !settings.quiet.enabled} timeZone={timeZone} onChange={(endMin) => set({ quiet: { ...settings.quiet, endMin } })} />
           </div>
-          <Check checked={settings.lastStageDuringQuiet} disabled={off || !settings.quiet.enabled} onChange={(lastStageDuringQuiet) => set({ lastStageDuringQuiet })}>
+          <SwitchRow checked={settings.lastStageDuringQuiet} disabled={off || !settings.quiet.enabled} onChange={(lastStageDuringQuiet) => set({ lastStageDuringQuiet })}>
             {r.lastStage(last)}
-          </Check>
+          </SwitchRow>
         </Section>
 
         <Section title={r.morning}>
-          <Check checked={settings.morning.enabled} disabled={off} onChange={(enabled) => set({ morning: { ...settings.morning, enabled } })}>
+          <SwitchRow checked={settings.morning.enabled} disabled={off} onChange={(enabled) => set({ morning: { ...settings.morning, enabled } })}>
             {r.morningOn}
-          </Check>
+          </SwitchRow>
           <div className="flex items-center gap-2 py-1 pl-6 text-(length:--fs-body) leading-8">
             <span>{r.at}</span>
             <HourSelect label={`${r.morning}: ${r.at}`} value={settings.morning.atMin} disabled={off || !settings.morning.enabled} timeZone={timeZone} onChange={(atMin) => set({ morning: { ...settings.morning, atMin } })} />

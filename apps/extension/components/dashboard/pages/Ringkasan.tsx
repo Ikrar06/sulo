@@ -1,14 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronRightIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
-import { dayPart, greetingText } from '@sulo/core/dashboard/greeting';
+import { greetSlot } from '@sulo/core/dashboard/mobile-greeting';
+import { mascotMood } from '@sulo/core/dashboard/mascot-mood';
+import { GREET_LINE1 } from '@sulo/core/i18n/greet-line';
 import { loadMap } from '@sulo/core/dashboard/load-map';
-import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@sulo/core/dashboard/overview';
+import { buildSummary, groupOverview, limitGroups, withNext } from '@sulo/core/dashboard/overview';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
-import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { countdownOrLate, formatRemaining } from '@sulo/core/format/time';
@@ -28,6 +28,15 @@ import { local } from '../data';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { attendanceSummary } from '@sulo/core/presensi/service';
 import { useNeosiaConnect } from '../neosia-connect';
+import { Chip } from '@sulo/ui/mobile/cards';
+import { courseTint } from '@sulo/ui/mobile/tint';
+import { URGENCY_TEXT } from '@sulo/ui/urgency';
+import { urgencyOf } from '@sulo/core/tasks/group';
+import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
+import { CheckCircle } from '@sulo/ui/mobile/controls';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
+import { HeroMascot } from '../HeroMascot';
+import { useFlip } from '@/lib/ui/flip';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
 const LEVELS = [1, 2, 3, 4] as const;
@@ -41,6 +50,8 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const countdown = data.prefs.dueFormat === 'countdown';
   const user = data.user!;
   const done = useDoneUndo(actions, d, data.today, local);
+  const rowsRef = useRef<HTMLDivElement>(null);
+  useFlip(rowsRef);
   const allItems = useMemo(() => buildTaskItems(user), [user]);
   // Pending tasks, plus the ones just marked done (they stay in place for the undo window).
   const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);
@@ -54,7 +65,13 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const days = useMemo(() => loadMap(pendingItems.map((i) => i.task), data.calendar.kegiatan, data.now, timeZone), [pendingItems, data.calendar, data.now]);
   const loadEmpty = days.every((day) => day.tasks.length === 0 && day.events.length === 0);
   const updates = data.view.updates.slice(0, 6);
-  const hour = Math.floor(localParts(data.now, timeZone).minuteOfDay / 60);
+  // The phone's mood (core mascotMood) and greeting line.
+  const banner = data.view.banner?.kind;
+  const mood = mascotMood({ now: data.now, dueTimes: pendingItems.filter((i) => i.status === 'pending' && i.task.dueAt !== null).map((i) => i.task.dueAt!), sessionExpired: banner === 'session_expired', offline: banner === 'offline' });
+  const nickname = data.prefs.privacyMode ? '' : data.prefs.nickname.trim();
+  // The phone's greeting slot (core greetSlot) and its line, without the phone's whole word list.
+  const line1 = GREET_LINE1[locale][greetSlot(Math.floor(localParts(data.now, timeZone).minuteOfDay / 60))].replace(/,$/, '');
+  const helloLine = nickname ? `${line1}, ${nickname}` : line1;
   // NEOSIA (module on only): KRS readiness from 14 days before the window until it closes.
   const neosiaOn = data.neosia.module.enabled;
   const snapshots = data.neosia.snapshots;
@@ -78,10 +95,12 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
     <div className="space-y-4">
       {/* Hero: full width, no card, nothing else on its row. One mascot on this page; it idles and stops for reduced motion. */}
       <section className="flex items-center gap-4 pb-2">
-        <Mascot state={heroMood(overdue, dueThisWeek)} size={56} />
+        {/* 75 box: the drawing itself 64 tall, centred on the greeting and its line. */}
+        <HeroMascot mood={mood} cheer={done.lingering.size} size={75} />
         <div className="min-w-0 flex-1">
-          {/* The greeting always uses the nickname from the settings, never a name from NEOSIA. */}
-          <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.privacyMode ? '' : data.prefs.nickname)}</h2>
+          {/* The phone's greeting line (core mobile-greeting), without its playful second line. The
+              nickname from the settings only, never a name from NEOSIA. */}
+          <h2 className="text-[20px] leading-7 font-semibold">{helloLine}</h2>
           <SummaryLine parts={summary} d={d} />
         </div>
       </section>
@@ -112,37 +131,54 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
             // Only when no task is pending at all ("Berikutnya" also takes undated tasks); centred in the space left, no mascot.
             <p className="flex flex-1 items-center justify-center py-8 text-center text-[14px] text-muted-foreground">{r.nothingSoon}</p>
           ) : (
-            <div className="space-y-4">
+            <div ref={rowsRef} className="space-y-4">
               {shown.groups.map((g) => (
                 <section key={g.key} aria-label={r.groups[g.key]}>
                   <h3 className="mb-1 text-[12px] font-semibold text-muted-foreground">{r.groups[g.key]}</h3>
                   <ul>
                     {g.rows.map((row) => (
-                      <li key={row.task.eventId} className={`-mx-2 flex items-start gap-3 rounded-lg px-2 hover:bg-surface-raised ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
-                        <Checkbox
-                          className="mt-3"
-                          checked={row.status === 'done'}
-                          onCheckedChange={(v) => (v === true ? done.mark(row.task.eventId) : done.unmark(row.task.eventId))}
-                          aria-label={`${row.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${row.task.name}`}
-                        />
-                        <a href={routeHash('tugas', row.task.eventId)} className="flex min-w-0 flex-1 items-start gap-3 rounded-lg py-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
-                          <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: `var(--course-${row.courseColor})` }} />
+                      <li key={row.task.eventId} data-flip-key={row.task.eventId} style={{ ['--rh-x' as string]: '-2px', ['--rh-y' as string]: '2px' }} className={`row-hover group relative -mx-2 flex items-start gap-3 px-2 ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
+                        <span className="mt-2 flex">
+                          <CheckCircle
+                            size="sm"
+                            checked={row.status === 'done'}
+                            onChange={(v) => (v ? done.mark(row.task.eventId) : done.unmark(row.task.eventId))}
+                            label={`${row.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${row.task.name}`}
+                          />
+                        </span>
+                        <a href={routeHash('tugas', row.task.eventId)} className="row-main flex min-w-0 flex-1 items-start gap-3 py-2 outline-none">
                           <span className="min-w-0 flex-1">
                             <span className={`block truncate text-[14px] ${row.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`} title={row.task.name}>
                               {row.task.name}
                             </span>
-                            <span className="block truncate text-[12px] text-muted-foreground" title={row.courseName}>
-                              {row.courseName}
+                            <span className="mt-1 flex" title={row.courseName}>
+                              <Chip small color={courseTint(row.courseColor)}>
+                                {row.courseName}
+                              </Chip>
                             </span>
                           </span>
-                          <span
-                            className={`shrink-0 text-[12px] leading-6 tabular-nums ${g.key === 'overdue' ? 'text-urgency-overdue' : 'text-muted-foreground'}`}
-                            data-due-at={countdown && row.dueAt !== null && row.dueAt >= data.now ? row.dueAt : undefined}
-                            aria-label={countdown && row.dueAt !== null ? (countdownLabel((row.dueAt - data.now) * 1000, locale) ?? undefined) : undefined}
-                          >
-                            {row.dueAt === null ? '' : countdown ? countdownOrLate(row.dueAt, data.now, timeZone, m) : formatRemaining(row.dueAt, data.now, timeZone, m)}
+                          <span className={`shrink-0 py-1 ${row.dueAt !== null && row.status === 'pending' ? `min-w-7 text-right ${FADES_FOR_CALENDAR}` : ''}`}>
+                            {row.dueAt !== null && (
+                              <FitLine
+                                size="text-m12"
+                                text={countdown ? countdownOrLate(row.dueAt, data.now, timeZone, m) : formatRemaining(row.dueAt, data.now, timeZone, m)}
+                                className={`tabular-nums ${row.status !== 'pending' ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(row.dueAt, data.now)]}`}
+                              >
+                                <span
+                                  data-due-at={countdown && row.dueAt >= data.now ? row.dueAt : undefined}
+                                  aria-label={countdown ? (countdownLabel((row.dueAt - data.now) * 1000, locale) ?? undefined) : undefined}
+                                >
+                                  {countdown ? countdownOrLate(row.dueAt, data.now, timeZone, m) : formatRemaining(row.dueAt, data.now, timeZone, m)}
+                                </span>
+                              </FitLine>
+                            )}
                           </span>
                         </a>
+                        {row.dueAt !== null && row.status === 'pending' && (
+                          <span className="absolute top-1/2 right-2 -translate-y-1/2">
+                            <CalendarHoverButton name={row.task.name} courseName={row.courseName} dueAt={row.dueAt} url={row.task.url} onOpen={actions.openTab} />
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -184,11 +220,11 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                     title={label}
                     aria-label={label}
                     aria-current={isToday ? 'date' : undefined}
-                    className={`db-load-${day.level} flex aspect-square flex-col items-center justify-center rounded-lg text-[12px] leading-4 tabular-nums ${isToday ? 'ring-1 ring-foreground ring-offset-2 ring-offset-surface' : ''}`}
+                    className={`db-load-${day.level} flex aspect-square flex-col items-center justify-center rounded-lg text-[12px] leading-4 tabular-nums ${isToday ? 'ring-2 ring-brand-orange ring-offset-2 ring-offset-surface' : ''}`}
                   >
                     <span>{isToday ? r.loadToday : formatDateKey(day.dateKey, m.intl, { weekday: 'narrow' })}</span>
                     <span className="font-semibold">{formatDateKey(day.dateKey, m.intl, { day: 'numeric' })}</span>
-                    {exam && <span aria-hidden="true" className="mt-1 size-1 rounded-full bg-current" />}
+                    {exam && <span aria-hidden="true" className="mt-1 size-1.5 rounded-full" style={{ background: 'var(--cat-ujian)' }} />}
                   </li>
                 );
               })}
@@ -201,7 +237,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
               ))}
               <span>{r.loadMore}</span>
               <span className="ml-3 inline-flex items-center gap-1">
-                <span className="size-1 rounded-full bg-foreground" />
+                <span className="size-1.5 rounded-full" style={{ background: 'var(--cat-ujian)' }} />
                 {r.loadExam}
               </span>
             </div>
@@ -218,7 +254,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
               const course = e.change.courseId !== null ? (data.view.courseNames[String(e.change.courseId)] ?? '') : '';
               return (
                 <li key={e.id} className="flex items-baseline gap-2 text-[14px]">
-                  <span aria-hidden="true" className={`size-2 shrink-0 self-center rounded-full ${e.seen ? 'bg-transparent' : 'bg-brand-amber'}`} />
+                  <span aria-hidden="true" className={`size-2 shrink-0 self-center rounded-full ${e.seen ? 'bg-transparent' : 'bg-foreground'}`} />
                   <span className={`min-w-0 flex-1 ${e.seen ? '' : 'font-semibold'}`}>{describeChange(e.change, timeZone, m)}</span>
                   <span className="max-w-[40%] shrink-0 truncate text-[12px] text-muted-foreground" title={course}>
                     {course}

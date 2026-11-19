@@ -323,6 +323,7 @@ export const dashEn: DashMessages = {
       kalender: 'Academic calendar notifications',
       tentangKamu: 'About you',
       data: 'Data',
+      hapus: 'Delete data',
     },
     theme: 'Theme',
     themes: { system: 'Follow the system', light: 'Light', dark: 'Dark' },

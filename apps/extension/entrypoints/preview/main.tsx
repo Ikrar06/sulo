@@ -2,10 +2,10 @@ import React, { useEffect, useState, type ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { CoursesFooter, StepCourses } from '@/components/onboarding/CourseStep';
-import { ConnectIllustration, connectVisual } from '@/components/onboarding/illustrations';
-import { SampleCard } from '@/components/onboarding/SampleCard';
 import { OnboardingShell } from '@/components/onboarding/Shell';
-import { StepConnect, StepDone, StepIntro, StepWhatsNew, type ConnectStatus } from '@/components/onboarding/Steps';
+import { Journey } from '@/components/onboarding/journey';
+import { ConnectText, CoursesText, DoneText, INTRO_PAGES, IntroText, introScene, SceneConnect, SceneCourses, SceneDone, WhyDialog } from '@/components/onboarding/journey-steps';
+import { StepWhatsNew, type ConnectStatus } from '@/components/onboarding/Steps';
 import { ONBOARDING_STEPS, progressOf, type M2StepId } from '@sulo/core/onboarding/flow';
 import { I18nProvider } from '@sulo/ui/i18n';
 import { NO_ACTIONS, PopupView } from '@/components/popup/PopupView';
@@ -199,34 +199,36 @@ function Overview() {
 
 const STEP_IDS: M2StepId[] = ['intro', 'connect', 'courses', 'done'];
 
+/** The onboarding journey (Tahap 2), one step at a time, synthetic data:
+ *  ?onboarding=1&page=0..2   the intro's pages
+ *  ?onboarding=2&connect=..  connect; &prep=0..3 "Menyiapkan Sulo" with that many stages done
+ *  ?onboarding=3[&many]      courses
+ *  ?onboarding=4             done */
 function OnboardingPage({ step }: { step: number }) {
-  const connect = (params.get('connect') as ConnectStatus | null) ?? 'need_login';
+  const connect = (params.get('connect') as ConnectStatus | null) ?? 'waiting';
+  const prep = params.has('prep') ? Number(params.get('prep')) : null;
   const [courses, setCourses] = useState<CourseRecord[]>(params.has('many') ? manyCourses() : PREVIEW_COURSES);
+  const [page, setPage] = useState(Number(params.get('page') ?? 0));
+  const [why, setWhy] = useState(false);
   const toggle = (courseId: CourseId, active: boolean) => setCourses((cs) => cs.map((c) => (c.id === courseId ? { ...c, activePin: active } : c)));
   const stepId = STEP_IDS[step - 1]!;
-  const visual = connectVisual(connect);
   const own = POPUP_STATES[0]!.view;
-  const aside =
-    stepId === 'intro' ? (
-      <SampleCard now={NOW} timeZone={TZ} mascot="onboarding" />
-    ) : stepId === 'connect' ? (
-      <ConnectIllustration wire={visual.wire} mascot={visual.mascot} />
-    ) : stepId === 'done' ? (
-      <SampleCard now={NOW} timeZone={TZ} mascot="all-done" celebrate={params.has('still') ? 0 : 1} view={own} label={id.onboarding.done.listLabel} />
-    ) : undefined;
+  const stages = prep === null ? [] : (['tasks', 'courses', 'attendance'] as const).slice(0, prep).map((stage) => ({ stage, result: 'ok' as const }));
+  const selected = courses.filter(isCourseActive).length;
+  const scene =
+    stepId === 'intro' ? introScene(page) : stepId === 'connect' ? <SceneConnect preparing={prep !== null} stages={stages} counts={{ tasks: 12, courses: 5 }} /> : stepId === 'courses' ? <SceneCourses courses={courses} onToggle={toggle} /> : <SceneDone tasks={own.pendingCount} courses={selected} />;
   return (
-    <OnboardingShell
-      stepKey={stepId}
-      progress={progressOf(ONBOARDING_STEPS, stepId)}
-      aside={aside}
-      full={stepId === 'courses'}
-      footer={stepId === 'courses' ? <CoursesFooter selected={courses.filter(isCourseActive).length} onNext={() => {}} /> : undefined}
-    >
-      {stepId === 'intro' && <StepIntro noticeOutdated={params.has('notice')} onContinue={() => {}} />}
-      {stepId === 'connect' && <StepConnect status={connect} failedReason="Tidak terhubung ke SIKOLA." onOpenSikola={() => {}} onRetry={() => {}} />}
-      {stepId === 'courses' && <StepCourses courses={courses} onToggle={toggle} />}
-      {stepId === 'done' && <StepDone tasks={own.pendingCount} note={params.has('fallback') ? id.onboarding.done.openFallback : null} onOpen={() => {}} />}
-    </OnboardingShell>
+    <Journey stepKey={stepId === 'intro' ? `intro-${page}` : stepId} progress={stepId === 'intro' ? undefined : progressOf(ONBOARDING_STEPS.filter((s) => s.id !== 'intro'), stepId)} onSkip={stepId === 'intro' ? () => {} : undefined} scene={scene} sceneInteractive={stepId === 'courses'} footnote={id.disclaimerShort}>
+      {stepId === 'intro' && (
+        <>
+          <IntroText page={page} onNext={() => setPage(Math.min(INTRO_PAGES - 1, page + 1))} onGo={setPage} onBack={page > 0 ? () => setPage(page - 1) : undefined} onWhy={() => setWhy(true)} />
+          <WhyDialog open={why} onOpenChange={setWhy} points={id.onboarding.intro.points} outdated={params.has('notice') ? id.onboarding.intro.noticeUpdated : undefined} onPrivacy={() => {}} />
+        </>
+      )}
+      {stepId === 'connect' && <ConnectText phase={prep !== null ? 'connected' : connect} preparing={prep !== null} stages={stages} failedReason="Tidak terhubung ke SIKOLA." switching={false} onOpen={() => {}} onRetry={() => {}} />}
+      {stepId === 'courses' && <CoursesText selected={selected} saving={false} onNext={() => {}} />}
+      {stepId === 'done' && <DoneText onOpen={() => {}} />}
+    </Journey>
   );
 }
 

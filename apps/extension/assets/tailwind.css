@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./tokens.css";
+@import "./skin.css";
 
 /* Full pages (dashboard, onboarding, privacy, dev pages): Tailwind scans the
    whole project. The popup has its own entry (assets/popup.css) that scans
@@ -9,5 +10,10 @@
    to packages/ui in M8c and are scanned the same way. */
 @source "../../../packages/core/src";
 @source "../../../packages/ui/src";
-/* The Android app's card patterns use only its own tokens: not the extension's. */
+/* The Android app's card patterns use only its own tokens: not the extension's.
+   Except the parts the extension shares (Tahap 2): the chip, the check circle and
+   the one-line time; their phone-only classes have desktop sizes in skin.css. */
 @source not "../../../packages/ui/src/mobile";
+@source "../../../packages/ui/src/mobile/cards.tsx";
+@source "../../../packages/ui/src/mobile/controls.tsx";
+@source "../../../packages/ui/src/mobile/fit-line.tsx";
