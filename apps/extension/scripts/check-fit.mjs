@@ -8,6 +8,10 @@
 // Also the rule that the rightmost items of one list share one right edge:
 // the popup's group chevrons, check circles and "kabar baru" chevron; the
 // Tugas page's detail chevrons.
+// And the dashboard's toast in the sidebar column at 1280: a real one (a task
+// marked done, with Urungkan), then every message a dashboard toast can carry
+// in that language put in it as it really shows (with Urungkan only for the
+// done toast), at most two lines and never cut, inside the column.
 // Exit 1 on any failure. Usage: node scripts/check-fit.mjs [--no-build]
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
@@ -50,6 +54,38 @@ const MEASURE = (edges) => {
   const right = {};
   for (const [name, sel] of Object.entries(edges)) right[name] = [...new Set([...document.querySelectorAll(sel)].map((e) => Math.round(e.getBoundingClientRect().right)).filter((x) => x > 0))];
   return { bad, count: document.querySelectorAll('[data-fit]').length, right };
+};
+
+// Every message a dashboard toast shows (done-undo with its action; NeosiaArrivals,
+// BugReport and Subscribe without one): [text, has action].
+const TOAST_TEXTS = {
+  id: [['Ditandai selesai', true], ['Data dari NEOSIA masuk', false], ['Nilai diperbarui dari NEOSIA', false], ['Jadwal diperbarui dari NEOSIA', false], ['Info tersalin', false], ['Tersalin', false]],
+  en: [['Marked as done', true], ['Data from NEOSIA came in', false], ['Grades updated from NEOSIA', false], ['Schedule updated from NEOSIA', false], ['Info copied', false], ['Copied', false]],
+};
+
+/** In the page: the toast with each message, its lines and edges against the sidebar column. */
+const MEASURE_TOAST = (texts) => {
+  const toast = document.querySelector('.db-toasts .sulo-toast');
+  if (!toast) return { missing: true, bad: [] };
+  const msg = toast.querySelector(':scope > span');
+  const nav = document.querySelector('.db-toasts')?.getBoundingClientRect();
+  const bad = [];
+  const first = msg.textContent;
+  const action = toast.querySelector('button');
+  for (const [text, withAction] of [[first, true], ...texts]) {
+    msg.textContent = text;
+    if (action) action.style.display = withAction ? '' : 'none';
+    const lh = parseFloat(getComputedStyle(msg).lineHeight) || 20;
+    const lines = Math.round(msg.getBoundingClientRect().height / lh);
+    const t = toast.getBoundingClientRect();
+    if (lines > 2) bad.push(`${lines} baris: "${text}"`);
+    if (msg.scrollWidth > msg.clientWidth + 0.5 || toast.scrollWidth > toast.clientWidth + 0.5) bad.push(`terpotong: "${text}"`);
+    for (const b of toast.querySelectorAll('button')) if (b.scrollWidth > b.clientWidth + 0.5) bad.push(`tombol terpotong: "${b.textContent}"`);
+    if (nav && (t.left < nav.left - 0.5 || t.right > nav.right + 0.5)) bad.push(`keluar kolom sidebar: "${text}"`);
+  }
+  msg.textContent = first;
+  if (action) action.style.display = '';
+  return { missing: false, bad, real: first };
 };
 
 const ctx = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, '--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost'] });
@@ -99,11 +135,22 @@ for (const locale of ['id', 'en']) {
       const r = await page.evaluate(MEASURE, { rincian: 'li button[aria-expanded] > svg' });
       report(`dashboard 1280 ${hash} ${locale} ${dueFormat}`, r, hash === 'tugas' ? [['rincian']] : []);
     }
+    if (dueFormat === FORMATS[0]) {
+      // A real toast: one task marked done on Tugas (the page still open there).
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.locator('li [role="checkbox"][aria-checked="false"]').first().click();
+      await page.waitForSelector('.db-toasts .sulo-toast', { timeout: 3000 }).catch(() => null);
+      await page.hover('.db-toasts .sulo-toast').catch(() => null); // paused while hovered
+      const t = await page.evaluate(MEASURE_TOAST, TOAST_TEXTS[locale]);
+      const lines = t.missing ? ['toast tidak muncul setelah tugas ditandai selesai'] : t.bad;
+      failed += lines.length;
+      console.log(`${lines.length ? 'GAGAL' : 'ok   '} toast sidebar 1280 ${locale}: ${TOAST_TEXTS[locale].length + 1} teks${lines.length ? `\n  ${lines.join('\n  ')}` : ''}`);
+    }
     await page.close();
   }
 }
 await ctx.close();
 for (const e of errors) console.log(`GAGAL galat halaman ${e}`);
 failed += errors.length;
-console.log(failed ? `check-fit: ${failed} temuan` : 'check-fit: semua teks waktu satu baris di ukuran penuh, tepi kanan daftar sejajar.');
+console.log(failed ? `check-fit: ${failed} temuan` : 'check-fit: semua teks waktu satu baris di ukuran penuh, tepi kanan daftar sejajar, toast sidebar paling dua baris.');
 process.exit(failed ? 1 : 0);
