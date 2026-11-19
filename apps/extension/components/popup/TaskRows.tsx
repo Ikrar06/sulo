@@ -44,13 +44,14 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
   const text = dueText(row, due.format, due.now, due.timeZone, m);
   return (
     // The right column: the due time, then the check circle, whose right edge is the group chevron's.
-    // The hover fill is exactly the content's width (title to circle), at the popup cards' radius.
-    <li data-flip-key={row.eventId} className="group relative mx-3 flex items-start gap-3 rounded-[14px] py-2.5 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
+    // The hover and focus fill (skin.css .row-hover) reaches 10 past the content left and right and 6 above
+    // and below (the row's own 10 px padding less 4); nothing in the row moves.
+    <li data-flip-key={row.eventId} className="row-hover group relative mx-3 flex items-start gap-3 py-2.5" style={{ ['--rh-x' as string]: '-10px', ['--rh-y' as string]: '4px' }}>
       <button
         type="button"
         onClick={() => actions.onOpenTask(row.url)}
         aria-label={m.popup.openTask(row.name)}
-        className="min-w-0 flex-1 text-left outline-none after:absolute after:inset-0 after:rounded-lg focus-ring:after:ring-2 focus-ring:after:ring-focus"
+        className="row-main min-w-0 flex-1 text-left outline-none after:absolute after:inset-0"
       >
         <span className="line-clamp-2 text-[14px] leading-[19px] font-semibold" title={row.name}>
           {row.name}
@@ -136,7 +137,7 @@ export interface DoneLinger {
 function DoneRow({ linger, onUndo }: { linger: DoneLinger; onUndo?: (eventId: number) => void }) {
   const { m } = useI18n();
   return (
-    <li data-flip-key={linger.row.eventId} className={`mx-3 flex items-center gap-3 rounded-[14px] py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
+    <li data-flip-key={linger.row.eventId} className={`mx-3 flex items-center gap-3 py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-[19px] text-muted-foreground line-through" title={linger.row.name}>
         {linger.row.name}
       </span>

@@ -70,7 +70,9 @@ function Entry({ entry, course, color, timeZone, onOpen }: { entry: ChangeLogEnt
         <button
           type="button"
           onClick={() => onOpen(url)}
-          className="block w-full rounded-lg px-3 py-2 text-left outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus"
+          // The hover and focus fill (the extension's skin.css .row-hover): 10 past the text, 6 above and below.
+          className="row-hover block w-full px-3 py-2 text-left outline-none"
+          style={{ ['--rh-x' as string]: '2px', ['--rh-y' as string]: '2px' }}
         >
           {body}
           {!entry.seen && <span className="sr-only">{m.popup.updates.markerNew}</span>}

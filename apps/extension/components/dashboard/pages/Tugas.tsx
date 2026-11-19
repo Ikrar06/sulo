@@ -156,11 +156,12 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   const panelId = `task-panel-${item.task.eventId}`;
   return (
     <li id={`task-${item.task.eventId}`} data-flip-key={item.task.eventId} className={collapsing ? 'db-collapse' : undefined}>
-      <div className="group relative flex items-start gap-3 px-4 py-3">
+      {/* The hover and focus fill (skin.css .row-hover): 10 past the content left and right, 6 above and below. */}
+      <div className="row-hover group relative flex items-start gap-3 px-4 py-3" style={{ ['--rh-x' as string]: '6px', ['--rh-y' as string]: '6px' }}>
         <span className="mt-px flex">
           <CheckCircle size="sm" checked={item.status === 'done'} onChange={onDone} label={`${item.status === 'done' ? t.markUndone : t.markDone}: ${item.task.name}`} />
         </span>
-        <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
+        <button type="button" className="row-main min-w-0 flex-1 text-left outline-none" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <span className={`block text-[14px] leading-6 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`}>{item.task.name}</span>
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-normal text-muted-foreground">
             <span className="inline-flex min-w-0 text-foreground">

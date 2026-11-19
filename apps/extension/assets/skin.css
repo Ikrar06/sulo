@@ -224,3 +224,47 @@
   margin: 6px 0;
   background-color: var(--layer-line);
 }
+
+/* ---------- Row hover and row focus (Tahap 2) ---------- */
+/* A list row's hover fill reaches 10 px past its content left and right and 6 px above
+   and below, radius 14, drawn by ::before behind the content, so nothing in the row
+   moves. Each list says where the fill sits against the row's own box with --rh-x and
+   --rh-y (negative reaches outside it). Keyboard focus on the row: the same shape, with
+   the focus ring. Fills of neighbouring rows never overlap (their gap is at least 12). */
+.row-hover { position: relative; isolation: isolate; }
+.row-hover::before {
+  content: "";
+  position: absolute;
+  inset: var(--rh-y, 0px) var(--rh-x, 0px);
+  border-radius: 14px;
+  z-index: -1;
+  pointer-events: none;
+  transition: background-color 120ms ease-out;
+}
+.row-hover:hover::before { background-color: var(--surface-raised); }
+:root:not([data-input="mouse"]) .row-hover:is(:focus-visible, :has(.row-main:focus-visible))::before {
+  background-color: var(--surface-raised);
+  box-shadow: 0 0 0 2px var(--focus);
+}
+
+/* Menu and select rows: the same fill, 10 past the text (which sits 12 in) and 6 above and below. */
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"]) {
+  isolation: isolate;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])[data-highlighted] {
+  background-color: transparent;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 14px;
+  z-index: -1;
+  pointer-events: none;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])[data-highlighted]::before {
+  background-color: var(--surface-raised);
+}
+:root:not([data-input="mouse"]) :is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"])[data-highlighted]::before {
+  box-shadow: 0 0 0 2px var(--focus);
+}

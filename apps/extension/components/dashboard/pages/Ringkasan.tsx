@@ -137,7 +137,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                   <h3 className="mb-1 text-[12px] font-semibold text-muted-foreground">{r.groups[g.key]}</h3>
                   <ul>
                     {g.rows.map((row) => (
-                      <li key={row.task.eventId} data-flip-key={row.task.eventId} className={`group relative -mx-2 flex items-start gap-3 rounded-lg px-2 hover:bg-surface-raised ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
+                      <li key={row.task.eventId} data-flip-key={row.task.eventId} style={{ ['--rh-x' as string]: '-2px', ['--rh-y' as string]: '2px' }} className={`row-hover group relative -mx-2 flex items-start gap-3 px-2 ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
                         <span className="mt-2 flex">
                           <CheckCircle
                             size="sm"
@@ -146,7 +146,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                             label={`${row.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${row.task.name}`}
                           />
                         </span>
-                        <a href={routeHash('tugas', row.task.eventId)} className="flex min-w-0 flex-1 items-start gap-3 rounded-lg py-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                        <a href={routeHash('tugas', row.task.eventId)} className="row-main flex min-w-0 flex-1 items-start gap-3 py-2 outline-none">
                           <span className="min-w-0 flex-1">
                             <span className={`block truncate text-[14px] ${row.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`} title={row.task.name}>
                               {row.task.name}
