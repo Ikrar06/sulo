@@ -190,11 +190,15 @@
 /* A scene piece arriving (story motion; delays set inline). */
 @keyframes obj-in { from { opacity: 0; transform: translateY(12px); } }
 .obj-in { animation: obj-in var(--obj-dur, 504ms) cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--obj-delay, 0ms); }
+/* Menyiapkan Sulo: four 56 rows. */
+.obj-scene.obj-rows { gap: 20px; }
+@keyframes obj-spin { to { transform: rotate(360deg); } }
+.obj-spin { animation: obj-spin 0.9s linear infinite; }
 /* The status line's "busy" dot. */
 @keyframes obj-pulse { 50% { opacity: 0.35; } }
 .obj-pulse { animation: obj-pulse 1.2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .obj-in, .obj-pulse, .obj-out { animation: none; }
+  .obj-in, .obj-pulse, .obj-out, .obj-spin { animation: none; }
   .obj-enter, .obj-text.obj-enter > * { animation: obj-fade 120ms ease-out both; }
 }
 

@@ -206,7 +206,7 @@ const STEP_IDS: M2StepId[] = ['intro', 'connect', 'courses', 'done'];
 /** The onboarding journey (Tahap 2), one step at a time, synthetic data:
  *  ?onboarding=1&page=0..2[&why]   the intro's pages ("Kenapa aman?" open with &why)
  *  ?onboarding=2&connect=checking|waiting|need_login|connected|failed[&why]
- *  ?onboarding=2&prep=0..3          "Menyiapkan Sulo" with that many stages done
+ *  ?onboarding=2&prep=0..3[&fail]   "Menyiapkan Sulo" with that many stages done (the next one failed)
  *  ?onboarding=3[&many|&none]       courses (many, or none chosen)
  *  ?onboarding=4[&notasks]          done (with no task) */
 function OnboardingPage({ step }: { step: number }) {
@@ -220,14 +220,16 @@ function OnboardingPage({ step }: { step: number }) {
   const stepId = STEP_IDS[step - 1]!;
   const own = POPUP_STATES[0]!.view;
   const tasks = params.has('notasks') ? [] : doneTasks(own.groups);
-  const stages = prep === null ? [] : (['tasks', 'courses', 'attendance'] as const).slice(0, prep).map((stage) => ({ stage, result: 'ok' as const }));
+  // &fail: the stage after the finished ones failed (the sync's own failure shows the same way).
+  const fail = params.has('fail');
+  const stages = prep === null ? [] : (['tasks', 'courses', 'attendance'] as const).slice(0, prep + (fail ? 1 : 0)).map((stage, i) => ({ stage, result: fail && i === prep ? ('failed' as const) : ('ok' as const) }));
   const selected = courses.filter(isCourseActive).length;
   const scene =
-    stepId === 'intro' ? introScene(page) : stepId === 'connect' ? (prep !== null ? <ScenePreparing stages={stages} counts={{ tasks: 12, courses: 5 }} /> : <SceneConnect />) : stepId === 'courses' ? <SceneCourses courses={courses} onToggle={toggle} /> : <SceneDone tasks={tasks} />;
+    stepId === 'intro' ? introScene(page) : stepId === 'connect' ? (prep !== null ? <ScenePreparing stages={stages} counts={{ tasks: 12, courses: 5 }} failed={fail} /> : <SceneConnect />) : stepId === 'courses' ? <SceneCourses courses={courses} onToggle={toggle} /> : <SceneDone tasks={tasks} />;
   return (
     <Journey stepKey={stepId === 'intro' ? `intro-${page}` : prep !== null ? 'preparing' : stepId} progress={stepId === 'intro' ? undefined : progressOf(ONBOARDING_STEPS.filter((s) => s.id !== 'intro'), stepId)} onSkip={stepId === 'intro' ? () => {} : undefined} scene={scene} sceneInteractive={stepId === 'courses'} footnote={id.disclaimerShort}>
       {stepId === 'intro' && <IntroText page={page} onNext={() => setPage(Math.min(INTRO_PAGES - 1, page + 1))} onGo={setPage} onBack={page > 0 ? () => setPage(page - 1) : undefined} onWhy={() => setWhy(true)} />}
-      {stepId === 'connect' && <ConnectText phase={prep !== null ? 'connected' : connect} preparing={prep !== null} stages={stages} failedReason="Tidak terhubung ke SIKOLA." switching={false} onOpen={() => {}} onRetry={() => {}} onWhy={() => setWhy(true)} />}
+      {stepId === 'connect' && <ConnectText phase={prep !== null ? (fail ? 'failed' : 'connected') : connect} preparing={prep !== null} stages={stages} failedReason="Tidak terhubung ke SIKOLA." switching={false} onOpen={() => {}} onRetry={() => {}} onWhy={() => setWhy(true)} />}
       {stepId === 'courses' && <CoursesText selected={selected} saving={false} onNext={() => {}} />}
       {stepId === 'done' && <DoneText tasks={tasks.length === 0 ? 0 : own.pendingCount} courses={selected} onOpen={() => {}} />}
       <WhyDialog open={why} onOpenChange={setWhy} outdated={params.has('notice') ? id.onboarding.intro.noticeUpdated : undefined} onPrivacy={() => {}} />

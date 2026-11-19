@@ -57,20 +57,27 @@ export function SceneConnect() {
 export function ConnectText({ phase, preparing, stages, failedReason, switching, onOpen, onRetry, onWhy }: { phase: ConnectPhase; preparing: boolean; stages: OnboardingStages['stages']; failedReason: string; switching: boolean; onOpen: () => void; onRetry: () => void; onWhy: () => void }) {
   const { locale } = useI18n();
   const { phone, ext } = words(locale);
-  useMascot(preparing ? { state: 'syncing', look: null } : phase === 'failed' ? { state: 'stale', look: null } : phase === 'connected' ? { state: 'all-done', look: null } : { state: 'idle' });
+  useMascot(preparing && phase !== 'failed' && !stages.some((st) => st.result === 'failed') ? { state: 'syncing', look: null } : phase === 'failed' || stages.some((st) => st.result === 'failed') ? { state: 'stale', look: null } : phase === 'connected' ? { state: 'all-done', look: null } : { state: 'idle' });
   if (preparing) {
+    // The bar's four segments follow the rows: connected, then each stage that ended well.
     const results = stageResults(stages);
     const current = STAGE_ROWS.find((r) => results[r] === null) ?? STAGE_ROWS[STAGE_ROWS.length - 1]!;
-    // Four segments: connected, then the three stages.
-    const done = 1 + STAGE_ROWS.filter((r) => results[r] !== null).length;
+    const done = 1 + STAGE_ROWS.filter((r) => results[r] === 'ok').length;
+    const failed = phase === 'failed' || STAGE_ROWS.some((r) => results[r] === 'failed');
     return (
       <>
         <JTitle id="ob-title">{phone.preparing.title}</JTitle>
+        {failed && <JLine>{phone.preparing.failedTitle}</JLine>}
+        {failed && (
+          <JActions>
+            <Button onClick={onRetry}>{phone.preparing.retry}</Button>
+          </JActions>
+        )}
         <JAfter>
-          <JStatus tone="busy">{phone.preparing.stages[current]}</JStatus>
+          {failed ? <JStatus tone="problem">{failedReason || phone.preparing.failedTitle}</JStatus> : <JStatus tone="busy">{phone.preparing.stages[current]}</JStatus>}
           <div role="progressbar" aria-label={phone.preparing.title} aria-valuemin={0} aria-valuemax={4} aria-valuenow={done} className="mt-4 flex w-[240px] gap-1.5">
             {Array.from({ length: 4 }, (_, i) => (
-              <span key={i} className={`h-1.5 flex-1 rounded-full ${i < done ? 'bg-foreground' : 'bg-foreground/20'}`} />
+              <span key={i} className={`h-1.5 flex-1 rounded-full transition-colors duration-150 ${i < done ? 'bg-foreground' : 'bg-foreground/20'}`} />
             ))}
           </div>
         </JAfter>

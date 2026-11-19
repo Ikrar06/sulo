@@ -44,6 +44,7 @@ const id = {
   },
   preparing: {
     connected: 'Tersambung ke SIKOLA',
+    rows: { tasks: 'Tugas', courses: 'Mata kuliah', attendance: 'Presensi', attendanceDone: 'Presensi siap' },
   },
   why: 'Kenapa aman?',
   close: 'Tutup',
@@ -93,6 +94,7 @@ const en: ExtWords = {
   },
   preparing: {
     connected: 'Connected to SIKOLA',
+    rows: { tasks: 'Tasks', courses: 'Courses', attendance: 'Attendance', attendanceDone: 'Attendance ready' },
   },
   why: 'Why is it safe?',
   close: 'Close',

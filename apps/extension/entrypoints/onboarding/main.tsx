@@ -276,6 +276,8 @@ function App() {
   // The new step's title takes the focus in the journey frame, once the old step has left.
   const [preparing, setPreparing] = useState(false);
   useEffect(() => {
+    // A sync that fails while preparing keeps the rows on screen, with the failed one marked and "Coba lagi".
+    if (connect === 'failed') return;
     if (connect !== 'connected') return setPreparing(false);
     const t = window.setTimeout(() => setPreparing(true), CONNECTED_SHOWN_MS);
     return () => window.clearTimeout(t);
@@ -442,7 +444,7 @@ function App() {
     screen === 'intro' ? (
       introScene(introPage)
     ) : screen === 'connect' ? (
-      preparing ? <ScenePreparing stages={stages} counts={counts} /> : <SceneConnect />
+      preparing ? <ScenePreparing stages={stages} counts={counts} failed={connect === 'failed'} /> : <SceneConnect />
     ) : screen === 'courses' ? (
       <SceneCourses courses={courses} onToggle={onToggle} />
     ) : (
