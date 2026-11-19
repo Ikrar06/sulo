@@ -90,9 +90,11 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
  * A switch for the phone (Radix Switch): a 52x32 pill, the knob on the card
  * layer so it reads on the dark "on" track in both themes; 44 target.
  */
-export function Toggle({ checked, onChange, label, disabled = false }: { checked: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
+/** `id` lets a <label htmlFor> name it (the extension's setting rows); `label` names it otherwise. */
+export function Toggle({ checked, onChange, label, disabled = false, id }: { checked: boolean; onChange: (v: boolean) => void; label?: string; disabled?: boolean; id?: string }) {
   return (
     <SwitchPrimitive.Root
+      id={id}
       checked={checked}
       onCheckedChange={onChange}
       disabled={disabled}

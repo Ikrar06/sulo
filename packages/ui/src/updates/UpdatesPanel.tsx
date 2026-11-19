@@ -1,13 +1,13 @@
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useI18n } from '../i18n';
 import { BellIcon, ChevronLeftIcon } from '../icons';
 import { Button } from '../ui/button';
-import { Checkbox } from '../ui/checkbox';
 import { formatClock } from '@sulo/core/format/time';
 import { changeUrl, describeChange } from '@sulo/core/radar/describe';
 import { UPDATE_CATEGORIES, type UpdateCategory, type UpdateSettings } from '@sulo/core/radar/settings';
 import { addDays, localParts } from '@sulo/core/reminders/zoned';
 import { Chip } from '../mobile/cards';
+import { SwitchRow } from '../ui/switch-row';
 import { courseTint } from '../mobile/tint';
 import type { ChangeLogEntry, UnixSeconds } from '@sulo/core/types';
 
@@ -82,18 +82,6 @@ function Entry({ entry, course, color, timeZone, onOpen }: { entry: ChangeLogEnt
   );
 }
 
-function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
-  const id = useId();
-  return (
-    <div className="flex items-start gap-2 py-1">
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-px" />
-      <label htmlFor={id} className="text-(length:--fs-body) leading-(--lh-body)">
-        {children}
-      </label>
-    </div>
-  );
-}
-
 /** "Beri tahu saya tentang": the four kinds and the quiet-hours note. Shared by the panel and the dashboard's popover; one source (prefs.updates). */
 export function UpdateSettingsChecks({ settings, onChange }: { settings: UpdatesPanelProps['settings']; onChange: UpdatesPanelProps['onChangeSettings'] }) {
   const { m } = useI18n();
@@ -101,9 +89,9 @@ export function UpdateSettingsChecks({ settings, onChange }: { settings: Updates
   return (
     <>
       {UPDATE_CATEGORIES.map((c: UpdateCategory) => (
-        <Check key={c} checked={settings[c]} onChange={(v) => onChange({ ...settings, [c]: v })}>
+        <SwitchRow key={c} checked={settings[c]} onChange={(v) => onChange({ ...settings, [c]: v })}>
           {u.categories[c]}
-        </Check>
+        </SwitchRow>
       ))}
       <p className="pt-1 text-[12px] leading-(--lh-caption) text-muted-foreground">{u.settingsNote}</p>
     </>

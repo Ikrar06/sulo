@@ -26,6 +26,12 @@
 .db-side {
   border-color: var(--layer-line);
 }
+/* The raised fill (active nav item, the contents list, hovers, row highlights) is the inset
+   layer, as the phone marks a selection: on the light screen layer the old raised gray
+   (#f2f2f5 on #f1f1f4) all but vanished. */
+.db-layout {
+  --surface-raised: var(--layer-inset);
+}
 
 :where(.rounded-xl.border.border-border.bg-surface),
 :where([data-slot="card"]) {
@@ -102,3 +108,8 @@
 .border-m-line { border-color: var(--layer-line); }
 .bg-m-inset { background-color: var(--layer-inset); }
 .bg-m-card { background-color: var(--layer-card); }
+/* A switch that is off keeps a visible edge (3:1 or more, like the unchecked checkbox):
+   in dark the inset track on a card was too close to the card itself. */
+[role="switch"][data-state="unchecked"] {
+  box-shadow: inset 0 0 0 1px var(--control-border);
+}
