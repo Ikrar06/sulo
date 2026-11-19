@@ -1,0 +1,28 @@
+// SuloNeosia, the native NEOSIA screen (apps/mobile/android, Kotlin; M8d).
+// B0: debug builds only. It opens one of NEOSIA's pages from a tap and reads
+// the trial's counters (labels and numbers only; no captured data).
+import { registerPlugin } from '@capacitor/core';
+
+export type NeosiaPage = 'login' | 'home' | 'khs' | 'krs' | 'transkrip' | 'matakuliah';
+
+export interface NeosiaTrialStats {
+  captures: Record<string, number>;
+  rejected: Record<string, number>;
+  requests: Record<string, number>;
+  pages: string[];
+  largestBytes: number;
+  scriptOnLogin: number;
+  spaToLogin: number;
+  spaFromLogin: number;
+  webView: string;
+  docStartSupported: boolean;
+  listenerSupported: boolean;
+}
+
+export interface SuloNeosiaPlugin {
+  open(options: { page: NeosiaPage; close: string }): Promise<void>;
+  trialStats(): Promise<NeosiaTrialStats>;
+  resetTrial(): Promise<void>;
+}
+
+export const SuloNeosia = registerPlugin<SuloNeosiaPlugin>('SuloNeosia');
