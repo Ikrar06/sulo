@@ -23,6 +23,7 @@ v=$(grep -o 'name="state">[a-z]*<' $P/sulo_session.xml 2>/dev/null | sed 's/.*>\
 echo "vault=\${v:-none}"
 echo "vaultBlobBytes=$(grep -o 'name="blob">[^<]*' $P/sulo_session.xml 2>/dev/null | wc -c)"
 echo "onboardingStep=$(grep -o 'name="sulo:mobile:onboarding">[^<]*' $P/CapacitorStorage.xml 2>/dev/null | grep -o '&quot;step&quot;:&quot;[a-z0-9]*' | sed 's/.*;//')"
+echo "coreSession=$(grep -o 'name="sulo:global:session">[^<]*' $P/CapacitorStorage.xml 2>/dev/null | grep -o 'state&quot;:&quot;[A-Z]*' | sed 's/.*;//')"
 echo "currentUser=$(grep -c 'name="sulo:global:currentUser"' $P/CapacitorStorage.xml 2>/dev/null)"
 echo "coursesBytes=$(grep -o 'name="sulo:u:[0-9]*:courses">[^<]*' $P/CapacitorStorage.xml 2>/dev/null | wc -c)"
 echo "tasksBytes=$(grep -o 'name="sulo:u:[0-9]*:tasks">[^<]*' $P/CapacitorStorage.xml 2>/dev/null | wc -c)"
@@ -52,7 +53,7 @@ const STEPS = {
   neosia: { ask: 'Di layar dev, ketuk "Masuk NEOSIA", masuk, tunggu layar menutup sendiri, lalu tunggu 10 detik.', expect: () => [['vault', 'connected'], ['neosiaKeysKept', true]] },
 };
 
-const KEEP = ['vault', 'vaultBlobBytes', 'onboardingStep', 'currentUser', 'coursesBytes', 'prefsBytes'];
+const KEEP = ['vault', 'coreSession', 'vaultBlobBytes', 'onboardingStep', 'currentUser', 'coursesBytes', 'prefsBytes'];
 
 async function run(name, rl) {
   const step = STEPS[name];
@@ -62,11 +63,13 @@ async function run(name, rl) {
   const after = probe();
   const problems = [];
   for (const k of KEEP) if (before[k] !== after[k]) problems.push(`${k}: ${before[k] || '-'} → ${after[k] || '-'}`);
+  // What the screens read ("Masuk lagi untuk memperbarui"): core's state, apart from the vault.
+  if (after.vault === 'connected' && after.coreSession === 'EXPIRED') problems.push('coreSession: EXPIRED padahal vault connected (layar akan meminta masuk lagi)');
   for (const [k, want] of step.expect(after)) {
     const got = k === 'onboardingNotBack' ? want : k === 'neosiaKeysKept' ? Number(after.neosiaKeys) > 0 && after.neosiaKeys === before.neosiaKeys : after[k];
     if (k === 'onboardingNotBack' || k === 'neosiaKeysKept' ? got !== true : got !== want) problems.push(`${k}: ${k === 'neosiaKeysKept' ? `${before.neosiaKeys} → ${after.neosiaKeys}` : got || '-'}, diharapkan ${want === true ? 'utuh' : want}`);
   }
-  const summary = `vault ${after.vault} (${after.vaultBlobBytes} byte), onboarding ${after.onboardingStep || '-'}, mata kuliah ${after.coursesBytes} byte, NEOSIA ${after.neosiaKeys} kunci, kejadian terakhir ${after.lastEvent || '-'}`;
+  const summary = `vault ${after.vault} (${after.vaultBlobBytes} byte), sesi di layar ${after.coreSession || '-'}, onboarding ${after.onboardingStep || '-'}, mata kuliah ${after.coursesBytes} byte, NEOSIA ${after.neosiaKeys} kunci, kejadian terakhir ${after.lastEvent || '-'}`;
   console.log(`${problems.length ? 'GAGAL' : 'ok   '} [${name}] setelah force-stop dan buka lagi: ${summary}${problems.length ? `\n  ${problems.join('\n  ')}` : ''}`);
   return problems.length === 0;
 }

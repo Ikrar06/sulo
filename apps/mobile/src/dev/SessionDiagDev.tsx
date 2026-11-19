@@ -1,23 +1,51 @@
-// Debug build only: what happened to the SIKOLA session on this phone (native
-// Diag): when the app started, when the vault was saved, ended and why, and
-// reads that could not be done yet. Times and event codes only.
+// Debug build only: what happened to the SIKOLA session on this phone. Two
+// sides that can disagree: the native vault (Diag: app start, saved, ended
+// and why) and core's own session state, which the screens read ("Masuk lagi
+// untuk memperbarui"), with core's latest requests (function names and
+// outcome kinds). Times and codes only.
 import { useEffect, useState } from 'react';
+import { readSession } from '@sulo/core/moodle/session';
+import { readTechLog, type TechLogEntry } from '@sulo/core/net/tech-log';
+import type { Platform } from '@sulo/core/platform';
+import type { SessionInfo } from '@sulo/core/types';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { SuloSession } from '../session';
 
 const time = (at: number) => new Date(at * 1000).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' });
 
-export function SessionDiagDev() {
+const SHORT: Record<string, string> = {
+  core_session_time_remaining: 'sesi',
+  core_calendar_get_action_events_by_timesort: 'tenggat',
+  core_courseformat_get_state: 'isi_mk',
+  message_popup_get_popup_notifications: 'notifikasi',
+  core_course_get_enrolled_courses_by_timeline_classification: 'daftar_mk',
+};
+/** Short names for a phone line ("sesi+tenggat+isi_mk"); "page" stays. */
+const shortFn = (fn: string) => fn.split('+').map((f) => SHORT[f] ?? f).join('+');
+
+export function SessionDiagDev({ platform }: { platform: Platform }) {
   const [events, setEvents] = useState<{ at: number; e: string }[] | null>(null);
-  const load = () =>
-    SuloSession.diagLog()
+  const [core, setCore] = useState<SessionInfo | null>(null);
+  const [tech, setTech] = useState<TechLogEntry[]>([]);
+  const load = () => {
+    void SuloSession.diagLog()
       .then((r) => setEvents([...r.events].reverse()))
       .catch(() => setEvents([]));
-  useEffect(() => void load(), []);
+    void readSession(platform.store).then(setCore);
+    void readTechLog(platform.store).then((log) => setTech(log.slice(0, 8)));
+  };
+  useEffect(load, [platform]);
   return (
     <Card className="space-y-2">
       <h2 className="text-m15 font-semibold">Riwayat sesi (terbaru di atas)</h2>
+      {core && (
+        <p>
+          Status sesi di layar (core): {core.state}
+          {core.expiredAt ? ` sejak ${time(core.expiredAt)}` : ''}
+        </p>
+      )}
+      <p className="text-muted-foreground">Vault (native):</p>
       {events === null || events.length === 0 ? (
         <p className="text-muted-foreground">Belum ada catatan.</p>
       ) : (
@@ -29,7 +57,15 @@ export function SessionDiagDev() {
           ))}
         </ul>
       )}
-      <PillButton onPress={() => void load()}>Muat ulang</PillButton>
+      <p className="text-muted-foreground">Request terakhir (core):</p>
+      <ul>
+        {tech.map((x, i) => (
+          <li key={`${x.at}-${i}`}>
+            {time(x.at)} · {shortFn(x.fn)} · {x.status}
+          </li>
+        ))}
+      </ul>
+      <PillButton onPress={load}>Muat ulang</PillButton>
     </Card>
   );
 }

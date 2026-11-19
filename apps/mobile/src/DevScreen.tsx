@@ -57,7 +57,7 @@ export function DevScreen({ platform, w, onBack }: { platform: Platform; w: Mobi
       <OnboardingDev platform={platform} />
       <NotifyTests platform={platform} />
       <TestConfig platform={platform} />
-      <SessionDiagDev />
+      <SessionDiagDev platform={platform} />
       <NeosiaTrialDev />
       <div className="mt-auto pt-3">
         <PillButton full onPress={onBack}>
