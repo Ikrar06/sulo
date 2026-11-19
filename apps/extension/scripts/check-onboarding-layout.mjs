@@ -3,7 +3,8 @@
 // onboarding's layout rules, measured at rest in the development build's
 // preview (synthetic data), both languages, both themes.
 // At two columns (1280x800, 1440x900):
-//   1. the scene is 40 to 75 % of the content area's height, centred in it
+//   1. the scene is 30 to 75 % of the content area's height, centred in it
+//      (owner's decision 19 Nov 2026; "selesai tanpa tugas", one card, has no floor)
 //   2. the scene is 440 to 480 wide; at most 4 pieces
 //   3. the mascot is in the right column, 144 (1280x800) or 160 (1440x900),
 //      its left edge on the title's; its box is the same on every step
@@ -47,6 +48,10 @@ const SCREENS = [
 /** Words that are not for a student: storage, protocol and code names. */
 const TECHNICAL = /chrome\.|storage|sesskey|token|cookie|\bAPI\b|JSON|webservice|moodle|localhost|extension id/i;
 const SIGN_IN = /username|password|sign in|nama pengguna|kata sandi/i;
+const SCENE_MIN = 0.3;
+const SCENE_MAX = 0.75;
+/** One calm card: no floor (the ceiling still holds). */
+const NO_FLOOR = new Set(['selesai-tanpa-tugas']);
 
 const measure = () => {
   const vis = (el) => {
@@ -205,7 +210,7 @@ for (const [w, h] of [[1280, 800], [1440, 900], [1024, 768], [900, 700]]) {
         if (m.line && m.actions && !near(m.actions.top - m.line.bottom, 28)) findings.push(`${tag}: pendukung ke aksi ${Math.round(m.actions.top - m.line.bottom)} px (28)`);
         if (m.scene) {
           const share = m.scene.height / area;
-          if (share < 0.4 || share > 0.75) findings.push(`${tag}: adegan ${(share * 100).toFixed(0)}% tinggi area (40 sampai 75)`);
+          if ((share < SCENE_MIN && !NO_FLOOR.has(name)) || share > SCENE_MAX) findings.push(`${tag}: adegan ${(share * 100).toFixed(0)}% tinggi area (30 sampai 75)`);
           if (m.scene.width < 440 - 0.5 || m.scene.width > 480 + 0.5) findings.push(`${tag}: lebar adegan ${Math.round(m.scene.width)} (440 sampai 480)`);
           const sceneMid = m.scene.top + m.scene.height / 2;
           if (!near(sceneMid, 64 + area / 2, 2)) findings.push(`${tag}: adegan tidak di tengah area (${Math.round(sceneMid)} vs ${Math.round(64 + area / 2)})`);
