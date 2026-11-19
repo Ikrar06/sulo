@@ -24,13 +24,24 @@ const SHORT: Record<string, string> = {
 /** Short names for a phone line ("sesi+tenggat+isi_mk"); "page" stays. */
 const shortFn = (fn: string) => fn.split('+').map((f) => SHORT[f] ?? f).join('+');
 
+const median = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.floor(s.length / 2)] ?? 0;
+};
+
 export function SessionDiagDev({ platform }: { platform: Platform }) {
   const [events, setEvents] = useState<{ at: number; e: string }[] | null>(null);
   const [core, setCore] = useState<SessionInfo | null>(null);
   const [tech, setTech] = useState<TechLogEntry[]>([]);
+  const [cookies, setCookies] = useState<Record<string, number>>({});
+  const [guard, setGuard] = useState<number[]>([]);
   const load = () => {
     void SuloSession.diagLog()
-      .then((r) => setEvents([...r.events].reverse()))
+      .then((r) => {
+        setEvents([...r.events].reverse());
+        setCookies(r.cookies ?? {});
+        setGuard((r.guardMs ?? '').split(',').filter(Boolean).map(Number));
+      })
       .catch(() => setEvents([]));
     void readSession(platform.store).then(setCore);
     void readTechLog(platform.store).then((log) => setTech(log.slice(0, 8)));
@@ -57,6 +68,10 @@ export function SessionDiagDev({ platform }: { platform: Platform }) {
           ))}
         </ul>
       )}
+      <p>
+        Set-Cookie MoodleSession: {Object.entries(cookies).map(([k, v]) => `${k} ${v}`).join(' · ') || 'belum ada'}
+      </p>
+      <p>Layanan permintaan (ms): {guard.length ? `${guard.length} kali, median ${median(guard)}, terpanjang ${Math.max(...guard)}` : 'belum ada'}</p>
       <p className="text-muted-foreground">Request terakhir (core):</p>
       <ul>
         {tech.map((x, i) => (

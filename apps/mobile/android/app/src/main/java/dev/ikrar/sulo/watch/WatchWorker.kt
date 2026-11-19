@@ -8,6 +8,11 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import dev.ikrar.sulo.BuildConfig
 import dev.ikrar.sulo.MainActivity
+import dev.ikrar.sulo.session.CookieKeeper
+import dev.ikrar.sulo.session.CookieStats
+import dev.ikrar.sulo.session.Diag
+import dev.ikrar.sulo.session.GuardTimes
+import dev.ikrar.sulo.session.RequestGuard
 import dev.ikrar.sulo.session.SessionVault
 import dev.ikrar.sulo.session.SikolaLock
 import dev.ikrar.sulo.session.SikolaHttp
@@ -128,7 +133,14 @@ class WatchRun(private val context: Context) {
         val functions = (0 until batch.length()).map { batch.getJSONObject(it).getString("methodname") }
         if (SikolaRequest.allowedFunctions(batch.toString()) == null) return scheduleNext(plan, now)
         val reply = try {
-            http.postJson(SikolaRequest.watchBatchUrl(session!!.sesskey!!, functions), session.moodleSession, batch.toString())
+            // The request service guards it too (allowed when the app is visible; refused from the background on Android 12+, noted).
+            val guard = RequestGuard.shared(context)
+            guard.begin("watch")
+            try {
+                http.postJson(SikolaRequest.watchBatchUrl(session!!.sesskey!!, functions), session.moodleSession, batch.toString(), CookieKeeper(session!!, vault, CookieStats.of(context), Diag.of(context)))
+            } finally {
+                GuardTimes.record(context, guard.end())
+            }
         } catch (e: Exception) {
             record(now, started, 0, "network")
             store.setBackoff(WatchCheck.afterFailure(backoff, now, null, Math.random()))

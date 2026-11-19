@@ -39,6 +39,12 @@
             android:exported="false"
             android:theme="@style/AppTheme.NoActionBar" />
 
+        <service
+            android:name=".session.SuloRequestService"
+            android:exported="false"
+            android:foregroundServiceType="shortService|dataSync"
+            tools:ignore="ForegroundServicePermission" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -55,8 +61,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Background watching waits for a connection (WorkManager's network constraint). -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- WorkManager declares it for long-running work; Sulo never runs a foreground service. -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <!-- SuloRequestService (owner's decision, 20 Nov 2026): a foreground service
+         only while a request to SIKOLA is in flight (30 seconds at most), so
+         swiping Sulo away mid-request does not end the SIKOLA session. Android
+         14+ uses shortService (no type permission); Android 10 to 13 dataSync,
+         whose type permission (FOREGROUND_SERVICE_DATA_SYNC) exists only from
+         Android 14, so it is not needed. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- The optional app lock (off by default): the phone's own biometrics or screen lock. -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <!-- Reminders may be a few minutes late: no exact alarms (declared by the

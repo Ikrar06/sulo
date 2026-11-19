@@ -39,6 +39,16 @@ const PHONE: FaqEntry[] = [
     ],
   },
   {
+    id: 'tertutup-saat-memperbarui',
+    q: { id: 'Kenapa sesi berakhir setelah Sulo kututup saat memperbarui?', en: 'Why did my session end after I closed Sulo while it was updating?' },
+    a: [
+      {
+        id: 'SIKOLA mengakhiri sesi kalau sambungan dari HP terputus di tengah jalan, misalnya saat Sulo ditutup paksa ketika sedang memperbarui. Sulo menjaga agar pembaruan yang sedang berjalan tetap selesai walau Sulo kamu geser dari daftar aplikasi terbaru, tetapi tutup paksa dari pengaturan HP tetap memutusnya. Kalau itu terjadi, data terakhir tetap tampil; ketuk Masuk lagi untuk melanjutkan.',
+        en: 'SIKOLA ends the session when the phone’s connection to it is cut off midway, for example when Sulo is force-closed while it is updating. Sulo keeps an update that is running going even if you swipe Sulo away from recent apps, but force-stopping it from the phone’s settings still cuts it off. If that happens, the latest data stays on screen; tap Sign in again to continue.',
+      },
+    ],
+  },
+  {
     id: 'seberapa-cepat-hp',
     q: { id: 'Seberapa cepat Sulo tahu ada tugas baru?', en: 'How soon does Sulo know about a new task?' },
     a: [
@@ -175,7 +185,7 @@ export const MOBILE_FAQ: FaqEntry[] = [...PHONE, ...FAQ.filter((e) => SHARED.has
 /** Bantuan's groups on the phone, in order; every MOBILE_FAQ entry is in exactly one (tested). */
 export const MOBILE_FAQ_TOPICS = [
   { id: 'privasi', title: { id: 'Keamanan dan privasi', en: 'Security and privacy' }, entries: ['aman-hp', 'akun-lain-hp', 'hapus-data-hp'] },
-  { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'seberapa-cepat-hp', 'masuk-lagi-hp', 'masuk-lagi-pemantauan-hp', 'sikola-berubah-hp', 'kabar-lama'] },
+  { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'seberapa-cepat-hp', 'masuk-lagi-hp', 'tertutup-saat-memperbarui', 'masuk-lagi-pemantauan-hp', 'sikola-berubah-hp', 'kabar-lama'] },
   { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'baterai-hp', 'pemantauan-dijeda-hp', 'email-sikola-hp'] },
   { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },

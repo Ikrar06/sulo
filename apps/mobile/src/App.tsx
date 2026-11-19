@@ -88,6 +88,8 @@ function untilHero(): Promise<void> {
 export function App({ platform }: { platform: Platform }) {
   const [locale, setLocale] = useState<Locale>('id');
   const [status, setStatus] = useState<SessionStatus | null>(null);
+  // "interrupted": the session ended after Sulo closed mid-update (the honest line).
+  const [endedBy, setEndedBy] = useState<'interrupted' | null>(null);
   const [locked, setLocked] = useState(false);
   /** Where the onboarding is (null: not decided yet); 'finished' shows the app. */
   const [flow, setFlow] = useState<FlowState | null>(null);
@@ -118,7 +120,9 @@ export function App({ platform }: { platform: Platform }) {
   const w = mobileWords(locale);
 
   const refreshState = useCallback(async () => {
-    setStatus((await SuloSession.status()).status);
+    const st = await SuloSession.status();
+    setStatus(st.status);
+    setEndedBy(st.endedBy ?? null);
     setLast(await lastSyncAt(platform));
   }, [platform]);
 
@@ -166,6 +170,8 @@ export function App({ platform }: { platform: Platform }) {
     void (async () => {
       const loc = resolveLocale((await readPrefs(platform.store)).locale, navigator.language);
       setLocale(loc);
+      // The request service's notification in the app's language.
+      void SuloSession.labels({ updating: mobileWords(loc).connected.updatingNotice, channel: mobileWords(loc).connected.updatingChannel }).catch(() => undefined);
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
       const now = (await SuloSession.status()).status;
@@ -185,7 +191,8 @@ export function App({ platform }: { platform: Platform }) {
       const config = await readRemoteConfig(platform.store);
       setPaused(config.enabled ? null : config.message.trim() || mobileWords(loc).watch.paused);
       await applyWatchPlan(platform).catch(() => undefined);
-      if (now === 'connected' && (await SuloSession.suspect().catch(() => ({ suspect: false }))).suspect) void refreshRef.current();
+      const held = now === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
+      if (held.suspect || held.deferred === true) void refreshRef.current();
     })();
     const onDev = () => __SULO_DEV__ && setDev(true);
     // Debug builds: the scenes' pace chosen on the dev screen, and a replay of the onboarding from the first screen.
@@ -219,7 +226,9 @@ export function App({ platform }: { platform: Platform }) {
       const queue = await processWatchQueue(platform).catch(() => ({ applied: 0, fullSync: false }));
       if (queue.applied > 0) await scheduleReminders(platform).catch(() => 0);
       // Background watching thought the session ended: only this sync (asking twice) may say so.
-      const suspect = s === 'connected' && (await SuloSession.suspect().catch(() => ({ suspect: false }))).suspect;
+      // Suspicion from background watching, or a sync held back while the app was closing.
+      const held = s === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
+      const suspect = held.suspect || held.deferred === true;
       if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
       else void applyWatchPlan(platform);
     };
@@ -260,6 +269,7 @@ export function App({ platform }: { platform: Platform }) {
     <MobileDataProvider platform={platform}>
       <Shell
         expired={status === 'expired'}
+        expiredInterrupted={status === 'expired' && endedBy === 'interrupted'}
         busy={busy}
         lastSyncAt={last}
         onRefresh={refresh}

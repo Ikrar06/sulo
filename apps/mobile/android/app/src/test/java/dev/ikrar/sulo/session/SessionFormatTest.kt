@@ -18,6 +18,7 @@ class MemorySlots : Slots {
     override fun all(): Map<String, String>? = if (damaged) null else map.toMap()
     override fun get(key: String) = if (damaged) null else map[key]
     override fun put(key: String, value: String) { map[key] = value }
+    override fun putAll(values: Map<String, String?>) { for ((k, v) in values) if (v == null) map.remove(k) else map[k] = v }
     override fun clear() = map.clear()
 }
 

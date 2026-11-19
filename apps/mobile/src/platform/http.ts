@@ -19,6 +19,7 @@ export const COURSE_PAGE_CLOSED = 403;
 /** An attendance page, natively fetched and stripped (no head, scripts, forms or sesskey). */
 async function page(path: string, userInitiated: boolean): Promise<Response> {
   const reply = await SuloSession.page({ path, userInitiated });
+  if (reply.deferred) return closing();
   if (reply.networkError) throw new TypeError('network');
   // No usable session: SIKOLA's own answer would be a redirect to its login.
   if (reply.httpStatus === undefined || reply.html === undefined) return toLogin();
@@ -29,6 +30,14 @@ async function page(path: string, userInitiated: boolean): Promise<Response> {
   }
   return new Response(reply.html, { status: reply.httpStatus, headers: { 'Content-Type': 'text/html' } });
 }
+
+/**
+ * The app was closing, so nothing was sent (the sync runs on the next open).
+ * A 409 reads as that one request's failure: no backoff (only 429 and 5xx
+ * count), no session change.
+ */
+export const DEFERRED_STATUS = 409;
+const closing = () => new Response(null, { status: DEFERRED_STATUS });
 
 const toLogin = () => new Response(null, { status: 303, headers: { Location: `${SIKOLA_ORIGIN}/login/index.php` } });
 
@@ -44,6 +53,7 @@ export function createSessionHttp(userInitiated: boolean, onBatch?: (body: strin
         return new Response('', { status: 404 });
       }
       const reply = await SuloSession.request({ body: init.body, userInitiated });
+      if (reply.deferred) return closing();
       if (reply.networkError) throw new TypeError('network');
       // No usable session: answer like Moodle does, so core marks it expired.
       if (reply.httpStatus === undefined || reply.body === undefined) {

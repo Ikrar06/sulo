@@ -32,6 +32,7 @@ class SuloSessionPlugin : Plugin() {
     private companion object {
         /** How long a request waits for the background check to finish with SIKOLA. */
         const val LOCK_WAIT_MS = 60_000L
+        const val DEFERRED = "sulo_deferred"
     }
 
     private val io = Executors.newSingleThreadExecutor()
@@ -103,9 +104,12 @@ class SuloSessionPlugin : Plugin() {
         }
         io.execute {
             // Signing in is the user's own activity: one GET /my/ for the sesskey, kept with the cookie.
-            val sesskey = runCatching { http.get("${Sikola.ORIGIN}/my/", session) }.getOrNull()
-                ?.takeIf { it.status == 200 }?.let { SikolaText.sesskey(it.body) }
-            SikolaLock.hold(context, LOCK_WAIT_MS) { vault.save(SikolaSession(session, sesskey)) }
+            SikolaLock.hold(context, LOCK_WAIT_MS) {
+                val kept = keeper(SikolaSession(session, null))
+                val sesskey = runCatching { guarded("login") { http.get("${Sikola.ORIGIN}/my/", session, kept) } }.getOrNull()
+                    ?.takeIf { it.status == 200 }?.let { SikolaText.sesskey(it.body) }
+                vault.save(kept.session.copy(sesskey = sesskey))
+            }
             // The new session's cookie to disk now (owner's rule: flush after signing in).
             runCatching { CookieManager.getInstance().flush() }
             call.resolve(JSObject().put("status", "connected"))
@@ -116,12 +120,57 @@ class SuloSessionPlugin : Plugin() {
     @PluginMethod
     fun diagLog(call: PluginCall) {
         if (!BuildConfig.DEBUG) return call.reject("not available")
-        call.resolve(JSObject().put("events", com.getcapacitor.JSArray(Diag.of(context).entries().toString())))
+        call.resolve(
+            JSObject()
+                .put("events", com.getcapacitor.JSArray(Diag.of(context).entries().toString()))
+                .put("cookies", JSObject().apply { CookieStats.of(context).summary().forEach { (k, v) -> put(k, v.toIntOrNull() ?: 0) } })
+                .put("guardMs", GuardTimes.all(context)),
+        )
     }
 
     @PluginMethod
     fun status(call: PluginCall) {
-        call.resolve(JSObject().put("status", vault.status()))
+        val out = JSObject().put("status", vault.status())
+        vault.endedBy()?.let { out.put("endedBy", it) }
+        call.resolve(out)
+    }
+
+    /** The request service's words in the app's language (its notification and channel name). */
+    @PluginMethod
+    fun labels(call: PluginCall) {
+        val text = call.getString("updating") ?: return call.reject("updating missing")
+        SuloRequestService.setLabels(context, text.take(80), (call.getString("channel") ?: text).take(40))
+        call.resolve()
+    }
+
+    override fun load() {
+        // A request a previous process left unfinished: noted before anything else is sent.
+        io.execute { runCatching { RequestGuard.shared(context).adoptLeftover() } }
+    }
+
+    /** Runs one request inside the request service (RequestGuard); records how long the guard held. */
+    private fun <T> guarded(where: String, block: () -> T): T {
+        val guard = RequestGuard.shared(context)
+        guard.begin(where)
+        try {
+            return block()
+        } finally {
+            GuardTimes.record(context, guard.end())
+        }
+    }
+
+    private fun keeper(session: SikolaSession) = CookieKeeper(session, vault, CookieStats.of(context), Diag.of(context))
+
+    /**
+     * The app is going away (between onPause and onStop, or gone): no request
+     * starts now. The sync waits for the next open (owner's rule, 20 Nov 2026).
+     */
+    private fun deferIfClosing(call: PluginCall): Boolean {
+        if (dev.ikrar.sulo.MainActivity.inForeground) return false
+        context.getSharedPreferences(DEFERRED, Context.MODE_PRIVATE).edit().putBoolean("sync", true).commit()
+        Diag.of(context).note("request_deferred")
+        call.resolve(JSObject().put("deferred", true).put("sessionStatus", vault.status()))
+        return true
     }
 
     /**
@@ -141,7 +190,10 @@ class SuloSessionPlugin : Plugin() {
     /** Whether background watching thought the session ended (the app then syncs, and core asks twice). */
     @PluginMethod
     fun suspect(call: PluginCall) {
-        call.resolve(JSObject().put("suspect", vault.status() == "connected" && vault.suspectCount() > 0))
+        val prefs = context.getSharedPreferences(DEFERRED, Context.MODE_PRIVATE)
+        val deferred = prefs.getBoolean("sync", false)
+        if (deferred) prefs.edit().remove("sync").commit()
+        call.resolve(JSObject().put("suspect", vault.status() == "connected" && vault.suspectCount() > 0).put("deferred", deferred))
     }
 
     /** One event code from the app for the session history (Diag keeps codes only). */
@@ -164,6 +216,7 @@ class SuloSessionPlugin : Plugin() {
         val body = call.getString("body") ?: return call.reject("body missing")
         val userInitiated = call.getBoolean("userInitiated") ?: false
         val functions = SikolaRequest.allowedFunctions(body) ?: return call.reject("not allowlisted")
+        if (deferIfClosing(call)) return
         io.execute {
             val answered = SikolaLock.hold(context, LOCK_WAIT_MS) { batch(call, body, functions, userInitiated) }
             if (answered == null) call.resolve(JSObject().put("networkError", "Busy").put("sessionStatus", vault.status()))
@@ -188,14 +241,17 @@ class SuloSessionPlugin : Plugin() {
                     Refresh.None -> return call.resolve(JSObject().put("networkError", "NoSesskey").put("sessionStatus", vault.status()))
                 }
             }
-            var reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body)
+            val kept = keeper(current)
+            var reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body, kept) }
+            current = kept.session
             if (SikolaRequest.invalidSesskey(reply.body, functions) && userInitiated) {
                 current = when (val r = refreshSesskey(current.copy(sesskey = null))) {
                     is Refresh.Ok -> r.session
                     Refresh.ToLogin -> return toLogin(call, "my")
                     Refresh.None -> return call.resolve(JSObject().put("networkError", "NoSesskey").put("sessionStatus", vault.status()))
                 }
-                reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body)
+                val again = keeper(current)
+                reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body, again) }
             }
             if (reply.status in 300..399 && reply.location?.contains("/login/") == true) return toLogin(call, "batch")
             if (SikolaRequest.loginRequired(reply.body, functions)) {
@@ -229,6 +285,7 @@ class SuloSessionPlugin : Plugin() {
         val path = call.getString("path") ?: return call.reject("path missing")
         val url = SikolaPage.allowedUrl(path) ?: return call.reject("not allowlisted")
         if (call.getBoolean("userInitiated") != true) return call.reject("user only")
+        if (deferIfClosing(call)) return
         io.execute {
             val answered = SikolaLock.hold(context, LOCK_WAIT_MS) { fetchPage(call, url) }
             if (answered == null) call.resolve(JSObject().put("networkError", "Busy").put("sessionStatus", vault.status()))
@@ -243,7 +300,7 @@ class SuloSessionPlugin : Plugin() {
             SessionVault.Read.Empty -> return call.resolve(JSObject().put("sessionStatus", vault.status()))
         }
         try {
-            val reply = http.get(url, session.moodleSession)
+            val reply = guarded("page") { http.get(url, session.moodleSession, keeper(session)) }
             if (reply.status in 300..399) {
                 val login = reply.location?.contains("/login/") == true
                 Diag.of(context).note(if (login) "sikola_login_signal:redirect:page" else "sikola_page_redirect")
@@ -263,10 +320,11 @@ class SuloSessionPlugin : Plugin() {
 
     /** GET /my/ for a fresh sesskey. A redirect to SIKOLA's login is reported, never acted on here. */
     private fun refreshSesskey(session: SikolaSession): Refresh {
-        val page = http.get("${Sikola.ORIGIN}/my/", session.moodleSession)
+        val kept = keeper(session)
+        val page = guarded("my") { http.get("${Sikola.ORIGIN}/my/", session.moodleSession, kept) }
         if (page.status in 300..399 && page.location?.contains("/login/") == true) return Refresh.ToLogin
         val sesskey = SikolaText.sesskey(page.body) ?: return Refresh.None
-        return Refresh.Ok(session.copy(sesskey = sesskey).also { vault.save(it) })
+        return Refresh.Ok(kept.session.copy(sesskey = sesskey).also { vault.save(it) })
     }
 
     /** "Keluar": SIKOLA's cookies and web storage in this app, the vault and its Keystore key. */
