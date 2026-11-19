@@ -88,6 +88,14 @@ const OVERLAY = `(() => {
   };
 })()`;
 
+/** 07:00 local today on a weekday, else on the next Monday (the demo schedule has classes Monday to Friday). */
+function classMorning() {
+  const d = new Date();
+  d.setHours(7, 0, 0, 0);
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+  return d;
+}
+
 /** Moves the drawn cursor (and the real mouse, for hover states) to an element's centre. */
 async function moveTo(page, target, ms = 650) {
   const b = await target.boundingBox();
@@ -202,7 +210,7 @@ const STEPS = [
       await click(p, p.getByRole('combobox', { name: re('Jenis kabar', 'Kind of update') }), 500);
       await click(p, p.getByRole('option').nth(2), 900);
       await click(p, p.getByRole('button', { name: re('Atur notifikasi', 'Notification settings') }), 600);
-      await click(p, p.getByRole('checkbox').nth(3), 1200);
+      await click(p, p.getByRole('switch').nth(3), 1200);
     },
   },
   {
@@ -360,6 +368,9 @@ async function run() {
         const page = await ctx.newPage();
         await page.setViewportSize(step.viewport);
         await page.emulateMedia({ colorScheme: theme });
+        // NEOSIA steps: the page's clock at 07:00 on a weekday (today, or the next Monday), so
+        // "Kuliah hari ini" has classes still to come whatever time the recording runs.
+        if (step.neosia) await page.clock.setFixedTime(classMorning());
         await page.goto(`chrome-extension://${extId}${step.url}`);
         await page.waitForTimeout(900);
         await page.evaluate(OVERLAY);
