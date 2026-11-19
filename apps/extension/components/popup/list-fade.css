@@ -1,0 +1,7 @@
+/* The popup's task list, scrolled under its footer (Tahap 2): a 16 px fade at
+   the bottom edge, and at the top once scrolled, only while there is more
+   behind it, as on the phone. A mask, so it fades the content itself into
+   whatever is behind (the popup's background), never a colored band. */
+.popup-list[data-fade="bottom"] { mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent 100%); } /* lint-ui-allow: scroll-edge fade as a mask */
+.popup-list[data-fade="top"] { mask-image: linear-gradient(to bottom, transparent 0, #000 16px); } /* lint-ui-allow: scroll-edge fade as a mask */
+.popup-list[data-fade="both"] { mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); } /* lint-ui-allow: scroll-edge fade as a mask */

@@ -6,10 +6,10 @@ import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
+import { FADES_FOR_ACTIONS, ROW_ACTION, ROW_ACTION_SHOWN } from '@sulo/ui/row-actions';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatDueClock, localeOf } from '@sulo/core/format/time';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
-import { Button } from '@sulo/ui/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { DueFormat } from '@sulo/core/prefs';
 import type { UnixSeconds } from '@sulo/core/types';
@@ -44,7 +44,8 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
   const text = dueText(row, due.format, due.now, due.timeZone, m);
   return (
     // The right column: the due time, then the check circle, whose right edge is the group chevron's.
-    <li data-flip-key={row.eventId} className="group relative flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
+    // The hover fill is exactly the content's width (title to circle), at the popup cards' radius.
+    <li data-flip-key={row.eventId} className="group relative mx-3 flex items-start gap-3 rounded-[14px] py-2.5 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
       <button
         type="button"
         onClick={() => actions.onOpenTask(row.url)}
@@ -75,7 +76,7 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
       </button>
       {/* At least as wide as the two buttons that take its place, so the row never shifts. */}
       <div className="relative flex min-w-[60px] shrink-0 flex-col items-end text-right">
-        <div className="flex flex-col items-end transition-opacity duration-[120ms] group-hover:opacity-0 group-focus-ring:opacity-0 group-has-[[data-state=open]]:opacity-0">
+        <div className={`flex flex-col items-end ${FADES_FOR_ACTIONS}`}>
         <Tooltip>
           <TooltipTrigger asChild>
             {/* One line always (the phone's FitLine); the shared ticker rewrites the inner span in countdown mode. */}
@@ -94,10 +95,11 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
         </Tooltip>
         {text.secondary && <span className="mt-1 text-[12px] leading-4 text-muted-foreground tabular-nums">{text.secondary}</span>}
         </div>
-        {/* While the row is hovered or focused, the due time gives its place to "add to calendar" (next to
-            the check circle) and the row menu (snooze, and the same two actions). A link opened by the
-            user's click only; nothing is sent. */}
-        <div className="absolute top-0 right-0 flex items-center gap-1">
+      </div>
+      {/* While the row is hovered or focused, the due time gives its place to two circles, centred on the
+          row like the check circle: from the right, the circle, "add to calendar" 8 px from it, the row
+          menu (snooze) 4 px further; in that order for the keyboard too, left to right. A calendar link opens only on the user's click; nothing is sent. */}
+      <div className="absolute top-1/2 right-[30px] flex -translate-y-1/2 items-center gap-1">
           <RowMenu
             row={row}
             snoozeOptions={due.snoozeOptions}
@@ -108,20 +110,13 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
           {row.dueAt !== null && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label={m.popup.row.addToCalendar}
-                  onClick={() => actions.onAddToCalendar(row)}
-                  className="relative z-10 size-7 text-muted-foreground opacity-0 transition-opacity duration-[120ms] group-hover:opacity-100 group-focus-ring:opacity-100 focus-ring:opacity-100 group-has-[[data-state=open]]:opacity-100 hover:text-foreground"
-                >
-                  <CalendarPlusIcon className="size-4" />
-                </Button>
+                <button type="button" aria-label={m.popup.row.addToCalendar} onClick={() => actions.onAddToCalendar(row)} className={`${ROW_ACTION} ${ROW_ACTION_SHOWN}`}>
+                  <CalendarPlusIcon />
+                </button>
               </TooltipTrigger>
               <TooltipContent>{m.popup.row.addToCalendar}</TooltipContent>
             </Tooltip>
           )}
-        </div>
       </div>
       <span className="relative z-10 flex self-center">
         <CheckCircle size="sm" checked={false} onChange={() => actions.onDone(row.eventId)} label={`${m.popup.row.markDone}: ${row.name}`} />
@@ -141,7 +136,7 @@ export interface DoneLinger {
 function DoneRow({ linger, onUndo }: { linger: DoneLinger; onUndo?: (eventId: number) => void }) {
   const { m } = useI18n();
   return (
-    <li data-flip-key={linger.row.eventId} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
+    <li data-flip-key={linger.row.eventId} className={`mx-3 flex items-center gap-3 rounded-[14px] py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-[19px] text-muted-foreground line-through" title={linger.row.name}>
         {linger.row.name}
       </span>

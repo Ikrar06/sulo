@@ -1,4 +1,5 @@
-import { lazy, Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import './list-fade.css';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronRightIcon, RefreshIcon } from '@sulo/ui/icons';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
@@ -178,6 +179,29 @@ export function PopupView(props: PopupViewProps) {
   const listRef = useRef<HTMLDivElement>(null);
   useCountdownTicker(listRef, props.dueFormat === 'countdown' && !props.sample, props.timeZone, m);
   useFlip(listRef);
+  // The list's scroll edges fade only where more of it is hidden (list-fade.css).
+  const [fade, setFade] = useState<'none' | 'top' | 'bottom' | 'both'>('none');
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const update = () => {
+      const top = el.scrollTop > 0;
+      const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+      setFade(top && bottom ? 'both' : top ? 'top' : bottom ? 'bottom' : 'none');
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    // A group opened or closed changes the height without a scroll.
+    const mo = new MutationObserver(() => requestAnimationFrame(update));
+    mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-state'] });
+    return () => {
+      el.removeEventListener('scroll', update);
+      ro.disconnect();
+      mo.disconnect();
+    };
+  }, []);
   const [panel, setPanel] = useState<'list' | 'reminders' | 'updates'>(props.initialPanel ?? 'list');
   const settingsRef = useRef<HTMLButtonElement>(null);
   const mismatch = view.screen === 'mismatch';
@@ -283,7 +307,7 @@ export function PopupView(props: PopupViewProps) {
         {view.important && !props.sample && (
           <ImportantLine judul={view.important.judul} countdown={view.important.countdown} onOpen={() => props.onOpenDashboard('#kalender')} />
         )}
-        <div ref={listRef} className="flex-1 overflow-y-auto pb-2">
+        <div ref={listRef} data-fade={fade} className="popup-list flex-1 overflow-y-auto pb-2">
           <div className="space-y-2 px-3">
             {view.banner && <StatusLine banner={view.banner} now={now} actions={{ ...props, onOpenReminders: openReminders }} />}
             {props.note && (

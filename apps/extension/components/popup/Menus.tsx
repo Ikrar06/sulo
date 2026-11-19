@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
+import { ROW_ACTION, ROW_ACTION_SHOWN } from '@sulo/ui/row-actions';
 import { useI18n } from '@sulo/ui/i18n';
 import { CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@sulo/ui/icons';
 import { Button } from '@sulo/ui/ui/button';
@@ -178,14 +179,9 @@ export function RowMenu({ row, snoozeOptions, onDone, onAddToCalendar, onSnooze 
       }}
     >
       <DropdownMenuTrigger asChild>
-        <Button
-          size="icon-sm"
-          variant="ghost"
-          aria-label={r.menu(row.name)}
-          className="row-menu relative z-10 size-7 bg-surface-raised opacity-0 group-hover:opacity-100 group-focus-ring:opacity-100 focus-ring:opacity-100 data-[state=open]:opacity-100"
-        >
-          <MoreIcon className="size-4" />
-        </Button>
+        <button type="button" aria-label={r.menu(row.name)} className={`row-menu ${ROW_ACTION} ${ROW_ACTION_SHOWN}`}>
+          <MoreIcon />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         ref={contentRef}

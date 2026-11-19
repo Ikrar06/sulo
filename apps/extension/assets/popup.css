@@ -14,6 +14,7 @@
 @source "../../../packages/ui/src/icons.tsx";
 @source "../../../packages/ui/src/urgency.ts";
 @source "../../../packages/ui/src/status-line.tsx";
+@source "../../../packages/ui/src/row-actions.ts";
 @source "../../../packages/ui/src/reminders";
 /* The phone's chip, check circle and one-line time (rows of the task list). */
 @source "../../../packages/ui/src/mobile/cards.tsx";

@@ -173,7 +173,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                           </span>
                         </a>
                         {row.dueAt !== null && row.status === 'pending' && (
-                          <span className="absolute top-1.5 right-2">
+                          <span className="absolute top-1/2 right-2 -translate-y-1/2">
                             <CalendarHoverButton name={row.task.name} courseName={row.courseName} dueAt={row.dueAt} url={row.task.url} onOpen={actions.openTab} />
                           </span>
                         )}

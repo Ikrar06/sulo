@@ -156,7 +156,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   const panelId = `task-panel-${item.task.eventId}`;
   return (
     <li id={`task-${item.task.eventId}`} data-flip-key={item.task.eventId} className={collapsing ? 'db-collapse' : undefined}>
-      <div className="group flex items-start gap-3 px-4 py-3">
+      <div className="group relative flex items-start gap-3 px-4 py-3">
         <span className="mt-px flex">
           <CheckCircle size="sm" checked={item.status === 'done'} onChange={onDone} label={`${item.status === 'done' ? t.markUndone : t.markDone}: ${item.task.name}`} />
         </span>
@@ -181,12 +181,16 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
               <span className={`block ${FADES_FOR_CALENDAR}`}>
                 <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} tickAt={dueFormat === 'countdown' && due >= now ? due : null} label={countdownLabel((due - now) * 1000, locale)} />
               </span>
-              <span className="absolute top-0 right-0">
-                <CalendarHoverButton name={item.task.name} courseName={item.courseName} dueAt={due} url={item.task.url} onOpen={onOpenTab} />
-              </span>
+
             </>
           )}
         </span>
+        {/* Over the due time, centred on the row, 8 px left of the details chevron. */}
+        {due !== null && (
+          <span className="absolute top-1/2 right-[52px] -translate-y-1/2">
+            <CalendarHoverButton name={item.task.name} courseName={item.courseName} dueAt={due} url={item.task.url} onOpen={onOpenTab} />
+          </span>
+        )}
         <button type="button" className="mt-1 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <ChevronDownIcon className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
