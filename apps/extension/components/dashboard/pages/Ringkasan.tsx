@@ -95,7 +95,8 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
     <div className="space-y-4">
       {/* Hero: full width, no card, nothing else on its row. One mascot on this page; it idles and stops for reduced motion. */}
       <section className="flex items-center gap-4 pb-2">
-        <HeroMascot mood={mood} cheer={done.lingering.size} />
+        {/* 75 box: the drawing itself 64 tall, centred on the greeting and its line. */}
+        <HeroMascot mood={mood} cheer={done.lingering.size} size={75} />
         <div className="min-w-0 flex-1">
           {/* The phone's greeting line (core mobile-greeting), without its playful second line. The
               nickname from the settings only, never a name from NEOSIA. */}
