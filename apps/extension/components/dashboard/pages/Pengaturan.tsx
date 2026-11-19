@@ -1,19 +1,19 @@
 import { lazy, Suspense, useEffect, useId, useState, type ReactNode } from 'react';
 import { browser } from 'wxt/browser';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import { WipeDialog } from '@/components/popup/WipeDialog';
-import { RemindersPanel } from '@/components/popup/RemindersPanel';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RemindersPanel } from '@sulo/ui/reminders/RemindersPanel';
+import { Button } from '@sulo/ui/ui/button';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Input } from '@sulo/ui/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@sulo/core/i18n';
 import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, type Theme } from '@sulo/core/prefs';
 import { UPDATE_CATEGORIES } from '@sulo/core/radar/settings';
-import { timeZone } from '../data';
-import { Card } from '../Shell';
-import { BugReport } from '../BugReport';
+import { local, timeZone } from '../data';
+import { Card } from '@sulo/ui/card';
+import { BugReport } from '@sulo/ui/dashboard/BugReport';
 import { NeosiaSettings } from '../NeosiaSettings';
 import type { PageProps } from '../types';
 
@@ -248,7 +248,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
 
       <Card title={t.bugReport.cardTitle}>
         <p className="mb-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{t.bugReport.help}</p>
-        <BugReport d={d} lastSyncAt={data.view.lastSyncAt} />
+        <BugReport d={d} lastSyncAt={data.view.lastSyncAt} store={local} version={browser.runtime.getManifest().version} />
       </Card>
 
       {RadarDiagnosis && (

@@ -9,3 +9,5 @@ export declare function ruleApplies(rule: Pick<LeakRule, 'onlyFixtures'>, relPat
 
 export declare const LEAK_RULES: LeakRule[];
 export declare function findLeaks(text: string, relPath?: string): string[];
+export function plausibleNik(m: string): boolean;
+export function plausibleNip(m: string): boolean;

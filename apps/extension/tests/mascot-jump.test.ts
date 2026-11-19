@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { jumpTimeline } from '@/components/mascot/jump';
+import { jumpTimeline } from '@sulo/ui/mascot/jump';
 
 const ys = (frames: Keyframe[]) => frames.map((k) => Number(/translateY\((-?[\d.]+)px\)/.exec(String(k.transform))![1]));
 

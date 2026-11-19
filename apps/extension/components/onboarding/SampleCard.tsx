@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { Mascot } from '@/components/mascot/Mascot';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { NO_ACTIONS, PopupView } from '@/components/popup/PopupView';
 import { DEFAULT_REMINDERS } from '@sulo/core/reminders/settings';
 import { DEFAULT_UPDATES } from '@sulo/core/radar/settings';
-import { useI18n } from '@/components/i18n';
+import { useI18n } from '@sulo/ui/i18n';
 import type { UnixSeconds } from '@sulo/core/types';
 import type { MascotState, PopupView as View } from '@sulo/core/view/popup-view';
 import { buildSampleView } from '@sulo/core/view/sample-view';

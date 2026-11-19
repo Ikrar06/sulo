@@ -30,7 +30,7 @@ import { activeCourseIds } from '../courses/active-score';
 import { readPresensi, refreshRecap } from '../presensi/service';
 import { PRESENSI_CACHE_SEC } from '../presensi/rules';
 import { recordFailure } from '../moodle/backoff';
-import { planBatch } from './plan-batch';
+import { planBatch, type BatchPlan } from './plan-batch';
 import { ACCOUNT_PENDING_KEY, mayCheckWhilePending, newPending, readPending, resolveCheck, type AccountPending } from '../account/pending';
 import { calls } from '../moodle/calls';
 import { parseCall } from '../moodle/schemas';
@@ -53,6 +53,23 @@ export interface SyncDeps {
   forceCourseList?: boolean;
   /** SIKOLA origin, for filtering notification links; defaults to SIKOLA_ORIGIN. */
   origin?: string;
+  /**
+   * The real stages as they finish (the phone's "Menyiapkan Sulo" list):
+   * tasks when the calendar answer was read, courses after the course list,
+   * attendance after the recap. Never called for a stage that did not run.
+   */
+  onStage?: (stage: SyncStage, result: 'ok' | 'failed') => void;
+}
+
+export type SyncStage = 'tasks' | 'courses' | 'attendance';
+
+/** A stage listener must never break a sync. */
+function stage(deps: Pick<SyncDeps, 'onStage'>, s: SyncStage, result: 'ok' | 'failed') {
+  try {
+    deps.onStage?.(s, result);
+  } catch {
+    // ignored: the list on screen is only a view of the sync
+  }
 }
 
 export async function runSync(deps: SyncDeps): Promise<SyncOutcome> {
@@ -188,13 +205,33 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
     userId: knownUser,
     remaining: remainingQuota(budget),
   });
-  const { withCourseList, radar: radarPlan, radarStart } = plan;
+  const result = await deps.client.callBatch(plan.calls, { source: deps.trigger, withCourseList: plan.withCourseList });
+  if (result.kind !== 'ok') {
+    stage(deps, 'tasks', 'failed');
+    return transportOutcome(result);
+  }
+  return applyBatch(deps, now, { knownUser, mode, plan }, result.results, { followUp: true, recap: true });
+}
 
-  const result = await deps.client.callBatch(plan.calls, { source: deps.trigger, withCourseList });
-  if (result.kind !== 'ok') return transportOutcome(result);
+/** What a batch's answer is read against: who was known before it, the radar mode, and the plan it was sent with. */
+export interface BatchContext {
+  knownUser: UserId | null;
+  mode: RadarMode;
+  plan: Pick<BatchPlan, 'withCourseList' | 'radar' | 'radarStart'>;
+}
 
-  const [sessionResult, calendarResult, allResult, inProgressResult] = result.results;
-  const radarResults = result.results.slice(radarStart);
+/**
+ * Everything after a batch's answer arrived: the session and account check,
+ * tasks, courses, the radar, and the sync meta. Shared by a sync and by the
+ * phone's background answers read later (watch/queue.ts), which pass
+ * followUp and recap false: no follow-up batch and no attendance recap,
+ * since those would be new requests. The budget is never touched here.
+ */
+export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origin'> & Partial<Pick<SyncDeps, 'client' | 'trigger' | 'onStage'>>, now: UnixSeconds, ctx: BatchContext, results: readonly CallResult[], options: { followUp: boolean; recap: boolean }): Promise<SyncOutcome> {
+  const { knownUser, mode } = ctx;
+  const { withCourseList, radar: radarPlan, radarStart } = ctx.plan;
+  const [sessionResult, calendarResult, allResult, inProgressResult] = results;
+  const radarResults = results.slice(radarStart);
   const session = parseCall('core_session_time_remaining', sessionResult ?? missing);
   if (!session.ok) return { status: 'parser_broken', where: 'core_session_time_remaining' };
   const userId: UserId = session.data.userid;
@@ -222,6 +259,7 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   } else {
     broken.push('core_calendar_get_action_events_by_timesort');
   }
+  stage(deps, 'tasks', calendar.ok ? 'ok' : 'failed');
 
   const upcoming = upcomingCourseIds(tasks, now);
   const previousCourses = await readUser(deps.store, userId, 'courses');
@@ -245,6 +283,8 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
     }
   }
   await writeUser(deps.store, userId, 'courses', courses);
+  // Known courses count as found when the list was not due this time.
+  stage(deps, 'courses', withCourseList && !courseListFetched ? 'failed' : 'ok');
 
   // The radar only reads results for the user it planned for (a different
   // account was just wiped by switchUser and starts with its own baseline).
@@ -278,8 +318,8 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   // since afterwards courses have check times.
   let followUp: Awaited<ReturnType<typeof firstSyncRadar>> = 'skipped';
   const neverChecked = Object.keys((await readUser(deps.store, userId, 'radar')).stateCheckedAt).length === 0;
-  if (knownUser !== userId || (neverChecked && radarPlan.courseIds.length === 0 && activeCourseIds(courses).size > 0)) {
-    followUp = await firstSyncRadar(deps, userId, courses, previousTasks, calendarMerged ? tasks : null, now, mode).catch(async (e: unknown) => {
+  if (options.followUp && deps.client && deps.trigger && (knownUser !== userId || (neverChecked && radarPlan.courseIds.length === 0 && activeCourseIds(courses).size > 0))) {
+    followUp = await firstSyncRadar(deps as SyncDeps, userId, courses, previousTasks, calendarMerged ? tasks : null, now, mode).catch(async (e: unknown) => {
       const meta = await readUser(deps.store, userId, 'radar');
       await writeUser(deps.store, userId, 'radar', { ...meta, lastRun: { at: now, planned: 0, stored: 0, errors: {}, notifications: 'skipped', failure: `first_sync:${e instanceof Error ? e.name : 'Error'}` } });
       return 'skipped' as const;
@@ -296,7 +336,10 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
   // per 24 hours; skipped in saver mode. Its failure never fails the sync.
   // Not after a follow-up batch that saw another account or no session: the
   // recap page carries no account to check.
-  if (mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) await autoRecap(deps, userId, courses, now, knownUser !== userId).catch(() => undefined);
+  if (options.recap && deps.client && deps.trigger && mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) {
+    const recap = await autoRecap(deps as SyncDeps, userId, courses, now, knownUser !== userId).catch(() => 'failed' as const);
+    stage(deps, 'attendance', recap);
+  }
 
   if (broken.length > 0) return { status: 'parser_broken', where: broken.join(', ') };
   return { status: 'ok', at: now, tasks: tasks.filter((t) => t.missingSince === null).length, courseListFetched };
@@ -379,12 +422,14 @@ async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly 
 }
 
 /** The attendance recap when due (presensi/service.ts refreshRecap). */
-async function autoRecap(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], now: UnixSeconds, firstForAccount: boolean): Promise<void> {
+async function autoRecap(deps: SyncDeps, userId: UserId, courses: readonly CourseRecord[], now: UnixSeconds, firstForAccount: boolean): Promise<'ok' | 'failed'> {
   const data = await readPresensi(deps.store, userId);
-  if (data.recap !== null && now - data.recap.fetchedAt < PRESENSI_CACHE_SEC) return;
-  await refreshRecap(
+  if (data.recap !== null && now - data.recap.fetchedAt < PRESENSI_CACHE_SEC) return 'ok';
+  const out = await refreshRecap(
     { client: deps.client, store: deps.store, clock: deps.clock, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, userId, monitored: activeCourseIds(courses) },
     // A course structure to find the activity only in the first sync, at most one; otherwise the radar's structures or a known cmid, else tomorrow.
     { force: false, maxProbes: firstForAccount ? 1 : 0 },
   );
+  // No attendance activity anywhere is an answer, not a failure.
+  return out.status === 'ok' || out.status === 'fresh' || out.status === 'no_attendance' || out.status === 'not_monitored' ? 'ok' : 'failed';
 }

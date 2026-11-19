@@ -1,6 +1,6 @@
-import { useI18n } from '@/components/i18n';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Button } from '@sulo/ui/ui/button';
 import { Lead, Title } from './Shell';
 
 /** Action bar of "Mata kuliahmu": refresh the list (24-hour TTL skipped once) and save. */

@@ -1,11 +1,11 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronDownIcon } from '@/components/icons';
-import { Private, usePrivacy } from '@/components/private';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronDownIcon } from '@sulo/ui/icons';
+import { Private, usePrivacy } from '@sulo/ui/private';
+import { Button } from '@sulo/ui/ui/button';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { formatAgo } from '@sulo/core/format/time';
 import { GRADE_LETTERS } from '@sulo/core/grades/scale';
 import { bySemester, computeIpk, differsFromNeosia, improvable, passedSks, readSemesters, readTranscript, semesterLabeler, simulateIpk, transcriptDiagnostics, type TranscriptRow } from '@sulo/core/grades/transcript';
@@ -18,8 +18,8 @@ import { NeosiaChecklist } from '../NeosiaChecklist';
 import { neosiaStatus, profile } from '@sulo/core/neosia/view';
 import { GpaChart } from '../GpaChart';
 import { yAxisRange } from '@sulo/core/grades/axis';
-import { XIcon } from '../icons';
-import { Card } from '../Shell';
+import { XIcon } from '@sulo/ui/dashboard-icons';
+import { Card } from '@sulo/ui/card';
 import type { PageProps } from '../types';
 
 // Nilai (M7.1, NEOSIA module on only). Grades and GPA are hidden until

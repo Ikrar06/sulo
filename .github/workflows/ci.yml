@@ -44,3 +44,37 @@ jobs:
 
       - name: Recorder tidak ikut build produksi
         run: test ! -e .output/chrome-mv3/recorder.html
+
+  # The Android app (M8b): debug APK and Kotlin unit tests, no release signing.
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (mobile)
+        run: pnpm --filter @sulo/mobile run typecheck
+
+      - name: APK debug dan tes Kotlin
+        run: pnpm mobile:apk:debug
+
+      - name: Simpan APK debug
+        uses: actions/upload-artifact@v7
+        with:
+          name: sulo-android-debug
+          path: .output/sulo-*-android-debug.apk
+          # .output/ is a dot folder, which upload-artifact skips unless told otherwise.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

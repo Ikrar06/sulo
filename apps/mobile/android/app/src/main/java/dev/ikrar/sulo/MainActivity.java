@@ -1,0 +1,58 @@
+package dev.ikrar.sulo;
+
+import android.content.Intent;
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+import dev.ikrar.sulo.session.SuloSessionPlugin;
+import dev.ikrar.sulo.watch.WatchNotifier;
+import dev.ikrar.sulo.watch.WatchStore;
+
+public class MainActivity extends BridgeActivity {
+    /** Android's font size setting, within what the layout is tested for (85% to 130%). */
+    /** True while the app is on screen: the watch worker then leaves syncing to the app. */
+    public static volatile boolean inForeground = false;
+
+    static final float MIN_TEXT_SCALE = 0.85f;
+    static final float MAX_TEXT_SCALE = 1.30f;
+
+    static int textZoom(float fontScale) {
+        return Math.round(Math.max(MIN_TEXT_SCALE, Math.min(MAX_TEXT_SCALE, fontScale)) * 100f);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        // The app's own native plugin (login, session, SIKOLA requests).
+        registerPlugin(SuloSessionPlugin.class);
+        super.onCreate(savedInstanceState);
+        // Honor the phone's text size, clamped so screens never break (src/tokens.css).
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().getSettings().setTextZoom(textZoom(getResources().getConfiguration().fontScale));
+        }
+        rememberTap(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        rememberTap(intent);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        inForeground = true;
+    }
+
+    @Override
+    public void onPause() {
+        inForeground = false;
+        super.onPause();
+    }
+
+    /** A background notification was tapped: the app reads its id once it is up (SuloSession.watchTakeOpen). */
+    private void rememberTap(Intent intent) {
+        if (intent == null) return;
+        String id = intent.getStringExtra(WatchNotifier.EXTRA_OPEN);
+        if (id != null) new WatchStore(this).setPendingOpen(id);
+    }
+}

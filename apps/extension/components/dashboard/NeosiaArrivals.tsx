@@ -3,8 +3,8 @@
 // re-reads storage on its own; this only says so. Nothing on first load.
 
 import { useEffect, useRef } from 'react';
-import { useI18n } from '@/components/i18n';
-import { useToast } from '@/components/ui/toast';
+import { useI18n } from '@sulo/ui/i18n';
+import { useToast } from '@sulo/ui/ui/toast';
 import type { Page } from '@sulo/core/dashboard/routes';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { arrivals, arrivalMessage } from '@sulo/core/neosia/sources';

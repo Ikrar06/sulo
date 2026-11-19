@@ -123,9 +123,11 @@ function walkCourseField(k: string, v: unknown, parentKey: string | null, ctx: C
 }
 
 function sanitizeNumber(value: number, key: string | null, parentKey: string | null, ctx: Context): number {
-  if (key === null || !Number.isInteger(value)) return value;
-  if (TIME_KEY.test(key)) return value > 0 ? value + ctx.options.timeShiftSeconds : value;
+  if (key === null) return value;
+  // Grades first: a fractional grade (87.5) is a grade too, never kept.
   if (GRADE_KEYS.has(key)) return fakeGrade(value);
+  if (!Number.isInteger(value)) return value;
+  if (TIME_KEY.test(key)) return value > 0 ? value + ctx.options.timeShiftSeconds : value;
   const namespace = idNamespace(key, parentKey);
   return namespace && value > 0 ? ctx.id(namespace, value) : value;
 }

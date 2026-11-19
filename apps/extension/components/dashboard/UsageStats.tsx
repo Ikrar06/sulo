@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { exportUsage, readUsage, USAGE_COUNTERS, USAGE_KEY, type Usage } from '@sulo/core/stats/usage';
 import { local } from './data';

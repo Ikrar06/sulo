@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { GUIDE_STEPS, GUIDE_TIP, GUIDE_TITLE, type GuideLocale, type GuideStep } from '@sulo/core/help/guide';
-import { Card } from './Shell';
+import { Card } from '@sulo/ui/card';
 
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 

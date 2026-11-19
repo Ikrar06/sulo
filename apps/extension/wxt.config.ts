@@ -20,7 +20,7 @@ export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   // Workspace (M8a): shared logic comes from packages/core as source. Build
   // output stays in .output/ at the repository root, zips keep their names.
-  alias: { '@sulo/core': fileURLToPath(new URL('../../packages/core/src', import.meta.url)) },
+  alias: { '@sulo/core': fileURLToPath(new URL('../../packages/core/src', import.meta.url)), '@sulo/ui': fileURLToPath(new URL('../../packages/ui/src', import.meta.url)) },
   outDir: '../../.output',
   zip: { name: 'sulo' },
   vite: () => ({

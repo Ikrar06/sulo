@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { browser } from 'wxt/browser';
-import { Button } from '@/components/ui/button';
+import { Button } from '@sulo/ui/ui/button';
 import { DEV_WORDS } from '@/lib/i18n/dev';
 import { id as idMain } from '@sulo/core/i18n/id';
 

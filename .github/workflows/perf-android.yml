@@ -1,0 +1,82 @@
+name: Perf Android
+
+# Performance on a 2 GB, 4-core emulator (Android 8 and, for a newer
+# WebView, Android 14), full and lite tiers. The measuring APK is the web
+# build with synthetic fixtures packed in: it never reaches SIKOLA and is
+# never uploaded. Only the numbers are kept, as an artifact. Run by hand
+# only: the emulator renders in software (swiftshader), so its numbers are
+# not a benchmark. Its lasting value is the Android 8 check that an old
+# WebView gets the update page (perf-emulator.sh, API 26).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [26, 34]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: APK pengukur (build web dengan fixture, tanpa SIKOLA)
+        working-directory: apps/mobile
+        run: |
+          pnpm exec vite build --mode web
+          pnpm exec cap sync android
+          (cd android && ./gradlew --no-daemon assembleDebug)
+
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Emulator Android API ${{ matrix.api }}, RAM 2 GB, 4 inti
+        run: |
+          SDK="$ANDROID_HOME"
+          # One known place for the AVD (newer avdmanager otherwise picks ~/.config/.android).
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          IMG="system-images;android-${{ matrix.api }};google_apis;x86_64"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --install emulator platform-tools "$IMG" > /dev/null
+          echo no | "$SDK/cmdline-tools/latest/bin/avdmanager" create avd -n perf -k "$IMG" -d pixel_2 -p "$ANDROID_AVD_HOME/perf.avd" --force
+          printf 'hw.ramSize=2048\nhw.cpu.ncore=4\nvm.heapSize=256\n' >> "$ANDROID_AVD_HOME/perf.avd/config.ini"
+          nohup "$SDK/emulator/emulator" -avd perf -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 2048 -cores 4 > emulator.log 2>&1 &
+          "$SDK/platform-tools/adb" wait-for-device
+          for i in $(seq 1 180); do [ "$("$SDK/platform-tools/adb" shell getprop sys.boot_completed | tr -d '\r')" = "1" ] && break; sleep 2; done
+          "$SDK/platform-tools/adb" shell input keyevent 82 || true
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
+
+      - name: Ukur
+        working-directory: apps/mobile
+        run: bash scripts/perf-emulator.sh android/app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/perf-${{ matrix.api }}" 5
+
+      - name: Simpan hasil
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: perf-android-${{ matrix.api }}
+          path: |
+            perf-${{ matrix.api }}/
+            emulator.log
+          if-no-files-found: warn
+          retention-days: 14

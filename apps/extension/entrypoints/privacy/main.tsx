@@ -7,7 +7,7 @@ import { readPrefs } from '@sulo/core/prefs';
 import { PRIVACY_INTRO, PRIVACY_SECTIONS, PRIVACY_TITLE, PRIVACY_UPDATED, type Block } from '@sulo/core/privacy/content';
 import { PUBLIC_PRIVACY_URL } from '@sulo/core/privacy/render';
 import '@/assets/tailwind.css';
-import { DocLayout } from '@/components/ui/doc-layout';
+import { DocLayout } from '@sulo/ui/ui/doc-layout';
 import { installInputModality } from '@/lib/ui/input-modality';
 import { applyTheme } from '@/lib/ui/theme';
 

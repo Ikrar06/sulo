@@ -58,3 +58,27 @@ describe('Studi card lines from the sanitized real recap page', async () => {
     if (low) expect(low.percent).toBe(Math.min(...below.map((r) => r.percent!)));
   });
 });
+
+describe('the one line after a fetch (presensiNote)', async () => {
+  const { presensiNote } = await import('@sulo/ui/dashboard/PresensiParts');
+  const { dashFor } = await import('@sulo/core/i18n/dashboard');
+  const w = dashFor('id').presensi;
+  it('fresh or ok: nothing; no answer or a failure: never silent', () => {
+    expect(presensiNote({ status: 'ok' }, 'recap', true, true, w)).toBe('');
+    expect(presensiNote({ status: 'fresh' }, 'recap', false, true, w)).toBe('');
+    expect(presensiNote(null, 'recap', true, false, w)).toBe(w.failed);
+    expect(presensiNote({ status: 'failed', reason: 'x' }, 'detail', false, false, w)).toBe(w.failed);
+    expect(presensiNote({ status: 'user_unverified' }, 'recap', true, true, w)).toBe(w.failed);
+  });
+  it('the cooldown line only for Perbarui pressed again with data on screen', () => {
+    const cooldown = { status: 'cooldown' as const, retryAt: 0 };
+    expect(presensiNote(cooldown, 'recap', true, true, w)).toBe(w.cooldown);
+    expect(presensiNote(cooldown, 'recap', true, false, w)).toBe('');
+    expect(presensiNote(cooldown, 'detail', false, true, w)).toBe('');
+  });
+  it('a changed page and no attendance activity', () => {
+    expect(presensiNote({ status: 'unknown_shape' }, 'detail', false, false, w)).toBe(w.unknownShape);
+    expect(presensiNote({ status: 'no_attendance' }, 'recap', false, false, w)).toBe(w.noAttendanceYet);
+    expect(presensiNote({ status: 'no_attendance' }, 'detail', false, false, w)).toBe('');
+  });
+});

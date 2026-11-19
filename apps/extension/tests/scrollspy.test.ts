@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getActiveSection, SCROLLSPY_OFFSET } from '../lib/ui/scrollspy';
+import { getActiveSection, SCROLLSPY_OFFSET } from '@sulo/ui/scrollspy';
 
 // Sections at 0, 600, 1400 and 1500 px in a 2000 px page, 800 px window.
 const OFFSETS = [0, 600, 1400, 1500];

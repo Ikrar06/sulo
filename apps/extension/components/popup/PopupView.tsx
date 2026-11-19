@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronRightIcon, RefreshIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Button } from '@sulo/ui/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { CopyScope } from '@sulo/core/format/copy-list';
 import { formatAgo, formatClock } from '@sulo/core/format/time';
 import type { ReminderSettings } from '@sulo/core/reminders/settings';
@@ -21,8 +21,8 @@ import { useCountdownTicker } from '@/components/countdown-ticker';
 import { formatDateKey, type Countdown } from '@sulo/core/calendar/countdown';
 import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
 // Rarely opened panels load on demand, so opening the popup stays light.
-const RemindersPanel = lazy(() => import('./RemindersPanel').then((mod) => ({ default: mod.RemindersPanel })));
-const UpdatesPanel = lazy(() => import('@/components/updates/UpdatesPanel').then((mod) => ({ default: mod.UpdatesPanel })));
+const RemindersPanel = lazy(() => import('@sulo/ui/reminders/RemindersPanel').then((mod) => ({ default: mod.RemindersPanel })));
+const UpdatesPanel = lazy(() => import('@sulo/ui/updates/UpdatesPanel').then((mod) => ({ default: mod.UpdatesPanel })));
 const WipeDialog = lazy(() => import('./WipeDialog').then((mod) => ({ default: mod.WipeDialog })));
 import type { UpdateSettings } from '@sulo/core/radar/settings';
 import { StatusLine } from './StatusLine';

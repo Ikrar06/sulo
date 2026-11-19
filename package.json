@@ -26,9 +26,9 @@
     "zip:store": "node apps/extension/scripts/check-leaks.mjs && pnpm --filter @sulo/extension zip:store",
     "zip:tester": "pnpm --filter @sulo/extension zip:tester",
     "store:shots": "pnpm --filter @sulo/extension store:shots",
-    "typecheck": "pnpm --filter @sulo/core typecheck && pnpm --filter @sulo/extension typecheck",
-    "lint": "pnpm --filter @sulo/core lint && pnpm --filter @sulo/extension lint && node apps/extension/scripts/check-leaks.mjs",
-    "test": "pnpm --filter @sulo/extension test",
+    "typecheck": "pnpm --filter @sulo/core typecheck && pnpm --filter @sulo/ui typecheck && pnpm --filter @sulo/extension typecheck && pnpm --filter @sulo/mobile run typecheck",
+    "lint": "pnpm --filter @sulo/core lint && pnpm --filter @sulo/ui lint && pnpm --filter @sulo/extension lint && pnpm --filter @sulo/mobile run lint && node apps/extension/scripts/check-leaks.mjs",
+    "test": "pnpm --filter @sulo/extension test && pnpm --filter @sulo/mobile run test",
     "test:watch": "pnpm --filter @sulo/extension test:watch",
     "check-leaks": "node apps/extension/scripts/check-leaks.mjs",
     "sanitize": "pnpm --filter @sulo/extension sanitize",
@@ -39,6 +39,12 @@
     "calendar:status": "pnpm --filter @sulo/extension calendar:status",
     "calendar:publish": "pnpm --filter @sulo/extension calendar:publish",
     "notify-icons": "pnpm --filter @sulo/extension notify-icons",
-    "guide:shots": "pnpm --filter @sulo/extension guide:shots"
+    "guide:shots": "pnpm --filter @sulo/extension guide:shots",
+    "mobile:web": "pnpm --filter @sulo/mobile run web",
+    "mobile:doctor": "pnpm --filter @sulo/mobile run doctor",
+    "mobile:apk:debug": "pnpm --filter @sulo/mobile run apk:debug",
+    "mobile:install": "pnpm --filter @sulo/mobile run install:apk",
+    "mobile:live": "pnpm --filter @sulo/mobile run live",
+    "mobile:shots": "pnpm --filter @sulo/mobile run web:shots"
   }
 }

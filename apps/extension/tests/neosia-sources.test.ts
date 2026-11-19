@@ -6,7 +6,7 @@ import { showInvite } from '@sulo/core/neosia/invite';
 import { matchUrl } from '@sulo/core/neosia/match';
 import { projectResponse } from '@sulo/core/neosia/project';
 import type { ReadinessItem } from '@sulo/core/neosia/view';
-import { readinessLink } from '../components/dashboard/NeosiaParts';
+import { readinessLink } from '@sulo/ui/dashboard/NeosiaParts';
 import { SECRET, SYNTHETIC } from './neosia-synthetic';
 import { connectFlow } from '@sulo/core/neosia/connect-flow';
 import { neosiaNudges, nudgeTarget } from '@sulo/core/neosia/nudges';

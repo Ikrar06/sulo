@@ -170,7 +170,7 @@ function previewHtml(names) {
 `;
 }
 
-/** Shapes for the animated React mascot (components/mascot), from the same sources. */
+/** Shapes for the animated React mascot (packages/ui/src/mascot), from the same sources. */
 function shapesModule(base) {
   const attr = (el, name) => new RegExp(`\\s${name}="([^"]*)"`).exec(el)?.[1] ?? '';
   const gradient = (g) => ({
@@ -201,8 +201,8 @@ function shapesModule(base) {
 
 const base = parseBase();
 mkdirSync(OUT_DIR, { recursive: true });
-mkdirSync(join(ROOT, 'components/mascot'), { recursive: true });
-writeFileSync(join(ROOT, 'components/mascot/shapes.generated.ts'), shapesModule(base));
+mkdirSync(join(ROOT, '../../packages/ui/src/mascot'), { recursive: true });
+writeFileSync(join(ROOT, '../../packages/ui/src/mascot/shapes.generated.ts'), shapesModule(base));
 for (const [state, eyesFile] of Object.entries(STATES)) {
   writeFileSync(join(OUT_DIR, `mascot-${state}.svg`), compose(base, state, eyesFile));
 }

@@ -12,8 +12,11 @@ import type { MoodleClient } from '../moodle/client';
 import { parseCall } from '../moodle/schemas';
 import { itemsFromState } from '../radar/snapshot';
 import { storeCourseState } from '../radar/sync-step';
-import { readUser, writeUserIfCurrent } from '../storage';
-import type { Clock, CourseId, CourseSnapshot, KeyValueStore, UnixSeconds, UserId } from '../types';
+import { activeCourseIds } from '../courses/active-score';
+import { readSession } from '../moodle/session';
+import { currentUser, readUser, writeUserIfCurrent } from '../storage';
+import { courseAlias } from '../courses/display-name';
+import type { Clock, CourseId, CourseRecord, CourseSnapshot, KeyValueStore, UnixSeconds, UserId } from '../types';
 import { parseDetail, parseRecap } from './parse';
 import { PRESENSI_CACHE_SEC, PRESENSI_COOLDOWN_SEC } from './rules';
 import { EMPTY_PRESENSI, type CmidSource, type PresensiData, type RecapRow } from './types';
@@ -141,6 +144,21 @@ export function lowestBelowAverage(rows: readonly RecapRow[]): { courseId: Cours
     if (p !== null && r.taken > 0 && (lowest === null || p < lowest.percent)) lowest = { courseId: r.courseId, percent: Math.round(p * 10) / 10 };
   }
   return lowest !== null && lowest.percent < average ? lowest : null;
+}
+
+/** More than one course with sessions, and not all at the same (rounded) percent: only then is a "lowest" worth showing. */
+export function attendanceSpread(rows: readonly RecapRow[] | undefined): boolean {
+  const percents = new Set((rows ?? []).filter((r) => r.taken > 0).map(rowPercent).filter((p): p is number => p !== null).map((p) => Math.round(p * 10) / 10));
+  return percents.size > 1;
+}
+
+/** The Studi card's attendance: the average, plus the lowest course by its display name when below it. */
+export function attendanceSummary(rows: readonly RecapRow[] | undefined, courses: readonly CourseRecord[]): { average: number; lowest: { name: string; percent: number } | null } | null {
+  const average = rows ? averagePercent(rows) : null;
+  if (!rows || average === null) return null;
+  const low = lowestBelowAverage(rows);
+  const course = low ? courses.find((c) => c.id === low.courseId) : undefined;
+  return { average, lowest: low && course ? { name: courseAlias(course), percent: low.percent } : null };
 }
 
 /**
@@ -307,4 +325,28 @@ export function courseStatus(row: RecapRow | undefined, recapFetched: boolean): 
   if (!recapFetched) return 'not_fetched';
   if (!row) return 'no_module';
   return row.taken === 0 ? 'no_sessions' : 'numbers';
+}
+
+/**
+ * Perbarui or an opened view, for whichever account is current: refuses
+ * without an account or with an ended session, and never throws (a failure
+ * is an outcome the screen shows). Used by the extension's service worker
+ * and the Android app alike.
+ */
+export async function refreshPresensiForCurrent(
+  deps: { client: MoodleClient; store: KeyValueStore; clock: Clock; timeZone: string },
+  target: 'recap' | 'detail',
+  courseId: CourseId | null,
+  force: boolean,
+): Promise<PresensiOutcome> {
+  const userId = await currentUser(deps.store);
+  if (userId === null) return { status: 'failed', reason: 'NO_ACCOUNT' };
+  if ((await readSession(deps.store)).state === 'EXPIRED') return { status: 'failed', reason: 'SESSION_EXPIRED' };
+  const full: PresensiDeps = { ...deps, userId, monitored: activeCourseIds(await readUser(deps.store, userId, 'courses')) };
+  try {
+    if (target === 'recap') return await refreshRecap(full, { force });
+    return courseId === null ? { status: 'failed', reason: 'NO_COURSE' } : await refreshDetail(full, courseId, { force });
+  } catch (e) {
+    return { status: 'failed', reason: e instanceof Error ? e.name : 'ERROR' };
+  }
 }

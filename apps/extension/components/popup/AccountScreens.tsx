@@ -1,6 +1,6 @@
-import { useI18n } from '@/components/i18n';
-import { Mascot } from '@/components/mascot/Mascot';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { Button } from '@sulo/ui/ui/button';
 
 /**
  * Another SIKOLA account is signed in. Nothing of the stored account is

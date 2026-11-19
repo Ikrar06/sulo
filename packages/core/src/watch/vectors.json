@@ -1,0 +1,2544 @@
+{
+ "plan": {
+  "version": 1,
+  "writtenAt": 1794996400,
+  "userId": 4242,
+  "enabled": true,
+  "remote": {
+   "config": {
+    "globalEnabled": true,
+    "keepAlive": {
+     "enabled": true,
+     "dayIntervalMinutes": 20,
+     "nightIntervalMinutes": 60,
+     "radarEvery": 3
+    }
+   },
+   "okAt": 1794992800,
+   "readAt": 1794992800,
+   "url": "https://ikrar06.github.io/sulo-data/config.json"
+  },
+  "schedule": {
+   "dayIntervalMin": 20,
+   "nightIntervalMin": 60,
+   "softDayIntervalMin": 40,
+   "dayStartMin": 360,
+   "nightStartMin": 1380,
+   "radarEvery": 3,
+   "radarMax": 4
+  },
+  "budget": {
+   "softPosts": 80,
+   "watchStopPosts": 100,
+   "watchStopCalls": 700,
+   "hardPosts": 150,
+   "callLimit": 1000,
+   "loopPosts": 10,
+   "loopWindowSec": 300,
+   "loopPauseSec": 1800
+  },
+  "calls": [
+   {
+    "methodname": "core_session_time_remaining",
+    "args": {}
+   },
+   {
+    "methodname": "core_calendar_get_action_events_by_timesort",
+    "args": {
+     "limitnum": 50
+    },
+    "nowOffsets": {
+     "timesortfrom": -1209600,
+     "timesortto": 7776000
+    }
+   },
+   {
+    "methodname": "message_popup_get_popup_notifications",
+    "args": {
+     "useridto": 4242,
+     "limit": 20,
+     "offset": 0
+    }
+   }
+  ],
+  "radar": {
+   "methodname": "core_courseformat_get_state",
+   "argKey": "courseid",
+   "courseIds": [
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
+  },
+  "baseline": {
+   "tasksReady": true,
+   "tasks": [
+    {
+     "eventId": 101,
+     "dueAt": 1795172800,
+     "cmId": 501
+    },
+    {
+     "eventId": 102,
+     "dueAt": 1795432000,
+     "cmId": 502
+    }
+   ],
+   "notificationLastId": 900,
+   "courseCms": {
+    "11": [
+     501,
+     601
+    ],
+    "12": [
+     502
+    ]
+   },
+   "announcedCms": [
+    777
+   ]
+  },
+  "notify": {
+   "materials": true,
+   "deadlines": true,
+   "grades": true,
+   "forum": false
+  },
+  "quiet": {
+   "enabled": true,
+   "startMin": 1320,
+   "endMin": 360
+  },
+  "courseNames": {
+   "11": "Hidrologi",
+   "12": "Mekanika Fluida",
+   "13": "Statistika",
+   "14": "Etika Profesi",
+   "15": "Perencanaan Wilayah"
+  },
+  "farTaskSec": 7344000,
+  "maxCourseNotices": 3,
+  "notificationRules": [
+   {
+    "component": "mod_assign",
+    "eventtype": "assign_notification",
+    "kind": "grade_feedback"
+   },
+   {
+    "component": "gradingform",
+    "eventtype": "gradingform_notification",
+    "kind": "grade_feedback"
+   },
+   {
+    "component": "mod_quiz",
+    "eventtype": "attempt_grading_complete",
+    "kind": "grade_feedback"
+   },
+   {
+    "component": "moodle",
+    "eventtype": "gradenotifications",
+    "kind": "grade_feedback"
+   },
+   {
+    "component": "mod_forum",
+    "eventtype": "posts",
+    "kind": "forum"
+   },
+   {
+    "component": "mod_forum",
+    "eventtype": "digests",
+    "kind": "forum"
+   },
+   {
+    "component": "mod_forum",
+    "eventtype": null,
+    "kind": "forum"
+   }
+  ],
+  "taskModules": [
+   "assign",
+   "quiz",
+   "workshop",
+   "lesson",
+   "scorm",
+   "h5pactivity"
+  ],
+  "templates": {
+   "taskAdded": {
+    "title": "Tugas baru: {name}",
+    "body": "{course}"
+   },
+   "dueChanged": {
+    "title": "Tenggat berubah: {name}",
+    "body": "{course}"
+   },
+   "grade": {
+    "title": "Nilai baru keluar untuk {course}",
+    "body": "Buka untuk melihatnya di SIKOLA."
+   },
+   "forum": {
+    "title": "Kabar baru di forum {course}",
+    "body": ""
+   },
+   "material": {
+    "title": "Materi baru di {course}",
+    "body": "{name}"
+   },
+   "mixed": {
+    "title": "{n} hal baru di {course}",
+    "body": "Buka Sulo untuk melihatnya."
+   },
+   "summary": {
+    "title": "{n} kabar baru dari {courses} mata kuliah",
+    "body": "Buka Sulo untuk melihat semuanya."
+   },
+   "expired": {
+    "title": "Sulo",
+    "body": "Masuk lagi ke SIKOLA supaya Sulo bisa memantau tugas baru."
+   },
+   "paused": {
+    "title": "Sulo",
+    "body": "Pemantauan dijeda. Buka Sulo untuk melanjutkan."
+   },
+   "otherCourse": "Mata kuliah lain",
+   "channel": "Kabar dari SIKOLA"
+  }
+ },
+ "numericId": [
+  {
+   "id": "changes|task:103:added",
+   "out": 1698515298
+  },
+  {
+   "id": "changes_summary|chs:1795000000",
+   "out": 280847712
+  },
+  {
+   "id": "changes|course:11|chg:11:1795000000",
+   "out": 130847122
+  },
+  {
+   "id": "",
+   "out": 0
+  },
+  {
+   "id": "Tugas baru: Kuis ✓",
+   "out": 123999255
+  }
+ ],
+ "quiet": [
+  {
+   "quiet": {
+    "enabled": true,
+    "startMin": 1320,
+    "endMin": 360
+   },
+   "minute": 1320,
+   "out": true
+  },
+  {
+   "quiet": {
+    "enabled": true,
+    "startMin": 1320,
+    "endMin": 360
+   },
+   "minute": 1319,
+   "out": false
+  },
+  {
+   "quiet": {
+    "enabled": true,
+    "startMin": 1320,
+    "endMin": 360
+   },
+   "minute": 359,
+   "out": true
+  },
+  {
+   "quiet": {
+    "enabled": true,
+    "startMin": 1320,
+    "endMin": 360
+   },
+   "minute": 360,
+   "out": false
+  },
+  {
+   "quiet": {
+    "enabled": true,
+    "startMin": 60,
+    "endMin": 120
+   },
+   "minute": 90,
+   "out": true
+  },
+  {
+   "quiet": {
+    "enabled": true,
+    "startMin": 60,
+    "endMin": 60
+   },
+   "minute": 60,
+   "out": false
+  },
+  {
+   "quiet": {
+    "enabled": false,
+    "startMin": 0,
+    "endMin": 1439
+   },
+   "minute": 30,
+   "out": false
+  }
+ ],
+ "delay": [
+  {
+   "ctx": {
+    "minuteOfDay": 360,
+    "powerSave": false,
+    "usedToday": 0,
+    "callsToday": 0
+   },
+   "out": 20
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 359,
+    "powerSave": false,
+    "usedToday": 0,
+    "callsToday": 0
+   },
+   "out": 60
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 1379,
+    "powerSave": false,
+    "usedToday": 10,
+    "callsToday": 0
+   },
+   "out": 20
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 1380,
+    "powerSave": false,
+    "usedToday": 10,
+    "callsToday": 0
+   },
+   "out": 60
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": true,
+    "usedToday": 10,
+    "callsToday": 0
+   },
+   "out": 60
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 80,
+    "callsToday": 0
+   },
+   "out": 40
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 79,
+    "callsToday": 0
+   },
+   "out": 20
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 150,
+    "callsToday": 0
+   },
+   "out": null
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 99,
+    "callsToday": 0
+   },
+   "out": 40
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 100,
+    "callsToday": 0
+   },
+   "out": null
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 1410,
+    "powerSave": false,
+    "usedToday": 100,
+    "callsToday": 0
+   },
+   "out": null
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 40,
+    "callsToday": 699
+   },
+   "out": 20
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 40,
+    "callsToday": 700
+   },
+   "out": null
+  }
+ ],
+ "radarDue": [
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 0,
+    "callsToday": 0
+   },
+   "index": 0,
+   "out": false
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 0,
+    "callsToday": 0
+   },
+   "index": 2,
+   "out": true
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 0,
+    "callsToday": 0
+   },
+   "index": 5,
+   "out": true
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 1410,
+    "powerSave": false,
+    "usedToday": 0,
+    "callsToday": 0
+   },
+   "index": 2,
+   "out": false
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": true,
+    "usedToday": 0,
+    "callsToday": 0
+   },
+   "index": 2,
+   "out": false
+  },
+  {
+   "ctx": {
+    "minuteOfDay": 720,
+    "powerSave": false,
+    "usedToday": 80,
+    "callsToday": 0
+   },
+   "index": 2,
+   "out": false
+  }
+ ],
+ "radarFits": [
+  {
+   "callsToday": 0,
+   "base": 3,
+   "radar": 4,
+   "out": true
+  },
+  {
+   "callsToday": 693,
+   "base": 3,
+   "radar": 4,
+   "out": true
+  },
+  {
+   "callsToday": 694,
+   "base": 3,
+   "radar": 4,
+   "out": false
+  }
+ ],
+ "stopped": [
+  {
+   "used": 99,
+   "calls": 699,
+   "out": false
+  },
+  {
+   "used": 100,
+   "calls": 0,
+   "out": true
+  },
+  {
+   "used": 0,
+   "calls": 700,
+   "out": true
+  }
+ ],
+ "pickRadar": [
+  {
+   "courseIds": [
+    11,
+    12,
+    13,
+    14,
+    15
+   ],
+   "cursor": 0,
+   "max": 4,
+   "out": {
+    "ids": [
+     11,
+     12,
+     13,
+     14
+    ],
+    "cursor": 4
+   }
+  },
+  {
+   "courseIds": [
+    11,
+    12,
+    13,
+    14,
+    15
+   ],
+   "cursor": 4,
+   "max": 4,
+   "out": {
+    "ids": [
+     15,
+     11,
+     12,
+     13
+    ],
+    "cursor": 3
+   }
+  },
+  {
+   "courseIds": [
+    11,
+    12
+   ],
+   "cursor": 1,
+   "max": 4,
+   "out": {
+    "ids": [
+     12,
+     11
+    ],
+    "cursor": 1
+   }
+  },
+  {
+   "courseIds": [],
+   "cursor": 3,
+   "max": 4,
+   "out": {
+    "ids": [],
+    "cursor": 0
+   }
+  }
+ ],
+ "reserve": [
+  {
+   "state": null,
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 1,
+     "bySource": {
+      "watch": 1
+     },
+     "withCourseList": 0,
+     "calls": 3,
+     "recent": [
+      1795000000
+     ]
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-18",
+    "used": 149,
+    "calls": 900
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 1,
+     "bySource": {
+      "watch": 1
+     },
+     "withCourseList": 0,
+     "calls": 3,
+     "recent": [
+      1795000000
+     ]
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 150
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 150
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 5,
+    "calls": 998
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 5,
+     "calls": 998
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 5,
+    "pausedUntil": 1795000010
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 5,
+     "pausedUntil": 1795000010
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 20,
+    "recent": [
+     1795000000,
+     1794999940,
+     1794999880,
+     1794999820,
+     1794999760,
+     1794999700,
+     1794999640,
+     1794999580,
+     1794999520,
+     1794999460
+    ]
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 21,
+     "bySource": {
+      "watch": 1
+     },
+     "withCourseList": 0,
+     "calls": 3,
+     "recent": [
+      1795000000,
+      1794999940,
+      1794999880,
+      1794999820,
+      1794999760,
+      1795000000
+     ]
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 20,
+    "recent": [
+     1795000000,
+     1794999980,
+     1794999960,
+     1794999940,
+     1794999920,
+     1794999900,
+     1794999880,
+     1794999860,
+     1794999840,
+     1794999820
+    ]
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 20,
+     "recent": [
+      1795000000,
+      1794999980,
+      1794999960,
+      1794999940,
+      1794999920,
+      1794999900,
+      1794999880,
+      1794999860,
+      1794999840,
+      1794999820
+     ],
+     "pausedUntil": 1795001800
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 20,
+    "bySource": {
+     "manual": 4,
+     "watch": 7
+    },
+    "withCourseList": 1,
+    "calls": 40,
+    "recent": [
+     1794999600,
+     1794999900
+    ]
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 7,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 21,
+     "bySource": {
+      "manual": 4,
+      "watch": 8
+     },
+     "withCourseList": 1,
+     "calls": 47,
+     "recent": [
+      1794999900,
+      1795000000
+     ]
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 100,
+    "bySource": {
+     "manual": 60,
+     "watch": 40
+    }
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 100,
+     "bySource": {
+      "manual": 60,
+      "watch": 40
+     }
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 99,
+    "bySource": {
+     "manual": 60,
+     "watch": 39
+    }
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 100,
+     "bySource": {
+      "manual": 60,
+      "watch": 40
+     },
+     "withCourseList": 0,
+     "calls": 3,
+     "recent": [
+      1795000000
+     ]
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 50,
+    "calls": 698
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": false,
+    "next": {
+     "date": "2026-11-19",
+     "used": 50,
+     "calls": 698
+    }
+   }
+  },
+  {
+   "state": {
+    "date": "2026-11-19",
+    "used": 50,
+    "calls": 697
+   },
+   "today": "2026-11-19",
+   "now": 1795000000,
+   "calls": 3,
+   "out": {
+    "ok": true,
+    "next": {
+     "date": "2026-11-19",
+     "used": 51,
+     "bySource": {
+      "watch": 1
+     },
+     "withCourseList": 0,
+     "calls": 700,
+     "recent": [
+      1795000000
+     ]
+    }
+   }
+  }
+ ],
+ "backoff": [
+  {
+   "prev": null,
+   "now": 1795000000,
+   "retryAfter": null,
+   "random": 1,
+   "out": {
+    "failures": 1,
+    "nextAllowedAt": 1795010800
+   }
+  },
+  {
+   "prev": null,
+   "now": 1795000000,
+   "retryAfter": null,
+   "random": 0,
+   "out": {
+    "failures": 1,
+    "nextAllowedAt": 1795005400
+   }
+  },
+  {
+   "prev": {
+    "failures": 1,
+    "nextAllowedAt": 1795000000
+   },
+   "now": 1795000000,
+   "retryAfter": null,
+   "random": 0.5,
+   "out": {
+    "failures": 2,
+    "nextAllowedAt": 1795016200
+   }
+  },
+  {
+   "prev": {
+    "failures": 4,
+    "nextAllowedAt": 1795000000
+   },
+   "now": 1795000000,
+   "retryAfter": null,
+   "random": 1,
+   "out": {
+    "failures": 5,
+    "nextAllowedAt": 1795086400
+   }
+  },
+  {
+   "prev": {
+    "failures": 0,
+    "nextAllowedAt": 0
+   },
+   "now": 1795000000,
+   "retryAfter": 108000,
+   "random": 1,
+   "out": {
+    "failures": 1,
+    "nextAllowedAt": 1795086400
+   }
+  },
+  {
+   "prev": {
+    "failures": 0,
+    "nextAllowedAt": 0
+   },
+   "now": 1795000000,
+   "retryAfter": 18000,
+   "random": 0,
+   "out": {
+    "failures": 1,
+    "nextAllowedAt": 1795018000
+   }
+  }
+ ],
+ "batch": [
+  {
+   "now": 1795000000,
+   "radarIds": [],
+   "out": [
+    {
+     "index": 0,
+     "methodname": "core_session_time_remaining",
+     "args": {}
+    },
+    {
+     "index": 1,
+     "methodname": "core_calendar_get_action_events_by_timesort",
+     "args": {
+      "limitnum": 50,
+      "timesortfrom": 1793790400,
+      "timesortto": 1802776000
+     }
+    },
+    {
+     "index": 2,
+     "methodname": "message_popup_get_popup_notifications",
+     "args": {
+      "useridto": 4242,
+      "limit": 20,
+      "offset": 0
+     }
+    }
+   ]
+  },
+  {
+   "now": 1795000000,
+   "radarIds": [
+    13,
+    14
+   ],
+   "out": [
+    {
+     "index": 0,
+     "methodname": "core_session_time_remaining",
+     "args": {}
+    },
+    {
+     "index": 1,
+     "methodname": "core_calendar_get_action_events_by_timesort",
+     "args": {
+      "limitnum": 50,
+      "timesortfrom": 1793790400,
+      "timesortto": 1802776000
+     }
+    },
+    {
+     "index": 2,
+     "methodname": "message_popup_get_popup_notifications",
+     "args": {
+      "useridto": 4242,
+      "limit": 20,
+      "offset": 0
+     }
+    },
+    {
+     "index": 3,
+     "methodname": "core_courseformat_get_state",
+     "args": {
+      "courseid": 13
+     }
+    },
+    {
+     "index": 4,
+     "methodname": "core_courseformat_get_state",
+     "args": {
+      "courseid": 14
+     }
+    }
+   ]
+  }
+ ],
+ "detect": [
+  {
+   "name": "quiet",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": [
+       {
+        "id": 101,
+        "name": "Laporan 1 is due",
+        "activityname": "Laporan 1",
+        "timesort": 1795172800,
+        "course": {
+         "id": 11
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=501",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 102,
+        "name": "Laporan 2 is due",
+        "activityname": "Laporan 2",
+        "timesort": 1795432000,
+        "course": {
+         "id": 12
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=502",
+        "modulename": "assign",
+        "overdue": false
+       }
+      ]
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": [
+       {
+        "id": 900,
+        "subject": "x",
+        "component": "mod_forum",
+        "eventtype": "posts",
+        "timecreated": 1795000000,
+        "read": false,
+        "customdata": "{\"courseid\":11}"
+       }
+      ]
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "ok",
+    "changes": [],
+    "overlay": {
+     "eventIds": [],
+     "dueKeys": [],
+     "notificationLastId": null,
+     "cms": {}
+    }
+   }
+  },
+  {
+   "name": "mixed",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": [
+       {
+        "id": 101,
+        "name": "Laporan 1 is due",
+        "activityname": "Laporan 1",
+        "timesort": 1795259200,
+        "course": {
+         "id": 11
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=501",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 102,
+        "name": "Laporan 2 is due",
+        "activityname": "Laporan 2",
+        "timesort": 1795432000,
+        "course": {
+         "id": 12
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=502",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 103,
+        "name": "Kuis 3 is due",
+        "activityname": "Kuis 3",
+        "timesort": 1795086400,
+        "course": {
+         "id": 11
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=503",
+        "modulename": "assign",
+        "overdue": false
+       }
+      ]
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": [
+       {
+        "id": 902,
+        "subject": "x",
+        "component": "mod_assign",
+        "eventtype": "assign_notification",
+        "timecreated": 1795000000,
+        "read": false,
+        "customdata": "{\"courseid\":12}"
+       },
+       {
+        "id": 901,
+        "subject": "x",
+        "component": "mod_forum",
+        "eventtype": "posts",
+        "timecreated": 1795000000,
+        "read": false,
+        "customdata": "{\"courseid\":11}"
+       },
+       {
+        "id": 903,
+        "subject": "x",
+        "component": "moodle",
+        "eventtype": "something_else",
+        "timecreated": 1795000000,
+        "read": false,
+        "customdata": "{\"courseid\":13}"
+       }
+      ]
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "ok",
+    "changes": [
+     {
+      "kind": "due_changed",
+      "key": "task:101:due:1795259200",
+      "courseId": 11,
+      "eventId": 101,
+      "name": "Laporan 1"
+     },
+     {
+      "kind": "task_added",
+      "key": "task:103:added",
+      "courseId": 11,
+      "eventId": 103,
+      "cmId": 503,
+      "name": "Kuis 3"
+     },
+     {
+      "kind": "grade_feedback",
+      "key": "note:902",
+      "courseId": 12,
+      "notificationId": 902
+     }
+    ],
+    "overlay": {
+     "eventIds": [
+      103
+     ],
+     "dueKeys": [
+      "task:101:due:1795259200"
+     ],
+     "notificationLastId": 903,
+     "cms": {}
+    }
+   }
+  },
+  {
+   "name": "far-and-announced",
+   "overlay": {
+    "eventIds": [
+     104
+    ],
+    "dueKeys": [],
+    "notificationLastId": 905,
+    "cms": {}
+   },
+   "radarIds": [],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": [
+       {
+        "id": 101,
+        "name": "Laporan 1 is due",
+        "activityname": "Laporan 1",
+        "timesort": 1795172800,
+        "course": {
+         "id": 11
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=501",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 102,
+        "name": "Laporan 2 is due",
+        "activityname": "Laporan 2",
+        "timesort": 1795432000,
+        "course": {
+         "id": 12
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=502",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 104,
+        "name": "Sudah is due",
+        "activityname": "Sudah",
+        "timesort": 1795086400,
+        "course": {
+         "id": 11
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=504",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 105,
+        "name": "Jauh is due",
+        "activityname": "Jauh",
+        "timesort": 1803640000,
+        "course": {
+         "id": 12
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=505",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 106,
+        "name": "Diumumkan is due",
+        "activityname": "Diumumkan",
+        "timesort": 1795086400,
+        "course": {
+         "id": 12
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=777",
+        "modulename": "assign",
+        "overdue": false
+       }
+      ]
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": [
+       {
+        "id": 904,
+        "subject": "x",
+        "component": "mod_assign",
+        "eventtype": "assign_notification",
+        "timecreated": 1795000000,
+        "read": false,
+        "customdata": "{\"courseid\":12}"
+       }
+      ]
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "ok",
+    "changes": [],
+    "overlay": {
+     "eventIds": [
+      104,
+      105,
+      106
+     ],
+     "dueKeys": [],
+     "notificationLastId": 905,
+     "cms": {}
+    }
+   }
+  },
+  {
+   "name": "radar",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [
+    11,
+    13
+   ],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": [
+       {
+        "id": 101,
+        "name": "Laporan 1 is due",
+        "activityname": "Laporan 1",
+        "timesort": 1795172800,
+        "course": {
+         "id": 11
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=501",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 102,
+        "name": "Laporan 2 is due",
+        "activityname": "Laporan 2",
+        "timesort": 1795432000,
+        "course": {
+         "id": 12
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=502",
+        "modulename": "assign",
+        "overdue": false
+       },
+       {
+        "id": 107,
+        "name": "Tugas Baru is due",
+        "activityname": "Tugas Baru",
+        "timesort": 1795086400,
+        "course": {
+         "id": 11
+        },
+        "url": "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=603",
+        "modulename": "assign",
+        "overdue": false
+       }
+      ]
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": []
+     }
+    },
+    {
+     "error": false,
+     "data": "{\"cm\":[{\"visible\":true,\"uservisible\":true,\"id\":501,\"module\":\"assign\",\"name\":\"Laporan 1\"},{\"visible\":true,\"uservisible\":true,\"id\":601,\"module\":\"resource\",\"name\":\"Modul 1\"},{\"visible\":true,\"uservisible\":true,\"id\":602,\"module\":\"resource\",\"name\":\"Modul 2\"},{\"visible\":true,\"uservisible\":true,\"id\":603,\"module\":\"assign\",\"name\":\"Tugas Baru\"},{\"visible\":true,\"uservisible\":true,\"id\":604,\"module\":\"label\",\"name\":\"Label\"},{\"visible\":false,\"uservisible\":true,\"id\":605,\"module\":\"resource\",\"name\":\"Tersembunyi\"},{\"visible\":true,\"uservisible\":true,\"id\":606,\"module\":\"quiz\",\"name\":\"Kuis Baru\"}]}"
+    },
+    {
+     "error": false,
+     "data": "{\"cm\":[{\"visible\":true,\"uservisible\":true,\"id\":700,\"module\":\"resource\",\"name\":\"Tanpa baseline\"}]}"
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "ok",
+    "changes": [
+     {
+      "kind": "task_added",
+      "key": "task:107:added",
+      "courseId": 11,
+      "eventId": 107,
+      "cmId": 603,
+      "name": "Tugas Baru"
+     },
+     {
+      "kind": "material",
+      "key": "cm:11:602:added",
+      "courseId": 11,
+      "cmId": 602,
+      "name": "Modul 2"
+     },
+     {
+      "kind": "task_activity",
+      "key": "cm:11:606:added",
+      "courseId": 11,
+      "cmId": 606,
+      "name": "Kuis Baru"
+     }
+    ],
+    "overlay": {
+     "eventIds": [
+      107
+     ],
+     "dueKeys": [],
+     "notificationLastId": null,
+     "cms": {
+      "11": [
+       602,
+       603,
+       604,
+       605,
+       606
+      ]
+     }
+    }
+   }
+  },
+  {
+   "name": "expired",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [],
+   "results": [
+    {
+     "error": true,
+     "exception": {
+      "errorcode": "servicerequireslogin"
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": []
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": []
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "expired"
+   }
+  },
+  {
+   "name": "other-account",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 1,
+      "timeremaining": 1
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": []
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": []
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "unsure"
+   }
+  },
+  {
+   "name": "call-error",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": true,
+     "exception": {
+      "errorcode": "x"
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": []
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "unsure"
+   }
+  },
+  {
+   "name": "bad-shape",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": [
+       {
+        "id": "x"
+       }
+      ]
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": []
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "unsure"
+   }
+  },
+  {
+   "name": "wrong-length",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [
+    11
+   ],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": []
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": []
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "unsure"
+   }
+  }
+ ],
+ "notices": [
+  {
+   "name": "one-task",
+   "changes": [
+    {
+     "kind": "task_added",
+     "courseId": 11,
+     "key": "task:103:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Kuis 3",
+     "notificationId": 1
+    }
+   ],
+   "held": [],
+   "minute": 720,
+   "now": 1795000000,
+   "out": {
+    "send": [
+     {
+      "id": "changes|task:103:added",
+      "numericId": 1698515298,
+      "title": "Tugas baru: Kuis 3",
+      "body": "Hidrologi"
+     }
+    ],
+    "hold": []
+   }
+  },
+  {
+   "name": "per-course",
+   "changes": [
+    {
+     "kind": "task_added",
+     "courseId": 11,
+     "key": "task:103:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Kuis 3",
+     "notificationId": 1
+    },
+    {
+     "kind": "grade_feedback",
+     "courseId": 12,
+     "key": "note:902",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Nama",
+     "notificationId": 1
+    },
+    {
+     "kind": "material",
+     "courseId": 11,
+     "key": "cm:11:602:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Modul 2",
+     "notificationId": 1
+    }
+   ],
+   "held": [],
+   "minute": 720,
+   "now": 1795000000,
+   "out": {
+    "send": [
+     {
+      "id": "changes|course:11|chg:11:1795000000",
+      "numericId": 130847122,
+      "title": "2 hal baru di Hidrologi",
+      "body": "Buka Sulo untuk melihatnya."
+     },
+     {
+      "id": "changes|note:902",
+      "numericId": 1863619188,
+      "title": "Nilai baru keluar untuk Mekanika Fluida",
+      "body": "Buka untuk melihatnya di SIKOLA."
+     }
+    ],
+    "hold": []
+   }
+  },
+  {
+   "name": "unknown-course",
+   "changes": [
+    {
+     "kind": "forum",
+     "courseId": null,
+     "key": "note:950",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Nama",
+     "notificationId": 1
+    }
+   ],
+   "held": [],
+   "minute": 720,
+   "now": 1795000000,
+   "out": {
+    "send": [
+     {
+      "id": "changes|note:950",
+      "numericId": 1863619035,
+      "title": "Kabar baru di forum Mata kuliah lain",
+      "body": ""
+     }
+    ],
+    "hold": []
+   }
+  },
+  {
+   "name": "four-courses",
+   "changes": [
+    {
+     "kind": "material",
+     "courseId": 11,
+     "key": "cm:11:1:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "M",
+     "notificationId": 1
+    },
+    {
+     "kind": "material",
+     "courseId": 12,
+     "key": "cm:12:1:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "M",
+     "notificationId": 1
+    },
+    {
+     "kind": "material",
+     "courseId": 13,
+     "key": "cm:13:1:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "M",
+     "notificationId": 1
+    },
+    {
+     "kind": "material",
+     "courseId": 14,
+     "key": "cm:14:1:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "M",
+     "notificationId": 1
+    }
+   ],
+   "held": [],
+   "minute": 720,
+   "now": 1795000000,
+   "out": {
+    "send": [
+     {
+      "id": "changes_summary|chs:1795000000",
+      "numericId": 280847712,
+      "title": "4 kabar baru dari 4 mata kuliah",
+      "body": "Buka Sulo untuk melihat semuanya."
+     }
+    ],
+    "hold": []
+   }
+  },
+  {
+   "name": "quiet-holds",
+   "changes": [
+    {
+     "kind": "due_changed",
+     "courseId": 12,
+     "key": "task:102:due:1",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Laporan 2",
+     "notificationId": 1
+    }
+   ],
+   "held": [],
+   "minute": 1380,
+   "now": 1795000000,
+   "out": {
+    "send": [],
+    "hold": [
+     {
+      "kind": "due_changed",
+      "courseId": 12,
+      "key": "task:102:due:1",
+      "eventId": 1,
+      "cmId": 1,
+      "name": "Laporan 2",
+      "notificationId": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "after-quiet",
+   "changes": [],
+   "held": [
+    {
+     "kind": "due_changed",
+     "courseId": 12,
+     "key": "task:102:due:1",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Laporan 2",
+     "notificationId": 1
+    }
+   ],
+   "minute": 365,
+   "now": 1795000000,
+   "out": {
+    "send": [
+     {
+      "id": "changes_summary|chs:1795000000",
+      "numericId": 280847712,
+      "title": "1 kabar baru dari 1 mata kuliah",
+      "body": "Buka Sulo untuk melihat semuanya."
+     }
+    ],
+    "hold": []
+   }
+  },
+  {
+   "name": "long-name",
+   "changes": [
+    {
+     "kind": "task_added",
+     "courseId": 12,
+     "key": "task:108:added",
+     "eventId": 1,
+     "cmId": 1,
+     "name": "Analisis kestabilan lereng dengan metode irisan dan perbandingan hasil terhadap perangkat lunak",
+     "notificationId": 1
+    }
+   ],
+   "held": [],
+   "minute": 720,
+   "now": 1795000000,
+   "out": {
+    "send": [
+     {
+      "id": "changes|task:108:added",
+      "numericId": 1555964189,
+      "title": "Tugas baru: Analisis kestabilan lereng dengan metode irisan dan perband…",
+      "body": "Mekanika Fluida"
+     }
+    ],
+    "hold": []
+   }
+  }
+ ],
+ "remoteParse": [
+  {
+   "name": "no-mobile-section",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\"}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "unknown-keys-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"future\":{\"x\":1},\"mobile\":{\"other\":true}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "keepalive-off",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":false,\"dayIntervalMinutes\":30}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": false,
+      "dayIntervalMinutes": 30,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "global-off",
+   "status": 200,
+   "body": "{\"enabled\":false,\"minIntervalMinutes\":30,\"message\":\"\"}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": false,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "tuned",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":true,\"dayIntervalMinutes\":15,\"nightIntervalMinutes\":110,\"radarEvery\":6}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 15,
+      "nightIntervalMinutes": 110,
+      "radarEvery": 6
+     }
+    }
+   }
+  },
+  {
+   "name": "out-of-range-take-defaults",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":true,\"dayIntervalMinutes\":14,\"nightIntervalMinutes\":111,\"radarEvery\":0}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "non-integer-takes-default",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"dayIntervalMinutes\":30.5,\"radarEvery\":2.5}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "wrong-type-interval-takes-default",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"dayIntervalMinutes\":\"30\"}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "switch-not-boolean",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":\"false\"}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "switch-null",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":null}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "keepalive-not-object",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":\"off\"}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "keepalive-array",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":[]}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "mobile-not-object",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":\"x\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "missing-enabled",
+   "status": 200,
+   "body": "{\"minIntervalMinutes\":30}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "missing-min-interval",
+   "status": 200,
+   "body": "{\"enabled\":true}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "enabled-not-boolean",
+   "status": 200,
+   "body": "{\"enabled\":\"true\",\"minIntervalMinutes\":30,\"message\":\"\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "min-interval-negative",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":-1,\"message\":\"\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "min-interval-fraction",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":2.5,\"message\":\"\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "message-missing-is-fine",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":0}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "message-too-long",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "message-not-string",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":5}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "broken-json",
+   "status": 200,
+   "body": "{\"enabled\": tru",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "json-array",
+   "status": 200,
+   "body": "[]",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "json-null",
+   "status": 200,
+   "body": "null",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "empty-body",
+   "status": 200,
+   "body": "",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "no-body",
+   "status": 200,
+   "body": null,
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "not-modified",
+   "status": 304,
+   "body": null,
+   "out": {
+    "kind": "not_modified"
+   }
+  },
+  {
+   "name": "not-found",
+   "status": 404,
+   "body": "<html>",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "server-error",
+   "status": 503,
+   "body": null,
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "network-failure",
+   "status": 0,
+   "body": null,
+   "out": {
+    "kind": "failed"
+   }
+  }
+ ],
+ "remoteReadDue": [
+  {
+   "lastReadAt": 0,
+   "now": 1800000000,
+   "out": true
+  },
+  {
+   "lastReadAt": 1799978400,
+   "now": 1800000000,
+   "out": true
+  },
+  {
+   "lastReadAt": 1799978401,
+   "now": 1800000000,
+   "out": false
+  },
+  {
+   "lastReadAt": 1799999940,
+   "now": 1800000000,
+   "out": false
+  }
+ ],
+ "remoteDecide": [
+  {
+   "name": "on-defaults",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 20,
+     "nightIntervalMin": 60,
+     "softDayIntervalMin": 40,
+     "radarEvery": 3
+    }
+   }
+  },
+  {
+   "name": "on-config-intervals-used-directly",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 50,
+      "nightIntervalMinutes": 90,
+      "radarEvery": 1
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 50,
+     "nightIntervalMin": 90,
+     "softDayIntervalMin": 50,
+     "radarEvery": 1
+    }
+   }
+  },
+  {
+   "name": "global-off",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": false,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "global_off",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "keepalive-off",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": false,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "keepalive_off",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "never-read",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 0,
+    "config": null
+   },
+   "out": {
+    "action": "hold",
+    "reason": "no_config",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "config-without-success-time",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 0,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "no_config",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "no-read-72h",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799740800,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "hold",
+    "reason": "stale_config",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "read-just-under-72h",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799740801,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 20,
+     "nightIntervalMin": 60,
+     "softDayIntervalMin": 40,
+     "radarEvery": 3
+    }
+   }
+  },
+  {
+   "name": "app-not-opened-7-days",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799395200,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "paused"
+   }
+  },
+  {
+   "name": "app-opened-just-under-7-days",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799395201,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 20,
+     "nightIntervalMin": 60,
+     "softDayIntervalMin": 40,
+     "radarEvery": 3
+    }
+   }
+  },
+  {
+   "name": "paused-before-stale",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799308800,
+    "configOkAt": 1799568000,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "paused"
+   }
+  },
+  {
+   "name": "paused-even-when-off",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799308800,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": false,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   },
+   "out": {
+    "action": "paused"
+   }
+  }
+ ]
+}

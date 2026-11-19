@@ -1,5 +1,5 @@
-import { CheckIcon, PinIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
+import { CheckIcon, PinIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import type { MascotState } from '@sulo/core/view/popup-view';
 
 /** A small drawing of the browser toolbar: puzzle icon, then the pin. */

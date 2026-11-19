@@ -34,6 +34,8 @@ export interface CalendarRefreshDeps {
   clock: Clock;
   url: string;
   fetchSlotHour?: number;
+  /** Hours since the last read before another (default 24; the phone uses 6 when the app is opened). */
+  minGapHours?: number;
 }
 
 export type CalendarRefresh = 'not_due' | 'unchanged' | 'accepted' | 'kept' | 'invalid' | 'failed';
@@ -49,6 +51,7 @@ export async function refreshCalendar(deps: CalendarRefreshDeps): Promise<Calend
     stateKey: CALENDAR_FILE_KEY,
     fetchSlotHour: deps.fetchSlotHour,
     trigger: 'calendar',
+    minGapHours: deps.minGapHours,
   });
   if (outcome.kind === 'not_due' || outcome.kind === 'unchanged') return outcome.kind;
   if (outcome.kind === 'failed') return 'failed';

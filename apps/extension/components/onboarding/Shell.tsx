@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { useI18n } from '@/components/i18n';
+import { Button } from '@sulo/ui/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
 import './onboarding.css';
 
 

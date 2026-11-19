@@ -11,6 +11,7 @@ import type { ChangeLogEntry, CourseId, SessionState, Task, UnixSeconds } from '
 import { calendarReminders, type CalendarEventLite, type CalendarStage } from '../calendar/notify';
 import type { CalendarNotifySettings } from '../calendar/notify-settings';
 import { lastStage, type ReminderSettings } from './settings';
+import { morningCounts, pendingForMorning, type MorningCounts } from './morning';
 import { addDays, inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
 
 /** The morning summary is skipped when the browser opens more than this after its time. */
@@ -51,6 +52,8 @@ export interface PlanInput {
    * "krs": a KRS window opening. One notification per period.
    */
   nudges?: readonly { id: string; nudge: 'grades' | 'krs'; mulai: string; selesai: string }[];
+  /** "full" (the phone): overdue, today, tomorrow and today's events, nothing sent when all are empty; else the extension's summary. */
+  morningStyle?: 'classic' | 'full';
   /** Academic calendar reminders (M5a); omitted means none. */
   calendar?: { events: readonly CalendarEventLite[]; settings: CalendarNotifySettings; /** Short source for the body, e.g. "SK Rektor No. 08429/UN4.1/KEP/2026". */ source: string };
 }
@@ -60,7 +63,7 @@ export type Notice =
   | { kind: 'task'; key: string; task: Task; snoozed: boolean }
   /** Several reminders at once (missed while the browser was closed, or held by quiet hours). */
   | { kind: 'summary'; key: string; count: number; nearest: Task }
-  | { kind: 'morning'; key: string; today: number; week: number; nearest: Task }
+  | { kind: 'morning'; key: string; today: number; week: number; nearest: Task; full?: MorningCounts }
   | { kind: 'session'; key: string; repeat: boolean }
   /** Updates for one course in one cycle ("3 materi baru di Hidrologi"). */
   | { kind: 'changes'; key: string; courseId: CourseId | null; entries: ChangeLogEntry[] }
@@ -325,6 +328,14 @@ function morning(input: PlanInput, tasks: readonly Task[]): { notice: Notice | n
   const nextAt = nextLocalTime(Math.max(input.now, todayAt), m.atMin, input.timeZone);
   if (input.now < todayAt || key in input.sent) return { notice: null, mark: [], nextAt: input.now < todayAt ? todayAt : nextAt };
   if (input.now - todayAt > MORNING_GRACE) return { notice: null, mark: [key], nextAt };
+  if (input.morningStyle === 'full') {
+    const pending = pendingForMorning(input.tasks, input.taskState, input.activeCourseIds);
+    const full = morningCounts(input.now, input.timeZone, pending, input.calendar?.events ?? []);
+    // Nothing overdue, due or on the calendar: no summary, the day handled.
+    if (!full) return { notice: null, mark: [key], nextAt };
+    const nearest = [...pending].sort((a, b) => (a.dueAt as number) - (b.dueAt as number))[0] ?? ({ name: '', dueAt: input.now } as Task);
+    return { notice: { kind: 'morning', key, today: full.today, week: full.today + full.tomorrow, nearest, full }, mark: [key], nextAt };
+  }
   const dated = tasks.filter((t) => t.dueAt !== null).sort((a, b) => (a.dueAt as number) - (b.dueAt as number));
   const days = (t: Task) => calendarDaysBetween(input.now, t.dueAt as UnixSeconds, input.timeZone);
   const todayCount = dated.filter((t) => days(t) === 0).length;

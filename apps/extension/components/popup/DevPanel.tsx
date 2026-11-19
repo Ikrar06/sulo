@@ -5,8 +5,8 @@
 import { useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
 import { SESSION_AGE_KEY, sessionAgeStats, type SessionAgeState } from '@sulo/core/net/session-age';
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import { DEV_WORDS } from '@/lib/i18n/dev';
 import type { RequestSource } from '@sulo/core/types';
 import type { PopupView as PopupViewModel } from '@sulo/core/view/popup-view';

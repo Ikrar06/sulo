@@ -5,7 +5,7 @@
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { EYE_CENTERS, SPIRAL_STROKE, spiralPath } from '../components/mascot/geometry.ts';
+import { EYE_CENTERS, SPIRAL_STROKE, spiralPath } from '../../../packages/ui/src/mascot/geometry.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const paths = EYE_CENTERS.map(

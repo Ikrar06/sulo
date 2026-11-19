@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
 import { EMPTY_SESSION_AGE, medianSessionHours, SESSION_AGE_KEY, SESSION_AGE_MAX, sessionAgeStats, type SessionAgeState } from '@sulo/core/net/session-age';
-import { Card } from './Shell';
+import { Card } from '@sulo/ui/card';
 
 const time = (at: number | null) => (at === null ? '-' : new Date(at * 1000).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
 

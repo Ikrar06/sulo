@@ -70,6 +70,10 @@ export interface RemoteConfig {
   minIntervalMinutes: number;
   message: string;
   fetchedAt: UnixSeconds;
+  /** The last successful read (valid content, or unchanged); absent or 0: never. The phone's worker trusts nothing older than 72 hours. */
+  okAt?: UnixSeconds;
+  /** The Android app's own section (remote/keep-alive.ts validates it on read); the extension ignores it. */
+  mobile?: unknown;
 }
 
 export type ClientRefusal =

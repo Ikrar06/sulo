@@ -230,6 +230,14 @@ export const en: Messages = {
     summaryTitle: (n) => `${plural(n, 'task is', 'tasks are')} almost due`,
     summaryBody: (name, left) => `Nearest: ${name}, ${left}.`,
     morningTitle: 'Your tasks today',
+    morningFullTitle: 'Morning summary',
+    morningFullBody: (overdue: number, today: number, tomorrow: number, events: string[]) => {
+      const parts = [overdue > 0 ? `${overdue} overdue` : '', today > 0 ? `${today} due today` : '', tomorrow > 0 ? `${tomorrow} due tomorrow` : ''].filter(Boolean);
+      const shown = events.slice(0, 2);
+      const more = events.length - shown.length;
+      const today_ = shown.length === 0 ? '' : `Today: ${more > 0 ? `${shown.join(', ')} and ${more} more` : shown.join(' and ')}.`;
+      return [parts.length > 0 ? `${parts.join(', ')}.` : '', today_].filter(Boolean).join(' ');
+    },
     morningBody: (today, week, name, left) =>
       today === 0
         ? `Nothing due today. ${plural(week, 'task', 'tasks')} this week. Nearest: ${name}, ${left}.`

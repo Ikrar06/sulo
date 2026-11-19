@@ -2,6 +2,7 @@ node_modules/
 .output/
 .wxt/
 dist/
+dist-perf/
 *.log
 .env
 .env.*
@@ -19,3 +20,10 @@ docs/
 
 # Local browser automation output
 .playwright-mcp/
+
+# Design tooling installed locally (skills and their working files)
+.impeccable/
+.agents/
+skills/
+.skills/
+.github/hooks/impeccable.json

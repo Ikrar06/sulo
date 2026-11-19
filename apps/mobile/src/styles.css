@@ -1,0 +1,277 @@
+@import "tailwindcss";
+/* The same tokens as the extension: color, type, radius, fonts, the focus
+   variants. Then the dashboard's own visual classes (load map, calendar
+   categories, accent text, collapse), so both apps share one source, and
+   last the phone's size tokens (tokens.css). */
+@import "../../extension/assets/tokens.css";
+@import "../../extension/components/dashboard/dashboard.css";
+@import "./tokens.css";
+@source "./";
+@source "../../../packages/ui/src";
+@source "../../../packages/core/src";
+
+html, body, #root { height: 100%; }
+/* Sizes are the tokens' own: no browser font boosting (text autosizing), only the app's text zoom. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  background: var(--m-screen);
+  color: var(--text);
+  font-size: calc(15px * var(--m-tz));
+  line-height: calc(20px * var(--m-tz));
+  /* Clear of the status bar and notch (edge-to-edge on Android 15+); the
+     tab bar adds the gesture bar's inset itself. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The dashboard's variables (category colors, accent text) without its
+   desktop grid: the app's root is a column. */
+.db-layout.m-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  /* The screen layer everywhere, header included: no band (dashboard.css sets --bg). */
+  background: var(--m-screen);
+}
+
+/* A card that opens something: pressed, it settles to 0.98 for 100 ms. */
+.m-press {
+  transition: transform 100ms ease-out, background-color 100ms ease-out;
+}
+.m-press:active {
+  transform: scale(0.98);
+}
+/* A card. Dark: the layer alone; light: a hairline and the faintest shadow. */
+.m-card {
+  background: var(--m-card);
+  box-shadow: 0 0 0 1px var(--m-card-edge), var(--m-card-shadow);
+}
+
+/* Entering a detail slides in from the right (220 ms, ease-out); switching
+   tabs has no motion. */
+.m-push {
+  animation: m-push 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes m-push {
+  from { opacity: 0.6; transform: translateX(24px); }
+}
+/* Bottom sheets rise in 240 ms and leave in 200 ms with a smooth ease-in
+   (packages/ui/src/mobile/sheet.tsx). Only the sheet's transform and the
+   scrim's opacity animate. A drag sets where the exit starts and its pace
+   (--m-sheet-from, --m-sheet-dur, --m-sheet-ease); the sheet pins its own
+   --m-sheet-exit in px, so the keyboard going down never moves it. The exit
+   holds its last frame until the sheet is unmounted. */
+.m-sheet[data-state="open"] { animation: m-sheet-in 240ms cubic-bezier(0.22, 1, 0.36, 1); }
+.m-sheet[data-state="closed"] { animation: m-sheet-out var(--m-sheet-dur, 200ms) var(--m-sheet-ease, cubic-bezier(0.4, 0, 1, 1)) forwards; }
+.m-scrim[data-state="open"] { animation: m-fade-in 240ms ease-out; }
+.m-scrim[data-state="closed"] { animation: m-scrim-out var(--m-sheet-dur, 200ms) var(--m-sheet-ease, cubic-bezier(0.4, 0, 1, 1)) forwards; }
+/* A layer of its own only while it leaves (a drag adds one while it moves, sheet.tsx). */
+.m-sheet[data-state="closed"] { will-change: transform; }
+@keyframes m-sheet-in { from { transform: translateY(100%); } }
+@keyframes m-sheet-out {
+  from { transform: translateY(var(--m-sheet-from, 0px)); }
+  to { transform: translateY(var(--m-sheet-exit, 100%)); }
+}
+@keyframes m-scrim-out { from { opacity: var(--m-scrim-from, 1); } to { opacity: 0; } }
+@keyframes m-fade-in { from { opacity: 0; } }
+@keyframes m-fade-out { to { opacity: 0; } }
+/* The snackbar: in over 150 ms. */
+.sulo-toast {
+  animation: m-snack 150ms ease-out;
+}
+@keyframes m-snack {
+  from { opacity: 0; transform: translateY(8px); }
+}
+/* Carousels snap card by card. */
+.m-carousel {
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+}
+.m-carousel > * { scroll-snap-align: start; }
+.m-carousel::-webkit-scrollbar { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .m-push, .sulo-toast { animation: none !important; }
+  /* Sheets: no sliding, opacity only, 120 ms (beats the global 0.01 ms). */
+  .m-sheet[data-state], .m-scrim[data-state] { transform: none !important; }
+  .m-sheet[data-state="open"], .m-scrim[data-state="open"] { animation: m-fade-in 120ms linear !important; animation-duration: 120ms !important; }
+  .m-sheet[data-state="closed"], .m-scrim[data-state="closed"] { animation: m-fade-out 120ms linear forwards !important; animation-duration: 120ms !important; }
+  .m-press { transition: none; }
+  .m-press:active { transform: none; }
+}
+/* A pressable card (cards.tsx): its cover button pressed settles the card. */
+.m-press-host { transition: transform 100ms ease-out; }
+.m-press-host:has(> .m-cover:active) { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) { .m-press-host, .m-press-host:has(> .m-cover:active) { transition: none; transform: none; } }
+/* The header follows the finger (shell/head-progress.ts). The bar is a
+   sticky layer inside the scroller with top -8px: 56 px at rest, 48 px once
+   8 px have scrolled, without any layout animation. --head-s (0 -> 1 over
+   those 8 px) offsets the title and the buttons, so they stay put while the
+   title shrinks in place with --head-p (0 -> 1 over 56 px), toward 18 px.
+   --head-q (72-120 px) brings Ringkasan's small title in. Written by a CSS
+   scroll timeline where supported and only while there is something to
+   scroll (.m-sdt.m-scrollable), else by a passive listener once per frame.
+   Transform and opacity only; never a font size, never a timed animation. */
+@property --head-p { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --head-q { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --head-s { syntax: '<number>'; inherits: true; initial-value: 0; }
+@keyframes m-head-p { from { --head-p: 0; } to { --head-p: 1; } }
+@keyframes m-head-q { from { --head-q: 0; } to { --head-q: 1; } }
+@keyframes m-head-s { from { --head-s: 0; } to { --head-s: 1; } }
+.m-root.m-sdt { timeline-scope: --m-main; }
+.m-root.m-sdt .m-scroll { scroll-timeline: --m-main block; }
+.m-root.m-sdt.m-scrollable {
+  animation: m-head-p linear both, m-head-q linear both, m-head-s linear both;
+  animation-timeline: --m-main, --m-main, --m-main;
+  animation-range: 0px 56px, 72px 120px, 0px 8px;
+}
+.m-head-shrink { top: -8px; }
+.m-head-shrink .m-head-still { transform: translateY(calc(var(--head-s) * 8px)); }
+.m-title-big {
+  transform-origin: left center;
+  transform: translateY(calc(var(--head-s) * 8px)) scale(calc(1 - var(--head-p) * 0.30769));
+}
+.m-title-small { opacity: 0; transform: translateY(calc(-50% + var(--head-s) * 8px)); }
+.m-title-small-q { opacity: var(--head-q); transform: translateY(calc(-50% + var(--head-s) * 8px + (1 - var(--head-q)) * 6px)); }
+.m-fade-top { opacity: var(--head-p); }
+/* Reduced motion: still tied to the finger, but the title does not change
+   size: the 26 px title fades out as the 18 px one fades in, in place. */
+@media (prefers-reduced-motion: reduce) {
+  .m-title-big { transform: translateY(calc(var(--head-s) * 8px)); opacity: calc(1 - var(--head-p)); }
+  .m-title-small { opacity: var(--head-p); }
+  .m-title-small-q { opacity: var(--head-q); transform: translateY(calc(-50% + var(--head-s) * 8px)); }
+}
+
+/* Ringkasan's mascot (screens/HeroMascot.tsx): it enters with one small hop
+   (320 ms), dips with the pull (up to 10 px), and fades through a change of
+   expression (200 ms). Transform and opacity only. */
+.m-mascot-enter { animation: m-mascot-enter 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes m-mascot-enter { from { opacity: 0; transform: translateY(8px) scale(0.96); } }
+.m-mascot-pull { transform: translateY(var(--m-pull-y, 0px)); transition: transform 160ms ease-out; }
+.m-mascot-mood { animation: m-mascot-mood 200ms ease-out; }
+@keyframes m-mascot-mood { from { opacity: 0.55; transform: scale(0.98); } }
+@media (prefers-reduced-motion: reduce) {
+  .m-mascot-enter, .m-mascot-mood { animation: none; }
+  .m-mascot-pull { transform: none; transition: none; }
+}
+
+/* Scroll-edge fades (the one allowed gradient besides the flame): the
+   screen's own color to transparent, never over sheets or the snackbar. */
+.m-fade-top { background: linear-gradient(to bottom, var(--m-screen), transparent); } /* lint-ui-allow: scroll-edge fade, screen color to transparent */
+.m-fade-bottom { background: linear-gradient(to top, var(--m-screen) calc(100% - 32px), transparent); } /* lint-ui-allow: scroll-edge fade, screen color to transparent */
+
+/* Ringkasan's 7-day bars grow once: 240 ms ease-out, 20 ms apart. */
+.m-bar-grow { transform-origin: bottom; animation: m-bar-grow 240ms ease-out both; animation-delay: calc(var(--i, 0) * 20ms); }
+@keyframes m-bar-grow { from { transform: scaleY(0); } }
+@media (prefers-reduced-motion: reduce) { .m-bar-grow { animation: none; } }
+
+/* Offline and an ended session (M8c.1): the mascot keeps its own colors and
+   only its calm, half-closed eyes; no drifting Z (nothing is asleep). The
+   extension's sleepy look is unchanged (this file is the phone's only). */
+html .sulo-mascot.is-sleepy { --f1: var(--brand-amber); --f2: var(--brand-orange); --f3: var(--brand-crimson); }
+html .sulo-mascot .m-z { display: none; }
+
+/* Onboarding (M8c.2, onboarding/). Transform and opacity only; nothing
+   starts from scale(0); no blur. */
+.onb-title { font-size: calc(28px * var(--m-tz)); line-height: calc(34px * var(--m-tz)); font-weight: 700; text-wrap-style: balance; }
+@media (max-width: 379px) { .onb-title { font-size: calc(26px * var(--m-tz)); line-height: calc(32px * var(--m-tz)); } }
+.onb-greeting { font-size: calc(18px * var(--m-tz)); line-height: calc(24px * var(--m-tz)); font-weight: 500; transition: color 160ms ease-out; }
+/* The primary button: down to 0.97 under the thumb, back with a light spring. */
+.onb-press { transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.onb-press:active { transform: scale(0.97); transition: transform 80ms ease-out; }
+/* The intro pager (Intro.tsx) writes transforms straight to its pages,
+   layers, texts and dots; a release glides on the compositor. */
+.onb-swipe { touch-action: pan-y; }
+/* The splash: the name rises letter by letter. */
+.onb-letter { animation: onb-rise 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+@keyframes onb-rise { from { opacity: 0; transform: translateY(12px); } }
+/* A step change (StepSwap.tsx): the old content steps 16 px aside and is
+   gone in 110 ms, fading from the first frame; the new one waits for that
+   and then arrives over 24 px in 260 ms with a long, soft stop. The two are
+   never visible together. Bars and buttons stay where they are. */
+.onb-in-fwd [data-onb-content] { animation: onb-in-r 260ms cubic-bezier(0.16, 1, 0.3, 1) 110ms backwards; }
+.onb-in-back [data-onb-content] { animation: onb-in-l 260ms cubic-bezier(0.16, 1, 0.3, 1) 110ms backwards; }
+.onb-in-fwd [data-onb-content], .onb-in-back [data-onb-content], .onb-out [data-onb-content] { will-change: transform, opacity; }
+.onb-out [data-onb-chrome] { visibility: hidden; }
+.onb-out [data-mascot-spot] { visibility: hidden; }
+.onb-out-fwd [data-onb-content] { animation: onb-out-l 110ms cubic-bezier(0.3, 0, 0.8, 0.6) forwards; }
+.onb-out-back [data-onb-content] { animation: onb-out-r 110ms cubic-bezier(0.3, 0, 0.8, 0.6) forwards; }
+@keyframes onb-in-r { from { opacity: 0; transform: translateX(24px); } }
+@keyframes onb-in-l { from { opacity: 0; transform: translateX(-24px); } }
+@keyframes onb-out-l { 60% { opacity: 0.15; } to { opacity: 0; transform: translateX(-16px); } }
+@keyframes onb-out-r { 60% { opacity: 0.15; } to { opacity: 0; transform: translateX(16px); } }
+/* A progress segment fills from the left. */
+.onb-seg { transform: scaleX(0); transform-origin: left; transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+.onb-seg.is-on { transform: scaleX(1); }
+/* The preparing screen's status line: each new one fades in over the last. */
+.onb-status { animation: m-fade-in 200ms ease-out; }
+/* A course row: chosen takes a tint of its own color (no border); the
+   check lands with a small spring. */
+.onb-row { transition: background-color 160ms ease-out, transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.onb-row.is-on { background-color: var(--row-tint); }
+.onb-row:active { transform: scale(0.98); transition: transform 80ms ease-out; }
+.onb-check { transition: background-color 160ms ease-out, border-color 160ms ease-out, color 160ms ease-out; }
+.onb-check.is-on { animation: onb-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes onb-pop { from { transform: scale(0.8); } }
+/* A long setup list scrolls under soft edges. The fade is a mask, and a
+   masked element is painted again on every frame it moves: so it is there
+   only when the content really overflows (is-long), and never while the
+   screen is sliding in or out. */
+.onb-scroll { scrollbar-width: none; }
+.onb-scroll.is-long { mask-image: linear-gradient(to bottom, transparent 0, #000 10px, #000 calc(100% - 14px), transparent 100%); } /* lint-ui-allow: scroll-edge fade as a mask */
+.onb-out .onb-scroll.is-long { mask-image: none; }
+.onb-scroll::-webkit-scrollbar { display: none; }
+/* The landing on Ringkasan: the last onboarding screen fades out while
+   Ringkasan comes in from below in order (hero, stats, carousel), the tab
+   bar last; the hero mascot stays hidden until the flying one lands on it. */
+.m-onb-leave { animation: m-fade-out 180ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+.m-onb-leave [data-mascot-spot] { visibility: hidden; }
+.m-landing [data-mascot-spot="hero"] { opacity: 0; }
+.m-landing .m-mascot-enter { animation: none; }
+.m-landing main .space-y-6 > * { animation: m-land 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.m-landing main .space-y-6 > :nth-child(2) { animation-delay: 70ms; }
+.m-landing main .space-y-6 > :nth-child(3) { animation-delay: 140ms; }
+.m-landing main .space-y-6 > :nth-child(n + 4) { animation-delay: 210ms; }
+.m-landing nav[aria-label] { animation: m-land 280ms cubic-bezier(0.22, 1, 0.36, 1) 300ms backwards; }
+@keyframes m-land { from { opacity: 0; transform: translateY(16px); } }
+/* Reduced motion: every scene stands in its final arrangement (the scenes
+   skip their timelines), a step change is a 120 ms fade, no parallax. */
+@media (prefers-reduced-motion: reduce) {
+  .onb-press, .onb-row, .onb-seg { transition: none; }
+  .onb-press:active, .onb-row:active { transform: none; }
+  .onb-letter, .onb-check.is-on { animation: none !important; }
+  .onb-in-fwd [data-onb-content], .onb-in-back [data-onb-content] { animation: m-fade-in 120ms linear !important; animation-duration: 120ms !important; }
+  .onb-out [data-onb-content] { animation: m-fade-out 120ms linear forwards !important; animation-duration: 120ms !important; }
+  .m-onb-leave { animation-duration: 120ms !important; }
+  .m-landing main .space-y-6 > *, .m-landing nav[aria-label] { animation: m-fade-in 120ms linear !important; animation-duration: 120ms !important; animation-delay: 0ms !important; }
+}
+/* The nickname screen with the keyboard up and too little height
+   (screens-setup.tsx, data-onb-tight): the gaps between groups shrink. */
+[data-onb-tight] > [aria-hidden="true"].shrink-0 { min-height: 6px !important; }
+
+/* Lite tier (src/perf.ts, data-perf on <html>): every screen looks the
+   same; only motion is lighter. The mascot's living loops stop (blinking,
+   driven from JS, stays); the scroll-edge fades become a solid 1 px edge
+   (no gradient to composite on every scroll); response motion (sheets,
+   presses, screen changes, onboarding steps) runs at 0.8 of its time. */
+:root[data-perf="lite"] .sulo-mascot.is-animated :is(.m-breath, .m-flame, .m-follow, .m-flame-front, .m-orbit) { animation: none; }
+:root[data-perf="lite"] .m-fade-top { background: var(--m-line); height: 1px; }
+:root[data-perf="lite"] .m-fade-bottom { background: linear-gradient(to top, var(--m-screen) calc(100% - 32px), var(--m-line) calc(100% - 32px), var(--m-line) calc(100% - 31px), transparent calc(100% - 31px)); } /* lint-ui-allow: hard stops only, a solid band under a 1 px edge (no fade) */
+:root[data-perf="lite"] .m-press, :root[data-perf="lite"] .m-press-host { transition-duration: 80ms; }
+:root[data-perf="lite"] .m-push { animation-duration: 176ms; }
+:root[data-perf="lite"] .m-sheet[data-state="open"], :root[data-perf="lite"] .m-scrim[data-state="open"] { animation-duration: 192ms; }
+:root[data-perf="lite"] .m-sheet[data-state="closed"], :root[data-perf="lite"] .m-scrim[data-state="closed"] { animation-duration: calc(var(--m-sheet-dur, 200ms) * 0.8); }
+:root[data-perf="lite"] .sulo-toast { animation-duration: 120ms; }
+:root[data-perf="lite"] .m-mascot-enter { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-mascot-mood { animation-duration: 160ms; }
+:root[data-perf="lite"] .m-bar-grow { animation-duration: 192ms; }
+:root[data-perf="lite"] .onb-press, :root[data-perf="lite"] .onb-row { transition-duration: 224ms; }
+:root[data-perf="lite"] .onb-letter { animation-duration: 256ms; }
+:root[data-perf="lite"] .onb-in-fwd [data-onb-content], :root[data-perf="lite"] .onb-in-back [data-onb-content] { animation-duration: 208ms; animation-delay: 88ms; }
+:root[data-perf="lite"] .onb-out-fwd [data-onb-content], :root[data-perf="lite"] .onb-out-back [data-onb-content] { animation-duration: 88ms; }
+:root[data-perf="lite"] .onb-seg { transition-duration: 256ms; }
+:root[data-perf="lite"] .onb-check.is-on { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-onb-leave { animation-duration: 144ms; }
+:root[data-perf="lite"] .m-landing main .space-y-6 > * { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-landing nav[aria-label] { animation-duration: 224ms; animation-delay: 240ms; }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
-import { useI18n } from '@/components/i18n';
-import { BellIcon, CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@/components/icons';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { BellIcon, CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@sulo/ui/icons';
+import { Button } from '@sulo/ui/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +11,8 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+} from '@sulo/ui/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { CopyScope } from '@sulo/core/format/copy-list';
 import { LANGUAGE_NAMES, LOCALES, type Locale } from '@sulo/core/i18n';
 import { DUE_FORMATS, type DueFormat } from '@sulo/core/prefs';

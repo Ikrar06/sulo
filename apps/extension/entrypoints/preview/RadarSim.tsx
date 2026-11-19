@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { browser } from 'wxt/browser';
-import { Button } from '@/components/ui/button';
+import { Button } from '@sulo/ui/ui/button';
 import type { DevMessage } from '@/lib/dev/messages';
 
 // Dev-only: adds sample updates to your real change log, so the background

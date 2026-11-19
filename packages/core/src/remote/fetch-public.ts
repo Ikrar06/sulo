@@ -44,6 +44,8 @@ export interface PublicFetchDeps {
   stateKey: string;
   /** Local hour from which a daily fetch may run; undefined: any hour. */
   fetchSlotHour?: number;
+  /** Hours between reads (default 24). Under 24 (the phone opened after 6 hours) the fetch hour does not apply. */
+  minGapHours?: number;
   /** For the dev request log. */
   trigger: string;
 }
@@ -59,10 +61,11 @@ export async function fetchSlotHour(store: KeyValueStore, random: () => number =
 }
 
 /** Pure: whether a daily public file may be fetched now. */
-export function isPublicFetchDue(lastAttemptAt: UnixSeconds | null, now: UnixSeconds, localHour: number, slotHour?: number): boolean {
+export function isPublicFetchDue(lastAttemptAt: UnixSeconds | null, now: UnixSeconds, localHour: number, slotHour?: number, minGapHours: number = PUBLIC_MIN_GAP_H): boolean {
   if (lastAttemptAt === null || lastAttemptAt <= 0) return true;
   const age = now - lastAttemptAt;
-  if (age < PUBLIC_MIN_GAP_H * HOUR) return false;
+  if (age < minGapHours * HOUR) return false;
+  if (minGapHours < PUBLIC_MIN_GAP_H) return true;
   if (slotHour === undefined || age >= PUBLIC_ANY_HOUR_AFTER_H * HOUR) return true;
   return localHour >= slotHour;
 }
@@ -81,7 +84,7 @@ export async function fetchPublicJson(deps: PublicFetchDeps, lastAttemptAt?: Uni
   const previous = await readPublicFileState(deps.store, deps.stateKey);
   const now = deps.clock.now();
   const attempted = lastAttemptAt !== undefined ? lastAttemptAt : (previous?.fetchedAt ?? null);
-  if (!isPublicFetchDue(attempted, now, deps.clock.localHour(), deps.fetchSlotHour)) return { kind: 'not_due' };
+  if (!isPublicFetchDue(attempted, now, deps.clock.localHour(), deps.fetchSlotHour, deps.minGapHours)) return { kind: 'not_due' };
 
   const save = (patch: Partial<PublicFileState>) =>
     deps.store.set<PublicFileState>(deps.stateKey, {

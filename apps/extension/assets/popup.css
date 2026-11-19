@@ -6,11 +6,12 @@
    here when the popup starts rendering a component from somewhere new. */
 @source "../entrypoints/popup";
 @source "../components/popup";
-@source "../components/ui";
-@source "../components/updates";
-@source "../components/mascot";
-@source "../components/i18n.tsx";
-@source "../components/icons.tsx";
+@source "../../../packages/ui/src/ui";
+@source "../../../packages/ui/src/updates";
+@source "../../../packages/ui/src/mascot";
+@source "../../../packages/ui/src/i18n.tsx";
+@source "../../../packages/ui/src/icons.tsx";
+@source "../../../packages/ui/src/reminders";
 @source "../lib";
 /* Shared logic moved to packages/core in M8a; scanned as before. */
 @source "../../../packages/core/src";

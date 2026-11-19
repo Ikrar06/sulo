@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { browser } from 'wxt/browser';
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import type { DevMessage } from '@/lib/dev/messages';

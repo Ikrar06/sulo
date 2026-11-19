@@ -1,15 +1,15 @@
 import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { browser } from 'wxt/browser';
-import { useI18n } from '@/components/i18n';
-import { ChevronRightIcon, RefreshIcon } from '@/components/icons';
+import { useI18n } from '@sulo/ui/i18n';
+import { RefreshIcon } from '@sulo/ui/icons';
 import { BrandMark } from '@/components/BrandMark';
-import { Button } from '@/components/ui/button';
+import { Button } from '@sulo/ui/ui/button';
 import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@sulo/core/format/time';
 import { PAGES, routeHash, type Page } from '@sulo/core/dashboard/routes';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
-import { AttendanceIcon, BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from './icons';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AttendanceIcon, BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from '@sulo/ui/dashboard-icons';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import './dashboard.css';
 
@@ -117,7 +117,7 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
               </Button>
             </div>
           )}
-            {/* Privacy mode: masks names, grades, GPA and credits (components/private.tsx). A crossed eye while on. */}
+            {/* Privacy mode: masks names, grades, GPA and credits (packages/ui/src/private.tsx). A crossed eye while on. */}
             {privacy && (
               <TooltipProvider>
                 <Tooltip>
@@ -138,31 +138,3 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
   );
 }
 
-/**
- * A section with a quiet heading; depth from the border and --surface only.
- * Padding 20, title 16 px semibold, 12 px between title and body.
- */
-export function Card({ title, action, children, className = '' }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-xl border border-border bg-surface p-5 ${className}`}>
-      {(title || action) && (
-        // Baseline-aligned with the title; in a narrow card the action moves under it instead of breaking into two lines.
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          {title && <h2 className="text-[16px] leading-6 font-semibold">{title}</h2>}
-          {action && <div className="shrink-0 whitespace-nowrap">{action}</div>}
-        </div>
-      )}
-      {children}
-    </section>
-  );
-}
-
-/** "Lihat semua …" in a card header: 14 px muted with a 14 px chevron. */
-export function CardLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a href={href} className="inline-flex items-center gap-1 rounded text-[14px] text-muted-foreground underline-offset-2 outline-none hover:text-foreground hover:underline focus-ring:ring-2 focus-ring:ring-focus">
-      {children}
-      <ChevronRightIcon className="size-3.5 self-center" />
-    </a>
-  );
-}

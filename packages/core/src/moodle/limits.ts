@@ -13,11 +13,23 @@ export const SOFT_DAILY_POSTS = 80;
 /**
  * Hard limit, a guard against bugs only: max HTTP requests to SIKOLA per
  * local day per installation. Reached, every sync stops until the daily
- * reset, without a message to the user (dev log only).
+ * reset. The extension says nothing (dev log only); the phone shows one calm
+ * line without numbers, and reminders from stored data keep running.
  */
 export const DAILY_BUDGET = 150;
-/** Max Moodle function calls per local day (all batches together); same silent guard. */
+/** Max Moodle function calls per local day (all batches together); same guard. */
 export const DAILY_CALL_BUDGET = 1000;
+/**
+ * The phone's background watching ("Pantau tugas baru") stops for the day
+ * at this total (all sources together), so the rest of the hard limit stays
+ * for what the user does: at least ACTIVE_RESERVE. What gives way as the
+ * day fills up, in order: background Radar and the 40-minute interval past
+ * SOFT_DAILY_POSTS, then watching itself here, and only inside the reserve
+ * the optional parts of a manual sync (QUOTA_LOW and below).
+ */
+export const WATCH_STOP = { posts: 100, calls: 700 } as const;
+/** What is always left for active use once watching has stopped. */
+export const ACTIVE_RESERVE = { posts: DAILY_BUDGET - WATCH_STOP.posts, calls: DAILY_CALL_BUDGET - WATCH_STOP.calls } as const;
 /** Saver mode: automatic syncs at least this far apart. */
 export const SAVER_MIN_GAP_MIN = 60;
 /** Loop guard: more than `posts` POSTs within `windowSec` pauses every request for `pauseSec`, silently. */
@@ -77,7 +89,9 @@ export const NOTIFICATIONS_LIMIT_SMALL = 10;
 
 /**
  * Low quota: the batch drops optional parts in this order. Session and
- * calendar stay until the budget itself refuses the request.
+ * calendar stay until the budget itself refuses the request. All three lie
+ * inside ACTIVE_RESERVE: a manual sync is never trimmed while more than the
+ * reserve is left (tested).
  */
 export const QUOTA_LOW = { posts: 10, calls: 60 } as const; // drop course structures
 export const QUOTA_LOWER = { posts: 6, calls: 30 } as const; // also drop the course list re-fetch

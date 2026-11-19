@@ -1,6 +1,6 @@
-import { CheckIcon, ExternalIcon } from '@/components/icons';
-import { Button } from '@/components/ui/button';
-import { useI18n } from '@/components/i18n';
+import { CheckIcon, ExternalIcon } from '@sulo/ui/icons';
+import { Button } from '@sulo/ui/ui/button';
+import { useI18n } from '@sulo/ui/i18n';
 import type { WhatsNewEntry } from '@sulo/core/onboarding/whats-new';
 import { PinIllustration } from './illustrations';
 import { Lead, Title } from './Shell';

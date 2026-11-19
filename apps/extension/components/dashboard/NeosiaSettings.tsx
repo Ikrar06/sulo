@@ -3,12 +3,12 @@
 // Cancel, or a refused permission, leaves the switch off.
 
 import { useId, useState } from 'react';
-import { useI18n } from '@/components/i18n';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
+import { useI18n } from '@sulo/ui/i18n';
+import { Button } from '@sulo/ui/ui/button';
+import { Switch } from '@sulo/ui/ui/switch';
+import { Input } from '@sulo/ui/ui/input';
 import { DEFAULT_SKS_TARGET, SKS_TARGET_MAX, SKS_TARGET_MIN } from '@sulo/core/neosia/view';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@sulo/ui/ui/alert-dialog';
 import { formatAgo } from '@sulo/core/format/time';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { neosiaUrl } from '@sulo/core/links';

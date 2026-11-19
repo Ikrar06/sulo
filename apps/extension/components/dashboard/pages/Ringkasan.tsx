@@ -1,24 +1,24 @@
 import { useMemo } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronRightIcon } from '@/components/icons';
-import { Mascot } from '@/components/mascot/Mascot';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { dayPart, greetingText } from '@sulo/core/dashboard/greeting';
 import { loadMap } from '@sulo/core/dashboard/load-map';
 import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@sulo/core/dashboard/overview';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useDoneUndo } from '../done-undo';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { countdownOrLate, formatRemaining } from '@sulo/core/format/time';
 import { describeChange } from '@sulo/core/radar/describe';
 import { localParts } from '@sulo/core/reminders/zoned';
-import { AcademicCard, nextForSummary, SummaryLine } from '../OverviewParts';
+import { AcademicCard, nextForSummary, SummaryLine } from '@sulo/ui/dashboard/OverviewParts';
 import { timeZone } from '../data';
-import { Card, CardLink } from '../Shell';
+import { Card, CardLink } from '@sulo/ui/card';
 import type { PageProps } from '../types';
-import { KrsReadinessCard, NeosiaInvite, NextClassLine, StudiCard, SurveyLine, TodayClasses, type AttendanceSummary } from '../NeosiaParts';
+import { KrsReadinessCard, NeosiaInvite, NextClassLine, StudiCard, SurveyLine, TodayClasses } from '@sulo/ui/dashboard/NeosiaParts';
 import { classMeetings, krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@sulo/core/neosia/view';
 import { linkedMeetings } from '@sulo/core/neosia/linked';
 import { holidayRanges } from '@sulo/core/neosia/schedule';
@@ -26,7 +26,7 @@ import { classesToday, nextClass } from '@sulo/core/neosia/today';
 import { dismissInvite, showInvite } from '@sulo/core/neosia/invite';
 import { local } from '../data';
 import { courseAlias } from '@sulo/core/courses/display-name';
-import { averagePercent, lowestBelowAverage } from '@sulo/core/presensi/service';
+import { attendanceSummary } from '@sulo/core/presensi/service';
 import { useNeosiaConnect } from '../neosia-connect';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
@@ -40,7 +40,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const { locale } = useI18n();
   const countdown = data.prefs.dueFormat === 'countdown';
   const user = data.user!;
-  const done = useDoneUndo(actions, d, data.today);
+  const done = useDoneUndo(actions, d, data.today, local);
   const allItems = useMemo(() => buildTaskItems(user), [user]);
   // Pending tasks, plus the ones just marked done (they stay in place for the undo window).
   const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);
@@ -68,14 +68,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d), classesToday: today.length });
   const consent = useNeosiaConnect(actions);
   // Attendance average over monitored courses, from the stored recap (no request).
-  const attendance = useMemo((): AttendanceSummary | null => {
-    const rows = user.presensi?.recap?.rows;
-    const average = rows ? averagePercent(rows) : null;
-    if (!rows || average === null) return null;
-    const low = lowestBelowAverage(rows);
-    const course = low ? user.courses.find((c) => c.id === low.courseId) : undefined;
-    return { average, lowest: low && course ? { name: courseAlias(course), percent: low.percent } : null };
-  }, [user.presensi, user.courses]);
+  const attendance = useMemo(() => attendanceSummary(user.presensi?.recap?.rows, user.courses), [user.presensi, user.courses]);
   const invite = showInvite({ moduleOn: neosiaOn, dismissedAt: data.neosia.invite.dismissedAt, dismissedDay: data.neosia.invite.dismissedDay, now: data.now, today: data.today, krsWindows: calendarKrs });
   const krsWin = neosiaOn ? krsWindow(snapshots, data.today, calendarKrs) : null;
   const krsCard = neosiaOn && showKrsCard(krsWin, data.today);

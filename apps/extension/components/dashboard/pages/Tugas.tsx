@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useI18n } from '@/components/i18n';
-import { ChevronDownIcon, SearchIcon } from '@/components/icons';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@sulo/ui/i18n';
+import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
+import { Checkbox } from '@sulo/ui/ui/checkbox';
+import { Input } from '@sulo/ui/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
@@ -12,10 +12,10 @@ import { taskDueLines } from '@sulo/core/format/time';
 import { googleCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
 import { urgencyOf } from '@sulo/core/tasks/group';
-import { timeZone } from '../data';
-import { useDoneUndo } from '../done-undo';
-import { Mascot } from '@/components/mascot/Mascot';
-import { TaskDetails } from '../TaskDetails';
+import { local, timeZone } from '../data';
+import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
+import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
 import type { PageProps } from '../types';
 
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
@@ -40,7 +40,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
     window.requestAnimationFrame(() => document.getElementById(`task-${linked}`)?.scrollIntoView({ block: 'center' }));
   }, [linked]);
 
-  const done = useDoneUndo(actions, d, data.today);
+  const done = useDoneUndo(actions, d, data.today, local);
   // Rows just marked done stay in place for the undo window, whatever the filter.
   const passes = (i: TaskItem) => filter.status === 'all' || i.status === filter.status;
   const shown = filterTasks(items, { ...filter, status: 'all' }).filter((i) => passes(i) || done.lingering.has(i.task.eventId));

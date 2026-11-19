@@ -3,6 +3,7 @@
 // they describe how this browser shows Sulo, not anyone's data. Validated
 // with Zod; anything unreadable falls back to the defaults.
 
+import type { AnimationPref } from './perf/tier';
 import { DEFAULT_GROUP_FILTER, groupFilterSchema, type GroupFilter } from './calendar/groups';
 import { z } from 'zod';
 import type { Locale } from './i18n';
@@ -57,6 +58,8 @@ export interface Prefs {
   privacyMode: boolean;
   /** Credits to graduate, the scale of the overview's credits bar (NEOSIA, 100 to 200). */
   sksTarget: number;
+  /** Mobile: how much motion (perf/tier.ts); "auto" follows the detected tier. */
+  animation: AnimationPref;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -71,6 +74,7 @@ export const DEFAULT_PREFS: Prefs = {
   calendarFilter: DEFAULT_GROUP_FILTER,
   privacyMode: false,
   sksTarget: 144,
+  animation: 'auto',
 };
 
 const prefsSchema = z.object({
@@ -86,6 +90,7 @@ const prefsSchema = z.object({
   calendarFilter: groupFilterSchema,
   privacyMode: z.boolean().catch(false),
   sksTarget: z.number().int().min(100).max(200).catch(144),
+  animation: z.enum(['auto', 'full', 'lite']).catch('auto'),
 });
 
 export async function readPrefs(store: KeyValueStore): Promise<Prefs> {
