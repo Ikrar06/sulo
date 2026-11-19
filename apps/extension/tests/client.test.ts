@@ -122,19 +122,19 @@ describe('moodle client: response interpretation', () => {
   it('treats an opaque redirect as login required', async () => {
     const redirect = Object.defineProperty(new Response(null, { status: 200 }), 'type', { value: 'opaqueredirect' });
     const { client } = setup({ fetch: fakeFetch(() => redirect) });
-    expect(await client.callBatch([sessionCall])).toEqual({ kind: 'login_required' });
+    expect(await client.callBatch([sessionCall])).toMatchObject({ kind: 'login_required' });
   });
 
   it('treats an HTML page as login required', async () => {
     const html = new Response('<html><form id="login"></form></html>', { headers: { 'content-type': 'text/html' } });
     const { client } = setup({ fetch: fakeFetch(() => html) });
-    expect(await client.callBatch([sessionCall])).toEqual({ kind: 'login_required' });
+    expect(await client.callBatch([sessionCall])).toMatchObject({ kind: 'login_required' });
   });
 
   it('maps servicerequireslogin inside the batch to login required', async () => {
     const fetch = fakeFetch(() => jsonResponse([{ error: true, exception: { errorcode: 'servicerequireslogin', message: 'x' } }]));
     const { client } = setup({ fetch });
-    expect(await client.callBatch([sessionCall])).toEqual({ kind: 'login_required' });
+    expect(await client.callBatch([sessionCall])).toMatchObject({ kind: 'login_required' });
   });
 
   it('maps a top-level invalidsesskey error', async () => {

@@ -381,6 +381,8 @@ function transportOutcome(result: Exclude<BatchOutcome, { kind: 'ok' }>): SyncOu
       return { status: 'offline' };
     case 'timeout':
     case 'http_error':
+    // Asked twice, SIKOLA did not say the same twice: try again later, the session stays.
+    case 'session_unconfirmed':
       return { status: 'server_error' };
     case 'bad_response':
       return { status: 'parser_broken', where: 'transport' };
