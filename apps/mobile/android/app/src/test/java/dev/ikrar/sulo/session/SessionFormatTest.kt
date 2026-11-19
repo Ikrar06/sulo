@@ -72,10 +72,11 @@ class SessionVaultTest {
         v.save(SikolaSession("cookie-value-123", null))
         val blob = slots.map["blob"]!!
         slots.map["blob"] = blob.dropLast(4) + if (blob.endsWith("AAAA")) "BBBB" else "AAAA"
+        // GCM: altered data is never accepted.
         assertNull(v.load())
-        // Unreadable data is an ended session: deleted, "expired", sign in again.
-        assertEquals("expired", v.status())
-        assertFalse(slots.map.containsKey("blob"))
+        // Owner's rule (20 Nov 2026): a failed read never deletes the session; only a key gone for good does.
+        assertEquals("connected", v.status())
+        assertTrue(slots.map.containsKey("blob"))
     }
 
     /** A Keystore that lost or invalidated its key (screen lock changed, key deleted, restored backup). */
