@@ -19,7 +19,7 @@ const CONTROLS = /<(input|button|textarea|select|a)\b|tabindex=|role="(button|ch
 
 /** The stage's markup, rendered in the journey frame. */
 function stage(scene: ReactNode, locale: 'id' | 'en'): { hidden: boolean; html: string; text: string } {
-  const page = renderToStaticMarkup(createElement(I18nProvider, { locale }, createElement(Journey, { stepKey: 's', scene, children: null })));
+  const page = renderToStaticMarkup(createElement(I18nProvider, { locale, children: createElement(Journey, { stepKey: 's', scene, children: null }) }));
   const start = page.indexOf('<section data-ob-stage');
   const end = page.indexOf('<section class="obj-side"');
   const html = page.slice(start, end);
