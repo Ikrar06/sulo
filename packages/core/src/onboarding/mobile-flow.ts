@@ -9,7 +9,7 @@
 export const STEPS = ['splash', 'intro1', 'intro2', 'intro3', 'signin', 'preparing', 'courses', 'nickname', 'reminders', 'done', 'finished'] as const;
 export type Step = (typeof STEPS)[number];
 
-/** first: a new install; relogin: signing in again after Keluar (no splash, no intro); switch: another account was confirmed (sync and courses only). */
+/** first: a new install; relogin: signing in again after Keluar (no splash, no intro); switch: another account was confirmed (sync, courses, nickname; reminder settings stay). */
 export type FlowMode = 'first' | 'relogin' | 'switch';
 
 /** The first sync's result as the preparing screen sees it. */
@@ -49,9 +49,9 @@ export function start(mode: FlowMode): FlowState {
   return { step, mode, signinNote: null, prep: 'pending', courseCount: 0, selected: 0 };
 }
 
-/** The setup steps a mode asks (a switched account keeps its nickname and reminders). */
+/** The setup steps a mode asks. A switched account: courses, then the nickname (the previous one was removed with its data); the reminder settings stay. */
 export function setupSteps(mode: FlowMode): readonly Step[] {
-  return mode === 'switch' ? ['courses'] : SETUP;
+  return mode === 'switch' ? ['courses', 'nickname'] : SETUP;
 }
 
 /** Optional steps carry "Lewati": the intro (to sign-in), the nickname and the reminders. Courses never. */
@@ -187,7 +187,7 @@ export function resume(saved: SavedFlow | null, ctx: { signedIn: boolean; hasDat
   return { ...start(saved.mode), step: saved.step };
 }
 
-/** Steps 6-8 as "1 of 3" for the segmented bar (switch mode: 1 of 1). */
+/** Steps 6-8 as "1 of 3" for the segmented bar (switch mode: 1 of 2, 2 of 2). */
 export function setupProgress(state: FlowState): { index: number; total: number } | null {
   const steps = setupSteps(state.mode);
   const i = steps.indexOf(state.step);

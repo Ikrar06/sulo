@@ -55,13 +55,23 @@ describe('mobile onboarding flow', () => {
     expect(start('relogin').step).toBe('signin');
     expect(back(start('relogin'))).toBe('exit');
   });
-  it('a switched account syncs, picks courses, and is finished (nickname and reminders kept)', () => {
+  it('a switched account syncs, picks courses, then the nickname, and is finished (reminder settings kept)', () => {
     const s = start('switch');
     expect(s.step).toBe('preparing');
     const courses = run(s, ok());
     expect(courses.step).toBe('courses');
-    expect(setupProgress(courses)).toEqual({ index: 0, total: 1 });
-    expect(run(courses, { type: 'NEXT' }).step).toBe('finished');
+    expect(setupProgress(courses)).toEqual({ index: 0, total: 2 });
+    const nickname = run(courses, { type: 'NEXT' });
+    expect(nickname.step).toBe('nickname');
+    expect(setupProgress(nickname)).toEqual({ index: 1, total: 2 });
+    // Back from the nickname goes to the courses; skipping it finishes too.
+    expect(back(nickname)).toMatchObject({ step: 'courses' });
+    expect(run(nickname, { type: 'NEXT' }).step).toBe('finished');
+    expect(run(nickname, { type: 'SKIP' }).step).toBe('finished');
+  });
+  it('a switched account with no course at all goes straight to the nickname', () => {
+    const s = run(start('switch'), { type: 'SYNC_DONE', result: 'ok', courseCount: 0, selected: 0 });
+    expect(s.step).toBe('nickname');
   });
   it('back moves one step; Android leaves the app at the splash and the first intro screen', () => {
     expect(back(start('first'))).toBe('exit');
