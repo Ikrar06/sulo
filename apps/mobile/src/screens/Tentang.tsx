@@ -49,6 +49,8 @@ export function TentangScreen() {
             <p className="text-m13 text-muted-foreground">{t.tagline}</p>
             <button type="button" onClick={tap} className="m-hit mt-1 block rounded text-left text-m12 text-muted-foreground tabular-nums outline-none focus-ring:ring-2 focus-ring:ring-focus">
               {w.about.apkVersion(__SULO_VERSION__)}
+              {/* Debug builds: which commit is installed. */}
+              {__SULO_DEV__ && ` · ${__SULO_COMMIT__}`}
             </button>
           </div>
         </div>

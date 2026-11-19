@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -40,11 +42,44 @@ function neosiaPageScript(): Plugin {
   };
 }
 
+/**
+ * The commit this build is made from: CI's GITHUB_SHA, else git's HEAD; a
+ * local build from a changed tree is marked dirty. Shown on Tentang in debug
+ * builds and written to dist/build-info.json (in the APK's assets), which
+ * pnpm mobile:install and mobile:fetch-apk read to say which build it is.
+ */
+function buildCommit(): { commit: string; short: string; dirty: boolean } {
+  const git = (...args: string[]) => {
+    try {
+      return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    } catch {
+      return '';
+    }
+  };
+  const commit = process.env.GITHUB_SHA || git('rev-parse', 'HEAD') || 'unknown';
+  const dirty = !process.env.GITHUB_SHA && git('status', '--porcelain', '--', '.', '../../packages') !== '';
+  return { commit, short: commit.slice(0, 7) + (dirty ? '+' : ''), dirty };
+}
+
+function buildInfo(mode: string, info: ReturnType<typeof buildCommit>): Plugin {
+  return {
+    name: 'sulo-build-info',
+    apply: 'build',
+    writeBundle(options) {
+      const dir = options.dir ?? 'dist';
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(`${dir}/build-info.json`, `${JSON.stringify({ commit: info.commit, dirty: info.dirty, mode, version: pkg.version })}\n`);
+    },
+  };
+}
+
+const commit = buildCommit();
+
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss(), ...(mode === 'web' ? [] : [neosiaPageScript()])],
+  plugins: [react(), tailwindcss(), ...(mode === 'web' ? [] : [neosiaPageScript(), buildInfo(mode, commit)])],
   resolve: { alias },
   // __SULO_DEV__: the hidden session-age screen, in mobile:web and the debug APK (mode "debug") only.
-  define: { __SULO_VERSION__: JSON.stringify(pkg.version), __SULO_WEB_FAKE__: JSON.stringify(mode === 'web'), __SULO_DEV__: JSON.stringify(mode === 'web' || mode === 'debug') },
+  define: { __SULO_VERSION__: JSON.stringify(pkg.version), __SULO_COMMIT__: JSON.stringify(commit.short), __SULO_WEB_FAKE__: JSON.stringify(mode === 'web'), __SULO_DEV__: JSON.stringify(mode === 'web' || mode === 'debug') },
   server: { port: 5174, strictPort: true },
   build: { outDir: 'dist', emptyOutDir: true, target: 'es2022' },
 }));
