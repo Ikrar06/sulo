@@ -8,6 +8,9 @@ const config: CapacitorConfig = {
   appId: 'dev.ikrar.sulo',
   appName: 'Sulo',
   webDir: 'dist',
+  // Capacitor logs every plugin call and its result to logcat in debug builds, which
+  // would put stored data (SIKOLA's tasks, the account id) in the system log. Never.
+  loggingBehavior: 'none',
   android: {
     // No mixed content, no remote debugging in release builds (Capacitor's default).
     allowMixedContent: false,
