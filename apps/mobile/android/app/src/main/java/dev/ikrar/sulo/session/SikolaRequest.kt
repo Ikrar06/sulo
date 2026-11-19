@@ -47,29 +47,34 @@ object SikolaRequest {
         return "${Sikola.ORIGIN}/lib/ajax/service.php?sesskey=$sesskey&info=$info$tail"
     }
 
-    /** Moodle's "please log in again": the session is over. */
-    fun loginRequired(body: String): Boolean = errorcodes(body).any { it == "servicerequireslogin" || it == "requireloginerror" }
-
-    fun invalidSesskey(body: String): Boolean = "invalidsesskey" in errorcodes(body)
-
     /**
-     * Moodle's error codes, from where Moodle puts them only: the top-level
-     * object's errorcode, or exception.errorcode of a result with error=true.
-     * Text inside course data never counts (a task named "servicerequireslogin"
-     * must not end the session).
+     * Moodle's "please log in again": the session is over. Read the way core
+     * reads it (packages/core/src/moodle/client.ts interpretBatch): only a
+     * top-level error, or an error on core_session_time_remaining itself.
+     * An error on another call is that call's own: requireloginerror on one
+     * course's get_state means that course can't be opened (hidden, enrolment
+     * ended), not that the user is signed out. Moodle stops the batch at the
+     * first error, so the calls after it simply have no answer.
      */
-    fun errorcodes(body: String): List<String> = runCatching {
+    fun loginRequired(body: String, functions: List<String>): Boolean = sessionCodes(body, functions).any { it in LOGIN_CODES }
+
+    fun invalidSesskey(body: String, functions: List<String>): Boolean = "invalidsesskey" in sessionCodes(body, functions)
+
+    private val LOGIN_CODES = setOf("servicerequireslogin", "requireloginerror")
+
+    /** The error codes that speak for the whole session: top-level, or core_session_time_remaining's own. */
+    fun sessionCodes(body: String, functions: List<String>): List<String> {
         val text = body.trim()
-        when {
-            text.startsWith("[") -> {
-                val array = JSONArray(text)
-                (0 until array.length()).mapNotNull { i ->
-                    val item = array.optJSONObject(i) ?: return@mapNotNull null
-                    if (item.optBoolean("error", false)) item.optJSONObject("exception")?.optString("errorcode")?.ifEmpty { null } else null
+        return runCatching {
+            when {
+                text.startsWith("{") -> listOfNotNull(JSONObject(text).optString("errorcode").ifEmpty { null })
+                text.startsWith("[") -> {
+                    val at = functions.indexOf("core_session_time_remaining")
+                    val item = if (at >= 0) JSONArray(text).optJSONObject(at) else null
+                    listOfNotNull(item?.takeIf { it.optBoolean("error", false) }?.optJSONObject("exception")?.optString("errorcode")?.ifEmpty { null })
                 }
+                else -> emptyList()
             }
-            text.startsWith("{") -> listOfNotNull(JSONObject(text).optString("errorcode").ifEmpty { null })
-            else -> emptyList()
-        }
-    }.getOrDefault(emptyList())
+        }.getOrDefault(emptyList())
+    }
 }

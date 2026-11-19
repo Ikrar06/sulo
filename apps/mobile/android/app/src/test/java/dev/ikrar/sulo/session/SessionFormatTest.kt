@@ -153,15 +153,30 @@ class SikolaRequestTest {
         assertNull(SikolaRequest.allowedFunctions("not json"))
     }
 
+    private val batch = listOf("core_session_time_remaining", "core_calendar_get_action_events_by_timesort", "core_courseformat_get_state")
+
     @Test
     fun sessionEndsAreRecognised() {
-        assertTrue(SikolaRequest.loginRequired("""[{"error":true,"exception":{"errorcode":"servicerequireslogin"}}]"""))
-        assertTrue(SikolaRequest.invalidSesskey("""{"error":"x","errorcode":"invalidsesskey"}"""))
-        assertFalse(SikolaRequest.loginRequired("""[{"error":false,"data":{"timeremaining":7140}}]"""))
+        assertTrue(SikolaRequest.loginRequired("""[{"error":true,"exception":{"errorcode":"servicerequireslogin"}}]""", batch))
+        assertTrue(SikolaRequest.loginRequired("""[{"error":true,"exception":{"errorcode":"requireloginerror"}}]""", batch))
+        assertTrue(SikolaRequest.loginRequired("""{"error":"x","errorcode":"requireloginerror"}""", batch))
+        assertTrue(SikolaRequest.invalidSesskey("""{"error":"x","errorcode":"invalidsesskey"}""", batch))
+        assertFalse(SikolaRequest.loginRequired("""[{"error":false,"data":{"timeremaining":7140}}]""", batch))
         // The same words inside course data never end the session.
-        assertFalse(SikolaRequest.loginRequired("""[{"error":false,"data":{"events":[{"name":"Tugas \"servicerequireslogin\""}]}}]"""))
-        assertFalse(SikolaRequest.invalidSesskey("""[{"error":false,"data":{"text":"\"invalidsesskey\""}}]"""))
-        assertTrue(SikolaRequest.loginRequired("""[{"error":false,"data":{}},{"error":true,"exception":{"errorcode":"requireloginerror"}}]"""))
-        assertFalse(SikolaRequest.loginRequired("<html>servicerequireslogin</html>"))
+        assertFalse(SikolaRequest.loginRequired("""[{"error":false,"data":{"events":[{"name":"Tugas \"servicerequireslogin\""}]}}]""", batch))
+        assertFalse(SikolaRequest.invalidSesskey("""[{"error":false,"data":{"text":"\"invalidsesskey\""}}]""", batch))
+        assertFalse(SikolaRequest.loginRequired("<html>servicerequireslogin</html>", batch))
+    }
+
+    @Test
+    fun oneCourseThatCannotBeOpenedIsNotASignOut() {
+        // 20 Nov 2026 on the phone: time_remaining answered, then one course's get_state failed with
+        // requireloginerror and Moodle stopped the batch there. The session was alive.
+        val body = """[{"error":false,"data":{"timeremaining":7000}},{"error":false,"data":{"events":[]}},{"error":true,"exception":{"errorcode":"requireloginerror"}}]"""
+        assertFalse(SikolaRequest.loginRequired(body, batch))
+        assertFalse(SikolaRequest.loginRequired("""[{"error":true,"exception":{"errorcode":"requireloginerror"}}]""", listOf("core_courseformat_get_state")))
+        assertFalse(SikolaRequest.invalidSesskey("""[{"error":false,"data":{}},{"error":true,"exception":{"errorcode":"invalidsesskey"}}]""", batch))
+        // When time_remaining itself says so, it is the session.
+        assertTrue(SikolaRequest.loginRequired("""[{"error":false,"data":{}},{"error":true,"exception":{"errorcode":"servicerequireslogin"}}]""", listOf("core_calendar_get_action_events_by_timesort", "core_session_time_remaining")))
     }
 }

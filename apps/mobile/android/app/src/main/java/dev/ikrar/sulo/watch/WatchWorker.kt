@@ -131,12 +131,12 @@ class WatchRun(private val context: Context) {
             store.setBackoff(WatchCheck.afterFailure(backoff, now, reply.retryAfter?.trim()?.toLongOrNull(), Math.random()))
             return scheduleNext(plan, now, waitUntil = store.backoff()?.optLong("nextAllowedAt", 0) ?: 0)
         }
-        if (SikolaRequest.loginRequired(reply.body) || (reply.status in 300..399 && reply.location?.contains("/login/") == true)) {
+        if (SikolaRequest.loginRequired(reply.body, functions) || (reply.status in 300..399 && reply.location?.contains("/login/") == true)) {
             record(now, started, bytes, "expired")
             vault.markExpired("watch_login_required")
             return sessionEnded(plan, now)
         }
-        if (SikolaRequest.invalidSesskey(reply.body)) {
+        if (SikolaRequest.invalidSesskey(reply.body, functions)) {
             // Only the user's next sync may fetch a new sesskey; wait for it.
             record(now, started, bytes, "invalid_sesskey")
             vault.save(session!!.copy(sesskey = null))
