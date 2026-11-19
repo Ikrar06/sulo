@@ -8,14 +8,15 @@
 // for one tier (?perf=full|lite). Two targets:
 //   --target=web (default): vite preview of `vite build --mode web` in
 //     headless Chromium at 360x800, CPU slowed --cpu times (default 6).
-//   --target=cdp --cdp=http://127.0.0.1:9222: the measuring APK's WebView
-//     on an emulator (CI's perf job), reached through adb's devtools socket.
-//     Cold open there is measured by the job from logcat instead.
+//   --target=cdp: the measuring APK's WebView on an emulator (CI's perf
+//     job), reached through adb with Playwright's Android support (plain
+//     connectOverCDP cannot drive a WebView). Cold open there is measured
+//     by the job from logcat instead.
 // Usage: node scripts/perf-measure.mjs --tier=lite [--cpu=6] [--minutes=5]
-//        [--target=cdp --cdp=URL --origin=https://localhost] [--out=file.json]
+//        [--target=cdp --origin=https://localhost] [--out=file.json]
 import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { _android as android, chromium } from 'playwright';
 import { MOBILE } from './env.mjs';
 import { walk } from './onboarding-walk.mjs';
 
@@ -64,16 +65,19 @@ if (target === 'web') {
   browser = await chromium.launch({ channel: 'chromium', headless: true });
   origin = `http://localhost:${PORT}`;
 } else {
-  browser = await chromium.connectOverCDP(arg('cdp', 'http://127.0.0.1:9222'));
+  const [device] = await android.devices();
+  if (!device) throw new Error('no Android device');
+  const webview = await device.webView({ pkg: 'dev.ikrar.sulo' }, { timeout: 90000 });
+  const page = await webview.page();
+  browser = { close: () => device.close(), page };
   origin = arg('origin', 'https://localhost');
 }
 
 async function newPage() {
   if (target === 'cdp') {
-    const context = browser.contexts()[0];
-    const page = context.pages()[0];
+    const page = browser.page;
     page.setDefaultTimeout(30000);
-    return { context, page, cdp: await context.newCDPSession(page), close: async () => undefined };
+    return { context: page.context(), page, cdp: await page.context().newCDPSession(page), close: async () => undefined };
   }
   const context = await browser.newContext({ viewport: { width: 360, height: 800 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'id-ID', timezoneId: 'Asia/Makassar' });
   const page = await context.newPage();
