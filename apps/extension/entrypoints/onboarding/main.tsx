@@ -4,11 +4,12 @@ import ReactDOM from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { AccountMismatch } from '@/components/onboarding/AccountMismatch';
 import { CoursesFooter, StepCourses } from '@/components/onboarding/CourseStep';
-import { ConnectIllustration, connectVisual } from '@/components/onboarding/illustrations';
 import { ManageFooter, ManageNoChanges, ManageSaved } from '@/components/onboarding/ManageCourses';
-import { SampleCard } from '@/components/onboarding/SampleCard';
 import { OnboardingShell } from '@/components/onboarding/Shell';
-import { StepConnect, StepDone, StepIntro, StepWhatsNew, type ConnectStatus } from '@/components/onboarding/Steps';
+import { StepWhatsNew, type ConnectStatus } from '@/components/onboarding/Steps';
+import { Journey } from '@/components/onboarding/journey';
+import { ConnectText, CoursesText, DoneText, INTRO_PAGES, IntroText, introScene, SceneConnect, SceneCourses, SceneDone, WhyDialog } from '@/components/onboarding/journey-steps';
+import { ONBOARDING_STAGES_KEY, type OnboardingStages } from '@sulo/core/onboarding/stages';
 import { ACCOUNT_PENDING_KEY, readPending } from '@sulo/core/account/pending';
 import { accountStatus, decideOnboardingMode, resumeStep, SETUP_PROGRESS_KEY, setupStatus, type OnboardingMode } from '@sulo/core/account/state';
 import { createBrowserStore } from '@/src/platform/store';
@@ -104,6 +105,11 @@ function App() {
   const [ownerId, setOwnerId] = useState<number | null>(null);
   const [accountChanged, setAccountChanged] = useState(false);
   const connecting = useRef(false);
+  // Tahap 2: the intro's page, "Kenapa aman?", and the setup sync's real stages with the counts they found.
+  const [introPage, setIntroPage] = useState(0);
+  const [whyOpen, setWhyOpen] = useState(false);
+  const [stages, setStages] = useState<OnboardingStages['stages']>([]);
+  const [counts, setCounts] = useState({ tasks: 0, courses: 0 });
 
   const steps = visibleSteps(ONBOARDING_STEPS, { completed, mode: mode === 'switch-account' ? 'switch-account' : 'first-run' });
   const goNext = (from: M2StepId) => setScreen(nextStep(steps, from));
@@ -229,6 +235,41 @@ function App() {
     browser.storage.onChanged.addListener(onChange);
     return () => browser.storage.onChanged.removeListener(onChange);
   }, [screen, tryConnect]);
+
+  // "Menyiapkan Sulo": the setup sync's stages as the background stores them, and what they found.
+  useEffect(() => {
+    if (screen !== 'connect') return;
+    const onChange = (changes: Record<string, { newValue?: unknown }>, area: string) => {
+      if (area !== 'session' || !(ONBOARDING_STAGES_KEY in changes)) return;
+      const next = (changes[ONBOARDING_STAGES_KEY]!.newValue as OnboardingStages | undefined)?.stages ?? [];
+      setStages(next);
+      void (async () => {
+        const userId = await currentUser(local);
+        if (userId === null) return;
+        const [tasks, list] = await Promise.all([readUser(local, userId, 'tasks'), readUser(local, userId, 'courses')]);
+        setCounts({ tasks: tasks.filter((t) => t.missingSince === null).length, courses: list.filter((c) => c.inProgress).length });
+      })();
+    };
+    browser.storage.onChanged.addListener(onChange);
+    return () => browser.storage.onChanged.removeListener(onChange);
+  }, [screen]);
+
+  // The intro's pages with the arrow keys (not while typing).
+  useEffect(() => {
+    if (screen !== 'intro') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || document.querySelector('[role="alertdialog"]')) return;
+      if (e.key === 'ArrowRight') setIntroPage((p) => Math.min(INTRO_PAGES - 1, p + 1));
+      if (e.key === 'ArrowLeft') setIntroPage((p) => Math.max(0, p - 1));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [screen]);
+
+  // Each new step or page takes the focus to its title (shown as a ring only for keyboards).
+  useEffect(() => {
+    document.getElementById('ob-title')?.focus({ preventScroll: true });
+  }, [screen, introPage]);
 
   const onToggle = (courseId: CourseId, active: boolean) => setCourses((draft) => toggleDraft(draft, courseId, active));
 
@@ -380,32 +421,52 @@ function App() {
   }
 
   if (screen !== 'intro' && screen !== 'connect' && screen !== 'courses' && screen !== 'done') return null;
-  const now = Math.floor(Date.now() / 1000);
-  const visual = connectVisual(connect);
-  const aside =
-    screen === 'intro' ? (
-      <SampleCard now={now} timeZone={timeZone} mascot="onboarding" />
-    ) : screen === 'connect' ? (
-      <ConnectIllustration wire={visual.wire} mascot={visual.mascot} />
-    ) : screen === 'done' && ownView ? (
-      <SampleCard now={now} timeZone={timeZone} mascot="all-done" celebrate={1} view={ownView} label={m.onboarding.done.listLabel} />
-    ) : undefined;
 
+  // Tahap 2: the journey (components/onboarding/journey.tsx), one column of text beside the scene.
+  // The bar counts the setup steps after the intro (as on the phone); the intro shows "Lewati" instead.
+  const setupSteps = steps.filter((s) => s.id !== 'intro');
+  const progress = screen === 'intro' ? undefined : progressOf(setupSteps, screen);
+  const selected = courses.filter(isCourseActive).length;
+  const nextIntro = () => (introPage < INTRO_PAGES - 1 ? setIntroPage(introPage + 1) : void onNoticeRead(nextStep(steps, 'intro')));
+  const scene =
+    screen === 'intro' ? (
+      introScene(introPage)
+    ) : screen === 'connect' ? (
+      <SceneConnect preparing={connect === 'connected'} stages={stages} counts={counts} />
+    ) : screen === 'courses' ? (
+      <SceneCourses courses={courses} onToggle={onToggle} />
+    ) : (
+      <SceneDone tasks={ownView?.pendingCount ?? 0} courses={selected} />
+    );
   return (
-    <OnboardingShell
-      stepKey={screen}
-      progress={progressOf(steps, screen)}
-      aside={aside}
-      full={screen === 'courses'}
-      footer={screen === 'courses' ? <CoursesFooter selected={courses.filter(isCourseActive).length} saving={saving} onNext={() => void onSave()} /> : undefined}
+    <Journey
+      stepKey={screen === 'intro' ? `intro-${introPage}` : screen}
+      progress={progress}
+      scene={scene}
+      sceneInteractive={screen === 'courses'}
+      onSkip={screen === 'intro' ? () => void onNoticeRead(nextStep(steps, 'intro')) : undefined}
+      footnote={m.disclaimerShort}
     >
-      {screen === 'intro' && <StepIntro noticeOutdated={noticeRead > 0 && noticeRead < NOTICE_VERSION} onContinue={() => void onNoticeRead(nextStep(steps, 'intro'))} />}
+      {screen === 'intro' && (
+        <>
+          <IntroText page={introPage} onNext={nextIntro} onGo={setIntroPage} onBack={introPage > 0 ? () => setIntroPage(introPage - 1) : undefined} onWhy={() => setWhyOpen(true)} />
+          <WhyDialog
+            open={whyOpen}
+            onOpenChange={setWhyOpen}
+            points={m.onboarding.intro.points}
+            outdated={noticeRead > 0 && noticeRead < NOTICE_VERSION ? m.onboarding.intro.noticeUpdated : undefined}
+            onPrivacy={() => void browser.tabs.create({ url: browser.runtime.getURL('/privacy.html') })}
+          />
+        </>
+      )}
       {screen === 'connect' && (
-        <StepConnect
-          status={connect}
+        <ConnectText
+          phase={connect}
+          preparing={connect === 'connected'}
+          stages={stages}
           failedReason={failedReason}
-          lead={mode === 'switch-account' ? m.onboarding.switchAccount.lead : undefined}
-          onOpenSikola={() => {
+          switching={mode === 'switch-account'}
+          onOpen={() => {
             setConnect('waiting');
             // First setup: no account yet, so the login page. Switching accounts: another account is signed in, so SIKOLA's dashboard.
             void browser.tabs.create({ url: sikolaUrl(mode === 'switch-account' ? 'mismatch' : 'none') });
@@ -413,9 +474,9 @@ function App() {
           onRetry={() => void tryConnect('retry')}
         />
       )}
-      {screen === 'courses' && <StepCourses courses={courses} onToggle={onToggle} />}
-      {screen === 'done' && <StepDone tasks={ownView?.pendingCount ?? 0} note={doneNote} onOpen={() => void onOpenPopup(setDoneNote)} />}
-    </OnboardingShell>
+      {screen === 'courses' && <CoursesText selected={selected} saving={saving} onNext={() => void onSave()} />}
+      {screen === 'done' && <DoneText onOpen={() => location.assign(browser.runtime.getURL('/dashboard.html#ringkasan'))} />}
+    </Journey>
   );
 }
 
