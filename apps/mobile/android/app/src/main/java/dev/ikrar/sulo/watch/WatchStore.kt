@@ -45,10 +45,10 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
     @Synchronized fun setExpiredSent() { prefs.edit().putBoolean(KEY_EXPIRED_SENT, true).commit() }
 
     @Synchronized fun overlay(): JSONObject = json(KEY_OVERLAY) ?: WatchCheck.emptyOverlay()
-    @Synchronized fun setOverlay(o: JSONObject) = put(KEY_OVERLAY, o.toString())
+    @Synchronized fun setOverlay(o: JSONObject, gen: Long? = null) { if (gen == null || gen == generation()) put(KEY_OVERLAY, o.toString()) }
 
     @Synchronized fun held(): List<JSONObject> = array(KEY_HELD).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
-    @Synchronized fun setHeld(list: List<JSONObject>) = put(KEY_HELD, if (list.isEmpty()) null else JSONArray(list).toString())
+    @Synchronized fun setHeld(list: List<JSONObject>, gen: Long? = null) { if (gen == null || gen == generation()) put(KEY_HELD, if (list.isEmpty()) null else JSONArray(list).toString()) }
 
     @Synchronized fun radarCursor(): Int = prefs.getInt(KEY_CURSOR, 0)
     @Synchronized fun setRadarCursor(v: Int) { prefs.edit().putInt(KEY_CURSOR, v).commit() }
@@ -77,7 +77,9 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
     @Synchronized fun simHeld(): List<JSONObject> = array(KEY_SIM_HELD).let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
     @Synchronized fun setSimHeld(list: List<JSONObject>) = put(KEY_SIM_HELD, if (list.isEmpty()) null else JSONArray(list).toString())
 
-    @Synchronized fun enqueue(answer: JSONObject) {
+    /** `gen`: the generation the check started with; an answer from before a reset is dropped. */
+    @Synchronized fun enqueue(answer: JSONObject, gen: Long? = null) {
+        if (gen != null && gen != generation()) return
         put(KEY_LAST, crypto.encrypt(answer.toString().toByteArray(Charsets.UTF_8)))
         val q = array(KEY_QUEUE)
         val items = (0 until q.length()).map { q.getString(it) }.toMutableList()
@@ -127,7 +129,21 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
     @Synchronized fun takePendingOpen(): String? = prefs.getString(KEY_OPEN, null).also { put(KEY_OPEN, null) }
 
     /** "Keluar": everything the worker kept. */
-    @Synchronized fun clear() { prefs.edit().clear().commit() }
+    @Synchronized fun clear() = reset()
+
+    /**
+     * Everything the worker kept goes, and the generation moves on: a check
+     * that started before (it read [generation] then) can no longer write its
+     * answer, overlay or held notices after this ("Pakai akun ini" while the
+     * worker runs).
+     */
+    @Synchronized fun reset() {
+        val next = prefs.getLong(KEY_GENERATION, 0) + 1
+        prefs.edit().clear().putLong(KEY_GENERATION, next).commit()
+    }
+
+    /** Read at the start of a check; writes made with an older one are dropped. */
+    @Synchronized fun generation(): Long = prefs.getLong(KEY_GENERATION, 0)
 
     companion object {
         const val PREFS = "sulo_watch"
@@ -145,6 +161,7 @@ class WatchStore(private val prefs: SharedPreferences, private val shared: Share
         private const val KEY_PLANNED = "plannedAt"
         private const val KEY_EXPIRED_NOTICE = "expiredNoticeAt"
         private const val KEY_QUEUE = "queue"
+        private const val KEY_GENERATION = "generation"
         private const val KEY_FULL_SYNC = "fullSync"
         private const val KEY_TIMINGS = "timings"
         private const val KEY_ENDS = "sessionEnds"

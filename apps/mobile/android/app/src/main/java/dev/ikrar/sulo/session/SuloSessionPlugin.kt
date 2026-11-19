@@ -187,14 +187,7 @@ class SuloSessionPlugin : Plugin() {
      */
     @PluginMethod
     fun discardSession(call: PluginCall) {
-        CookieManager.getInstance().removeAllCookies {
-            CookieManager.getInstance().flush()
-            WebStorage.getInstance().deleteAllData()
-            io.execute {
-                vault.markExpired()
-                call.resolve(JSObject().put("status", vault.status()))
-            }
-        }
+        accountReset().discardSession { status -> call.resolve(JSObject().put("status", status)) }
     }
 
     /**
@@ -205,11 +198,24 @@ class SuloSessionPlugin : Plugin() {
     @PluginMethod
     fun watchReset(call: PluginCall) {
         io.execute {
-            runCatching { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
-            runCatching { dev.ikrar.sulo.watch.WatchStore(context).clear() }
+            accountReset().watchReset()
             call.resolve()
         }
     }
+
+    private fun accountReset() = AccountReset(
+        vault,
+        dev.ikrar.sulo.watch.WatchStore(context),
+        object : CookieJar {
+            override fun clearAll(done: () -> Unit) {
+                CookieManager.getInstance().removeAllCookies {
+                    CookieManager.getInstance().flush()
+                    WebStorage.getInstance().deleteAllData()
+                    io.execute(done)
+                }
+            }
+        },
+    ) { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
 
     // ---------- App lock (optional, off by default; the setting lives in the app) ----------
 

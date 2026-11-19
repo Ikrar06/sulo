@@ -127,7 +127,8 @@ class WatchStoreTest {
         assertTrue(s.held().isEmpty())
         s.recordTiming(JSONObject().put("ranAt", 5).put("ms", 900).put("bytes", 4000).put("outcome", "ok"))
         s.clear()
-        assertTrue(prefs.map.isEmpty())
+        // Only the generation is left (it moves on, so a running check cannot write back).
+        assertEquals(setOf("generation"), prefs.map.keys)
     }
 }
 

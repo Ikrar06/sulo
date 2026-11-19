@@ -36,6 +36,8 @@ class WatchWorker(context: Context, params: WorkerParameters) : Worker(context, 
 }
 
 class WatchRun(private val context: Context) {
+    /** The store's generation when this check started (see WatchStore.reset). */
+    private var runGen = 0L
     private val store = WatchStore(context)
     private val vault = SessionVault(context)
     private val http = SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)")
@@ -49,6 +51,9 @@ class WatchRun(private val context: Context) {
     fun run(mode: String) {
         val started = System.currentTimeMillis()
         val now = nowSec()
+        // A reset after this point ("Pakai akun ini") makes this check's writes void.
+        val gen = store.generation()
+        runGen = gen
         val plan = store.plan()
         if (mode == WatchScheduler.MODE_EXPIRED_NOTICE) return expiredNotice(plan, now, chainStopped = true)
 
@@ -125,7 +130,7 @@ class WatchRun(private val context: Context) {
         }
         if (store.backoff()?.optInt("failures", 0) ?: 0 > 0) store.setBackoff(JSONObject().put("failures", 0).put("nextAllowedAt", 0))
 
-        store.enqueue(JSONObject().put("ranAt", now).put("plannedAt", store.plannedAt().takeIf { it > 0 } ?: now).put("radarIds", JSONArray(pick.ids)).put("body", reply.body))
+        store.enqueue(gen = gen, answer = JSONObject().put("ranAt", now).put("plannedAt", store.plannedAt().takeIf { it > 0 } ?: now).put("radarIds", JSONArray(pick.ids)).put("body", reply.body))
         val results = runCatching { JSONArray(reply.body) }.getOrNull()
         when (val outcome = WatchCheck.detect(plan, store.overlay(), now, results, pick.ids)) {
             WatchCheck.Outcome.Expired -> {
@@ -135,9 +140,10 @@ class WatchRun(private val context: Context) {
             }
             WatchCheck.Outcome.Unsure -> record(now, started, bytes, "unsure")
             is WatchCheck.Outcome.Ok -> {
-                store.setOverlay(outcome.overlay)
+                store.setOverlay(outcome.overlay, gen)
                 // A stale plan (over 48 hours): the baseline cannot be trusted, so no notice; core records it all.
-                if (!WatchCheck.planStale(plan, now)) announce(plan, outcome.changes, now)
+                // Not after a reset: the plan this check read belongs to the previous account.
+                if (!WatchCheck.planStale(plan, now) && gen == store.generation()) announce(plan, outcome.changes, now, gen)
                 record(now, started, bytes, "ok", outcome.changes.size)
             }
         }
@@ -145,9 +151,9 @@ class WatchRun(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
-    private fun announce(plan: JSONObject, changes: List<JSONObject>, now: Long) {
+    private fun announce(plan: JSONObject, changes: List<JSONObject>, now: Long, gen: Long) {
         val result = WatchCheck.notices(plan, changes, store.held(), now, minuteOfDay())
-        store.setHeld(result.hold)
+        store.setHeld(result.hold, gen)
         val channel = plan.getJSONObject("templates").getString("channel")
         result.send.forEach { WatchNotifier.show(context, channel, it) }
     }
@@ -159,6 +165,8 @@ class WatchRun(private val context: Context) {
     }
 
     private fun scheduleNext(plan: JSONObject, now: Long, waitUntil: Long = 0) {
+        // Reset while this check ran ("Pakai akun ini"): the chain stays stopped.
+        if (runGen != store.generation()) return
         val minutes = WatchCheck.nextDelayMinutes(plan, dayCtx(store.budget())) ?: return untilReset(now)
         WatchScheduler.next(context, maxOf(minutes * 60L, waitUntil - now), now)
     }
