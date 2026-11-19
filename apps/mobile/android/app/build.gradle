@@ -55,10 +55,15 @@ android {
         }
     }
     buildTypes {
+        // The name under the icon: "Sulo", and "Sulo (debug)" for a debug build so the two never mix up.
         debug {
             signingConfig signingConfigs.debug
+            resValue "string", "app_name", "Sulo (debug)"
+            resValue "string", "title_activity_main", "Sulo (debug)"
         }
         release {
+            resValue "string", "app_name", "Sulo"
+            resValue "string", "title_activity_main", "Sulo"
             if (System.getenv("SULO_KEYSTORE_FILE")) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

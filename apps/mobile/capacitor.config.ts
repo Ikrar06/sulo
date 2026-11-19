@@ -22,6 +22,10 @@ const config: CapacitorConfig = {
     // on its own scale and no published table maps it to Chromium 111. Every brand,
     // Huawei included, is held to Chromium 111 by the user-agent guard in index.html.
   },
+  plugins: {
+    // Reminders: the mascot's silhouette as the status bar icon (res/drawable/ic_stat_sulo.xml).
+    LocalNotifications: { smallIcon: 'ic_stat_sulo' },
+  },
   server: {
     // Plain HTML and CSS that works on WebView 69 (public/perlu-pembaruan.html).
     errorPath: 'perlu-pembaruan.html',
