@@ -196,10 +196,6 @@
   .obj-enter, .obj-text.obj-enter > * { animation: obj-fade 120ms ease-out both; }
 }
 
-/* "Belum ada tugas": one calm card, as tall as a short scene. */
-.obj-calm { min-height: 120px; }
-@media (min-width: 1024px) { .obj-calm { min-height: calc(var(--obj-area) * 0.42); } }
-
 /* The course list: as tall as its rows; at most 70 % of the content area, then it scrolls inside with faded edges. */
 .obj-list { max-height: calc(var(--obj-area) * 0.7); overflow-y: auto; overscroll-behavior: contain; }
 /* Faded only on an edge with more behind it, as the popup's list (a mask, never a colored band). */

@@ -5,6 +5,7 @@
 import type { TaskRow } from '@sulo/core/view/popup-view';
 import { extOnboardingWords } from '@sulo/core/i18n/ext-onboarding';
 import { useI18n } from '@sulo/ui/i18n';
+import { CheckIcon } from '@sulo/ui/icons';
 import { Chip } from '@sulo/ui/mobile/cards';
 import { TaskCardView } from '@sulo/ui/mobile/task-card';
 import { courseTint } from '@sulo/ui/mobile/tint';
@@ -30,7 +31,12 @@ export function SceneDone({ tasks }: { tasks: TaskRow[] }) {
     return (
       <div className="obj-scene">
         <In i={0}>
-          <div className="obj-calm m-card rounded-card flex items-center justify-center p-6 text-center text-[15px] leading-6 text-muted-foreground">{ext.done.noTasks}</div>
+          <div className="m-card rounded-card flex items-center gap-3 p-4 text-[14px] leading-5">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full" style={{ background: 'var(--layer-inset)' }}>
+              <CheckIcon className="size-4 text-muted-foreground" />
+            </span>
+            {ext.done.noTasks}
+          </div>
         </In>
       </div>
     );
