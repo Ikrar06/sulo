@@ -31,8 +31,8 @@ const id = {
     connectNotes: ['Sulo tidak pernah melihat password-mu.', 'Sesi SIKOLA tetap di browser ini.'],
   },
   intro3: {
-    title: 'Datamu tetap di browsermu',
-    body: 'Sulo hanya membaca. Tanpa server, tanpa pelacakan.',
+    title: 'Datamu tetap di browser-mu',
+    body: 'Tanpa server, tanpa iklan, tanpa pelacakan.',
     badges: ['Tanpa password', 'Hanya membaca', 'Tanpa server', 'Tanpa iklan', 'Tanpa akun Sulo', 'Hapus kapan saja'],
     data: ['Tugas', 'Kalender', 'Presensi'],
   },
@@ -81,8 +81,8 @@ const en: ExtWords = {
     connectNotes: ['Sulo never sees your password.', 'Your SIKOLA session stays in this browser.'],
   },
   intro3: {
-    title: 'Your data stays here',
-    body: 'Sulo only reads. No server, no tracking.',
+    title: 'Data stays in your browser',
+    body: 'No server, no ads, no tracking.',
     badges: ['No password', 'Read only', 'No server', 'No ads', 'No Sulo account', 'Delete any time'],
     data: ['Tasks', 'Calendar', 'Attendance'],
   },
