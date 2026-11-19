@@ -12,6 +12,7 @@
     "apk:debug": "node scripts/apk-debug.mjs",
     "install:apk": "node scripts/install-apk.mjs",
     "fetch:apk": "node scripts/fetch-apk.mjs",
+    "test:restart": "node scripts/test-restart.mjs",
     "live": "node scripts/live.mjs",
     "web:shots": "node scripts/web-shots.mjs",
     "typecheck": "tsc --noEmit",
