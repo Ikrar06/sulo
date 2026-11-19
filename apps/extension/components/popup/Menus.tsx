@@ -189,7 +189,7 @@ export function RowMenu({ row, snoozeOptions, onDone, onAddToCalendar, onSnooze 
         side="bottom"
         sideOffset={4}
         collisionPadding={8}
-        className="w-56 rounded-lg border border-border bg-surface p-1 text-foreground shadow-none ring-0"
+        className="w-64 rounded-lg border border-border bg-surface p-1 text-foreground shadow-none ring-0"
         onEscapeKeyDown={(e) => {
           // Escape in the snooze view goes back; the next one closes.
           if (apply({ type: 'key', key: 'Escape', onSnoozeItem: false }).effect === 'keepOpen') e.preventDefault();

@@ -175,3 +175,41 @@
 .rounded-card { border-radius: var(--radius-card); }
 .rounded-hero { border-radius: 20px; }
 .m-hit { position: relative; }
+
+/* ---------- Menus, selects and choice lists: the phone's sheet rows (Tahap 2, e9) ---------- */
+/* Rows 36 high at the desktop's 14, 12 from the sides, 10 between an icon and its text,
+   the check on the right; group labels muted 12; separators in the layer's line. The
+   popup's settings menu stays text only (its items carry no icon). */
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"] {
+  padding: 6px;
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="select-item"]) {
+  min-height: 36px;
+  padding-block: 6px;
+  padding-left: 12px;
+  gap: 10px;
+  border-radius: var(--radius-ctl);
+  font-size: 14px;
+  line-height: 20px;
+}
+:is([data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="select-item"]) {
+  padding-right: 36px;
+}
+:is([data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="select-item"]) > span:first-child {
+  right: 12px;
+}
+[data-slot="dropdown-menu-item"] {
+  padding-right: 12px;
+}
+[data-slot="dropdown-menu-label"] {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+[data-slot="dropdown-menu-separator"] {
+  margin: 6px 0;
+  background-color: var(--layer-line);
+}
