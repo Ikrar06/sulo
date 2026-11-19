@@ -20,7 +20,8 @@ export interface NeosiaTrialStats {
 }
 
 export interface SuloNeosiaPlugin {
-  open(options: { page: NeosiaPage; close: string }): Promise<void>;
+  /** Resolves when the NEOSIA screen closes: signed_in (it left the login page), needs_login (a page with the script reached the login page; the screen closed itself), or closed. */
+  open(options: { page: NeosiaPage; close: string }): Promise<{ result: 'signed_in' | 'needs_login' | 'closed' }>;
   trialStats(): Promise<NeosiaTrialStats>;
   resetTrial(): Promise<void>;
 }

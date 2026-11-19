@@ -2,6 +2,8 @@ package dev.ikrar.sulo.neosia
 
 import android.content.Intent
 import android.webkit.WebView
+import androidx.activity.result.ActivityResult
+import com.getcapacitor.annotation.ActivityCallback
 import androidx.webkit.WebViewFeature
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
@@ -26,8 +28,18 @@ class SuloNeosiaPlugin : Plugin() {
         val intent = Intent(context, NeosiaActivity::class.java)
             .putExtra(NeosiaActivity.EXTRA_PAGE, page.name)
             .putExtra(NeosiaActivity.EXTRA_CLOSE, call.getString("close") ?: "Tutup")
-        activity.startActivity(intent)
-        call.resolve()
+        startActivityForResult(call, intent, "neosiaClosed")
+    }
+
+    /** How the NEOSIA screen ended: signed_in (left the login page), needs_login (a page with the script reached the login page), or closed. */
+    @ActivityCallback
+    private fun neosiaClosed(call: PluginCall?, result: ActivityResult) {
+        val how = when (result.resultCode) {
+            NeosiaActivity.RESULT_SIGNED_IN -> "signed_in"
+            NeosiaActivity.RESULT_NEEDS_LOGIN -> "needs_login"
+            else -> "closed"
+        }
+        call?.resolve(JSObject().put("result", how))
     }
 
     /** The trial's counters (labels and numbers only), the WebView's version and its features. */

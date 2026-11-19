@@ -19,6 +19,15 @@ const list = (r: Record<string, number>) => Object.entries(r).map(([k, n]) => `$
 export function NeosiaTrialDev() {
   const [stats, setStats] = useState<NeosiaTrialStats | null>(null);
   const [error, setError] = useState('');
+  // The checklist's next step: after signing in, Beranda; when a page needed signing in, the login.
+  const [next, setNext] = useState<NeosiaPage | null>(null);
+  const [last, setLast] = useState('');
+  const open = (page: NeosiaPage) =>
+    void SuloNeosia.open({ page, close: 'Tutup' }).then(({ result }) => {
+      setLast(result === 'signed_in' ? 'Sudah masuk NEOSIA. Langkah berikutnya: Beranda.' : result === 'needs_login' ? 'NEOSIA meminta masuk; layar menutup sendiri. Masuk dulu.' : 'Ditutup.');
+      setNext(result === 'signed_in' ? 'home' : result === 'needs_login' ? 'login' : next);
+      void load();
+    });
   const load = () =>
     SuloNeosia.trialStats()
       .then((s) => {
@@ -43,11 +52,12 @@ export function NeosiaTrialDev() {
       </p>
       <div className="grid grid-cols-2 gap-2">
         {PAGES.map(([page, label]) => (
-          <PillButton key={page} onPress={() => void SuloNeosia.open({ page, close: 'Tutup' })}>
-            {label}
+          <PillButton key={page} kind={page === next ? "primary" : "secondary"} onPress={() => open(page)}>
+            {page === next ? `Berikutnya: ${label}` : label}
           </PillButton>
         ))}
       </div>
+      {last && <p role="status">{last}</p>}
       {error && <p>{error}</p>}
       {stats && (
         <div className="space-y-2">

@@ -51,12 +51,13 @@ class NeosiaActivity : Activity() {
     private var script: ScriptHandler? = null
     private var listening = false
     private var lastUrl: String? = null
+    private lateinit var page: NeosiaRules.Page
+    private var closing = false
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val page = NeosiaRules.page(intent.getStringExtra(EXTRA_PAGE))
-        if (page == null) {
+        page = NeosiaRules.page(intent.getStringExtra(EXTRA_PAGE)) ?: run {
             finish()
             return
         }
@@ -125,7 +126,12 @@ class NeosiaActivity : Activity() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val url = request.url.toString()
             if (!NeosiaRules.stays(url)) return request.isForMainFrame
-            if (request.isForMainFrame && NeosiaRules.isLogin(url)) detach()
+            if (request.isForMainFrame && NeosiaRules.isLogin(url) && page.script) {
+                // A page with the script never shows the login page: stop here, the app asks to sign in first.
+                detach()
+                close(RESULT_NEEDS_LOGIN)
+                return true
+            }
             return false
         }
 
@@ -143,11 +149,17 @@ class NeosiaActivity : Activity() {
         override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
             val wasLogin = NeosiaRules.isLogin(lastUrl)
             val nowLogin = NeosiaRules.isLogin(url)
-            if (nowLogin && !wasLogin) {
+            if (nowLogin && !wasLogin && page.script) {
+                // The app moved to its login page without a new document: the script must not stay on it.
                 NeosiaTrial.spaToLogin()
                 detach()
+                close(RESULT_NEEDS_LOGIN)
             }
-            if (wasLogin && !nowLogin) NeosiaTrial.spaFromLogin()
+            if (wasLogin && !nowLogin && lastUrl != null) {
+                // Signed in (the app left its login page): back to the checklist, whose next step opens a page with the script.
+                NeosiaTrial.spaFromLogin()
+                if (page == NeosiaRules.Page.LOGIN) close(RESULT_SIGNED_IN, SIGNED_IN_SETTLE_MS)
+            }
             lastUrl = url
             NeosiaRules.scrub(url)?.let { NeosiaTrial.page(it) }
         }
@@ -160,7 +172,16 @@ class NeosiaActivity : Activity() {
     }
 
     private fun back() {
-        if (webView.canGoBack()) webView.goBack() else finish()
+        if (webView.canGoBack()) webView.goBack() else close(RESULT_CANCELED)
+    }
+
+    /** Closes with `result` (once), after `delayMs`: a short pause lets NEOSIA finish writing its sign-in to its own storage. */
+    private fun close(result: Int, delayMs: Long = 0) {
+        if (closing) return
+        closing = true
+        CookieManager.getInstance().flush()
+        setResult(result)
+        if (delayMs <= 0) finish() else webView.postDelayed({ finish() }, delayMs)
     }
 
     private fun bar(c: Palette): LinearLayout = LinearLayout(this).apply {
@@ -183,7 +204,7 @@ class NeosiaActivity : Activity() {
             setColorFilter(c.text)
             background = null
             contentDescription = intent.getStringExtra(EXTRA_CLOSE) ?: "Close"
-            setOnClickListener { finish() }
+            setOnClickListener { close(RESULT_CANCELED) }
         }, LinearLayout.LayoutParams(dp(48), dp(48)))
     }
 
@@ -215,5 +236,11 @@ class NeosiaActivity : Activity() {
     companion object {
         const val EXTRA_PAGE = "sulo.neosia.page"
         const val EXTRA_CLOSE = "sulo.close"
+        /** Signed in on NEOSIA's login page. */
+        const val RESULT_SIGNED_IN = RESULT_FIRST_USER + 1
+        /** A page with the script went to the login page: sign in first. */
+        const val RESULT_NEEDS_LOGIN = RESULT_FIRST_USER + 2
+        /** How long the login page stays after signing in, for NEOSIA to store its sign-in. */
+        const val SIGNED_IN_SETTLE_MS = 1_500L
     }
 }
