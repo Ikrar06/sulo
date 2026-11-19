@@ -163,20 +163,21 @@ function SceneRemind() {
           </span>
         </span>
       </div>
-      {/* Two square tiles: the countdown (orange, ticking) and the attendance ring. */}
+      {/* Two tiles as tall as their content, the same height: the label, then 8 below it the value
+          (the countdown in orange, ticking; the attendance ring and its percentage). */}
       <div className="grid w-full grid-cols-2 gap-3">
         <In i={4}>
-          <div className="m-card rounded-card flex aspect-square flex-col justify-between p-5">
-            <p className="text-[13px] text-muted-foreground">{w.countdownLabel}</p>
-            <p className="db-accent-text text-[28px] leading-9 font-semibold whitespace-nowrap tabular-nums">{formatCountdown(left, locale)}</p>
+          <div className="m-card rounded-card flex flex-col gap-2 p-4">
+            <p className="text-[13px] leading-[18px] text-muted-foreground">{w.countdownLabel}</p>
+            <p className="db-accent-text flex h-9 items-center text-[24px] leading-9 font-semibold whitespace-nowrap tabular-nums">{formatCountdown(left, locale)}</p>
           </div>
         </In>
         <In i={5}>
-          <div className="m-card rounded-card flex aspect-square flex-col justify-between p-5">
-            <p className="text-[13px] text-muted-foreground">{w.attendanceLabel}</p>
-            <span className="flex items-center gap-4">
-              <ProgressRing value={86} size={72} stroke={8} label={`${w.attendanceLabel} 86%`} />
-              <span className="text-[28px] leading-9 font-semibold tabular-nums">86%</span>
+          <div className="m-card rounded-card flex flex-col gap-2 p-4">
+            <p className="text-[13px] leading-[18px] text-muted-foreground">{w.attendanceLabel}</p>
+            <span className="flex h-9 items-center gap-3">
+              <ProgressRing value={86} size={36} stroke={5} label={`${w.attendanceLabel} 86%`} />
+              <span className="text-[24px] leading-9 font-semibold tabular-nums">86%</span>
             </span>
           </div>
         </In>
