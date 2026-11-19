@@ -27,4 +27,16 @@ else if (info.dirty) console.warn('PERINGATAN: APK dibuat dari tree yang berubah
 else console.log(`Sama dengan HEAD ${branch} (${head}).`);
 // adb waits while the phone asks (Play Protect, or Samsung's install over USB): say where to look.
 console.log('Memasang. Kalau berhenti di "Performing Streamed Install", lihat layar HP: jawab dialog Play Protect atau konfirmasi pemasangan lewat USB.');
-execFileSync(adbPath(), ['install', '-r', DEBUG_APK], { stdio: 'inherit' });
+try {
+  const out = execFileSync(adbPath(), ['install', '-r', DEBUG_APK], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  process.stdout.write(out);
+} catch (e) {
+  const text = `${e.stdout ?? ''}${e.stderr ?? ''}`;
+  process.stderr.write(text);
+  if (/INSTALL_FAILED_UPDATE_INCOMPATIBLE/.test(text)) {
+    console.error('\nSulo di HP ditandatangani dengan kunci debug lain (build lama atau dari laptop lain).');
+    console.error('Hapus dulu, lalu pasang lagi. Data Sulo di HP ikut terhapus (sesi SIKOLA, pengaturan):');
+    console.error(`  ${adbPath()} uninstall dev.ikrar.sulo && pnpm mobile:install`);
+  }
+  process.exit(1);
+}

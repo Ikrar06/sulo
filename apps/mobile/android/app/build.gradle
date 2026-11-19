@@ -33,6 +33,17 @@ android {
     // lives in the repository. Without these variables a release build is
     // unsigned.
     signingConfigs {
+        // Debug builds, on CI and on a laptop, sign with one fixed debug key
+        // (sulo-debug.keystore, Android's usual debug password), so any debug
+        // APK updates any other. CI runners made a new key each run before,
+        // and the phone refused the update. Not the release key.
+        debug {
+            storeFile file("sulo-debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+            storeType "pkcs12"
+        }
         release {
             def keystore = System.getenv("SULO_KEYSTORE_FILE")
             if (keystore) {
@@ -44,6 +55,9 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             if (System.getenv("SULO_KEYSTORE_FILE")) signingConfig signingConfigs.release
             minifyEnabled false
