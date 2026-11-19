@@ -142,7 +142,7 @@ const en: Words = {
     attendanceLabel: 'Attendance',
   },
   intro3: {
-    title: 'Your data stays on your phone',
+    title: 'Data stays on your phone',
     body: 'No server, no ads, no tracking.',
     stage: 'Your data is kept inside the phone, locked.',
     badges: ['Password safe', 'Encrypted', 'No server'],
@@ -226,8 +226,3 @@ export function budgetedTexts(w: OnboardingWords): { titles: string[]; supports:
   };
 }
 
-/**
- * The owner's final copy that is over the budget by one character; kept
- * word for word and listed here so the test stays strict for everything else.
- */
-export const BUDGET_EXCEPTIONS: readonly string[] = ['Your data stays on your phone'];
