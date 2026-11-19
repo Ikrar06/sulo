@@ -37,7 +37,8 @@ import { createSingleFlight, isSyncRunning } from '@sulo/core/sync/lock';
 import { bumpUsage } from '@sulo/core/stats/usage';
 import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@sulo/core/account/pending';
 import { useNewAccount, wipeAllData } from '@sulo/core/account/actions';
-import { runSync } from '@sulo/core/sync/run-sync';
+import { runSync, type SyncStage } from '@sulo/core/sync/run-sync';
+import { ONBOARDING_STAGES_KEY, type OnboardingStages } from '@sulo/core/onboarding/stages';
 import { recordSeenCmid, refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
 import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@sulo/core/sync/relogin';
 import { setDone, setSnooze } from '@sulo/core/tasks/local-state';
@@ -306,7 +307,18 @@ export default defineBackground(() => {
     const unattended = trigger === 'background' || CATCHUP_TRIGGERS.has(trigger);
     const idleState: IdleState | undefined = unattended ? ((await browser.idle.queryState(IDLE_THRESHOLD_SEC)) as IdleState) : undefined;
     await recoverSesskeyIfAllowed(trigger);
-    const outcome = await runSync({ client, store: local, clock, trigger, idleState, forceCourseList });
+    // The onboarding's "Menyiapkan Sulo" follows the real stages as they finish (Tahap 2): each
+    // one is put in session storage for the setup page to read. Nothing else, no request of its own.
+    const seen: OnboardingStages['stages'] = [];
+    const onStage =
+      trigger === 'onboarding'
+        ? (stage: SyncStage, result: 'ok' | 'failed') => {
+            seen.push({ stage, result });
+            void session.set<OnboardingStages>(ONBOARDING_STAGES_KEY, { at: Date.now(), stages: [...seen] });
+          }
+        : undefined;
+    if (onStage) await session.set(ONBOARDING_STAGES_KEY, { at: Date.now(), stages: [] });
+    const outcome = await runSync({ client, store: local, clock, trigger, idleState, forceCourseList, onStage });
     if (outcome.status === 'invalid_sesskey') await session.remove(SESSKEY_KEY);
     await updateBadge();
     return outcome;
