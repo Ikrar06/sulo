@@ -31,6 +31,7 @@ import { OnboardingFlow } from './onboarding/OnboardingFlow';
 import { SwitchAccount } from './onboarding/SwitchAccount';
 import { holdWatching, keepPreviousAccount, switchPending, useOtherAccount } from './switch-account';
 import { readSavedFlow, saveFlow } from './onboarding/data';
+import { flushSheetWork } from '@sulo/ui/mobile/sheet';
 import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow';
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
@@ -185,6 +186,8 @@ export function App({ platform }: { platform: Platform }) {
   // Back in the foreground: lock again if on, and sync when the data is older than 15 minutes.
   useEffect(() => {
     const onVisible = async () => {
+      // To the background: work still waiting on a closing sheet runs now (Android may end the process).
+      if (document.visibilityState === 'hidden') return flushSheetWork();
       if (document.visibilityState !== 'visible') return;
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       void refreshPublicData(platform, true);
@@ -312,6 +315,9 @@ export function App({ platform }: { platform: Platform }) {
               onNearlyDone={() => void refreshState()}
               onCelebrated={() => mountWarmWhenIdle()}
               onFinish={() => {
+                // "Buka Sulo": the onboarding is finished on disk now, before any landing motion
+                // (a process ended during it would otherwise come back on "Semua siap").
+                void saveFlow(platform, { step: 'finished', mode: flow.mode });
                 const land = () => {
                   // The hero greets with the same happy face the flying mascot wears (its own 1.5 s cheer), so the hand-over shows nothing.
                   window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: true } }));

@@ -172,8 +172,8 @@ export function TaskScreen({ eventId }: { eventId: number }) {
               key={label}
               full
               onPress={() => {
+                state((s) => setSnooze(s, item.task.eventId, until));
                 setSnoozeOpen(false);
-                afterSheetClosed(() => state((s) => setSnooze(s, item.task.eventId, until)));
               }}
             >
               {label}
@@ -183,8 +183,8 @@ export function TaskScreen({ eventId }: { eventId: number }) {
             <PillButton
               full
               onPress={() => {
+                state((s) => setSnooze(s, item.task.eventId, null));
                 setSnoozeOpen(false);
-                afterSheetClosed(() => state((s) => setSnooze(s, item.task.eventId, null)));
               }}
             >
               {t.cancelSnooze}

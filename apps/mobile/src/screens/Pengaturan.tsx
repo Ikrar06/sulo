@@ -175,8 +175,8 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
             value={prefs.dueFormat}
             options={DUE_FORMATS.map((f) => ({ value: f, label: m.popup.settings.formats[f] }))}
             onChoose={(v: DueFormat) => {
+              void actions.setPrefs({ dueFormat: v });
               setPicker(null);
-              afterSheetClosed(() => void actions.setPrefs({ dueFormat: v }));
             }}
           />
         ) : picker === 'animation' ? (
@@ -184,11 +184,10 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
             value={prefs.animation}
             options={ANIMATION_PREFS.map((a) => ({ value: a, label: w.settings.animationOptions[a] }))}
             onChoose={(v: AnimationPref) => {
+              // The setting is written at once; the motion changes once the sheet is gone.
+              void actions.setPrefs({ animation: v });
               setPicker(null);
-              afterSheetClosed(() => {
-                setAnimationPref(v);
-                void actions.setPrefs({ animation: v });
-              });
+              afterSheetClosed(() => setAnimationPref(v));
             }}
           />
         ) : picker !== null ? (
@@ -198,13 +197,11 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
               options={HOURS.map((h) => ({ value: h, label: hour(h) }))}
               onChoose={(v: number) => {
                 const which = picker;
+                if (which === 'quietStart') setRem({ quiet: { ...rem.quiet, startMin: v } });
+                else if (which === 'quietEnd') setRem({ quiet: { ...rem.quiet, endMin: v } });
+                else if (which === 'morning') setRem({ morning: { ...rem.morning, atMin: v } });
+                else setRem({ snoozeMorningMin: v });
                 setPicker(null);
-                afterSheetClosed(() => {
-                  if (which === 'quietStart') setRem({ quiet: { ...rem.quiet, startMin: v } });
-                  else if (which === 'quietEnd') setRem({ quiet: { ...rem.quiet, endMin: v } });
-                  else if (which === 'morning') setRem({ morning: { ...rem.morning, atMin: v } });
-                  else setRem({ snoozeMorningMin: v });
-                });
               }}
             />
           </div>
