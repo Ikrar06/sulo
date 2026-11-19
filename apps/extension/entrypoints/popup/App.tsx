@@ -229,7 +229,6 @@ export default function App({ startedAt }: { startedAt: number }) {
         onMarkAllSeen={() => void onMarkAllSeen()}
         onUseNewAccount={() => void send({ type: 'account/useNew' }).then(() => window.close())}
         onDeferAccount={() => void send({ type: 'account/defer' })}
-        onWipeAll={() => void send({ type: 'data/wipeAll' }).then(() => window.close())}
         onOpenDashboard={(hash) => void browser.tabs.create({ url: browser.runtime.getURL(`/dashboard.html${hash}`) })}
         onTestNotification={async () => {
           await send({ type: 'notify/test' });

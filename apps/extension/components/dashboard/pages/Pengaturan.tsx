@@ -237,13 +237,6 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             {t.openPrivacy}
           </Button>
         </div>
-        <div className="mt-4 space-y-2 border-t border-border pt-4">
-          <p className="text-[12px] text-muted-foreground">{t.wipeHelp}</p>
-          <Button variant="destructive" onClick={() => setWipeOpen(true)}>
-            {m.popup.settings.wipe}
-          </Button>
-        </div>
-        <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={() => void actions.send({ type: 'data/wipeAll' }).then(() => window.close())} />
       </Card>
 
       <Card title={t.bugReport.cardTitle}>
@@ -261,6 +254,15 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
           <DevDiagnostics data={data} />
         </Suspense>
       )}
+
+      {/* Always the last section: the one destructive action, behind a confirmation dialog. */}
+      <Card title={<span id="set-hapus">{t.sections.hapus}</span>}>
+        <p className="mb-3 text-[12px] text-muted-foreground">{t.wipeHelp}</p>
+        <Button variant="destructive" onClick={() => setWipeOpen(true)}>
+          {m.popup.settings.wipe}
+        </Button>
+        <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={() => void actions.send({ type: 'data/wipeAll' }).then(() => window.close())} />
+      </Card>
     </div>
   );
 }

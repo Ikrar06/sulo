@@ -23,7 +23,6 @@ import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
 // Rarely opened panels load on demand, so opening the popup stays light.
 const RemindersPanel = lazy(() => import('@sulo/ui/reminders/RemindersPanel').then((mod) => ({ default: mod.RemindersPanel })));
 const UpdatesPanel = lazy(() => import('@sulo/ui/updates/UpdatesPanel').then((mod) => ({ default: mod.UpdatesPanel })));
-const WipeDialog = lazy(() => import('./WipeDialog').then((mod) => ({ default: mod.WipeDialog })));
 import type { UpdateSettings } from '@sulo/core/radar/settings';
 import { StatusLine } from './StatusLine';
 import { MismatchScreen } from './AccountScreens';
@@ -53,7 +52,6 @@ export interface PopupActions {
   onUseNewAccount: () => void;
   onDeferAccount: () => void;
   /** "Hapus semua data", after the confirmation dialog. */
-  onWipeAll: () => void;
   /** Opens the dashboard at a page hash, e.g. "#kalender" ('' = Ringkasan). */
   onOpenDashboard: (hash: string) => void;
 }
@@ -79,7 +77,6 @@ export const NO_ACTIONS: PopupActions = {
   onMarkAllSeen: () => {},
   onUseNewAccount: () => {},
   onDeferAccount: () => {},
-  onWipeAll: () => {},
   onOpenDashboard: () => {},
 };
 
@@ -180,12 +177,8 @@ export function PopupView(props: PopupViewProps) {
   const listRef = useRef<HTMLDivElement>(null);
   useCountdownTicker(listRef, props.dueFormat === 'countdown' && !props.sample, props.timeZone, m);
   const [panel, setPanel] = useState<'list' | 'reminders' | 'updates'>(props.initialPanel ?? 'list');
-  const [wipeOpen, setWipeOpen] = useState(false);
   const settingsRef = useRef<HTMLButtonElement>(null);
   const mismatch = view.screen === 'mismatch';
-  // Opened after the menu has closed and returned focus to its button, so
-  // the dialog's own focus (on "Batal") is the one that stays.
-  const openWipe = () => window.setTimeout(() => setWipeOpen(true), 0);
   const celebrate = props.celebrate ?? 0;
   // Snooze choices: 1 hour, 3 hours, tomorrow morning at the chosen time.
   const snoozeOptions = useMemo<SnoozeOption[]>(() => {
@@ -276,8 +269,8 @@ export function PopupView(props: PopupViewProps) {
                 onSetLocale={props.onSetLocale}
                 onManageCourses={mismatch ? undefined : () => props.onOpenOnboarding('#courses')}
                 onOpenReminders={mismatch ? undefined : openReminders}
-                onWipe={openWipe}
                 onOpenDashboard={() => props.onOpenDashboard('')}
+                onOpenSettings={() => props.onOpenDashboard('#pengaturan')}
                 triggerRef={settingsRef}
               />
             </div>
@@ -362,11 +355,6 @@ export function PopupView(props: PopupViewProps) {
           </>
         )}
 
-        {wipeOpen && (
-          <Suspense fallback={null}>
-            <WipeDialog open={wipeOpen} onOpenChange={setWipeOpen} onConfirm={props.onWipeAll} returnFocusTo={() => settingsRef.current} />
-          </Suspense>
-        )}
         {!props.sample && <footer className="flex items-center justify-between border-t border-border px-4 py-2 text-[11.5px] text-muted-foreground">
           <span>{m.disclaimerShort}</span>
           <button type="button" className="underline-offset-2 hover:text-foreground hover:underline" onClick={props.onOpenPrivacy}>

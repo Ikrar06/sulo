@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
-import { BellIcon, CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@sulo/ui/icons';
+import { CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@sulo/ui/icons';
 import { Button } from '@sulo/ui/ui/button';
 import {
   DropdownMenu,
@@ -67,15 +67,15 @@ export interface SettingsMenuProps {
   /** Omitted while another account is detected (its courses are hidden). */
   onManageCourses?: () => void;
   onOpenReminders?: () => void;
-  /** "Hapus semua data": opens the confirmation dialog. */
-  onWipe: () => void;
   onOpenDashboard: () => void;
+  /** The dashboard's Settings page (where "Hapus semua data" lives, at the bottom). */
+  onOpenSettings: () => void;
   /** The ⚙ button, so the dialog can return focus to it when it closes. */
   triggerRef?: Ref<HTMLButtonElement>;
 }
 
 /** Small settings menu for M2; the full settings page comes with the dashboard (M5a). */
-export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses, onOpenReminders, onWipe, onOpenDashboard, triggerRef }: SettingsMenuProps) {
+export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageCourses, onOpenReminders, onOpenDashboard, onOpenSettings, triggerRef }: SettingsMenuProps) {
   const { m, locale } = useI18n();
   const s = m.popup.settings;
   return (
@@ -87,10 +87,7 @@ export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageC
         <DropdownMenuItem onSelect={onOpenDashboard}>{s.openDashboard}</DropdownMenuItem>
         {onManageCourses && <DropdownMenuItem onSelect={onManageCourses}>{s.manageCourses}</DropdownMenuItem>}
         {onOpenReminders && (
-          <DropdownMenuItem onSelect={onOpenReminders}>
-            <BellIcon className="size-4" />
-            {s.reminders}
-          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={onOpenReminders}>{s.reminders}</DropdownMenuItem>
         )}
         {(onManageCourses || onOpenReminders) && <DropdownMenuSeparator />}
         <DropdownMenuLabel>{s.dueFormat}</DropdownMenuLabel>
@@ -111,9 +108,7 @@ export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageC
           ))}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onSelect={onWipe}>
-          {s.wipe}
-        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onOpenSettings}>{s.button}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

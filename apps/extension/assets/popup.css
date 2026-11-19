@@ -13,6 +13,8 @@
 @source "../../../packages/ui/src/i18n.tsx";
 @source "../../../packages/ui/src/icons.tsx";
 @source "../../../packages/ui/src/reminders";
+/* The phone's check circle (rows of the task list). */
+@source "../../../packages/ui/src/mobile/controls.tsx";
 @source "../lib";
 /* Shared logic moved to packages/core in M8a; scanned as before. */
 @source "../../../packages/core/src";

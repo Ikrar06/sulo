@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
+import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatDueClock, localeOf } from '@sulo/core/format/time';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
@@ -46,7 +47,8 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
   const { m } = useI18n();
   const text = dueText(row, due.format, due.now, due.timeZone, m);
   return (
-    <li className="group relative flex items-start gap-3 rounded-lg py-2.5 pr-10 pl-3 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
+    // The right column: the due time, then the check circle, whose right edge is the group chevron's.
+    <li className="group relative flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
       <button
         type="button"
         onClick={() => actions.onOpenTask(row.url)}
@@ -74,7 +76,8 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
           )}
         </span>
       </button>
-      <div className="flex shrink-0 flex-col items-end text-right">
+      <div className="relative flex shrink-0 flex-col items-end text-right">
+        <div className="flex flex-col items-end transition-opacity duration-150 group-hover:opacity-0 group-focus-ring:opacity-0 group-has-[[data-state=open]]:opacity-0">
         <Tooltip>
           <TooltipTrigger asChild>
             <span
@@ -88,17 +91,21 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
           {row.fullDate && <TooltipContent>{row.fullDate}</TooltipContent>}
         </Tooltip>
         {text.secondary && <span className="mt-1 text-[12px] leading-4 text-muted-foreground tabular-nums">{text.secondary}</span>}
+        </div>
+        {/* The row menu (snooze, calendar) takes the due time's place while the row is hovered or focused. */}
+        <div className="absolute top-0 right-0">
+          <RowMenu
+            row={row}
+            snoozeOptions={due.snoozeOptions}
+            onDone={() => actions.onDone(row.eventId)}
+            onAddToCalendar={() => actions.onAddToCalendar(row)}
+            onSnooze={(until) => actions.onSnooze(row.eventId, until)}
+          />
+        </div>
       </div>
-      {/* The row menu has its own 32 px slot on the right, so the due time is never covered. */}
-      <div className="absolute top-1/2 right-1 -translate-y-1/2">
-        <RowMenu
-          row={row}
-          snoozeOptions={due.snoozeOptions}
-          onDone={() => actions.onDone(row.eventId)}
-          onAddToCalendar={() => actions.onAddToCalendar(row)}
-          onSnooze={(until) => actions.onSnooze(row.eventId, until)}
-        />
-      </div>
+      <span className="relative z-10 flex self-center">
+        <CheckCircle size="sm" checked={false} onChange={() => actions.onDone(row.eventId)} label={`${m.popup.row.markDone}: ${row.name}`} />
+      </span>
     </li>
   );
 }
@@ -135,6 +142,8 @@ function DoneRow({ linger, onUndo }: { linger: DoneLinger; onUndo?: (eventId: nu
           </button>
         </>
       )}
+      {/* The same circle, filled, at the same place: unticking it is the undo. */}
+      <CheckCircle size="sm" checked onChange={() => onUndo?.(linger.row.eventId)} label={`${m.popup.row.undo}: ${linger.row.name}`} />
     </li>
   );
 }
