@@ -1,6 +1,6 @@
 // Presensi (M8c.1, cards). The focal point: a hero card with the average (26), a
 // solid progress ring and the lowest course. Each followed course is a card
-// (an initials tile in its tint, name, "7 sesi · 11/14 poin", the percentage
+// (the course as the shared tinted chip, "7 sesi · 11/14 poin", the percentage
 // and a 6 px bar at its foot). A course's sessions: a header card with the
 // ring, then one group card per month (date tile, session, status pill).
 // The same rules as the extension: the recap updates in syncs at most once
@@ -162,12 +162,14 @@ function CourseCard({ course, color, row, fetched, d, w, locale, onOpen }: { cou
   const body = (
     <>
       <div className="flex items-center gap-3">
-        <Tile color={courseTint(color)} size={40} solid>
-          {initials(name)}
-        </Tile>
+        {/* The course as the shared tinted chip (Tahap 2, e7): a long name ends in an ellipsis, the percent never does. */}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-m15">{name}</p>
-          <p className="text-m13 text-muted-foreground tabular-nums">{line}</p>
+          <span className="flex min-w-0 text-foreground">
+            <Chip small color={courseTint(color)}>
+              {name}
+            </Chip>
+          </span>
+          <p className="mt-1 text-m13 text-muted-foreground tabular-nums">{line}</p>
         </div>
         {row && row.percent !== null && (
           <span className="shrink-0 text-m18 tabular-nums">

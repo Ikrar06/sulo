@@ -13,6 +13,8 @@ import type { AttendanceStatus, RecapRow, SessionRow } from '@sulo/core/presensi
 import type { CourseRecord } from '@sulo/core/types';
 import { Card } from '../card';
 import { ChevronRightIcon } from '../icons';
+import { Chip } from '../mobile/cards';
+import { courseTint } from '../mobile/tint';
 import { Private, usePrivacy } from '../private';
 
 const pct = (v: number, locale: string) => v.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
@@ -60,10 +62,14 @@ export function CourseRow({ course, color, row, fetched, w, locale }: { course: 
   const line = courseLine(row, fetched, w);
   const content = (
     <div className="flex items-center gap-3 py-3">
-      <Dot color={color} />
+      {/* The course as the shared tinted chip (Tahap 2, e7); a long name ends in an ellipsis, the percent never does. */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[14px] font-semibold">{name}</p>
-        {line && <p className="text-[12px] text-muted-foreground">{line}</p>}
+        <span className="flex min-w-0 text-foreground">
+          <Chip small color={courseTint(color)}>
+            {name}
+          </Chip>
+        </span>
+        {line && <p className="mt-1 text-[12px] text-muted-foreground">{line}</p>}
         {row && row.percent !== null && <Bar percent={row.percent} />}
       </div>
       {row && row.percent !== null && <span className="shrink-0 text-[16px] font-semibold tabular-nums">{pct(row.percent, locale)}%</span>}
