@@ -33,6 +33,7 @@ import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
 const LEVELS = [1, 2, 3, 4] as const;
@@ -141,12 +142,21 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                               </Chip>
                             </span>
                           </span>
-                          <span
-                            className={`shrink-0 text-[12px] leading-6 tabular-nums ${row.dueAt !== null && row.status === 'pending' ? `min-w-7 text-right ${FADES_FOR_CALENDAR}` : ''} ${row.dueAt === null || row.status !== 'pending' ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(row.dueAt, data.now)]}`}
-                            data-due-at={countdown && row.dueAt !== null && row.dueAt >= data.now ? row.dueAt : undefined}
-                            aria-label={countdown && row.dueAt !== null ? (countdownLabel((row.dueAt - data.now) * 1000, locale) ?? undefined) : undefined}
-                          >
-                            {row.dueAt === null ? '' : countdown ? countdownOrLate(row.dueAt, data.now, timeZone, m) : formatRemaining(row.dueAt, data.now, timeZone, m)}
+                          <span className={`shrink-0 py-1 ${row.dueAt !== null && row.status === 'pending' ? `min-w-7 text-right ${FADES_FOR_CALENDAR}` : ''}`}>
+                            {row.dueAt !== null && (
+                              <FitLine
+                                size="text-m12"
+                                text={countdown ? countdownOrLate(row.dueAt, data.now, timeZone, m) : formatRemaining(row.dueAt, data.now, timeZone, m)}
+                                className={`tabular-nums ${row.status !== 'pending' ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(row.dueAt, data.now)]}`}
+                              >
+                                <span
+                                  data-due-at={countdown && row.dueAt >= data.now ? row.dueAt : undefined}
+                                  aria-label={countdown ? (countdownLabel((row.dueAt - data.now) * 1000, locale) ?? undefined) : undefined}
+                                >
+                                  {countdown ? countdownOrLate(row.dueAt, data.now, timeZone, m) : formatRemaining(row.dueAt, data.now, timeZone, m)}
+                                </span>
+                              </FitLine>
+                            )}
                           </span>
                         </a>
                         {row.dueAt !== null && row.status === 'pending' && (

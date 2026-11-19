@@ -3,6 +3,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { CalendarPlusIcon, ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
 import { Chip } from '@sulo/ui/mobile/cards';
 import { CheckCircle } from '@sulo/ui/mobile/controls';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { countdownLabel } from '@sulo/core/format/countdown';
@@ -77,12 +78,16 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
         <div className="flex flex-col items-end transition-opacity duration-[120ms] group-hover:opacity-0 group-focus-ring:opacity-0 group-has-[[data-state=open]]:opacity-0">
         <Tooltip>
           <TooltipTrigger asChild>
-            <span
-              className={`text-[12.5px] leading-[19px] font-medium tabular-nums ${URGENCY_TEXT[row.urgency]}`}
-              data-due-at={text.ticking && row.dueAt !== null ? row.dueAt : undefined}
-              aria-label={text.ticking && row.dueAt !== null ? (countdownLabel((row.dueAt - due.now) * 1000, localeOf(m)) ?? undefined) : undefined}
-            >
-              {text.primary}
+            {/* One line always (the phone's FitLine); the shared ticker rewrites the inner span in countdown mode. */}
+            <span className="block">
+              <FitLine size="text-m12" text={text.primary} className={`py-0.5 tabular-nums ${URGENCY_TEXT[row.urgency]}`}>
+                <span
+                  data-due-at={text.ticking && row.dueAt !== null ? row.dueAt : undefined}
+                  aria-label={text.ticking && row.dueAt !== null ? (countdownLabel((row.dueAt - due.now) * 1000, localeOf(m)) ?? undefined) : undefined}
+                >
+                  {text.primary}
+                </span>
+              </FitLine>
             </span>
           </TooltipTrigger>
           {row.fullDate && <TooltipContent>{row.fullDate}</TooltipContent>}

@@ -20,6 +20,7 @@ import { Chip } from '@sulo/ui/mobile/cards';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
+import { FitLine } from '@sulo/ui/mobile/fit-line';
 import type { PageProps } from '../types';
 
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
@@ -195,9 +196,11 @@ function DueLines({ lines, tone, tickAt = null, label = null }: { lines: { prima
   return (
     <>
       {/* In countdown mode the shared ticker (App) rewrites this text each second; the label only changes per minute. */}
-      <span className={`block tabular-nums ${lines.secondary === null ? '' : tone}`} data-due-at={tickAt ?? undefined} aria-label={tickAt !== null ? (label ?? undefined) : undefined}>
-        {lines.primary}
-      </span>
+      <FitLine size="text-m15" text={lines.primary} className={`tabular-nums ${lines.secondary === null ? '' : tone}`}>
+        <span data-due-at={tickAt ?? undefined} aria-label={tickAt !== null ? (label ?? undefined) : undefined}>
+          {lines.primary}
+        </span>
+      </FitLine>
       {lines.secondary !== null && <span className="block text-[12px] leading-normal text-muted-foreground">{lines.secondary}</span>}
     </>
   );
