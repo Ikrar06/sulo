@@ -8,7 +8,6 @@ import { loadMap } from '@sulo/core/dashboard/load-map';
 import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@sulo/core/dashboard/overview';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
-import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { countdownOrLate, formatRemaining } from '@sulo/core/format/time';
@@ -33,6 +32,7 @@ import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
+import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
@@ -125,12 +125,14 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                   <ul>
                     {g.rows.map((row) => (
                       <li key={row.task.eventId} className={`group relative -mx-2 flex items-start gap-3 rounded-lg px-2 hover:bg-surface-raised ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
-                        <Checkbox
-                          className="mt-3"
-                          checked={row.status === 'done'}
-                          onCheckedChange={(v) => (v === true ? done.mark(row.task.eventId) : done.unmark(row.task.eventId))}
-                          aria-label={`${row.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${row.task.name}`}
-                        />
+                        <span className="mt-2 flex">
+                          <CheckCircle
+                            size="sm"
+                            checked={row.status === 'done'}
+                            onChange={(v) => (v ? done.mark(row.task.eventId) : done.unmark(row.task.eventId))}
+                            label={`${row.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${row.task.name}`}
+                          />
+                        </span>
                         <a href={routeHash('tugas', row.task.eventId)} className="flex min-w-0 flex-1 items-start gap-3 rounded-lg py-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
                           <span className="min-w-0 flex-1">
                             <span className={`block truncate text-[14px] ${row.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`} title={row.task.name}>

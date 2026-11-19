@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
-import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { Input } from '@sulo/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
@@ -20,6 +19,7 @@ import { Chip } from '@sulo/ui/mobile/cards';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
+import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
 import type { PageProps } from '../types';
 
@@ -154,7 +154,9 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   return (
     <li id={`task-${item.task.eventId}`} className={collapsing ? 'db-collapse' : undefined}>
       <div className="group flex items-start gap-3 px-4 py-3">
-        <Checkbox className="mt-1" checked={item.status === 'done'} onCheckedChange={(v) => onDone(v === true)} aria-label={item.status === 'done' ? t.markUndone : t.markDone} />
+        <span className="mt-px flex">
+          <CheckCircle size="sm" checked={item.status === 'done'} onChange={onDone} label={`${item.status === 'done' ? t.markUndone : t.markDone}: ${item.task.name}`} />
+        </span>
         <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <span className={`block text-[14px] leading-6 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`}>{item.task.name}</span>
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-normal text-muted-foreground">
