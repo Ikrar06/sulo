@@ -111,7 +111,7 @@ function Router() {
   return (
     <I18nProvider locale={locale}>
       <PrivacyProvider value={data.prefs.privacyMode}>
-      <ToastProvider>
+      <ToastProvider viewportClassName="bottom-6 db-toasts">
       {data.neosia.module.enabled && <NeosiaArrivals snapshots={data.neosia.snapshots} page={page} />}
       <DashboardShell
         page={page}
@@ -154,7 +154,10 @@ function Router() {
               />
             )}
             <Suspense fallback={<p className="text-[14px] text-muted-foreground">{d.common.loading}</p>}>
-              <Page d={d} data={data} actions={actions} route={page === route.page ? route : { page, detail: null }} />
+              {/* A new page rises in (skin.css .ext-page-in); the same page with new data does not. */}
+              <div key={page} className="ext-page-in">
+                <Page d={d} data={data} actions={actions} route={page === route.page ? route : { page, detail: null }} />
+              </div>
             </Suspense>
           </>
         )}

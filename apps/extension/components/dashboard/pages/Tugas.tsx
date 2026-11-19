@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
 import { Input } from '@sulo/ui/ui/input';
@@ -21,6 +21,7 @@ import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
 import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
+import { useFlip } from '@/lib/ui/flip';
 import type { PageProps } from '../types';
 
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
@@ -52,6 +53,8 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const active = activeCourseIds(user.courses);
   const courses = user.courses.filter((c) => active.has(c.id)).sort((a, b) => courseAlias(a).localeCompare(courseAlias(b), 'id'));
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef);
 
   return (
     <div className="space-y-4">
@@ -102,7 +105,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
           <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-[14px] text-muted-foreground">{t.empty}</p>
         )
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
+        <ul ref={listRef} className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
           {shown.map((item) => (
             <TaskRowItem
               key={item.task.eventId}
@@ -152,7 +155,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   const steps = item.state.steps;
   const panelId = `task-panel-${item.task.eventId}`;
   return (
-    <li id={`task-${item.task.eventId}`} className={collapsing ? 'db-collapse' : undefined}>
+    <li id={`task-${item.task.eventId}`} data-flip-key={item.task.eventId} className={collapsing ? 'db-collapse' : undefined}>
       <div className="group flex items-start gap-3 px-4 py-3">
         <span className="mt-px flex">
           <CheckCircle size="sm" checked={item.status === 'done'} onChange={onDone} label={`${item.status === 'done' ? t.markUndone : t.markDone}: ${item.task.name}`} />

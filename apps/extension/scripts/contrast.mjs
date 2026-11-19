@@ -85,21 +85,14 @@ function pairs(t, theme) {
   const period = mix(cat.libur, c('surface'), 0.05);
   const ev = c('surface-raised');
   const exam = mix(c('brand-amber'), c('surface'), 0.28);
-  const load = (n, color, p) => mix(c(color), c('surface-raised'), p);
   return {
     before: {
       'chip acara (bulan lain, opacity 55%)': [over(c('text'), c('bg'), 0.55), over(ev, c('bg'), 0.55)],
       'chip wisuda (bulan lain, opacity 55%)': [over(c('text'), c('bg'), 0.55), over(ev, c('bg'), 0.55)],
       'chip ujian (bulan lain, opacity 55%)': [over(c('text'), c('bg'), 0.55), over(exam, c('bg'), 0.55)],
-      'peta beban tingkat 3, teks --text': [c('text'), load(3, 'brand-orange', 0.62)],
-      'peta beban tingkat 4, teks --text': [c('text'), load(4, 'brand-orange', 0.88)],
     },
     after: {
       'peta beban tingkat 0': [c('text'), c('surface-raised')],
-      'peta beban tingkat 1': [c('text'), load(1, 'brand-amber', 0.22)],
-      'peta beban tingkat 2': [c('text'), load(2, 'brand-amber', 0.45)],
-      'peta beban tingkat 3 (teks --text)': [c('text'), load(3, 'brand-orange', 0.62)],
-      'peta beban tingkat 4 (teks --ink)': [c('ink'), load(4, 'brand-orange', 0.88)],
       'angka hitung mundur (--accent-text di --surface)': [accentText, c('surface')],
       'angka hitung mundur (--accent-text di --bg)': [accentText, c('bg')],
       'keterlambatan (--urgency-overdue di --surface)': [c('urgency-overdue'), c('surface')],
@@ -123,6 +116,11 @@ function pairs(t, theme) {
       'jadwal: blok belum terpetakan (--text di tint --muted 18%)': [c('text'), mix(c('muted'), c('surface'), 0.18)],
       'jadwal: tepi blok belum terpetakan (--muted di --surface, min 3:1)': [c('muted'), c('surface')],
       'jadwal: tepi blok belum terpetakan (--muted di kolom hari ini --surface-raised, min 3:1)': [c('muted'), c('surface-raised')],
+      // Load map (Tahap 2, e5): the neutral scale, components/dashboard/dashboard.css .db-load-*.
+      'peta beban 1 (--text di campuran 12%)': [c('text'), mix(c('text'), c('surface'), 0.12)],
+      'peta beban 2 (--text di campuran 26%)': [c('text'), mix(c('text'), c('surface'), 0.26)],
+      'peta beban 3 (--surface di campuran 58%)': [c('surface'), mix(c('text'), c('surface'), 0.58)],
+      'peta beban 4 (--surface di campuran 80%)': [c('surface'), mix(c('text'), c('surface'), 0.8)],
       // The Android app's card layers (M8c.1).
       ...(() => {
         const L = mobileLayers(theme);

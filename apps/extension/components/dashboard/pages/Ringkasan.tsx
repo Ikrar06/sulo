@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronRightIcon } from '@sulo/ui/icons';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
@@ -36,6 +36,7 @@ import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton'
 import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { HeroMascot } from '../HeroMascot';
+import { useFlip } from '@/lib/ui/flip';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
 const LEVELS = [1, 2, 3, 4] as const;
@@ -49,6 +50,8 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const countdown = data.prefs.dueFormat === 'countdown';
   const user = data.user!;
   const done = useDoneUndo(actions, d, data.today, local);
+  const rowsRef = useRef<HTMLDivElement>(null);
+  useFlip(rowsRef);
   const allItems = useMemo(() => buildTaskItems(user), [user]);
   // Pending tasks, plus the ones just marked done (they stay in place for the undo window).
   const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);
@@ -126,13 +129,13 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
             // Only when no task is pending at all ("Berikutnya" also takes undated tasks); centred in the space left, no mascot.
             <p className="flex flex-1 items-center justify-center py-8 text-center text-[14px] text-muted-foreground">{r.nothingSoon}</p>
           ) : (
-            <div className="space-y-4">
+            <div ref={rowsRef} className="space-y-4">
               {shown.groups.map((g) => (
                 <section key={g.key} aria-label={r.groups[g.key]}>
                   <h3 className="mb-1 text-[12px] font-semibold text-muted-foreground">{r.groups[g.key]}</h3>
                   <ul>
                     {g.rows.map((row) => (
-                      <li key={row.task.eventId} className={`group relative -mx-2 flex items-start gap-3 rounded-lg px-2 hover:bg-surface-raised ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
+                      <li key={row.task.eventId} data-flip-key={row.task.eventId} className={`group relative -mx-2 flex items-start gap-3 rounded-lg px-2 hover:bg-surface-raised ${done.collapsing.has(row.task.eventId) ? 'db-collapse' : ''}`}>
                         <span className="mt-2 flex">
                           <CheckCircle
                             size="sm"
@@ -215,11 +218,11 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                     title={label}
                     aria-label={label}
                     aria-current={isToday ? 'date' : undefined}
-                    className={`db-load-${day.level} flex aspect-square flex-col items-center justify-center rounded-lg text-[12px] leading-4 tabular-nums ${isToday ? 'ring-1 ring-foreground ring-offset-2 ring-offset-surface' : ''}`}
+                    className={`db-load-${day.level} flex aspect-square flex-col items-center justify-center rounded-lg text-[12px] leading-4 tabular-nums ${isToday ? 'ring-2 ring-brand-orange ring-offset-2 ring-offset-surface' : ''}`}
                   >
                     <span>{isToday ? r.loadToday : formatDateKey(day.dateKey, m.intl, { weekday: 'narrow' })}</span>
                     <span className="font-semibold">{formatDateKey(day.dateKey, m.intl, { day: 'numeric' })}</span>
-                    {exam && <span aria-hidden="true" className="mt-1 size-1 rounded-full bg-current" />}
+                    {exam && <span aria-hidden="true" className="mt-1 size-1.5 rounded-full" style={{ background: 'var(--cat-ujian)' }} />}
                   </li>
                 );
               })}
@@ -232,7 +235,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
               ))}
               <span>{r.loadMore}</span>
               <span className="ml-3 inline-flex items-center gap-1">
-                <span className="size-1 rounded-full bg-foreground" />
+                <span className="size-1.5 rounded-full" style={{ background: 'var(--cat-ujian)' }} />
                 {r.loadExam}
               </span>
             </div>
@@ -249,7 +252,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
               const course = e.change.courseId !== null ? (data.view.courseNames[String(e.change.courseId)] ?? '') : '';
               return (
                 <li key={e.id} className="flex items-baseline gap-2 text-[14px]">
-                  <span aria-hidden="true" className={`size-2 shrink-0 self-center rounded-full ${e.seen ? 'bg-transparent' : 'bg-brand-amber'}`} />
+                  <span aria-hidden="true" className={`size-2 shrink-0 self-center rounded-full ${e.seen ? 'bg-transparent' : 'bg-foreground'}`} />
                   <span className={`min-w-0 flex-1 ${e.seen ? '' : 'font-semibold'}`}>{describeChange(e.change, timeZone, m)}</span>
                   <span className="max-w-[40%] shrink-0 truncate text-[12px] text-muted-foreground" title={course}>
                     {course}

@@ -26,6 +26,7 @@ const UpdatesPanel = lazy(() => import('@sulo/ui/updates/UpdatesPanel').then((mo
 import type { UpdateSettings } from '@sulo/core/radar/settings';
 import { StatusLine } from '@sulo/ui/status-line';
 import { MismatchScreen } from './AccountScreens';
+import { useFlip } from '@/lib/ui/flip';
 import { Group, type DoneLinger } from './TaskRows';
 
 export interface PopupActions {
@@ -176,6 +177,7 @@ export function PopupView(props: PopupViewProps) {
   const t = m.popup;
   const listRef = useRef<HTMLDivElement>(null);
   useCountdownTicker(listRef, props.dueFormat === 'countdown' && !props.sample, props.timeZone, m);
+  useFlip(listRef);
   const [panel, setPanel] = useState<'list' | 'reminders' | 'updates'>(props.initialPanel ?? 'list');
   const settingsRef = useRef<HTMLButtonElement>(null);
   const mismatch = view.screen === 'mismatch';
@@ -327,7 +329,7 @@ export function PopupView(props: PopupViewProps) {
                 onClick={() => setPanel('updates')}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus"
               >
-                {view.updatesUnseen > 0 && <span aria-hidden="true" className="size-1.5 rounded-full bg-brand-amber" />}
+                {view.updatesUnseen > 0 && <span aria-hidden="true" className="size-1.5 rounded-full bg-foreground" />}
                 <span className={`flex-1 ${view.updatesUnseen > 0 ? 'font-semibold' : 'text-muted-foreground'}`}>
                   {view.updatesUnseen > 0 ? m.popup.updates.line(view.updatesUnseen) : m.popup.updates.lineNone}
                 </span>

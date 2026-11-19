@@ -44,7 +44,7 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
   const text = dueText(row, due.format, due.now, due.timeZone, m);
   return (
     // The right column: the due time, then the check circle, whose right edge is the group chevron's.
-    <li className="group relative flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
+    <li data-flip-key={row.eventId} className="group relative flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-raised has-focus-ring:bg-surface-raised">
       <button
         type="button"
         onClick={() => actions.onOpenTask(row.url)}
@@ -141,7 +141,7 @@ export interface DoneLinger {
 function DoneRow({ linger, onUndo }: { linger: DoneLinger; onUndo?: (eventId: number) => void }) {
   const { m } = useI18n();
   return (
-    <li className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
+    <li data-flip-key={linger.row.eventId} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${linger.leaving ? 'db-collapse' : ''}`}>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-[19px] text-muted-foreground line-through" title={linger.row.name}>
         {linger.row.name}
       </span>

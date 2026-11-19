@@ -227,7 +227,7 @@ export function RowMenu({ row, snoozeOptions, onDone, onAddToCalendar, onSnooze 
                 >
                   <ClockIcon className="size-4" />
                   <span className="flex-1">{r.snooze}</span>
-                  {row.snoozedUntil !== null && <span aria-hidden="true" className="size-1.5 rounded-full bg-brand-amber" />}
+                  {row.snoozedUntil !== null && <span aria-hidden="true" className="size-1.5 rounded-full bg-foreground" />}
                   <ChevronRightIcon className="size-3.5 text-muted-foreground" />
                 </DropdownMenuItem>
               )}
