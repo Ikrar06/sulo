@@ -13,6 +13,8 @@ if (!java21() || !sdkRoot()) {
 const env = androidEnv();
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, env, stdio: 'inherit' });
 run('pnpm', ['exec', 'vite', 'build', '--mode', 'debug'], MOBILE);
+// The NEOSIA page script (M8d): the same rules as the extension's (size, no request, no storage).
+run('node', ['../extension/scripts/check-neosia-main.mjs', 'dist'], MOBILE);
 run('pnpm', ['exec', 'cap', 'sync', 'android'], MOBILE);
 run(join(ANDROID, 'gradlew'), ['--no-daemon', 'testDebugUnitTest', 'assembleDebug'], ANDROID);
 mkdirSync(dirname(DEBUG_APK), { recursive: true });
