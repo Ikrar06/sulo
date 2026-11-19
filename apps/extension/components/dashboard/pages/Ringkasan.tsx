@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronRightIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
-import { dayPart, greetingText } from '@sulo/core/dashboard/greeting';
+import { greeting } from '@sulo/core/dashboard/mobile-greeting';
+import { mascotMood } from '@sulo/core/dashboard/mascot-mood';
+import { mobileWords } from '@sulo/core/i18n/mobile';
 import { loadMap } from '@sulo/core/dashboard/load-map';
-import { buildSummary, groupOverview, heroMood, limitGroups, withNext } from '@sulo/core/dashboard/overview';
+import { buildSummary, groupOverview, limitGroups, withNext } from '@sulo/core/dashboard/overview';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { buildTaskItems, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
@@ -34,6 +35,7 @@ import { urgencyOf } from '@sulo/core/tasks/group';
 import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
 import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
+import { HeroMascot } from '../HeroMascot';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
 const LEVELS = [1, 2, 3, 4] as const;
@@ -60,7 +62,12 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const days = useMemo(() => loadMap(pendingItems.map((i) => i.task), data.calendar.kegiatan, data.now, timeZone), [pendingItems, data.calendar, data.now]);
   const loadEmpty = days.every((day) => day.tasks.length === 0 && day.events.length === 0);
   const updates = data.view.updates.slice(0, 6);
-  const hour = Math.floor(localParts(data.now, timeZone).minuteOfDay / 60);
+  // The phone's mood (core mascotMood) and greeting line.
+  const banner = data.view.banner?.kind;
+  const mood = mascotMood({ now: data.now, dueTimes: pendingItems.filter((i) => i.status === 'pending' && i.task.dueAt !== null).map((i) => i.task.dueAt!), sessionExpired: banner === 'session_expired', offline: banner === 'offline' });
+  const nickname = data.prefs.privacyMode ? '' : data.prefs.nickname.trim();
+  const line1 = greeting({ now: data.now, timeZone, nickname: '', overdue, dueToday: 0 }, mobileWords(locale)).line1.replace(/,$/, '');
+  const helloLine = nickname ? `${line1}, ${nickname}` : line1;
   // NEOSIA (module on only): KRS readiness from 14 days before the window until it closes.
   const neosiaOn = data.neosia.module.enabled;
   const snapshots = data.neosia.snapshots;
@@ -84,10 +91,11 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
     <div className="space-y-4">
       {/* Hero: full width, no card, nothing else on its row. One mascot on this page; it idles and stops for reduced motion. */}
       <section className="flex items-center gap-4 pb-2">
-        <Mascot state={heroMood(overdue, dueThisWeek)} size={56} />
+        <HeroMascot mood={mood} cheer={done.lingering.size} />
         <div className="min-w-0 flex-1">
-          {/* The greeting always uses the nickname from the settings, never a name from NEOSIA. */}
-          <h2 className="text-[20px] leading-7 font-semibold">{greetingText(r.greeting[dayPart(hour)], data.prefs.privacyMode ? '' : data.prefs.nickname)}</h2>
+          {/* The phone's greeting line (core mobile-greeting), without its playful second line. The
+              nickname from the settings only, never a name from NEOSIA. */}
+          <h2 className="text-[20px] leading-7 font-semibold">{helloLine}</h2>
           <SummaryLine parts={summary} d={d} />
         </div>
       </section>
