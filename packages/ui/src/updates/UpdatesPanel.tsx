@@ -7,6 +7,8 @@ import { formatClock } from '@sulo/core/format/time';
 import { changeUrl, describeChange } from '@sulo/core/radar/describe';
 import { UPDATE_CATEGORIES, type UpdateCategory, type UpdateSettings } from '@sulo/core/radar/settings';
 import { addDays, localParts } from '@sulo/core/reminders/zoned';
+import { Chip } from '../mobile/cards';
+import { courseTint } from '../mobile/tint';
 import type { ChangeLogEntry, UnixSeconds } from '@sulo/core/types';
 
 // "Kabar terbaru": the change log grouped by local day, newest first. Built
@@ -15,6 +17,8 @@ import type { ChangeLogEntry, UnixSeconds } from '@sulo/core/types';
 export interface UpdatesPanelProps {
   entries: readonly ChangeLogEntry[];
   courseNames: Readonly<Record<string, string>>;
+  /** Course color numbers by id: the course shows as a tinted chip (the phone's), or as plain text without one. */
+  courseColors?: Readonly<Record<string, number>>;
   now: UnixSeconds;
   timeZone: string;
   settings: UpdateSettings;
@@ -39,17 +43,25 @@ function dayLabel(at: UnixSeconds, now: UnixSeconds, timeZone: string, today: st
   return new Intl.DateTimeFormat(intl, { timeZone, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(at * 1000));
 }
 
-function Entry({ entry, course, timeZone, onOpen }: { entry: ChangeLogEntry; course: string; timeZone: string; onOpen: (url: string) => void }) {
+function Entry({ entry, course, color, timeZone, onOpen }: { entry: ChangeLogEntry; course: string; color?: number; timeZone: string; onOpen: (url: string) => void }) {
   const { m } = useI18n();
   const url = changeUrl(entry.change);
   const body = (
     <>
       <span className="flex items-start gap-2">
-        {!entry.seen && <span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-brand-amber" />}
+        {!entry.seen && <span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-foreground" />}
         <span className={`min-w-0 flex-1 text-(length:--fs-body) leading-(--lh-body) ${entry.seen ? 'text-foreground/85' : 'font-semibold'}`}>{describeChange(entry.change, timeZone, m)}</span>
         <span className="shrink-0 text-[12px] leading-(--lh-body) text-muted-foreground tabular-nums">{formatClock(entry.at, timeZone, m)}</span>
       </span>
-      <span className={`mt-0.5 block truncate text-[12px] leading-(--lh-caption) text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`} title={course}>{course}</span>
+      {color === undefined ? (
+        <span className={`mt-0.5 block truncate text-[12px] leading-(--lh-caption) text-muted-foreground ${entry.seen ? '' : 'pl-3.5'}`} title={course}>{course}</span>
+      ) : (
+        <span className={`mt-1 flex text-foreground ${entry.seen ? '' : 'pl-3.5'}`} title={course}>
+          <Chip small color={courseTint(color)}>
+            {course}
+          </Chip>
+        </span>
+      )}
     </>
   );
   return (
@@ -98,7 +110,7 @@ export function UpdateSettingsChecks({ settings, onChange }: { settings: Updates
   );
 }
 
-export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack, embedded = false, showSettings = true, empty }: UpdatesPanelProps) {
+export function UpdatesPanel({ entries, courseNames, courseColors, now, timeZone, settings, onOpen, onMarkAllSeen, onChangeSettings, onBack, embedded = false, showSettings = true, empty }: UpdatesPanelProps) {
   const { m } = useI18n();
   const u = m.popup.updates;
   const days = new Map<string, ChangeLogEntry[]>();
@@ -134,7 +146,7 @@ export function UpdatesPanel({ entries, courseNames, now, timeZone, settings, on
               <h2 className="px-3 py-1.5 text-(length:--fs-caption) font-semibold text-muted-foreground">{label}</h2>
               <ul>
                 {list.map((e) => (
-                  <Entry key={e.id} entry={e} course={courseOf(e)} timeZone={timeZone} onOpen={onOpen} />
+                  <Entry key={e.id} entry={e} course={courseOf(e)} color={e.change.courseId === null ? undefined : courseColors?.[String(e.change.courseId)]} timeZone={timeZone} onOpen={onOpen} />
                 ))}
               </ul>
             </section>

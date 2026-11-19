@@ -1,25 +1,19 @@
 import { useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
+import { Chip } from '@sulo/ui/mobile/cards';
 import { CheckCircle } from '@sulo/ui/mobile/controls';
+import { courseTint } from '@sulo/ui/mobile/tint';
+import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatDueClock, localeOf } from '@sulo/core/format/time';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { DueFormat } from '@sulo/core/prefs';
-import type { Urgency } from '@sulo/core/tasks/group';
 import type { UnixSeconds } from '@sulo/core/types';
 import { dueText, type TaskGroupView, type TaskRow } from '@sulo/core/view/popup-view';
 import { RowMenu, type SnoozeOption } from './Menus';
 
-const URGENCY_TEXT: Record<Urgency, string> = {
-  overdue: 'text-urgency-overdue',
-  day: 'text-urgency-soon',
-  threeDays: 'text-urgency-week',
-  normal: 'text-muted-foreground',
-};
-
-const COURSE_DOT = ['', 'bg-course-1', 'bg-course-2', 'bg-course-3', 'bg-course-4', 'bg-course-5', 'bg-course-6', 'bg-course-7', 'bg-course-8'];
 
 export interface RowActions {
   onDone: (eventId: number) => void;
@@ -59,9 +53,10 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
           {row.name}
         </span>
         <span className="mt-1 flex items-center gap-1.5 text-[12px] leading-4 text-muted-foreground">
-          <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${COURSE_DOT[row.courseColor] ?? COURSE_DOT[1]}`} />
-          <span className="truncate" title={row.courseName}>
-            {row.courseName}
+          <span className="min-w-0 shrink text-foreground" title={row.courseName}>
+            <Chip small color={courseTint(row.courseColor)}>
+              {row.courseName}
+            </Chip>
           </span>
           {row.marker !== null && (
             <span className="shrink-0 rounded-full border border-border px-1.5 text-[11px] leading-4 font-medium text-foreground">

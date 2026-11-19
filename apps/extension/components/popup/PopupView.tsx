@@ -240,6 +240,7 @@ export function PopupView(props: PopupViewProps) {
           <UpdatesPanel
             entries={view.updates}
             courseNames={view.courseNames}
+            courseColors={view.courseColors}
             now={now}
             timeZone={props.timeZone}
             settings={props.updatesSettings}

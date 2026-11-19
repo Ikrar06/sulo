@@ -16,11 +16,13 @@ import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
+import { Chip } from '@sulo/ui/mobile/cards';
+import { courseTint } from '@sulo/ui/mobile/tint';
+import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import type { PageProps } from '../types';
 
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
 
-const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
 
 export function TugasPage({ d, data, actions, route }: PageProps) {
   const { m } = useI18n();
@@ -153,9 +155,10 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
         <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <span className={`block text-[14px] leading-6 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`}>{item.task.name}</span>
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-normal text-muted-foreground">
-            <span className="inline-flex items-center gap-2">
-              <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${item.courseColor})` }} />
-              {item.courseName}
+            <span className="inline-flex min-w-0 text-foreground">
+              <Chip small color={courseTint(item.courseColor)}>
+                {item.courseName}
+              </Chip>
             </span>
             {item.status !== 'pending' && <span>{t.statuses[item.status]}</span>}
             {item.personalDue && <span className="rounded border border-border px-1 text-[12px]">{t.personalDue}</span>}

@@ -74,6 +74,7 @@ export function KabarPage({ d, data, actions, route }: PageProps) {
         <UpdatesPanel
           entries={entries}
           courseNames={data.view.courseNames}
+          courseColors={data.view.courseColors}
           now={data.now}
           timeZone={timeZone}
           settings={settings}

@@ -28,6 +28,10 @@ import { local } from '../data';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { attendanceSummary } from '@sulo/core/presensi/service';
 import { useNeosiaConnect } from '../neosia-connect';
+import { Chip } from '@sulo/ui/mobile/cards';
+import { courseTint } from '@sulo/ui/mobile/tint';
+import { URGENCY_TEXT } from '@sulo/ui/urgency';
+import { urgencyOf } from '@sulo/core/tasks/group';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
 
 const LEVELS = [1, 2, 3, 4] as const;
@@ -126,17 +130,18 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                           aria-label={`${row.status === 'done' ? d.tugas.markUndone : d.tugas.markDone}: ${row.task.name}`}
                         />
                         <a href={routeHash('tugas', row.task.eventId)} className="flex min-w-0 flex-1 items-start gap-3 rounded-lg py-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
-                          <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full" style={{ background: `var(--course-${row.courseColor})` }} />
                           <span className="min-w-0 flex-1">
                             <span className={`block truncate text-[14px] ${row.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`} title={row.task.name}>
                               {row.task.name}
                             </span>
-                            <span className="block truncate text-[12px] text-muted-foreground" title={row.courseName}>
-                              {row.courseName}
+                            <span className="mt-0.5 flex" title={row.courseName}>
+                              <Chip small color={courseTint(row.courseColor)}>
+                                {row.courseName}
+                              </Chip>
                             </span>
                           </span>
                           <span
-                            className={`shrink-0 text-[12px] leading-6 tabular-nums ${g.key === 'overdue' ? 'text-urgency-overdue' : 'text-muted-foreground'}`}
+                            className={`shrink-0 text-[12px] leading-6 tabular-nums ${row.dueAt === null || row.status !== 'pending' ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(row.dueAt, data.now)]}`}
                             data-due-at={countdown && row.dueAt !== null && row.dueAt >= data.now ? row.dueAt : undefined}
                             aria-label={countdown && row.dueAt !== null ? (countdownLabel((row.dueAt - data.now) * 1000, locale) ?? undefined) : undefined}
                           >

@@ -85,3 +85,20 @@
   transition-property: color, background-color, border-color, opacity, transform;
   transition-duration: 150ms;
 }
+
+/* ---------- The phone's shared parts at desktop sizes ---------- */
+/* Chip, check circle and the one-line time come from packages/ui/src/mobile
+   (Tahap 2: the same components on both). Their phone-only names get the
+   desktop scale here: 12 for chips and times, 11 as FitLine's step down. */
+:root {
+  --m-card: var(--layer-card);
+  --m-inset: var(--layer-inset);
+  --m-line: var(--layer-line);
+}
+.text-m11 { font-size: 11px; line-height: 14px; font-weight: 500; }
+.text-m12 { font-size: 12px; line-height: 16px; font-weight: 500; }
+.text-m13 { font-size: 13px; line-height: 18px; }
+.text-m15 { font-size: 14px; line-height: 20px; font-weight: 500; }
+.border-m-line { border-color: var(--layer-line); }
+.bg-m-inset { background-color: var(--layer-inset); }
+.bg-m-card { background-color: var(--layer-card); }

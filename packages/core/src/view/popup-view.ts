@@ -119,6 +119,8 @@ export interface PopupView {
   updates: ChangeLogEntry[];
   /** Course names by id, for the panel and notifications. */
   courseNames: Record<string, string>;
+  /** Course color numbers (1 to 8) by id, for chips; only the followed courses have one. */
+  courseColors: Record<string, number>;
   /** "Tanggal penting" line under the title; null hides it. */
   important: { judul: string; countdown: Countdown } | null;
 }
@@ -263,6 +265,7 @@ export function buildPopupView(input: PopupInput): PopupView {
     updatesUnseen: updates.filter((e) => !e.seen).length,
     updates,
     courseNames: Object.fromEntries(courses.map((c) => [String(c.id), courseAlias(c)])),
+    courseColors: Object.fromEntries([...colors].map(([id, n]) => [String(id), n])),
     important:
       onboarded && input.calendarHighlight
         ? { judul: input.calendarHighlight.judul, countdown: countdownOf(input.calendarHighlight, localParts(now, timeZone).dateKey) }
@@ -295,6 +298,7 @@ function mismatchView(input: PopupInput, deferred: boolean): PopupView {
     updatesUnseen: 0,
     updates: [],
     courseNames: {},
+    courseColors: {},
     important: null,
   };
 }
