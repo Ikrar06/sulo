@@ -134,7 +134,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
                             <span className={`block truncate text-[14px] ${row.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`} title={row.task.name}>
                               {row.task.name}
                             </span>
-                            <span className="mt-0.5 flex" title={row.courseName}>
+                            <span className="mt-1 flex" title={row.courseName}>
                               <Chip small color={courseTint(row.courseColor)}>
                                 {row.courseName}
                               </Chip>
