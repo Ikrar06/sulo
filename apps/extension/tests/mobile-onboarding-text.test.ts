@@ -11,10 +11,9 @@ describe('onboarding text budget', () => {
       for (const t of supports) if (!BUDGET_EXCEPTIONS.includes(t)) expect(t.length, t).toBeLessThanOrEqual(SUPPORT_MAX);
     });
   }
-  it('the exceptions are the owner\'s exact copy, each over by a single character', () => {
-    expect(BUDGET_EXCEPTIONS).toEqual(['Your data stays on your phone', 'Data from the previous account on this phone will be removed.']);
+  it('the one exception is the owner\'s exact copy, over by a single character', () => {
+    expect(BUDGET_EXCEPTIONS).toEqual(['Your data stays on your phone']);
     expect(BUDGET_EXCEPTIONS[0]!.length).toBe(TITLE_MAX + 1);
-    expect(BUDGET_EXCEPTIONS[1]!.length).toBe(SUPPORT_MAX + 1);
   });
   it('the disclosure on the watch switch is kept word for word', () => {
     expect(onboardingWords('id').reminders.watchBody).toBe('Sulo mengecek SIKOLA berkala di latar belakang.');

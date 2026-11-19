@@ -203,7 +203,7 @@ const en: Words = {
   },
   switchAccount: {
     title: 'Different account',
-    body: 'Data from the previous account on this phone will be removed.',
+    body: 'Data from the previous account will be removed.',
     use: 'Use this account',
     cancel: 'Cancel',
   },
@@ -230,4 +230,4 @@ export function budgetedTexts(w: OnboardingWords): { titles: string[]; supports:
  * The owner's final copy that is over the budget by one character; kept
  * word for word and listed here so the test stays strict for everything else.
  */
-export const BUDGET_EXCEPTIONS: readonly string[] = ['Your data stays on your phone', 'Data from the previous account on this phone will be removed.'];
+export const BUDGET_EXCEPTIONS: readonly string[] = ['Your data stays on your phone'];
