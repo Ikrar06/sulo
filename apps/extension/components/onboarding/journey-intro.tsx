@@ -213,14 +213,15 @@ function ScenePrivate() {
   useMascot({ state: 'idle', lookMs: sceneLevel() === 'full' ? story(1100) : 0, then: 'all-done' });
   return (
     <div className="obj-scene pointer-events-none pt-5 pb-4">
-      <div className="relative h-[300px] rounded-[20px] border-2" style={{ borderColor: 'color-mix(in oklab, var(--foreground) 22%, transparent)' }}>
+      <div className="relative h-[200px] rounded-[20px] border-2" style={{ borderColor: 'color-mix(in oklab, var(--foreground) 22%, transparent)' }}>
         {/* The window's bar: three small dots. */}
-        <div className="flex h-10 items-center gap-1.5 px-4">
+        <div className="absolute top-0 left-0 flex h-10 items-center gap-1.5 px-4">
           {[0, 1, 2].map((i) => (
             <span key={i} className="size-2 rounded-full" style={{ background: 'color-mix(in oklab, var(--foreground) 22%, transparent)' }} />
           ))}
         </div>
-        <div className="flex h-[212px] flex-wrap items-center justify-center gap-3 px-6">
+        {/* The three data chips at their usual size, centred in the window. */}
+        <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-3 px-6">
           {w.data.map((d, i) => (
             <In key={d} i={i + 1} delay={160}>
               <Chip>{d}</Chip>
