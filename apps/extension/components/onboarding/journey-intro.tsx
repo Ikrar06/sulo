@@ -243,7 +243,7 @@ function ScenePrivate() {
   useMascot({ state: 'idle', lookMs: sceneLevel() === 'full' ? story(1100) : 0, then: 'all-done' });
   return (
     <div className="obj-scene pointer-events-none pt-5 pb-4">
-      <div className="relative h-[200px] rounded-[20px] border-2" style={{ borderColor: 'color-mix(in oklab, var(--foreground) 22%, transparent)' }}>
+      <div className="relative h-[220px] w-full rounded-[20px] border-2" style={{ borderColor: 'color-mix(in oklab, var(--foreground) 22%, transparent)' }}>
         {/* The window's bar: three small dots. */}
         <div className="absolute top-0 left-0 flex h-10 items-center gap-1.5 px-4">
           {[0, 1, 2].map((i) => (

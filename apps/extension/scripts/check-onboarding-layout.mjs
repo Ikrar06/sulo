@@ -34,7 +34,9 @@ const SCREENS = [
   ['hubungkan-tersambung', 'onboarding=2&connect=connected'],
   ['hubungkan-gagal', 'onboarding=2&connect=failed'],
   ['menyiapkan-0', 'onboarding=2&prep=0'],
+  ['menyiapkan-1', 'onboarding=2&prep=1'],
   ['menyiapkan-3', 'onboarding=2&prep=3'],
+  ['menyiapkan-gagal', 'onboarding=2&prep=1&fail'],
   ['mata-kuliah', 'onboarding=3'],
   ['mata-kuliah-banyak', 'onboarding=3&many'],
   ['mata-kuliah-0', 'onboarding=3&none'],
@@ -45,9 +47,6 @@ const SCREENS = [
 /** Words that are not for a student: storage, protocol and code names. */
 const TECHNICAL = /chrome\.|storage|sesskey|token|cookie|\bAPI\b|JSON|webservice|moodle|localhost|extension id/i;
 const SIGN_IN = /username|password|sign in|nama pengguna|kata sandi/i;
-/** Scenes the owner sized to their content (19 Nov 2026: intro 2 tiles about 96, intro 3 window
- *  about 200, one no-task card): exempt from the 40 % floor only; the 75 % ceiling still holds. */
-const SHORT_BY_DESIGN = new Set(['intro-2', 'intro-3', 'selesai-tanpa-tugas']);
 
 const measure = () => {
   const vis = (el) => {
@@ -206,7 +205,7 @@ for (const [w, h] of [[1280, 800], [1440, 900], [1024, 768], [900, 700]]) {
         if (m.line && m.actions && !near(m.actions.top - m.line.bottom, 28)) findings.push(`${tag}: pendukung ke aksi ${Math.round(m.actions.top - m.line.bottom)} px (28)`);
         if (m.scene) {
           const share = m.scene.height / area;
-          if ((share < 0.4 && !SHORT_BY_DESIGN.has(name)) || share > 0.75) findings.push(`${tag}: adegan ${(share * 100).toFixed(0)}% tinggi area (40 sampai 75)`);
+          if (share < 0.4 || share > 0.75) findings.push(`${tag}: adegan ${(share * 100).toFixed(0)}% tinggi area (40 sampai 75)`);
           if (m.scene.width < 440 - 0.5 || m.scene.width > 480 + 0.5) findings.push(`${tag}: lebar adegan ${Math.round(m.scene.width)} (440 sampai 480)`);
           const sceneMid = m.scene.top + m.scene.height / 2;
           if (!near(sceneMid, 64 + area / 2, 2)) findings.push(`${tag}: adegan tidak di tengah area (${Math.round(sceneMid)} vs ${Math.round(64 + area / 2)})`);
