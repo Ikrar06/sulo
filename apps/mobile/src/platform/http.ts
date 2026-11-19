@@ -21,12 +21,16 @@ async function page(path: string, userInitiated: boolean): Promise<Response> {
   const reply = await SuloSession.page({ path, userInitiated });
   if (reply.networkError) throw new TypeError('network');
   // No usable session: SIKOLA's own answer would be a redirect to its login.
-  if (reply.httpStatus === undefined || reply.html === undefined) return new Response(null, { status: 303, headers: { Location: `${SIKOLA_ORIGIN}/login/index.php` } });
-  // A redirect elsewhere (native already caught the one to SIKOLA's login): this
-  // course's page can't be opened (hidden, enrolment ended). Never a sign-out.
-  if (reply.httpStatus >= 300 && reply.httpStatus < 400) return new Response(null, { status: COURSE_PAGE_CLOSED });
+  if (reply.httpStatus === undefined || reply.html === undefined) return toLogin();
+  if (reply.httpStatus >= 300 && reply.httpStatus < 400) {
+    // To SIKOLA's login: core asks once more before anything ends. Anywhere
+    // else: this course's page can't be opened (hidden, enrolment ended).
+    return reply.toLogin ? toLogin() : new Response(null, { status: COURSE_PAGE_CLOSED });
+  }
   return new Response(reply.html, { status: reply.httpStatus, headers: { 'Content-Type': 'text/html' } });
 }
+
+const toLogin = () => new Response(null, { status: 303, headers: { Location: `${SIKOLA_ORIGIN}/login/index.php` } });
 
 const LOGIN_REQUIRED = JSON.stringify([{ error: true, exception: { errorcode: 'servicerequireslogin', message: '' } }]);
 
@@ -45,6 +49,8 @@ export function createSessionHttp(userInitiated: boolean, onBatch?: (body: strin
       if (reply.httpStatus === undefined || reply.body === undefined) {
         return new Response(reply.needsUser ? JSON.stringify({ errorcode: 'invalidsesskey' }) : LOGIN_REQUIRED, { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
+      // SIKOLA sent us to its login (the batch, or /my/ for a sesskey): core asks once more.
+      if (reply.httpStatus >= 300 && reply.httpStatus < 400) return toLogin();
       onBatch?.(reply.body);
       return new Response(reply.body, { status: reply.httpStatus, headers: { 'Content-Type': 'application/json' } });
     },

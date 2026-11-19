@@ -5,6 +5,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Same simple name as Android's (a stub in JVM tests); VaultErrors reads names. */
+class KeyPermanentlyInvalidatedException(m: String) : Exception(m)
+
 class VaultReadTest {
     /** Decrypts like a working vault until told to fail with `failure`. */
     private class Flaky(private val inner: Crypto) : Crypto {
@@ -14,13 +17,24 @@ class VaultReadTest {
         override fun destroyKey() = inner.destroyKey()
     }
 
-    private fun setup(): Triple<MemorySlots, Flaky, SessionVault> {
+    private val pauses = mutableListOf<Long>()
+
+    private fun setup(withBackup: Boolean = false): Triple<MemorySlots, Flaky, SessionVault> {
         MemoryKey.key = null
+        pauses.clear()
         val slots = MemorySlots()
         val crypto = Flaky(MemoryCrypto())
-        val vault = SessionVault(slots, crypto)
+        val vault = SessionVault(slots, crypto, backup = if (withBackup) MemorySlots() else null, pause = { pauses.add(it) })
         vault.save(SikolaSession("cookie-value-123", "Sesskey0001"))
         return Triple(slots, crypto, vault)
+    }
+
+    @Test
+    fun aFailedReadIsTriedThreeTimesWithAPause() {
+        val (_, crypto, vault) = setup()
+        crypto.failure = java.security.KeyStoreException("not ready")
+        assertTrue(vault.read() is SessionVault.Read.Unavailable)
+        assertEquals(SessionVault.READ_TRIES - 1, pauses.size)
     }
 
     @Test
@@ -36,12 +50,13 @@ class VaultReadTest {
     }
 
     @Test
-    fun damagedDataEndsTheSessionAtOnce() {
+    fun damagedDataNeverDeletesTheSession() {
+        // Owner's rule (20 Nov 2026): only a key the Keystore reports gone for good ends it.
         val (slots, crypto, vault) = setup()
         crypto.failure = javax.crypto.AEADBadTagException("tag mismatch")
-        assertEquals(SessionVault.Read.Empty, vault.read())
-        assertEquals("expired", vault.status())
-        assertFalse(slots.map.containsKey("blob"))
+        repeat(5) { assertTrue(vault.read() is SessionVault.Read.Unavailable) }
+        assertEquals("connected", vault.status())
+        assertTrue(slots.map.containsKey("blob"))
     }
 
     @Test
@@ -53,24 +68,78 @@ class VaultReadTest {
     }
 
     @Test
-    fun theThirdPassingFailureInARowEndsIt() {
+    fun anInvalidatedKeyEndsTheSessionThroughTheChain() {
         val (_, crypto, vault) = setup()
-        crypto.failure = java.security.ProviderException("busy")
-        repeat(SessionVault.MAX_PASSING_FAILURES - 1) { assertTrue(vault.read() is SessionVault.Read.Unavailable) }
+        crypto.failure = RuntimeException(KeyPermanentlyInvalidatedException("gone"))
         assertEquals(SessionVault.Read.Empty, vault.read())
         assertEquals("expired", vault.status())
     }
 
     @Test
-    fun aGoodReadResetsTheCount() {
-        val (_, crypto, vault) = setup()
-        crypto.failure = java.security.KeyStoreException("not ready")
-        repeat(SessionVault.MAX_PASSING_FAILURES - 1) { vault.read() }
-        crypto.failure = null
-        assertTrue(vault.read() is SessionVault.Read.Ok)
-        crypto.failure = java.security.KeyStoreException("not ready")
-        assertTrue(vault.read() is SessionVault.Read.Unavailable)
+    fun aDamagedRecordFallsBackToTheLastGoodCopy() {
+        val (slots, _, vault) = setup(withBackup = true)
+        slots.damaged = true
         assertEquals("connected", vault.status())
+        assertEquals(SessionVault.Read.Ok(SikolaSession("cookie-value-123", "Sesskey0001")), vault.read())
+    }
+
+    @Test
+    fun aDamagedBlobFallsBackToTheCopysBlob() {
+        val (slots, _, vault) = setup(withBackup = true)
+        slots.map["blob"] = "v1:AAAAAAAAAAAAAAAA:AAAA"
+        assertTrue(vault.read() is SessionVault.Read.Ok)
+    }
+
+    @Test
+    fun suspicionIsCountedAndClearedButNeverEndsTheSession() {
+        val (_, _, vault) = setup()
+        assertEquals(1, vault.markSuspect("watch:servicerequireslogin"))
+        assertEquals(2, vault.markSuspect("watch:servicerequireslogin"))
+        assertEquals("connected", vault.status())
+        assertTrue(vault.read() is SessionVault.Read.Ok)
+        vault.clearSuspect()
+        assertEquals(0, vault.suspectCount())
+        // A new sign-in starts clean.
+        vault.markSuspect("watch:x")
+        vault.save(SikolaSession("cookie-value-456", "Sesskey0002"))
+        assertEquals(0, vault.suspectCount())
+    }
+
+    @Test
+    fun anEndedSessionLeavesNothingInTheCopyEither() {
+        val (slots, _, vault) = setup(withBackup = true)
+        vault.markExpired("confirmed:session:servicerequireslogin+session:servicerequireslogin")
+        slots.damaged = true
+        assertEquals(SessionVault.Read.Empty, vault.read())
+    }
+
+    @Test
+    fun earlierBuildsRecordsMoveOnce() {
+        val old = MemorySlots().apply { map["blob"] = "v1:x:y"; map["state"] = "connected" }
+        val main = MemorySlots()
+        val copy = MemorySlots()
+        SessionVault.migrate(old, main, copy, null)
+        assertEquals("v1:x:y", main.map["blob"])
+        assertEquals("v1:x:y", copy.map["blob"])
+        assertTrue(old.map.isEmpty())
+        // Never over a record that is already there.
+        val again = MemorySlots().apply { map["blob"] = "v1:other:z" }
+        SessionVault.migrate(again, main, copy, null)
+        assertEquals("v1:x:y", main.map["blob"])
+    }
+
+    @Test
+    fun fileSlotsWriteWholeAndReadDamageAsNull() {
+        val dir = java.nio.file.Files.createTempDirectory("vault").toFile()
+        val file = java.io.File(dir, "s.json")
+        val slots = FileSlots(file)
+        assertEquals(emptyMap<String, String>(), slots.all())
+        slots.putAll(mapOf("blob" to "v1:a:b", "state" to "connected"))
+        assertEquals("connected", FileSlots(file).get("state"))
+        assertFalse(java.io.File(dir, "s.json.tmp").exists())
+        file.writeText("{\"blob\": \"v1:a")
+        assertEquals(null, FileSlots(file).all())
+        dir.deleteRecursively()
     }
 
     @Test

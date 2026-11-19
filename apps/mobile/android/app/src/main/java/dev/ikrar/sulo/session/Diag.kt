@@ -12,25 +12,29 @@ import org.json.JSONObject
  * with the rest of the app's data. Shown on the hidden dev screen.
  */
 class Diag(private val slots: Slots, private val now: () -> Long = { System.currentTimeMillis() / 1000 }) {
-    @Synchronized
-    fun note(event: String) {
-        val safe = event.replace(Regex("[^A-Za-z0-9_:.-]"), "").take(60)
+    fun note(event: String) = synchronized(LOCK) {
+        val safe = event.replace(Regex("[^A-Za-z0-9_:.>+-]"), "").take(80)
         val list = entries().put(JSONObject().put("at", now()).put("e", safe))
         val trimmed = JSONArray()
         for (i in maxOf(0, list.length() - MAX) until list.length()) trimmed.put(list.get(i))
         slots.put(KEY, trimmed.toString())
     }
 
-    @Synchronized
-    fun clear() = slots.clear()
+    /** One code from the app (SuloSession.note): kept only when it is a code already. */
+    fun noteFromApp(event: String) {
+        if (Regex("^[a-z0-9_:.>+-]{1,80}$").matches(event)) note("app:$event")
+    }
 
-    @Synchronized
+    fun clear() = synchronized(LOCK) { slots.clear() }
+
     fun entries(): JSONArray = slots.get(KEY)?.let { runCatching { JSONArray(it) }.getOrNull() } ?: JSONArray()
 
     companion object {
         const val PREFS = "sulo_diag"
         private const val KEY = "events"
-        const val MAX = 60
+        const val MAX = 120
+        /** Every Diag of the process shares it (Diag.of makes a new one each time). */
+        private val LOCK = Any()
 
         fun of(context: Context): Diag = Diag(PrefsSlots(context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)))
     }

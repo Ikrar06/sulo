@@ -99,7 +99,7 @@ class WatchGuardWorker(context: Context, params: WorkerParameters) : Worker(cont
             WatchScheduler.stopGuard(applicationContext)
             return Result.success()
         }
-        val status = dev.ikrar.sulo.session.SessionVault(applicationContext).status()
+        val status = dev.ikrar.sulo.session.SessionVault.of(applicationContext).status()
         if (status != "connected") {
             // Ended or signed out: nothing to restart until the user signs in (the app then writes a new plan).
             // Only the guard stops, so a "Masuk lagi" notice waiting for quiet hours to end is not cancelled.

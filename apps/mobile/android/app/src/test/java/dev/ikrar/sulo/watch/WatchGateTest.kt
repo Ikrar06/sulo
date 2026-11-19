@@ -158,4 +158,15 @@ class WatchExpiryTest {
         assertTrue(WatchGate.mayNotifyExpired(store.expiredSent(), "expired"))
         assertFalse(WatchGate.mayNotifyExpired(false, "connected"))
     }
+
+    @Test
+    fun theBackgroundCheckTellsTheUserOnlyAfterTwoLoginAnswersInARow() {
+        // Owner's rule (20 Nov 2026): the worker never ends the session; the first "log in" is checked again.
+        assertEquals(WatchGate.Signal.CHECK_AGAIN, WatchGate.afterLoginSignal(1))
+        assertEquals(WatchGate.Signal.NOTIFY_AND_STOP, WatchGate.afterLoginSignal(2))
+        assertFalse(WatchGate.mayNotifyExpired(false, "connected", suspect = 1))
+        assertTrue(WatchGate.mayNotifyExpired(false, "connected", suspect = 2))
+        assertFalse(WatchGate.mayNotifyExpired(true, "connected", suspect = 2))
+        assertFalse(WatchGate.mayNotifyExpired(false, "none", suspect = 2))
+    }
 }

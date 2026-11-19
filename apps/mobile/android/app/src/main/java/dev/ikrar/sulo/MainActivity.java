@@ -24,6 +24,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // The app's own native plugin (login, session, SIKOLA requests).
         registerPlugin(SuloSessionPlugin.class);
+        registerPlugin(dev.ikrar.sulo.store.SuloStorePlugin.class);
         // M8d: the NEOSIA screen (debug builds only in B0).
         registerPlugin(SuloNeosiaPlugin.class);
         super.onCreate(savedInstanceState);

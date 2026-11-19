@@ -15,6 +15,7 @@ import { readUser, currentUser } from '@sulo/core/storage';
 import { runSync, type SyncDeps } from '@sulo/core/sync/run-sync';
 import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { NATIVE_SESSKEY, createSessionHttp } from './platform/http';
+import { SuloSession } from './session';
 import { recordTimeRemaining } from './dev-log';
 
 /** Opening the app syncs when the data is older than this. */
@@ -33,8 +34,15 @@ export function sikolaClient(platform: Platform, options: { userInitiated: boole
     getSesskey: async () => NATIVE_SESSKEY,
     noSessionUpdate: !options.userInitiated,
     sessionAge: options.dev ? createSessionAgeLogger(store) : undefined,
+    // One login answer is never enough: a second, separate ask after 2 to 5 seconds must agree.
+    confirmLogin: { wait: () => new Promise((resolve) => setTimeout(resolve, confirmDelayMs())) },
+    // Only then does the vault end the session (the one place that decides; native SuloSession.endSession).
+    onSessionEnded: async (why) => void (await SuloSession.endSession({ reason: why })),
   });
 }
+
+/** 2 to 5 seconds, so the second ask is a separate moment. */
+export const confirmDelayMs = (random: () => number = Math.random): number => 2000 + Math.floor(random() * 3000);
 
 export async function syncNow(platform: Platform, options: { userInitiated: boolean; dev?: boolean; onStage?: SyncDeps['onStage'] }): Promise<SyncOutcome> {
   // pnpm mobile:web: the demo account stays as it is (no request ever leaves the browser).

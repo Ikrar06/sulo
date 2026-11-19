@@ -37,6 +37,7 @@ import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
 import { lastSyncAt, resumeNeedsSync, syncAfterLogin, syncNow } from './sync';
+import { alignSession } from './session-truth';
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
 const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({ default: m.DevScreen }))) : null;
@@ -53,6 +54,12 @@ export function outcomeNote(o: SyncOutcome, w: MobileWords, rest: 'short' | 'day
   if (o.status === 'skipped' && o.reason === 'DISABLED_REMOTELY') return '';
   if (o.status === 'offline') return w.app.offline;
   return w.connected.failed;
+}
+
+/** Core's session state follows the vault; a change goes into the session history. */
+async function alignAndNote(platform: Platform, vault: SessionStatus): Promise<void> {
+  const changed = await alignSession(platform, vault).catch(() => null);
+  if (changed) await SuloSession.note({ e: changed }).catch(() => undefined);
 }
 
 /** The idle mount of Ringkasan waits at most this long. */
@@ -142,6 +149,17 @@ export function App({ platform }: { platform: Platform }) {
     [platform, refreshState, w],
   );
   const refresh = useCallback(() => sync(() => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__ })), [platform, sync]);
+  // The start effect runs once; it reaches the current refresh through this.
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
+  // Debug builds only: pnpm mobile:test-restart starts a sync like pull-to-refresh (to end the process mid-sync).
+  useEffect(() => {
+    if (!__SULO_DEV__) return;
+    const w = window as unknown as { __suloDevSync?: () => Promise<string> };
+    w.__suloDevSync = () => refreshRef.current();
+    return () => void delete w.__suloDevSync;
+  }, []);
 
   // Start: language, lock, state, and reminders from the data already here.
   useEffect(() => {
@@ -151,6 +169,7 @@ export function App({ platform }: { platform: Platform }) {
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
       const now = (await SuloSession.status()).status;
+      await alignAndNote(platform, now);
       const signedIn = now !== 'none';
       // A question left open when the app was closed: it is asked again, and nothing runs meanwhile.
       const demoSwitch = __SULO_WEB_FAKE__ && import.meta.env.MODE === 'web' && new URLSearchParams(location.search).get('switch') === '1';
@@ -166,6 +185,7 @@ export function App({ platform }: { platform: Platform }) {
       const config = await readRemoteConfig(platform.store);
       setPaused(config.enabled ? null : config.message.trim() || mobileWords(loc).watch.paused);
       await applyWatchPlan(platform).catch(() => undefined);
+      if (now === 'connected' && (await SuloSession.suspect().catch(() => ({ suspect: false }))).suspect) void refreshRef.current();
     })();
     const onDev = () => __SULO_DEV__ && setDev(true);
     // Debug builds: the scenes' pace chosen on the dev screen, and a replay of the onboarding from the first screen.
@@ -192,12 +212,15 @@ export function App({ platform }: { platform: Platform }) {
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       void refreshPublicData(platform, true);
       const s = (await SuloSession.status()).status;
+      await alignAndNote(platform, s);
       setStatus(s);
       // The different-account question is open: no sync, no background plan, until it is answered.
       if (await switchPending(platform)) return;
       const queue = await processWatchQueue(platform).catch(() => ({ applied: 0, fullSync: false }));
       if (queue.applied > 0) await scheduleReminders(platform).catch(() => 0);
-      if (s === 'connected' && (queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
+      // Background watching thought the session ended: only this sync (asking twice) may say so.
+      const suspect = s === 'connected' && (await SuloSession.suspect().catch(() => ({ suspect: false }))).suspect;
+      if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
       else void applyWatchPlan(platform);
     };
     document.addEventListener('visibilitychange', onVisible);

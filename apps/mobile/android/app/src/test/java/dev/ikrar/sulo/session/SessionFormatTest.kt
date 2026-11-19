@@ -13,7 +13,10 @@ import javax.crypto.SecretKey
 
 class MemorySlots : Slots {
     val map = mutableMapOf<String, String>()
-    override fun get(key: String) = map[key]
+    /** Set to make the record read as damaged. */
+    var damaged = false
+    override fun all(): Map<String, String>? = if (damaged) null else map.toMap()
+    override fun get(key: String) = if (damaged) null else map[key]
     override fun put(key: String, value: String) { map[key] = value }
     override fun clear() = map.clear()
 }
@@ -178,5 +181,13 @@ class SikolaRequestTest {
         assertFalse(SikolaRequest.invalidSesskey("""[{"error":false,"data":{}},{"error":true,"exception":{"errorcode":"invalidsesskey"}}]""", batch))
         // When time_remaining itself says so, it is the session.
         assertTrue(SikolaRequest.loginRequired("""[{"error":false,"data":{}},{"error":true,"exception":{"errorcode":"servicerequireslogin"}}]""", listOf("core_calendar_get_action_events_by_timesort", "core_session_time_remaining")))
+    }
+
+    @Test
+    fun aSessionCallThatAnsweredClearsSuspicion() {
+        assertTrue(SikolaRequest.sessionAnswered("""[{"error":false,"data":{"userid":1,"timeremaining":7000}}]""", batch))
+        assertFalse(SikolaRequest.sessionAnswered("""[{"error":true,"exception":{"errorcode":"servicerequireslogin"}}]""", batch))
+        assertFalse(SikolaRequest.sessionAnswered("""{"errorcode":"invalidsesskey"}""", batch))
+        assertFalse(SikolaRequest.sessionAnswered("""[{"error":false,"data":{}}]""", listOf("core_courseformat_get_state")))
     }
 }

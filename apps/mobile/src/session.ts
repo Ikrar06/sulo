@@ -22,6 +22,8 @@ export interface BatchReply {
 export interface PageReply {
   httpStatus?: number;
   html?: string;
+  /** A redirect to SIKOLA's login (asked again by core before anything ends). */
+  toLogin?: boolean;
   sessionStatus: SessionStatus;
   networkError?: string;
 }
@@ -42,6 +44,16 @@ export interface SuloSessionPlugin {
    */
   login(labels?: { close: string; offline: string; retry: string }): Promise<{ status: 'connected' | 'cancelled' | 'offline' }>;
   status(): Promise<{ status: SessionStatus }>;
+  /**
+   * The session is over for sure: core asked twice and SIKOLA said "log in"
+   * both times (`reason`: the codes of both answers). The only way the vault
+   * ends a session, apart from the user's own Keluar or Batal.
+   */
+  endSession(options: { reason: string }): Promise<{ status: SessionStatus }>;
+  /** Background watching thought the session ended: the app confirms on its next sync (never the worker). */
+  suspect(): Promise<{ suspect: boolean }>;
+  /** One event code for the session history (lowercase, digits, _:.>+-; no data). */
+  note(options: { e: string }): Promise<void>;
   /** Debug builds: what happened to the session (times and event codes only, native Diag). */
   diagLog(): Promise<{ events: { at: number; e: string }[] }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */

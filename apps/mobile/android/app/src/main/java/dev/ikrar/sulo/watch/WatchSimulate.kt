@@ -84,7 +84,7 @@ class WatchSimulate(private val context: Context) {
 
     /** The session marked ended (its blob deleted, Sulo's data kept) and the calm notice, now. */
     private fun expired(plan: JSONObject, prefix: String): Result {
-        SessionVault(context).markExpired("dev_simulate")
+        SessionVault.of(context).markExpired("dev_simulate")
         WatchScheduler.stop(context)
         val t = plan.getJSONObject("templates")
         val e = t.getJSONObject("expired")

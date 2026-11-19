@@ -60,6 +60,13 @@ object SikolaRequest {
 
     fun invalidSesskey(body: String, functions: List<String>): Boolean = "invalidsesskey" in sessionCodes(body, functions)
 
+    /** core_session_time_remaining answered without an error: SIKOLA knows this session. */
+    fun sessionAnswered(body: String, functions: List<String>): Boolean = runCatching {
+        val at = functions.indexOf("core_session_time_remaining")
+        val text = body.trim()
+        at >= 0 && text.startsWith("[") && JSONArray(text).optJSONObject(at)?.let { it.has("data") && !it.optBoolean("error", false) } == true
+    }.getOrDefault(false)
+
     private val LOGIN_CODES = setOf("servicerequireslogin", "requireloginerror")
 
     /** The error codes that speak for the whole session: top-level, or core_session_time_remaining's own. */
