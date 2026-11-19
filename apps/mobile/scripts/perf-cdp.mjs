@@ -111,6 +111,18 @@ const result = { tier, phase };
 await send('Runtime.enable');
 await send('Page.enable');
 
+if (phase === 'probe') {
+  // What the WebView shows (the update page check on an old WebView): its address and its text, once there is some.
+  const end = Date.now() + 90_000;
+  let seen = { href: '', text: '', bg: '' };
+  while (Date.now() < end) {
+    seen = await run(() => ({ href: location.href, text: document.body ? document.body.innerText.trim() : '', bg: document.body ? getComputedStyle(document.body).backgroundColor : '' })).catch(() => seen);
+    if (seen.text) break;
+    await sleep(1000);
+  }
+  Object.assign(result, seen);
+}
+
 if (phase === 'setup') {
   // The demo account with 50 tasks, signed in, this tier kept for the cold opens.
   await navigate(`${ORIGIN}/?demo=banyak&perf=${tier}`);

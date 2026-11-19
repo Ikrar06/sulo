@@ -41,22 +41,32 @@ forward() {
 }
 jobs_scheduled() { (adb shell dumpsys jobscheduler | grep -c "$PKG") || true; }
 
+# A slow emulator can leave "not responding" dialogs over the screen.
+calm() { adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null 2>&1 || true; }
+update_page() {
+  local tag="$1"
+  calm; launch; forward
+  # The page's own address and text through the WebView's devtools: proof it is the update page, not a blank screen.
+  node "$HERE/perf-cdp.mjs" --phase=probe > "$OUT/update-page-$tag.json" 2>> "$OUT/errors.txt" || echo "probe $tag failed" >> "$OUT/errors.txt"
+  sleep 2; calm; sleep 1
+  adb exec-out screencap -p > "$OUT/update-page-$tag.png"
+  echo "job terjadwal setelah buka ($tag): $(jobs_scheduled)" >> "$OUT/summary.txt"
+}
+
 if [ -n "$WV_MAJOR" ] && [ "$WV_MAJOR" -lt "$MIN_WEBVIEW" ]; then
   echo "WebView $WV di bawah $MIN_WEBVIEW: uji halaman pembaruan" > "$OUT/summary.txt"
-  launch; sleep 12
-  adb exec-out screencap -p > "$OUT/update-page-en-US.png"
-  echo "job terjadwal setelah buka (en): $(jobs_scheduled)" >> "$OUT/summary.txt"
-  (log_since | grep -iE "webview|errorPath|perlu-pembaruan|Capacitor" | head -20 > "$OUT/logcat-update.txt") || true
+  adb shell settings put global window_animation_scale 0 || true
+  adb shell settings put global transition_animation_scale 0 || true
+  update_page en-US
+  (log_since | grep -iE "Capacitor|perlu-pembaruan|Minimum" | head -20 > "$OUT/logcat-update.txt") || true
   # The same page in Indonesian: the emulator's locale switched (google_apis images allow root).
   adb root >/dev/null 2>&1 || true; sleep 3; adb wait-for-device
   adb shell setprop persist.sys.locale id-ID
   adb shell setprop ctl.restart zygote
   sleep 5; adb wait-for-device
-  for _ in $(seq 1 90); do [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ] && break; sleep 2; done
-  sleep 5
-  launch; sleep 12
-  adb exec-out screencap -p > "$OUT/update-page-id-ID.png"
-  echo "job terjadwal setelah buka (id): $(jobs_scheduled)" >> "$OUT/summary.txt"
+  for _ in $(seq 1 120); do [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ] && break; sleep 2; done
+  sleep 20
+  update_page id-ID
   echo "perf-emulator: halaman pembaruan diuji, hasil di $OUT"
   exit 0
 fi
