@@ -119,19 +119,10 @@
 .db-load-3 { background: color-mix(in oklch, var(--brand-orange) 62%, var(--surface-raised)); color: var(--text); }
 .db-load-4 { background: color-mix(in oklch, var(--brand-orange) 88%, var(--surface-raised)); color: var(--ink); }
 
-/* Calendar categories (lib/calendar/groups.ts). One hue per group; bars
-   and chips use a low tint with strong text, dots the full color, status
-   periods an even fainter cell tint. Pairs checked by scripts/contrast.mjs. */
-.db-layout {
-  --cat-akademik: var(--muted);
-  --cat-ujian: var(--brand-amber);
-  --cat-administrasi: var(--urgency-week);
-  --cat-libur: var(--danger);
-  --cat-wisuda: var(--course-7);
-  --cat-penerimaan: var(--muted);
-  --cat-tugas: var(--muted);
-  --cat-kuliah: var(--course-5);
-}
+/* Calendar categories (lib/calendar/groups.ts), colors --cat-* in
+   packages/ui/src/tokens/palette.css. One hue per group; bars and chips use
+   a low tint with strong text, dots the full color, status periods an even
+   fainter cell tint. Pairs checked by scripts/contrast.mjs. */
 
 .db-cat-akademik { --cat: var(--cat-akademik); }
 .db-cat-ujian { --cat: var(--cat-ujian); }

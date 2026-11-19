@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 // Contrast of the dashboard's colored chips, cells and the support button, in both themes
-// (WCAG 2 ratio). Reads the theme tokens from assets/tokens.css and mixes
+// (WCAG 2 ratio). Reads the theme tokens from packages/ui/src/tokens/palette.css and mixes
 // colors the way CSS color-mix(in oklch) does. No dependencies.
 // Usage: node scripts/contrast.mjs   (exit 1 when any pair is below 4.5:1)
 
 
-/** The phone's course colors, the same in both themes (apps/mobile/src/tokens.css). */
-const MOBILE_COURSE = ['#f28788', '#e39849', '#b0b246', '#5ec386', '#00c3cb', '#5db2f7', '#aa9cf7', '#dd8acb'];
 import { readFileSync } from 'node:fs';
 
-const css = readFileSync(new URL('../assets/tokens.css', import.meta.url), 'utf8');
+const css = readFileSync(new URL('../../../packages/ui/src/tokens/palette.css', import.meta.url), 'utf8');
 
 /** Tokens of a block whose selector matches `re` (first match). */
 function block(re) {
@@ -21,9 +19,11 @@ function block(re) {
   for (; i < css.length && depth > 0; i++) depth += css[i] === '{' ? 1 : css[i] === '}' ? -1 : 0;
   return Object.fromEntries([...css.slice(start, i).matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)].map((x) => [x[1], x[2]]));
 }
-const brand = block(/:root\s*\{\s*\n\s*--brand-amber/);
-const dark = { ...brand, ...block(/:root\s*\{[^}]*--bg:\s*#0b0b0e/) };
+const brand = { ...block(/:root\s*\{\s*\n\s*--brand-amber/), ...block(/:root\s*\{\s*\n\s*--course-1/) };
+const dark = { ...brand, ...block(/\[data-theme="dark"\]\s*\{[^}]*--bg:\s*#0b0b0e/), ...block(/\[data-theme="dark"\]\s*\{[^}]*--layer-screen/) };
 const light = { ...brand, ...block(/\[data-theme="light"\]\s*\{/) };
+/** The course colors, the same in both themes. */
+const MOBILE_COURSE = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => brand[`course-${n}`]);
 
 // sRGB <-> OKLab (Björn Ottosson), OKLCH mixing as CSS Color 4.
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
@@ -65,14 +65,10 @@ const ratio = (a, b) => {
 
 const WHITE = [1, 1, 1];
 
-// The Android app's layers (apps/mobile/src/tokens.css): screen, card, inset per theme.
-const mobileCss = readFileSync(new URL('../../mobile/src/tokens.css', import.meta.url), 'utf8');
-const layer = (block, name) => hex(new RegExp(`--m-${name}:\\s*(#[0-9a-fA-F]{6})`).exec(block)[1]);
-const mobileDark = mobileCss.slice(mobileCss.indexOf(':root {\n  --m-screen'));
-const mobileLight = mobileCss.slice(mobileCss.indexOf('@media (prefers-color-scheme: light)'));
+// The card layers (palette.css): screen, card, inset per theme.
 const mobileLayers = (theme) => {
-  const b = theme === 'terang' ? mobileLight : mobileDark;
-  return { screen: layer(b, 'screen'), card: layer(b, 'card'), inset: layer(b, 'inset') };
+  const t = theme === 'terang' ? light : dark;
+  return { screen: hex(t['layer-screen']), card: hex(t['layer-card']), inset: hex(t['layer-inset']) };
 };
 
 function pairs(t, theme) {

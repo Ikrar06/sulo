@@ -81,12 +81,12 @@ export function CourseRow({ course, color, row, fetched, w, locale }: { course: 
 }
 
 export const STATUS_CLASS: Record<AttendanceStatus, string> = {
-  present: 'border-border text-foreground',
-  late: 'border-border text-foreground',
-  excused: 'border-border text-foreground',
+  present: 'border-border text-att-present',
+  late: 'border-border text-att-late',
+  excused: 'border-border text-att-excused',
   unknown: 'border-border text-muted-foreground',
-  // The one status shown in a warning color.
-  absent: 'border-urgency-soon text-urgency-soon',
+  // The one status shown in a warning color (--att-absent, packages/ui/src/tokens/palette.css).
+  absent: 'border-att-absent text-att-absent',
 };
 
 /** Placeholder rows while one course's sessions are being fetched. */

@@ -1,0 +1,174 @@
+/* Sulo's colors: the one source for the extension and the Android app.
+   Imported by apps/extension/assets/tokens.css (and through it by
+   apps/mobile/src/styles.css). Sizes, spacing and radii stay per platform
+   (the extension's tokens.css, the phone's tokens.css).
+
+   Dark is the default. Light follows the system preference, and
+   data-theme="light" | "dark" on any element overrides it.
+
+   Groups:
+     brand        the flame colors and ink, the same in every theme
+     palette      background, surface, raised, border, text, muted, focus
+     layers       the card model (M8c.1): screen, card one step above, inset
+                  one more (chips, tiles, inputs), a hairline edge only in light
+     urgency      dot and text only, never backgrounds; not brand hues
+     status       data status (stale, offline, broken, estimate, disabled)
+     course       8 colors, the same bright set in both themes, used as a
+                  dot, a solid tile with dark text, or an 18% tint behind
+                  chips with the text color on it
+     categories   the academic calendar's kinds
+     attendance   a session's status on Presensi
+   Contrast of every pair: apps/extension/scripts/contrast.mjs. */
+
+/* ---------- Brand ---------- */
+
+:root {
+  --brand-amber: #ffa51f;
+  --brand-orange: #ff5a2a;
+  --brand-crimson: #e8204a;
+  --ink: #0b0b10;
+  /* Flame direction in the SVGs: top right (amber) to bottom left (crimson). */
+  --brand-flame: linear-gradient(208deg, var(--brand-amber) 0%, var(--brand-orange) 50%, var(--brand-crimson) 100%);
+}
+
+/* ---------- Course colors (both themes) ---------- */
+
+:root {
+  --course-1: #f28788;
+  --course-2: #e39849;
+  --course-3: #b0b246;
+  --course-4: #5ec386;
+  --course-5: #00c3cb;
+  --course-6: #5db2f7;
+  --course-7: #aa9cf7;
+  --course-8: #dd8acb;
+}
+
+/* ---------- Dark (default) ---------- */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Keyboard focus ring: 2px solid, at least 3:1 against bg and surface. */
+  --focus: #ffb020;
+  --bg: #0b0b0e;
+  --surface: #17171c;
+  --surface-raised: #1f1f25;
+  --border: #26262e;
+  --control-border: #6b6b75; /* unchecked checkbox edge: 3:1 or more on bg, surface, surface-raised */
+  --text: #f2f2f5;
+  --muted: #8a8a96;
+
+  --urgency-overdue: #f87171;
+  --urgency-soon: #facc15;
+  --urgency-week: #60a5fa;
+  --urgency-normal: #8a8a96;
+
+  --danger: #f87171;
+  --danger-foreground: var(--ink);
+
+  --status-stale: #a1a1aa;
+  --status-offline: #94a3b8;
+  --status-broken: #c4b5fd;
+  --status-estimate: #a1a1aa;
+  --status-disabled: #a1a1aa;
+}
+
+/* Layers, dark: cards without borders and without shadows. */
+:root,
+[data-theme="dark"] {
+  --layer-screen: #0b0b0e;
+  --layer-card: #17171c;
+  --layer-inset: #232329;
+  --layer-line: #2c2c34;
+  --layer-card-edge: transparent;
+  --layer-card-shadow: none;
+  --accent-tint: color-mix(in oklch, var(--brand-orange) 18%, var(--layer-card));
+}
+
+/* ---------- Light ---------- */
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --focus: #b45309;
+    --bg: #fafafb;
+    --surface: #ffffff;
+    --surface-raised: #f2f2f5;
+    --border: #e4e4ea;
+    --control-border: #84848e;
+    --text: #111114;
+    --muted: #5f5f6b;
+    --urgency-overdue: #b91c1c;
+    --urgency-soon: #735c00;
+    --urgency-week: #1d4ed8;
+    --urgency-normal: #5f5f6b;
+    --danger: #b91c1c;
+    --danger-foreground: #ffffff;
+    --status-stale: #52525b;
+    --status-offline: #475569;
+    --status-broken: #6d28d9;
+    --status-estimate: #52525b;
+    --status-disabled: #52525b;
+  }
+  /* Layers, light: a very light gray screen so white cards stand off it, a hairline and the faintest shadow. */
+  :root:not([data-theme="dark"]) {
+    --layer-screen: #f1f1f4;
+    --layer-card: #ffffff;
+    --layer-inset: #e7e7ec;
+    --layer-line: #e3e3e9;
+    --layer-card-edge: #ebebf0;
+    --layer-card-shadow: 0 1px 2px rgb(16 16 24 / 0.04), 0 4px 12px rgb(16 16 24 / 0.03);
+    --accent-tint: color-mix(in oklch, var(--brand-orange) 14%, var(--layer-card));
+  }
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --focus: #b45309;
+  --bg: #fafafb;
+  --surface: #ffffff;
+  --surface-raised: #f2f2f5;
+  --border: #e4e4ea;
+  --control-border: #84848e;
+  --text: #111114;
+  --muted: #5f5f6b;
+  --urgency-overdue: #b91c1c;
+  --urgency-soon: #735c00;
+  --urgency-week: #1d4ed8;
+  --urgency-normal: #5f5f6b;
+  --danger: #b91c1c;
+  --danger-foreground: #ffffff;
+  --status-stale: #52525b;
+  --status-offline: #475569;
+  --status-broken: #6d28d9;
+  --status-estimate: #52525b;
+  --status-disabled: #52525b;
+  --layer-screen: #f1f1f4;
+  --layer-card: #ffffff;
+  --layer-inset: #e7e7ec;
+  --layer-line: #e3e3e9;
+  --layer-card-edge: #ebebf0;
+  --layer-card-shadow: 0 1px 2px rgb(16 16 24 / 0.04), 0 4px 12px rgb(16 16 24 / 0.03);
+  --accent-tint: color-mix(in oklch, var(--brand-orange) 14%, var(--layer-card));
+}
+
+/* ---------- Calendar categories and attendance (from the palette above) ---------- */
+
+:root,
+[data-theme] {
+  --cat-akademik: var(--muted);
+  --cat-ujian: var(--brand-amber);
+  --cat-administrasi: var(--urgency-week);
+  --cat-libur: var(--danger);
+  --cat-wisuda: var(--course-7);
+  --cat-penerimaan: var(--muted);
+  --cat-tugas: var(--muted);
+  --cat-kuliah: var(--course-5);
+
+  /* A session's status: only an absence stands out (in the "soon" color, never red). */
+  --att-present: var(--text);
+  --att-late: var(--text);
+  --att-excused: var(--text);
+  --att-absent: var(--urgency-soon);
+}
