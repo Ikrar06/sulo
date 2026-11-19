@@ -107,25 +107,32 @@ export function UpdatesPanel({ entries, courseNames, courseColors, now, timeZone
     days.set(label, [...(days.get(label) ?? []), e]);
   }
   const unseen = entries.some((e) => !e.seen);
+  const showHeader = !embedded || !!onBack || unseen;
   const courseOf = (e: ChangeLogEntry) => (e.change.courseId === null ? u.otherCourse : (courseNames[String(e.change.courseId)] ?? u.otherCourse));
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex items-center gap-1 px-2 pt-2.5 pb-1.5">
-        {onBack && (
-          <Button size="icon-sm" variant="ghost" aria-label={u.back} onClick={onBack}>
-            <ChevronLeftIcon className="size-4" />
-          </Button>
-        )}
-        {embedded ? <h2 className="sr-only">{u.title}</h2> : <h1 className="flex-1 font-heading text-[17px] leading-5">{u.title}</h1>}
-        {embedded && <span className="flex-1" />}
-        {unseen && (
-          <Button size="sm" variant="ghost" onClick={onMarkAllSeen}>
-            {u.markAll}
-          </Button>
-        )}
-      </header>
-      <div className="flex-1 overflow-y-auto pb-2">
+      {/* The header only when it holds something (back, a visible title, "Tandai semua"): an empty one left
+          a 16 px band above the list when every entry was seen (Tahap 2, e8). */}
+      {showHeader ? (
+        <header className="flex items-center gap-1 px-2 pt-2.5 pb-1.5">
+          {onBack && (
+            <Button size="icon-sm" variant="ghost" aria-label={u.back} onClick={onBack}>
+              <ChevronLeftIcon className="size-4" />
+            </Button>
+          )}
+          {embedded ? <h2 className="sr-only">{u.title}</h2> : <h1 className="flex-1 font-heading text-[17px] leading-5">{u.title}</h1>}
+          {embedded && <span className="flex-1" />}
+          {unseen && (
+            <Button size="sm" variant="ghost" onClick={onMarkAllSeen}>
+              {u.markAll}
+            </Button>
+          )}
+        </header>
+      ) : (
+        <h2 className="sr-only">{u.title}</h2>
+      )}
+      <div className={`flex-1 overflow-y-auto pb-2 ${showHeader ? '' : 'pt-2'}`}>
         {entries.length === 0 ? (
           (empty ?? <p className="px-4 py-6 text-center text-(length:--fs-body) text-muted-foreground">{u.empty}</p>)
         ) : (
