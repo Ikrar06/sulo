@@ -23,14 +23,19 @@ import { demoNeosia } from './lib/demo-neosia.mjs';
 import { demoPresensi } from './lib/demo-presensi.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
-const ext = join(root, '../../.output/chrome-mv3-dev');
+// The production build: no dev or tester parts (request log, diagnosis panels) can be on screen.
+const ext = join(root, '../../.output/chrome-mv3');
+// Text only the dev and tester builds show; a poster or video with any of it is refused.
+const TESTER_TEXT = /build penguji|tester build|build debug|\(dev\)|Diagnosis (presensi|Radar)|Radar diagnosis|Attendance diagnosis/i;
 const outDir = join(root, 'public/guide');
 const WIDTH = 1200;
 const FPS = 24;
 const CRF = 40;
 const only = process.argv.find((a) => a.startsWith('--only='))?.slice(7);
 
-if (!process.argv.includes('--no-build')) execFileSync('pnpm', ['build:dev'], { cwd: root, stdio: 'inherit' });
+if (!process.argv.includes('--no-build')) execFileSync('pnpm', ['exec', 'wxt', 'build'], { cwd: root, stdio: 'inherit' });
+// Dev and tester builds carry the preview page; production skips it.
+if (existsSync(join(ext, 'preview.html'))) throw new Error('guide-shots: .output/chrome-mv3 is not a production build');
 mkdirSync(outDir, { recursive: true });
 const ffmpeg = findFfmpeg();
 
@@ -357,7 +362,7 @@ async function run() {
     for (const theme of ['light', 'dark']) {
       for (const step of STEPS.filter((s) => !only || s.id === only)) {
         // A fresh profile per clip, so every recording starts from the same demo state.
-        const ctx = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, deviceScaleFactor: 2, args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`] });
+        const ctx = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, deviceScaleFactor: 2, args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, '--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost'] });
         let [sw] = ctx.serviceWorkers();
         if (!sw) sw = await ctx.waitForEvent('serviceworker');
         const extId = new URL(sw.url()).host;
@@ -377,6 +382,8 @@ async function run() {
         const area = await step.area(page);
         const frames = await record(page, () => step.play(page, locale));
         const stem = `${step.id}-${theme}-${locale}`;
+        const tester = await page.evaluate((src) => document.body.innerText.match(new RegExp(src, 'i'))?.[0] ?? null, TESTER_TEXT.source);
+        if (tester) throw new Error(`guide-shots: ${stem} shows tester-build text "${tester}"`);
         encode(frames, area, step.viewport, join(outDir, `${stem}.webm`));
         writeFileSync(join(outDir, `${stem}.webp`), await poster(page, frames[frames.length - 1], area, step.viewport));
         sizes[step.id] ??= { width: WIDTH, height: Math.round(((area.height / area.width) * WIDTH) / 2) * 2 };
