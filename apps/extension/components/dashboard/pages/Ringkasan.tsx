@@ -2,9 +2,9 @@ import { useMemo, useRef } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronRightIcon } from '@sulo/ui/icons';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
-import { greeting } from '@sulo/core/dashboard/mobile-greeting';
+import { greetSlot } from '@sulo/core/dashboard/mobile-greeting';
 import { mascotMood } from '@sulo/core/dashboard/mascot-mood';
-import { mobileWords } from '@sulo/core/i18n/mobile';
+import { GREET_LINE1 } from '@sulo/core/i18n/greet-line';
 import { loadMap } from '@sulo/core/dashboard/load-map';
 import { buildSummary, groupOverview, limitGroups, withNext } from '@sulo/core/dashboard/overview';
 import { routeHash } from '@sulo/core/dashboard/routes';
@@ -69,7 +69,8 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const banner = data.view.banner?.kind;
   const mood = mascotMood({ now: data.now, dueTimes: pendingItems.filter((i) => i.status === 'pending' && i.task.dueAt !== null).map((i) => i.task.dueAt!), sessionExpired: banner === 'session_expired', offline: banner === 'offline' });
   const nickname = data.prefs.privacyMode ? '' : data.prefs.nickname.trim();
-  const line1 = greeting({ now: data.now, timeZone, nickname: '', overdue, dueToday: 0 }, mobileWords(locale)).line1.replace(/,$/, '');
+  // The phone's greeting slot (core greetSlot) and its line, without the phone's whole word list.
+  const line1 = GREET_LINE1[locale][greetSlot(Math.floor(localParts(data.now, timeZone).minuteOfDay / 60))].replace(/,$/, '');
   const helloLine = nickname ? `${line1}, ${nickname}` : line1;
   // NEOSIA (module on only): KRS readiness from 14 days before the window until it closes.
   const neosiaOn = data.neosia.module.enabled;

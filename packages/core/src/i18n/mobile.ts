@@ -2,6 +2,7 @@
 // (lib/i18n/glossary.md). Grades never appear here.
 
 import type { Locale } from './index';
+import { GREET_LINE1 } from './greet-line';
 import { dashFor, type DashMessages } from './dashboard';
 
 /** A greeting phrase: casual ones only when nothing is overdue or due today; small ones are set at 22 to fit one line. */
@@ -146,7 +147,7 @@ const id = {
   },
   /** Ringkasan's greeting (core dashboard/mobile-greeting.ts). [s] marks a casual line, only when nothing is overdue or due today. */
   greet: {
-    line1: { pagi: 'Selamat pagi,', siang: 'Selamat siang,', sore: 'Selamat sore,', malam: 'Selamat malam,', tengahMalam: 'Selamat malam,' },
+    line1: GREET_LINE1.id,
     phrases: <GreetPhrases>{
       pagi: [{ text: 'semangat hari ini!' }, { text: 'yuk, mulai harimu.' }, { text: 'semoga harimu lancar.', small: true }],
       siang: [{ text: 'jangan lupa makan.' }, { text: 'masih semangat, kan?', small: true }, { text: 'pelan-pelan saja.', casual: true }],
@@ -345,7 +346,7 @@ const en: MobileWords = {
     apkVersion: (v: string) => `APK version ${v}`,
   },
   greet: {
-    line1: { pagi: 'Good morning,', siang: 'Good afternoon,', sore: 'Good afternoon,', malam: 'Good evening,', tengahMalam: 'Good evening,' },
+    line1: GREET_LINE1.en,
     phrases: {
       pagi: [{ text: 'have a good one!' }, { text: "let's get started." }, { text: "you've got this." }],
       siang: [{ text: "don't skip lunch." }, { text: 'still going strong?' }, { text: 'take it easy.', casual: true }],
