@@ -23,6 +23,7 @@ export function ScenePreparing({ stages, counts }: { stages: OnboardingStages['s
   return (
     <div className="obj-scene" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }} aria-live="polite">
       {pieces.map((p, i) => (
+        // Each place is kept (no background) so a piece never moves when the next one comes in.
         <div key={p.key} className="h-[160px]">
           {p.ok && (
             <In i={i === 0 ? 0 : 1}>
@@ -34,7 +35,6 @@ export function ScenePreparing({ stages, counts }: { stages: OnboardingStages['s
               </div>
             </In>
           )}
-          {!p.ok && <div className="h-[160px] rounded-card" style={{ background: 'var(--layer-inset)', opacity: 0.5 }} />}
         </div>
       ))}
     </div>
