@@ -134,7 +134,7 @@ function Router() {
           </Suspense>
         ) : blocked ? (
           data.pending !== null ? (
-            <MismatchCard deferred={data.pending.deferredAt !== null} onUseNew={() => void actions.send({ type: 'account/useNew' })} onDefer={() => void actions.send({ type: 'account/defer' })} />
+            <MismatchCard deferred={(data.pending.deferredAt ?? null) !== null} onUseNew={() => void actions.send({ type: 'account/useNew' })} onDefer={() => void actions.send({ type: 'account/defer' })} />
           ) : (
             <NotConnected d={d} mismatch={false} onSetup={() => actions.openTab(browser.runtime.getURL('/onboarding.html'))} />
           )

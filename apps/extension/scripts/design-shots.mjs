@@ -96,7 +96,7 @@ if (want('dashboard') || want('special')) {
       ['kosong', { 'u:1:tasks': [], 'u:1:changes': [] }, ['ringkasan', 'tugas', 'kabar']],
       ['gagal', { 'global:syncStatus': { lastOutcome: { status: 'parser_broken', at: now } } }, ['ringkasan']],
       ['sesi-habis', { 'global:session': { state: 'EXPIRED', userId: 1, checkedAt: now } }, ['ringkasan']],
-      ['akun-berbeda', { 'global:accountPending': { userId: 2, detectedAt: now, lastCheckAt: now } }, ['ringkasan']],
+      ['akun-berbeda', { 'global:accountPending': { userId: 2, detectedAt: now, lastCheckAt: now, deferredAt: null } }, ['ringkasan']],
       ['saver', { 'global:budget': { date: new Date().toLocaleDateString('sv-SE'), used: 90 } }, ['ringkasan']],
       ['privasi', {}, ['ringkasan', 'presensi', 'nilai']],
     ];
