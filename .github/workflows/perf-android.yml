@@ -3,14 +3,12 @@ name: Perf Android
 # Performance on a 2 GB, 4-core emulator (Android 8 and, for a newer
 # WebView, Android 14), full and lite tiers. The measuring APK is the web
 # build with synthetic fixtures packed in: it never reaches SIKOLA and is
-# never uploaded. Only the numbers are kept, as an artifact.
+# never uploaded. Only the numbers are kept, as an artifact. Run by hand
+# only: the emulator renders in software (swiftshader), so its numbers are
+# not a benchmark. Its lasting value is the Android 8 check that an old
+# WebView gets the update page (perf-emulator.sh, API 26).
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'apps/mobile/**'
-      - 'packages/**'
-      - '.github/workflows/perf-android.yml'
 
 permissions:
   contents: read
