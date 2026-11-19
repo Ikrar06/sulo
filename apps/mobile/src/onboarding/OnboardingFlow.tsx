@@ -47,6 +47,8 @@ export interface FlowProps {
   onSynced: (o: SyncOutcome) => void;
   /** The last setup screen is showing: the app can get Ringkasan ready underneath, so "Buka Sulo" has nothing heavy left to do. */
   onNearlyDone?: () => void;
+  /** The done screen's celebration is over: Ringkasan may be mounted now, in idle time. */
+  onCelebrated?: () => void;
   /** "Buka Sulo": the app mounts Ringkasan underneath; the mascot flies to its hero. */
   onFinish: () => void;
   /** Ringkasan is mounted under this layer: the screen fades, the mascot lands on the hero. */
@@ -55,7 +57,7 @@ export interface FlowProps {
   onLanded?: () => void;
 }
 
-export function OnboardingFlow({ platform, locale, initial, paused, onSynced, onFinish, onNearlyDone, landing = false, onLanded }: FlowProps) {
+export function OnboardingFlow({ platform, locale, initial, paused, onSynced, onFinish, onNearlyDone, onCelebrated, landing = false, onLanded }: FlowProps) {
   const w = onboardingWords(locale);
   const app = mobileWords(locale);
   const m = messagesFor(locale);
@@ -292,7 +294,7 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
       case 'reminders':
         return <Reminders w={w} progress={progress} sample={sample} stages={stages} onStages={setStages} watch={watch} watchAllowed={watchAllowed} watchOff={watchOff} onWatch={setWatch} onAllow={() => void finishReminders(true)} onLater={() => void finishReminders(false)} onBack={backFn} />;
       case 'done':
-        return done ? <Done w={w} tiles={done.tiles} tasks={done.tasks} next={done.next} onOpen={finish} /> : null;
+        return done ? <Done w={w} tiles={done.tiles} tasks={done.tasks} next={done.next} onOpen={finish} onCelebrated={onCelebrated} /> : null;
       case 'finished':
         return null;
     }

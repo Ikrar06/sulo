@@ -7,7 +7,7 @@
 
 import { MascotMotionContext } from '@sulo/ui/mascot/Mascot';
 import { usePerfTier } from './perf';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { resolveLocale, type Locale } from '@sulo/core/i18n';
 import { mobileWords, type MobileWords } from '@sulo/core/i18n/mobile';
 import { onboardingWords } from '@sulo/core/i18n/mobile-onboarding';
@@ -54,6 +54,29 @@ export function outcomeNote(o: SyncOutcome, w: MobileWords, rest: 'short' | 'day
   return w.connected.failed;
 }
 
+/** The idle mount of Ringkasan waits at most this long. */
+const WARM_IDLE_TIMEOUT_MS = 1000;
+/** "Buka Sulo" before then: the mascot waits at most this long for the hero to be there. */
+const HERO_WAIT_MS = 800;
+
+/** requestIdleCallback with a timeout, or a short timer where it is missing; returns its cancel. */
+function whenIdle(fn: () => void, timeout: number): () => void {
+  if (typeof requestIdleCallback === 'function') {
+    const id = requestIdleCallback(fn, { timeout });
+    return () => cancelIdleCallback(id);
+  }
+  const id = window.setTimeout(fn, 200);
+  return () => window.clearTimeout(id);
+}
+/** Resolves once Ringkasan's hero spot is in the page (the landing's target), or after HERO_WAIT_MS. */
+function untilHero(): Promise<void> {
+  const end = performance.now() + HERO_WAIT_MS;
+  return new Promise((resolve) => {
+    const look = () => (document.querySelector('[data-mascot-spot="hero"]') || performance.now() > end ? resolve() : requestAnimationFrame(look));
+    requestAnimationFrame(look);
+  });
+}
+
 export function App({ platform }: { platform: Platform }) {
   const [locale, setLocale] = useState<Locale>('id');
   const [status, setStatus] = useState<SessionStatus | null>(null);
@@ -66,6 +89,18 @@ export function App({ platform }: { platform: Platform }) {
   const [landing, setLanding] = useState(false);
   /** Ringkasan is mounted, hidden, under the done screen: "Buka Sulo" then only reveals it. */
   const [warm, setWarm] = useState(false);
+  const warmRef = useRef(false);
+  const idleMount = useRef<(() => void) | null>(null);
+  const mountWarmNow = useCallback(() => {
+    idleMount.current?.();
+    idleMount.current = null;
+    warmRef.current = true;
+    setWarm(true);
+  }, []);
+  const mountWarmWhenIdle = useCallback(() => {
+    if (warmRef.current || idleMount.current !== null) return;
+    idleMount.current = whenIdle(mountWarmNow, WARM_IDLE_TIMEOUT_MS);
+  }, [mountWarmNow]);
   const tier = usePerfTier();
   const [last, setLast] = useState<UnixSeconds | null>(null);
   const [busy, setBusy] = useState(false);
@@ -273,19 +308,25 @@ export function App({ platform }: { platform: Platform }) {
               paused={paused}
               landing={landing}
               onSynced={() => void refreshState()}
-              onNearlyDone={() => {
-                void refreshState();
-                setWarm(true);
-              }}
+              // Ringkasan's data is read now; its components mount only once the done screen's celebration is over, in idle time.
+              onNearlyDone={() => void refreshState()}
+              onCelebrated={() => mountWarmWhenIdle()}
               onFinish={() => {
-                // The hero greets with the same happy face the flying mascot wears (its own 1.5 s cheer), so the hand-over shows nothing.
-                window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: true } }));
-                setLanding(true);
-                // After the landing has started: reading the state again must not share its first frame.
-                window.setTimeout(() => void refreshState(), 700);
+                const land = () => {
+                  // The hero greets with the same happy face the flying mascot wears (its own 1.5 s cheer), so the hand-over shows nothing.
+                  window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: true } }));
+                  setLanding(true);
+                  // After the landing has started: reading the state again must not share its first frame.
+                  window.setTimeout(() => void refreshState(), 700);
+                };
+                if (warmRef.current) return land();
+                // "Buka Sulo" before the idle mount: Ringkasan mounts now, and the mascot flies once its hero is there.
+                mountWarmNow();
+                void untilHero().then(land);
               }}
               onLanded={() => {
                 setLanding(false);
+                warmRef.current = false;
                 setWarm(false);
                 setFlow({ ...flow, step: 'finished' });
               }}

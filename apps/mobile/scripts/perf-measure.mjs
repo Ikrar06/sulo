@@ -184,9 +184,35 @@ if (want('onboarding')) {
   const at = async (name) => {
     const key = name.split('-')[0];
     if (['1', '5', '9'].includes(key)) frames[key] = await takeFrames(page);
+    // 10: from "Buka Sulo" to Ringkasan settled (the landing).
+    if (key === '10') frames.landing = await takeFrames(page);
   };
   await walk(page, at, { lang, slow: Math.max(1, cpu / 3), onEnter: async (name) => ['1', '5', '9'].includes(name) && (await page.evaluate(() => (window.__frames = []))) });
   result.onboarding = frames;
+  await close();
+}
+
+// ---- "Buka Sulo" tapped as soon as the done screen shows (before Ringkasan's idle mount) ----
+if (want('early')) {
+  const { page, close } = await newPage();
+  await page.goto(`${origin}/${q()}`);
+  await page.evaluate(PROBE);
+  const lang = await page.evaluate(() => (navigator.language.toLowerCase().startsWith('id') ? 'id' : 'en'));
+  let done = false;
+  await walk(page, async (name) => {
+    if (!name.startsWith('8-') || done) return;
+    done = true;
+  }, { lang, slow: Math.max(1, cpu / 3), onEnter: async (name) => {
+    if (name !== '9') return;
+    await page.evaluate(() => (window.__frames = []));
+    // At once, before the celebration ends.
+    await page.getByRole('button', { name: /^(Buka Sulo|Open Sulo)$/ }).click();
+    const t0 = Date.now();
+    await page.locator('[data-mascot-spot="hero"]').waitFor({ timeout: 15000 });
+    await page.waitForFunction(() => !document.querySelector('.onb-frame'), null, { timeout: 15000 });
+    result.earlyTap = { ...(await takeFrames(page)), landedMs: Date.now() - t0, heroVisible: await page.locator('[data-mascot-spot="hero"]').isVisible() };
+    throw new Error('early-tap-done');
+  } }).catch((e) => { if (!String(e).includes('early-tap-done')) throw e; });
   await close();
 }
 

@@ -326,12 +326,17 @@ export interface DoneTile {
 }
 
 /** Screen 9: the mascot celebrates once; the user's own courses fly out of it and are gone within 900 ms; what stays is the mascot, the title and two chips that count up from the real data. */
-export function Done({ w, tiles, tasks, next, onOpen }: { w: OnboardingWords; tiles: readonly DoneTile[]; tasks: number; next: string | null; onOpen: () => void }) {
+/** The done screen's celebration lasts at least this long (the mascot's star eyes and the sparks). */
+export const DONE_CELEBRATION_MS = 1600;
+
+export function Done({ w, tiles, tasks, next, onOpen, onCelebrated }: { w: OnboardingWords; tiles: readonly DoneTile[]; tasks: number; next: string | null; onOpen: () => void; /** The celebration is over (burst, sparks, the mascot's star eyes): heavy work may start now. */ onCelebrated?: () => void }) {
   const mascot = useMascot();
   const title = useTitleFocus('done');
   const host = useRef<HTMLDivElement | null>(null);
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
   const burst = tiles.slice(0, 6);
+  const celebrated = useRef(onCelebrated);
+  celebrated.current = onCelebrated;
   const [flying, setFlying] = useState(() => !reducedMotion() && !simpleScenes() && burst.length > 0);
   const n = useCountUp(tasks, 500, true, 300);
   const size = SHORT_SCREEN ? 150 : 176;
@@ -353,6 +358,8 @@ export function Done({ w, tiles, tasks, next, onOpen }: { w: OnboardingWords; ti
       );
     });
     const gone = window.setTimeout(() => setFlying(false), 260 + burst.length * 40 + 920);
+    // After the last of it (the burst, else the sparks and the star eyes): Ringkasan may be mounted underneath.
+    const over = window.setTimeout(() => celebrated.current?.(), Math.max(DONE_CELEBRATION_MS, burst.length > 0 ? 260 + burst.length * 40 + 920 : 0));
     const stop = schedule([
       [200, () => mascot.celebrate()],
       [240, () => burstSparks(host.current, 12)],
@@ -361,6 +368,7 @@ export function Done({ w, tiles, tasks, next, onOpen }: { w: OnboardingWords; ti
     return () => {
       stop();
       window.clearTimeout(gone);
+      window.clearTimeout(over);
       anims.forEach((a) => a?.cancel());
     };
     // Once.
