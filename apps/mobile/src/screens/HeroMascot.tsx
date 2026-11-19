@@ -34,6 +34,17 @@ export function HeroMascot({ mood, cheer, celebrate, label }: { mood: Mood; chee
     return () => window.clearTimeout(t);
   }, [cheer]);
 
+  // Web build and measuring APK only: the moment Ringkasan is on screen, for scripts/perf-measure.mjs (and logcat).
+  useEffect(() => {
+    if (!__SULO_WEB_FAKE__) return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        performance.mark('sulo:ringkasan');
+        console.info(`sulo-perf ringkasan ${Math.round(performance.now())}`);
+      }),
+    );
+  }, []);
+
   const state: MascotState = happyUntil > 0 ? 'all-done' : mood.state;
 
   // A change of expression fades through 200 ms instead of jumping.

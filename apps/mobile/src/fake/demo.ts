@@ -15,16 +15,26 @@ export function shiftTimes(value: unknown, shift: number, key = ''): unknown {
   return typeof value === 'number' && TIME_KEY.test(key) && value > 1e9 ? value + shift : value;
 }
 
-type Task = { dueAt: number | null };
+type Task = { dueAt: number | null; eventId?: number; name?: string };
+
+/** ?demo=banyak: this many tasks (performance measurements, scripts/perf-measure.mjs). */
+export const MANY_TASKS = 50;
 
 /**
  * ?demo=aman: nothing overdue; ?demo=kosong: no task at all; ?demo=satu: a
  * single task, three hours overdue (worried, then the celebration when it
- * is done); ?demo=panjang: the hero 59 minutes late, the widest time text.
+ * is done); ?demo=panjang: the hero 59 minutes late, the widest time text;
+ * ?demo=banyak: 50 tasks over the next weeks (copies of the demo's own).
  * Without it, the demo account as it is (three overdue tasks).
  */
 export function demoVariant(tasks: readonly Task[], now: UnixSeconds, variant: string | null): Task[] {
   if (variant === 'kosong') return [];
+  if (variant === 'banyak' && tasks.length > 0) {
+    return Array.from({ length: MANY_TASKS }, (_, i) => {
+      const t = tasks[i % tasks.length]!;
+      return { ...t, eventId: 900_000 + i, name: `${t.name ?? ''} ${Math.floor(i / tasks.length) + 1}`.trim(), dueAt: now + 3600 * (6 + i * 9) };
+    });
+  }
   if (variant === 'aman') return tasks.filter((t) => t.dueAt === null || t.dueAt >= now + 86_400);
   // ?demo=panjang: the widest time text (core formatters, check-countdown-fit.mjs) on the hero, then the rest upcoming.
   if (variant === 'panjang') {
