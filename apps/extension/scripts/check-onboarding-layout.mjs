@@ -122,6 +122,7 @@ const measure = () => {
     listSlack,
     list: box(list),
     pageText: document.body.innerText,
+    footText: frame.querySelector('.obj-foot')?.textContent ?? '',
     stageText: stage?.innerText ?? '',
     stageControls: stage ? stage.querySelectorAll('input, textarea, select, button, a, [role="button"], [tabindex]').length : 0,
     stageHidden: stage?.getAttribute('aria-hidden') === 'true',
@@ -164,6 +165,8 @@ for (const [w, h] of [[1280, 800], [1440, 900], [1024, 768], [900, 700]]) {
         for (const c of m.cut) if (two || !c.startsWith('keluar dari layar')) findings.push(`${tag}: ${c}`);
         // Each Mascot draws one face (two layers at most): more than two faces is a second mascot.
         if (m.mascots > 2) findings.push(`${tag}: lebih dari satu maskot`);
+        // The page's own words follow its language (the footnote was once Indonesian in English).
+        if (lang === 'en' && /bukan|resmi|aplikasi/i.test(m.footText)) findings.push(`${tag}: catatan kaki berbahasa Indonesia di halaman bahasa Inggris`);
         const term = m.pageText.match(TECHNICAL);
         if (term) findings.push(`${tag}: istilah teknis "${term[0]}"`);
         if (name.startsWith('hubungkan')) {

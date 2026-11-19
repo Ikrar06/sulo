@@ -218,7 +218,8 @@ function OnboardingPage({ step }: { step: number }) {
   const [why, setWhy] = useState(params.has('why'));
   const toggle = (courseId: CourseId, active: boolean) => setCourses((cs) => cs.map((c) => (c.id === courseId ? { ...c, activePin: active } : c)));
   const stepId = STEP_IDS[step - 1]!;
-  const own = POPUP_STATES[0]!.view;
+  const own = localized(0);
+  const pm = messagesFor(lang);
   const tasks = params.has('notasks') ? [] : doneTasks(own.groups);
   // &fail: the stage after the finished ones failed (the sync's own failure shows the same way).
   const fail = params.has('fail');
@@ -227,12 +228,12 @@ function OnboardingPage({ step }: { step: number }) {
   const scene =
     stepId === 'intro' ? introScene(page) : stepId === 'connect' ? (prep !== null ? <ScenePreparing stages={stages} counts={{ tasks: 12, courses: 5 }} failed={fail} /> : <SceneConnect />) : stepId === 'courses' ? <SceneCourses courses={courses} onToggle={toggle} /> : <SceneDone tasks={tasks} />;
   return (
-    <Journey stepKey={stepId === 'intro' ? `intro-${page}` : prep !== null ? 'preparing' : stepId} progress={stepId === 'intro' ? undefined : progressOf(ONBOARDING_STEPS.filter((s) => s.id !== 'intro'), stepId)} onSkip={stepId === 'intro' ? () => {} : undefined} scene={scene} sceneInteractive={stepId === 'courses'} footnote={id.disclaimerShort}>
+    <Journey stepKey={stepId === 'intro' ? `intro-${page}` : prep !== null ? 'preparing' : stepId} progress={stepId === 'intro' ? undefined : progressOf(ONBOARDING_STEPS.filter((s) => s.id !== 'intro'), stepId)} onSkip={stepId === 'intro' ? () => {} : undefined} scene={scene} sceneInteractive={stepId === 'courses'} footnote={pm.disclaimerShort}>
       {stepId === 'intro' && <IntroText page={page} onNext={() => setPage(Math.min(INTRO_PAGES - 1, page + 1))} onGo={setPage} onBack={page > 0 ? () => setPage(page - 1) : undefined} onWhy={() => setWhy(true)} />}
-      {stepId === 'connect' && <ConnectText phase={prep !== null ? (fail ? 'failed' : 'connected') : connect} preparing={prep !== null} stages={stages} failedReason="Tidak terhubung ke SIKOLA." switching={false} onOpen={() => {}} onRetry={() => {}} onWhy={() => setWhy(true)} />}
+      {stepId === 'connect' && <ConnectText phase={prep !== null ? (fail ? 'failed' : 'connected') : connect} preparing={prep !== null} stages={stages} failedReason={pm.result.server_error} switching={false} onOpen={() => {}} onRetry={() => {}} onWhy={() => setWhy(true)} />}
       {stepId === 'courses' && <CoursesText selected={selected} saving={false} onNext={() => {}} />}
       {stepId === 'done' && <DoneText tasks={tasks.length === 0 ? 0 : own.pendingCount} courses={selected} onOpen={() => {}} />}
-      <WhyDialog open={why} onOpenChange={setWhy} outdated={params.has('notice') ? id.onboarding.intro.noticeUpdated : undefined} onPrivacy={() => {}} />
+      <WhyDialog open={why} onOpenChange={setWhy} outdated={params.has('notice') ? pm.onboarding.intro.noticeUpdated : undefined} onPrivacy={() => {}} />
     </Journey>
   );
 }
