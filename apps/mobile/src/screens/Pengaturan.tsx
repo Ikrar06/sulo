@@ -10,6 +10,7 @@ import { formatClock } from '@sulo/core/format/time';
 import { LANGUAGE_NAMES } from '@sulo/core/i18n';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { readTechLog } from '@sulo/core/net/tech-log';
+import { ANIMATION_PREFS, type AnimationPref } from '@sulo/core/perf/tier';
 import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, type DueFormat } from '@sulo/core/prefs';
 import { STAGE_OPTIONS, type StageMin } from '@sulo/core/reminders/settings';
 import { zonedToUnix } from '@sulo/core/reminders/zoned';
@@ -21,12 +22,13 @@ import { Sheet, SheetOptions, SheetTextForm, afterSheetClosed } from '@sulo/ui/m
 import { stageAmount } from '@sulo/ui/reminders/RemindersPanel';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { LOCK_KEY } from '../account';
+import { setAnimationPref } from '../perf';
 import { SuloSession } from '../session';
 import { timeZone, useMobileData } from '../shell/data';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h * 60);
 
-type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickname' | null;
+type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickname' | 'animation' | null;
 
 import { SignOutSheet } from './SignOutSheet';
 import { Group, Row, ValueRow } from './settings-rows';
@@ -140,6 +142,7 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
           }}
         />
         <ValueRow label={t.dueFormat} value={m.popup.settings.formats[prefs.dueFormat]} onPress={() => setPicker('due')} />
+        <ValueRow label={w.settings.animation} help={w.settings.animationHelp} value={w.settings.animationOptions[prefs.animation]} onPress={() => setPicker('animation')} />
         <Row label={w.settings.privacyOn} help={w.settings.privacyHelp}>
           <Toggle checked={prefs.privacyMode} label={w.settings.privacyOn} onChange={(v) => void actions.setPrefs({ privacyMode: v })} />
         </Row>
@@ -164,7 +167,7 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
         </button>
       </Group>
 
-      <Sheet open={picker !== null} onOpenChange={(o) => !o && setPicker(null)} title={picker === 'nickname' ? t.nickname : picker === 'due' ? t.dueFormat : picker === 'quietStart' ? `${r.quiet}: ${r.from}` : picker === 'quietEnd' ? `${r.quiet}: ${r.to}` : picker === 'morning' ? r.morning : r.snoozeMorning}>
+      <Sheet open={picker !== null} onOpenChange={(o) => !o && setPicker(null)} title={picker === 'nickname' ? t.nickname : picker === 'due' ? t.dueFormat : picker === 'animation' ? w.settings.animation : picker === 'quietStart' ? `${r.quiet}: ${r.from}` : picker === 'quietEnd' ? `${r.quiet}: ${r.to}` : picker === 'morning' ? r.morning : r.snoozeMorning}>
         {picker === 'nickname' ? (
           <SheetTextForm label={t.nickname} initial={prefs.nickname} maxLength={NICKNAME_MAX} help={w.settings.nicknameHelp} submitLabel={w.app.doneSheet} onSave={(v) => void actions.setPrefs({ nickname: normalizeNickname(v) })} />
         ) : picker === 'due' ? (
@@ -174,6 +177,18 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
             onChoose={(v: DueFormat) => {
               setPicker(null);
               afterSheetClosed(() => void actions.setPrefs({ dueFormat: v }));
+            }}
+          />
+        ) : picker === 'animation' ? (
+          <SheetOptions
+            value={prefs.animation}
+            options={ANIMATION_PREFS.map((a) => ({ value: a, label: w.settings.animationOptions[a] }))}
+            onChoose={(v: AnimationPref) => {
+              setPicker(null);
+              afterSheetClosed(() => {
+                setAnimationPref(v);
+                void actions.setPrefs({ animation: v });
+              });
             }}
           />
         ) : picker !== null ? (

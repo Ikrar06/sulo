@@ -7,6 +7,7 @@
 // cards opening Google Calendar in the browser. Bell and Perbarui sit in the
 // header (AppShell).
 
+import { offscreenRow } from './LongList';
 import { useMemo, useState } from 'react';
 import { countdownOf, formatDateKey, formatRange } from '@sulo/core/calendar/countdown';
 import { calendarEvents, CALENDAR_GROUPS, eventsOnDay, holidayDays, type CalEvent, type CalendarGroup, type TaskForCalendar } from '@sulo/core/calendar/groups';
@@ -200,7 +201,7 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
                 .map((e) => {
                   const k2 = e.source.type === 'kegiatan' ? e.source.kegiatan : null;
                   return (
-                    <li key={e.id}>
+                    <li key={e.id} style={offscreenRow(shown.length, 80)}>
                       {/* The tile at the title's top; the text takes the rest of the width: the title (two
                           lines at most), then the dates on the left (they may end in an ellipsis) with the
                           kind and, for an estimate, a neutral "Perkiraan" chip on the right (never cut). */}

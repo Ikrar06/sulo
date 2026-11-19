@@ -6,6 +6,7 @@
 // the course, the time, a dot while unseen); tapping one opens it on SIKOLA.
 // A filter with no result: one sentence and Hapus filter.
 
+import { offscreenRow } from './LongList';
 import { useEffect, useMemo, useState } from 'react';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { assignCourseColors } from '@sulo/core/courses/colors';
@@ -125,7 +126,7 @@ export function KabarScreen({ courseId }: { courseId: number | null; go: (s: Scr
                       </div>
                     );
                     return (
-                      <li key={e.id}>
+                      <li key={e.id} style={offscreenRow(entries.length, 72)}>
                         {url ? (
                           <Card dense onPress={() => actions.openExternal(url)} label={`${text}, ${course}${e.seen ? '' : `, ${u.markerNew}`}`}>
                             {body}

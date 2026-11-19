@@ -65,7 +65,7 @@ export function Sheet({ open: wanted, onOpenChange, title, children }: { open: b
     if (!open) return;
     const el = content.current;
     if (el) {
-      for (const k of ['top', 'bottom', 'height', 'max-height', 'transform', 'transition', '--m-sheet-from', '--m-sheet-exit', '--m-sheet-dur', '--m-sheet-ease', '--m-scrim-from']) el.style.removeProperty(k);
+      for (const k of ['top', 'bottom', 'height', 'max-height', 'transform', 'transition', 'will-change', '--m-sheet-from', '--m-sheet-exit', '--m-sheet-dur', '--m-sheet-ease', '--m-scrim-from']) el.style.removeProperty(k);
     }
     scrim.current?.style.removeProperty('opacity');
     scrim.current?.style.removeProperty('transition');
@@ -138,6 +138,8 @@ export function Sheet({ open: wanted, onOpenChange, title, children }: { open: b
         d.on = true;
         d.y0 = t.clientY;
         el.style.setProperty('transition', 'none');
+        // Its own layer only while the finger moves it (and its glide back), never permanently.
+        el.style.setProperty('will-change', 'transform');
       }
       e.preventDefault();
       d.off = Math.max(0, t.clientY - d.y0);
@@ -162,6 +164,7 @@ export function Sheet({ open: wanted, onOpenChange, title, children }: { open: b
       drag.current = null;
       el.style.setProperty('transition', 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)');
       el.style.setProperty('transform', 'translateY(0px)');
+      window.setTimeout(() => el.style.removeProperty('will-change'), 240);
       scrim.current?.style.setProperty('transition', 'opacity 200ms ease-out');
       scrim.current?.style.setProperty('opacity', '1');
     };

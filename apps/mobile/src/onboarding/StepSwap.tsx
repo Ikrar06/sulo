@@ -11,6 +11,7 @@
 // takes its spot for the live one.
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { dur } from '../perf';
 import { reducedMotion } from './motion';
 
 const EXIT_MS = 130;
@@ -42,7 +43,7 @@ export function StepSwap({ stepKey, order, children }: { stepKey: string; /** La
         last.current.delete(leaving.key);
         setLeaving(null);
       },
-      reducedMotion() ? 0 : EXIT_MS,
+      reducedMotion() ? 0 : dur(EXIT_MS),
     );
     return () => window.clearTimeout(id);
   }, [leaving]);

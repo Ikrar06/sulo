@@ -29,10 +29,13 @@ export function Row({ label, help, dim = false, children }: { label: string; hel
 }
 
 /** A value on the right that opens a bottom sheet. */
-export function ValueRow({ label, value, onPress, disabled = false }: { label: string; value: string; onPress: () => void; disabled?: boolean }) {
+export function ValueRow({ label, help, value, onPress, disabled = false }: { label: string; help?: string; value: string; onPress: () => void; disabled?: boolean }) {
   return (
     <button type="button" disabled={disabled} onClick={onPress} className="m-hit flex min-h-12 w-full items-center gap-3 py-2 text-left outline-none disabled:opacity-50 focus-ring:ring-2 focus-ring:ring-focus [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
-      <span className="min-w-0 flex-1 text-m15 font-normal">{label}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-m15 font-normal">{label}</span>
+        {help && <span className="block text-m12 font-normal text-muted-foreground">{help}</span>}
+      </span>
       {value && <span className="text-m13 text-muted-foreground tabular-nums">{value}</span>}
       <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
     </button>

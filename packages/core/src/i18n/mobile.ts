@@ -137,6 +137,9 @@ const id = {
     nicknameHelp: 'Opsional, maksimal 24 karakter. Hanya untuk menyapamu di Ringkasan, disimpan di HP ini.',
     privacyOn: 'Mode privasi',
     privacyHelp: 'Menyamarkan nama, nilai, dan persentase presensi di layar.',
+    animation: 'Animasi',
+    animationHelp: 'Ringan mengurangi gerak supaya tetap lancar.',
+    animationOptions: { auto: 'Otomatis', full: 'Penuh', lite: 'Ringan' },
   },
   about: {
     apkVersion: (v: string) => `Versi APK ${v}`,
@@ -333,6 +336,9 @@ const en: MobileWords = {
     nicknameHelp: 'Optional, up to 24 characters. Only used to greet you on Ringkasan, kept on this phone.',
     privacyOn: 'Privacy mode',
     privacyHelp: 'Masks names, grades and attendance percentages on screen.',
+    animation: 'Animation',
+    animationHelp: 'Light uses less motion to keep things smooth.',
+    animationOptions: { auto: 'Automatic', full: 'Full', lite: 'Light' },
   },
   about: {
     apkVersion: (v: string) => `APK version ${v}`,

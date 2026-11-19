@@ -66,7 +66,8 @@ body {
 .m-sheet[data-state="closed"] { animation: m-sheet-out var(--m-sheet-dur, 200ms) var(--m-sheet-ease, cubic-bezier(0.4, 0, 1, 1)) forwards; }
 .m-scrim[data-state="open"] { animation: m-fade-in 240ms ease-out; }
 .m-scrim[data-state="closed"] { animation: m-scrim-out var(--m-sheet-dur, 200ms) var(--m-sheet-ease, cubic-bezier(0.4, 0, 1, 1)) forwards; }
-.m-sheet { will-change: transform; }
+/* A layer of its own only while it leaves (a drag adds one while it moves, sheet.tsx). */
+.m-sheet[data-state="closed"] { will-change: transform; }
 @keyframes m-sheet-in { from { transform: translateY(100%); } }
 @keyframes m-sheet-out {
   from { transform: translateY(var(--m-sheet-from, 0px)); }
@@ -248,3 +249,29 @@ html .sulo-mascot .m-z { display: none; }
 /* The nickname screen with the keyboard up and too little height
    (screens-setup.tsx, data-onb-tight): the gaps between groups shrink. */
 [data-onb-tight] > [aria-hidden="true"].shrink-0 { min-height: 6px !important; }
+
+/* Lite tier (src/perf.ts, data-perf on <html>): every screen looks the
+   same; only motion is lighter. The mascot's living loops stop (blinking,
+   driven from JS, stays); the scroll-edge fades become a solid 1 px edge
+   (no gradient to composite on every scroll); response motion (sheets,
+   presses, screen changes, onboarding steps) runs at 0.8 of its time. */
+:root[data-perf="lite"] .sulo-mascot.is-animated :is(.m-breath, .m-flame, .m-follow, .m-flame-front, .m-orbit) { animation: none; }
+:root[data-perf="lite"] .m-fade-top { background: var(--m-line); height: 1px; }
+:root[data-perf="lite"] .m-fade-bottom { background: linear-gradient(to top, var(--m-screen) calc(100% - 32px), var(--m-line) calc(100% - 32px), var(--m-line) calc(100% - 31px), transparent calc(100% - 31px)); } /* lint-ui-allow: hard stops only, a solid band under a 1 px edge (no fade) */
+:root[data-perf="lite"] .m-press, :root[data-perf="lite"] .m-press-host { transition-duration: 80ms; }
+:root[data-perf="lite"] .m-push { animation-duration: 176ms; }
+:root[data-perf="lite"] .m-sheet[data-state="open"], :root[data-perf="lite"] .m-scrim[data-state="open"] { animation-duration: 192ms; }
+:root[data-perf="lite"] .m-sheet[data-state="closed"], :root[data-perf="lite"] .m-scrim[data-state="closed"] { animation-duration: calc(var(--m-sheet-dur, 200ms) * 0.8); }
+:root[data-perf="lite"] .sulo-toast { animation-duration: 120ms; }
+:root[data-perf="lite"] .m-mascot-enter { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-mascot-mood { animation-duration: 160ms; }
+:root[data-perf="lite"] .m-bar-grow { animation-duration: 192ms; }
+:root[data-perf="lite"] .onb-press, :root[data-perf="lite"] .onb-row { transition-duration: 224ms; }
+:root[data-perf="lite"] .onb-letter { animation-duration: 256ms; }
+:root[data-perf="lite"] .onb-in-fwd [data-onb-content], :root[data-perf="lite"] .onb-in-back [data-onb-content] { animation-duration: 208ms; animation-delay: 88ms; }
+:root[data-perf="lite"] .onb-out-fwd [data-onb-content], :root[data-perf="lite"] .onb-out-back [data-onb-content] { animation-duration: 88ms; }
+:root[data-perf="lite"] .onb-seg { transition-duration: 256ms; }
+:root[data-perf="lite"] .onb-check.is-on { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-onb-leave { animation-duration: 144ms; }
+:root[data-perf="lite"] .m-landing main .space-y-6 > * { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-landing nav[aria-label] { animation-duration: 224ms; animation-delay: 240ms; }

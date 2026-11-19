@@ -5,6 +5,8 @@
 // strong ease-out, exit 160-200 ms ease-in, siblings 70 ms apart. Under
 // reduced motion everything is a 120 ms fade and collages sit at rest.
 
+import { dur, isLite } from '../perf';
+
 /** Confident arrival: fast start, long settle (the sheet's opening curve). */
 export const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)';
 /** Story motion (the scenes): a long, soft slowing at the end, never an abrupt stop. */
@@ -46,6 +48,14 @@ export const MS = {
 /** A short phone (360x640): decided once at start, so the keyboard coming up later changes nothing. */
 export const SHORT_SCREEN = typeof window !== 'undefined' && window.innerHeight < 700;
 
+/**
+ * The scenes' simple level (lite tier, src/perf.ts): every piece still
+ * arrives in its place, but as one short fade and 8 px rise; the multi-step
+ * acts (a ringing bell, a wobble), drawn lines, counting numbers and sparks
+ * show at rest. The resting picture is the same as in full.
+ */
+export const simpleScenes = (): boolean => isLite();
+
 export const reducedMotion = (): boolean => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export interface EnterFrom {
@@ -67,6 +77,10 @@ export function enter(el: Element | null, from: EnterFrom, options: { delay?: nu
   const rest = options.rest ?? {};
   const end = transformOf({ x: rest.x, y: rest.y, rotate: rest.rotate, scale: rest.scale });
   if (reducedMotion()) return (el as HTMLElement).animate([{ opacity: 0, transform: end }, { opacity: 1, transform: end }], { duration: MS.reduced, delay: 0, fill: 'backwards' });
+  if (simpleScenes()) {
+    const rise = transformOf({ x: rest.x, y: (rest.y ?? 0) + 8, rotate: rest.rotate, scale: rest.scale });
+    return (el as HTMLElement).animate([{ opacity: 0, transform: rise }, { opacity: 1, transform: end }], { duration: dur(MS.enter), delay: options.delay ?? 0, easing: EASE_OUT, fill: 'backwards' });
+  }
   const start = transformOf({ x: (rest.x ?? 0) + (from.x ?? 0), y: (rest.y ?? 0) + (from.y ?? 0), rotate: from.rotate ?? rest.rotate, scale: (rest.scale ?? 1) * Math.max(0.92, from.scale ?? 1) });
   return (el as HTMLElement).animate([{ opacity: 0, transform: start }, { opacity: 1, transform: end }], { duration: options.duration ?? MS.enter, delay: options.delay ?? 0, easing: options.easing ?? EASE_OUT, fill: 'backwards' });
 }
@@ -80,7 +94,7 @@ export function staggerDelays(count: number, base = 0, step: number = MS.stagger
 export function draw(path: SVGPathElement | SVGPolylineElement | null, options: { delay?: number; duration?: number } = {}): Animation | null {
   if (!path || typeof path.animate !== 'function' || typeof path.getTotalLength !== 'function') return null;
   const length = path.getTotalLength();
-  if (reducedMotion()) return null;
+  if (reducedMotion() || simpleScenes()) return null;
   path.style.strokeDasharray = path.dataset.dash ?? `${length}`;
   return path.animate([{ strokeDashoffset: `${length}` }, { strokeDashoffset: '0' }], { duration: options.duration ?? 420, delay: options.delay ?? 0, easing: EASE_OUT, fill: 'backwards' });
 }

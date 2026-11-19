@@ -53,7 +53,8 @@ export function MobileDataProvider({ platform, children }: { platform: Platform;
       if (planning.current !== null) window.clearTimeout(planning.current);
       planning.current = window.setTimeout(() => void scheduleReminders(platform).catch(() => 0), 1500);
     });
-    const tick = window.setInterval(() => void reload(), 60_000);
+    // Every minute while the app is in front (times move on); nothing in the background.
+    const tick = window.setInterval(() => document.visibilityState !== 'hidden' && void reload(), 60_000);
     const onOnline = () => void reload();
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOnline);

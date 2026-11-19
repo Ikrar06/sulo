@@ -13,6 +13,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MASCOT_EXPRESSIONS, type MascotExpression, type MascotExpressionSpec } from '@sulo/core/dashboard/mascot-mood';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { dur } from '../perf';
 import { EASE_OUT, flip, MS, reducedMotion, type Box } from './motion';
 
 /** The mascot is drawn at this size and scaled to each spot. */
@@ -156,7 +157,7 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
       // flight is then one texture moved by the compositor, instead of an
       // animated SVG painted again at a new size every frame.
       node.classList.add('onb-flying');
-      const a = node.animate(reduced ? [{ opacity: 0.6 }, { opacity: 1 }] : keyframes, { duration: reduced ? MS.reduced : animate ? duration : 200, easing: EASE_OUT });
+      const a = node.animate(reduced ? [{ opacity: 0.6 }, { opacity: 1 }] : keyframes, { duration: reduced ? MS.reduced : dur(animate ? duration : 200), easing: EASE_OUT });
       const land = () => node.classList.remove('onb-flying');
       a.oncancel = land;
       a.onfinish = () => {

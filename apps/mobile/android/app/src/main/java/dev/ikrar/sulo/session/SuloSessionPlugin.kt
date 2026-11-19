@@ -51,6 +51,28 @@ class SuloSessionPlugin : Plugin() {
         call.resolve()
     }
 
+    // ---------- Device (performance tier) ----------
+
+    /**
+     * What the phone says about itself, for the app's performance tier
+     * (core perf/tier.ts): Android's low-RAM flag, total RAM, CPU cores and
+     * the WebView's version. Needs no permission. Read once when the app
+     * opens; the app keeps it in memory only and never stores or sends it.
+     */
+    @PluginMethod
+    fun deviceInfo(call: PluginCall) {
+        val result = JSObject()
+        runCatching {
+            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val mem = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+            result.put("lowRamDevice", am.isLowRamDevice)
+            result.put("totalRamMb", mem.totalMem / (1024 * 1024))
+        }
+        result.put("cpuCores", Runtime.getRuntime().availableProcessors())
+        runCatching { android.webkit.WebView.getCurrentWebViewPackage()?.versionName }.getOrNull()?.let { result.put("webView", it) }
+        call.resolve(result)
+    }
+
     // ---------- Session ----------
 
     @PluginMethod

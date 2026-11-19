@@ -15,7 +15,7 @@ import { act, burstSparks, ResultChip, schedule, useAfter, useCountUp } from './
 import { MascotSpot, useExpression, useMascot } from './FlyingMascot';
 import { BackButton, Frame, TextBlock, TextLink, useTitleFocus } from './Frame';
 import { haptic } from './haptics';
-import { EASE_OUT, EASE_SPRING, EASE_STORY, reducedMotion, SCENE_TEMPO_DEFAULT, sceneTempo, SHORT_SCREEN } from './motion';
+import { EASE_OUT, EASE_SPRING, EASE_STORY, reducedMotion, SCENE_TEMPO_DEFAULT, sceneTempo, SHORT_SCREEN, simpleScenes } from './motion';
 import { At, Scene } from './Scene';
 import { PREP_ROWS, shownTimes, type PrepRow, type StageEvent } from './stage-timing';
 
@@ -332,7 +332,7 @@ export function Done({ w, tiles, tasks, next, onOpen }: { w: OnboardingWords; ti
   const host = useRef<HTMLDivElement | null>(null);
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
   const burst = tiles.slice(0, 6);
-  const [flying, setFlying] = useState(() => !reducedMotion() && burst.length > 0);
+  const [flying, setFlying] = useState(() => !reducedMotion() && !simpleScenes() && burst.length > 0);
   const n = useCountUp(tasks, 500, true, 300);
   const size = SHORT_SCREEN ? 150 : 176;
   useExpression('happy');

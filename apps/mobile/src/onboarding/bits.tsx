@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { BellIcon } from '@sulo/ui/icons';
 import { Card, IconTile } from '@sulo/ui/mobile/cards';
-import { reducedMotion, sceneTempo } from './motion';
+import { reducedMotion, sceneTempo, simpleScenes } from './motion';
 
 /** A reminder as the phone shows it: the bell tile, the task, when and where. `bellRef` lets a scene ring the bell. */
 export function NotifyBanner({ title, body, bellRef, wrap = false }: { title: string; body: ReactNode; bellRef?: Ref<HTMLSpanElement>; /** With the user's own task: long names wrap instead of being cut. */ wrap?: boolean }) {
@@ -40,7 +40,7 @@ export const SPARK_MAX = 12;
  * `host`, at most twelve, once. Nothing under reduced motion.
  */
 export function burstSparks(host: HTMLElement | null, count = 10): void {
-  if (!host || reducedMotion() || typeof host.animate !== 'function') return;
+  if (!host || reducedMotion() || simpleScenes() || typeof host.animate !== 'function') return;
   const n = Math.min(SPARK_MAX, count);
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
@@ -68,9 +68,10 @@ export function useCountUp(to: number, baseMs: number, run = true, baseDelay = 0
   // Story motion: at the scenes' tempo.
   const ms = baseMs * sceneTempo();
   const delay = baseDelay * sceneTempo();
-  const [n, setN] = useState(() => (run && !reducedMotion() ? 0 : to));
+  // The simple level (lite) shows the number at once: no re-render per frame.
+  const [n, setN] = useState(() => (run && !reducedMotion() && !simpleScenes() ? 0 : to));
   useEffect(() => {
-    if (!run || reducedMotion()) return setN(to);
+    if (!run || reducedMotion() || simpleScenes()) return setN(to);
     let raf = 0;
     setN(0);
     const t = window.setTimeout(() => {
@@ -120,7 +121,7 @@ export function schedule(steps: readonly (readonly [number, () => void])[], stor
  * its resting style.
  */
 export function act(el: Element | null, total: number, frames: readonly ({ at: number; easing?: string } & Record<string, string | number>)[], story = true, lead = 0): Animation | null {
-  if (!el || reducedMotion() || typeof (el as HTMLElement).animate !== 'function') return null;
+  if (!el || reducedMotion() || simpleScenes() || typeof (el as HTMLElement).animate !== 'function') return null;
   const keyframes = frames.map(({ at, ...rest }) => ({ ...rest, offset: Math.min(1, at / total) }));
   // `lead` (real ms): the piece waits at its first pose while its page is still arriving.
   return (el as HTMLElement).animate(keyframes as Keyframe[], { duration: total * (story ? sceneTempo() : 1), delay: lead, fill: 'backwards' });

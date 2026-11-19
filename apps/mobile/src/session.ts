@@ -2,7 +2,7 @@
 // JavaScript only ever gets statuses and Moodle's JSON: the SIKOLA cookie
 // and the sesskey never cross into this side (CLAUDE.md, mobile rule 2).
 
-import { registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
 export type SessionStatus = 'none' | 'connected' | 'expired';
 
@@ -27,6 +27,8 @@ export interface PageReply {
 }
 
 export interface SuloSessionPlugin {
+  /** Low-RAM flag, total RAM, CPU cores, WebView version (perf tier; memory only, never stored or sent). */
+  deviceInfo(): Promise<{ lowRamDevice?: boolean; totalRamMb?: number; cpuCores?: number; webView?: string }>;
   /** "Batal" on the different-account screen: the new session is thrown away; the state reads expired. */
   discardSession(): Promise<{ status: SessionStatus }>;
   /** "Pakai akun ini": background watching starts from nothing (no plan, queue, timings). */
@@ -69,8 +71,24 @@ export interface SuloSessionPlugin {
   watchSimulate(options: { kind: 'task' | 'due' | 'three' | 'quiet' | 'expired'; prefix: string }): Promise<{ status: string; changes: number; notices: number }>;
 }
 
-export const SuloSession = registerPlugin<SuloSessionPlugin>('SuloSession', {
+const plugin = registerPlugin<SuloSessionPlugin>('SuloSession', {
   // pnpm mobile:web and Vitest: a stand-in with fixtures, no request. Left
   // out of the APK's bundle (the phone always has the native plugin).
   ...(__SULO_WEB_FAKE__ ? { web: () => import('./fake/session').then((m) => m.fakeSession()) } : {}),
 });
+
+/**
+ * The measuring APK (CI's emulator job, scripts/perf-measure.mjs): the web
+ * build with its fixtures packed into the app, so it never reaches SIKOLA.
+ * Every call goes to the stand-in except deviceInfo, which asks the real
+ * phone. Never in a release or the normal debug APK (no web fakes there).
+ */
+function measuringSession(): SuloSessionPlugin {
+  const fake = import('./fake/session').then((m) => m.fakeSession());
+  return new Proxy({} as SuloSessionPlugin, {
+    get: (_, name: string) =>
+      name === 'then' ? undefined : name === 'deviceInfo' ? () => plugin.deviceInfo() : (...args: unknown[]) => fake.then((f) => (f as unknown as Record<string, (...a: unknown[]) => unknown>)[name]!(...args)),
+  });
+}
+
+export const SuloSession: SuloSessionPlugin = __SULO_WEB_FAKE__ && Capacitor.isNativePlatform() ? measuringSession() : plugin;

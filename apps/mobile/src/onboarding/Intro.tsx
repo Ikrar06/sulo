@@ -13,6 +13,7 @@ import type { MascotExpression } from '@sulo/core/dashboard/mascot-mood';
 import type { OnboardingWords } from '@sulo/core/i18n/mobile-onboarding';
 import { MascotSpot, useMascot } from './FlyingMascot';
 import { BackButton, Frame, useTitleFocus } from './Frame';
+import { dur, isLite } from '../perf';
 import { EASE_OUT, reducedMotion } from './motion';
 import { At, Scene } from './Scene';
 import { INTRO_COMPACT_H, INTRO_H, MASCOT_SIZE, mascotAt, ScenePrivate, SceneRemind, SceneTasks } from './scenes-intro';
@@ -55,7 +56,7 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
     setPlaying(played.has(index) ? null : index);
   }
   // Any page after the first one shown arrives by the pager's glide.
-  if (seen !== index || index !== first.current) arrive.current = SETTLE_MS;
+  if (seen !== index || index !== first.current) arrive.current = dur(SETTLE_MS);
   const drag = useRef<{ x: number; y: number; p0: number; on: boolean; samples: { t: number; p: number }[] } | null>(null);
   const titleRef = useTitleFocus(`intro${index}`);
   const pages = [w.intro1, w.intro2, w.intro3];
@@ -82,7 +83,9 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
         else el.style.transform = `translateX(${(d * 420).toFixed(1)}px)`;
         el.style.visibility = Math.abs(d) >= 1 ? 'hidden' : 'visible';
       } else if (kind === 'layer') {
-        if (!reduced && depth !== 0) el.style.transform = `translateX(${(d * depth).toFixed(1)}px)`;
+        // Parallax: the layers at their own speeds (not in lite, where they move with their page).
+        if (!reduced && !isLite() && depth !== 0) el.style.transform = `translateX(${(d * depth).toFixed(1)}px)`;
+        else if (isLite()) el.style.transform = '';
       } else if (kind === 'text') {
         el.style.opacity = String(Math.max(0, 1 - Math.abs(d) * 1.6));
         if (!reduced) el.style.transform = `translateX(${(d * 56).toFixed(1)}px)`;
@@ -100,7 +103,12 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
   }, []);
 
   const glide = useCallback((on: boolean) => {
-    for (const { el } of parts.current) el.style.transition = on ? `transform ${SETTLE_MS}ms ${EASE_OUT}, opacity ${SETTLE_MS}ms ${EASE_OUT}` : 'none';
+    const ms = dur(SETTLE_MS);
+    for (const { el } of parts.current) el.style.transition = on ? `transform ${ms}ms ${EASE_OUT}, opacity ${ms}ms ${EASE_OUT}` : 'none';
+  }, []);
+  /** Pages get their own layer only while they move (a drag or a glide), never permanently. */
+  const promote = useCallback((on: boolean) => {
+    for (const { el, kind } of parts.current) if (kind === 'page') el.style.willChange = on ? 'transform' : '';
   }, []);
 
   /** Where the pages are right now, even in the middle of a glide (read from the first page). */
@@ -117,14 +125,19 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
       window.clearTimeout(raf.current);
       if (reducedMotion() || Math.abs(to - p.current) < 0.001) {
         glide(false);
+        promote(false);
         return place(to);
       }
       glide(true);
+      promote(true);
       // Next frame, so the transition starts from where the finger left it.
       requestAnimationFrame(() => place(to));
-      raf.current = window.setTimeout(() => glide(false), SETTLE_MS + 40);
+      raf.current = window.setTimeout(() => {
+        glide(false);
+        promote(false);
+      }, dur(SETTLE_MS) + 40);
     },
-    [place, glide],
+    [place, glide, promote],
   );
   useLayoutEffect(() => {
     collect();
@@ -171,6 +184,7 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
       const live = livePosition();
       glide(false);
       collect();
+      promote(true);
       place(live);
       d.p0 = live;
       return;
@@ -231,7 +245,7 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
             {(compact, width) => (
               <>
                 {[SceneTasks, SceneRemind, ScenePrivate].map((S, i) => (
-                  <div key={i} data-pg="page" data-pg-i={i} className="absolute inset-0 will-change-transform">
+                  <div key={i} data-pg="page" data-pg-i={i} className="absolute inset-0">
                     <S w={w} compact={compact} width={width} play={playing === i} lead={arrive.current} />
                   </div>
                 ))}

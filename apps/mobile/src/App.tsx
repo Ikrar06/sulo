@@ -5,6 +5,8 @@
 // Perbarui; each is the user's own activity (nosessionupdate=false). An
 // ended session keeps the data on screen with one calm line.
 
+import { MascotMotionContext } from '@sulo/ui/mascot/Mascot';
+import { usePerfTier } from './perf';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { resolveLocale, type Locale } from '@sulo/core/i18n';
 import { mobileWords, type MobileWords } from '@sulo/core/i18n/mobile';
@@ -28,7 +30,7 @@ import { LockScreen } from './screens/Gate';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
 import { SwitchAccount } from './onboarding/SwitchAccount';
 import { holdWatching, keepPreviousAccount, switchPending, useOtherAccount } from './switch-account';
-import { readSavedFlow } from './onboarding/data';
+import { readSavedFlow, saveFlow } from './onboarding/data';
 import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow';
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
@@ -64,6 +66,7 @@ export function App({ platform }: { platform: Platform }) {
   const [landing, setLanding] = useState(false);
   /** Ringkasan is mounted, hidden, under the done screen: "Buka Sulo" then only reveals it. */
   const [warm, setWarm] = useState(false);
+  const tier = usePerfTier();
   const [last, setLast] = useState<UnixSeconds | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
@@ -184,6 +187,8 @@ export function App({ platform }: { platform: Platform }) {
     (window as unknown as { __suloEnterDemo?: () => Promise<void> }).__suloEnterDemo = async () => {
       await SuloSession.login();
       await sync(() => syncAfterLogin(platform, false));
+      // Kept as finished, so a reload opens Ringkasan (a cold open with data, scripts/perf-measure.mjs).
+      await saveFlow(platform, { step: 'finished', mode: 'first' });
       setFlow((f) => (f ? { ...f, step: 'finished' } : f));
     };
   }, [platform, sync]);
@@ -207,8 +212,10 @@ export function App({ platform }: { platform: Platform }) {
       />
     </MobileDataProvider>
   );
+  const lite = tier === 'lite';
   return (
     <I18nProvider locale={locale}>
+      <MascotMotionContext.Provider value={{ lite }}>
       {locked ? (
         <LockScreen
           w={w}
@@ -254,7 +261,8 @@ export function App({ platform }: { platform: Platform }) {
           {(flow.step === 'finished' || landing || warm) && (
             // One geometry in every phase (no layout work when it is revealed): hidden and inert while it only waits under the onboarding.
             <div className={`contents ${landing ? 'm-landing' : ''} ${flow.step !== 'finished' && !landing ? 'invisible' : ''}`} inert={flow.step !== 'finished' && !landing ? true : undefined}>
-              {shell}
+              {/* Waiting under the onboarding, its mascot holds still. */}
+              <MascotMotionContext.Provider value={{ lite, paused: flow.step !== 'finished' && !landing }}>{shell}</MascotMotionContext.Provider>
             </div>
           )}
           {onboarding && (
@@ -285,6 +293,7 @@ export function App({ platform }: { platform: Platform }) {
           )}
         </>
       )}
+      </MascotMotionContext.Provider>
     </I18nProvider>
   );
 }

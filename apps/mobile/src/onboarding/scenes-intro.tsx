@@ -150,12 +150,13 @@ export function SceneRemind({ w, compact, width, play, lead }: SceneProps) {
   const left = useRef<HTMLDivElement | null>(null);
   const right = useRef<HTMLDivElement | null>(null);
   const ring = useCountUp(90, 700, play, 700);
-  // The countdown is real: it loses a second every second while the screen shows.
+  // The countdown is real: it loses a second every second while its page shows (not on the pages beside it).
   const [secs, setSecs] = useState(3 * 3600 + 59 * 60 + 58);
   useEffect(() => {
-    const id = window.setInterval(() => setSecs((s) => (s > 0 ? s - 1 : 0)), 1000);
+    if (!play) return;
+    const id = window.setInterval(() => document.visibilityState !== 'hidden' && setSecs((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => window.clearInterval(id);
-  }, []);
+  }, [play]);
 
   // Before the first paint: the pieces are at their starting places in the very first frame.
   useLayoutEffect(() => {

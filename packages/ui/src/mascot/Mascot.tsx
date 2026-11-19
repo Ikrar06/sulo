@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { createContext, useContext, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import type { MascotVariant } from '@sulo/core/dashboard/mascot-mood';
 import type { MascotState } from '@sulo/core/view/popup-view';
 import { BASE, EYE_CENTERS, GLANCE, MASCOT_CENTER, spiralPath, STAR_CENTERS, STAR_PATH, Z_PATH } from './geometry';
@@ -84,6 +84,31 @@ function usePageVisible(): boolean {
   return visible;
 }
 
+/**
+ * Where mascots live may hold them still: `paused` for a part of the page
+ * that is mounted but not shown (the phone's shell waiting under the
+ * onboarding); `lite` for the phone's lite tier, where only blinking stays
+ * (no breathing, flame sway or particles). Neither changes how it looks at rest.
+ */
+export interface MascotMotion {
+  paused?: boolean;
+  lite?: boolean;
+}
+export const MascotMotionContext = createContext<MascotMotion>({});
+
+/** True while the element is on screen; looping motion stops once it scrolls out. */
+function useInView(ref: RefObject<Element | null>): boolean {
+  const [inView, setInView] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((entries) => setInView(entries.some((e) => e.isIntersecting)));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return inView;
+}
+
 export interface MascotProps {
   state: MascotState;
   /** Pixel size or any CSS length (e.g. "clamp(220px, 22vw, 360px)"). */
@@ -117,16 +142,20 @@ export interface MascotProps {
 }
 
 export function Mascot({ state, size = 48, celebrate = 0, followCursor = false, still = false, effects, className, label, grounded = false, alert = false, poke = 0, variant, look = null, boldHappy = true }: MascotProps) {
+  const scope = useContext(MascotMotionContext);
   const motion = useMotionAllowed(still);
-  const visible = usePageVisible();
+  const svgRef = useRef<SVGSVGElement>(null);
+  // Looping motion runs only while it can be seen: app in front, element on screen, its part of the page shown.
+  const pageVisible = usePageVisible();
+  const inView = useInView(svgRef);
+  const visible = pageVisible && inView && !scope.paused;
   const active = motion && visible;
-  const fx = (effects ?? (typeof size === 'number' ? size >= 96 : true)) && active;
+  const fx = (effects ?? (typeof size === 'number' ? size >= 96 : true)) && active && !scope.lite;
   const id = useId().replace(/:/g, '');
 
   const [shown, setShown] = useState<Shown>(state === 'celebrate' ? 'celebrate' : state);
   const [blink, setBlink] = useState(false);
 
-  const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
   const eyesRef = useRef<SVGGElement>(null);
   const shadowRef = useRef<SVGEllipseElement>(null);
