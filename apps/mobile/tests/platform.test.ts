@@ -141,6 +141,13 @@ describe('attendance pages through SuloSession.page', () => {
     expect(r.status).toBe(303);
   });
 
+  it('a redirect elsewhere is that course closed, never a sign-out (20 Nov 2026, the phone)', async () => {
+    // Native already turns a redirect to SIKOLA's login into "expired"; any other one is the course's page.
+    pageReply = { httpStatus: 303, html: '', sessionStatus: 'connected' };
+    const r = await createSessionHttp(true).request(`${origin}/mod/attendance/view.php?id=5&mode=1`, { method: 'GET' });
+    expect(r.status).toBe(403);
+  });
+
   it('a network failure throws like fetch does', async () => {
     pageReply = { networkError: 'UnknownHostException', sessionStatus: 'connected' };
     await expect(createSessionHttp(true).request(`${origin}/mod/attendance/view.php?id=5&mode=1`, { method: 'GET' })).rejects.toThrow();

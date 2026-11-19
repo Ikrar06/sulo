@@ -13,12 +13,18 @@ export const NATIVE_SESSKEY = 'nativeSesskey';
 /** The only HTML page JavaScript may ask for (native allowlist: id, mode, view). */
 const ATTENDANCE_PAGE = '/mod/attendance/view.php';
 
+/** What a non-login redirect of the attendance page becomes: an http_error for that course only. */
+export const COURSE_PAGE_CLOSED = 403;
+
 /** An attendance page, natively fetched and stripped (no head, scripts, forms or sesskey). */
 async function page(path: string, userInitiated: boolean): Promise<Response> {
   const reply = await SuloSession.page({ path, userInitiated });
   if (reply.networkError) throw new TypeError('network');
   // No usable session: SIKOLA's own answer would be a redirect to its login.
   if (reply.httpStatus === undefined || reply.html === undefined) return new Response(null, { status: 303, headers: { Location: `${SIKOLA_ORIGIN}/login/index.php` } });
+  // A redirect elsewhere (native already caught the one to SIKOLA's login): this
+  // course's page can't be opened (hidden, enrolment ended). Never a sign-out.
+  if (reply.httpStatus >= 300 && reply.httpStatus < 400) return new Response(null, { status: COURSE_PAGE_CLOSED });
   return new Response(reply.html, { status: reply.httpStatus, headers: { 'Content-Type': 'text/html' } });
 }
 

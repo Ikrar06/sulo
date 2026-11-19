@@ -140,14 +140,14 @@ class SuloSessionPlugin : Plugin() {
                 // A sesskey only comes from the user's own activity (sign-in or a sync they started).
                 if (current.sesskey == null) {
                     if (!userInitiated) return@execute call.resolve(JSObject().put("sessionStatus", "connected").put("needsUser", true))
-                    current = refreshSesskey(current) ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
+                    current = refreshSesskey(current) ?: return@execute noSesskey(call)
                 }
                 var reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body)
-                if (SikolaRequest.invalidSesskey(reply.body) && userInitiated) {
-                    current = refreshSesskey(current.copy(sesskey = null)) ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
+                if (SikolaRequest.invalidSesskey(reply.body, functions) && userInitiated) {
+                    current = refreshSesskey(current.copy(sesskey = null)) ?: return@execute noSesskey(call)
                     reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body)
                 }
-                if (SikolaRequest.loginRequired(reply.body)) vault.markExpired("sikola_login_required:batch")
+                if (SikolaRequest.loginRequired(reply.body, functions)) vault.markExpired("sikola_login_required:batch")
                 else if (reply.location?.contains("/login/") == true) vault.markExpired("sikola_login_redirect:batch")
                 call.resolve(JSObject().put("httpStatus", reply.status).put("body", reply.body).put("sessionStatus", vault.status()))
             } catch (e: Exception) {
@@ -169,7 +169,12 @@ class SuloSessionPlugin : Plugin() {
         val url = SikolaPage.allowedUrl(path) ?: return call.reject("not allowlisted")
         if (call.getBoolean("userInitiated") != true) return call.reject("user only")
         io.execute {
-            val session = vault.load() ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
+            val session = when (val read = vault.read()) {
+                is SessionVault.Read.Ok -> read.session
+                // Not readable right now: a passing failure, never "signed out".
+                is SessionVault.Read.Unavailable -> return@execute call.resolve(JSObject().put("networkError", "VaultUnavailable").put("sessionStatus", vault.status()))
+                SessionVault.Read.Empty -> return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
+            }
             try {
                 val reply = http.get(url, session.moodleSession)
                 if (reply.status in 300..399 && reply.location?.contains("/login/") == true) {
@@ -181,6 +186,17 @@ class SuloSessionPlugin : Plugin() {
                 call.resolve(JSObject().put("networkError", e.javaClass.simpleName).put("sessionStatus", vault.status()))
             }
         }
+    }
+
+    /**
+     * No sesskey came back. When SIKOLA sent us to its login, the vault is
+     * expired already and that is the answer; otherwise the page simply had
+     * none (a passing failure), and the session is not called over.
+     */
+    private fun noSesskey(call: PluginCall) {
+        val status = vault.status()
+        if (status == "expired") call.resolve(JSObject().put("sessionStatus", status))
+        else call.resolve(JSObject().put("networkError", "NoSesskey").put("sessionStatus", status))
     }
 
     /** GET /my/ for a fresh sesskey; marks the session expired when SIKOLA sends us to its login. */
