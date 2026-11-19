@@ -64,6 +64,7 @@ function probe() {
 }
 
 function launch() {
+  adb(['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP']);
   adb(['shell', 'monkey', '-p', PKG, '-c', 'android.intent.category.LAUNCHER', '1']);
 }
 
