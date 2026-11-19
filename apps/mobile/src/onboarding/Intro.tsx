@@ -256,8 +256,18 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
               </>
             )}
           </Scene>
-          {/* The three texts share one cell, as tall as the tallest: the stage is the same on every page. */}
+          {/* The three texts share one cell, as tall as the tallest: the stage is the same on every page.
+              The cell never gets shorter than a two-line title, so short titles (all on one line, as in
+              English at 384) leave the stage its usual height and no gap opens above the scene. */}
           <div className="grid shrink-0 pt-3 text-center">
+            <div aria-hidden className="invisible col-start-1 row-start-1 flex flex-col items-center">
+              <p className="onb-title">
+                {' '}
+                <br />
+                {' '}
+              </p>
+              <p className="mt-1.5 text-m15r">{pages.reduce((a, p) => (p.body.length > a.length ? p.body : a), '')}</p>
+            </div>
             {pages.map((page, i) => (
               <div key={page.title} aria-hidden={i === index ? undefined : true} data-pg="text" data-pg-i={i} className="col-start-1 row-start-1 flex flex-col items-center justify-center">
                 <h1 ref={i === index ? titleRef : undefined} tabIndex={-1} className="onb-title outline-none">
