@@ -83,13 +83,18 @@
 }
 
 /* ---------- Tahap 2: the journey (components/onboarding/journey.tsx) ---------- */
-/* The screen layer, content at most 1040 wide and centred. The stage takes the
-   height the top bar and the footnote leave; its scene fills it with pieces at
-   their real size (check:onboarding-layout: no vertical gap over 72 px, the
-   scene at least 70 % of the stage, the stage about 55 % of the width). */
+/* Content at most 1040 wide, centred. At 1024 and wider: the scene on the left
+   (as tall as its content, centred vertically, 440 to 480 wide), the mascot
+   and the text on the right, 72 apart. The right column's top comes from the
+   content area's height only, so the mascot's box is the same on every step;
+   a block of the usual height (mascot, two-line title, line, actions, status)
+   is then centred on the scene's axis. */
 .obj {
   --obj-top: 64px;
   --obj-foot: 40px;
+  --obj-area: calc(100vh - var(--obj-top) - var(--obj-foot));
+  /* The usual block under the mascot: 24 + title 76 + 12 + line 24 + 28 + actions 44 + 20 + status 24, rounded. */
+  --obj-block: 260px;
   min-height: 100vh;
   background: var(--layer-screen);
   color: var(--text);
@@ -108,39 +113,6 @@
   align-items: center;
   justify-content: space-between;
 }
-.obj-main {
-  flex: 1;
-  display: grid;
-  gap: 24px;
-  align-content: start;
-}
-.obj-stage {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-block: 16px;
-}
-/* A scene: its pieces stacked, 12 apart, at their real size; the big mascot under them
-   (24 from the last piece). */
-.obj-scene {
-  width: 100%;
-  max-width: 440px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.obj-scene > [data-mascot-slot] { margin-top: 12px; }
-/* The course list: in one card as tall as the stage, scrolling inside it (few courses or
-   many, the stage stays filled and the page never grows). */
-.obj-scene.obj-scene-list { max-width: 520px; align-self: center; align-items: stretch; justify-content: flex-start; padding: 16px; overflow-y: auto; }
-@media (min-width: 1024px) {
-  .obj-scene.obj-scene-list { height: calc(100vh - var(--obj-top) - var(--obj-foot) - 32px); }
-}
-.obj-text { max-width: 440px; }
-.obj-actions [data-variant="default"][data-size] { height: 44px; min-width: 180px; padding-inline: 24px; font-size: 15px; }
 .obj-foot {
   height: var(--obj-foot);
   display: flex;
@@ -148,17 +120,89 @@
   font-size: 12px;
   color: var(--muted);
 }
+.obj-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.obj-swap {
+  width: min(480px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+/* A scene: its pieces stacked 12 apart, at their real size. */
+.obj-scene {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.obj-mascot { width: var(--obj-mascot); height: var(--obj-mascot); flex-shrink: 0; }
+.obj-text { display: flex; flex-direction: column; align-items: flex-start; }
+.obj-mascot + .obj-text { margin-top: 24px; }
+.obj-actions [data-variant="default"][data-size] { height: 44px; min-width: 180px; padding-inline: 24px; font-size: 15px; border-radius: 999px; }
+
 @media (min-width: 1024px) {
   .obj-main {
-    grid-template-columns: 55% minmax(0, 1fr);
-    column-gap: 64px;
-    align-items: center;
-    min-height: calc(100vh - var(--obj-top) - var(--obj-foot));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    column-gap: 72px;
+    min-height: var(--obj-area);
   }
-  .obj-stage { min-height: calc(100vh - var(--obj-top) - var(--obj-foot)); }
-  .obj-main.is-alone { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .obj-stage { min-height: var(--obj-area); }
+  .obj-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: start;
+    padding-top: max(16px, calc((var(--obj-area) - var(--obj-mascot) - var(--obj-block)) / 2));
+  }
 }
-/* A scene piece arrives (story motion; delays set inline). */
+/* One column: mascot, title, line, the scene, actions. */
+@media (max-width: 1023.98px) {
+  .obj-main {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    max-width: 480px;
+    padding-block: 24px 32px;
+  }
+  .obj-side, .obj-text { display: contents; }
+  .obj-mascot { order: 1; }
+  .obj-head { order: 2; }
+  .obj-mascot ~ .obj-text > .obj-head:first-child { margin-top: 24px; }
+  .obj-stage { order: 3; margin-top: 24px; }
+  .obj-actions, .obj-after { order: 4; }
+  .obj-text.obj-enter > * { animation: obj-step-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+}
+
+/* Step change: out 16 px and a fade in 160 ms, in 240 ms. Transform and opacity only. */
+@keyframes obj-step-in { from { opacity: 0; transform: translateX(16px); } }
+@keyframes obj-step-out { to { opacity: 0; transform: translateX(-16px); } }
+@keyframes obj-fade { from { opacity: 0; } }
+.obj-enter { animation: obj-step-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.obj-out { animation: obj-step-out 160ms ease-in forwards; pointer-events: none; }
+
+/* A scene piece arriving (story motion; delays set inline). */
 @keyframes obj-in { from { opacity: 0; transform: translateY(12px); } }
 .obj-in { animation: obj-in var(--obj-dur, 504ms) cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--obj-delay, 0ms); }
-@media (prefers-reduced-motion: reduce) { .obj-in { animation: none; } }
+/* The status line's "busy" dot. */
+@keyframes obj-pulse { 50% { opacity: 0.35; } }
+.obj-pulse { animation: obj-pulse 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .obj-in, .obj-pulse, .obj-out { animation: none; }
+  .obj-enter, .obj-text.obj-enter > * { animation: obj-fade 120ms ease-out both; }
+}
+
+/* "Belum ada tugas": one calm card, as tall as a short scene. */
+.obj-calm { min-height: 120px; }
+@media (min-width: 1024px) { .obj-calm { min-height: calc(var(--obj-area) * 0.42); } }
+
+/* The course list: as tall as its rows; at most 70 % of the content area, then it scrolls inside with faded edges. */
+.obj-list { max-height: calc(var(--obj-area) * 0.7); overflow-y: auto; overscroll-behavior: contain; }
+/* Faded only on an edge with more behind it, as the popup's list (a mask, never a colored band). */
+.obj-list[data-fade="bottom"] { mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent 100%); } /* lint-ui-allow: scroll-edge fade as a mask */
+.obj-list[data-fade="top"] { mask-image: linear-gradient(to bottom, transparent 0, #000 16px); } /* lint-ui-allow: scroll-edge fade as a mask */
+.obj-list[data-fade="both"] { mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); } /* lint-ui-allow: scroll-edge fade as a mask */
