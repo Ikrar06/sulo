@@ -179,6 +179,38 @@ class SuloSessionPlugin : Plugin() {
         }
     }
 
+    /**
+     * "Batal" on the different-account screen: the session just signed in is
+     * thrown away (SIKOLA's cookies, web storage, the vault and its key) and
+     * the state reads "expired", so the app shows the previous account's
+     * data with its calm "Masuk lagi" line. Nothing of that data is touched.
+     */
+    @PluginMethod
+    fun discardSession(call: PluginCall) {
+        CookieManager.getInstance().removeAllCookies {
+            CookieManager.getInstance().flush()
+            WebStorage.getInstance().deleteAllData()
+            io.execute {
+                vault.markExpired()
+                call.resolve(JSObject().put("status", vault.status()))
+            }
+        }
+    }
+
+    /**
+     * "Pakai akun ini": background watching starts from nothing for the new
+     * account: no check scheduled, no plan, no queued answer, no held notice,
+     * no timings. The session stays.
+     */
+    @PluginMethod
+    fun watchReset(call: PluginCall) {
+        io.execute {
+            runCatching { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
+            runCatching { dev.ikrar.sulo.watch.WatchStore(context).clear() }
+            call.resolve()
+        }
+    }
+
     // ---------- App lock (optional, off by default; the setting lives in the app) ----------
 
     /** Whether the phone has a screen lock (PIN, pattern, password or biometrics). */

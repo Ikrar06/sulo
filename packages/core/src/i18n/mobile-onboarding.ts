@@ -98,6 +98,12 @@ const id = {
     empty: 'Belum ada tugas',
     open: 'Buka Sulo',
   },
+  switchAccount: {
+    title: 'Akun berbeda',
+    body: 'Data akun sebelumnya di HP ini akan dihapus.',
+    use: 'Pakai akun ini',
+    cancel: 'Batal',
+  },
   sheets: {
     why: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi login disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
     watch: 'Sulo memeriksa SIKOLA berkala di latar belakang supaya tugas baru cepat diberitahu. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
@@ -195,6 +201,12 @@ const en: Words = {
     empty: 'No tasks yet',
     open: 'Open Sulo',
   },
+  switchAccount: {
+    title: 'Different account',
+    body: 'Data from the previous account on this phone will be removed.',
+    use: 'Use this account',
+    cancel: 'Cancel',
+  },
   sheets: {
     why: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your sign-in session is stored encrypted on this phone.', 'No Sulo server, no ads, no tracking.'],
     watch: 'Sulo checks SIKOLA in the background from time to time so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
@@ -209,8 +221,8 @@ export const onboardingWords = (locale: Locale): OnboardingWords => (locale === 
 /** Every title and supporting line, for the budget test. */
 export function budgetedTexts(w: OnboardingWords): { titles: string[]; supports: string[] } {
   return {
-    titles: [w.splash.name, w.intro1.title, w.intro2.title, w.intro3.title, w.signin.title, w.preparing.title, w.courses.title, w.nickname.title, w.reminders.title, w.done.title],
-    supports: [w.splash.tagline, w.intro1.body, w.intro2.body, w.intro3.body, w.signin.body, w.signin.cancelled, w.signin.offline, ...Object.values(w.preparing.stages), w.preparing.failedTitle, w.courses.body, w.nickname.note, w.reminders.stagesLabel, w.reminders.watchBody],
+    titles: [w.splash.name, w.intro1.title, w.intro2.title, w.intro3.title, w.signin.title, w.preparing.title, w.courses.title, w.nickname.title, w.reminders.title, w.done.title, w.switchAccount.title],
+    supports: [w.splash.tagline, w.intro1.body, w.intro2.body, w.intro3.body, w.signin.body, w.signin.cancelled, w.signin.offline, ...Object.values(w.preparing.stages), w.preparing.failedTitle, w.courses.body, w.nickname.note, w.reminders.stagesLabel, w.reminders.watchBody, w.switchAccount.body],
   };
 }
 
@@ -218,4 +230,4 @@ export function budgetedTexts(w: OnboardingWords): { titles: string[]; supports:
  * The owner's final copy that is over the budget by one character; kept
  * word for word and listed here so the test stays strict for everything else.
  */
-export const BUDGET_EXCEPTIONS: readonly string[] = ['Your data stays on your phone'];
+export const BUDGET_EXCEPTIONS: readonly string[] = ['Your data stays on your phone', 'Data from the previous account on this phone will be removed.'];

@@ -5,6 +5,7 @@
 // change as handled afterwards, so nothing is announced twice and changes
 // found while the app is open never notify.
 
+import { readPending } from '@sulo/core/account/pending';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { resolveLocale } from '@sulo/core/i18n';
@@ -25,7 +26,8 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
   if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return;
   const { store, clock } = platform;
   const userId = await currentUser(store);
-  if (userId === null) return void (await SuloSession.watchApply({ plan: JSON.stringify({ enabled: false }) }).catch(() => undefined));
+  // No account, or another account waiting for the user's answer: no plan in force (never the previous account's for the new session).
+  if (userId === null || (await readPending(store)) !== null) return void (await SuloSession.watchApply({ plan: JSON.stringify({ enabled: false }) }).catch(() => undefined));
   const [watch, config, prefs, session, tasks, courses, snapshots, radar, changes] = await Promise.all([
     readWatch(platform),
     readRemoteConfig(store),

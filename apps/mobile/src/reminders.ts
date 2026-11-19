@@ -7,6 +7,7 @@
 
 import { runNotifyCycle } from '@sulo/core/reminders/run';
 import type { NotificationView } from '@sulo/core/reminders/text';
+import { readPending } from '@sulo/core/account/pending';
 import type { Platform } from '@sulo/core/platform';
 import type { KeyValueStore, UnixSeconds } from '@sulo/core/types';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -78,7 +79,8 @@ export async function planReminders(store: KeyValueStore, now: UnixSeconds, time
 /** Replaces the previously scheduled reminders with a fresh plan. */
 export async function scheduleReminders(platform: Platform): Promise<number> {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const planned = await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language);
+  // Another account is waiting for the user's answer: the previous account's reminders are cancelled, none planned (as the extension does).
+  const planned = (await readPending(platform.store)) !== null ? [] : await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language);
   const previous = (await platform.store.get<number[]>(SCHEDULED_KEY)) ?? [];
   if (previous.length > 0) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
   const notifications = planned.map((p) => ({

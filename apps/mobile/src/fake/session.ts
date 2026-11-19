@@ -20,6 +20,8 @@ export function fakeSession(): SuloSessionPlugin {
     },
     status: async () => ({ status }),
     haptic: async () => undefined,
+    discardSession: async () => ((status = 'expired'), { status }),
+    watchReset: async () => undefined,
     request: async ({ body }): Promise<BatchReply> => {
       if (status !== 'connected') return { sessionStatus: status };
       const calls = JSON.parse(body) as { methodname: string }[];

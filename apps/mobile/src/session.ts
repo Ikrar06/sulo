@@ -27,6 +27,10 @@ export interface PageReply {
 }
 
 export interface SuloSessionPlugin {
+  /** "Batal" on the different-account screen: the new session is thrown away; the state reads expired. */
+  discardSession(): Promise<{ status: SessionStatus }>;
+  /** "Pakai akun ini": background watching starts from nothing (no plan, queue, timings). */
+  watchReset(): Promise<void>;
   /** A light or firm haptic tick (the view's own feedback; the system setting decides). */
   haptic(options: { kind: 'light' | 'firm' }): Promise<void>;
   /**

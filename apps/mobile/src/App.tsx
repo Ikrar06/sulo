@@ -26,6 +26,8 @@ import { markChangesHandled } from '@sulo/core/watch/queue';
 import { scheduleReminders } from './reminders';
 import { LockScreen } from './screens/Gate';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
+import { SwitchAccount } from './onboarding/SwitchAccount';
+import { holdWatching, keepPreviousAccount, switchPending, useOtherAccount } from './switch-account';
 import { readSavedFlow } from './onboarding/data';
 import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow';
 import { SuloSession, type SessionStatus } from './session';
@@ -56,6 +58,8 @@ export function App({ platform }: { platform: Platform }) {
   const [locked, setLocked] = useState(false);
   /** Where the onboarding is (null: not decided yet); 'finished' shows the app. */
   const [flow, setFlow] = useState<FlowState | null>(null);
+  /** Another SIKOLA account signed in: the "Akun berbeda" question is open (switch-account.ts). */
+  const [switching, setSwitching] = useState(false);
   /** The onboarding mascot is landing on Ringkasan (both are mounted). */
   const [landing, setLanding] = useState(false);
   /** Ringkasan is mounted, hidden, under the done screen: "Buka Sulo" then only reveals it. */
@@ -107,7 +111,14 @@ export function App({ platform }: { platform: Platform }) {
       setLocale(loc);
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
-      const signedIn = (await SuloSession.status()).status !== 'none';
+      const now = (await SuloSession.status()).status;
+      const signedIn = now !== 'none';
+      // A question left open when the app was closed: it is asked again, and nothing runs meanwhile.
+      const demoSwitch = __SULO_WEB_FAKE__ && import.meta.env.MODE === 'web' && new URLSearchParams(location.search).get('switch') === '1';
+      if (demoSwitch || (now === 'connected' && (await switchPending(platform)))) {
+        await holdWatching();
+        setSwitching(true);
+      }
       setFlow(resume(await readSavedFlow(platform), { signedIn, hasData: (await lastSyncAt(platform)) !== null }));
       // The worker's answers first (before any sync), then reminders and a fresh plan.
       await processWatchQueue(platform).catch(() => null);
@@ -141,6 +152,8 @@ export function App({ platform }: { platform: Platform }) {
       void refreshPublicData(platform, true);
       const s = (await SuloSession.status()).status;
       setStatus(s);
+      // The different-account question is open: no sync, no background plan, until it is answered.
+      if (await switchPending(platform)) return;
       const queue = await processWatchQueue(platform).catch(() => ({ applied: 0, fullSync: false }));
       if (queue.applied > 0) await scheduleReminders(platform).catch(() => 0);
       if (s === 'connected' && (queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
@@ -158,6 +171,11 @@ export function App({ platform }: { platform: Platform }) {
       return;
     }
     await sync(() => syncAfterLogin(platform, __SULO_DEV__));
+    // Another account than the one whose data is here: the sync wrote nothing; ask.
+    if (await switchPending(platform)) {
+      await holdWatching();
+      setSwitching(true);
+    }
   };
 
   // pnpm mobile:web only: the screenshot and check scripts enter the demo account past the onboarding.
@@ -213,6 +231,23 @@ export function App({ platform }: { platform: Platform }) {
             }}
           />
         </Suspense>
+      ) : switching ? (
+        <SwitchAccount
+          w={onboardingWords(locale)}
+          onUse={async () => {
+            await useOtherAccount(platform);
+            setSwitching(false);
+            // The new account: its data comes in with the onboarding from screen 5.
+            setFlow(start('switch'));
+            await refreshState();
+          }}
+          onCancel={async () => {
+            await keepPreviousAccount(platform);
+            await applyWatchPlan(platform).catch(() => undefined);
+            await refreshState();
+            setSwitching(false);
+          }}
+        />
       ) : (
         <>
           {/* One place for Ringkasan, before and after the landing, so it never mounts twice. */}
