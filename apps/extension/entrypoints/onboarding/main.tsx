@@ -8,7 +8,11 @@ import { ManageFooter, ManageNoChanges, ManageSaved } from '@/components/onboard
 import { OnboardingShell } from '@/components/onboarding/Shell';
 import { StepWhatsNew, type ConnectStatus } from '@/components/onboarding/Steps';
 import { Journey } from '@/components/onboarding/journey';
-import { ConnectText, CoursesText, DoneText, INTRO_PAGES, IntroText, introScene, SceneConnect, SceneCourses, SceneDone, WhyDialog } from '@/components/onboarding/journey-steps';
+import { INTRO_PAGES, IntroText, introScene, WhyDialog } from '@/components/onboarding/journey-intro';
+import { ConnectText, SceneConnect } from '@/components/onboarding/journey-connect';
+import { CoursesText, SceneCourses } from '@/components/onboarding/journey-courses';
+import { DoneText, doneTasks, SceneDone } from '@/components/onboarding/journey-done';
+import { ScenePreparing } from '@/components/onboarding/journey-preparing';
 import { ONBOARDING_STAGES_KEY, type OnboardingStages } from '@sulo/core/onboarding/stages';
 import { ACCOUNT_PENDING_KEY, readPending } from '@sulo/core/account/pending';
 import { accountStatus, decideOnboardingMode, resumeStep, SETUP_PROGRESS_KEY, setupStatus, type OnboardingMode } from '@sulo/core/account/state';
@@ -50,6 +54,8 @@ const session = createBrowserStore(browser.storage.session);
 type Screen = M2StepId | 'whats-new' | 'mismatch' | 'saved' | 'no-changes';
 /** How long the lit wire stays on screen before the course step. */
 const CONNECTED_PAUSE_MS = 900;
+/** "Tersambung" shows this long before "Menyiapkan Sulo". */
+const CONNECTED_SHOWN_MS = 600;
 /** "Tidak ada perubahan" stays this long before the tab closes. */
 const NO_CHANGES_MS = 1100;
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -266,10 +272,16 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [screen]);
 
-  // Each new step or page takes the focus to its title (shown as a ring only for keyboards).
+  // "Tersambung" stays on screen 600 ms before "Menyiapkan Sulo" (the sync goes on meanwhile).
+  // The new step's title takes the focus in the journey frame, once the old step has left.
+  const [preparing, setPreparing] = useState(false);
   useEffect(() => {
-    document.getElementById('ob-title')?.focus({ preventScroll: true });
-  }, [screen, introPage]);
+    // A sync that fails while preparing keeps the rows on screen, with the failed one marked and "Coba lagi".
+    if (connect === 'failed') return;
+    if (connect !== 'connected') return setPreparing(false);
+    const t = window.setTimeout(() => setPreparing(true), CONNECTED_SHOWN_MS);
+    return () => window.clearTimeout(t);
+  }, [connect]);
 
   const onToggle = (courseId: CourseId, active: boolean) => setCourses((draft) => toggleDraft(draft, courseId, active));
 
@@ -432,15 +444,15 @@ function App() {
     screen === 'intro' ? (
       introScene(introPage)
     ) : screen === 'connect' ? (
-      <SceneConnect preparing={connect === 'connected'} stages={stages} counts={counts} />
+      preparing ? <ScenePreparing stages={stages} counts={counts} failed={connect === 'failed'} /> : <SceneConnect />
     ) : screen === 'courses' ? (
       <SceneCourses courses={courses} onToggle={onToggle} />
     ) : (
-      <SceneDone tasks={ownView?.pendingCount ?? 0} courses={selected} />
+      <SceneDone tasks={ownView ? doneTasks(ownView.groups) : []} />
     );
   return (
     <Journey
-      stepKey={screen === 'intro' ? `intro-${introPage}` : screen}
+      stepKey={screen === 'intro' ? `intro-${introPage}` : screen === 'connect' && preparing ? 'preparing' : screen}
       progress={progress}
       scene={scene}
       sceneInteractive={screen === 'courses'}
@@ -450,19 +462,12 @@ function App() {
       {screen === 'intro' && (
         <>
           <IntroText page={introPage} onNext={nextIntro} onGo={setIntroPage} onBack={introPage > 0 ? () => setIntroPage(introPage - 1) : undefined} onWhy={() => setWhyOpen(true)} />
-          <WhyDialog
-            open={whyOpen}
-            onOpenChange={setWhyOpen}
-            points={m.onboarding.intro.points}
-            outdated={noticeRead > 0 && noticeRead < NOTICE_VERSION ? m.onboarding.intro.noticeUpdated : undefined}
-            onPrivacy={() => void browser.tabs.create({ url: browser.runtime.getURL('/privacy.html') })}
-          />
         </>
       )}
       {screen === 'connect' && (
         <ConnectText
           phase={connect}
-          preparing={connect === 'connected'}
+          preparing={preparing}
           stages={stages}
           failedReason={failedReason}
           switching={mode === 'switch-account'}
@@ -472,10 +477,17 @@ function App() {
             void browser.tabs.create({ url: sikolaUrl(mode === 'switch-account' ? 'mismatch' : 'none') });
           }}
           onRetry={() => void tryConnect('retry')}
+          onWhy={() => setWhyOpen(true)}
         />
       )}
       {screen === 'courses' && <CoursesText selected={selected} saving={saving} onNext={() => void onSave()} />}
-      {screen === 'done' && <DoneText onOpen={() => location.assign(browser.runtime.getURL('/dashboard.html#ringkasan'))} />}
+      {screen === 'done' && <DoneText tasks={ownView?.pendingCount ?? 0} courses={selected} onOpen={() => location.assign(browser.runtime.getURL('/dashboard.html#ringkasan'))} />}
+      <WhyDialog
+        open={whyOpen}
+        onOpenChange={setWhyOpen}
+        outdated={noticeRead > 0 && noticeRead < NOTICE_VERSION ? m.onboarding.intro.noticeUpdated : undefined}
+        onPrivacy={() => void browser.tabs.create({ url: browser.runtime.getURL('/privacy.html') })}
+      />
     </Journey>
   );
 }

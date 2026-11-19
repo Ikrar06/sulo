@@ -21,9 +21,11 @@ export interface TaskCardViewProps {
   doneLabel: string;
   onDone: (done: boolean) => void;
   onOpen?: () => void;
+  /** A picture of the card (the extension's onboarding scenes): the circle is not a control. */
+  still?: boolean;
 }
 
-export function TaskCardView({ course, color, title, relative, tone, date, done, doneLabel, onDone, onOpen }: TaskCardViewProps) {
+export function TaskCardView({ course, color, title, relative, tone, date, done, doneLabel, onDone, onOpen, still = false }: TaskCardViewProps) {
   return (
     <Card dense onPress={onOpen} label={onOpen ? title : undefined}>
       {/* Row 1: the course; the time left in its urgency color, then the date when it fits. */}
@@ -43,7 +45,7 @@ export function TaskCardView({ course, color, title, relative, tone, date, done,
         <p className={`line-clamp-2 min-w-0 flex-1 text-m15 ${done ? 'text-muted-foreground line-through' : ''}`}>{title}</p>
         {/* 28 px, centered on the title without making the row taller. */}
         <span className="-my-1 flex">
-          <CheckCircle checked={done} onChange={onDone} label={doneLabel} />
+          <CheckCircle checked={done} onChange={onDone} label={doneLabel} still={still} />
         </span>
       </div>
     </Card>
