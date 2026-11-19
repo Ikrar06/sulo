@@ -105,6 +105,13 @@ class SuloSessionPlugin : Plugin() {
         }
     }
 
+    /** Debug builds: the session's event log (times and event codes only, see Diag). */
+    @PluginMethod
+    fun diagLog(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("not available")
+        call.resolve(JSObject().put("events", com.getcapacitor.JSArray(Diag.of(context).entries().toString())))
+    }
+
     @PluginMethod
     fun status(call: PluginCall) {
         call.resolve(JSObject().put("status", vault.status()))
@@ -122,10 +129,11 @@ class SuloSessionPlugin : Plugin() {
         val userInitiated = call.getBoolean("userInitiated") ?: false
         val functions = SikolaRequest.allowedFunctions(body) ?: return call.reject("not allowlisted")
         io.execute {
-            val session = vault.load()
-            if (session == null) {
-                call.resolve(JSObject().put("sessionStatus", vault.status()))
-                return@execute
+            val session = when (val read = vault.read()) {
+                is SessionVault.Read.Ok -> read.session
+                // Not readable right now (the Keystore not ready): a passing failure, the session stays.
+                is SessionVault.Read.Unavailable -> return@execute call.resolve(JSObject().put("networkError", "VaultUnavailable").put("sessionStatus", vault.status()))
+                SessionVault.Read.Empty -> return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
             }
             try {
                 var current = session
@@ -139,7 +147,8 @@ class SuloSessionPlugin : Plugin() {
                     current = refreshSesskey(current.copy(sesskey = null)) ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
                     reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body)
                 }
-                if (SikolaRequest.loginRequired(reply.body) || reply.location?.contains("/login/") == true) vault.markExpired()
+                if (SikolaRequest.loginRequired(reply.body)) vault.markExpired("sikola_login_required:batch")
+                else if (reply.location?.contains("/login/") == true) vault.markExpired("sikola_login_redirect:batch")
                 call.resolve(JSObject().put("httpStatus", reply.status).put("body", reply.body).put("sessionStatus", vault.status()))
             } catch (e: Exception) {
                 // The kind of failure only, never a message that could carry the URL.
@@ -164,7 +173,7 @@ class SuloSessionPlugin : Plugin() {
             try {
                 val reply = http.get(url, session.moodleSession)
                 if (reply.status in 300..399 && reply.location?.contains("/login/") == true) {
-                    vault.markExpired()
+                    vault.markExpired("sikola_login_redirect:page")
                     return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
                 }
                 call.resolve(JSObject().put("httpStatus", reply.status).put("html", SikolaPage.forJs(reply.body, listOfNotNull(session.sesskey))).put("sessionStatus", vault.status()))
@@ -178,7 +187,7 @@ class SuloSessionPlugin : Plugin() {
     private fun refreshSesskey(session: SikolaSession): SikolaSession? {
         val page = http.get("${Sikola.ORIGIN}/my/", session.moodleSession)
         if (page.status in 300..399 && page.location?.contains("/login/") == true) {
-            vault.markExpired()
+            vault.markExpired("sikola_login_redirect:my")
             return null
         }
         val sesskey = SikolaText.sesskey(page.body) ?: return null
@@ -193,6 +202,7 @@ class SuloSessionPlugin : Plugin() {
             WebStorage.getInstance().deleteAllData()
             io.execute {
                 vault.wipe()
+                runCatching { Diag.of(context).clear() }
                 // Keluar also ends background watching: no check, no queue, no plan.
                 runCatching { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
                 runCatching { dev.ikrar.sulo.watch.WatchStore(context).clear() }

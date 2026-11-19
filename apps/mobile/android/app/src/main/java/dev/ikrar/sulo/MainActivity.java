@@ -27,6 +27,8 @@ public class MainActivity extends BridgeActivity {
         // M8d: the NEOSIA screen (debug builds only in B0).
         registerPlugin(SuloNeosiaPlugin.class);
         super.onCreate(savedInstanceState);
+        // The session's event log (times and codes only): when the app starts.
+        dev.ikrar.sulo.session.Diag.Companion.of(this).note("app_start");
         // Honor the phone's text size, clamped so screens never break (src/tokens.css).
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().getSettings().setTextZoom(textZoom(getResources().getConfiguration().fontScale));
@@ -49,6 +51,8 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onPause() {
         inForeground = false;
+        // Cookies and web storage to disk before Android may end the process (swiped away from recents).
+        android.webkit.CookieManager.getInstance().flush();
         super.onPause();
     }
 

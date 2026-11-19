@@ -23,6 +23,7 @@ export function fakeSession(): SuloSessionPlugin {
       return { status: 'connected' };
     },
     status: async () => ({ status }),
+    diagLog: async () => ({ events: [] }),
     haptic: async () => undefined,
     // ?device=low: a 2 GB, 4-core phone with an old WebView (the lite tier in the browser).
     deviceInfo: async () => (param('device') === 'low' ? { lowRamDevice: true, totalRamMb: 1900, cpuCores: 4, webView: '83.0.4103.106' } : { lowRamDevice: false, totalRamMb: 7600, cpuCores: 8, webView: navigator.userAgent.match(/Chrome\/([\d.]+)/)?.[1] ?? 'web' }),

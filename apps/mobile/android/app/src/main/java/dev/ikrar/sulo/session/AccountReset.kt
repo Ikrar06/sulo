@@ -29,7 +29,7 @@ class AccountReset(
      */
     fun discardSession(done: (String) -> Unit) {
         cookies.clearAll {
-            vault.markExpired()
+            vault.markExpired("account_discard")
             done(vault.status())
         }
     }

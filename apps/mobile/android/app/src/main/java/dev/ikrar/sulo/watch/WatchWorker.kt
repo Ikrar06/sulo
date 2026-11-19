@@ -133,7 +133,7 @@ class WatchRun(private val context: Context) {
         }
         if (SikolaRequest.loginRequired(reply.body) || (reply.status in 300..399 && reply.location?.contains("/login/") == true)) {
             record(now, started, bytes, "expired")
-            vault.markExpired()
+            vault.markExpired("watch_login_required")
             return sessionEnded(plan, now)
         }
         if (SikolaRequest.invalidSesskey(reply.body)) {
@@ -153,7 +153,7 @@ class WatchRun(private val context: Context) {
         when (val outcome = WatchCheck.detect(plan, store.overlay(), now, results, pick.ids)) {
             WatchCheck.Outcome.Expired -> {
                 record(now, started, bytes, "expired")
-                vault.markExpired()
+                vault.markExpired("watch_detect_expired")
                 return sessionEnded(plan, now)
             }
             WatchCheck.Outcome.Unsure -> record(now, started, bytes, "unsure")

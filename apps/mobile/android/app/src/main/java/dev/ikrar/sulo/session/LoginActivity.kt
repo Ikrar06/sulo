@@ -100,6 +100,12 @@ class LoginActivity : Activity() {
         if (online()) load() else showOffline(true)
     }
 
+    override fun onPause() {
+        // The SIKOLA page's own cookies to disk now, as soon as the screen leaves.
+        CookieManager.getInstance().flush()
+        super.onPause()
+    }
+
     private fun back() {
         if (!offlineShown && webView.canGoBack()) webView.goBack() else close()
     }

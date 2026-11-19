@@ -33,31 +33,54 @@ class PrefsSlots(private val prefs: SharedPreferences) : Slots {
  * Android Keystore (it cannot be exported), the ciphertext in app-private
  * storage that is excluded from every backup. "Keluar" removes both.
  */
-class SessionVault(private val slots: Slots, private val crypto: Crypto) {
-    constructor(context: Context) : this(PrefsSlots(context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)), KeystoreCrypto())
+class SessionVault(private val slots: Slots, private val crypto: Crypto, private val diag: Diag? = null) {
+    constructor(context: Context) : this(PrefsSlots(context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)), KeystoreCrypto(), Diag.of(context))
 
     fun save(session: SikolaSession) {
         val json = JSONObject().put("m", session.moodleSession).apply { session.sesskey?.let { put("s", it) } }.toString()
         slots.put(KEY_BLOB, crypto.encrypt(json.toByteArray(Charsets.UTF_8)))
         slots.put(KEY_STATE, STATE_CONNECTED)
+        slots.put(KEY_FAILURES, "0")
+        diag?.note("vault_saved")
+    }
+
+    /** What a read of the vault found. */
+    sealed class Read {
+        object Empty : Read()
+        data class Ok(val session: SikolaSession) : Read()
+        /** The blob is there but cannot be read right now (the Keystore not ready yet): kept, try again later. */
+        data class Unavailable(val cause: String) : Read()
     }
 
     /**
-     * null when nothing is stored. A blob that can no longer be decrypted
-     * (the Keystore key is gone, invalidated or changed, or the data was
-     * altered) is treated as an ended session: it is deleted, the key with
-     * it, and the state becomes "expired" so the app asks to sign in again.
-     * Never throws.
+     * Reads the session. A blob that is damaged for good (GCM tag mismatch,
+     * key gone or invalidated, unknown format) ends the session: deleted, the
+     * key with it, state "expired". A failure that may pass (the Keystore not
+     * ready, just after the phone started) keeps the blob and answers
+     * Unavailable; only the third such failure in a row ends it. Never throws.
      */
-    fun load(): SikolaSession? {
-        val blob = slots.get(KEY_BLOB) ?: return null
-        val session = runCatching {
+    fun read(): Read {
+        val blob = slots.get(KEY_BLOB) ?: return Read.Empty
+        return try {
             val json = JSONObject(String(crypto.decrypt(blob), Charsets.UTF_8))
-            SikolaSession(json.getString("m"), json.optString("s").ifEmpty { null })
-        }.getOrNull()
-        if (session == null) runCatching { markExpired() }
-        return session
+            if (slots.get(KEY_FAILURES) != null) slots.put(KEY_FAILURES, "0")
+            Read.Ok(SikolaSession(json.getString("m"), json.optString("s").ifEmpty { null }))
+        } catch (e: Exception) {
+            val name = e.javaClass.simpleName
+            val failures = (slots.get(KEY_FAILURES)?.toIntOrNull() ?: 0) + 1
+            if (VaultErrors.permanent(e) || failures >= MAX_PASSING_FAILURES) {
+                runCatching { markExpired("unreadable:$name") }
+                Read.Empty
+            } else {
+                slots.put(KEY_FAILURES, failures.toString())
+                diag?.note("vault_unavailable:$name")
+                Read.Unavailable(name)
+            }
+        }
     }
+
+    /** The session, or null (nothing stored, ended, or not readable right now; see [read]). */
+    fun load(): SikolaSession? = (read() as? Read.Ok)?.session
 
     fun status(): String = when (slots.get(KEY_STATE)) {
         STATE_CONNECTED -> if (slots.get(KEY_BLOB) != null) "connected" else "none"
@@ -65,17 +88,19 @@ class SessionVault(private val slots: Slots, private val crypto: Crypto) {
         else -> "none"
     }
 
-    /** SIKOLA said the session ended: keep nothing usable, remember "expired" for the screen. */
-    fun markExpired() {
+    /** The session ended (`reason`: who said so): keep nothing usable, remember "expired" for the screen. */
+    fun markExpired(reason: String = "unspecified") {
         slots.clear()
         runCatching { crypto.destroyKey() }
         slots.put(KEY_STATE, STATE_EXPIRED)
+        diag?.note("vault_expired:$reason")
     }
 
     /** "Keluar": the ciphertext, the state and the Keystore key itself. */
     fun wipe() {
         slots.clear()
         runCatching { crypto.destroyKey() }
+        diag?.note("vault_wiped")
     }
 
     companion object {
@@ -84,6 +109,9 @@ class SessionVault(private val slots: Slots, private val crypto: Crypto) {
         private const val KEY_STATE = "state"
         private const val STATE_CONNECTED = "connected"
         private const val STATE_EXPIRED = "expired"
+        private const val KEY_FAILURES = "readFailures"
+        /** Reads that may pass, in a row, before the blob counts as damaged. */
+        const val MAX_PASSING_FAILURES = 3
     }
 }
 
@@ -106,7 +134,7 @@ object BlobFormat {
 }
 
 /** AES-GCM on any key source: the Keystore on the phone, an in-memory key in tests. */
-open class AesGcmCrypto(private val keys: () -> SecretKey, private val destroy: () -> Unit, private val encode: (ByteArray) -> String, private val decode: (String) -> ByteArray) : Crypto {
+open class AesGcmCrypto(private val keys: () -> SecretKey, private val destroy: () -> Unit, private val encode: (ByteArray) -> String, private val decode: (String) -> ByteArray, private val existingKey: () -> SecretKey = keys) : Crypto {
     override fun encrypt(plain: ByteArray): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, keys())
@@ -116,7 +144,8 @@ open class AesGcmCrypto(private val keys: () -> SecretKey, private val destroy: 
     override fun decrypt(blob: String): ByteArray {
         val (iv, data) = BlobFormat.unpack(blob, decode)
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.DECRYPT_MODE, keys(), GCMParameterSpec(128, iv))
+        // Reading never makes a key: a missing one means the blob can never be read.
+        cipher.init(Cipher.DECRYPT_MODE, existingKey(), GCMParameterSpec(128, iv))
         return cipher.doFinal(data)
     }
 
@@ -132,6 +161,7 @@ class KeystoreCrypto(alias: String = "sulo_session_v1") : AesGcmCrypto(
     destroy = { keyStore().run { if (containsAlias(alias)) deleteEntry(alias) } },
     encode = { Base64.encodeToString(it, Base64.NO_WRAP) },
     decode = { Base64.decode(it, Base64.NO_WRAP) },
+    existingKey = { (keyStore().getEntry(alias, null) as? KeyStore.SecretKeyEntry)?.secretKey ?: throw java.security.UnrecoverableKeyException("no key") },
 ) {
     private companion object {
         const val PROVIDER = "AndroidKeyStore"

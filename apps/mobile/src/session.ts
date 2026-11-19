@@ -42,6 +42,8 @@ export interface SuloSessionPlugin {
    */
   login(labels?: { close: string; offline: string; retry: string }): Promise<{ status: 'connected' | 'cancelled' | 'offline' }>;
   status(): Promise<{ status: SessionStatus }>;
+  /** Debug builds: what happened to the session (times and event codes only, native Diag). */
+  diagLog(): Promise<{ events: { at: number; e: string }[] }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */
   request(options: { body: string; userInitiated: boolean }): Promise<BatchReply>;
   /**
