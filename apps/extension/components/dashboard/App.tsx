@@ -9,10 +9,12 @@ import { messagesFor, resolveLocale } from '@sulo/core/i18n';
 import { dashFor } from '@sulo/core/i18n/dashboard';
 import { DashboardProvider, timeZone, useDashboard } from './data';
 import { DashboardShell } from './Shell';
-import { StatusNotice } from '@sulo/ui/dashboard/StatusNotice';
+import { StatusLine } from '@sulo/ui/status-line';
+import { sikolaUrl } from '@sulo/core/links';
 import { useCountdownTicker } from '@/components/countdown-ticker';
 import { ToastProvider } from '@sulo/ui/ui/toast';
 import { refreshFeedback } from '@sulo/core/view/refresh-feedback';
+import { MismatchCard } from './MismatchCard';
 import type { PageProps } from './types';
 
 // Each page is its own chunk, loaded when first opened.
@@ -47,6 +49,12 @@ const DATA_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'kabar', 'k
 const WITHOUT_ACCOUNT: ReadonlySet<Page> = new Set(['kalender', 'jadwal', 'nilai', 'pengaturan', 'bantuan', 'tentang']);
 
 const uiLanguage = browser.i18n.getUILanguage();
+
+/** Settings, scrolled to one of its sections (the status line's "Salin info" and "Lihat caranya"). */
+function openSettingsAt(id: string) {
+  location.hash = '#pengaturan';
+  window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }), 200);
+}
 
 export function DashboardApp() {
   return (
@@ -125,10 +133,26 @@ function Router() {
             <DevSession />
           </Suspense>
         ) : blocked ? (
-          <NotConnected d={d} mismatch={data.pending !== null} onSetup={() => actions.openTab(browser.runtime.getURL('/onboarding.html'))} />
+          data.pending !== null ? (
+            <MismatchCard deferred={data.pending.deferredAt !== null} onUseNew={() => void actions.send({ type: 'account/useNew' })} onDefer={() => void actions.send({ type: 'account/defer' })} />
+          ) : (
+            <NotConnected d={d} mismatch={false} onSetup={() => actions.openTab(browser.runtime.getURL('/onboarding.html'))} />
+          )
         ) : (
           <>
-            {DATA_PAGES.has(page) && <StatusNotice banner={data.view.banner} d={d} locale={locale} timeZone={timeZone} className="mb-4" />}
+            {/* The popup's status line (packages/ui/src/status-line.tsx), one line under the header, no box. */}
+            {DATA_PAGES.has(page) && data.view.banner && (
+              <StatusLine
+                banner={data.view.banner}
+                className="-mt-2 mb-4"
+                actions={{
+                  onOpenSikola: () => actions.openTab(sikolaUrl('expired')),
+                  onRefresh: () => void refresh(),
+                  onReport: () => openSettingsAt('set-laporan'),
+                  onOpenReminders: () => openSettingsAt('set-notifikasi'),
+                }}
+              />
+            )}
             <Suspense fallback={<p className="text-[14px] text-muted-foreground">{d.common.loading}</p>}>
               <Page d={d} data={data} actions={actions} route={page === route.page ? route : { page, detail: null }} />
             </Suspense>

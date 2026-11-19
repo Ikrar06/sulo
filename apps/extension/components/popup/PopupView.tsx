@@ -24,7 +24,7 @@ import { CopyMenu, SettingsMenu, type SnoozeOption } from './Menus';
 const RemindersPanel = lazy(() => import('@sulo/ui/reminders/RemindersPanel').then((mod) => ({ default: mod.RemindersPanel })));
 const UpdatesPanel = lazy(() => import('@sulo/ui/updates/UpdatesPanel').then((mod) => ({ default: mod.UpdatesPanel })));
 import type { UpdateSettings } from '@sulo/core/radar/settings';
-import { StatusLine } from './StatusLine';
+import { StatusLine } from '@sulo/ui/status-line';
 import { MismatchScreen } from './AccountScreens';
 import { Group, type DoneLinger } from './TaskRows';
 

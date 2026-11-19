@@ -95,15 +95,29 @@ describe('buildPopupView', () => {
   describe('status message selection', () => {
     const old = (h: number) => user({ sync: { lastSyncAt: NOW - h * HOUR, lastCourseListAt: null } });
     const broken = { syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'parser_broken' as const, where: 'x' } } };
-    it('a full daily budget or a parser problem shows nothing while data is fresh', () => {
+    // Tahap 2 (e1, owner's decision 19 Nov 2026): a failed read and today's budget have their own
+    // line, the same in the popup and the dashboard, never with numbers.
+    it('a parser problem shows its own line', () => {
+      expect(buildPopupView(input(broken)).banner).toEqual({ kind: 'parser_broken' });
+    });
+    it("today's spent budget shows the rest line; past the soft limit the saver line; another day's budget nothing", () => {
+      const today = '2026-09-22';
+      expect(buildPopupView(input({ budget: { date: today, used: 150 } })).banner).toEqual({ kind: 'limit' });
+      expect(buildPopupView(input({ budget: { date: today, used: 10, calls: 1000 } })).banner).toEqual({ kind: 'limit' });
+      expect(buildPopupView(input({ budget: { date: today, used: 80 } })).banner).toEqual({ kind: 'saver' });
+      expect(buildPopupView(input({ budget: { date: today, used: 79 } })).banner).toBeNull();
       expect(buildPopupView(input({ budget: { date: 'x', used: 999 } })).banner).toBeNull();
-      expect(buildPopupView(input(broken)).banner).toBeNull();
       expect(buildPopupView(input({ syncStatus: { ...DEFAULT_SYNC_STATUS, lastOutcome: { status: 'skipped' as const, reason: 'BUDGET_EXHAUSTED' as const } } })).banner).toBeNull();
     });
-    it('data up to 12 hours old shows nothing; older shows the plain stale message, whatever the cause', () => {
+    it('data up to 12 hours old shows nothing; older shows the stale line, unless a more specific one applies', () => {
       expect(buildPopupView(input({ user: old(12) })).banner).toBeNull();
-      expect(buildPopupView(input({ ...broken, user: old(13) })).banner).toEqual({ kind: 'stale', lastSyncAt: NOW - 13 * HOUR });
+      expect(buildPopupView(input({ ...broken, user: old(13) })).banner).toEqual({ kind: 'parser_broken' });
       expect(buildPopupView(input({ budget: { date: 'x', used: 999 }, user: old(30) })).banner?.kind).toBe('stale');
+    });
+    it('the order: off remotely, session, offline, parser, limit, saver, stale', () => {
+      expect(buildPopupView(input({ ...broken, budget: { date: '2026-09-22', used: 150 } })).banner?.kind).toBe('parser_broken');
+      expect(buildPopupView(input({ session: 'EXPIRED', ...broken })).banner?.kind).toBe('session_expired');
+      expect(buildPopupView(input({ budget: { date: '2026-09-22', used: 90 }, user: old(30) })).banner?.kind).toBe('saver');
     });
     it('an expired session wins over old data (it can be acted on)', () => {
       expect(buildPopupView(input({ session: 'EXPIRED', user: old(30) })).banner).toEqual({ kind: 'session_expired', lastSyncAt: NOW - 30 * HOUR });

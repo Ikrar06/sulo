@@ -239,7 +239,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         </div>
       </Card>
 
-      <Card title={t.bugReport.cardTitle}>
+      <Card title={<span id="set-laporan">{t.bugReport.cardTitle}</span>}>
         <p className="mb-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{t.bugReport.help}</p>
         <BugReport d={d} lastSyncAt={data.view.lastSyncAt} store={local} version={browser.runtime.getManifest().version} />
       </Card>

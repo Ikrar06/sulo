@@ -9,7 +9,7 @@ import { formatDue, localeOf } from '../format/time';
 import { calendarDaysBetween, countdownOrLate, formatDueClock, formatLeft, formatRemaining } from '../format/time';
 import { id, type Messages } from '../i18n/id';
 import type { DueFormat } from '../prefs';
-import { STALE_WARNING_H } from '../moodle/limits';
+import { DAILY_BUDGET, DAILY_CALL_BUDGET, SOFT_DAILY_POSTS, STALE_WARNING_H } from '../moodle/limits';
 import { isStale } from '../staleness';
 import type { SyncStatus, UserData } from '../storage';
 import { taskMarkers } from '../radar/log';
@@ -30,6 +30,12 @@ export type Banner =
   /** The session ended; lastSyncAt dates the data still shown (M7.2). */
   | { kind: 'session_expired'; lastSyncAt: UnixSeconds | null }
   | { kind: 'offline' }
+  /** The last sync could not read SIKOLA's answer (PARSER_BROKEN). */
+  | { kind: 'parser_broken' }
+  /** Today's request budget is spent: nothing more until tomorrow (no numbers shown). */
+  | { kind: 'limit' }
+  /** Past the soft daily limit: automatic syncs run less often for the rest of today. */
+  | { kind: 'saver' }
   | { kind: 'stale'; lastSyncAt: UnixSeconds | null }
   /** Lowest priority: notifications are blocked in Chrome, so reminders cannot show. */
   | { kind: 'notifications_off' };
@@ -163,6 +169,10 @@ export function bannerFor(input: PopupInput, stale: boolean): Banner | null {
   if (!input.remoteConfig.enabled) return { kind: 'disabled_remotely', message: input.remoteConfig.message };
   if (input.session === 'EXPIRED') return { kind: 'session_expired', lastSyncAt: input.user?.sync.lastSyncAt ?? null };
   if (offline(input)) return { kind: 'offline' };
+  if (input.syncStatus.lastOutcome?.status === 'parser_broken') return { kind: 'parser_broken' };
+  const today = input.budget.date === localParts(input.now, input.timeZone).dateKey;
+  if (today && (input.budget.used >= DAILY_BUDGET || (input.budget.calls ?? 0) >= DAILY_CALL_BUDGET)) return { kind: 'limit' };
+  if (today && input.budget.used >= SOFT_DAILY_POSTS) return { kind: 'saver' };
   if (stale && input.user?.sync.lastSyncAt) return { kind: 'stale', lastSyncAt: input.user.sync.lastSyncAt };
   if (input.notificationsAllowed === false) return { kind: 'notifications_off' };
   return null;
