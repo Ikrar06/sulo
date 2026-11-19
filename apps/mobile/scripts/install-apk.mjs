@@ -25,4 +25,6 @@ else if (pos.relation === 'elsewhere') console.warn(`PERINGATAN: commit APK tida
 else if (pos.relation === 'unknown') console.warn(`PERINGATAN: commit APK tidak ditemukan di repo ini (HEAD ${head}).`);
 else if (info.dirty) console.warn('PERINGATAN: APK dibuat dari tree yang berubah, bukan dari commit yang bersih.');
 else console.log(`Sama dengan HEAD ${branch} (${head}).`);
+// adb waits while the phone asks (Play Protect, or Samsung's install over USB): say where to look.
+console.log('Memasang. Kalau berhenti di "Performing Streamed Install", lihat layar HP: jawab dialog Play Protect atau konfirmasi pemasangan lewat USB.');
 execFileSync(adbPath(), ['install', '-r', DEBUG_APK], { stdio: 'inherit' });
