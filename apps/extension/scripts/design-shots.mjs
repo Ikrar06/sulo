@@ -127,6 +127,10 @@ if (want('dashboard') || want('menu')) {
       await popup.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
       await popup.goto(`chrome-extension://${id}/popup.html`);
       await shoot(popup, join(out, 'popup', `asli-${locale}-${theme}.png`), false);
+      // The first task row hovered: "add to calendar" takes the due time's place.
+      await popup.locator('li.group').first().hover();
+      await shoot(popup, join(out, 'popup', `hover-${locale}-${theme}.png`), false);
+      await popup.mouse.move(0, 0);
       await popup.getByRole('button', { name: locale === 'id' ? 'Pengaturan' : 'Settings', exact: true }).click();
       await shoot(popup, join(out, 'popup', `menu-${locale}-${theme}.png`), false);
       await popup.close();

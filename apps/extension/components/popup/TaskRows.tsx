@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
+import { CalendarPlusIcon, ChevronDownIcon, ClockIcon } from '@sulo/ui/icons';
 import { Chip } from '@sulo/ui/mobile/cards';
 import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { courseTint } from '@sulo/ui/mobile/tint';
@@ -8,6 +8,7 @@ import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatDueClock, localeOf } from '@sulo/core/format/time';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
+import { Button } from '@sulo/ui/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { DueFormat } from '@sulo/core/prefs';
 import type { UnixSeconds } from '@sulo/core/types';
@@ -71,8 +72,9 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
           )}
         </span>
       </button>
-      <div className="relative flex shrink-0 flex-col items-end text-right">
-        <div className="flex flex-col items-end transition-opacity duration-150 group-hover:opacity-0 group-focus-ring:opacity-0 group-has-[[data-state=open]]:opacity-0">
+      {/* At least as wide as the two buttons that take its place, so the row never shifts. */}
+      <div className="relative flex min-w-[60px] shrink-0 flex-col items-end text-right">
+        <div className="flex flex-col items-end transition-opacity duration-[120ms] group-hover:opacity-0 group-focus-ring:opacity-0 group-has-[[data-state=open]]:opacity-0">
         <Tooltip>
           <TooltipTrigger asChild>
             <span
@@ -87,8 +89,10 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
         </Tooltip>
         {text.secondary && <span className="mt-1 text-[12px] leading-4 text-muted-foreground tabular-nums">{text.secondary}</span>}
         </div>
-        {/* The row menu (snooze, calendar) takes the due time's place while the row is hovered or focused. */}
-        <div className="absolute top-0 right-0">
+        {/* While the row is hovered or focused, the due time gives its place to "add to calendar" (next to
+            the check circle) and the row menu (snooze, and the same two actions). A link opened by the
+            user's click only; nothing is sent. */}
+        <div className="absolute top-0 right-0 flex items-center gap-1">
           <RowMenu
             row={row}
             snoozeOptions={due.snoozeOptions}
@@ -96,6 +100,22 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
             onAddToCalendar={() => actions.onAddToCalendar(row)}
             onSnooze={(until) => actions.onSnooze(row.eventId, until)}
           />
+          {row.dueAt !== null && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  aria-label={m.popup.row.addToCalendar}
+                  onClick={() => actions.onAddToCalendar(row)}
+                  className="relative z-10 size-7 text-muted-foreground opacity-0 transition-opacity duration-[120ms] group-hover:opacity-100 group-focus-ring:opacity-100 focus-ring:opacity-100 group-has-[[data-state=open]]:opacity-100 hover:text-foreground"
+                >
+                  <CalendarPlusIcon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{m.popup.row.addToCalendar}</TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
       <span className="relative z-10 flex self-center">

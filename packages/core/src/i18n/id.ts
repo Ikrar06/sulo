@@ -89,7 +89,7 @@ export const id = {
       unsnooze: 'Batalkan tunda',
       back: 'Kembali',
       addToCalendar: 'Tambah ke Google Calendar',
-      calendarDetails: (course: string, url: string) => `Tugas ${course} di SIKOLA.\n${url}`,
+      calendarDetails: (course: string) => `Tugas ${course} di SIKOLA.`,
     },
     account: {
       title: 'Akun SIKOLA berbeda terdeteksi',

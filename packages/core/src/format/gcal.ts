@@ -21,6 +21,15 @@ export interface CalendarTask {
   details: string;
 }
 
+/**
+ * The link for one task: the title with its course, the due time, and a line
+ * naming the course. Nothing else: no link to SIKOLA, no grade, no student
+ * number (the same on the popup, the dashboard and the phone).
+ */
+export function taskCalendarUrl(task: { name: string; courseName: string; dueAt: UnixSeconds }, details: (course: string) => string): string {
+  return googleCalendarUrl({ title: `${task.name} (${task.courseName})`, dueAt: task.dueAt, details: details(task.courseName) });
+}
+
 export function googleCalendarUrl({ title, dueAt, details }: CalendarTask): string {
   const params = new URLSearchParams({
     action: 'TEMPLATE',

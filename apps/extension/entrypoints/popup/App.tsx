@@ -6,7 +6,7 @@ import { PopupView } from '@/components/popup/PopupView';
 import { createBrowserStore } from '@/src/platform/store';
 import { systemClock } from '@sulo/core/clock';
 import { formatCopyList, type CopyScope } from '@sulo/core/format/copy-list';
-import { googleCalendarUrl } from '@sulo/core/format/gcal';
+import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { messagesFor, resolveLocale, type Locale } from '@sulo/core/i18n';
 import type { Message } from '@/lib/messages';
 import { DAILY_BUDGET, DAILY_CALL_BUDGET } from '@sulo/core/moodle/limits';
@@ -178,11 +178,7 @@ export default function App({ startedAt }: { startedAt: number }) {
   // A link opened by the user's click. Sulo sends nothing to Google.
   const onAddToCalendar = (row: TaskRow) => {
     if (row.dueAt === null) return;
-    const url = googleCalendarUrl({
-      title: `${row.name} (${row.courseName})`,
-      dueAt: row.dueAt,
-      details: m.popup.row.calendarDetails(row.courseName, row.url),
-    });
+    const url = taskCalendarUrl({ name: row.name, courseName: row.courseName, dueAt: row.dueAt }, m.popup.row.calendarDetails);
     void browser.tabs.create({ url });
   };
 

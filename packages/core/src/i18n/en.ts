@@ -87,7 +87,7 @@ export const en: Messages = {
       unsnooze: 'Cancel snooze',
       back: 'Back',
       addToCalendar: 'Add to Google Calendar',
-      calendarDetails: (course, url) => `${course} task on SIKOLA.\n${url}`,
+      calendarDetails: (course) => `${course} task on SIKOLA.`,
     },
     account: {
       title: 'A different SIKOLA account was found',

@@ -9,7 +9,7 @@ import { courseAlias } from '@sulo/core/courses/display-name';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { taskDueLines } from '@sulo/core/format/time';
-import { googleCalendarUrl } from '@sulo/core/format/gcal';
+import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
@@ -19,6 +19,7 @@ import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
 import { Chip } from '@sulo/ui/mobile/cards';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
+import { CalendarHoverButton, FADES_FOR_CALENDAR } from '../CalendarHoverButton';
 import type { PageProps } from '../types';
 
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
@@ -112,6 +113,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
               d={d}
               now={data.now}
               dueFormat={data.prefs.dueFormat}
+              onOpenTab={actions.openTab}
               details={
                 <TaskDetails
                   item={item}
@@ -123,7 +125,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onOpen: actions.openTab,
                     onAddToCalendar: (i) =>
                       i.task.dueAt !== null &&
-                      actions.openTab(googleCalendarUrl({ title: `${i.task.name} (${i.courseName})`, dueAt: i.task.dueAt, details: m.popup.row.calendarDetails(i.courseName, i.task.url) })),
+                      actions.openTab(taskCalendarUrl({ name: i.task.name, courseName: i.courseName, dueAt: i.task.dueAt }, m.popup.row.calendarDetails)),
                     onSnooze: (until) => state((s) => setSnooze(s, item.task.eventId, until)),
                     onCustomDue: (at) => state((s) => setCustomDue(s, item.task.eventId, at)),
                     onAddStep: (text) => state((s) => addStep(s, item.task.eventId, text, crypto.randomUUID())),
@@ -141,7 +143,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   );
 }
 
-function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, details, collapsing = false }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; details: ReactNode; collapsing?: boolean }) {
+function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, onOpenTab, details, collapsing = false }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; onOpenTab: (url: string) => void; details: ReactNode; collapsing?: boolean }) {
   const { m, locale } = useI18n();
   const t = d.tugas;
   const due = item.task.dueAt;
@@ -150,7 +152,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   const panelId = `task-panel-${item.task.eventId}`;
   return (
     <li id={`task-${item.task.eventId}`} className={collapsing ? 'db-collapse' : undefined}>
-      <div className="flex items-start gap-3 px-4 py-3">
+      <div className="group flex items-start gap-3 px-4 py-3">
         <Checkbox className="mt-1" checked={item.status === 'done'} onCheckedChange={(v) => onDone(v === true)} aria-label={item.status === 'done' ? t.markUndone : t.markDone} />
         <button type="button" className="min-w-0 flex-1 rounded-md text-left outline-none focus-ring:ring-2 focus-ring:ring-focus" aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
           <span className={`block text-[14px] leading-6 ${item.status === 'done' ? 'text-muted-foreground line-through' : 'font-semibold'}`}>{item.task.name}</span>
@@ -165,11 +167,18 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
             {steps.length > 0 && <span className="tabular-nums">{t.stepsDone(steps.filter((s) => s.done).length, steps.length)}</span>}
           </span>
         </button>
-        <span className="shrink-0 text-right text-[14px] leading-6 tabular-nums">
+        <span className="relative min-w-7 shrink-0 text-right text-[14px] leading-6 tabular-nums">
           {due === null ? (
             <span className="text-muted-foreground">{t.noDue}</span>
           ) : (
-            <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} tickAt={dueFormat === 'countdown' && due >= now ? due : null} label={countdownLabel((due - now) * 1000, locale)} />
+            <>
+              <span className={`block ${FADES_FOR_CALENDAR}`}>
+                <DueLines lines={taskDueLines(due, now, timeZone, m, locale, dueFormat)} tone={URGENCY_TEXT[urgency]} tickAt={dueFormat === 'countdown' && due >= now ? due : null} label={countdownLabel((due - now) * 1000, locale)} />
+              </span>
+              <span className="absolute top-0 right-0">
+                <CalendarHoverButton name={item.task.name} courseName={item.courseName} dueAt={due} onOpen={onOpenTab} />
+              </span>
+            </>
           )}
         </span>
         <button type="button" className="mt-1 rounded-md p-1 text-muted-foreground outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-focus" aria-label={t.details} aria-expanded={expanded} aria-controls={panelId} onClick={onToggleOpen}>
