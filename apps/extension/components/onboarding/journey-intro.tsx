@@ -5,12 +5,12 @@
 //   1. three task cards (four at 1440x900); the top one is ticked, leaves,
 //      the others move up and the next task rises (the phone's choreography,
 //      kept straight)
-//   2. one reminder banner lands with a small bounce, then a countdown and the
-//      attendance ring side by side
+//   2. the reminder banner lands with a small bounce, a calendar banner follows,
+//      then a countdown and the attendance ring side by side
 //   3. a browser window drawn as an outline, three data chips inside, a lock
 //      closing on its top edge, three short badges on its bottom edge
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type SVGProps } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type Ref, type SVGProps } from 'react';
 import { formatCountdown } from '@sulo/core/format/countdown';
 import { extOnboardingWords } from '@sulo/core/i18n/ext-onboarding';
 import { useI18n } from '@sulo/ui/i18n';
@@ -122,14 +122,41 @@ function SceneTasks() {
 
 // ---------- 2. Reminded before it's late ----------
 
+/** A banner as in a notification: an icon in a circle, a title, then one line of chips. */
+function Banner({ icon, title, children, bannerRef }: { icon: ReactNode; title: string; children: ReactNode; bannerRef?: Ref<HTMLDivElement> }) {
+  return (
+    <div ref={bannerRef} className="m-card rounded-card flex w-full items-center gap-3 p-4">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full" style={{ background: 'var(--layer-inset)' }}>
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-semibold">{title}</span>
+        <span className="mt-1 flex items-center gap-2 text-[12px]">{children}</span>
+      </span>
+    </div>
+  );
+}
+
+const CalendarIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </svg>
+);
+
+/** Base times (ms, before SCENE_TEMPO): the reminder lands; the calendar banner follows 150 ms after. */
+const LAND_MS = 520;
+
 function SceneRemind() {
   const { locale } = useI18n();
-  const { phone } = words(locale);
+  const { phone, ext } = words(locale);
   const w = phone.intro2;
-  const banner = useRef<HTMLDivElement>(null);
+  const first = useRef<HTMLDivElement>(null);
+  const second = useRef<HTMLDivElement>(null);
+  const tiles = useRef<HTMLDivElement>(null);
   const level = sceneLevel();
   // It looks up left as the banner falls, then is pleased.
-  useMascot({ state: 'idle', look: { x: -1, y: -1 }, lookMs: level === 'full' ? story(700) : 0, then: 'all-done' });
+  useMascot({ state: 'idle', look: { x: -1, y: -1 }, lookMs: level === 'full' ? story(LAND_MS) : 0, then: 'all-done' });
   // A real countdown from core, ticking while the page shows (4 hours 12 minutes from now).
   const [left, setLeft] = useState(4 * 3600_000 + 12 * 60_000 + 30_000);
   useEffect(() => {
@@ -137,42 +164,45 @@ function SceneRemind() {
     const t = window.setInterval(() => setLeft((v) => Math.max(0, v - 1000)), 1000);
     return () => window.clearInterval(t);
   }, [level]);
-  // The banner lands with a small bounce.
+  // The reminder (the focus) lands first with a small bounce; the calendar banner rises 12 px
+  // 150 ms after it lands; then the two tiles.
   useLayoutEffect(() => {
     if (level !== 'full') return;
-    const a = play(banner.current, [
-      { opacity: 0, transform: 'translateY(-48px)' },
-      { opacity: 1, transform: 'translateY(4px)', offset: 0.7 },
-      { opacity: 1, transform: 'none' },
-    ], 520, 0, 'cubic-bezier(0.3, 0.7, 0.4, 1)');
-    return () => a?.cancel();
+    const landed = story(LAND_MS);
+    const anims = [
+      play(first.current, [
+        { opacity: 0, transform: 'translateY(-48px)' },
+        { opacity: 1, transform: 'translateY(4px)', offset: 0.7 },
+        { opacity: 1, transform: 'none' },
+      ], LAND_MS, 0, 'cubic-bezier(0.3, 0.7, 0.4, 1)'),
+      second.current?.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: story(360), delay: landed + 150, easing: EASE_STORY, fill: 'both' }) ?? null,
+      tiles.current?.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: story(360), delay: landed + 150 + story(140), easing: EASE_STORY, fill: 'both' }) ?? null,
+    ];
+    return () => anims.forEach((a) => a?.cancel());
   }, [level]);
   return (
     <div className="obj-scene pointer-events-none">
-      <div ref={banner} className="m-card rounded-card flex w-full items-center gap-3 p-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full" style={{ background: 'var(--layer-inset)' }}>
-          <BellIcon className="size-5" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-semibold">{w.notifyTitle}</span>
-          <span className="mt-1 flex items-center gap-2 text-[12px]">
-            <Chip small color={courseTint(4)}>
-              {w.notifyCourse}
-            </Chip>
-            <span className="text-urgency-soon">{phone.intro1.cards[1]!.due}</span>
-          </span>
-        </span>
-      </div>
+      <Banner bannerRef={first} icon={<BellIcon className="size-5" />} title={w.notifyTitle}>
+        <Chip small color={courseTint(4)}>
+          {w.notifyCourse}
+        </Chip>
+        <span className="text-urgency-soon">{phone.intro1.cards[1]!.due}</span>
+      </Banner>
+      <Banner bannerRef={second} icon={<CalendarIcon className="size-5" />} title={ext.scene.calendarTitle}>
+        <Chip small color="cat-ujian">
+          {ext.scene.calendarTag}
+        </Chip>
+      </Banner>
       {/* Two tiles as tall as their content, the same height: the label, then 8 below it the value
           (the countdown in orange, ticking; the attendance ring and its percentage). */}
-      <div className="grid w-full grid-cols-2 gap-3">
-        <In i={4}>
+      <div ref={tiles} className="grid w-full grid-cols-2 gap-3">
+        <div>
           <div className="m-card rounded-card flex flex-col gap-2 p-4">
             <p className="text-[13px] leading-[18px] text-muted-foreground">{w.countdownLabel}</p>
             <p className="db-accent-text flex h-9 items-center text-[24px] leading-9 font-semibold whitespace-nowrap tabular-nums">{formatCountdown(left, locale)}</p>
           </div>
-        </In>
-        <In i={5}>
+        </div>
+        <div>
           <div className="m-card rounded-card flex flex-col gap-2 p-4">
             <p className="text-[13px] leading-[18px] text-muted-foreground">{w.attendanceLabel}</p>
             <span className="flex h-9 items-center gap-3">
@@ -180,7 +210,7 @@ function SceneRemind() {
               <span className="text-[24px] leading-9 font-semibold tabular-nums">86%</span>
             </span>
           </div>
-        </In>
+        </div>
       </div>
     </div>
   );

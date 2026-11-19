@@ -13,6 +13,9 @@ const id = {
   /** Sample content of the scenes (synthetic). */
   scene: {
     steps: ['Klik Buka SIKOLA', 'Masuk seperti biasa', 'Sulo langsung mengenalinya'],
+    /** Intro 2's second banner: an academic calendar event. */
+    calendarTitle: 'UTS mulai besok',
+    calendarTag: 'Ujian',
     /** A fifth sample task: the one that rises into the stack after the top card is done (four shown at 1440x900). */
     moreCards: [{ course: 'Kimia Dasar', title: 'Laporan titrasi', due: '6 hari lagi', tone: 'later' }],
   },
@@ -62,6 +65,8 @@ type ExtWords = typeof id;
 const en: ExtWords = {
   scene: {
     steps: ['Click Open SIKOLA', 'Log in as usual', 'Sulo recognises it at once'],
+    calendarTitle: 'Midterms start tomorrow',
+    calendarTag: 'Exam',
     moreCards: [{ course: 'Basic Chemistry', title: 'Titration report', due: 'in 6 days', tone: 'later' }],
   },
   intro3: {
