@@ -17,14 +17,17 @@
 //   6. the mascot is the same size at the same place on the three setup
 //      screens (6, 7, 8); every scene piece keeps 16 px from the screen's
 //      edges
-//   Screens 5 and 9 are a small group around the mascot in the middle of
+//   Every special state too (onboarding-walk.mjs SPECIAL: sign-in closed,
+//   no connection, sync failed, none ticked, no name, watching not
+//   allowed, a different account).
+//   Screens 5, 9 and the different-account question are a small group around the mascot in the middle of
 //   the stage (the owner's later instruction), so rules 1 and 2 do not
 //   apply to them.
 //   5. never two mascots; the mascot's drawing (both flame layers and the
 //      face) stays inside its box at every size and, on the sign-in screen,
 //      for every expression
 // Both languages. Exit 1 on any finding.
-import { MASCOTS, openPage, startServer, walk } from './onboarding-walk.mjs';
+import { MASCOTS, openPage, SPECIAL, startServer, walk } from './onboarding-walk.mjs';
 
 const PORT = 5179;
 const GAP_MAX = 72;
@@ -124,10 +127,14 @@ const CASES = [
   { width: 384, height: 832, zoom: 1.3, rules: ['scale08'] },
 ];
 try {
+  // The main flow, then every special state (only the screens it is about).
+  // ONLY=label runs one special state (a quick recheck).
+  const VARIANTS = process.env.ONLY ? SPECIAL.filter(([l]) => l === process.env.ONLY) : [['', '', {}, null], ...SPECIAL];
   for (const lang of ['id', 'en'])
-    for (const c of CASES) {
-      const tag = `${lang} ${c.width}x${c.height}${c.zoom ? ' font 130%' : ''}`;
-      const { context, page } = await openPage(browser, PORT, { ...c, lang, reduced: true });
+    for (const c of CASES)
+      for (const [label, query, opts, keep] of VARIANTS) {
+      const tag = `${lang} ${c.width}x${c.height}${c.zoom ? ' font 130%' : ''}${label ? ` [${label}]` : ''}`;
+      const { context, page } = await openPage(browser, PORT, { ...c, lang, reduced: true, query });
       process.stderr.write(`${tag}\n`);
       const primaryTops = new Set();
       const setupMascots = new Set();
@@ -135,6 +142,7 @@ try {
         page,
         async (name) => {
           if (name.startsWith('10')) return;
+          if (keep && !keep.some((k) => name.startsWith(`${k}-`))) return;
           const m = await page.evaluate(measure);
           if (!m) return void findings.push(`${tag} ${name}: kerangka tidak ditemukan`);
           const mascots = await page.evaluate(MASCOTS);
@@ -150,7 +158,7 @@ try {
           if (m.primaryTop !== null) primaryTops.add(m.primaryTop);
           // (On a short phone the nickname screen scrolls under the keyboard: its mascot is where the scroll put it.)
           if (/^[678]-/.test(name) && m.mascot && !steppedOut && !(c.height < 700 && name.startsWith('7'))) setupMascots.add(m.mascot);
-          const centered = /^[59]-/.test(name);
+          const centered = /^(5|9|11)-/.test(name);
           if (c.rules.includes('gap') && !name.startsWith('0') && !centered && m.gap > GAP_MAX) findings.push(`${tag} ${name}: celah ${m.gap} px (mulai y=${m.gapAt})`);
           if (m.scene) {
             if (c.rules.includes('scene') && !name.startsWith('0') && !centered && m.scene.share < SCENE_MIN) findings.push(`${tag} ${name}: adegan ${(m.scene.share * 100).toFixed(0)}% dari panggung`);
@@ -181,7 +189,7 @@ try {
           }
           notes.push(`${tag} ${name}: celah terbesar ${m.gap}${m.scene ? `, adegan ${(m.scene.share * 100).toFixed(0)}% skala ${m.scene.scale}${m.scene.compact ? ' (ringkas)' : ''}` : ''}`);
         },
-        { lang, keyboard: 300, slow: 0.35 },
+        { ...opts, lang, keyboard: 300, slow: 0.35 },
       );
       if (setupMascots.size > 1) findings.push(`${tag}: maskot berpindah di layar 6-8 (${[...setupMascots].join(' | ')})`);
       if (primaryTops.size > 1) findings.push(`${tag}: tombol utama berpindah (${[...primaryTops].join(', ')} px dari bawah)`);

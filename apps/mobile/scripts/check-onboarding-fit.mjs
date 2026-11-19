@@ -3,8 +3,8 @@
 // in Indonesian and English, at 360x800 and 384x832. Nothing is cut or
 // ellipsized, titles take at most 2 lines, supporting lines at most 2, and
 // the text inside the scenes (cards, banners, chips, the address) is whole.
-// Exit 1 on any finding.
-import { openPage, startServer, walk } from './onboarding-walk.mjs';
+// Every special state too (onboarding-walk.mjs SPECIAL). Exit 1 on any finding.
+import { openPage, SPECIAL, startServer, walk } from './onboarding-walk.mjs';
 
 const PORT = 5190;
 const { browser, stop } = await startServer(PORT);
@@ -47,17 +47,19 @@ const check = () => {
 
 try {
   for (const lang of ['id', 'en'])
-    for (const [width, height] of [[360, 800], [384, 832]]) {
-      const tag = `${lang} ${width}x${height}`;
-      const { context, page } = await openPage(browser, PORT, { width, height, lang, reduced: true });
+    for (const [width, height] of [[360, 800], [384, 832]])
+      for (const [label, query, opts, keep] of [['', '', {}, null], ...SPECIAL]) {
+      const tag = `${lang} ${width}x${height}${label ? ` [${label}]` : ''}`;
+      const { context, page } = await openPage(browser, PORT, { width, height, lang, reduced: true, query });
       await walk(
         page,
         async (name) => {
           if (name.startsWith('10')) return;
+          if (keep && !keep.some((k) => name.startsWith(`${k}-`))) return;
           screens += 1;
           for (const f of await page.evaluate(check)) findings.push(`${tag} ${name}: ${f}`);
         },
-        { lang, slow: 0.35 },
+        { ...opts, lang, slow: 0.35 },
       );
       await context.close();
     }
@@ -68,4 +70,4 @@ if (findings.length > 0) {
   console.error(`check-onboarding-fit: ${findings.length} temuan\n${findings.join('\n')}`);
   process.exit(1);
 }
-console.log(`check-onboarding-fit: semua teks onboarding muat (${screens} layar, dua bahasa, 360 dan 384).`);
+console.log(`check-onboarding-fit: semua teks onboarding muat (${screens} layar termasuk keadaan khusus, dua bahasa, 360 dan 384).`);

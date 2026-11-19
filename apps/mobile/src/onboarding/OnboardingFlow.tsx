@@ -72,6 +72,8 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
   const played = useRef(new Set<number>());
   const [watch, setWatch] = useState(true);
   const [watchAllowed, setWatchAllowed] = useState(false);
+  /** The line under the switch while the config does not allow watching: the config's own, else a short default. */
+  const [watchOff, setWatchOff] = useState('');
   const finishing = useRef(false);
   // The app's callbacks change every render; the first sync must not restart for that.
   const synced = useRef(onSynced);
@@ -117,8 +119,9 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
       // pnpm mobile:web: ?watch=off shows the screen as when the config does not allow watching.
       const demoOff = __SULO_WEB_FAKE__ && import.meta.env.MODE === 'web' && new URLSearchParams(location.search).get('watch') === 'off';
       setWatchAllowed(paused === null && !demoOff && (keep?.enabled ?? true));
+      setWatchOff(keep?.message?.[locale] ?? app.watch.remoteOff);
     })();
-  }, [platform, paused]);
+  }, [platform, paused, locale, app]);
 
   const signIn = async () => {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return dispatch({ type: 'SIGNIN_OFFLINE' });
@@ -287,7 +290,7 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
           />
         );
       case 'reminders':
-        return <Reminders w={w} progress={progress} sample={sample} stages={stages} onStages={setStages} watch={watch} watchAllowed={watchAllowed} onWatch={setWatch} onAllow={() => void finishReminders(true)} onLater={() => void finishReminders(false)} onBack={backFn} />;
+        return <Reminders w={w} progress={progress} sample={sample} stages={stages} onStages={setStages} watch={watch} watchAllowed={watchAllowed} watchOff={watchOff} onWatch={setWatch} onAllow={() => void finishReminders(true)} onLater={() => void finishReminders(false)} onBack={backFn} />;
       case 'done':
         return done ? <Done w={w} tiles={done.tiles} tasks={done.tasks} next={done.next} onOpen={finish} /> : null;
       case 'finished':

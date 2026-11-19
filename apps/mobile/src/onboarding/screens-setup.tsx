@@ -277,7 +277,7 @@ export interface ReminderSample {
 const STAGES = [1440, 180, 60] as const;
 
 /** Screen 8: the mascot presents a real-size reminder for the user's nearest task; three short chips; the watch switch with its one line and "Detail". */
-export function Reminders({ w, progress, sample, stages, onStages, watch, watchAllowed, onWatch, onAllow, onLater, onBack }: { w: OnboardingWords; progress: Progress; sample: ReminderSample; stages: ReadonlySet<number>; onStages: (s: Set<number>) => void; watch: boolean; watchAllowed: boolean; onWatch: (on: boolean) => void; onAllow: () => void; onLater: () => void; onBack: (() => void) | null }) {
+export function Reminders({ w, progress, sample, stages, onStages, watch, watchAllowed, watchOff, onWatch, onAllow, onLater, onBack }: { w: OnboardingWords; progress: Progress; sample: ReminderSample; stages: ReadonlySet<number>; onStages: (s: Set<number>) => void; watch: boolean; watchAllowed: boolean; /** While the config does not allow watching: the line under the disabled switch. */ watchOff: string; onWatch: (on: boolean) => void; onAllow: () => void; onLater: () => void; onBack: (() => void) | null }) {
   const t = w.reminders;
   const mascot = useMascot();
   const [detail, setDetail] = useState(false);
@@ -351,37 +351,35 @@ export function Reminders({ w, progress, sample, stages, onStages, watch, watchA
             </button>
           ))}
         </div>
-        {watchAllowed && (
-          <>
-            <Gap />
-            <Card dense>
-              <div className="flex items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-m15 font-medium">{t.watchTitle}</p>
-                  <p className="mt-0.5 text-m13 text-muted-foreground">
-                    {t.watchBody}{' '}
-                    <button type="button" onClick={() => setDetail(true)} className="m-hit rounded text-foreground underline underline-offset-4 outline-none focus-ring:ring-2 focus-ring:ring-focus">
-                      {t.detail}
-                    </button>
-                  </p>
-                </div>
-                <Toggle
-                  checked={watch}
-                  label={t.watchTitle}
-                  onChange={(on) => {
-                    onWatch(on);
-                    haptic('light');
-                    if (on) {
-                      mascot.hop();
-                      mascot.flash('happy', 900);
-                      burstSparks(sparks.current, 8);
-                    }
-                  }}
-                />
-              </div>
-            </Card>
-          </>
-        )}
+        <Gap />
+        {/* Shown either way; while the config does not allow it, the switch is off and disabled with the config's line, as in Pengaturan. */}
+        <Card dense>
+          <div className={`flex items-center gap-3 ${watchAllowed ? '' : 'opacity-60'}`}>
+            <div className="min-w-0 flex-1">
+              <p className="text-m15 font-medium">{t.watchTitle}</p>
+              <p className="mt-0.5 text-m13 text-muted-foreground">
+                {watchAllowed ? t.watchBody : watchOff}{' '}
+                <button type="button" onClick={() => setDetail(true)} className="m-hit rounded text-foreground underline underline-offset-4 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                  {t.detail}
+                </button>
+              </p>
+            </div>
+            <Toggle
+              checked={watchAllowed && watch}
+              disabled={!watchAllowed}
+              label={t.watchTitle}
+              onChange={(on) => {
+                onWatch(on);
+                haptic('light');
+                if (on) {
+                  mascot.hop();
+                  mascot.flash('happy', 900);
+                  burstSparks(sparks.current, 8);
+                }
+              }}
+            />
+          </div>
+        </Card>
       </SetupFrame>
       <Sheet open={detail} onOpenChange={setDetail} title={t.watchTitle}>
         <p className="text-m15r text-muted-foreground">{w.sheets.watch}</p>

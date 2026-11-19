@@ -11,7 +11,7 @@
 import { mkdirSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './env.mjs';
-import { MASCOTS, openPage, startServer, takeFrames, TEXT, walk } from './onboarding-walk.mjs';
+import { MASCOTS, openPage, SPECIAL, startServer, takeFrames, TEXT, walk } from './onboarding-walk.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback;
@@ -86,14 +86,7 @@ try {
         await context.close();
       }
     if (has('special')) {
-      const cases = [
-        ['masuk-ditutup', '?signin=cancel', { stopAt: 'signin', signinClick: true }, ['4b']],
-        ['tanpa-koneksi', '?signin=offline', { stopAt: 'signin', signinClick: true }, ['4b']],
-        ['gagal-memuat', '?prep=fail', { stopAt: 'preparing' }, ['5']],
-        ['nol-mata-kuliah', '', { noneTicked: true }, ['6b']],
-        ['tanpa-nama', '', { noName: true }, ['7b', '9']],
-        ['pemantauan-tidak-diizinkan', '?watch=off', {}, ['8']],
-      ];
+      const cases = SPECIAL;
       for (const [width, height] of sizes)
         for (const scheme of themes)
           for (const [label, query, opts, keep] of cases) {

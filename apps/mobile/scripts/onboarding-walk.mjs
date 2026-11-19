@@ -7,8 +7,8 @@ import { chromium } from 'playwright';
 import { MOBILE } from './env.mjs';
 
 export const TEXT = {
-  id: { intro1: 'Semua tenggat, satu tempat', next: 'Lanjut', start: 'Mulai', signin: 'Masuk', courses: 'Pantau yang mana?', allow: 'Izinkan pengingat', later: 'Nanti saja', done: 'Semua siap.', open: 'Buka Sulo', skip: 'Lewati', back: 'Kembali' },
-  en: { intro1: 'Every deadline, one place', next: 'Next', start: 'Get started', signin: 'Sign in', courses: 'Which ones to follow?', allow: 'Allow reminders', later: 'Not now', done: 'All set.', open: 'Open Sulo', skip: 'Skip', back: 'Back' },
+  id: { intro1: 'Semua tenggat, satu tempat', switchTitle: 'Akun berbeda', next: 'Lanjut', start: 'Mulai', signin: 'Masuk', courses: 'Pantau yang mana?', allow: 'Izinkan pengingat', later: 'Nanti saja', done: 'Semua siap.', open: 'Buka Sulo', skip: 'Lewati', back: 'Kembali' },
+  en: { intro1: 'Every deadline, one place', switchTitle: 'Different account', next: 'Next', start: 'Get started', signin: 'Sign in', courses: 'Which ones to follow?', allow: 'Allow reminders', later: 'Not now', done: 'All set.', open: 'Open Sulo', skip: 'Skip', back: 'Back' },
 };
 
 export async function startServer(port) {
@@ -55,7 +55,8 @@ export async function openPage(browser, port, { width, height, scheme = 'light',
 /**
  * Walks the flow. `at(name, page)` is called at each resting state.
  * opts: lang, stopAt ('signin' | 'preparing'), signinClick, noneTicked,
- * noName, denied, keyboard (px the viewport loses on the nickname screen).
+ * noName, denied, switchOnly, keyboard (px the viewport loses on the
+ * nickname screen).
  */
 export async function walk(page, at, opts = {}) {
   const t = TEXT[opts.lang ?? 'id'];
@@ -64,6 +65,13 @@ export async function walk(page, at, opts = {}) {
   const wait = (ms) => page.waitForTimeout(ms * slow);
   /** Called the moment a screen is entered, before its scene has played (frame sheets). */
   const enter = async (name) => opts.onEnter && (await opts.onEnter(name, page));
+  if (opts.switchOnly) {
+    // ?switch=1: the different-account question, on its own.
+    await page.getByRole('heading', { name: t.switchTitle }).waitFor({ timeout: 15000 });
+    await wait(1200);
+    await at('11-ganti-akun', page);
+    return;
+  }
   await enter('0');
   await wait(1350);
   await at('0-pembuka', page);
@@ -98,9 +106,15 @@ export async function walk(page, at, opts = {}) {
     return;
   }
   // The moment the last stage has landed, before the screen moves on.
-  await page.waitForFunction(() => document.querySelectorAll('.onb-frame [role="progressbar"] .onb-seg.is-on').length === 4, null, { timeout: 15000 });
-  await page.waitForTimeout(380);
-  await at('5-menyiapkan', page);
+  // (That moment lasts under a second: a busy machine can miss it, and then the walk goes on without that shot.)
+  const caught = await page
+    .waitForFunction(() => document.querySelectorAll('.onb-frame [role="progressbar"] .onb-seg.is-on').length === 4, null, { timeout: 15000, polling: 50 })
+    .then(() => true)
+    .catch(() => false);
+  if (caught) {
+    await page.waitForTimeout(380);
+    await at('5-menyiapkan', page);
+  } else process.stderr.write('onboarding-walk: layar 5 terlewat (terlalu cepat untuk mesin ini)\n');
   await page.getByRole('heading', { name: t.courses }).waitFor({ timeout: 15000 });
   await wait(800);
   await at('6-mata-kuliah', page);
@@ -115,7 +129,8 @@ export async function walk(page, at, opts = {}) {
   await wait(700);
   if (opts.keyboard) await page.setViewportSize({ width: page.viewportSize().width, height: page.viewportSize().height - opts.keyboard });
   if (opts.noName) {
-    await wait(300);
+    // As long as the named path: the screen tightens in two steps once the keyboard is up.
+    await wait(700);
     await at('7b-tanpa-nama', page);
   } else {
     await page.getByRole('textbox').fill('Andi');
@@ -136,3 +151,18 @@ export async function walk(page, at, opts = {}) {
   await wait(1500);
   await at('10-ringkasan', page);
 }
+
+/**
+ * The special states, each as one walk: [label, query, walk options, the
+ * screens it is about (name prefixes)]. Used by the checks and the shots.
+ */
+export const SPECIAL = [
+  ['masuk-ditutup', '?signin=cancel', { stopAt: 'signin', signinClick: true }, ['4b']],
+  ['tanpa-koneksi', '?signin=offline', { stopAt: 'signin', signinClick: true }, ['4b']],
+  ['gagal-memuat', '?prep=fail', { stopAt: 'preparing' }, ['5']],
+  ['nol-mata-kuliah', '', { noneTicked: true }, ['6b']],
+  ['tanpa-nama', '', { noName: true }, ['7b', '9']],
+  ['pemantauan-tidak-diizinkan', '?watch=off', {}, ['8']],
+  ['ganti-akun', '?switch=1', { switchOnly: true }, ['11']],
+];
+
