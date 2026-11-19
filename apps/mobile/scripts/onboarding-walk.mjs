@@ -53,6 +53,30 @@ export async function openPage(browser, port, { width, height, scheme = 'light',
 }
 
 /**
+ * Waits until the live screen's layout stops changing: the same size of
+ * its scrolling block, the same tight level (the nickname screen tightens
+ * in steps once the keyboard is up), the same mascot place, for 8 frames in
+ * a row; at most 3 s. No fixed sleep, so a slow machine is never caught
+ * mid-step.
+ */
+export async function settled(page) {
+  await page.waitForFunction(
+    () => {
+      const live = [...document.querySelectorAll('.onb-frame')].find((f) => !f.closest('[data-onb-leaving]'));
+      const sc = live?.querySelector('.onb-scroll');
+      const m = document.querySelector('[data-onb-mascot]')?.getBoundingClientRect();
+      const now = [innerHeight, sc?.scrollHeight, sc?.clientHeight, sc?.firstElementChild?.getAttribute('data-onb-tight'), m && Math.round(m.top), m && Math.round(m.width)].join('|');
+      const w = window;
+      w.__stable = w.__stableKey === now ? (w.__stable ?? 0) + 1 : 0;
+      w.__stableKey = now;
+      return w.__stable >= 8;
+    },
+    null,
+    { timeout: 3000, polling: 'raf' },
+  ).catch(() => undefined);
+}
+
+/**
  * Walks the flow. `at(name, page)` is called at each resting state.
  * opts: lang, stopAt ('signin' | 'preparing'), signinClick, noneTicked,
  * noName, denied, switchOnly, keyboard (px the viewport loses on the
@@ -129,12 +153,11 @@ export async function walk(page, at, opts = {}) {
   await wait(700);
   if (opts.keyboard) await page.setViewportSize({ width: page.viewportSize().width, height: page.viewportSize().height - opts.keyboard });
   if (opts.noName) {
-    // As long as the named path: the screen tightens in two steps once the keyboard is up.
-    await wait(700);
+    await settled(page);
     await at('7b-tanpa-nama', page);
   } else {
     await page.getByRole('textbox').fill('Andi');
-    await wait(700);
+    await settled(page);
     await at('7-nama', page);
   }
   if (opts.keyboard) await page.setViewportSize({ width: page.viewportSize().width, height: page.viewportSize().height + opts.keyboard });
