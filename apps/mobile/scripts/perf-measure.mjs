@@ -8,15 +8,11 @@
 // for one tier (?perf=full|lite). Two targets:
 //   --target=web (default): vite preview of `vite build --mode web` in
 //     headless Chromium at 360x800, CPU slowed --cpu times (default 6).
-//   --target=cdp: the measuring APK's WebView on an emulator (CI's perf
-//     job), reached through adb with Playwright's Android support (plain
-//     connectOverCDP cannot drive a WebView). Cold open there is measured
-//     by the job from logcat instead.
-// Usage: node scripts/perf-measure.mjs --tier=lite [--cpu=6] [--minutes=5]
-//        [--target=cdp --origin=https://localhost] [--out=file.json]
+// The emulator half is scripts/perf-cdp.mjs (driven by perf-emulator.sh).
+// Usage: node scripts/perf-measure.mjs --tier=lite [--cpu=6] [--minutes=5] [--only=...] [--out=file.json]
 import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-import { _android as android, chromium } from 'playwright';
+import { chromium } from 'playwright';
 import { MOBILE } from './env.mjs';
 import { walk } from './onboarding-walk.mjs';
 
@@ -58,27 +54,16 @@ const takeFrames = (page) =>
 let server = null;
 let browser;
 let origin;
-if (target === 'web') {
+if (target !== 'web') throw new Error('perf-measure.mjs measures the web build; the emulator uses perf-cdp.mjs');
+{
   execFileSync('pnpm', ['exec', 'vite', 'build', '--mode', 'web', '--outDir', 'dist-perf'], { cwd: MOBILE, stdio: 'ignore' });
   server = spawn('pnpm', ['exec', 'vite', 'preview', '--mode', 'web', '--outDir', 'dist-perf', '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
   await new Promise((resolve) => server.stdout.on('data', (d) => String(d).includes(String(PORT)) && resolve()));
   browser = await chromium.launch({ channel: 'chromium', headless: true });
   origin = `http://localhost:${PORT}`;
-} else {
-  const [device] = await android.devices();
-  if (!device) throw new Error('no Android device');
-  const webview = await device.webView({ pkg: 'dev.ikrar.sulo' }, { timeout: 90000 });
-  const page = await webview.page();
-  browser = { close: () => device.close(), page };
-  origin = arg('origin', 'https://localhost');
 }
 
 async function newPage() {
-  if (target === 'cdp') {
-    const page = browser.page;
-    page.setDefaultTimeout(30000);
-    return { context: page.context(), page, cdp: await page.context().newCDPSession(page), close: async () => undefined };
-  }
   const context = await browser.newContext({ viewport: { width: 360, height: 800 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'id-ID', timezoneId: 'Asia/Makassar' });
   const page = await context.newPage();
   page.setDefaultTimeout(30000);
@@ -102,7 +87,7 @@ const result = { tier, target, cpu: target === 'web' ? cpu : null, viewport: '36
   log('ringkasan tampil');
   result.tierInPage = await page.evaluate(() => document.documentElement.dataset.perf);
 
-  if (want('cold') && target === 'web') {
+  if (want('cold')) {
     const runs = [];
     for (let i = 0; i < 3; i++) {
       await page.goto(`${origin}/${q('&session=connected')}`);
@@ -111,9 +96,6 @@ const result = { tier, target, cpu: target === 'web' ? cpu : null, viewport: '36
     }
     log(`buka dingin ${runs}`);
     result.coldOpenMs = { runs, median: [...runs].sort((a, b) => a - b)[1] };
-  } else if (target === 'cdp') {
-    await page.goto(`${origin}/${q('&session=connected')}`);
-    await page.locator('[data-mascot-spot="hero"]').waitFor({ timeout: 30000 });
   }
 
   // Either language (the emulator follows its own locale).
@@ -192,15 +174,9 @@ const result = { tier, target, cpu: target === 'web' ? cpu : null, viewport: '36
   await close();
 }
 
-// ---- Onboarding screens 1, 5, 9 (on the emulator: its stored data cleared first) ----
+// ---- Onboarding screens 1, 5, 9 ----
 if (want('onboarding')) {
   const { page, close } = await newPage();
-  if (target === 'cdp') {
-    await page.evaluate(async () => {
-      localStorage.clear();
-      await window.Capacitor?.Plugins?.Preferences?.clear?.();
-    });
-  }
   await page.goto(`${origin}/${q()}`);
   const lang = await page.evaluate(() => (navigator.language.toLowerCase().startsWith('id') ? 'id' : 'en'));
   await page.evaluate(PROBE);
