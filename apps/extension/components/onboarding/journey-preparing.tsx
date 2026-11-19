@@ -27,8 +27,11 @@ export function preparingRows(stages: OnboardingStages['stages'], failed: boolea
   for (const r of STAGE_ROWS) {
     const res = results[r];
     if (res === 'ok') out[r] = 'done';
-    else if (res === 'failed') out[r] = 'failed';
-    else if (!running) {
+    else if (res === 'failed') {
+      // A failed stage stops the line: the rows after it stay waiting.
+      out[r] = 'failed';
+      running = true;
+    } else if (!running) {
       out[r] = failed ? 'failed' : 'running';
       running = true;
     }
