@@ -245,3 +245,6 @@ html .sulo-mascot .m-z { display: none; }
   .m-onb-leave { animation-duration: 120ms !important; }
   .m-landing main .space-y-6 > *, .m-landing nav[aria-label] { animation: m-fade-in 120ms linear !important; animation-duration: 120ms !important; animation-delay: 0ms !important; }
 }
+/* The nickname screen with the keyboard up and too little height
+   (screens-setup.tsx, data-onb-tight): the gaps between groups shrink. */
+[data-onb-tight] > [aria-hidden="true"].shrink-0 { min-height: 6px !important; }

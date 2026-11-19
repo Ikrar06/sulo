@@ -12,6 +12,8 @@
 //   4. nothing is cut or ellipsized: no text wider than its box, nothing
 //      outside the viewport, the primary button at the same place on every
 //      screen
+//   7. the nickname screen with the keyboard up: the title, the field and
+//      the primary button all show at once, with nothing to scroll
 //   6. the mascot is the same size at the same place on the three setup
 //      screens (6, 7, 8); every scene piece keeps 16 px from the screen's
 //      edges
@@ -100,7 +102,19 @@ const measure = () => {
   }
   const mbox = mascot ? mascot.getBoundingClientRect() : null;
   const primary = [...frame.querySelectorAll('button.h-13')].find(vis);
-  return { mascot: mbox ? [Math.round(mbox.left), Math.round(mbox.top), Math.round(mbox.width)].join(',') : null, gap: Math.round(gap), gapAt: Math.round(gapAt), scene, cut, primaryTop: primary ? Math.round(vh - primary.getBoundingClientRect().top) : null };
+  // The nickname screen with the keyboard up: title, field and button at once, no scrolling.
+  let keyboardFit = null;
+  const field = frame.querySelector('input');
+  if (field) {
+    const sc = frame.querySelector('.onb-scroll');
+    const shows = (el) => {
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      return r.top >= -0.5 && r.bottom <= vh + 0.5 && r.height > 0;
+    };
+    keyboardFit = { scrolls: sc ? sc.scrollHeight > sc.clientHeight + 1 : false, title: shows(frame.querySelector('h1')), field: shows(field), button: shows([...frame.querySelectorAll('button.h-13')].find(vis)) };
+  }
+  return { keyboardFit, mascot: mbox ? [Math.round(mbox.left), Math.round(mbox.top), Math.round(mbox.width)].join(',') : null, gap: Math.round(gap), gapAt: Math.round(gapAt), scene, cut, primaryTop: primary ? Math.round(vh - primary.getBoundingClientRect().top) : null };
 };
 
 const CASES = [
@@ -125,7 +139,12 @@ try {
           if (!m) return void findings.push(`${tag} ${name}: kerangka tidak ditemukan`);
           const mascots = await page.evaluate(MASCOTS);
           // A short phone with the keyboard up: the nickname screen scrolls and the mascot steps out with its spot.
-          const steppedOut = c.height < 700 && name.startsWith('7') && mascots === 0;
+          const steppedOut = name.startsWith('7') && mascots === 0;
+          if (name.startsWith('7') && m.keyboardFit) {
+            const k = m.keyboardFit;
+            if (k.scrolls) findings.push(`${tag} ${name}: dengan keyboard, isi harus digulir`);
+            if (!k.title || !k.field || !k.button) findings.push(`${tag} ${name}: dengan keyboard, tidak terlihat sekaligus (judul ${k.title}, kolom ${k.field}, tombol ${k.button})`);
+          }
           if (mascots !== 1 && !steppedOut) findings.push(`${tag} ${name}: ${mascots} maskot terlihat`);
           for (const x of m.cut) findings.push(`${tag} ${name}: ${x}`);
           if (m.primaryTop !== null) primaryTops.add(m.primaryTop);

@@ -11,6 +11,23 @@
 // `data-onb-content` slides (StepSwap).
 
 import { useEffect, useRef, type ReactNode } from 'react';
+
+/**
+ * The height the onboarding may use: the visual viewport's, so the action
+ * block sits above the keyboard whether Android resizes the WebView for it
+ * or lays the keyboard over it (edge to edge on Android 15 and later). Set
+ * once on the root as --onb-vh; the frame falls back to 100dvh.
+ */
+let watching = false;
+export function watchViewport(): void {
+  if (watching || typeof window === 'undefined' || !window.visualViewport) return;
+  watching = true;
+  const vv = window.visualViewport;
+  const set = () => document.documentElement.style.setProperty('--onb-vh', `${Math.round(Math.min(vv.height, window.innerHeight))}px`);
+  set();
+  vv.addEventListener('resize', set);
+  window.addEventListener('resize', set);
+}
 import { ChevronLeftIcon } from '@sulo/ui/icons';
 
 export interface FrameAction {
@@ -62,8 +79,9 @@ export interface FrameProps {
 }
 
 export function Frame({ topLeft, topRight, children, hint, primary, primarySlot, secondary }: FrameProps) {
+  useEffect(watchViewport, []);
   return (
-    <div className="onb-frame mx-auto flex h-dvh w-full max-w-md flex-col px-4 pt-[env(safe-area-inset-top)]">
+    <div className="onb-frame mx-auto flex h-[var(--onb-vh,100dvh)] w-full max-w-md flex-col px-4 pt-[env(safe-area-inset-top)]">
       <div data-onb-chrome="" className="flex h-12 shrink-0 items-center justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">{topLeft}</div>
         {topRight}

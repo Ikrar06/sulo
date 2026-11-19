@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "node scripts/check-native-logs.mjs && node scripts/check-type-tokens.mjs && node scripts/check-card-layout.mjs",
-    "check:fit": "node scripts/check-countdown-fit.mjs",
+    "check:fit": "node scripts/check-countdown-fit.mjs && node scripts/check-onboarding-fit.mjs",
     "check:onboarding-layout": "node scripts/check-onboarding-layout.mjs"
   },
   "dependencies": {

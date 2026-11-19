@@ -47,7 +47,7 @@ export function Gap({ min = 16, max = GAP_MAX, grow = 2 }: { min?: number; max?:
 }
 
 /** A setup screen: back and progress on top, the centered block, the fixed action block. */
-function SetupFrame({ w, stepKey, progress, onBack, title, support, hint, primary, secondary, children, sparksRef }: { w: OnboardingWords; stepKey: string; progress: Progress; onBack: (() => void) | null; title: string; /** The supporting line's slot, centered under the title. */ support?: ReactNode; hint?: ReactNode; primary: FrameAction; secondary?: ReactNode; children: ReactNode; sparksRef?: React.Ref<HTMLDivElement> }) {
+function SetupFrame({ w, stepKey, progress, onBack, title, support, hint, primary, secondary, children, sparksRef, fitKeyboard = false }: { w: OnboardingWords; stepKey: string; progress: Progress; onBack: (() => void) | null; title: string; /** The nickname screen: with the keyboard up and too little height, the block tightens, then the mascot steps out, so the title, the field and the button all show without scrolling. */ fitKeyboard?: boolean; /** The supporting line's slot, centered under the title. */ support?: ReactNode; hint?: ReactNode; primary: FrameAction; secondary?: ReactNode; children: ReactNode; sparksRef?: React.Ref<HTMLDivElement> }) {
   const titleRef = useTitleFocus(stepKey);
   const scroller = useRef<HTMLDivElement | null>(null);
   // The edge fade only when the content overflows, and only once the screen has arrived (see styles.css).
@@ -64,6 +64,33 @@ function SetupFrame({ w, stepKey, progress, onBack, title, support, hint, primar
       ro.disconnect();
     };
   }, []);
+  // 0: as designed. 1: mascot 72, tighter spacing. 2: no mascot, tighter spacing.
+  const [tight, setTight] = useState<0 | 1 | 2>(0);
+  useLayoutEffect(() => {
+    if (!fitKeyboard) return;
+    const el = scroller.current;
+    if (!el) return;
+    const check = () => {
+      const typing = el.contains(document.activeElement) && document.activeElement?.tagName === 'INPUT';
+      const over = el.scrollHeight > el.clientHeight + 1;
+      setTight((t) => {
+        if (!typing) return 0;
+        if (over && t < 2) return (t + 1) as 1 | 2;
+        return t;
+      });
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    document.addEventListener('focusin', check);
+    document.addEventListener('focusout', check);
+    return () => {
+      ro.disconnect();
+      document.removeEventListener('focusin', check);
+      document.removeEventListener('focusout', check);
+    };
+  }, [fitKeyboard, tight]);
+  const mascotSize = tight === 0 ? SETUP_MASCOT : 72;
   return (
     <Frame
       topLeft={
@@ -78,11 +105,13 @@ function SetupFrame({ w, stepKey, progress, onBack, title, support, hint, primar
     >
       {/* The mascot hangs from the top, the same size at the same place on all three setup screens, so it never jumps between steps. */}
       <div ref={scroller} className="onb-scroll -mx-4 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4">
-        <div className="flex min-h-full flex-col pt-[20px]">
-          <div ref={sparksRef} className="relative mx-auto">
-            <MascotSpot size={SETUP_MASCOT} />
-          </div>
-          <h1 ref={titleRef} tabIndex={-1} className="onb-title mt-[16px] text-center outline-none">
+        <div className={`flex min-h-full flex-col ${tight ? 'pt-[8px]' : 'pt-[20px]'}`} data-onb-tight={tight || undefined}>
+          {tight < 2 && (
+            <div ref={sparksRef} className="relative mx-auto">
+              <MascotSpot size={mascotSize} />
+            </div>
+          )}
+          <h1 ref={titleRef} tabIndex={-1} className={`onb-title text-center outline-none ${tight === 2 ? '' : tight ? 'mt-[8px]' : 'mt-[16px]'}`}>
             {title}
           </h1>
           {support}
@@ -188,6 +217,7 @@ export function Nickname({ w, progress, line1, initial, onNext, onSkip, onBack }
   const preview = clean ? `${line1} ${clean}.` : `${line1.replace(/,\s*$/, '')}.`;
   return (
     <SetupFrame
+      fitKeyboard
       w={w}
       stepKey="nickname"
       progress={progress}

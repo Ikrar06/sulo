@@ -135,6 +135,8 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
       const node = el.current;
       const to = measure(selector);
       if (!node || !to) return;
+      // A spot again (after the nickname screen let it step out): it shows.
+      node.style.opacity = scrolledOut(selector) ? '0' : '1';
       const last = at.current;
       if (last && Math.abs(last.x - to.x) < 0.5 && Math.abs(last.y - to.y) < 0.5 && Math.abs(last.size - to.size) < 0.5) return;
       // A flight always starts from where the mascot is on screen right now,
@@ -184,7 +186,8 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
     const follow = () => {
       const node = el.current;
       if (!node) return;
-      node.style.opacity = scrolledOut(selector) ? '0' : '1';
+      // No spot on this screen just now (the nickname screen with the keyboard up), or scrolled out of view: the mascot steps out.
+      node.style.opacity = scrolledOut(selector) || !measure(selector) ? '0' : '1';
       if (node.getAnimations().length === 0) move(false);
     };
     // Only when something can really have moved the spot (no polling: measuring forces a layout).

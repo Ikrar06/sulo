@@ -100,13 +100,11 @@ async function session(scheme, { query = '', lock = false, offline = false } = {
 
 const MAIN = [
   ['onboarding', async ({ page, shot }) => (await page.waitForTimeout(700), shot('01-onboarding'))],
-  ['izin notifikasi', async ({ page, btn, shot }) => {
-    // Past the onboarding (its own screens: scripts/onboarding-shots.mjs): the demo account, signed in.
+  // The notification question is now the onboarding's reminders screen (scripts/onboarding-shots.mjs).
+  ['masuk', async ({ page }) => {
+    // Past the onboarding: the demo account, signed in.
     await page.waitForFunction(() => typeof window.__suloEnterDemo === 'function');
     await page.evaluate(() => window.__suloEnterDemo());
-    await page.waitForTimeout(800);
-    await shot('02-izin-notifikasi');
-    await btn('Nanti', true).click();
     await page.waitForTimeout(800);
   }],
   ['ringkasan terlambat', async ({ shot, scroll }) => {
