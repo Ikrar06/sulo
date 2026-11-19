@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./tokens.css";
+@import "./skin.css";
 
 /* Full pages (dashboard, onboarding, privacy, dev pages): Tailwind scans the
    whole project. The popup has its own entry (assets/popup.css) that scans

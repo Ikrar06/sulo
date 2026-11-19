@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @import "./tokens.css";
+@import "./skin.css";
 
 /* The popup's stylesheet: only the files the popup renders are scanned, so
    classes used by the dashboard and other pages stay out of it. Add a path

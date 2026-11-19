@@ -1,0 +1,87 @@
+/* The extension's skin (Tahap 2): the phone's card language at desktop
+   sizes. Only the extension imports this file (assets/tailwind.css and
+   assets/popup.css); the phone keeps its own (apps/mobile/src/tokens.css),
+   so shared components look the same on the phone as before.
+
+   Unlayered on purpose: these rules win over Tailwind's utilities without
+   editing the shared components. Card selectors sit in :where() (no
+   specificity), so a floating surface's own rule below still wins.
+
+   Layers (packages/ui/src/tokens/palette.css): the page on the screen
+   layer, cards one step above it, without an edge in dark and with a
+   hairline in light. Shape: card 16, control 10, primary buttons and chips
+   a full pill, icon buttons a circle. Desktop control heights unchanged. */
+
+:root {
+  --radius-card: 16px;
+  --radius-ctl: 10px;
+}
+
+/* ---------- Layers ---------- */
+
+.db-layout,
+.db-side {
+  background-color: var(--layer-screen);
+}
+.db-side {
+  border-color: var(--layer-line);
+}
+
+:where(.rounded-xl.border.border-border.bg-surface),
+:where([data-slot="card"]) {
+  border-radius: var(--radius-card);
+  background-color: var(--layer-card);
+  border-color: var(--layer-card-edge);
+  box-shadow: var(--layer-card-shadow);
+}
+/* Rows divided inside a card keep a quiet line of the layer. */
+:where(.rounded-xl.border.border-border.bg-surface).divide-y > * + * {
+  border-color: var(--layer-line);
+}
+
+/* Floating surfaces sit over cards: in dark they keep an edge, or they would
+   melt into the card under them. */
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"],
+[data-slot="alert-dialog-content"],
+.sulo-toast {
+  background-color: var(--layer-card);
+  border: 1px solid var(--layer-line);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+[data-slot="alert-dialog-content"] {
+  border-radius: var(--radius-card);
+}
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"],
+.sulo-toast {
+  border-radius: 14px;
+}
+
+/* ---------- Controls ---------- */
+
+/* Buttons are matched by their variant and size, not data-slot: a Radix
+   trigger rendered asChild (menus, tooltips) passes its own data-slot down. */
+[data-slot="input"],
+[data-slot="select-trigger"],
+:is(button, a)[data-size]:is([data-variant="outline"], [data-variant="secondary"], [data-variant="ghost"], [data-variant="destructive"], [data-variant="destructive-outline"]) {
+  border-radius: var(--radius-ctl);
+}
+/* Primary actions are pills; icon buttons are circles. */
+:is(button, a)[data-size]:is([data-variant="default"], [data-variant="destructive-solid"]),
+:is(a, button).bg-primary,
+:is(button, a)[data-variant][data-size^="icon"] {
+  border-radius: 9999px;
+}
+
+/* Motion of controls: color and transform only (never size or layout), 150 ms. */
+:is(button, a)[data-variant][data-size],
+[data-slot="switch"],
+[data-slot="switch-thumb"] {
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: 150ms;
+}
