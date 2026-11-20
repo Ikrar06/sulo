@@ -157,12 +157,14 @@ class SessionVault(
      * a signed-in cookie with a guest one (seen on the emulator, 20 Nov 2026).
      */
     fun saveCandidate(cookie: String) {
-        slots.put(KEY_CANDIDATE, cookie)
+        // Encrypted like the session itself (mobile hard rule 2): never on disk in clear.
+        slots.put(KEY_CANDIDATE, crypto.encrypt(cookie.toByteArray(Charsets.UTF_8)))
     }
 
     /** The answer was a valid session: the candidate becomes the session's cookie. */
     fun promoteCandidate(): Boolean {
-        val cookie = record()[KEY_CANDIDATE] ?: return false
+        val sealed = record()[KEY_CANDIDATE] ?: return false
+        val cookie = runCatching { String(crypto.decrypt(sealed), Charsets.UTF_8) }.getOrNull() ?: return false.also { dropCandidate() }
         val current = load() ?: return false
         save(current.copy(moodleSession = cookie), note = false)
         diag?.note("sikola_cookie_promoted")

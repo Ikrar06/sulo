@@ -126,6 +126,8 @@ class RequestGuardTest {
         val ok = CookieKeeper(session, vault, null, null)
         ok.seen(SikolaText.SessionCookie.Replaced("cookie-value-999"))
         assertTrue(slots.map.containsKey("candidateCookie"))
+        // Never on disk in clear.
+        assertFalse(slots.map.values.any { it.contains("cookie-value-999") })
         ok.settle(sessionValid = true)
         assertEquals(SikolaSession("cookie-value-999", "Sesskey0001"), vault.load())
         assertFalse(slots.map.containsKey("candidateCookie"))
