@@ -256,6 +256,8 @@ if (want('popup') || want('dashboard') || want('wide') || want('onboarding')) {
             ['tugas selesai dan urungkan', async () => {
               await go('tugas', 1280, 800);
               await page.getByRole('checkbox', { name: starts(t.dash.tugas.markDone) }).first().click();
+              // The row's own change (the check, the struck title) has ended before the frame is taken.
+              await page.waitForTimeout(900);
               await shoot(page, dir, '03-tugas--ditandai-selesai', false);
               // Undone again, so the toast is gone and the data is as it was for the next shots.
               await page.getByRole('button', { name: t.dash.tugas.undo, exact: true }).click();

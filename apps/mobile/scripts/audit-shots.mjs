@@ -48,7 +48,8 @@ const log = (m) => process.stderr.write(`audit-shots (mobile): ${m}\n`);
 
 if (!has('no-build')) {
   log('build web mode (production)');
-  execFileSync('pnpm', ['exec', 'vite', 'build', '--mode', 'web', '--outDir', DIST, '--emptyOutDir', '--logLevel', 'warn'], { cwd: MOBILE, stdio: ['ignore', 'ignore', 'inherit'] });
+  // One fixed build id: Tentang shows the commit in this mode, and two runs of the same screens must give the same pixels.
+  execFileSync('pnpm', ['exec', 'vite', 'build', '--mode', 'web', '--outDir', DIST, '--emptyOutDir', '--logLevel', 'warn'], { cwd: MOBILE, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, GITHUB_SHA: 'audit00' } });
 }
 const WORDS = await loadWords();
 const server = spawn('pnpm', ['exec', 'vite', 'preview', '--mode', 'web', '--outDir', DIST, '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
