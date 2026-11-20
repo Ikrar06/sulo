@@ -36,7 +36,7 @@ export function PillButton({ children, onPress, href, kind = 'secondary', disabl
 
 /** A 40 circle on the card layer, with one icon; its label is for TalkBack. */
 export function IconButton({ icon: Icon, label, onPress, disabled = false, spinning = false, href, inset = false }: { icon: ComponentType<SVGProps<SVGSVGElement>>; label: string; onPress?: () => void; disabled?: boolean; spinning?: boolean; href?: string; inset?: boolean }) {
-  const cls = `m-hit m-press inline-flex size-10 shrink-0 items-center justify-center rounded-full ${inset ? 'bg-m-inset' : 'm-card'} text-foreground ${ring} disabled:opacity-50`;
+  const cls = `m-hit m-hit-x m-press inline-flex size-10 shrink-0 items-center justify-center rounded-full ${inset ? 'bg-m-inset' : 'm-card'} text-foreground ${ring} disabled:opacity-50`;
   const icon = <Icon className={`size-5 ${spinning ? 'animate-spin motion-reduce:animate-none' : ''}`} />;
   if (href)
     return (
@@ -77,7 +77,7 @@ export function CheckCircle({ checked, onChange, label, size = 'md', still = fal
         e.stopPropagation();
         onChange(!checked);
       }}
-      className={`m-hit inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
+      className={`m-hit m-hit-x inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
     >
       <svg viewBox="0 0 24 24" className={size === 'sm' ? 'size-3' : 'size-4'} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M5 12.5 10 17 19 7.5" />

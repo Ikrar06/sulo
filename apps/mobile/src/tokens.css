@@ -129,6 +129,9 @@
   height: max(100%, 44px);
   transform: translateY(-50%);
 }
+/* A round control narrower than 44 (the header's buttons at 40, the check circle at 28) gets
+   the width too: the bar or the card's padding around it leaves that room. */
+.m-hit-x::after { inset-inline: auto; left: 50%; width: max(100%, 44px); transform: translate(-50%, -50%); }
 [data-slot="checkbox"]::after, [data-slot="switch"]::after {
   content: "";
   position: absolute;

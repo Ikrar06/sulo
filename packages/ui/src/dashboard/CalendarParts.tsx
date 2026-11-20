@@ -113,7 +113,7 @@ export function SourceFooter({ calendar, d }: { calendar: CalendarFile; d: DashM
     <p className="text-[12px] leading-normal text-muted-foreground">
       {k.source(calendar.sumber.sk, calendar.revisi, formatDateKey(calendar.diverifikasi_pada, m.intl, { day: 'numeric', month: 'short', year: 'numeric' }))}
       <span aria-hidden="true"> · </span>
-      <a className="inline-flex items-center gap-1 rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus" href={calendar.sumber.pdf_url} target="_blank" rel="noopener noreferrer">
+      <a className="m-hit inline-flex items-center gap-1 rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus" href={calendar.sumber.pdf_url} target="_blank" rel="noopener noreferrer">
         {k.officialPdf}
         <ExternalIcon className="size-4" />
       </a>
