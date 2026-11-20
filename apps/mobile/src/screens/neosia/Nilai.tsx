@@ -73,8 +73,8 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const prefs = data!.prefs;
   const shown = prefs.gradesShown;
   const grades = useGrades(neo.enabled && shown);
-  // Grades on screen: out of screenshots, recordings and the recent-apps preview.
-  useSecureScreen(neo.enabled && shown);
+  // The Nilai screen is always out of screenshots, recordings and the recent-apps preview while open.
+  useSecureScreen(true);
   const [includeC, setIncludeC] = useState(false);
   const [sim, setSim] = useState<Record<string, string>>({});
   const [picking, setPicking] = useState<TranscriptRow | null>(null);
