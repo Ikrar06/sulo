@@ -61,14 +61,19 @@ export async function copyStore(store: KeyValueStore): Promise<KeyValueStore> {
   };
 }
 
-/** A SIKOLA session ends about this long after the last activity (the phone's own estimate, no request). */
-export const SESSION_ESTIMATE_SEC = 2 * 3600;
+/**
+ * A SIKOLA session ends about this long after the last activity (the phone's
+ * own estimate, no request). Measured 20 Nov 2026: timeremaining was about
+ * 28,800 seconds right after signing in, so up to 8 hours idle; the old
+ * "about two hours" was wrong (docs/RISIKO.md).
+ */
+export const SESSION_ESTIMATE_SEC = 8 * 3600;
 
 /**
  * The session as the reminders see it. Watching on: always fine here, since
  * the worker itself sends one "Masuk lagi" when a check finds the session
  * ended. Watching off: no background request, so the end is estimated from
- * the last sync (activity + 2 hours); core's rules then send it only once
+ * the last sync (activity + 8 hours); core's rules then send it only once
  * the data is over 24 hours old, at most once per 24 hours, never in quiet
  * hours. No sync yet: nothing to say.
  */
