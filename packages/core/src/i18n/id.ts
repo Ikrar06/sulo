@@ -88,7 +88,7 @@ export const id = {
       snoozedUntil: (when: string) => `Pengingat ditunda sampai ${when}`,
       unsnooze: 'Batalkan tunda',
       back: 'Kembali',
-      addToCalendar: 'Tambah ke Google Calendar',
+      addToCalendar: 'Tambah ke Google Kalender',
       calendarDetails: (course: string) => `Tugas ${course} di SIKOLA.`,
     },
     account: {
@@ -343,7 +343,7 @@ export const id = {
       title: 'Mata kuliahmu',
       lead: 'Centang mata kuliah yang kamu ambil semester ini. Perubahan baru disimpan saat kamu klik Simpan.',
       refresh: 'Muat ulang daftar',
-      refreshing: 'Menyegarkan daftar…',
+      refreshing: 'Memuat ulang daftar…',
       refreshed: 'Daftar sudah diperbarui.',
       save: 'Simpan',
       noChanges: 'Tidak ada perubahan',

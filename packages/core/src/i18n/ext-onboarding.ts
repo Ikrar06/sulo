@@ -40,10 +40,10 @@ const id = {
     checking: 'Memeriksa SIKOLA',
     waiting: 'Menunggu kamu masuk ke SIKOLA',
     needLogin: 'Belum masuk. Buka SIKOLA untuk masuk.',
-    connected: 'Tersambung',
+    connected: 'Terhubung',
   },
   preparing: {
-    connected: 'Tersambung ke SIKOLA',
+    connected: 'Terhubung ke SIKOLA',
     rows: { tasks: 'Tugas', courses: 'Mata kuliah', attendance: 'Presensi', attendanceDone: 'Presensi siap' },
   },
   why: 'Kenapa aman?',

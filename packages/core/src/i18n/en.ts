@@ -335,7 +335,7 @@ export const en: Messages = {
       title: 'Your courses',
       lead: 'Tick the courses you take this semester. Changes are saved when you click Save.',
       refresh: 'Reload list',
-      refreshing: 'Refreshing the list…',
+      refreshing: 'Reloading the list…',
       refreshed: 'The list is up to date.',
       save: 'Save',
       noChanges: 'No changes',

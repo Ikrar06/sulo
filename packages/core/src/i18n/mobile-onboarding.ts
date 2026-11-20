@@ -47,7 +47,7 @@ const id = {
   },
   signin: {
     title: 'Masuk ke SIKOLA',
-    body: 'Kamu login di halaman asli. Sulo tidak melihat password-mu.',
+    body: 'Kamu masuk di halaman asli. Sulo tidak melihat password-mu.',
     address: 'sikola-v2.unhas.ac.id',
     open: 'Masuk',
     why: 'Kenapa aman?',
