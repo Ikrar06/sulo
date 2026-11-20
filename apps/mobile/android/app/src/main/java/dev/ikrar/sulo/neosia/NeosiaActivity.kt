@@ -92,8 +92,12 @@ class NeosiaActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 33) onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) { back() }
 
         // The script and the bridge only for a page that is not the login page, before it loads.
-        if (NeosiaRules.scriptFor(page)) attach()
+        // Debug builds (B0 "Bandingkan request"): the same page may open without them, and close itself.
+        val withScript = !BuildConfig.DEBUG || intent.getBooleanExtra(EXTRA_SCRIPT, true)
+        if (NeosiaRules.scriptFor(page) && withScript) attach()
         webView.loadUrl(NeosiaRules.url(page))
+        val autoClose = if (BuildConfig.DEBUG) intent.getLongExtra(EXTRA_AUTO_CLOSE_MS, 0) else 0
+        if (autoClose > 0) webView.postDelayed({ close(RESULT_CANCELED) }, autoClose)
     }
 
     /** Adds the capture script and the bridge for NEOSIA's origin (when this WebView has both features). */
@@ -236,6 +240,10 @@ class NeosiaActivity : Activity() {
     companion object {
         const val EXTRA_PAGE = "sulo.neosia.page"
         const val EXTRA_CLOSE = "sulo.close"
+        /** Debug builds: false opens a page without the capture script (to compare requests). */
+        const val EXTRA_SCRIPT = "sulo.neosia.script"
+        /** Debug builds: the screen closes itself after this many ms. */
+        const val EXTRA_AUTO_CLOSE_MS = "sulo.neosia.autoClose"
         /** Signed in on NEOSIA's login page. */
         const val RESULT_SIGNED_IN = RESULT_FIRST_USER + 1
         /** A page with the script went to the login page: sign in first. */

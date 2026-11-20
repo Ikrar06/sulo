@@ -5,7 +5,9 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
+import { nextStep, type ChecklistStep } from '@sulo/core/neosia/checklist';
 import { SuloNeosia, type NeosiaPage, type NeosiaTrialStats } from '../neosia-native';
+import { requestDiff, type RequestDiff } from './request-diff';
 
 const PAGES: [NeosiaPage, string][] = [
   ['login', 'Masuk NEOSIA (tanpa skrip)'],
@@ -19,15 +21,38 @@ const list = (r: Record<string, number>) => Object.entries(r).map(([k, n]) => `$
 export function NeosiaTrialDev() {
   const [stats, setStats] = useState<NeosiaTrialStats | null>(null);
   const [error, setError] = useState('');
-  // The checklist's next step: after signing in, Beranda; when a page needed signing in, the login.
-  const [next, setNext] = useState<NeosiaPage | null>(null);
+  // The checklist's next step (core neosia/checklist.ts): sign in, then Beranda, KHS, KRS as each is captured.
+  const [lastResult, setLastResult] = useState<'signed_in' | 'needs_login' | 'closed' | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
   const [last, setLast] = useState('');
+  const [diff, setDiff] = useState<RequestDiff[] | null>(null);
+  const [comparing, setComparing] = useState(false);
+  const captured = Object.keys(stats?.captures ?? {}).map((label) => label.replace(/ \(.*\)$/, ''));
+  const next: ChecklistStep = nextStep({ signedIn: signedIn || captured.length > 0, lastResult, capturedEndpoints: captured });
   const open = (page: NeosiaPage) =>
     void SuloNeosia.open({ page, close: 'Tutup' }).then(({ result }) => {
-      setLast(result === 'signed_in' ? 'Sudah masuk NEOSIA. Langkah berikutnya: Beranda.' : result === 'needs_login' ? 'NEOSIA meminta masuk; layar menutup sendiri. Masuk dulu.' : 'Ditutup.');
-      setNext(result === 'signed_in' ? 'home' : result === 'needs_login' ? 'login' : next);
+      setLast(result === 'signed_in' ? 'Sudah masuk NEOSIA.' : result === 'needs_login' ? 'NEOSIA meminta masuk; layar menutup sendiri. Masuk dulu.' : 'Ditutup.');
+      setLastResult(result);
+      if (result === 'signed_in') setSignedIn(true);
       void load();
     });
+  // Beranda once without the script and once with it, each closing itself; the counters reset in between.
+  const compare = async () => {
+    setComparing(true);
+    setDiff(null);
+    try {
+      await SuloNeosia.resetTrial();
+      await SuloNeosia.open({ page: 'home', close: 'Tutup', script: false, autoCloseMs: 8000 });
+      const without = (await SuloNeosia.trialStats()).requests;
+      await SuloNeosia.resetTrial();
+      await SuloNeosia.open({ page: 'home', close: 'Tutup', script: true, autoCloseMs: 8000 });
+      const withScript = (await SuloNeosia.trialStats()).requests;
+      setDiff(requestDiff(without, withScript));
+      void load();
+    } finally {
+      setComparing(false);
+    }
+  };
   const load = () =>
     SuloNeosia.trialStats()
       .then((s) => {
@@ -58,6 +83,15 @@ export function NeosiaTrialDev() {
         ))}
       </div>
       {last && <p role="status">{last}</p>}
+      <p>{next === 'done' ? 'Semua langkah selesai.' : `Langkah berikutnya: ${PAGES.find(([p]) => p === next)?.[1] ?? next}.`}</p>
+      <PillButton onPress={() => void compare()} disabled={comparing}>
+        {comparing ? 'Membandingkan…' : 'Bandingkan request (Beranda tanpa dan dengan skrip)'}
+      </PillButton>
+      {diff && (
+        <p role="status">
+          {diff.length === 0 ? 'Selisih request: kosong (skrip tidak menambah request).' : `Selisih request (${diff.length}): ${diff.map((d) => `${d.key} tanpa ${d.without}, dengan ${d.with}`).join('; ')}`}
+        </p>
+      )}
       {error && <p>{error}</p>}
       {stats && (
         <div className="space-y-2">

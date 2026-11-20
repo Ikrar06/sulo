@@ -28,6 +28,9 @@ class SuloNeosiaPlugin : Plugin() {
         val intent = Intent(context, NeosiaActivity::class.java)
             .putExtra(NeosiaActivity.EXTRA_PAGE, page.name)
             .putExtra(NeosiaActivity.EXTRA_CLOSE, call.getString("close") ?: "Tutup")
+            // B0 "Bandingkan request": the same page without the script, closing itself.
+            .putExtra(NeosiaActivity.EXTRA_SCRIPT, call.getBoolean("script") ?: true)
+            .putExtra(NeosiaActivity.EXTRA_AUTO_CLOSE_MS, (call.getInt("autoCloseMs") ?: 0).coerceIn(0, 30_000).toLong())
         startActivityForResult(call, intent, "neosiaClosed")
     }
 
