@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- No unencrypted traffic, ever (M8e E2): every host Sulo reaches is HTTPS
+     (sikola-v2.unhas.ac.id, NEOSIA's pages, ikrar06.github.io, the GitHub
+     release link opened in the browser). Only the system's certificate
+     authorities are trusted, never one a user added. The hosts themselves
+     are kept to that list by scripts/check-hosts.mjs. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

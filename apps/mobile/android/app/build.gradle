@@ -1,6 +1,19 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 
+// Version (M8e E2): versionName is apps/mobile/package.json's version, digits
+// and dots only ("0.9.0"); versionCode = major * 10000 + minor * 100 + patch,
+// so 0.9.x (900 + x) is always below 1.0.0 (10000). Minor and patch stay
+// under 100. scripts/version-code.mjs holds the same rule (tested), and
+// scripts/check-version-code.mjs fails a release whose code does not rise.
+def suloVersion = new groovy.json.JsonSlurper().parse(file('../../package.json')).version as String
+if (!(suloVersion ==~ /\d+\.\d+\.\d+/)) throw new GradleException("Versi di apps/mobile/package.json harus angka dan titik (x.y.z): ${suloVersion}")
+def suloVersionCode = { String v ->
+    def (major, minor, patch) = v.tokenize('.').collect { it as int }
+    if (minor > 99 || patch > 99) throw new GradleException("Minor dan patch harus di bawah 100: ${v}")
+    major * 10000 + minor * 100 + patch
+}
+
 android {
     namespace = "dev.ikrar.sulo"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -8,8 +21,8 @@ android {
         applicationId "dev.ikrar.sulo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "0.2.0"
+        versionCode suloVersionCode(suloVersion)
+        versionName suloVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -65,8 +78,12 @@ android {
             resValue "string", "app_name", "Sulo"
             resValue "string", "title_activity_main", "Sulo"
             if (System.getenv("SULO_KEYSTORE_FILE")) signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // R8 (M8e E2): shrinks and obfuscates the native code, drops unused resources.
+            // Capacitor's own keep rules come with its library; Sulo's are in proguard-rules.pro.
+            minifyEnabled true
+            shrinkResources true
+            debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

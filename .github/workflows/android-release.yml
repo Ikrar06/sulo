@@ -27,6 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The release tags, for the versionCode check.
+          fetch-depth: 0
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -40,10 +43,15 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: versionCode naik
+        working-directory: apps/mobile
+        # A tag release must match package.json; every release must raise versionCode above the last tag.
+        run: node scripts/check-version-code.mjs ${{ github.ref_type == 'tag' && format('--tag={0}', github.ref_name) || '' }}
+
       - name: Web (produksi) dan cap sync
         working-directory: apps/mobile
         # A release bundle with debug-only code (the debug screen, its notification tests) fails here.
-        run: pnpm exec vite build && node scripts/check-no-dev-code.mjs dist && node ../extension/scripts/check-neosia-main.mjs dist && pnpm exec cap sync android
+        run: pnpm exec vite build && node scripts/check-no-dev-code.mjs dist && node scripts/check-hosts.mjs dist && node ../extension/scripts/check-neosia-main.mjs dist && pnpm exec cap sync android
 
       - name: Kunci rilis dari secrets
         env:
@@ -76,6 +84,8 @@ jobs:
           (cd .output && sha256sum "sulo-$VERSION-android.apk" > "sulo-$VERSION-android.apk.sha256")
           cat ".output/sulo-$VERSION-android.apk.sha256"
           node apps/extension/scripts/check-leaks.mjs --zip "$OUT"
+          AAPT="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt"
+          (cd apps/mobile && node scripts/check-version-code.mjs --apk="../../$OUT" --aapt="$AAPT" && node scripts/check-permissions.mjs "../../$OUT" --aapt="$AAPT")
 
       - name: Hapus kunci dari runner
         if: always()

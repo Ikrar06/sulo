@@ -22,6 +22,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { timeZone, useMobileData } from '../../shell/data';
 import type { Screen } from '../../shell/nav';
 import { useGrades, useNeosia } from '../../neosia/NeosiaProvider';
+import { useSecureScreen } from '../../neosia/secure-screen';
 
 const WEBVIEW_STORE = 'https://play.google.com/store/apps/details?id=com.google.android.webview';
 
@@ -181,6 +182,8 @@ export function StudiCard({ go }: { go: (s: Screen) => void }) {
   const show = prefs.gradesShown && !prefs.privacyMode;
   // Grades are read only while this card shows them, and released after.
   const grades = useGrades(neo.enabled && show);
+  // The GPA on screen: Ringkasan stays out of screenshots and the recent-apps preview while it shows.
+  useSecureScreen(neo.enabled && show && grades !== null);
   const p = profile(grades ?? neo.snapshots);
   if (!neo.enabled || !p) return null;
   const target = prefs.sksTarget || DEFAULT_SKS_TARGET;
