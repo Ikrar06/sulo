@@ -7,7 +7,7 @@
 
 import { createMoodleClient, type MoodleClient } from '@sulo/core/moodle/client';
 import { refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
-import { SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
+import { MANUAL_COOLDOWN_SEC, SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import { writeSession, readSession } from '@sulo/core/moodle/session';
 import { createSessionAgeLogger } from '@sulo/core/net/session-age';
 import type { Platform } from '@sulo/core/platform';
@@ -76,6 +76,15 @@ export async function syncAfterLogin(platform: Platform, dev = false, onStage?: 
 export async function lastSyncAt(platform: Platform): Promise<UnixSeconds | null> {
   const userId = await currentUser(platform.store);
   return userId === null ? null : ((await readUser(platform.store, userId, 'sync')).lastSyncAt ?? null);
+}
+
+/**
+ * Perbarui within core's 2-minute pause after a good sync (runSync answers
+ * FRESH and sends nothing): the app says "Sudah terbaru" without a spinner.
+ */
+export async function manualFresh(platform: Platform): Promise<boolean> {
+  const last = await lastSyncAt(platform);
+  return last !== null && platform.clock.now() - last < MANUAL_COOLDOWN_SEC;
 }
 
 /** Back in the foreground: sync only when the data is older than 15 minutes. */

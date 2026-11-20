@@ -75,6 +75,15 @@ body {
 }
 @keyframes m-scrim-out { from { opacity: var(--m-scrim-from, 1); } to { opacity: 0; } }
 @keyframes m-fade-in { from { opacity: 0; } }
+/* New data after a sync: the content crossfades in 160 ms, in place (opacity only, nothing moves). */
+@keyframes m-data-in { from { opacity: 0.55; } }
+.m-data-in { animation: m-data-in 160ms ease-out; }
+/* Skeletons without data: a flat translucent band sweeps left to right, by transform only. */
+@keyframes m-skel-sheen { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+.m-skel-sheen { animation: m-skel-sheen 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .m-skel-sheen { display: none; } }
+:root[data-perf="lite"] .m-skel-sheen { display: none; }
+@media (prefers-reduced-motion: reduce) { .m-data-in { animation: none; } }
 @keyframes m-fade-out { to { opacity: 0; } }
 /* The snackbar: in over 150 ms. */
 .sulo-toast {

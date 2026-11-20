@@ -36,10 +36,12 @@ import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
-import { lastSyncAt, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
+import { lastSyncAt, manualFresh, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
+import type { SyncDeps } from '@sulo/core/sync/run-sync';
 import { calls } from '@sulo/core/moodle/calls';
 import { TEST_BUDGET_FLAG, TEST_CHECK_GAP_MS, testCheckLimit } from './dev/test-budget';
 import { alignSession } from './session-truth';
+import { afterStage, DONE_MS, holdLeft, IDLE, running, type SyncUi } from './shell/sync-status';
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
 const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({ default: m.DevScreen }))) : null;
@@ -124,6 +126,10 @@ export function App({ platform }: { platform: Platform }) {
   const [last, setLast] = useState<UnixSeconds | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
+  // The one updating line on every screen (shell/sync-status.ts).
+  const [syncUi, setSyncUi] = useState<SyncUi>(IDLE);
+  const [news, setNews] = useState({ count: 0, seq: 0 });
+  const doneTimer = useRef<number | null>(null);
   const [dev, setDev] = useState(false);
   const [paused, setPaused] = useState<string | null>(null);
   const w = mobileWords(locale);
@@ -133,18 +139,34 @@ export function App({ platform }: { platform: Platform }) {
     setLast(await lastSyncAt(platform));
   }, [platform]);
 
-  /** Runs a sync and returns the line to show (empty when it went fine). */
+  /** "Sudah terbaru" for 2 seconds, then the line goes. */
+  const showDone = useCallback(() => {
+    setSyncUi({ phase: 'done', stage: null });
+    if (doneTimer.current !== null) window.clearTimeout(doneTimer.current);
+    doneTimer.current = window.setTimeout(() => setSyncUi((u) => (u.phase === 'done' ? IDLE : u)), DONE_MS);
+  }, []);
+
+  /**
+   * Runs a sync and returns the line to show (empty when it went fine). The
+   * updating state is set before anything is sent, follows runSync's real
+   * stages, and stays at least 400 ms; old data stays on screen throughout.
+   */
   const sync = useCallback(
-    async (run: () => Promise<SyncOutcome>): Promise<string> => {
+    async (run: (onStage: SyncDeps['onStage']) => Promise<SyncOutcome>): Promise<string> => {
+      const startedAt = performance.now();
+      if (doneTimer.current !== null) window.clearTimeout(doneTimer.current);
+      setSyncUi(running());
       setBusy(true);
       setNote('');
       let line = w.connected.failed;
+      let outcome: SyncOutcome | null = null;
       try {
-        const outcome = await run();
+        outcome = await run((stage, result) => setSyncUi((u) => afterStage(u, stage, result)));
         const rest = outcome.status === 'skipped' && outcome.reason === 'BUDGET_EXHAUSTED' ? restKind(await readBudget(platform.store, platform.clock), platform.clock.now()) : 'day';
         line = outcomeNote(outcome, w, rest);
         // News found while the app is open lands in Kabar terbaru without a notification.
-        await markChangesHandled(platform.store, platform.clock.now()).catch(() => 0);
+        const found = await markChangesHandled(platform.store, platform.clock.now()).catch(() => 0);
+        setNews((n) => ({ count: found, seq: n.seq + 1 }));
         await scheduleReminders(platform).catch(() => 0);
         // A sync the user started restarts the background interval.
         await applyWatchPlan(platform).catch(() => undefined);
@@ -152,14 +174,27 @@ export function App({ platform }: { platform: Platform }) {
         line = w.connected.failed;
       } finally {
         await refreshState();
-        setBusy(false);
       }
+      // Never shorter than 400 ms: no flicker.
+      await new Promise((r) => window.setTimeout(r, holdLeft(startedAt, performance.now())));
+      setBusy(false);
+      if (outcome?.status === 'session_expired') setSyncUi(IDLE);
+      else if (line === '' || line === w.connected.upToDate) showDone();
+      // Failed: the old data stays; the line says so and offers to try again.
+      else setSyncUi({ phase: 'failed', stage: null, message: line === w.connected.failed ? w.connected.sync.failed : line });
       setNote(line);
       return line;
     },
-    [platform, refreshState, w],
+    [platform, refreshState, w, showDone],
   );
-  const refresh = useCallback(() => sync(() => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__ })), [platform, sync]);
+  const refresh = useCallback(async () => {
+    // Perbarui within the 2-minute pause: "Sudah terbaru" at once, no spinner for nothing.
+    if (await manualFresh(platform)) {
+      showDone();
+      return w.connected.upToDate;
+    }
+    return sync((onStage) => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__, onStage }));
+  }, [platform, sync, showDone, w]);
   // The start effect runs once; it reaches the current refresh through this.
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
@@ -270,7 +305,10 @@ export function App({ platform }: { platform: Platform }) {
       setNote(r.status === 'offline' ? w.app.offline : w.onboarding.cancelled);
       return;
     }
-    await sync(() => syncAfterLogin(platform, __SULO_DEV__));
+    // The same frame the login screen leaves: "Masuk lagi" becomes the updating line before anything is sent.
+    setStatus('connected');
+    setSyncUi(running());
+    await sync((onStage) => syncAfterLogin(platform, __SULO_DEV__, onStage));
     // Another account than the one whose data is here: the sync wrote nothing; ask.
     if (await switchPending(platform)) {
       await holdWatching();
@@ -283,7 +321,7 @@ export function App({ platform }: { platform: Platform }) {
     if (!(__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web')) return;
     (window as unknown as { __suloEnterDemo?: () => Promise<void> }).__suloEnterDemo = async () => {
       await SuloSession.login();
-      await sync(() => syncAfterLogin(platform, false));
+      await sync((onStage) => syncAfterLogin(platform, false, onStage));
       // Kept as finished, so a reload opens Ringkasan (a cold open with data, scripts/perf-measure.mjs).
       await saveFlow(platform, { step: 'finished', mode: 'first' });
       setFlow((f) => (f ? { ...f, step: 'finished' } : f));
@@ -297,6 +335,9 @@ export function App({ platform }: { platform: Platform }) {
       <Shell
         expired={status === 'expired'}
         busy={busy}
+        syncUi={syncUi}
+        news={news}
+        onRetry={() => void refresh()}
         lastSyncAt={last}
         onRefresh={refresh}
         onSignIn={() => void signIn()}

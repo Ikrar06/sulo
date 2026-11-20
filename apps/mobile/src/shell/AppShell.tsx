@@ -32,6 +32,8 @@ import { TaskDateProvider } from './task-date';
 import { effectiveScroll, HEAD_P_RANGE, HEAD_Q_RANGE, HEAD_S_RANGE, headProgress, useCssScrollTimeline } from './head-progress';
 import { Screens } from '../screens/Screens';
 import { REFRESHED_EVENT } from '../events';
+import { SyncStatusLine, SyncUiContext } from './SyncStatusLine';
+import { IDLE, type SyncUi } from './sync-status';
 
 /** The data's age shows under the header only past an hour. */
 export const STALE_SHOWN_SEC = 3600;
@@ -55,6 +57,12 @@ function splitAction(line: string, action: string) {
 export interface ShellProps {
   expired: boolean;
   busy: boolean;
+  /** The one updating state (shell/sync-status.ts). */
+  syncUi?: SyncUi;
+  /** "Coba lagi" on the failure line. */
+  onRetry?: () => void;
+  /** How many news the last sync found (a toast only then), and a counter that moves on each sync. */
+  news?: { count: number; seq: number };
   lastSyncAt: number | null;
   /** Runs Perbarui; resolves with the line to show (empty: updated). */
   onRefresh: () => Promise<string>;
@@ -248,11 +256,23 @@ export function AppShell(props: ShellProps) {
   // A screen may update in its own way (Presensi); otherwise Perbarui is a sync.
   const screenRefresh = useRef<(() => Promise<string>) | null>(null);
   const refresh = useCallback(async () => {
-    const note = await (screenRefresh.current ?? onRefresh)();
+    const custom = screenRefresh.current;
+    const note = await (custom ?? onRefresh)();
     window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: note === '' } }));
-    const now = platform.clock.now();
-    toast.show({ message: note || w.connected.updated(formatAgo(now, now, m)), duration: 2500 });
+    // A screen's own update (Presensi) keeps its toast; a sync shows the status line instead.
+    if (custom) {
+      const now = platform.clock.now();
+      toast.show({ message: note || w.connected.updated(formatAgo(now, now, m)), duration: 2500 });
+    }
   }, [onRefresh, toast, w, m, platform]);
+  // A sync that found something new: the toast, as before.
+  const newsSeq = props.news?.seq ?? 0;
+  const newsCount = props.news?.count ?? 0;
+  useEffect(() => {
+    if (newsSeq === 0 || newsCount === 0) return;
+    const now = platform.clock.now();
+    toast.show({ message: w.connected.updated(formatAgo(now, now, m)), duration: 2500 });
+  }, [newsSeq]);
 
   if (!data) return null;
   const detail = nav.stack.length > 0;
@@ -261,6 +281,7 @@ export function AppShell(props: ShellProps) {
   const dataScreen = !NO_DATA_SCREENS.has(top.name);
   const stale = dataScreen && props.lastSyncAt !== null && data.now - props.lastSyncAt > STALE_SHOWN_SEC ? w.connected.updated(formatAgo(props.lastSyncAt, data.now, m)) : null;
   const notice = paused !== null ? 'paused' : props.expired ? 'expired' : !online ? 'offline' : null;
+  const syncUi = props.syncUi ?? IDLE;
   const showTabs = !detail && !keyboard;
   const actions = (
     <>
@@ -273,6 +294,7 @@ export function AppShell(props: ShellProps) {
   const bigTitle = !detail && !ringkasan;
 
   return (
+    <SyncUiContext.Provider value={syncUi}>
     <div ref={root} className={`db-layout m-root bg-m-screen text-foreground ${cssTimeline ? 'm-sdt' : ''}`}>
       {/* The bar is a sticky layer inside what scrolls: 56 px at rest, rising 8 px to 48 (layout-free, by the compositor). */}
       <main ref={scroller} className="m-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -320,9 +342,11 @@ export function AppShell(props: ShellProps) {
           <span aria-hidden="true" className="m-fade-top pointer-events-none absolute inset-x-0 top-full h-5" />
         </header>
         <PullToRefresh disabled={!dataScreen || props.expired || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
-          <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
+          <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''} ${syncUi.phase === 'done' ? 'm-data-in' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
       {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
-            {notice === 'expired' ? (
+            {syncUi.phase !== 'idle' ? (
+              <SyncStatusLine ui={syncUi} w={w} onRetry={props.onRetry ?? (() => void refresh())} />
+            ) : notice === 'expired' ? (
               <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-press mb-3 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
                 <span role="status" className="min-w-0 truncate">
                   {splitAction(w.connected.expiredLine, w.connected.signInAgain)}
@@ -349,5 +373,6 @@ export function AppShell(props: ShellProps) {
       {showTabs && <div aria-hidden="true" className="m-fade-bottom pointer-events-none fixed inset-x-0 bottom-0 z-20" style={{ height: `calc(${TAB_BAR_SPACE + 32}px + env(safe-area-inset-bottom))` }} />}
       {showTabs && <TabBar active={nav.tab} overdue={overdue} onSelect={onTab} label={w.app.tabsLabel} labels={{ ...d.nav, lainnya: w.app.lainnya }} overdueLabel={w.app.overdue} />}
     </div>
+    </SyncUiContext.Provider>
   );
 }
