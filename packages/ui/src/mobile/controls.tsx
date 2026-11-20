@@ -135,7 +135,7 @@ export function FilterPill({ label, active, onOpen, onClear, clearLabel }: { lab
       </button>
       {active && (
         <button type="button" onClick={onClear} aria-label={clearLabel} className={`m-hit mr-1 flex size-7 shrink-0 items-center justify-center rounded-full ${ring}`}>
-          <XIcon aria-hidden="true" className="size-3.5" />
+          <XIcon aria-hidden="true" className="size-4" />
         </button>
       )}
     </div>

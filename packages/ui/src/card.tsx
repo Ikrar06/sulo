@@ -27,7 +27,7 @@ export function CardLink({ href, children }: { href: string; children: ReactNode
   return (
     <a href={href} className="inline-flex items-center gap-1 rounded text-[14px] text-muted-foreground underline-offset-2 outline-none hover:text-foreground hover:underline focus-ring:ring-2 focus-ring:ring-focus">
       {children}
-      <ChevronRightIcon className="size-3.5 self-center" />
+      <ChevronRightIcon className="size-4 self-center" />
     </a>
   );
 }

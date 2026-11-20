@@ -120,7 +120,7 @@ export function TentangContent({ d, version: appVersion, onOpenPrivacy, versionE
                       className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-[14px] font-medium outline-none hover:bg-surface-raised focus-ring:ring-2 focus-ring:ring-focus focus-ring:ring-offset-2 focus-ring:ring-offset-background"
                     >
                       {t.feedback}
-                      <ExternalIcon className="size-3.5 text-muted-foreground" />
+                      <ExternalIcon className="size-4 text-muted-foreground" />
                     </a>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={6}>
