@@ -36,7 +36,8 @@ import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
-import { lastSyncAt, resumeNeedsSync, syncAfterLogin, syncNow } from './sync';
+import { lastSyncAt, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
+import { calls } from '@sulo/core/moodle/calls';
 import { alignSession } from './session-truth';
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
@@ -54,6 +55,15 @@ export function outcomeNote(o: SyncOutcome, w: MobileWords, rest: 'short' | 'day
   if (o.status === 'skipped' && o.reason === 'DISABLED_REMOTELY') return '';
   if (o.status === 'offline') return w.app.offline;
   return w.connected.failed;
+}
+
+/** Debug builds: pnpm mobile:test-restart may hold the sync on open (localStorage "sulo:dev:holdResume" = "1"). */
+function devHoldResume(): boolean {
+  try {
+    return localStorage.getItem('sulo:dev:holdResume') === '1';
+  } catch {
+    return false;
+  }
 }
 
 /** Core's session state follows the vault; a change goes into the session history. */
@@ -160,9 +170,14 @@ export function App({ platform }: { platform: Platform }) {
   // Debug builds only: pnpm mobile:test-restart starts a sync like pull-to-refresh (to end the process mid-sync).
   useEffect(() => {
     if (!__SULO_DEV__) return;
-    const w = window as unknown as { __suloDevSync?: () => Promise<string> };
+    const w = window as unknown as { __suloDevSync?: () => Promise<string>; __suloDevCheck?: () => Promise<string> };
     w.__suloDevSync = () => refreshRef.current();
-    return () => void delete w.__suloDevSync;
+    // One core_session_time_remaining through core's client (gates, budget, queue): the session check of the staged tests.
+    w.__suloDevCheck = async () => (await sikolaClient(platform, { userInitiated: true }).callBatch([calls.sessionTimeRemaining()], { source: 'manual' })).kind;
+    return () => {
+      delete w.__suloDevSync;
+      delete w.__suloDevCheck;
+    };
   }, []);
 
   // Start: language, lock, state, and reminders from the data already here.
@@ -192,7 +207,7 @@ export function App({ platform }: { platform: Platform }) {
       setPaused(config.enabled ? null : config.message.trim() || mobileWords(loc).watch.paused);
       await applyWatchPlan(platform).catch(() => undefined);
       const held = now === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
-      if (held.suspect || held.deferred === true) void refreshRef.current();
+      if ((held.suspect || held.deferred === true) && !(__SULO_DEV__ && devHoldResume())) void refreshRef.current();
     })();
     const onDev = () => __SULO_DEV__ && setDev(true);
     // Debug builds: the scenes' pace chosen on the dev screen, and a replay of the onboarding from the first screen.
@@ -229,6 +244,8 @@ export function App({ platform }: { platform: Platform }) {
       // Suspicion from background watching, or a sync held back while the app was closing.
       const held = s === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
       const suspect = held.suspect || held.deferred === true;
+      // Debug builds: the staged tests can hold the sync on open, to check the session before it runs.
+      if (__SULO_DEV__ && devHoldResume()) return;
       if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
       else void applyWatchPlan(platform);
     };
