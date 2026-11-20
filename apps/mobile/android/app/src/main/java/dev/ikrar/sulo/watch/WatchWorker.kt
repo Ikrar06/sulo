@@ -53,7 +53,7 @@ class WatchRun(private val context: Context) {
     private val store = WatchStore(context)
     private val vault = SessionVault.of(context)
     private val userAgent = "Sulo/${BuildConfig.VERSION_NAME} (Android)"
-    private val http = SikolaHttp(userAgent)
+    private val http = SikolaHttp(userAgent, strict = BuildConfig.DEBUG, onHandlerCleared = { dev.ikrar.sulo.session.Diag.of(context).note("cookie_handler_cleared") })
 
     private fun nowSec() = System.currentTimeMillis() / 1000
     private fun minuteOfDay(): Int = Calendar.getInstance().let { it.get(Calendar.HOUR_OF_DAY) * 60 + it.get(Calendar.MINUTE) }

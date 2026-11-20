@@ -25,6 +25,11 @@ const config: CapacitorConfig = {
   plugins: {
     // Reminders: the mascot's silhouette as the status bar icon (res/drawable/ic_stat_sulo.xml).
     LocalNotifications: { smallIcon: 'ic_stat_sulo' },
+    // Off, written out: Sulo patches neither document.cookie nor fetch/XHR in its WebView. CapacitorCookies
+    // still loads and installs a CookieHandler on every start whatever this says; MainActivity and SikolaHttp
+    // clear it (the cause of the lost SIKOLA sessions, 20 Nov 2026).
+    CapacitorCookies: { enabled: false },
+    CapacitorHttp: { enabled: false },
   },
   server: {
     // Plain HTML and CSS that works on WebView 69 (public/perlu-pembaruan.html).

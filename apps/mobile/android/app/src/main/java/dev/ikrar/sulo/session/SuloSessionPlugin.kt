@@ -38,7 +38,7 @@ class SuloSessionPlugin : Plugin() {
     private val io = Executors.newSingleThreadExecutor()
     private val vault by lazy { SessionVault.of(context) }
     private val http by lazy {
-        SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)").apply {
+        SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)", strict = BuildConfig.DEBUG, onHandlerCleared = { Diag.of(context).note("cookie_handler_cleared") }).apply {
             // Debug builds: which header and cookie NAMES SIKOLA answers with (for the load-balancer question).
             if (BuildConfig.DEBUG) namesSeen = { headers, cookies -> HeaderNames.record(context, headers, cookies) }
         }
@@ -321,16 +321,29 @@ class SuloSessionPlugin : Plugin() {
     /** "Keluar": SIKOLA's cookies and web storage in this app, the vault and its Keystore key. */
     @PluginMethod
     fun logout(call: PluginCall) {
-        CookieManager.getInstance().removeAllCookies {
-            CookieManager.getInstance().flush()
-            WebStorage.getInstance().deleteAllData()
-            io.execute {
-                vault.wipe()
-                runCatching { Diag.of(context).clear() }
+        SignOut(
+            webData(),
+            vault,
+            listOf(
+                { Diag.of(context).clear() },
                 // Keluar also ends background watching: no check, no queue, no plan.
-                runCatching { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
-                runCatching { dev.ikrar.sulo.watch.WatchStore(context).clear() }
-                call.resolve(JSObject().put("status", "none"))
+                { dev.ikrar.sulo.watch.WatchScheduler.stop(context) },
+                { dev.ikrar.sulo.watch.WatchStore(context).clear() },
+            ),
+        ).run { call.resolve(JSObject().put("status", "none")) }
+    }
+
+    /** The WebViews' data: cookies, web storage (NEOSIA's localStorage) and the HTTP cache. */
+    private fun webData() = object : CookieJar {
+        override fun clearAll(done: () -> Unit) {
+            CookieManager.getInstance().removeAllCookies {
+                CookieManager.getInstance().flush()
+                WebStorage.getInstance().deleteAllData()
+                // The cache is shared by every WebView of the app; clearing it needs one, on the main thread.
+                activity.runOnUiThread {
+                    runCatching { android.webkit.WebView(context).apply { clearCache(true); destroy() } }
+                    io.execute(done)
+                }
             }
         }
     }
@@ -359,19 +372,7 @@ class SuloSessionPlugin : Plugin() {
         }
     }
 
-    private fun accountReset() = AccountReset(
-        vault,
-        dev.ikrar.sulo.watch.WatchStore(context),
-        object : CookieJar {
-            override fun clearAll(done: () -> Unit) {
-                CookieManager.getInstance().removeAllCookies {
-                    CookieManager.getInstance().flush()
-                    WebStorage.getInstance().deleteAllData()
-                    io.execute(done)
-                }
-            }
-        },
-    ) { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
+    private fun accountReset() = AccountReset(vault, dev.ikrar.sulo.watch.WatchStore(context), webData()) { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
 
     // ---------- App lock (optional, off by default; the setting lives in the app) ----------
 

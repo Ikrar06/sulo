@@ -8,7 +8,15 @@ import java.net.URL
  * User-Agent. The cookie and the sesskey never leave this process. Nothing
  * is logged.
  */
-class SikolaHttp(private val userAgent: String) {
+class SikolaHttp(
+    private val userAgent: String,
+    /** Debug builds: a CookieHandler in place fails the request instead of being cleared (it would add a second Cookie header). */
+    private val strict: Boolean = false,
+    /** Where requests may go; SIKOLA only (tests point it at a local server). */
+    private val origin: String = Sikola.ORIGIN,
+    /** Told when a CookieHandler had to be cleared (release builds). */
+    private val onHandlerCleared: () -> Unit = {},
+) {
     data class Reply(val status: Int, val location: String?, val body: String, val retryAfter: String? = null)
 
     /**
@@ -30,7 +38,14 @@ class SikolaHttp(private val userAgent: String) {
 
     /** `fresh`: a new connection, closed after (the second ask before a session ends; owner's rule, 20 Nov 2026). */
     private fun exchange(url: String, moodleSession: String, body: String?, watch: CookieWatch?, fresh: Boolean): Reply {
-        require(url.startsWith("${Sikola.ORIGIN}/")) { "SIKOLA only" }
+        require(url.startsWith("$origin/")) { "SIKOLA only" }
+        // Exactly one Cookie header, the vault's: no CookieHandler may add the WebView's (Capacitor's
+        // CapacitorCookies installs one on every start; MainActivity clears it, and so does this, 20 Nov 2026).
+        if (java.net.CookieHandler.getDefault() != null) {
+            check(!strict) { "a CookieHandler is set: it would add a second Cookie header" }
+            java.net.CookieHandler.setDefault(null)
+            onHandlerCleared()
+        }
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.instanceFollowRedirects = false
         conn.connectTimeout = 15_000
