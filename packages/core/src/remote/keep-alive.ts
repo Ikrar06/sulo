@@ -18,7 +18,7 @@ export interface KeepAliveConfig {
   message: { id: string; en: string } | null;
 }
 
-export const DEFAULT_KEEP_ALIVE: KeepAliveConfig = { enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 60, radarEvery: 3, message: null };
+export const DEFAULT_KEEP_ALIVE: KeepAliveConfig = { enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 110, radarEvery: 3, message: null };
 
 export const KEEP_ALIVE_LIMITS = {
   dayIntervalMinutes: { min: 15, max: 110 },

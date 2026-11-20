@@ -13,7 +13,7 @@ const NEW_CONFIG = {
     "backgroundKeepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
     }
   }

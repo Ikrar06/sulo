@@ -76,7 +76,7 @@ describe('paused by the maintainer', () => {
     await updateWatch(platform, { enabled: true });
     await applyWatchPlan(platform);
     const plan = JSON.parse(plans.at(-1)!);
-    expect(plan).toMatchObject({ enabled: true, userId: 7, schedule: { dayIntervalMin: 20, nightIntervalMin: 60 } });
+    expect(plan).toMatchObject({ enabled: true, userId: 7, schedule: { dayIntervalMin: 20, nightIntervalMin: 110 } });
     expect(plan.calls.map((c: { methodname: string }) => c.methodname)).toEqual(['core_session_time_remaining', 'core_calendar_get_action_events_by_timesort', 'message_popup_get_popup_notifications']);
   });
 });

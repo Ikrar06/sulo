@@ -3,7 +3,7 @@
 // watch-vectors.test.ts. `want` is written by hand: what the rule says.
 import type { ConfigRead, RemoteDecision, RemoteState, WorkerConfig } from '@sulo/core/watch/remote';
 
-const ON: WorkerConfig['keepAlive'] = { enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 60, radarEvery: 3 };
+const ON: WorkerConfig['keepAlive'] = { enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 110, radarEvery: 3 };
 const ok = (keepAlive: Partial<WorkerConfig['keepAlive']> = {}, globalEnabled = true): ConfigRead => ({ kind: 'ok', config: { globalEnabled, keepAlive: { ...ON, ...keepAlive } } });
 const failed: ConfigRead = { kind: 'failed' };
 const base = { enabled: true, minIntervalMinutes: 30, message: '' };
@@ -73,22 +73,22 @@ const state = (s: Partial<RemoteState>): RemoteState => ({ now: NOW, lastAppAt: 
 const hold = (reason: 'no_config' | 'stale_config' | 'update_required' | 'global_off' | 'keepalive_off'): RemoteDecision => ({ action: 'hold', reason, intervalMin: 360 });
 
 export const remoteDecideCases: { name: string; state: RemoteState; want: RemoteDecision }[] = [
-  { name: 'on-defaults', state: state({}), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 60, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'on-defaults', state: state({}), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'on-config-intervals-used-directly', state: state({ config: cfg({ dayIntervalMinutes: 50, nightIntervalMinutes: 90, radarEvery: 1 }) }), want: { action: 'check', schedule: { dayIntervalMin: 50, nightIntervalMin: 90, softDayIntervalMin: 50, radarEvery: 1 } } },
   { name: 'global-off', state: state({ config: cfg({}, false) }), want: hold('global_off') },
   { name: 'keepalive-off', state: state({ config: cfg({ enabled: false }) }), want: hold('keepalive_off') },
   { name: 'never-read', state: state({ config: null, configOkAt: 0 }), want: hold('no_config') },
   { name: 'config-without-success-time', state: state({ configOkAt: 0 }), want: hold('no_config') },
   { name: 'no-read-72h', state: state({ configOkAt: NOW - 72 * H }), want: hold('stale_config') },
-  { name: 'read-just-under-72h', state: state({ configOkAt: NOW - 72 * H + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 60, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'read-just-under-72h', state: state({ configOkAt: NOW - 72 * H + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'app-not-opened-7-days', state: state({ lastAppAt: NOW - 7 * D }), want: { action: 'paused' } },
-  { name: 'app-opened-just-under-7-days', state: state({ lastAppAt: NOW - 7 * D + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 60, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'app-opened-just-under-7-days', state: state({ lastAppAt: NOW - 7 * D + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'paused-before-stale', state: state({ lastAppAt: NOW - 8 * D, configOkAt: NOW - 5 * D }), want: { action: 'paused' } },
   { name: 'paused-even-when-off', state: state({ lastAppAt: NOW - 8 * D, config: cfg({}, false) }), want: { action: 'paused' } },
   // M8e E3: below a valid release's minVersionCode nothing goes to SIKOLA (the chain keeps reading the config).
   { name: 'update-required', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 904 }, want: hold('update_required') },
   { name: 'update-required-even-when-off', state: { ...state({ config: { ...cfg({}, false), minVersionCode: 905 } }), installedCode: 900 }, want: hold('update_required') },
-  { name: 'at-min-version-checks', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 905 }, want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 60, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'at-min-version-checks', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 905 }, want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'paused-before-update-required', state: { ...state({ lastAppAt: NOW - 8 * D, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: { action: 'paused' } },
   { name: 'stale-before-update-required', state: { ...state({ configOkAt: NOW - 72 * H, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: hold('stale_config') },
 ];

@@ -43,7 +43,7 @@ object WatchRemote {
     /** installedCode: this app's versionCode (BuildConfig.VERSION_CODE); null: not compared. */
     data class State(val now: Long, val lastAppAt: Long, val configOkAt: Long, val config: Config?, val installedCode: Long? = null)
 
-    private val DEFAULT = KeepAlive(enabled = true, dayIntervalMinutes = 20, nightIntervalMinutes = 60, radarEvery = 3)
+    private val DEFAULT = KeepAlive(enabled = true, dayIntervalMinutes = 20, nightIntervalMinutes = 110, radarEvery = 3)
     private val DAY = 15..110
     private val NIGHT = 30..110
     private val RADAR = 1..6

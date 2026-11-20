@@ -10,7 +10,7 @@
     "keepAlive": {
      "enabled": true,
      "dayIntervalMinutes": 20,
-     "nightIntervalMinutes": 60,
+     "nightIntervalMinutes": 110,
      "radarEvery": 3
     }
    },
@@ -20,7 +20,7 @@
   },
   "schedule": {
    "dayIntervalMin": 20,
-   "nightIntervalMin": 60,
+   "nightIntervalMin": 110,
    "softDayIntervalMin": 40,
    "dayStartMin": 360,
    "nightStartMin": 1380,
@@ -310,7 +310,7 @@
     "usedToday": 0,
     "callsToday": 0
    },
-   "out": 60
+   "out": 110
   },
   {
    "ctx": {
@@ -328,7 +328,7 @@
     "usedToday": 10,
     "callsToday": 0
    },
-   "out": 60
+   "out": 110
   },
   {
    "ctx": {
@@ -337,7 +337,7 @@
     "usedToday": 10,
     "callsToday": 0
    },
-   "out": 60
+   "out": 110
   },
   {
    "ctx": {
@@ -1984,7 +1984,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2001,7 +2001,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2018,7 +2018,7 @@
      "keepAlive": {
       "enabled": false,
       "dayIntervalMinutes": 30,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2035,7 +2035,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2069,7 +2069,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2086,7 +2086,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2103,7 +2103,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2200,7 +2200,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2305,7 +2305,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      },
      "minVersionCode": 905
@@ -2323,7 +2323,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2340,7 +2340,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2357,7 +2357,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2374,7 +2374,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2391,7 +2391,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2408,7 +2408,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2425,7 +2425,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2442,7 +2442,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2459,7 +2459,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2476,7 +2476,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2493,7 +2493,7 @@
      "keepAlive": {
       "enabled": false,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      },
      "minVersionCode": 905
@@ -2535,7 +2535,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2544,7 +2544,7 @@
     "action": "check",
     "schedule": {
      "dayIntervalMin": 20,
-     "nightIntervalMin": 60,
+     "nightIntervalMin": 110,
      "softDayIntervalMin": 40,
      "radarEvery": 3
     }
@@ -2587,7 +2587,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2609,7 +2609,7 @@
      "keepAlive": {
       "enabled": false,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2645,7 +2645,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2667,7 +2667,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2689,7 +2689,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2698,7 +2698,7 @@
     "action": "check",
     "schedule": {
      "dayIntervalMin": 20,
-     "nightIntervalMin": 60,
+     "nightIntervalMin": 110,
      "softDayIntervalMin": 40,
      "radarEvery": 3
     }
@@ -2715,7 +2715,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2735,7 +2735,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2744,7 +2744,7 @@
     "action": "check",
     "schedule": {
      "dayIntervalMin": 20,
-     "nightIntervalMin": 60,
+     "nightIntervalMin": 110,
      "softDayIntervalMin": 40,
      "radarEvery": 3
     }
@@ -2761,7 +2761,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2781,7 +2781,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      }
     }
@@ -2801,7 +2801,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      },
      "minVersionCode": 905
@@ -2825,7 +2825,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      },
      "minVersionCode": 905
@@ -2849,7 +2849,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      },
      "minVersionCode": 905
@@ -2860,7 +2860,7 @@
     "action": "check",
     "schedule": {
      "dayIntervalMin": 20,
-     "nightIntervalMin": 60,
+     "nightIntervalMin": 110,
      "softDayIntervalMin": 40,
      "radarEvery": 3
     }
@@ -2877,7 +2877,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      },
      "minVersionCode": 905
@@ -2899,7 +2899,7 @@
      "keepAlive": {
       "enabled": true,
       "dayIntervalMinutes": 20,
-      "nightIntervalMinutes": 60,
+      "nightIntervalMinutes": 110,
       "radarEvery": 3
      },
      "minVersionCode": 905

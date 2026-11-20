@@ -261,7 +261,7 @@ describe('watch shared vectors', () => {
     expect(notes['after-quiet'].send[0].title).toBe('1 kabar baru dari 1 mata kuliah');
     expect(fresh.reserve[6].out).toMatchObject({ ok: false, next: { pausedUntil: NOW + 30 * 60 } });
     expect(fresh.plan.budget).toMatchObject({ softPosts: 80, watchStopPosts: 100, watchStopCalls: 700, hardPosts: 150, callLimit: 1000 });
-    expect(fresh.delay.map((c: { out: number | null }) => c.out)).toEqual([20, 60, 20, 60, 60, 40, 20, null, 40, null, null, 20, null]);
+    expect(fresh.delay.map((c: { out: number | null }) => c.out)).toEqual([20, 110, 20, 110, 110, 40, 20, null, 40, null, null, 20, null]);
     expect(fresh.reserve.slice(8).map((c: { out: { ok: boolean } }) => c.out.ok)).toEqual([false, true, false, true]);
     expect(fresh.radarFits.map((c: { out: boolean }) => c.out)).toEqual([true, true, false]);
     expect(fresh.stopped.map((c: { out: boolean }) => c.out)).toEqual([false, true, true]);
