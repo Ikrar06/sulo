@@ -61,6 +61,8 @@ export interface SuloSessionPlugin {
   suspect(): Promise<{ suspect: boolean; deferred?: boolean }>;
   /** One event code for the session history (lowercase, digits, _:.>+-; no data). */
   note(options: { e: string }): Promise<void>;
+  /** Debug builds: the owner's one-off test budget for today (one background check may use it). */
+  devTestBudget(options: { date: string }): Promise<void>;
   /** Debug builds: what happened to the session (times and event codes only, native Diag). */
   diagLog(): Promise<{ events: { at: number; e: string }[]; cookies?: Record<string, number>; guardMs?: string }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */

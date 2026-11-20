@@ -112,7 +112,9 @@ class WatchRun(private val context: Context) {
         }
         val budget = store.budget()
         val ctx = dayCtx(budget)
-        if (WatchCheck.nextDelayMinutes(plan, ctx) == null) return untilReset(now)
+        // Debug builds, the owner's one-off test budget (20 Nov 2026): one "Jalankan cek sekarang" may go past today's limit.
+        val testOnce = BuildConfig.DEBUG && mode == WatchScheduler.MODE_CHECK_NOW && TestBudget.available(context, today())
+        if (WatchCheck.nextDelayMinutes(plan, ctx) == null && !testOnce) return untilReset(now)
 
         // The Radar turn: every radarEvery-th daytime check, the next courses in rotation.
         val day = WatchCheck.isDay(ctx.minuteOfDay, plan)
@@ -126,8 +128,9 @@ class WatchRun(private val context: Context) {
 
         val batch = WatchCheck.buildBatch(plan, now, pick.ids)
         val reserved = WatchCheck.reserve(budget, today(), now, batch.length(), plan)
-        store.setBudget(reserved.next)
-        if (!reserved.ok) return scheduleNext(plan, now)
+        val viaTest = !reserved.ok && testOnce && TestBudget.take(context, today())
+        store.setBudget(if (viaTest) reserved.next.put("used", reserved.next.optInt("used", 0) + 1) else reserved.next)
+        if (!reserved.ok && !viaTest) return scheduleNext(plan, now)
         store.setRadarCursor(pick.cursor)
 
         val functions = (0 until batch.length()).map { batch.getJSONObject(it).getString("methodname") }

@@ -5,7 +5,9 @@
 // outcome kinds). Times and codes only.
 import { useEffect, useState } from 'react';
 import { readSession } from '@sulo/core/moodle/session';
+import { readBudget } from '@sulo/core/moodle/budget';
 import { readTechLog, type TechLogEntry } from '@sulo/core/net/tech-log';
+import { TEST_BUDGET_EXTRA, TEST_BUDGET_FLAG, testBudgetUsed } from './test-budget';
 import type { Platform } from '@sulo/core/platform';
 import type { SessionInfo } from '@sulo/core/types';
 import { Card } from '@sulo/ui/mobile/cards';
@@ -35,6 +37,7 @@ export function SessionDiagDev({ platform }: { platform: Platform }) {
   const [tech, setTech] = useState<TechLogEntry[]>([]);
   const [cookies, setCookies] = useState<Record<string, number>>({});
   const [guard, setGuard] = useState<number[]>([]);
+  const [testUsed, setTestUsed] = useState<number | null>(null);
   const load = () => {
     void SuloSession.diagLog()
       .then((r) => {
@@ -45,6 +48,15 @@ export function SessionDiagDev({ platform }: { platform: Platform }) {
       .catch(() => setEvents([]));
     void readSession(platform.store).then(setCore);
     void readTechLog(platform.store).then((log) => setTech(log.slice(0, 8)));
+    void readBudget(platform.store, platform.clock).then((b) => {
+      let flag: string | null = null;
+      try {
+        flag = localStorage.getItem(TEST_BUDGET_FLAG);
+      } catch {
+        flag = null;
+      }
+      setTestUsed(flag === platform.clock.localDate() ? testBudgetUsed(b.used) : null);
+    });
   };
   useEffect(load, [platform]);
   return (
@@ -72,6 +84,7 @@ export function SessionDiagDev({ platform }: { platform: Platform }) {
         Set-Cookie MoodleSession: {Object.entries(cookies).map(([k, v]) => `${k} ${v}`).join(' · ') || 'belum ada'}
       </p>
       <p>Layanan permintaan (ms): {guard.length ? `${guard.length} kali, median ${median(guard)}, terpanjang ${Math.max(...guard)}` : 'belum ada'}</p>
+      {testUsed !== null && <p>Anggaran uji {testUsed}/{TEST_BUDGET_EXTRA} (hari ini saja)</p>}
       <p className="text-muted-foreground">Request terakhir (core):</p>
       <ul>
         {tech.map((x, i) => (

@@ -22,7 +22,7 @@ import { recordTimeRemaining } from './dev-log';
 export const RESUME_STALE_SEC = 15 * 60;
 
 /** SIKOLA through SuloSession, with the core client's budget, queue and backoff. */
-export function sikolaClient(platform: Platform, options: { userInitiated: boolean; dev?: boolean }): MoodleClient {
+export function sikolaClient(platform: Platform, options: { userInitiated: boolean; dev?: boolean; dailyBudget?: number }): MoodleClient {
   const { store, clock } = platform;
   const http = createSessionHttp(options.userInitiated, (body) => void recordTimeRemaining(store, clock.now(), body));
   return createMoodleClient({
@@ -33,6 +33,7 @@ export function sikolaClient(platform: Platform, options: { userInitiated: boole
     // The real sesskey never reaches JavaScript; SuloSession inserts it.
     getSesskey: async () => NATIVE_SESSKEY,
     noSessionUpdate: !options.userInitiated,
+    ...(options.dailyBudget !== undefined ? { dailyBudget: options.dailyBudget } : {}),
     sessionAge: options.dev ? createSessionAgeLogger(store) : undefined,
     // One login answer is never enough: a second, separate ask after 2 to 5 seconds must agree.
     confirmLogin: { wait: () => new Promise((resolve) => setTimeout(resolve, confirmDelayMs())) },

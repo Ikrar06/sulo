@@ -566,6 +566,16 @@ class SuloSessionPlugin : Plugin() {
         }
     }
 
+    /** Debug builds: the owner's one-off test budget for `date` (today); one background check may use it. */
+    @PluginMethod
+    fun devTestBudget(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("debug only")
+        val date = call.getString("date") ?: return call.reject("date missing")
+        dev.ikrar.sulo.watch.TestBudget.set(context, date)
+        Diag.of(context).note("test_budget_on")
+        call.resolve()
+    }
+
     /** A simulation without any request (WatchSimulate): task, due, three, quiet, expired. */
     @PluginMethod
     fun watchSimulate(call: PluginCall) {

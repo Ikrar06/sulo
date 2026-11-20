@@ -38,6 +38,7 @@ import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
 import { lastSyncAt, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
 import { calls } from '@sulo/core/moodle/calls';
+import { TEST_BUDGET_FLAG, TEST_CHECK_GAP_MS, testCheckLimit } from './dev/test-budget';
 import { alignSession } from './session-truth';
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
@@ -170,13 +171,28 @@ export function App({ platform }: { platform: Platform }) {
   // Debug builds only: pnpm mobile:test-restart starts a sync like pull-to-refresh (to end the process mid-sync).
   useEffect(() => {
     if (!__SULO_DEV__) return;
-    const w = window as unknown as { __suloDevSync?: () => Promise<string>; __suloDevCheck?: (fresh?: boolean) => Promise<string> };
+    const w = window as unknown as { __suloDevSync?: () => Promise<string>; __suloDevCheck?: (fresh?: boolean) => Promise<string>; __suloDevTestBudget?: () => Promise<string> };
+    let lastCheck = 0;
     w.__suloDevSync = () => refreshRef.current();
     // One core_session_time_remaining through core's client (gates, budget, queue): the session check of the staged tests.
-    w.__suloDevCheck = async (fresh = false) => (await sikolaClient(platform, { userInitiated: true }).callBatch([calls.sessionTimeRemaining()], { source: 'manual', freshConnection: fresh })).kind;
+    // The owner's one-off test budget (dev/test-budget.ts): today only, debug only, this check only.
+    w.__suloDevTestBudget = async () => {
+      const today = platform.clock.localDate();
+      localStorage.setItem(TEST_BUDGET_FLAG, today);
+      await SuloSession.devTestBudget({ date: today }).catch(() => undefined);
+      return today;
+    };
+    w.__suloDevCheck = async (fresh = false) => {
+      // At least 10 seconds apart, one at a time (the client's queue).
+      if (Date.now() - lastCheck < TEST_CHECK_GAP_MS) return 'too_soon';
+      lastCheck = Date.now();
+      const dailyBudget = testCheckLimit({ dev: __SULO_DEV__, flagDate: localStorage.getItem(TEST_BUDGET_FLAG), today: platform.clock.localDate() });
+      return (await sikolaClient(platform, { userInitiated: true, dailyBudget }).callBatch([calls.sessionTimeRemaining()], { source: 'manual', freshConnection: fresh })).kind;
+    };
     return () => {
       delete w.__suloDevSync;
       delete w.__suloDevCheck;
+      delete w.__suloDevTestBudget;
     };
   }, []);
 
