@@ -5,15 +5,15 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
-import { nextStep, type ChecklistStep } from '@sulo/core/neosia/checklist';
+import { nextStep, sourcesDone, type ChecklistStep } from '@sulo/core/neosia/checklist';
 import { SuloNeosia, type NeosiaPage, type NeosiaTrialStats } from '../neosia-native';
 import { requestDiff, type RequestDiff } from './request-diff';
 
-const PAGES: [NeosiaPage, string][] = [
-  ['login', 'Masuk NEOSIA (tanpa skrip)'],
-  ['home', 'Beranda'],
-  ['khs', 'Kartu Hasil Studi'],
-  ['krs', 'KRS'],
+const PAGES: [NeosiaPage, string, ChecklistStep][] = [
+  ['login', 'Masuk NEOSIA (tanpa skrip)', 'login'],
+  ['home', 'Beranda', 'beranda'],
+  ['khs', 'Kartu Hasil Studi', 'khs'],
+  ['krs', 'KRS', 'krs'],
 ];
 
 const list = (r: Record<string, number>) => Object.entries(r).map(([k, n]) => `${k}: ${n}`);
@@ -28,7 +28,7 @@ export function NeosiaTrialDev() {
   const [diff, setDiff] = useState<RequestDiff[] | null>(null);
   const [comparing, setComparing] = useState(false);
   const captured = Object.keys(stats?.captures ?? {}).map((label) => label.replace(/ \(.*\)$/, ''));
-  const next: ChecklistStep = nextStep({ signedIn: signedIn || captured.length > 0, lastResult, capturedEndpoints: captured });
+  const next: ChecklistStep = nextStep({ signedIn: signedIn || captured.length > 0, lastResult, done: sourcesDone(captured) });
   const open = (page: NeosiaPage) =>
     void SuloNeosia.open({ page, close: 'Tutup' }).then(({ result }) => {
       setLast(result === 'signed_in' ? 'Sudah masuk NEOSIA.' : result === 'needs_login' ? 'NEOSIA meminta masuk; layar menutup sendiri. Masuk dulu.' : 'Ditutup.');
@@ -79,14 +79,14 @@ export function NeosiaTrialDev() {
         WebView: {stats?.webView ?? '-'} · skrip awal dokumen: {stats ? (stats.docStartSupported ? 'ada' : 'TIDAK ada') : '-'} · WebMessageListener: {stats ? (stats.listenerSupported ? 'ada' : 'TIDAK ada') : '-'}
       </p>
       <div className="grid grid-cols-2 gap-2">
-        {PAGES.map(([page, label]) => (
-          <PillButton key={page} kind={page === next ? "primary" : "secondary"} onPress={() => open(page)}>
-            {page === next ? `Berikutnya: ${label}` : label}
+        {PAGES.map(([page, label, step]) => (
+          <PillButton key={page} kind={step === next ? "primary" : "secondary"} onPress={() => open(page)}>
+            {step === next ? `Berikutnya: ${label}` : label}
           </PillButton>
         ))}
       </div>
       {last && <p role="status">{last}</p>}
-      <p>{next === 'done' ? 'Semua langkah selesai.' : `Langkah berikutnya: ${PAGES.find(([p]) => p === next)?.[1] ?? next}.`}</p>
+      <p>{next === 'done' ? 'Semua langkah selesai.' : `Langkah berikutnya: ${PAGES.find(([, , step]) => step === next)?.[1] ?? next}.`}</p>
       <PillButton onPress={() => void compare()} disabled={comparing}>
         {comparing ? 'Membandingkan…' : 'Bandingkan request (Beranda tanpa dan dengan skrip)'}
       </PillButton>

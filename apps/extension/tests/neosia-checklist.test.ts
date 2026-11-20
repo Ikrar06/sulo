@@ -1,25 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { nextStep, pagesDone } from '@sulo/core/neosia/checklist';
+import { nextStep, sourcesDone } from '@sulo/core/neosia/checklist';
 
-describe('the NEOSIA checklist moves on as pages are captured', () => {
+const next = (signedIn: boolean, lastResult: Parameters<typeof nextStep>[0]['lastResult'], captured: string[]) => nextStep({ signedIn, lastResult, done: sourcesDone(captured) });
+
+describe('the NEOSIA checklist moves on as pages are captured (sources.ts mapping)', () => {
   it('signs in first', () => {
-    expect(nextStep({ signedIn: false, lastResult: null, capturedEndpoints: [] })).toBe('login');
+    expect(next(false, null, [])).toBe('login');
   });
 
-  it('after signing in: Beranda, then KHS, then KRS, then done', () => {
-    expect(nextStep({ signedIn: true, lastResult: 'signed_in', capturedEndpoints: [] })).toBe('home');
-    // What Beranda captured on the phone (20 Nov 2026): belanja_krs there does not count for KRS.
+  it('after signing in: Beranda, then KHS (both required), then the optional KRS, then done', () => {
+    expect(next(true, 'signed_in', [])).toBe('beranda');
+    // What Beranda captured on the phone (20 Nov 2026).
     const beranda = ['prodi_semester/active', 'checkJadwalBelanjaKRS', 'dashboard', 'belanja_krs'];
-    expect(nextStep({ signedIn: true, lastResult: 'closed', capturedEndpoints: beranda })).toBe('khs');
-    expect(nextStep({ signedIn: true, lastResult: 'closed', capturedEndpoints: [...beranda, 'kartu_hasil_studi/semester'] })).toBe('krs');
-    expect(nextStep({ signedIn: true, lastResult: 'closed', capturedEndpoints: [...beranda, 'indeks_prestasi/current', 'max_sks'] })).toBe('done');
+    expect(next(true, 'closed', beranda)).toBe('khs');
+    // KHS needs both the transcript and the semester list.
+    expect(next(true, 'closed', [...beranda, 'getTranskripMahasiswa'])).toBe('khs');
+    expect(next(true, 'closed', [...beranda, 'getTranskripMahasiswa', 'mahasiswa/semester'])).toBe('krs');
+    expect(next(true, 'closed', [...beranda, 'getTranskripMahasiswa', 'mahasiswa/semester', 'max_sks'])).toBe('done');
   });
 
   it('a page that reached the login sends back to signing in', () => {
-    expect(nextStep({ signedIn: true, lastResult: 'needs_login', capturedEndpoints: ['dashboard'] })).toBe('login');
+    expect(next(true, 'needs_login', ['dashboard', 'belanja_krs'])).toBe('login');
   });
 
-  it('pages done from endpoint ids', () => {
-    expect([...pagesDone(['dashboard', 'kelas_kuliah_tersedia'])].sort()).toEqual(['home', 'krs']);
+  it('done from endpoint ids: every required response of a source', () => {
+    expect([...sourcesDone(['dashboard'])]).toEqual([]);
+    expect([...sourcesDone(['dashboard', 'belanja_krs', 'max_sks'])].sort()).toEqual(['beranda', 'krs']);
   });
 });
