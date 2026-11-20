@@ -333,6 +333,17 @@ export function App({ platform }: { platform: Platform }) {
     };
   }, [platform, sync]);
 
+  // The launch screen stays until the first real frame is painted (two frames after it renders).
+  useEffect(() => {
+    if (status === null || flow === null) return;
+    let b = 0;
+    const a = requestAnimationFrame(() => (b = requestAnimationFrame(() => void SuloSession.ready().catch(() => undefined))));
+    return () => {
+      cancelAnimationFrame(a);
+      cancelAnimationFrame(b);
+    };
+  }, [status === null || flow === null]);
+
   if (status === null || flow === null) return null;
   const onboarding = flow.step !== 'finished' || landing;
   const shell = (

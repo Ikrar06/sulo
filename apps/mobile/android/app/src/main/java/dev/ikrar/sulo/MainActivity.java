@@ -12,6 +12,10 @@ public class MainActivity extends BridgeActivity {
     /** Android's font size setting, within what the layout is tested for (85% to 130%). */
     /** True while the app is on screen: the watch worker then leaves syncing to the app. */
     public static volatile boolean inForeground = false;
+    /** The WebView has drawn its first frame (SuloSession.ready, from the app): the launch screen may go. */
+    public static volatile boolean webReady = false;
+    /** The launch screen never stays longer than this, whatever the app says. */
+    static final long SPLASH_MAX_MS = 2500;
 
     static final float MIN_TEXT_SCALE = 0.85f;
     static final float MAX_TEXT_SCALE = 1.30f;
@@ -27,7 +31,16 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(dev.ikrar.sulo.store.SuloStorePlugin.class);
         // M8d: the NEOSIA screen (debug builds only in B0).
         registerPlugin(SuloNeosiaPlugin.class);
+        // The launch screen (res/values/styles.xml): kept until the first frame, then gone without a flash.
+        webReady = false;
+        final long shownAt = android.os.SystemClock.uptimeMillis();
+        androidx.core.splashscreen.SplashScreen.installSplashScreen(this)
+            .setKeepOnScreenCondition(() -> !webReady && android.os.SystemClock.uptimeMillis() - shownAt < SPLASH_MAX_MS);
         super.onCreate(savedInstanceState);
+        // Behind the first frame: the app's screen colour (light or dark), never white.
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.sulo_screen));
+        }
         // The session's event log (times and codes only): when the app starts.
         dev.ikrar.sulo.session.Diag.Companion.of(this).note("app_start");
         // Capacitor's built-in CapacitorCookies plugin makes itself java.net's default

@@ -178,6 +178,13 @@ class SuloSessionPlugin : Plugin() {
         call.resolve(JSObject().put("suspect", vault.status() == "connected" && vault.suspectCount() > 0).put("deferred", deferred))
     }
 
+    /** The app has drawn its first frame: the launch screen may go (MainActivity). */
+    @PluginMethod
+    fun ready(call: PluginCall) {
+        dev.ikrar.sulo.MainActivity.webReady = true
+        call.resolve()
+    }
+
     /** One event code from the app for the session history (Diag keeps codes only). */
     @PluginMethod
     fun note(call: PluginCall) {

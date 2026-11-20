@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The app's screen colour (the light screen token, packages/ui tokens/palette.css): the launch screen and the WebView behind the first frame. -->
+    <color name="sulo_screen">#F1F1F4</color>
+</resources>
