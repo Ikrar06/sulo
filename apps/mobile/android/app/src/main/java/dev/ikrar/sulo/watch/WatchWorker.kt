@@ -198,7 +198,7 @@ class WatchRun(private val context: Context) {
         val fromPlan = WatchRemote.fromJson(seed?.optJSONObject("config"))
         val fromWorker = WatchRemote.fromJson(store.remoteConfig())
         val config = if (workerOk >= planOk) fromWorker ?: fromPlan else fromPlan ?: fromWorker
-        return WatchRemote.decide(WatchRemote.State(now, plan.optLong("writtenAt", 0), maxOf(workerOk, planOk), config))
+        return WatchRemote.decide(WatchRemote.State(now, plan.optLong("writtenAt", 0), maxOf(workerOk, planOk), config, BuildConfig.VERSION_CODE.toLong()))
     }
 
     private fun readConfig(url: String, now: Long) {

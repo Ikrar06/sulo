@@ -57,7 +57,7 @@ class WatchRemoteTest {
     @Test
     fun decidesLikeTheReference() = cases("remoteDecide").forEach {
         val s = it.getJSONObject("state")
-        val state = WatchRemote.State(s.getLong("now"), s.getLong("lastAppAt"), s.getLong("configOkAt"), WatchRemote.fromJson(s.optJSONObject("config")))
+        val state = WatchRemote.State(s.getLong("now"), s.getLong("lastAppAt"), s.getLong("configOkAt"), WatchRemote.fromJson(s.optJSONObject("config")), if (s.has("installedCode")) s.getLong("installedCode") else null)
         assertEquals(it.getString("name"), canon(it.getJSONObject("out")), canon(decisionJson(WatchRemote.decide(state))))
     }
 

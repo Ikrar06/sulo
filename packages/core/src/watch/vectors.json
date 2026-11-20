@@ -2293,6 +2293,212 @@
    "out": {
     "kind": "failed"
    }
+  },
+  {
+   "name": "release-with-min",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     },
+     "minVersionCode": 905
+    }
+   }
+  },
+  {
+   "name": "release-without-min",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-min-zero",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":0,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-url-elsewhere-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://example.com/sulo.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-url-other-owner-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/someone/sulo/releases/download/v0.9.6/sulo.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-url-dot-segment-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/../releases/download/v0.9.6/sulo.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-url-not-an-asset-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/tag/v0.9.6\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-min-above-version-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":907,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-bad-sha-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"abc\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-name-with-suffix-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6-beta\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-min-not-integer-ignored",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905.5,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
+   "name": "release-with-keepalive-off",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"mobile\":{\"backgroundKeepAlive\":{\"enabled\":false},\"release\":{\"versionCode\":906,\"versionName\":\"0.9.6\",\"url\":\"https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"minVersionCode\":905,\"notes\":{\"id\":\"Perbaikan keamanan.\",\"en\":\"A security fix.\"}}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": false,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     },
+     "minVersionCode": 905
+    }
+   }
   }
  ],
  "remoteReadDue": [
@@ -2582,6 +2788,128 @@
    },
    "out": {
     "action": "paused"
+   }
+  },
+  {
+   "name": "update-required",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     },
+     "minVersionCode": 905
+    },
+    "installedCode": 904
+   },
+   "out": {
+    "action": "hold",
+    "reason": "update_required",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "update-required-even-when-off",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": false,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     },
+     "minVersionCode": 905
+    },
+    "installedCode": 900
+   },
+   "out": {
+    "action": "hold",
+    "reason": "update_required",
+    "intervalMin": 360
+   }
+  },
+  {
+   "name": "at-min-version-checks",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     },
+     "minVersionCode": 905
+    },
+    "installedCode": 905
+   },
+   "out": {
+    "action": "check",
+    "schedule": {
+     "dayIntervalMin": 20,
+     "nightIntervalMin": 60,
+     "softDayIntervalMin": 40,
+     "radarEvery": 3
+    }
+   }
+  },
+  {
+   "name": "paused-before-update-required",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799308800,
+    "configOkAt": 1799996400,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     },
+     "minVersionCode": 905
+    },
+    "installedCode": 900
+   },
+   "out": {
+    "action": "paused"
+   }
+  },
+  {
+   "name": "stale-before-update-required",
+   "state": {
+    "now": 1800000000,
+    "lastAppAt": 1799996400,
+    "configOkAt": 1799740800,
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 60,
+      "radarEvery": 3
+     },
+     "minVersionCode": 905
+    },
+    "installedCode": 900
+   },
+   "out": {
+    "action": "hold",
+    "reason": "stale_config",
+    "intervalMin": 360
    }
   }
  ]

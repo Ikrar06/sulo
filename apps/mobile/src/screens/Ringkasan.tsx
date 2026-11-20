@@ -37,6 +37,7 @@ import { HeroMascot } from './HeroMascot';
 import { WeekCard } from './WeekCard';
 import { useSyncUi } from '../shell/SyncStatusLine';
 import { KrsReadinessCard, NeosiaSetupCard, StudiCard, TodayClassCard } from './neosia/RingkasanNeosia';
+import { ReleaseCard, useReleaseNotice } from './ReleaseNotice';
 import { URGENCY_TEXT } from './Tugas';
 
 /** Cards in "Berikutnya". */
@@ -52,6 +53,8 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   const r = d.ringkasan;
   const k = d.kalender;
   const { data, actions, platform } = useMobileData();
+  // A new version (config.json mobile.release): read again whenever the data is.
+  const release = useReleaseNotice(platform, data);
   const user = data!.user!;
   const now = data!.now;
   const today = data!.today;
@@ -164,6 +167,7 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
       </div>
 
       {/* NEOSIA (M8d): connect, the checklist, or a calm line; then Kesiapan KRS in its window. */}
+      <ReleaseCard notice={release.notice} onDismiss={() => void release.dismiss()} />
       <NeosiaSetupCard />
       <KrsReadinessCard />
 

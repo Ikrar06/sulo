@@ -82,6 +82,8 @@ export type ClientRefusal =
   | 'SESSION_EXPIRED'
   | 'NO_SESSKEY'
   | 'DISABLED_REMOTELY'
+  /** The phone's installed version is below the config's minVersionCode (M8e E3): nothing to SIKOLA until updated. */
+  | 'UPDATE_REQUIRED'
   | 'NOT_ALLOWLISTED'
   /** The domain refuses every request (NEOSIA: project rule 12). */
   | 'DOMAIN_DENIED';

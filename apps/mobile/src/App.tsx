@@ -22,6 +22,9 @@ import { DEV_EVENT, REFRESHED_EVENT, REPLAY_ONBOARDING_EVENT } from './events';
 import { SCENE_TEMPO_KEY, setSceneTempo } from './onboarding/motion';
 import { LOCK_KEY, signOutEverything } from './account';
 import { refreshPublicData } from './public-data';
+import { releaseState } from './release';
+import type { ReleaseInfo } from '@sulo/core/remote/release';
+import { UpdateRequiredScreen } from './screens/ReleaseNotice';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { applyWatchPlan, processWatchQueue } from './watch-native';
 import { markChangesHandled } from '@sulo/core/watch/queue';
@@ -103,6 +106,12 @@ export function App({ platform }: { platform: Platform }) {
   const [locale, setLocale] = useState<Locale>('id');
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [locked, setLocked] = useState(false);
+  /** Below a required update (config.json mobile.release.minVersionCode): the whole app is one screen. */
+  const [required, setRequired] = useState<ReleaseInfo | null>(null);
+  const checkRequired = useCallback(async () => {
+    const n = await releaseState(platform.store, platform.clock.now()).catch(() => ({ kind: 'none' as const }));
+    setRequired(n.kind === 'required' ? n.release : null);
+  }, [platform]);
   /** Where the onboarding is (null: not decided yet); 'finished' shows the app. */
   const [flow, setFlow] = useState<FlowState | null>(null);
   /** Another SIKOLA account signed in: the "Akun berbeda" question is open (switch-account.ts). */
@@ -254,6 +263,7 @@ export function App({ platform }: { platform: Platform }) {
       await processWatchQueue(platform).catch(() => null);
       await scheduleReminders(platform).catch(() => 0);
       await refreshPublicData(platform, true);
+      await checkRequired();
       const config = await readRemoteConfig(platform.store);
       setPaused(config.enabled ? null : config.message.trim() || mobileWords(loc).watch.paused);
       await applyWatchPlan(platform).catch(() => undefined);
@@ -283,7 +293,8 @@ export function App({ platform }: { platform: Platform }) {
       if (document.visibilityState === 'hidden') return flushSheetWork();
       if (document.visibilityState !== 'visible') return;
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
-      void refreshPublicData(platform, true);
+      void checkRequired();
+      void refreshPublicData(platform, true).then(checkRequired);
       const s = (await SuloSession.status()).status;
       await alignAndNote(platform, s);
       setStatus(s);
@@ -373,7 +384,10 @@ export function App({ platform }: { platform: Platform }) {
   return (
     <I18nProvider locale={locale}>
       <MascotMotionContext.Provider value={{ lite }}>
-      {locked ? (
+      {required ? (
+        // No SIKOLA request (the client refuses), no sign-in, the worker holds; the data stays.
+        <UpdateRequiredScreen release={required} openExternal={(url) => void window.open(url, '_blank', 'noopener,noreferrer')} />
+      ) : locked ? (
         <LockScreen
           w={w}
           onUnlocked={() => setLocked(false)}

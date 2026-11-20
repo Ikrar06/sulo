@@ -17,6 +17,7 @@ import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { NATIVE_SESSKEY, createSessionHttp } from './platform/http';
 import { SuloSession } from './session';
 import { recordTimeRemaining } from './dev-log';
+import { updateRequired } from './release';
 
 /** Opening the app syncs when the data is older than this. */
 export const RESUME_STALE_SEC = 15 * 60;
@@ -39,6 +40,8 @@ export function sikolaClient(platform: Platform, options: { userInitiated: boole
     confirmLogin: { wait: () => new Promise((resolve) => setTimeout(resolve, confirmDelayMs())) },
     // Only then does the vault end the session (the one place that decides; native SuloSession.endSession).
     onSessionEnded: async (why) => void (await SuloSession.endSession({ reason: why })),
+    // Below a required update (config.json mobile.release.minVersionCode) nothing leaves for SIKOLA.
+    updateRequired: () => updateRequired(store, clock.now()),
   });
 }
 
