@@ -120,15 +120,19 @@ export function Toggle({ checked, onChange, label, disabled = false, id }: { che
 }
 
 /**
- * A filter button for a choice with many or long options (36 high, sharing
- * the row's width): tapping the label opens its sheet. Inactive: the inset
+ * A filter button for a choice with many or long options (36 high; the row's
+ * width is shared by what each label needs, never under 120 px, so a short
+ * label does not take room a longer one is cut for; a chosen option gives way
+ * first, so the other pill's label stays whole; its shrink factor is that large
+ * because even a 25th of a pixel taken from the other label ends it in an ellipsis):
+ * tapping the label opens its sheet. Inactive: the inset
  * layer and a small chevron. Active: filled with the text color, the chosen
  * option as its label (ellipsis when long) and an X with a 44 px touch area
  * that clears it.
  */
 export function FilterPill({ label, active, onOpen, onClear, clearLabel }: { label: string; active: boolean; onOpen: () => void; onClear: () => void; clearLabel: string }) {
   return (
-    <div className={`flex h-9 min-w-0 flex-1 items-center rounded-full ${active ? 'bg-foreground text-bg' : 'bg-m-inset text-foreground'}`}>
+    <div className={`flex h-9 min-w-[7.5rem] items-center rounded-full ${active ? 'flex-[1_100000_auto] bg-foreground text-bg' : 'flex-[1_1_auto] bg-m-inset text-foreground'}`}>
       <button type="button" aria-haspopup="dialog" onClick={onOpen} className={`m-hit flex h-full min-w-0 flex-1 items-center gap-1 rounded-full pl-4 text-left text-m13 ${active ? 'pr-1' : 'pr-3'} ${ring}`}>
         <span className="min-w-0 flex-1 truncate">{label}</span>
         {!active && <ChevronDownIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />}
