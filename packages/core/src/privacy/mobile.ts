@@ -5,7 +5,7 @@
 
 import type { Block, Section, Text } from './content';
 
-export const MOBILE_PRIVACY_UPDATED: Text = { id: '18 November 2026', en: '18 November 2026' };
+export const MOBILE_PRIVACY_UPDATED: Text = { id: '20 November 2026', en: '20 November 2026' };
 
 /** The three points shown first, each restating a section below (no new claim). */
 export const MOBILE_PRIVACY_SUMMARY: readonly { icon: 'key' | 'shield' | 'eye'; title: Text; body: Text }[] = [
@@ -105,6 +105,10 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including the watching switch) and the latest academic calendar. The calendar is read at most once a day, plus when you open the app and the last read is over 6 hours old. The remote settings are read at most every 6 hours, by the app when you open it or by background watching if it is on. The request carries no cookie and nothing that identifies you.',
           },
           {
+            id: 'neosia.unhas.ac.id (hanya kalau kamu menghubungkan NEOSIA): halaman NEOSIA terbuka di dalam Sulo hanya saat kamu mengetuknya, dan halaman itu memuat datanya sendiri. Sulo tidak pernah mengirim permintaan ke NEOSIA.',
+            en: 'neosia.unhas.ac.id (only if you connect NEOSIA): NEOSIA’s pages open inside Sulo only when you tap them, and those pages load their own data. Sulo never sends a request to NEOSIA.',
+          },
+          {
             id: 'Tidak ada server lain. Tidak ada server Sulo, analitik, iklan, atau pelacakan. Kalender akademik juga ikut di dalam aplikasi, jadi tetap ada tanpa jaringan.',
             en: 'No other server. No Sulo server, analytics, ads or tracking. The academic calendar also ships inside the app, so it is there without a connection.',
           },
@@ -163,14 +167,28 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
     ],
   },
   {
+    heading: { id: 'NEOSIA (pilihan)', en: 'NEOSIA (optional)' },
+    blocks: [
+      {
+        kind: 'ul',
+        items: [
+          { id: 'Mati sampai kamu menghubungkannya. Kamu login di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA, dan halaman login tidak pernah mendapat skrip Sulo.', en: 'Off until you connect it. You sign in on NEOSIA’s own page; Sulo reads neither your password nor NEOSIA’s sign-in token, and the sign-in page never gets Sulo’s script.' },
+          { id: 'Dari halaman yang kamu buka, Sulo menyimpan jadwal kuliah, kelas, status KRS, nama PA, status bayar (lunas atau belum), nilai huruf, IPS, IPK, SKS, masa studi, jendela KRS, dan status survei. NIM, NIK, alamat, tanggal lahir, kontak, nilai angka, dan nominal pembayaran dibuang sebelum disimpan. Tautan survei tidak pernah dibaca.', en: 'From the pages you open, Sulo keeps the class schedule, classes, KRS status, your advisor’s name, payment status (paid or not), letter grades, semester and cumulative GPA, credits, study period, the KRS window and the survey status. Student number, ID number, address, birth date, contacts, numeric scores and payment amounts are dropped before anything is stored. The survey link is never read.' },
+          { id: 'Semua data NEOSIA disimpan terenkripsi dengan kunci Android Keystore tersendiri, terpisah dari sesi SIKOLA. Nilai dan IPK tersembunyi secara bawaan, hanya dibuka saat layar Nilai atau kartu Studi menampilkannya, dan tidak pernah masuk notifikasi, ekspor, atau info laporan bug.', en: 'All NEOSIA data is stored encrypted with an Android Keystore key of its own, apart from the SIKOLA session. Grades and GPA are hidden by default, opened only while the Grades screen or the Studi card shows them, and never go into notifications, exports or the bug report info.' },
+        ],
+      },
+    ],
+  },
+  {
     heading: { id: 'Cara menghapus', en: 'How to delete it' },
     blocks: [
       {
         kind: 'ul',
         items: [
           { id: 'Lainnya, Pengaturan, Keluar dan hapus data: menghapus sesi, kuncinya di Keystore, semua data Sulo, dan semua pengingat terjadwal di HP ini.', en: 'More, Settings, Sign out and delete data: deletes the session, its Keystore key, all of Sulo’s data and every scheduled reminder on this phone.' },
+          { id: 'Lainnya, Pengaturan, NEOSIA, Putuskan NEOSIA: menghapus semua data NEOSIA beserta login NEOSIA di HP ini. Keluar juga menghapusnya.', en: 'More, Settings, NEOSIA, Disconnect NEOSIA: deletes all NEOSIA data and the NEOSIA sign-in on this phone. Signing out deletes it too.' },
           { id: 'Menghapus aplikasi juga menghapus semuanya.', en: 'Uninstalling the app deletes everything too.' },
-          { id: 'Data di SIKOLA tidak tersentuh.', en: 'Nothing on SIKOLA changes.' },
+          { id: 'Data di SIKOLA dan NEOSIA tidak tersentuh.', en: 'Nothing on SIKOLA or NEOSIA changes.' },
         ],
       },
     ],

@@ -121,6 +121,40 @@ const PHONE: FaqEntry[] = [
     ],
   },
   {
+    id: 'neosia-hp',
+    q: { id: 'Bagaimana Sulo membaca data dari NEOSIA?', en: 'How does Sulo read data from NEOSIA?' },
+    a: [
+      {
+        id: 'Hanya dari halaman NEOSIA yang kamu buka sendiri lewat Sulo. Sulo tidak pernah meminta apa pun ke NEOSIA; saat halaman itu memuat datanya, Sulo menyalin bagian yang dibutuhkan (jadwal, kesiapan KRS, nilai) dan membuang data pribadi seperti NIM, alamat, dan kontak. Semua disimpan terenkripsi di HP ini, terpisah dari sesi SIKOLA.',
+        en: 'Only from NEOSIA pages you open yourself through Sulo. Sulo never asks NEOSIA for anything; when such a page loads its data, Sulo copies the parts it needs (schedule, KRS readiness, grades) and drops personal data such as your student number, address and contacts. Everything is stored encrypted on this phone, apart from your SIKOLA session.',
+      },
+      {
+        id: 'Kamu login di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA. Jadwal dan nilai menunjukkan kapan terakhir diperbarui. Untuk memperbaruinya, ketuk "Perbarui dari NEOSIA": Sulo hanya membuka halaman NEOSIA itu.',
+        en: 'You sign in on NEOSIA’s own page; Sulo reads neither your password nor NEOSIA’s sign-in token. The schedule and grades show when they were last updated. To update them, tap "Update from NEOSIA": Sulo only opens that NEOSIA page.',
+      },
+    ],
+  },
+  {
+    id: 'nilai-tersembunyi-hp',
+    q: { id: 'Kenapa nilai dan IPK tidak tampil?', en: 'Why are my grades and GPA hidden?' },
+    a: [
+      {
+        id: 'Nilai dan IPK tersembunyi sampai kamu menyalakan Tampilkan nilai di Lainnya, Pengaturan, NEOSIA. Mode privasi juga menyamarkannya. Nilai tidak pernah masuk notifikasi, ekspor, atau laporan bug. Simulasi IPK hanya perkiraan; IPK resmi tetap yang di NEOSIA.',
+        en: 'Grades and GPA stay hidden until you turn on Show grades in More, Settings, NEOSIA. Privacy mode masks them too. Grades never appear in notifications, exports or bug reports. The GPA simulation is an estimate; your official GPA is the one in NEOSIA.',
+      },
+    ],
+  },
+  {
+    id: 'sesi-neosia-hp',
+    q: { id: 'Kenapa Sulo bilang sesi NEOSIA habis?', en: 'Why does Sulo say my NEOSIA session ended?' },
+    a: [
+      {
+        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan halaman NEOSIA meminta login, ketuk Masuk NEOSIA dan login di sana. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan login NEOSIA di HP ini.',
+        en: 'Sulo does not keep your NEOSIA session alive. When you update and the NEOSIA page asks you to sign in, tap Sign in to NEOSIA and sign in there. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
+      },
+    ],
+  },
+  {
     id: 'mata-kuliah-hp',
     q: { id: 'Bagaimana cara memilih mata kuliah yang dipantau?', en: 'How do I choose the courses Sulo follows?' },
     a: [
@@ -179,6 +213,7 @@ export const MOBILE_FAQ_TOPICS = [
   { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'baterai-hp', 'pemantauan-dijeda-hp', 'email-sikola-hp'] },
   { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
+  { id: 'neosia', title: { id: 'Jadwal dan nilai dari NEOSIA', en: 'Schedule and grades from NEOSIA' }, entries: ['neosia-hp', 'nilai-tersembunyi-hp', 'sesi-neosia-hp'] },
   { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['webview-hp', 'resmi'] },
 ] as const;
 

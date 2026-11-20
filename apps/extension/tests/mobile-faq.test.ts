@@ -8,7 +8,7 @@ describe('mobile FAQ topics and search', () => {
     expect([...listed].sort()).toEqual(MOBILE_FAQ.map((e) => e.id).sort());
   });
   it('an empty query keeps every group in order', () => {
-    expect(searchFaq('', 'id').map((g) => g.title)).toEqual(['Keamanan dan privasi', 'Pembaruan data', 'Pengingat', 'Mata kuliah dan tugas', 'Presensi', 'Tentang Sulo']);
+    expect(searchFaq('', 'id').map((g) => g.title)).toEqual(['Keamanan dan privasi', 'Pembaruan data', 'Pengingat', 'Mata kuliah dan tugas', 'Presensi', 'Jadwal dan nilai dari NEOSIA', 'Tentang Sulo']);
     expect(searchFaq('  ', 'en')[0]?.title).toBe('Security and privacy');
   });
   it('matches every word in the question or answer, ignoring case', () => {
