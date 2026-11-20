@@ -5,6 +5,7 @@
 // change as handled afterwards, so nothing is announced twice and changes
 // found while the app is open never notify.
 
+import { parseRelease } from '@sulo/core/remote/release';
 import { readPending } from '@sulo/core/account/pending';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
@@ -59,6 +60,8 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
     globalEnabled: config.enabled,
     sessionConnected: session.status === 'connected',
     remoteRead: { okAt: config.okAt ?? 0, readAt: config.fetchedAt, url: await workerConfigUrl(platform) },
+    // A required update holds the worker too (it compares with its own versionCode).
+    minVersionCode: parseRelease(config.mobile)?.minVersionCode,
     tasks,
     calendarBaseline: radar.calendarBaseline,
     notificationLastId: radar.notificationsLastId,

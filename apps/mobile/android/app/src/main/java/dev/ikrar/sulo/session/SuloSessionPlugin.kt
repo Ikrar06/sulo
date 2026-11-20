@@ -50,6 +50,35 @@ class SuloSessionPlugin : Plugin() {
      * A light or a firm tick through the view's own haptic feedback: no
      * permission, and Android's touch-feedback setting decides whether it is felt.
      */
+    /**
+     * FLAG_SECURE while grades are on screen (M8e E2: the Nilai screen, the
+     * Studi card's GPA while in view): out of screenshots and recordings and
+     * out of the recent-apps preview. Off again when they go; the JS side
+     * counts the holds and this only follows.
+     */
+    @PluginMethod
+    fun secure(call: PluginCall) {
+        val on = call.getBoolean("on") ?: false
+        secureOn = on
+        activity.runOnUiThread {
+            applySecure(on)
+            call.resolve()
+        }
+    }
+
+    /** The last state the app asked for; set again when it comes back from the background. */
+    @Volatile private var secureOn = false
+
+    private fun applySecure(on: Boolean) {
+        if (on) activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        else activity.window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+    }
+
+    override fun handleOnResume() {
+        super.handleOnResume()
+        activity?.runOnUiThread { applySecure(secureOn) }
+    }
+
     @PluginMethod
     fun haptic(call: PluginCall) {
         val firm = call.getString("kind") == "firm"

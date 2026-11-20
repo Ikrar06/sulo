@@ -12,6 +12,7 @@ import { calendarReminders, type CalendarEventLite, type CalendarStage } from '.
 import type { CalendarNotifySettings } from '../calendar/notify-settings';
 import { lastStage, type ReminderSettings } from './settings';
 import { morningCounts, pendingForMorning, type MorningCounts } from './morning';
+import { classesToday } from '../neosia/today';
 import { addDays, inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
 
 /** The morning summary is skipped when the browser opens more than this after its time. */
@@ -54,6 +55,12 @@ export interface PlanInput {
   nudges?: readonly { id: string; nudge: 'grades' | 'krs'; mulai: string; selesai: string }[];
   /** "full" (the phone): overdue, today, tomorrow and today's events, nothing sent when all are empty; else the extension's summary. */
   morningStyle?: 'classic' | 'full';
+  /**
+   * NEOSIA's weekly schedule for the full summary's "Kuliah hari ini" line
+   * (module on, schedule stored): names and times only, and the holidays
+   * on which there is no class.
+   */
+  classes?: { meetings: readonly { name: string; weekday: number; start: string; end: string }[]; holidays: readonly { mulai: string; selesai: string; nama: string }[] };
   /** Academic calendar reminders (M5a); omitted means none. */
   calendar?: { events: readonly CalendarEventLite[]; settings: CalendarNotifySettings; /** Short source for the body, e.g. "SK Rektor No. 08429/UN4.1/KEP/2026". */ source: string };
 }
@@ -331,7 +338,8 @@ function morning(input: PlanInput, tasks: readonly Task[]): { notice: Notice | n
   if (input.now - todayAt > MORNING_GRACE) return { notice: null, mark: [key], nextAt };
   if (input.morningStyle === 'full') {
     const pending = pendingForMorning(input.tasks, input.taskState, input.activeCourseIds);
-    const full = morningCounts(input.now, input.timeZone, pending, input.calendar?.events ?? []);
+    const todays = input.classes ? classesToday(input.classes.meetings, today, 0, input.classes.holidays).map((c) => ({ name: c.name, start: c.start })) : [];
+    const full = morningCounts(input.now, input.timeZone, pending, input.calendar?.events ?? [], todays);
     // Nothing overdue, due or on the calendar: no summary, the day handled.
     if (!full) return { notice: null, mark: [key], nextAt };
     const nearest = [...pending].sort((a, b) => (a.dueAt as number) - (b.dueAt as number))[0] ?? ({ name: '', dueAt: input.now } as Task);

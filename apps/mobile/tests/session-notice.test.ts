@@ -48,7 +48,7 @@ describe('Masuk lagi on the phone', () => {
     const platform = await phone(now - 2 * H, false);
     expect(await sessionForReminders(platform.store, now)).toMatchObject({ state: 'EXPIRED', expiredAt: now - 2 * H + SESSION_ESTIMATE_SEC });
     const planned = sessionNotices(await planReminders(platform.store, now, TZ, 'id'));
-    // The first when the data turns 24 hours old (not at the estimated end two hours in).
+    // The first when the data turns 24 hours old (not at the estimated end of the session).
     expect(planned[0]?.at).toBe(now - 2 * H + 24 * H);
     // Never closer than 24 hours apart.
     for (let i = 1; i < planned.length; i++) expect(planned[i]!.at - planned[i - 1]!.at).toBeGreaterThanOrEqual(24 * H);

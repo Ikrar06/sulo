@@ -23,8 +23,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kapan data di Sulo diperbarui?', en: 'When does Sulo update its data?' },
     a: [
       {
-        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Jarak antarpembaruan paling cepat 2 menit. Kalau "Pantau tugas baru" menyala, Sulo juga mengecek berkala di latar belakang (sekitar tiap 20 menit siang hari, tiap 60 menit malam hari).',
-        en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. Updates are at least 2 minutes apart. With "Watch for new tasks" on, Sulo also checks regularly in the background (about every 20 minutes by day, every 60 minutes at night).',
+        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Jarak antarpembaruan paling cepat 2 menit. Kalau "Pantau tugas baru" menyala, Sulo juga mengecek berkala di latar belakang (sekitar tiap 20 menit siang hari, tiap 110 menit malam hari).',
+        en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. Updates are at least 2 minutes apart. With "Watch for new tasks" on, Sulo also checks regularly in the background (about every 20 minutes by day, every 110 minutes at night).',
       },
     ],
   },
@@ -33,8 +33,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo minta aku masuk lagi ke SIKOLA?', en: 'Why does Sulo ask me to sign in to SIKOLA again?' },
     a: [
       {
-        id: 'Sesi SIKOLA berakhir sekitar dua jam setelah kamu terakhir aktif. Kalau "Pantau tugas baru" mati, Sulo tidak menjaga sesimu tetap aktif, jadi kamu diminta masuk lagi sesekali. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui.',
-        en: 'A SIKOLA session ends about two hours after you were last active. With "Watch for new tasks" off, Sulo does not keep your session active, so it asks you to sign in now and then. The latest data stays on screen; tap Sign in again to update.',
+        id: 'Sesi SIKOLA berakhir setelah beberapa jam tanpa aktivitas (bisa sampai sekitar 8 jam, tergantung SIKOLA). Kalau "Pantau tugas baru" mati, Sulo tidak menjaga sesimu tetap aktif, jadi kamu diminta masuk lagi sesekali. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui.',
+        en: 'A SIKOLA session ends after some hours without activity (up to about 8 hours, depending on SIKOLA). With "Watch for new tasks" off, Sulo does not keep your session active, so it asks you to sign in now and then. The latest data stays on screen; tap Sign in again to update.',
       },
     ],
   },
@@ -53,8 +53,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo minta masuk lagi padahal pemantauan menyala?', en: 'Why does Sulo ask me to sign in again when watching is on?' },
     a: [
       {
-        id: 'HP-mu menunda pengecekan terlalu lama (misalnya penghemat baterai), sehingga lebih dari dua jam tidak ada cek dan login SIKOLA berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
-        en: 'Your phone held the checks back too long (a battery saver, for example), so more than two hours passed without one and the SIKOLA sign-in ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
+        id: 'HP-mu menunda pengecekan terlalu lama (misalnya penghemat baterai), sehingga terlalu lama tidak ada cek dan login SIKOLA berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
+        en: 'Your phone held the checks back too long (a battery saver, for example), so too long passed without one and the SIKOLA sign-in ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
       },
     ],
   },

@@ -25,7 +25,8 @@ object WatchRemote {
     private const val MESSAGE_MAX = 500
 
     data class KeepAlive(val enabled: Boolean, val dayIntervalMinutes: Int, val nightIntervalMinutes: Int, val radarEvery: Int)
-    data class Config(val globalEnabled: Boolean, val keepAlive: KeepAlive)
+    /** minVersionCode: from a valid mobile.release only, 0 when none (core remote/release.ts). */
+    data class Config(val globalEnabled: Boolean, val keepAlive: KeepAlive, val minVersionCode: Int = 0)
 
     sealed class Read {
         data class Ok(val config: Config) : Read()
@@ -39,9 +40,10 @@ object WatchRemote {
         data class Check(val dayIntervalMin: Int, val nightIntervalMin: Int, val softDayIntervalMin: Int, val radarEvery: Int) : Decision()
     }
 
-    data class State(val now: Long, val lastAppAt: Long, val configOkAt: Long, val config: Config?)
+    /** installedCode: this app's versionCode (BuildConfig.VERSION_CODE); null: not compared. */
+    data class State(val now: Long, val lastAppAt: Long, val configOkAt: Long, val config: Config?, val installedCode: Long? = null)
 
-    private val DEFAULT = KeepAlive(enabled = true, dayIntervalMinutes = 20, nightIntervalMinutes = 60, radarEvery = 3)
+    private val DEFAULT = KeepAlive(enabled = true, dayIntervalMinutes = 20, nightIntervalMinutes = 110, radarEvery = 3)
     private val DAY = 15..110
     private val NIGHT = 30..110
     private val RADAR = 1..6
@@ -62,7 +64,7 @@ object WatchRemote {
         }
         // The switch's path, when present, is readable (the schema's refine).
         if (!switchReadable(root)) return Read.Failed
-        return Read.Ok(Config(enabled, keepAlive(root.opt("mobile"))))
+        return Read.Ok(Config(enabled, keepAlive(root.opt("mobile")), releaseMin(root.opt("mobile"))))
     }
 
     private fun switchReadable(root: JSONObject): Boolean {
@@ -84,6 +86,40 @@ object WatchRemote {
         )
     }
 
+    // ---- mobile.release (M8e E3), as core's parseRelease reads it ----
+
+    private val RELEASE_URL = Regex("^https://github\\.com/Ikrar06/[A-Za-z0-9_-][A-Za-z0-9._-]*/releases/download/[A-Za-z0-9_-][A-Za-z0-9._-]*/[A-Za-z0-9_-][A-Za-z0-9._-]*\\.apk$")
+    private val VERSION_NAME = Regex("^\\d+\\.\\d+\\.\\d+$")
+    private val SHA256 = Regex("^[0-9a-fA-F]{64}$")
+    private const val NOTES_MAX = 300
+
+    private fun isCode(v: Any?): Boolean = isInteger(v) && (v as Number).toDouble() > 0 && v.toDouble() < 2_100_000_000.0
+
+    /**
+     * The minVersionCode of a valid mobile.release, else 0. The whole section
+     * must be valid (versionCode, versionName x.y.z, an asset of one of the
+     * owner's GitHub releases, a SHA-256, notes when present), and the
+     * minimum never above versionCode; anything else is ignored.
+     */
+    fun releaseMin(mobile: Any?): Int {
+        val r = (mobile as? JSONObject)?.opt("release") as? JSONObject ?: return 0
+        val code = r.opt("versionCode")
+        if (!isCode(code)) return 0
+        if (!((r.opt("versionName") as? String)?.let { VERSION_NAME.matches(it) } ?: false)) return 0
+        if (!((r.opt("url") as? String)?.let { RELEASE_URL.matches(it) } ?: false)) return 0
+        if (!((r.opt("sha256") as? String)?.let { SHA256.matches(it) } ?: false)) return 0
+        val min = if (r.has("minVersionCode")) r.opt("minVersionCode") else 0
+        val minOk = (isInteger(min) && (min as Number).toDouble() == 0.0) || isCode(min)
+        if (!minOk || (min as Number).toDouble() > (code as Number).toDouble()) return 0
+        if (r.has("notes")) {
+            val n = r.opt("notes") as? JSONObject ?: return 0
+            val id = (n.opt("id") as? String)?.trim() ?: return 0
+            val en = (n.opt("en") as? String)?.trim() ?: return 0
+            if (id.isEmpty() || en.isEmpty() || id.length > NOTES_MAX || en.length > NOTES_MAX) return 0
+        }
+        return min.toInt()
+    }
+
     /** A JSON number with no fraction (JavaScript's Number.isInteger). */
     private fun isInteger(v: Any?): Boolean = v is Number && v.toDouble().let { !it.isNaN() && !it.isInfinite() && it == Math.floor(it) }
 
@@ -99,6 +135,8 @@ object WatchRemote {
         val c = s.config
         if (c == null || s.configOkAt <= 0) return Decision.Hold("no_config")
         if (s.now - s.configOkAt >= MAX_AGE_SEC) return Decision.Hold("stale_config")
+        // A required update: nothing to SIKOLA until Sulo is updated (the chain still reads the config).
+        if (c.minVersionCode > 0 && s.installedCode != null && s.installedCode < c.minVersionCode) return Decision.Hold("update_required")
         if (!c.globalEnabled) return Decision.Hold("global_off")
         if (!c.keepAlive.enabled) return Decision.Hold("keepalive_off")
         val k = c.keepAlive
@@ -121,11 +159,12 @@ object WatchRemote {
     fun toJson(c: Config): JSONObject = JSONObject()
         .put("globalEnabled", c.globalEnabled)
         .put("keepAlive", JSONObject().put("enabled", c.keepAlive.enabled).put("dayIntervalMinutes", c.keepAlive.dayIntervalMinutes).put("nightIntervalMinutes", c.keepAlive.nightIntervalMinutes).put("radarEvery", c.keepAlive.radarEvery))
+        .apply { if (c.minVersionCode > 0) put("minVersionCode", c.minVersionCode) }
 
     /** From the plan's or the store's JSON; anything unreadable is null (no config). */
     fun fromJson(o: JSONObject?): Config? = runCatching {
         val k = o!!.getJSONObject("keepAlive")
-        Config(o.getBoolean("globalEnabled"), KeepAlive(k.getBoolean("enabled"), k.getInt("dayIntervalMinutes"), k.getInt("nightIntervalMinutes"), k.getInt("radarEvery")))
+        Config(o.getBoolean("globalEnabled"), KeepAlive(k.getBoolean("enabled"), k.getInt("dayIntervalMinutes"), k.getInt("nightIntervalMinutes"), k.getInt("radarEvery")), o.optInt("minVersionCode", 0))
     }.getOrNull()
 }
 

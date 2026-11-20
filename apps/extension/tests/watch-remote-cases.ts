@@ -3,12 +3,13 @@
 // watch-vectors.test.ts. `want` is written by hand: what the rule says.
 import type { ConfigRead, RemoteDecision, RemoteState, WorkerConfig } from '@sulo/core/watch/remote';
 
-const ON: WorkerConfig['keepAlive'] = { enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 60, radarEvery: 3 };
+const ON: WorkerConfig['keepAlive'] = { enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 110, radarEvery: 3 };
 const ok = (keepAlive: Partial<WorkerConfig['keepAlive']> = {}, globalEnabled = true): ConfigRead => ({ kind: 'ok', config: { globalEnabled, keepAlive: { ...ON, ...keepAlive } } });
 const failed: ConfigRead = { kind: 'failed' };
 const base = { enabled: true, minIntervalMinutes: 30, message: '' };
 const body = (v: unknown) => JSON.stringify(v);
 const ka = (k: unknown) => body({ ...base, mobile: { backgroundKeepAlive: k } });
+const REL = { versionCode: 906, versionName: '0.9.6', url: 'https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk', sha256: 'a'.repeat(64), minVersionCode: 905, notes: { id: 'Perbaikan keamanan.', en: 'A security fix.' } };
 
 export const remoteParseCases: { name: string; status: number; body: string | null; want: ConfigRead }[] = [
   { name: 'no-mobile-section', status: 200, body: body(base), want: ok() },
@@ -41,6 +42,19 @@ export const remoteParseCases: { name: string; status: number; body: string | nu
   { name: 'not-found', status: 404, body: '<html>', want: failed },
   { name: 'server-error', status: 503, body: null, want: failed },
   { name: 'network-failure', status: 0, body: null, want: failed },
+  // M8e E3: a valid mobile.release carries its minVersionCode to the worker; anything invalid in it is ignored (never a failed read).
+  { name: 'release-with-min', status: 200, body: body({ ...base, mobile: { release: REL } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: ON, minVersionCode: 905 } } },
+  { name: 'release-without-min', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: undefined } } }), want: ok() },
+  { name: 'release-min-zero', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: 0 } } }), want: ok() },
+  { name: 'release-url-elsewhere-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, url: 'https://example.com/sulo.apk' } } }), want: ok() },
+  { name: 'release-url-other-owner-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, url: 'https://github.com/someone/sulo/releases/download/v0.9.6/sulo.apk' } } }), want: ok() },
+  { name: 'release-url-dot-segment-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, url: 'https://github.com/Ikrar06/../releases/download/v0.9.6/sulo.apk' } } }), want: ok() },
+  { name: 'release-url-not-an-asset-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, url: 'https://github.com/Ikrar06/sulo/releases/tag/v0.9.6' } } }), want: ok() },
+  { name: 'release-min-above-version-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: 907 } } }), want: ok() },
+  { name: 'release-bad-sha-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, sha256: 'abc' } } }), want: ok() },
+  { name: 'release-name-with-suffix-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, versionName: '0.9.6-beta' } } }), want: ok() },
+  { name: 'release-min-not-integer-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: 905.5 } } }), want: ok() },
+  { name: 'release-with-keepalive-off', status: 200, body: body({ ...base, mobile: { backgroundKeepAlive: { enabled: false }, release: REL } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: { ...ON, enabled: false }, minVersionCode: 905 } } },
 ];
 
 const NOW = 1_800_000_000;
@@ -56,19 +70,25 @@ export const remoteReadDueCases: { lastReadAt: number; now: number; want: boolea
 
 const cfg = (keepAlive: Partial<WorkerConfig['keepAlive']> = {}, globalEnabled = true): WorkerConfig => ({ globalEnabled, keepAlive: { ...ON, ...keepAlive } });
 const state = (s: Partial<RemoteState>): RemoteState => ({ now: NOW, lastAppAt: NOW - H, configOkAt: NOW - H, config: cfg(), ...s });
-const hold = (reason: 'no_config' | 'stale_config' | 'global_off' | 'keepalive_off'): RemoteDecision => ({ action: 'hold', reason, intervalMin: 360 });
+const hold = (reason: 'no_config' | 'stale_config' | 'update_required' | 'global_off' | 'keepalive_off'): RemoteDecision => ({ action: 'hold', reason, intervalMin: 360 });
 
 export const remoteDecideCases: { name: string; state: RemoteState; want: RemoteDecision }[] = [
-  { name: 'on-defaults', state: state({}), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 60, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'on-defaults', state: state({}), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'on-config-intervals-used-directly', state: state({ config: cfg({ dayIntervalMinutes: 50, nightIntervalMinutes: 90, radarEvery: 1 }) }), want: { action: 'check', schedule: { dayIntervalMin: 50, nightIntervalMin: 90, softDayIntervalMin: 50, radarEvery: 1 } } },
   { name: 'global-off', state: state({ config: cfg({}, false) }), want: hold('global_off') },
   { name: 'keepalive-off', state: state({ config: cfg({ enabled: false }) }), want: hold('keepalive_off') },
   { name: 'never-read', state: state({ config: null, configOkAt: 0 }), want: hold('no_config') },
   { name: 'config-without-success-time', state: state({ configOkAt: 0 }), want: hold('no_config') },
   { name: 'no-read-72h', state: state({ configOkAt: NOW - 72 * H }), want: hold('stale_config') },
-  { name: 'read-just-under-72h', state: state({ configOkAt: NOW - 72 * H + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 60, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'read-just-under-72h', state: state({ configOkAt: NOW - 72 * H + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'app-not-opened-7-days', state: state({ lastAppAt: NOW - 7 * D }), want: { action: 'paused' } },
-  { name: 'app-opened-just-under-7-days', state: state({ lastAppAt: NOW - 7 * D + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 60, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'app-opened-just-under-7-days', state: state({ lastAppAt: NOW - 7 * D + 1 }), want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'paused-before-stale', state: state({ lastAppAt: NOW - 8 * D, configOkAt: NOW - 5 * D }), want: { action: 'paused' } },
   { name: 'paused-even-when-off', state: state({ lastAppAt: NOW - 8 * D, config: cfg({}, false) }), want: { action: 'paused' } },
+  // M8e E3: below a valid release's minVersionCode nothing goes to SIKOLA (the chain keeps reading the config).
+  { name: 'update-required', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 904 }, want: hold('update_required') },
+  { name: 'update-required-even-when-off', state: { ...state({ config: { ...cfg({}, false), minVersionCode: 905 } }), installedCode: 900 }, want: hold('update_required') },
+  { name: 'at-min-version-checks', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 905 }, want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'paused-before-update-required', state: { ...state({ lastAppAt: NOW - 8 * D, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: { action: 'paused' } },
+  { name: 'stale-before-update-required', state: { ...state({ configOkAt: NOW - 72 * H, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: hold('stale_config') },
 ];

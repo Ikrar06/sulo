@@ -1,9 +1,9 @@
-// Syncs on Android. There is no background sync (sessions last about two
-// hours after the last activity, and Sulo never keeps one alive). Every
-// sync here is started by the user: opening the app, "Perbarui", or right
-// after signing in. Those count as real activity, so SuloSession sends
+// Syncs on Android started by the user: opening the app, "Perbarui", or
+// right after signing in. Those count as real activity, so SuloSession sends
 // nosessionupdate=false for them; runSync keeps its own rules (2-minute
-// cooldown for "manual", budget, queue, backoff).
+// cooldown for "manual", budget, queue, backoff). A SIKOLA session ends after
+// some hours without activity (measured up to about 8, docs/RISIKO.md);
+// background checks happen only with "Pantau tugas baru" on (watch-native.ts).
 
 import { createMoodleClient, type MoodleClient } from '@sulo/core/moodle/client';
 import { refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
@@ -17,6 +17,7 @@ import type { SyncOutcome, UnixSeconds } from '@sulo/core/types';
 import { NATIVE_SESSKEY, createSessionHttp } from './platform/http';
 import { SuloSession } from './session';
 import { recordTimeRemaining } from './dev-log';
+import { updateRequired } from './release';
 
 /** Opening the app syncs when the data is older than this. */
 export const RESUME_STALE_SEC = 15 * 60;
@@ -39,6 +40,8 @@ export function sikolaClient(platform: Platform, options: { userInitiated: boole
     confirmLogin: { wait: () => new Promise((resolve) => setTimeout(resolve, confirmDelayMs())) },
     // Only then does the vault end the session (the one place that decides; native SuloSession.endSession).
     onSessionEnded: async (why) => void (await SuloSession.endSession({ reason: why })),
+    // Below a required update (config.json mobile.release.minVersionCode) nothing leaves for SIKOLA.
+    updateRequired: () => updateRequired(store, clock.now()),
   });
 }
 

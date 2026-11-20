@@ -46,6 +46,8 @@ export interface MoodleClientDeps {
   confirmLogin?: { wait(): Promise<void> };
   /** Told once the session is over for sure (why: the codes of both answers). The vault follows it. */
   onSessionEnded?: (why: string) => Promise<void>;
+  /** The phone only (M8e E3): true while the installed version is below a required update; every request is refused. */
+  updateRequired?: () => Promise<boolean>;
 }
 
 export type CallResult = { ok: true; data: unknown } | { ok: false; errorcode: string };
@@ -247,6 +249,8 @@ async function askSessionOnly(deps: ResolvedDeps, options: RequestOptions): Prom
 }
 
 async function checkGates(deps: MoodleClientDeps): Promise<TransportFailure | null> {
+  // The phone below a required update's minVersionCode (M8e E3): nothing leaves for SIKOLA.
+  if (deps.updateRequired && (await deps.updateRequired())) return refused('UPDATE_REQUIRED');
   if (!(await readRemoteConfig(deps.store)).enabled) return refused('DISABLED_REMOTELY');
   if ((await readSession(deps.store)).state === 'EXPIRED') return refused('SESSION_EXPIRED');
   if (isBackingOff(await readBackoff(deps.store), deps.clock.now())) return refused('BACKING_OFF');

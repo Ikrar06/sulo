@@ -16,6 +16,27 @@ import { currentUser, readUser } from '@sulo/core/storage';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { keepAliveFrom } from '@sulo/core/remote/keep-alive';
 import { WATCH_KEY } from './watch';
+import { snapshotKey } from '@sulo/core/neosia/store';
+import { COURSE_MAP_KEY } from '@sulo/core/neosia/course-map';
+import { createNeosiaStore } from './platform/neosia-store';
+import { SuloNeosia } from './neosia-native';
+
+/**
+ * The only NEOSIA records the reminders read (the class schedule for
+ * "Kuliah hari ini", the KRS dates, the hand-made course links): taken from
+ * the encrypted store into the plan's in-memory copy. Never a grade.
+ */
+export const REMINDER_NEOSIA_KEYS: readonly string[] = [snapshotKey('belanja_krs'), snapshotKey('checkJadwalBelanjaKRS'), COURSE_MAP_KEY];
+
+/** Those records, from a store that holds NEOSIA's data (missing or unreadable ones are left out). */
+export async function remindersNeosia(store: KeyValueStore): Promise<Record<string, unknown>> {
+  const out: Record<string, unknown> = {};
+  for (const key of REMINDER_NEOSIA_KEYS) {
+    const value = await store.get(key).catch(() => undefined);
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
+}
 
 export const HORIZON_DAYS = 7;
 /** Android keeps a few hundred alarms per app; Sulo stays far below. */
@@ -40,14 +61,19 @@ export async function copyStore(store: KeyValueStore): Promise<KeyValueStore> {
   };
 }
 
-/** A SIKOLA session ends about this long after the last activity (the phone's own estimate, no request). */
-export const SESSION_ESTIMATE_SEC = 2 * 3600;
+/**
+ * A SIKOLA session ends about this long after the last activity (the phone's
+ * own estimate, no request). Measured 20 Nov 2026: timeremaining was about
+ * 28,800 seconds right after signing in, so up to 8 hours idle; the old
+ * "about two hours" was wrong (docs/RISIKO.md).
+ */
+export const SESSION_ESTIMATE_SEC = 8 * 3600;
 
 /**
  * The session as the reminders see it. Watching on: always fine here, since
  * the worker itself sends one "Masuk lagi" when a check finds the session
  * ended. Watching off: no background request, so the end is estimated from
- * the last sync (activity + 2 hours); core's rules then send it only once
+ * the last sync (activity + 8 hours); core's rules then send it only once
  * the data is over 24 hours old, at most once per 24 hours, never in quiet
  * hours. No sync yet: nothing to say.
  */
@@ -61,8 +87,9 @@ export async function sessionForReminders(store: KeyValueStore, now: UnixSeconds
   return { state: 'EXPIRED', userId, checkedAt: now, expiredAt: last + SESSION_ESTIMATE_SEC };
 }
 
-export async function planReminders(store: KeyValueStore, now: UnixSeconds, timeZone: string, uiLanguage: string): Promise<PlannedReminder[]> {
+export async function planReminders(store: KeyValueStore, now: UnixSeconds, timeZone: string, uiLanguage: string, neosia: Record<string, unknown> = {}): Promise<PlannedReminder[]> {
   const sim = await copyStore(store);
+  for (const [key, value] of Object.entries(neosia)) await sim.set(key, structuredClone(value));
   await sim.set('global:session', await sessionForReminders(store, now));
   const out: PlannedReminder[] = [];
   const end = now + HORIZON_DAYS * 86_400;
@@ -70,7 +97,7 @@ export async function planReminders(store: KeyValueStore, now: UnixSeconds, time
   for (let guard = 0; at !== null && at <= end && out.length < MAX_SCHEDULED && guard < 500; guard++) {
     const when: UnixSeconds = at;
     // The phone's morning summary is the full one: overdue, today, tomorrow, today's events (reminders/morning.ts).
-    const result = await runNotifyCycle({ store: sim, now: when, timeZone, uiLanguage, morningStyle: 'full', notifier: { show: async (id, view) => void out.push({ at: when, id, view }) } });
+    const result = await runNotifyCycle({ store: sim, now: when, timeZone, uiLanguage, morningStyle: 'full', morningClasses: true, notifier: { show: async (id, view) => void out.push({ at: when, id, view }) } });
     at = result.nextAt !== null && result.nextAt > when ? result.nextAt : null;
   }
   return out.slice(0, MAX_SCHEDULED);
@@ -80,7 +107,9 @@ export async function planReminders(store: KeyValueStore, now: UnixSeconds, time
 export async function scheduleReminders(platform: Platform): Promise<number> {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   // Another account is waiting for the user's answer: the previous account's reminders are cancelled, none planned (as the extension does).
-  const planned = (await readPending(platform.store)) !== null ? [] : await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language);
+  const pending = (await readPending(platform.store)) !== null;
+  const neosia = pending ? {} : await remindersNeosia(createNeosiaStore(platform.store, SuloNeosia));
+  const planned = pending ? [] : await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language, neosia);
   const previous = (await platform.store.get<number[]>(SCHEDULED_KEY)) ?? [];
   if (previous.length > 0) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
   const notifications = planned.map((p) => ({

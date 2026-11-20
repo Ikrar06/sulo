@@ -154,6 +154,21 @@ const id = {
   about: {
     apkVersion: (v: string) => `Versi APK ${v}`,
   },
+  /** A new version (M8e E3, config.json mobile.release). Sulo never downloads it itself: Unduh opens the browser. */
+  release: {
+    title: 'Versi baru tersedia',
+    version: (v: string) => `Sulo ${v}`,
+    download: 'Unduh',
+    later: 'Nanti',
+    sha: 'SHA-256',
+    copy: 'Salin',
+    copied: 'Disalin',
+    howTo: 'Buka berkas yang terunduh, lalu pilih Perbarui.',
+    aboutRow: (v: string) => `Versi baru tersedia: ${v}`,
+    requiredTitle: 'Sulo perlu diperbarui',
+    requiredBody: 'Sulo berhenti memeriksa SIKOLA sampai diperbarui.',
+    requiredData: 'Datamu tetap ada di HP ini.',
+  },
   /** Ringkasan's greeting (core dashboard/mobile-greeting.ts). [s] marks a casual line, only when nothing is overdue or due today. */
   greet: {
     line1: GREET_LINE1.id,
@@ -360,6 +375,20 @@ const en: MobileWords = {
   },
   about: {
     apkVersion: (v: string) => `APK version ${v}`,
+  },
+  release: {
+    title: 'New version available',
+    version: (v: string) => `Sulo ${v}`,
+    download: 'Download',
+    later: 'Later',
+    sha: 'SHA-256',
+    copy: 'Copy',
+    copied: 'Copied',
+    howTo: 'Open the downloaded file, then choose Update.',
+    aboutRow: (v: string) => `Update available: ${v}`,
+    requiredTitle: 'Sulo needs an update',
+    requiredBody: 'Sulo stops checking SIKOLA until it is updated.',
+    requiredData: 'Your data stays on this phone.',
   },
   greet: {
     line1: GREET_LINE1.en,

@@ -7,7 +7,11 @@
 // the app. Every outside link is a plain link opening a new tab; nothing
 // from those sites is loaded here.
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { ReleaseInfo } from '@sulo/core/remote/release';
+import { newerRelease } from '../release';
+import { ReleaseAboutRow } from './ReleaseNotice';
+import { useMobileData } from '../shell/data';
 import { CREATOR_LINKS, CREATOR_NAME, FEEDBACK_FORM_URL, isShownLink, REPO_URL, TRAKTEER_URL, type CreatorLinkId } from '@sulo/core/links';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { EyeOffIcon, GitHubIcon, GlobeIcon, InfoCircleIcon, InstagramIcon, LinkedInIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
@@ -27,6 +31,12 @@ export function TentangScreen() {
   const t = mobileDash(locale).tentang;
   const w = mobileWords(locale);
   const taps = useRef(0);
+  const { platform } = useMobileData();
+  // A newer version from the config (shown here even after its card was closed on Ringkasan).
+  const [newer, setNewer] = useState<ReleaseInfo | null>(null);
+  useEffect(() => {
+    void newerRelease(platform.store).then(setNewer).catch(() => undefined);
+  }, [platform]);
   const creators = CREATOR_LINKS.filter((l) => isShownLink(l.url));
   const coffee = isShownLink(TRAKTEER_URL);
   const feedback = isShownLink(FEEDBACK_FORM_URL);
@@ -55,6 +65,8 @@ export function TentangScreen() {
           </div>
         </div>
       </Card>
+
+      <ReleaseAboutRow release={newer} />
 
       <Card>
         <h2 className="text-m15 font-semibold">{t.aboutTitle}</h2>

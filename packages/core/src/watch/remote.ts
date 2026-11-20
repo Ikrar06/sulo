@@ -17,10 +17,14 @@
 //   - No successful read (worker or app) for 72 hours: nothing goes to
 //     SIKOLA until one succeeds.
 //   - The app not opened for 7 days: the chain stops with one calm notice.
+//   - A required update (M8e E3: a valid mobile.release whose
+//     minVersionCode is above the installed versionCode): nothing goes to
+//     SIKOLA until Sulo is updated; the chain keeps reading the config.
 //   - Otherwise the intervals and the Radar rotation come from the config.
 
 import { parseKeepAlive } from '../remote/keep-alive';
 import { remoteConfigSchema } from '../remote/remote-config';
+import { parseRelease } from '../remote/release';
 import type { UnixSeconds } from '../types';
 import { SOFT_DAY_INTERVAL_MIN } from './plan';
 
@@ -33,6 +37,8 @@ export const HOLD_INTERVAL_MIN = 360;
 export interface WorkerConfig {
   globalEnabled: boolean;
   keepAlive: { enabled: boolean; dayIntervalMinutes: number; nightIntervalMinutes: number; radarEvery: number };
+  /** From a valid mobile.release only, and only when above 0 (absent otherwise, so older configs read the same). */
+  minVersionCode?: number;
 }
 
 export type ConfigRead = { kind: 'ok'; config: WorkerConfig } | { kind: 'not_modified' } | { kind: 'failed' };
@@ -50,7 +56,8 @@ export function parseConfigResponse(status: number, body: string | null): Config
   const parsed = remoteConfigSchema.safeParse(json);
   if (!parsed.success) return { kind: 'failed' };
   const k = parseKeepAlive(parsed.data.mobile);
-  return { kind: 'ok', config: { globalEnabled: parsed.data.enabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery } } };
+  const min = parseRelease(parsed.data.mobile)?.minVersionCode ?? 0;
+  return { kind: 'ok', config: { globalEnabled: parsed.data.enabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery }, ...(min > 0 ? { minVersionCode: min } : {}) } };
 }
 
 /** A read is due when the last one (the worker's or the app's) is 6 hours old or more. */
@@ -64,11 +71,13 @@ export interface RemoteState {
   configOkAt: UnixSeconds;
   /** The last good config; null: none yet. */
   config: WorkerConfig | null;
+  /** The installed app's versionCode (BuildConfig.VERSION_CODE); absent: not compared. */
+  installedCode?: number;
 }
 
 export type RemoteDecision =
   | { action: 'paused' }
-  | { action: 'hold'; reason: 'no_config' | 'stale_config' | 'global_off' | 'keepalive_off'; intervalMin: number }
+  | { action: 'hold'; reason: 'no_config' | 'stale_config' | 'update_required' | 'global_off' | 'keepalive_off'; intervalMin: number }
   | { action: 'check'; schedule: { dayIntervalMin: number; nightIntervalMin: number; softDayIntervalMin: number; radarEvery: number } };
 
 /** What the worker may do now, after any due read has been made. */
@@ -76,6 +85,7 @@ export function decideRemote(s: RemoteState): RemoteDecision {
   if (s.now - s.lastAppAt >= APP_PAUSE_SEC) return { action: 'paused' };
   if (s.config === null || s.configOkAt <= 0) return { action: 'hold', reason: 'no_config', intervalMin: HOLD_INTERVAL_MIN };
   if (s.now - s.configOkAt >= CONFIG_MAX_AGE_SEC) return { action: 'hold', reason: 'stale_config', intervalMin: HOLD_INTERVAL_MIN };
+  if (s.config.minVersionCode !== undefined && s.installedCode !== undefined && s.installedCode < s.config.minVersionCode) return { action: 'hold', reason: 'update_required', intervalMin: HOLD_INTERVAL_MIN };
   if (!s.config.globalEnabled) return { action: 'hold', reason: 'global_off', intervalMin: HOLD_INTERVAL_MIN };
   if (!s.config.keepAlive.enabled) return { action: 'hold', reason: 'keepalive_off', intervalMin: HOLD_INTERVAL_MIN };
   const k = s.config.keepAlive;

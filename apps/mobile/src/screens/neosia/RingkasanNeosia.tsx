@@ -22,6 +22,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { timeZone, useMobileData } from '../../shell/data';
 import type { Screen } from '../../shell/nav';
 import { useGrades, useNeosia } from '../../neosia/NeosiaProvider';
+import { studiSecure, studiShowsGpa, useInView, useSecureScreen } from '../../neosia/secure-screen';
 
 const WEBVIEW_STORE = 'https://play.google.com/store/apps/details?id=com.google.android.webview';
 
@@ -171,7 +172,7 @@ export function TodayClassCard({ go }: { go: (s: Screen) => void }) {
   );
 }
 
-/** "Studi": credits always; the GPA only when grades are shown and privacy mode is off. */
+/** "Studi": credits always; the GPA only when grades are shown and privacy mode is off (FLAG_SECURE only while that number is in view). */
 export function StudiCard({ go }: { go: (s: Screen) => void }) {
   const { locale } = useI18n();
   const n = neosiaWords(locale);
@@ -182,12 +183,18 @@ export function StudiCard({ go }: { go: (s: Screen) => void }) {
   // Grades are read only while this card shows them, and released after.
   const grades = useGrades(neo.enabled && show);
   const p = profile(grades ?? neo.snapshots);
+  const gpa = { enabled: neo.enabled, gradesShown: prefs.gradesShown, privacyMode: prefs.privacyMode, gpa: p?.ipk ?? null };
+  const [gpaRef, inView] = useInView<HTMLParagraphElement>();
+  // Only while the GPA number is rendered and inside the viewport; masked, scrolled away or another tab, Ringkasan stays capturable.
+  useSecureScreen(studiSecure({ ...gpa, inView }));
   if (!neo.enabled || !p) return null;
   const target = prefs.sksTarget || DEFAULT_SKS_TARGET;
   return (
     <Card onPress={() => go({ name: 'nilai', detail: null })} label={n.studi.title} className="h-full min-w-0" inner="flex h-full flex-col">
       <p className="text-m12 text-muted-foreground">{n.studi.title}</p>
-      <p className="mt-1 text-m22 font-semibold tabular-nums">{show && p.ipk !== null ? <Private>{p.ipk.toFixed(2)}</Private> : '•••'}</p>
+      <p ref={gpaRef} className="mt-1 text-m22 font-semibold tabular-nums">
+        {studiShowsGpa(gpa) && p.ipk !== null ? <Private>{p.ipk.toFixed(2)}</Private> : '•••'}
+      </p>
       {p.sksPassed !== null && (
         <p className="mt-auto pt-2 text-m13 text-muted-foreground">
           <Private>{n.studi.creditsOf(p.sksPassed, target)}</Private>

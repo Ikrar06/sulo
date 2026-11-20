@@ -22,6 +22,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { useMobileData } from '../../shell/data';
 import type { Screen } from '../../shell/nav';
 import { useGrades, useNeosia } from '../../neosia/NeosiaProvider';
+import { useSecureScreen } from '../../neosia/secure-screen';
 
 const MASK = '•••';
 const two = (x: number | null) => (x === null ? '–' : x.toFixed(2));
@@ -72,6 +73,8 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const prefs = data!.prefs;
   const shown = prefs.gradesShown;
   const grades = useGrades(neo.enabled && shown);
+  // The Nilai screen is always out of screenshots, recordings and the recent-apps preview while open.
+  useSecureScreen(true);
   const [includeC, setIncludeC] = useState(false);
   const [sim, setSim] = useState<Record<string, string>>({});
   const [picking, setPicking] = useState<TranscriptRow | null>(null);

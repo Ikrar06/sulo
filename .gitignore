@@ -27,3 +27,9 @@ docs/
 skills/
 .skills/
 .github/hooks/impeccable.json
+
+# Release signing keys never enter the repository (docs/rilis/keystore.md).
+*.jks
+*.p12
+*.keystore
+!apps/mobile/android/app/sulo-debug.keystore

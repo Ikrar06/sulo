@@ -5,7 +5,7 @@
 
 import type { Block, Section, Text } from './content';
 
-export const MOBILE_PRIVACY_UPDATED: Text = { id: '20 November 2026', en: '20 November 2026' };
+export const MOBILE_PRIVACY_UPDATED: Text = { id: '21 November 2026', en: '21 November 2026' };
 
 /** The three points shown first, each restating a section below (no new claim). */
 export const MOBILE_PRIVACY_SUMMARY: readonly { icon: 'key' | 'shield' | 'eye'; title: Text; body: Text }[] = [
@@ -62,6 +62,13 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           en: 'Never stored or read: your SIKOLA password, quiz content, and other students’ data.',
         },
       },
+      {
+        kind: 'p',
+        text: {
+          id: 'Data terikat ke akun SIKOLA-mu. Kalau akun lain masuk, data akun sebelumnya langsung disembunyikan dan Sulo berhenti memeriksa serta mengingatkan, termasuk pemantauan latar belakang. Data itu, juga data NEOSIA-nya, baru dihapus setelah kamu memilih "Pakai akun ini".',
+          en: 'Data is tied to your SIKOLA account. When another account signs in, the previous account’s data is hidden at once and Sulo stops checking and reminding, background watching included. That data, its NEOSIA data too, is deleted only after you choose "Use this account".',
+        },
+      },
     ],
   },
   {
@@ -109,6 +116,10 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'neosia.unhas.ac.id (only if you connect NEOSIA): NEOSIA’s pages open inside Sulo only when you tap them, and those pages load their own data. Sulo never sends a request to NEOSIA.',
           },
           {
+            id: 'Pengaturan jarak jauh yang sama juga memberi tahu kalau ada versi baru Sulo. Tombol Unduh membuka halaman rilis di github.com lewat browser; Sulo tidak mengunduh atau memasang apa pun sendiri. Untuk perbaikan keamanan, versi lama bisa diminta memperbarui dulu: selama itu Sulo tidak memeriksa SIKOLA, dan datamu tetap ada.',
+            en: 'The same remote settings also tell you when a new Sulo version is out. Download opens the release page on github.com in your browser; Sulo never downloads or installs anything itself. For a security fix, an old version can be asked to update first: until then Sulo does not check SIKOLA, and your data stays.',
+          },
+          {
             id: 'Tidak ada server lain. Tidak ada server Sulo, analitik, iklan, atau pelacakan. Kalender akademik juga ikut di dalam aplikasi, jadi tetap ada tanpa jaringan.',
             en: 'No other server. No Sulo server, analytics, ads or tracking. The academic calendar also ships inside the app, so it is there without a connection.',
           },
@@ -139,8 +150,8 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           {
-            id: 'Kalau "Pantau tugas baru" menyala, Sulo mengecek SIKOLA berkala walau aplikasi tertutup: sekitar tiap 20 menit pukul 06.00-22.59 dan tiap 60 menit di malam hari. Setiap cek satu permintaan yang hanya membaca tugas, kabar, dan sisa waktu sesi.',
-            en: 'With "Watch for new tasks" on, Sulo checks SIKOLA regularly even when the app is closed: about every 20 minutes from 06.00 to 22.59 and every 60 minutes at night. Each check is one request that only reads tasks, updates and the session’s time left.',
+            id: 'Kalau "Pantau tugas baru" menyala, Sulo mengecek SIKOLA berkala walau aplikasi tertutup: sekitar tiap 20 menit pukul 06.00-22.59 dan tiap 110 menit di malam hari. Setiap cek satu permintaan yang hanya membaca tugas, kabar, dan sisa waktu sesi.',
+            en: 'With "Watch for new tasks" on, Sulo checks SIKOLA regularly even when the app is closed: about every 20 minutes from 06.00 to 22.59 and every 110 minutes at night. Each check is one request that only reads tasks, updates and the session’s time left.',
           },
           {
             id: 'Selama fitur ini menyala, login SIKOLA-mu tetap aktif di HP ini, karena cek berkala dihitung SIKOLA sebagai aktivitas. Matikan fitur ini kalau kamu tidak mau sesimu tetap aktif.',
@@ -175,6 +186,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           { id: 'Mati sampai kamu menghubungkannya. Kamu login di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA, dan halaman login tidak pernah mendapat skrip Sulo.', en: 'Off until you connect it. You sign in on NEOSIA’s own page; Sulo reads neither your password nor NEOSIA’s sign-in token, and the sign-in page never gets Sulo’s script.' },
           { id: 'Dari halaman yang kamu buka, Sulo menyimpan jadwal kuliah, kelas, status KRS, nama PA, status bayar (lunas atau belum), nilai huruf, IPS, IPK, SKS, masa studi, jendela KRS, dan status survei. NIM, NIK, alamat, tanggal lahir, kontak, nilai angka, dan nominal pembayaran dibuang sebelum disimpan. Tautan survei tidak pernah dibaca.', en: 'From the pages you open, Sulo keeps the class schedule, classes, KRS status, your advisor’s name, payment status (paid or not), letter grades, semester and cumulative GPA, credits, study period, the KRS window and the survey status. Student number, ID number, address, birth date, contacts, numeric scores and payment amounts are dropped before anything is stored. The survey link is never read.' },
           { id: 'Semua data NEOSIA disimpan terenkripsi dengan kunci Android Keystore tersendiri, terpisah dari sesi SIKOLA. Nilai dan IPK tersembunyi secara bawaan, hanya dibuka saat layar Nilai atau kartu Studi menampilkannya, dan tidak pernah masuk notifikasi, ekspor, atau info laporan bug.', en: 'All NEOSIA data is stored encrypted with an Android Keystore key of its own, apart from the SIKOLA session. Grades and GPA are hidden by default, opened only while the Grades screen or the Studi card shows them, and never go into notifications, exports or the bug report info.' },
+          { id: 'Selama nilai atau IPK tampil di layar, layar Sulo tidak bisa direkam atau ditangkap aplikasi lain, dan pratinjaunya di daftar aplikasi terbaru kosong.', en: 'While grades or the GPA are on screen, other apps cannot record or capture Sulo’s screen, and its preview in the recent-apps list is blank.' },
         ],
       },
     ],

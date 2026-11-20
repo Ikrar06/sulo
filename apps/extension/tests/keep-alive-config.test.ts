@@ -10,7 +10,7 @@ describe('mobile keep-alive config', () => {
   it('defaults when the section is missing or not an object', () => {
     expect(parseKeepAlive(undefined)).toEqual(DEFAULT_KEEP_ALIVE);
     expect(parseKeepAlive({ backgroundKeepAlive: 'yes' })).toEqual(DEFAULT_KEEP_ALIVE);
-    expect(DEFAULT_KEEP_ALIVE).toMatchObject({ enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 60, radarEvery: 3 });
+    expect(DEFAULT_KEEP_ALIVE).toMatchObject({ enabled: true, dayIntervalMinutes: 20, nightIntervalMinutes: 110, radarEvery: 3 });
   });
   it('reads a valid section as is', () => {
     expect(parseKeepAlive({ backgroundKeepAlive: ok })).toEqual(ok);
@@ -19,7 +19,7 @@ describe('mobile keep-alive config', () => {
     const r = parseKeepAlive({ backgroundKeepAlive: { enabled: 'no', dayIntervalMinutes: 5, nightIntervalMinutes: 200, radarEvery: 2.5 } });
     expect(r).toEqual(DEFAULT_KEEP_ALIVE);
     expect(parseKeepAlive({ backgroundKeepAlive: { dayIntervalMinutes: 15, nightIntervalMinutes: 110, radarEvery: 6 } })).toMatchObject({ dayIntervalMinutes: 15, nightIntervalMinutes: 110, radarEvery: 6, enabled: true });
-    expect(parseKeepAlive({ backgroundKeepAlive: { dayIntervalMinutes: 111, nightIntervalMinutes: 29, radarEvery: 0 } })).toMatchObject({ dayIntervalMinutes: 20, nightIntervalMinutes: 60, radarEvery: 3 });
+    expect(parseKeepAlive({ backgroundKeepAlive: { dayIntervalMinutes: 111, nightIntervalMinutes: 29, radarEvery: 0 } })).toMatchObject({ dayIntervalMinutes: 20, nightIntervalMinutes: 110, radarEvery: 3 });
   });
   it('a message needs both languages', () => {
     expect(parseKeepAlive({ backgroundKeepAlive: { message: { id: 'x' } } }).message).toBeNull();

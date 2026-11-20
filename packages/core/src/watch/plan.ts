@@ -133,6 +133,8 @@ export interface WatchPlanInput {
   sessionConnected: boolean;
   /** The app's last read of config.json: when it last succeeded (0: never) and was attempted, and the URL. */
   remoteRead: { okAt: UnixSeconds; readAt: UnixSeconds; url: string };
+  /** A valid mobile.release's minVersionCode (M8e E3); absent or 0: none. */
+  minVersionCode?: number;
   tasks: readonly { eventId: number; dueAt: UnixSeconds | null; cmId: number | null; missingSince: UnixSeconds | null }[];
   calendarBaseline: boolean;
   notificationLastId: number | null;
@@ -154,7 +156,7 @@ export function buildWatchPlan(input: WatchPlanInput): WatchPlan {
     userId: input.userId,
     enabled: input.userEnabled && input.sessionConnected,
     remote: {
-      config: input.remoteRead.okAt > 0 ? { globalEnabled: input.globalEnabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery } } : null,
+      config: input.remoteRead.okAt > 0 ? { globalEnabled: input.globalEnabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery }, ...(input.minVersionCode ? { minVersionCode: input.minVersionCode } : {}) } : null,
       okAt: input.remoteRead.okAt,
       readAt: input.remoteRead.readAt,
       url: input.remoteRead.url,

@@ -39,6 +39,8 @@ export interface SuloSessionPlugin {
   discardSession(): Promise<{ status: SessionStatus }>;
   /** "Pakai akun ini": background watching starts from nothing (no plan, queue, timings). */
   watchReset(): Promise<void>;
+  /** FLAG_SECURE on the app's window: no screenshots, recordings or recent-apps preview while grades show. */
+  secure(options: { on: boolean }): Promise<void>;
   /** A light or firm haptic tick (the view's own feedback; the system setting decides). */
   haptic(options: { kind: 'light' | 'firm' }): Promise<void>;
   /**
