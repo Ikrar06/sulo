@@ -239,7 +239,7 @@ export const dashEn: DashMessages = {
       title: 'Add to your calendar',
       lead: 'Public academic dates, nothing personal. Pick one or more.',
       feeds: {
-        'inti-s1': { name: 'S1 core', desc: 'KRS, lectures, UTS, UAS, semester breaks, grades, evaluations, KKN and administrative deadlines.' },
+        'inti-s1': { name: 'S1 core', desc: 'KRS, lectures, UTS, UAS, breaks, grades, evaluations, KKN and admin deadlines.' },
         wisuda: { name: 'Graduation', desc: 'The nine graduation periods.' },
         'libur-nasional': { name: 'National holidays', desc: 'National holidays and joint leave days as listed in the calendar PDF.' },
       },
