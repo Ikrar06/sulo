@@ -1,0 +1,5 @@
+{
+  "alias": "sulo",
+  "sha256": "43:BF:DB:C7:4D:C1:82:C7:55:97:74:27:FA:E9:C4:95:C5:5C:CA:00:5C:AE:87:05:5D:F2:BB:65:1D:87:82:7F",
+  "note": "Public: the release certificate fingerprint. Every signed release APK must carry exactly this certificate (android-release.yml)."
+}
