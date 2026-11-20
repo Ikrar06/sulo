@@ -39,7 +39,6 @@ class SikolaHttp(private val userAgent: String) {
         conn.setRequestProperty("User-Agent", userAgent)
         conn.setRequestProperty("Cookie", "${Sikola.SESSION_COOKIE}=$moodleSession")
         if (fresh) conn.setRequestProperty("Connection", "close")
-        InFlight.add(conn)
         return try {
             if (body != null) {
                 conn.requestMethod = "POST"
@@ -54,22 +53,7 @@ class SikolaHttp(private val userAgent: String) {
             val stream = if (status in 200..299) conn.inputStream else conn.errorStream
             Reply(status, conn.getHeaderField("Location"), stream?.bufferedReader()?.use { it.readText() } ?: "", conn.getHeaderField("Retry-After"))
         } finally {
-            InFlight.remove(conn)
             conn.disconnect()
         }
-    }
-}
-
-/** Connections to SIKOLA in flight, so the request service's 30-second limit can end them cleanly. */
-object InFlight {
-    private val open = mutableSetOf<HttpURLConnection>()
-
-    @Synchronized fun add(c: HttpURLConnection) { open.add(c) }
-    @Synchronized fun remove(c: HttpURLConnection) { open.remove(c) }
-
-    /** Ends every open connection (each request then fails as a network error). */
-    fun cancelAll() {
-        val all = synchronized(this) { open.toList() }
-        all.forEach { runCatching { it.disconnect() } }
     }
 }

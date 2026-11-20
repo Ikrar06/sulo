@@ -32,11 +32,6 @@ const id = {
     expiredTitle: 'Sesi SIKOLA habis',
     expiredLine: 'Masuk lagi ke SIKOLA untuk memperbarui.',
     signInAgain: 'Masuk lagi',
-    /** The session ended after a request was cut off (Sulo closed mid-update; owner's words, 20 Nov 2026). */
-    expiredInterrupted: 'SIKOLA mengakhiri sesi karena Sulo tertutup saat memperbarui. Masuk lagi untuk melanjutkan.',
-    /** The request service's notification and its channel (shown only for a request longer than about 10 seconds). */
-    updatingNotice: 'Memperbarui dari SIKOLA',
-    updatingChannel: 'Memperbarui',
     updated: (when: string) => `Diperbarui ${when}`,
     never: 'Belum pernah diperbarui',
     refresh: 'Perbarui',
@@ -244,9 +239,6 @@ const en: MobileWords = {
     expiredTitle: 'SIKOLA session ended',
     expiredLine: 'Sign in to SIKOLA again to update.',
     signInAgain: 'Sign in again',
-    expiredInterrupted: 'SIKOLA ended the session because Sulo closed while updating. Sign in again to continue.',
-    updatingNotice: 'Updating from SIKOLA',
-    updatingChannel: 'Updating',
     updated: (when: string) => `Updated ${when}`,
     never: 'Not updated yet',
     refresh: 'Update',

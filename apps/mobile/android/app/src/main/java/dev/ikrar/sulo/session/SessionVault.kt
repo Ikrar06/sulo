@@ -60,7 +60,7 @@ class SessionVault(
 ) {
     fun save(session: SikolaSession, note: Boolean = true) {
         val json = JSONObject().put("m", session.moodleSession).apply { session.sesskey?.let { put("s", it) } }.toString()
-        val record = mapOf(KEY_BLOB to crypto.encrypt(json.toByteArray(Charsets.UTF_8)), KEY_STATE to STATE_CONNECTED, KEY_FAILURES to "0", KEY_SUSPECT to "0", KEY_INTERRUPTED to null, KEY_ENDED_BY to null, KEY_CANDIDATE to null)
+        val record = mapOf(KEY_BLOB to crypto.encrypt(json.toByteArray(Charsets.UTF_8)), KEY_STATE to STATE_CONNECTED, KEY_FAILURES to "0", KEY_SUSPECT to "0", KEY_CANDIDATE to null)
         slots.putAll(record)
         backup?.putAll(record)
         if (note) diag?.note("vault_saved")
@@ -178,22 +178,12 @@ class SessionVault(
         diag?.note("sikola_cookie_dropped")
     }
 
-    /** A request of this session was cut off when an earlier process ended (RequestGuard). */
-    fun noteInterrupted(at: Long) {
-        if (record()[KEY_STATE] != STATE_CONNECTED) return
-        slots.put(KEY_INTERRUPTED, at.toString())
-    }
-
-    /** Why the session ended, when the app can say: "interrupted" (a request was cut off before it ended). */
-    fun endedBy(): String? = record()[KEY_ENDED_BY]
-
     /** The session ended (`reason`: who said so): keep nothing usable, remember "expired" for the screen. */
     fun markExpired(reason: String = "unspecified") {
-        val interrupted = record()[KEY_INTERRUPTED] != null
         backup?.clear()
         slots.clear()
         runCatching { crypto.destroyKey() }
-        slots.putAll(mapOf(KEY_STATE to STATE_EXPIRED, KEY_ENDED_BY to if (interrupted) "interrupted" else null))
+        slots.put(KEY_STATE, STATE_EXPIRED)
         diag?.note("vault_expired:$reason")
     }
 
@@ -213,8 +203,6 @@ class SessionVault(
         private const val STATE_EXPIRED = "expired"
         private const val KEY_FAILURES = "readFailures"
         private const val KEY_SUSPECT = "suspect"
-        private const val KEY_INTERRUPTED = "interruptedAt"
-        private const val KEY_ENDED_BY = "endedBy"
         private const val KEY_CANDIDATE = "candidateCookie"
         /** Tries per stored blob before a read counts as failed. */
         const val READ_TRIES = 3

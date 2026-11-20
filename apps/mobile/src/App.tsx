@@ -99,8 +99,6 @@ function untilHero(): Promise<void> {
 export function App({ platform }: { platform: Platform }) {
   const [locale, setLocale] = useState<Locale>('id');
   const [status, setStatus] = useState<SessionStatus | null>(null);
-  // "interrupted": the session ended after Sulo closed mid-update (the honest line).
-  const [endedBy, setEndedBy] = useState<'interrupted' | null>(null);
   const [locked, setLocked] = useState(false);
   /** Where the onboarding is (null: not decided yet); 'finished' shows the app. */
   const [flow, setFlow] = useState<FlowState | null>(null);
@@ -131,9 +129,7 @@ export function App({ platform }: { platform: Platform }) {
   const w = mobileWords(locale);
 
   const refreshState = useCallback(async () => {
-    const st = await SuloSession.status();
-    setStatus(st.status);
-    setEndedBy(st.endedBy ?? null);
+    setStatus((await SuloSession.status()).status);
     setLast(await lastSyncAt(platform));
   }, [platform]);
 
@@ -201,8 +197,6 @@ export function App({ platform }: { platform: Platform }) {
     void (async () => {
       const loc = resolveLocale((await readPrefs(platform.store)).locale, navigator.language);
       setLocale(loc);
-      // The request service's notification in the app's language.
-      void SuloSession.labels({ updating: mobileWords(loc).connected.updatingNotice, channel: mobileWords(loc).connected.updatingChannel }).catch(() => undefined);
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
       const now = (await SuloSession.status()).status;
@@ -302,7 +296,6 @@ export function App({ platform }: { platform: Platform }) {
     <MobileDataProvider platform={platform}>
       <Shell
         expired={status === 'expired'}
-        expiredInterrupted={status === 'expired' && endedBy === 'interrupted'}
         busy={busy}
         lastSyncAt={last}
         onRefresh={refresh}

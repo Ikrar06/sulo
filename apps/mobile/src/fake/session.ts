@@ -27,7 +27,6 @@ export function fakeSession(): SuloSessionPlugin {
     endSession: async () => ((status = 'expired'), { status }),
     suspect: async () => ({ suspect: false }),
     note: async () => undefined,
-    labels: async () => undefined,
     devTestBudget: async () => undefined,
     haptic: async () => undefined,
     // ?device=low: a 2 GB, 4-core phone with an old WebView (the lite tier in the browser).

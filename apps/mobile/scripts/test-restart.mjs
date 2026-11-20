@@ -10,8 +10,7 @@
 //                      (0.2 to 20 seconds) in one of five situations: just
 //                      opened, idle, mid-sync, mid-vault-write, mid-background
 //                      check. Mid-sync and mid-check: swiped away from Recents
-//                      (what people do; the request service keeps the request
-//                      going). Force-stop only while no request is in flight
+//                      (what people do). Force-stop only while no request is in flight
 //                      (the marker on disk is empty): SIKOLA ends the session
 //                      when a request is cut off, which nothing in the app can
 //                      prevent for a force-stop (owner's criteria, 20 Nov 2026)
@@ -57,7 +56,6 @@ echo "coursesBytes=$(grep -o 'name="sulo:u:[0-9]*:courses">[^<]*' $P/CapacitorSt
 echo "prefsBytes=$(grep -o 'name="sulo:global:prefs">[^<]*' $P/CapacitorStorage.xml 2>/dev/null | wc -c)"
 echo "watchOn=$(grep -o 'name="plan">[^<]*' $P/sulo_watch.xml 2>/dev/null | grep -c '&quot;enabled&quot;:true')"
 echo "inFlight=$(grep -c '"at"' files/sulo_inflight.json 2>/dev/null)"
-echo "guardMs=$(grep -o 'name="ms">[^<]*' $P/sulo_guard_times.xml 2>/dev/null | sed 's/.*>//')"
 echo "cookies=$(grep -o 'name="[a-z]*">[0-9]*' $P/sulo_cookie_stats.xml 2>/dev/null | sed 's/name="//; s/">/=/' | tr '\n' ' ')"
 echo "events=$(grep -o 'name="events">[^<]*' $P/sulo_diag.xml 2>/dev/null | grep -o '&quot;e&quot;:&quot;[A-Za-z0-9_:.>+-]*' | sed 's/.*;//' | tr '\\n' ' ')"
 `;
@@ -194,8 +192,7 @@ async function loop(rounds) {
     if (problems.length && after.vault !== 'connected') break;
   }
   const last = probe();
-  const ms = last.guardMs.split(',').filter(Boolean).map(Number).sort((a, b) => a - b);
-  console.log(`\nlayanan permintaan: ${ms.length} kali, median ${ms[Math.floor(ms.length / 2)] ?? '-'} ms, terpanjang ${ms.at(-1) ?? '-'} ms; notifikasinya terlihat ${shown} kali; ${cut} putaran digeser saat request sedang berjalan`);
+  console.log(`\n${cut} putaran digeser saat request sedang berjalan; notifikasi Sulo terpasang ${shown} kali`);
   console.log(`Set-Cookie MoodleSession: ${last.cookies || 'belum tercatat'}`);
   console.log(failures.length ? `\ntest-restart: GAGAL di putaran ${failures.join(', ')} (ulangi dengan --seed=${firstSeed}).` : `\ntest-restart: ${rounds} putaran, sesi dan data utuh di setiap putaran.`);
   return failures.length === 0;

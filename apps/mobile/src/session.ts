@@ -47,10 +47,7 @@ export interface SuloSessionPlugin {
    * The bar's words come from the app.
    */
   login(labels?: { close: string; offline: string; retry: string }): Promise<{ status: 'connected' | 'cancelled' | 'offline' }>;
-  /** endedBy "interrupted": the session ended after a request was cut off (Sulo closed while updating). */
-  status(): Promise<{ status: SessionStatus; endedBy?: 'interrupted' }>;
-  /** The request service's notification words, in the app's language. */
-  labels(options: { updating: string; channel: string }): Promise<void>;
+  status(): Promise<{ status: SessionStatus }>;
   /**
    * The session is over for sure: core asked twice and SIKOLA said "log in"
    * both times (`reason`: the codes of both answers). The only way the vault
@@ -64,7 +61,7 @@ export interface SuloSessionPlugin {
   /** Debug builds: the owner's one-off test budget for today (one background check may use it). */
   devTestBudget(options: { date: string }): Promise<void>;
   /** Debug builds: what happened to the session (times and event codes only, native Diag). */
-  diagLog(): Promise<{ events: { at: number; e: string }[]; cookies?: Record<string, number>; guardMs?: string }>;
+  diagLog(): Promise<{ events: { at: number; e: string }[]; cookies?: Record<string, number>; headerNames?: string }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */
   /** fresh: over a new connection, closed after (core's second ask). */
   request(options: { body: string; userInitiated: boolean; fresh?: boolean }): Promise<BatchReply>;

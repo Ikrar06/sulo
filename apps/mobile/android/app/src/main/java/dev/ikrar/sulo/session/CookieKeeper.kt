@@ -59,20 +59,6 @@ class CookieStats(private val slots: Slots) {
     }
 }
 
-/** How long the request service lived per guarded stretch (ms), the last 50. */
-object GuardTimes {
-    fun record(context: Context, ms: Long) {
-        if (ms <= 0) return
-        val prefs = context.applicationContext.getSharedPreferences("sulo_guard_times", Context.MODE_PRIVATE)
-        synchronized(this) {
-            val list = (prefs.getString("ms", "") ?: "").split(',').filter { it.isNotEmpty() }.takeLast(49) + ms.toString()
-            prefs.edit().putString("ms", list.joinToString(",")).commit()
-        }
-    }
-
-    fun all(context: Context): String = context.applicationContext.getSharedPreferences("sulo_guard_times", Context.MODE_PRIVATE).getString("ms", "") ?: ""
-}
-
 /** Debug builds: the NAMES of the response headers and Set-Cookie cookies seen from SIKOLA (never a value). */
 object HeaderNames {
     fun record(context: Context, headers: List<String>, cookies: List<String>) {

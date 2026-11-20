@@ -54,8 +54,6 @@ function splitAction(line: string, action: string) {
 
 export interface ShellProps {
   expired: boolean;
-  /** The session ended after Sulo closed mid-update: the honest line instead of the usual one. */
-  expiredInterrupted?: boolean;
   busy: boolean;
   lastSyncAt: number | null;
   /** Runs Perbarui; resolves with the line to show (empty: updated). */
@@ -325,10 +323,9 @@ export function AppShell(props: ShellProps) {
           <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
       {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
             {notice === 'expired' ? (
-              <button type="button" disabled={props.busy} onClick={props.onSignIn} className={`m-press mb-3 flex min-h-9 items-center ${props.expiredInterrupted ? 'rounded-2xl py-2' : 'rounded-full'} bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50`}>
-                {/* The interrupted line is two sentences: it wraps instead of being cut. */}
-                <span role="status" className={props.expiredInterrupted ? 'min-w-0' : 'min-w-0 truncate'}>
-                  {splitAction(props.expiredInterrupted ? w.connected.expiredInterrupted : w.connected.expiredLine, w.connected.signInAgain)}
+              <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-press mb-3 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
+                <span role="status" className="min-w-0 truncate">
+                  {splitAction(w.connected.expiredLine, w.connected.signInAgain)}
                 </span>
               </button>
             ) : (
