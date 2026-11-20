@@ -108,7 +108,9 @@ class SuloSessionPlugin : Plugin() {
                 val kept = keeper(SikolaSession(session, null))
                 val sesskey = runCatching { guarded("login") { http.get("${Sikola.ORIGIN}/my/", session, kept) } }.getOrNull()
                     ?.takeIf { it.status == 200 }?.let { SikolaText.sesskey(it.body) }
-                vault.save(kept.session.copy(sesskey = sesskey))
+                // Nothing is in the vault yet: a cookie set by /my/ counts only with a signed-in page.
+                val cookie = kept.pending()?.takeIf { sesskey != null } ?: session
+                vault.save(SikolaSession(cookie, sesskey))
             }
             // The new session's cookie to disk now (owner's rule: flush after signing in).
             runCatching { CookieManager.getInstance().flush() }
@@ -243,6 +245,7 @@ class SuloSessionPlugin : Plugin() {
             }
             val kept = keeper(current)
             var reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body, kept) }
+            kept.settle(SikolaRequest.sessionAnswered(reply.body, functions))
             current = kept.session
             if (SikolaRequest.invalidSesskey(reply.body, functions) && userInitiated) {
                 current = when (val r = refreshSesskey(current.copy(sesskey = null))) {
@@ -252,6 +255,7 @@ class SuloSessionPlugin : Plugin() {
                 }
                 val again = keeper(current)
                 reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body, again) }
+                again.settle(SikolaRequest.sessionAnswered(reply.body, functions))
             }
             if (reply.status in 300..399 && reply.location?.contains("/login/") == true) return toLogin(call, "batch")
             if (SikolaRequest.loginRequired(reply.body, functions)) {
@@ -300,7 +304,10 @@ class SuloSessionPlugin : Plugin() {
             SessionVault.Read.Empty -> return call.resolve(JSObject().put("sessionStatus", vault.status()))
         }
         try {
-            val reply = guarded("page") { http.get(url, session.moodleSession, keeper(session)) }
+            val pageKeeper = keeper(session)
+            val reply = guarded("page") { http.get(url, session.moodleSession, pageKeeper) }
+            // A page cannot show the session is valid by itself: a new cookie from it is never used.
+            pageKeeper.settle(false)
             if (reply.status in 300..399) {
                 val login = reply.location?.contains("/login/") == true
                 Diag.of(context).note(if (login) "sikola_login_signal:redirect:page" else "sikola_page_redirect")
@@ -322,6 +329,8 @@ class SuloSessionPlugin : Plugin() {
     private fun refreshSesskey(session: SikolaSession): Refresh {
         val kept = keeper(session)
         val page = guarded("my") { http.get("${Sikola.ORIGIN}/my/", session.moodleSession, kept) }
+        // A signed-in /my/ carries a sesskey; only then is a new cookie the session's.
+        kept.settle(page.status == 200 && SikolaText.sesskey(page.body) != null)
         if (page.status in 300..399 && page.location?.contains("/login/") == true) return Refresh.ToLogin
         val sesskey = SikolaText.sesskey(page.body) ?: return Refresh.None
         return Refresh.Ok(kept.session.copy(sesskey = sesskey).also { vault.save(it) })

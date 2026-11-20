@@ -3,19 +3,33 @@ package dev.ikrar.sulo.session
 import android.content.Context
 
 /**
- * Keeps the vault on the cookie SIKOLA last set: a replaced MoodleSession is
- * saved the moment the headers arrive (before the body is read), atomically.
+ * Watches the cookie SIKOLA sets: a replaced MoodleSession is saved the
+ * moment the headers arrive (before the body is read), atomically, as a
+ * candidate; [settle] makes it the session's cookie only when the answer
+ * shows a valid session, and drops it otherwise.
  * Counts what Set-Cookie said (absent, same, replaced, cleared), never the
  * value, for the session history. A cleared cookie is only noted: whether
  * the session ended is still decided by asking twice.
  */
 class CookieKeeper(var session: SikolaSession, private val vault: SessionVault, private val stats: CookieStats?, private val diag: Diag?) : SikolaHttp.CookieWatch {
+    private var candidate: String? = null
+
+    /** The cookie set in this answer, not used yet (sign-in, before anything is in the vault). */
+    fun pending(): String? = candidate
+
+    /** After the answer: a valid session promotes the candidate cookie; anything else drops it. */
+    fun settle(sessionValid: Boolean) {
+        val c = candidate ?: return
+        candidate = null
+        if (sessionValid && vault.promoteCandidate()) session = session.copy(moodleSession = c) else vault.dropCandidate()
+    }
+
     override fun seen(cookie: SikolaText.SessionCookie) {
         stats?.count(cookie)
         when (cookie) {
             is SikolaText.SessionCookie.Replaced -> {
-                session = session.copy(moodleSession = cookie.value)
-                vault.save(session, note = false)
+                candidate = cookie.value
+                vault.saveCandidate(cookie.value)
                 diag?.note("sikola_cookie_replaced")
             }
             SikolaText.SessionCookie.Cleared -> diag?.note("sikola_cookie_cleared")

@@ -137,7 +137,9 @@ class WatchRun(private val context: Context) {
             val guard = RequestGuard.shared(context)
             guard.begin("watch")
             try {
-                http.postJson(SikolaRequest.watchBatchUrl(session!!.sesskey!!, functions), session.moodleSession, batch.toString(), CookieKeeper(session!!, vault, CookieStats.of(context), Diag.of(context)))
+                val kept = CookieKeeper(session!!, vault, CookieStats.of(context), Diag.of(context))
+                http.postJson(SikolaRequest.watchBatchUrl(session.sesskey!!, functions), session.moodleSession, batch.toString(), kept)
+                    .also { kept.settle(SikolaRequest.sessionAnswered(it.body, functions)) }
             } finally {
                 GuardTimes.record(context, guard.end())
             }

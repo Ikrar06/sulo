@@ -116,18 +116,27 @@ class RequestGuardTest {
     }
 
     @Test
-    fun aReplacedCookieIsSavedTheMomentItArrives() {
+    fun aReplacedCookieIsKeptAtOnceButUsedOnlyWithAValidSession() {
         MemoryKey.key = null
         val slots = MemorySlots()
         val vault = SessionVault(slots, MemoryCrypto(), pause = {})
         val session = SikolaSession("cookie-value-123", "Sesskey0001")
         vault.save(session)
-        val keeper = CookieKeeper(session, vault, null, null)
-        keeper.seen(SikolaText.SessionCookie.Replaced("cookie-value-999"))
+        // A valid answer that set a new cookie: it becomes the session's.
+        val ok = CookieKeeper(session, vault, null, null)
+        ok.seen(SikolaText.SessionCookie.Replaced("cookie-value-999"))
+        assertTrue(slots.map.containsKey("candidateCookie"))
+        ok.settle(sessionValid = true)
         assertEquals(SikolaSession("cookie-value-999", "Sesskey0001"), vault.load())
-        assertEquals("cookie-value-999", keeper.session.moodleSession)
+        assertFalse(slots.map.containsKey("candidateCookie"))
+        // A "log in" answer with a new (guest) cookie: dropped, the signed-in cookie stays (emulator, 20 Nov 2026).
+        val guest = CookieKeeper(vault.load()!!, vault, null, null)
+        guest.seen(SikolaText.SessionCookie.Replaced("guest-cookie"))
+        guest.settle(sessionValid = false)
+        assertEquals(SikolaSession("cookie-value-999", "Sesskey0001"), vault.load())
+        assertFalse(slots.map.containsKey("candidateCookie"))
         // Cleared is only noted: whether the session ended is still decided by asking twice.
-        keeper.seen(SikolaText.SessionCookie.Cleared)
+        guest.seen(SikolaText.SessionCookie.Cleared)
         assertEquals("connected", vault.status())
     }
 }

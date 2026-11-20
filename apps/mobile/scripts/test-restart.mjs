@@ -174,7 +174,8 @@ async function loop(rounds) {
     const wait = await MOMENTS[moment]();
     await sleep(wait);
     // Is the request service's notification on screen right now (it should not be, for a short request)?
-    if (/sulo_updating/.test(adb(['shell', 'dumpsys', 'notification', '--noredact']).split('NotificationRecord').filter((r) => r.includes(PKG)).join(''))) shown++;
+    // Posted notifications only (not the channel list): a record of ours on the request service's channel.
+    if (/NotificationRecord\([^\n]*pkg=dev\.ikrar\.sulo[^\n]*\n(?:[^\n]*\n){0,12}?[^\n]*channel=sulo_updating/.test(adb(['shell', 'dumpsys', 'notification', '--noredact']))) shown++;
     // Force-stop only with nothing in flight; otherwise this round swipes.
     const flying = !['0', ''].includes(probe().inFlight);
     if (flying) cut++;

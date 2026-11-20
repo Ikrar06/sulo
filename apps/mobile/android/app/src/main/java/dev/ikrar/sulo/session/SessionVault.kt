@@ -60,7 +60,7 @@ class SessionVault(
 ) {
     fun save(session: SikolaSession, note: Boolean = true) {
         val json = JSONObject().put("m", session.moodleSession).apply { session.sesskey?.let { put("s", it) } }.toString()
-        val record = mapOf(KEY_BLOB to crypto.encrypt(json.toByteArray(Charsets.UTF_8)), KEY_STATE to STATE_CONNECTED, KEY_FAILURES to "0", KEY_SUSPECT to "0", KEY_INTERRUPTED to null, KEY_ENDED_BY to null)
+        val record = mapOf(KEY_BLOB to crypto.encrypt(json.toByteArray(Charsets.UTF_8)), KEY_STATE to STATE_CONNECTED, KEY_FAILURES to "0", KEY_SUSPECT to "0", KEY_INTERRUPTED to null, KEY_ENDED_BY to null, KEY_CANDIDATE to null)
         slots.putAll(record)
         backup?.putAll(record)
         if (note) diag?.note("vault_saved")
@@ -149,6 +149,33 @@ class SessionVault(
         diag?.note("vault_suspect_cleared")
     }
 
+    /**
+     * A MoodleSession that SIKOLA set in an answer: kept on disk at once
+     * (atomically), but not used until that same answer shows the session is
+     * valid ([promoteCandidate]). Moodle sets a new cookie when it no longer
+     * knows the one sent (a guest session), so using it blindly would replace
+     * a signed-in cookie with a guest one (seen on the emulator, 20 Nov 2026).
+     */
+    fun saveCandidate(cookie: String) {
+        slots.put(KEY_CANDIDATE, cookie)
+    }
+
+    /** The answer was a valid session: the candidate becomes the session's cookie. */
+    fun promoteCandidate(): Boolean {
+        val cookie = record()[KEY_CANDIDATE] ?: return false
+        val current = load() ?: return false
+        save(current.copy(moodleSession = cookie), note = false)
+        diag?.note("sikola_cookie_promoted")
+        return true
+    }
+
+    /** The answer did not show a valid session: the candidate is dropped. */
+    fun dropCandidate() {
+        if (record()[KEY_CANDIDATE] == null) return
+        slots.putAll(mapOf(KEY_CANDIDATE to null))
+        diag?.note("sikola_cookie_dropped")
+    }
+
     /** A request of this session was cut off when an earlier process ended (RequestGuard). */
     fun noteInterrupted(at: Long) {
         if (record()[KEY_STATE] != STATE_CONNECTED) return
@@ -186,6 +213,7 @@ class SessionVault(
         private const val KEY_SUSPECT = "suspect"
         private const val KEY_INTERRUPTED = "interruptedAt"
         private const val KEY_ENDED_BY = "endedBy"
+        private const val KEY_CANDIDATE = "candidateCookie"
         /** Tries per stored blob before a read counts as failed. */
         const val READ_TRIES = 3
         private val RETRY_PAUSE_MS = longArrayOf(150, 600)
