@@ -78,6 +78,10 @@ body {
 /* New data after a sync: the content crossfades in 160 ms, in place (opacity only, nothing moves). */
 @keyframes m-data-in { from { opacity: 0.55; } }
 .m-data-in { animation: m-data-in 160ms ease-out; }
+/* The status lines' place: opens and closes its height in 180 ms (the content glides, never jumps). */
+.m-line-slot { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 180ms ease-out; }
+.m-line-slot.is-open { grid-template-rows: 1fr; }
+@media (prefers-reduced-motion: reduce) { .m-line-slot { transition: none; } }
 /* Skeletons without data: a flat translucent band sweeps left to right, by transform only. */
 @keyframes m-skel-sheen { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
 .m-skel-sheen { animation: m-skel-sheen 1.6s ease-in-out infinite; }

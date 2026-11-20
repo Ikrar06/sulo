@@ -32,7 +32,7 @@ import { TaskDateProvider } from './task-date';
 import { effectiveScroll, HEAD_P_RANGE, HEAD_Q_RANGE, HEAD_S_RANGE, headProgress, useCssScrollTimeline } from './head-progress';
 import { Screens } from '../screens/Screens';
 import { REFRESHED_EVENT } from '../events';
-import { SyncStatusLine, SyncUiContext } from './SyncStatusLine';
+import { LineSlot, SyncStatusLine, SyncUiContext } from './SyncStatusLine';
 import { IDLE, type SyncUi } from './sync-status';
 
 /** The data's age shows under the header only past an hour. */
@@ -344,6 +344,7 @@ export function AppShell(props: ShellProps) {
         <PullToRefresh disabled={!dataScreen || props.expired || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
           <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''} ${syncUi.phase === 'done' ? 'm-data-in' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
       {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
+            <LineSlot>
             {syncUi.phase !== 'idle' ? (
               <SyncStatusLine ui={syncUi} w={w} onRetry={props.onRetry ?? (() => void refresh())} />
             ) : notice === 'expired' ? (
@@ -359,6 +360,7 @@ export function AppShell(props: ShellProps) {
                 </p>
               )
             )}
+            </LineSlot>
             <ScreenHeaderProvider value={{ main: null, end: null, tools: slotTools }}>
               <ScreenRefreshProvider slot={screenRefresh}>
                 <TaskDateProvider value={{ date: taskDate, setDate: setTaskDate }}>

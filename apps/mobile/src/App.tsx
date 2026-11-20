@@ -188,6 +188,11 @@ export function App({ platform }: { platform: Platform }) {
     [platform, refreshState, w, showDone],
   );
   const refresh = useCallback(async () => {
+    // No connection: say so, never "Sudah terbaru" (the old data stays).
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setSyncUi({ phase: 'failed', stage: null, message: w.app.offline });
+      return w.app.offline;
+    }
     // Perbarui within the 2-minute pause: "Sudah terbaru" at once, no spinner for nothing.
     if (await manualFresh(platform)) {
       showDone();

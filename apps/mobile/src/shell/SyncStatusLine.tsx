@@ -2,7 +2,7 @@
 // in place of the session, offline or stale line while a sync runs, then
 // "Sudah terbaru" for 2 seconds, or the failure with a retry. Old data stays
 // on screen under it; nothing jumps (the same 36 px pill as the other lines).
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { MobileWords } from '@sulo/core/i18n/mobile';
 import { statusLine, type SyncUi, IDLE } from './sync-status';
 
@@ -24,5 +24,24 @@ export function SyncStatusLine({ ui, w, onRetry }: { ui: SyncUi; w: MobileWords;
         </button>
       )}
     </p>
+  );
+}
+
+/**
+ * The place of the status lines above a screen. A line that comes or goes
+ * opens or closes its 48 px in 180 ms (instant under reduced motion), so the
+ * content below glides instead of jumping; the last line stays readable while
+ * it closes.
+ */
+export function LineSlot({ children }: { children: ReactNode }) {
+  const open = children !== null && children !== false && children !== undefined && children !== '';
+  const [shown, setShown] = useState<ReactNode>(open ? children : null);
+  useEffect(() => {
+    if (open) setShown(children);
+  }, [open, children]);
+  return (
+    <div className={`m-line-slot ${open ? 'is-open' : ''}`} onTransitionEnd={() => !open && setShown(null)}>
+      <div className="min-h-0 overflow-hidden">{open ? children : shown}</div>
+    </div>
   );
 }
