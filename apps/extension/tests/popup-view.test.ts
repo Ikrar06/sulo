@@ -119,6 +119,11 @@ describe('buildPopupView', () => {
       expect(buildPopupView(input({ session: 'EXPIRED', ...broken })).banner?.kind).toBe('session_expired');
       expect(buildPopupView(input({ budget: { date: '2026-09-22', used: 90 }, user: old(30) })).banner?.kind).toBe('saver');
     });
+    it('a running sync says so in words, over parser, limit, saver and stale (20 Nov 2026)', () => {
+      expect(buildPopupView(input({ syncing: true, ...broken, user: old(30) })).banner).toEqual({ kind: 'syncing' });
+      expect(buildPopupView(input({ syncing: true, session: 'EXPIRED' })).banner?.kind).toBe('session_expired');
+      expect(buildPopupView(input({ syncing: false, user: old(1) })).banner).toBeNull();
+    });
     it('an expired session wins over old data (it can be acted on)', () => {
       expect(buildPopupView(input({ session: 'EXPIRED', user: old(30) })).banner).toEqual({ kind: 'session_expired', lastSyncAt: NOW - 30 * HOUR });
     });

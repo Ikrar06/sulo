@@ -48,6 +48,9 @@ export function StatusLine({ banner, actions, className = 'px-3 py-1.5' }: { ban
       return line(<KeyIcon className={`${icon} text-muted-foreground`} />, b.sessionExpired(since(banner.lastSyncAt)), [b.signIn, actions.onOpenSikola]);
     case 'offline':
       return line(<OfflineIcon className={`${icon} text-status-offline`} />, b.offline);
+    case 'syncing':
+      // A small ring turning (still under reduced motion); the old data stays below.
+      return line(<span aria-hidden="true" className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-muted-foreground border-r-transparent motion-reduce:animate-none" />, b.syncing);
     case 'parser_broken':
       return line(<AlertIcon className={`${icon} text-status-broken`} />, b.parserBroken, [b.report, actions.onReport]);
     case 'limit':
