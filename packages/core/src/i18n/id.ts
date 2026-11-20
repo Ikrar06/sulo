@@ -212,7 +212,7 @@ export const id = {
     sessionExpired: (since: string | null) => (since ? `Sesi SIKOLA habis. Data di bawah dari ${since}.` : 'Sesi SIKOLA habis.'),
     signIn: 'Masuk lagi',
     parserBroken: 'Sulo belum bisa membaca SIKOLA dengan benar. Coba lagi nanti.',
-    limit: 'Sulo istirahat sampai besok. Data terakhir tetap bisa dibuka.',
+    limit: 'Sulo istirahat dulu sampai besok. Data terakhir tetap bisa dibuka.',
     saver: 'Sulo memperbarui lebih jarang sampai besok.',
     report: 'Salin info',
     reportCopied: 'Info disalin. Kirim ke pengelola Sulo.',

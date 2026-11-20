@@ -281,7 +281,7 @@ export const dashId = {
     faqTitle: 'Pertanyaan yang sering muncul',
     onThisPage: 'Di halaman ini',
     stuckTitle: 'Masih bingung?',
-    stuckBody: 'Tulis pertanyaanmu lewat formulir masukan, nanti aku jawab di FAQ.',
+    stuckBody: 'Tulis pertanyaanmu lewat formulir masukan. Jawabannya bisa masuk FAQ.',
     feedback: 'Kirim masukan',
   },
   tentang: {
