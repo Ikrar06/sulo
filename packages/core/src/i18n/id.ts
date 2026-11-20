@@ -243,12 +243,15 @@ export const id = {
     morningTitle: 'Tugasmu hari ini',
     /** The phone's full morning summary (reminders/morning.ts): only the parts that are not zero. */
     morningFullTitle: 'Ringkasan pagi',
-    morningFullBody: (overdue: number, today: number, tomorrow: number, events: string[]) => {
+    morningFullBody: (overdue: number, today: number, tomorrow: number, events: string[], classes: readonly { name: string; start: string }[] = []) => {
       const parts = [overdue > 0 ? `${overdue} tugas terlambat` : '', today > 0 ? `${today} tenggat hari ini` : '', tomorrow > 0 ? `${tomorrow} tenggat besok` : ''].filter(Boolean);
       const shown = events.slice(0, 2);
       const more = events.length - shown.length;
       const today_ = shown.length === 0 ? '' : `Hari ini: ${more > 0 ? `${shown.join(', ')}, dan ${more} lainnya` : shown.join(' dan ')}.`;
-      return [parts.length > 0 ? `${parts.join(', ')}.` : '', today_].filter(Boolean).join(' ');
+      const shownClasses = classes.slice(0, 3).map((c) => `${c.name} ${c.start}`);
+      const moreClasses = classes.length - shownClasses.length;
+      const classes_ = shownClasses.length === 0 ? '' : `Kuliah hari ini: ${moreClasses > 0 ? `${shownClasses.join(', ')}, dan ${moreClasses} lainnya` : shownClasses.join(', ')}.`;
+      return [parts.length > 0 ? `${parts.join(', ')}.` : '', classes_, today_].filter(Boolean).join(' ');
     },
     morningBody: (today: number, week: number, name: string, left: string) =>
       today === 0

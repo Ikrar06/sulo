@@ -21,7 +21,10 @@ import type { KeyValueStore, Task, UnixSeconds } from '../types';
 import { planReminders, type Notice } from './plan';
 import { readModuleState } from '../neosia/module';
 import { readSnapshots } from '../neosia/store';
-import { krsWindows } from '../neosia/view';
+import { classMeetings, krsWindows } from '../neosia/view';
+import { linkedMeetings } from '../neosia/linked';
+import { readCourseMap } from '../neosia/course-map';
+import { holidayRanges } from '../neosia/schedule';
 import { neosiaNudges } from '../neosia/nudges';
 import { noticeView, type NotificationView } from './text';
 
@@ -41,6 +44,8 @@ export interface CycleDeps {
   notifier: Notifier;
   /** The phone passes "full" (reminders/morning.ts); the extension keeps its own summary. */
   morningStyle?: 'classic' | 'full';
+  /** The phone only: the full summary also lists today's classes from NEOSIA's schedule (names and times). */
+  morningClasses?: boolean;
 }
 
 /** Notification ids carry what a click needs: "task|eventId|key", "summary|…", "morning|…", "session|…". */
@@ -89,7 +94,11 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     readModuleState(store),
   ]);
   // NEOSIA's KRS windows (module on, KRS reminders on): closing reminders H-3 and H-1 for each.
-  const windows = neosia.enabled && prefs.calendar.krs ? krsWindows(await readSnapshots(store)) : [];
+  const snapshots = neosia.enabled ? await readSnapshots(store) : {};
+  const windows = neosia.enabled && prefs.calendar.krs ? krsWindows(snapshots) : [];
+  // The phone's full summary: today's classes from NEOSIA's schedule, by the names Sulo shows (names and times only).
+  const meetings = neosia.enabled && deps.morningStyle === 'full' && deps.morningClasses === true ? linkedMeetings(classMeetings(snapshots), courses, await readCourseMap(store)) : [];
+  const classes = meetings.length > 0 ? { meetings: meetings.map((m) => ({ name: m.displayName, weekday: m.weekday, start: m.start, end: m.end })), holidays: holidayRanges(calendar) } : undefined;
 
   const plan = planReminders({
     now,
@@ -106,6 +115,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
     krsWindows: windows,
     morningStyle: deps.morningStyle,
+    classes,
     nudges: neosia.enabled ? neosiaNudges(calendar.kegiatan, prefs.calendar) : [],
   });
 

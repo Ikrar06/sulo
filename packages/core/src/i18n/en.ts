@@ -236,12 +236,15 @@ export const en: Messages = {
     summaryBody: (name, left) => `Nearest: ${name}, ${left}.`,
     morningTitle: 'Your tasks today',
     morningFullTitle: 'Morning summary',
-    morningFullBody: (overdue: number, today: number, tomorrow: number, events: string[]) => {
+    morningFullBody: (overdue: number, today: number, tomorrow: number, events: string[], classes: readonly { name: string; start: string }[] = []) => {
       const parts = [overdue > 0 ? `${overdue} overdue` : '', today > 0 ? `${today} due today` : '', tomorrow > 0 ? `${tomorrow} due tomorrow` : ''].filter(Boolean);
       const shown = events.slice(0, 2);
       const more = events.length - shown.length;
       const today_ = shown.length === 0 ? '' : `Today: ${more > 0 ? `${shown.join(', ')} and ${more} more` : shown.join(' and ')}.`;
-      return [parts.length > 0 ? `${parts.join(', ')}.` : '', today_].filter(Boolean).join(' ');
+      const shownClasses = classes.slice(0, 3).map((c) => `${c.name} ${c.start}`);
+      const moreClasses = classes.length - shownClasses.length;
+      const classes_ = shownClasses.length === 0 ? '' : `Classes today: ${moreClasses > 0 ? `${shownClasses.join(', ')} and ${moreClasses} more` : shownClasses.join(', ')}.`;
+      return [parts.length > 0 ? `${parts.join(', ')}.` : '', classes_, today_].filter(Boolean).join(' ');
     },
     morningBody: (today, week, name, left) =>
       today === 0

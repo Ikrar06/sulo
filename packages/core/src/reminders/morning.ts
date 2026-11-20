@@ -1,6 +1,6 @@
 // The full morning summary (M8c.3, the Android app): overdue tasks, due
-// today, due tomorrow and today's academic calendar events, from the data
-// on the phone. Nothing in any of them: no summary (the day still counts
+// today, due tomorrow, today's academic calendar events and, with NEOSIA's
+// schedule, today's classes (name and time only), from the data on the phone. Nothing in any of them: no summary (the day still counts
 // as handled). The extension keeps its own summary (planner "classic").
 // Pure, plus one reader of the stored data for the debug screen's preview.
 
@@ -23,6 +23,14 @@ export interface MorningCounts {
   tomorrow: number;
   /** Names of the calendar events starting or ending today. */
   events: string[];
+  /** Today's classes from NEOSIA's schedule (name and start, never a grade); empty without it. */
+  classes?: MorningClass[];
+}
+
+/** One class in the morning summary: the course's name as Sulo shows it, and its local start ("07:30"). */
+export interface MorningClass {
+  name: string;
+  start: string;
 }
 
 /** Pending tasks Sulo reminds about, overdue ones included. */
@@ -31,7 +39,7 @@ export function pendingForMorning(tasks: readonly Task[], taskState: TaskStateMa
 }
 
 /** The counts for the morning at `now`, or null when there is nothing to say. */
-export function morningCounts(now: UnixSeconds, timeZone: string, pending: readonly Task[], events: readonly CalendarEventLite[]): MorningCounts | null {
+export function morningCounts(now: UnixSeconds, timeZone: string, pending: readonly Task[], events: readonly CalendarEventLite[], classes: readonly MorningClass[] = []): MorningCounts | null {
   const today = localParts(now, timeZone).dateKey;
   let overdue = 0;
   let dueToday = 0;
@@ -47,14 +55,14 @@ export function morningCounts(now: UnixSeconds, timeZone: string, pending: reado
   }
   const todays = events.filter((e) => !e.perkiraan && e.audiens !== 'calon_mahasiswa' && (e.mulai === today || (e.selesai ?? e.mulai) === today)).map((e) => e.judul);
   const names = [...new Set(todays)];
-  if (overdue === 0 && dueToday === 0 && tomorrow === 0 && names.length === 0) return null;
-  return { overdue, today: dueToday, tomorrow, events: names };
+  if (overdue === 0 && dueToday === 0 && tomorrow === 0 && names.length === 0 && classes.length === 0) return null;
+  return { overdue, today: dueToday, tomorrow, events: names, ...(classes.length > 0 ? { classes: [...classes] } : {}) };
 }
 
 /** The notification text, in the user's language, from the counts. */
 export function morningFullView(c: MorningCounts, m: Messages): NotificationView {
   const n = m.notify;
-  return { title: n.morningFullTitle, message: n.morningFullBody(c.overdue, c.today, c.tomorrow, c.events), icon: c.overdue > 0 ? 'urgent' : 'idle', buttons: [] };
+  return { title: n.morningFullTitle, message: n.morningFullBody(c.overdue, c.today, c.tomorrow, c.events, c.classes ?? []), icon: c.overdue > 0 ? 'urgent' : 'idle', buttons: [] };
 }
 
 /** The debug screen's preview: the full summary for now from the stored data (ignores the "every morning" switch). */
