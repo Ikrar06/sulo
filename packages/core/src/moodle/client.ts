@@ -88,6 +88,30 @@ export interface MoodleClient {
 }
 
 const LOGIN_ERRORCODES = new Set(['servicerequireslogin', 'requireloginerror']);
+
+/** A call Moodle never ran: an earlier call in its batch failed and Moodle stopped there. */
+export const NOT_RUN_CODE = 'not_run';
+const NOT_RUN: CallResult = { ok: false, errorcode: NOT_RUN_CODE };
+
+/**
+ * A batch, and when Moodle stopped it at a call's error, the calls that did
+ * not run once more, in at most ONE extra POST (with the session call
+ * first, in the same budget). A second stop leaves the rest for the next
+ * sync. The answers are merged back in place.
+ */
+export async function callBatchOnceMore(client: MoodleClient, list: readonly MoodleCall[], options: RequestOptions): Promise<BatchOutcome> {
+  const first = await client.callBatch(list, options);
+  if (first.kind !== 'ok') return first;
+  const missing = first.results.flatMap((r, i) => (!r.ok && r.errorcode === NOT_RUN_CODE ? [i] : []));
+  if (missing.length === 0) return first;
+  const again = await client.callBatch([calls.sessionTimeRemaining(), ...missing.map((i) => list[i]!)], { source: options.source });
+  if (again.kind !== 'ok') return first;
+  const merged = [...first.results];
+  missing.forEach((i, k) => {
+    merged[i] = again.results[k + 1] ?? NOT_RUN;
+  });
+  return { kind: 'ok', results: merged };
+}
 const SESSKEY_ERRORCODES = new Set(['invalidsesskey']);
 
 export function createMoodleClient(input: MoodleClientDeps): MoodleClient {
@@ -293,6 +317,11 @@ export async function interpretBatch(response: Response, calls: readonly MoodleC
   const session = sessionIndex >= 0 ? results[sessionIndex] : undefined;
   if (session && !session.ok && (LOGIN_ERRORCODES.has(session.errorcode) || SESSKEY_ERRORCODES.has(session.errorcode))) {
     return classifyError(session.errorcode, 'session');
+  }
+  // Moodle stops a batch at its first error: the calls after it did not run (not a broken answer).
+  const last = results[results.length - 1];
+  if (results.length > 0 && results.length < expected && last && !last.ok) {
+    return { kind: 'ok', results: [...results, ...Array.from({ length: expected - results.length }, () => NOT_RUN)] };
   }
   if (results.length !== expected) return { kind: 'bad_response', detail: 'length mismatch' };
   return { kind: 'ok', results };

@@ -161,9 +161,9 @@ export const dashEn: DashMessages = {
     colorAuto: 'Automatic',
     colorNames: ['Red', 'Orange', 'Olive', 'Green', 'Teal', 'Blue', 'Lavender', 'Pink'],
     original: (name) => `Name in SIKOLA: ${name}`,
-    accessTitle: "Sulo can't open this course yet",
+    accessTitle: "Can't be opened in SIKOLA",
     accessBody: (n) =>
-      `SIKOLA refused the last attempt (${plural(n, 'time', 'times')} in a row). Usually you are not enrolled, the course is closed, or the lecturer limited access. Sulo tries again tomorrow. Tasks from the calendar still show up.`,
+      `SIKOLA refused it ${plural(n, 'time', 'times')} in a row, usually because you are not enrolled, the course is closed, or the lecturer limited access. Sulo tries again ${n >= 3 ? 'once a week' : 'tomorrow'}; tasks from the calendar still show up. Turn off Followed if you don't need it.`,
     empty: 'Your courses will show up here once setup is done.',
   },
   kabar: {

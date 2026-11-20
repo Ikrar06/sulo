@@ -1674,6 +1674,50 @@
    "out": {
     "status": "unsure"
    }
+  },
+  {
+   "name": "moodle-stopped-at-a-course",
+   "overlay": {
+    "eventIds": [],
+    "dueKeys": [],
+    "notificationLastId": null,
+    "cms": {}
+   },
+   "radarIds": [
+    11,
+    13
+   ],
+   "results": [
+    {
+     "error": false,
+     "data": {
+      "userid": 4242,
+      "timeremaining": 7000
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "events": []
+     }
+    },
+    {
+     "error": false,
+     "data": {
+      "notifications": []
+     }
+    },
+    {
+     "error": true,
+     "exception": {
+      "errorcode": "requireloginerror"
+     }
+    }
+   ],
+   "now": 1795000000,
+   "out": {
+    "status": "unsure"
+   }
   }
  ],
  "notices": [

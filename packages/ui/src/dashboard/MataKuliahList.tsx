@@ -121,7 +121,8 @@ function CourseRow({ course, followed, color, autoColor, access, entering, d, on
         </p>
         {access && access.failures > 0 && (
           <p className="mt-1 flex items-start gap-2 text-[12px] leading-normal">
-            <AlertIcon className="mt-1 size-3 shrink-0 text-urgency-soon" />
+            {/* Calm: a muted icon, no warning colour (no notification, nothing on Ringkasan either). */}
+            <AlertIcon className="mt-1 size-3 shrink-0 text-muted-foreground" />
             <span>
               <span className="font-semibold text-foreground">{t.accessTitle}.</span> <span className="text-muted-foreground">{t.accessBody(access.failures)}</span>
             </span>

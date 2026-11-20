@@ -14,6 +14,8 @@ export const STATE_MAX_PER_BATCH = RADAR_AUTO_MAX;
 export const SOON_DAYS = 7;
 /** A course that failed with an access error is skipped this long. */
 export const ACCESS_SKIP_H = 24;
+/** After ACCESS_FLAG_AFTER failures in a row: tried once a week (owner's rule, 20 Nov 2026). */
+export const ACCESS_SKIP_WEEK_H = 7 * 24;
 /** After this many access failures in a row the course is flagged (M5a shows it). */
 export const ACCESS_FLAG_AFTER = 3;
 
@@ -25,6 +27,8 @@ export function pickCoursesToCheck(
     minGapH?: number;
     maxPerBatch?: number;
     accessFailedAt?: Readonly<Record<string, UnixSeconds>>;
+    /** Access failures in a row per course: from ACCESS_FLAG_AFTER on, a week between tries. */
+    accessFailures?: Readonly<Record<string, number>>;
     /** Courses with a deadline soon: they go first. */
     soon?: ReadonlySet<CourseId>;
     /** "Perbarui": every course, whatever its last check. */
@@ -37,7 +41,8 @@ export function pickCoursesToCheck(
   return [...activeIds]
     .filter((id) => {
       const failed = opts.accessFailedAt?.[String(id)];
-      if (failed !== undefined && now - failed < ACCESS_SKIP_H * 3600) return false;
+      const skipH = (opts.accessFailures?.[String(id)] ?? 0) >= ACCESS_FLAG_AFTER ? ACCESS_SKIP_WEEK_H : ACCESS_SKIP_H;
+      if (failed !== undefined && now - failed < skipH * 3600) return false;
       if (opts.all) return true;
       const at = checkedAt[String(id)];
       return at === undefined || now - at >= gap;
