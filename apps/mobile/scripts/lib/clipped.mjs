@@ -29,6 +29,26 @@ export const CLIPPED = () => {
   return out;
 };
 
+/**
+ * Runs in the page: visible buttons and links that show an icon only and have no name a
+ * screen reader can say (no text, aria-label, aria-labelledby or title). Each is one finding.
+ */
+export const UNLABELLED = () => {
+  const out = [];
+  for (const el of document.querySelectorAll('button, a[href], [role="button"], [role="tab"], [role="menuitem"]')) {
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+    if (el.closest('[aria-hidden="true"]')) continue;
+    const named = (el.textContent ?? '').trim() || el.getAttribute('aria-label') || el.getAttribute('title') || [...el.querySelectorAll('img[alt], svg[aria-label], [role="img"][aria-label]')].some((n) => (n.getAttribute('alt') ?? n.getAttribute('aria-label') ?? '').trim());
+    const labelled = (el.getAttribute('aria-labelledby') ?? '').split(/\s+/).some((id) => id && (document.getElementById(id)?.textContent ?? '').trim());
+    if (named || labelled) continue;
+    out.push({ text: `<${el.tagName.toLowerCase()}> di (${Math.round(r.left)}, ${Math.round(r.top)}) ${Math.round(r.width)}x${Math.round(r.height)}: ${el.outerHTML.replace(/\s+/g, ' ').slice(0, 90)}`, how: 'tanpa-label' });
+  }
+  return out;
+};
+
 /** Every plain string of a dictionary (nested objects and arrays), for telling the app's words from data. */
 export function staticTexts(words) {
   const set = new Set();
@@ -48,8 +68,10 @@ export function clipLog() {
     async note(page, file, texts) {
       const found = await page.evaluate(CLIPPED).catch(() => []);
       for (const f of found) rows.push({ file, ...f, kind: texts.has(f.text) ? 'antarmuka' : f.how === 'halaman' ? 'halaman' : 'data' });
+      const bare = await page.evaluate(UNLABELLED).catch(() => []);
+      for (const f of bare) rows.push({ file, ...f, kind: 'tanpa-label' });
     },
     rows,
-    summary: () => ({ antarmuka: rows.filter((r) => r.kind === 'antarmuka').length, halaman: rows.filter((r) => r.kind === 'halaman').length, data: rows.filter((r) => r.kind === 'data').length }),
+    summary: () => ({ antarmuka: rows.filter((r) => r.kind === 'antarmuka').length, halaman: rows.filter((r) => r.kind === 'halaman').length, tanpaLabel: rows.filter((r) => r.kind === 'tanpa-label').length, data: rows.filter((r) => r.kind === 'data').length }),
   };
 }
