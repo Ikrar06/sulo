@@ -122,7 +122,7 @@ export const dashEn: DashMessages = {
     never: 'Not fetched yet',
     refresh: 'Update',
     loading: 'Fetching attendance…',
-    taken: (n: number) => `${n} sessions recorded`,
+    taken: (n: number) => (n === 1 ? '1 session recorded' : `${n} sessions recorded`),
     points: (got: number, max: number) => `${got} of ${max} points`,
     noSessions: 'No sessions recorded yet',
     noModule: 'No attendance on SIKOLA',

@@ -44,7 +44,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Kalau "Pantau tugas baru" menyala dan HP tidak menidurkan Sulo, sekitar 20 menit di siang hari (06.00-22.59) dan sekitar 110 menit di malam hari. Kalau mati, saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
-        en: 'With "Watch for new tasks" on and the phone not putting Sulo to sleep, about 20 minutes by day (06.00-22.59) and about 110 minutes at night. With it off, when you open the app, pull down, or tap Update.',
+        en: 'With "Watch for new tasks" on and the phone not putting Sulo to sleep, about 20 minutes by day (06:00 to 22:59) and about 110 minutes at night. With it off, when you open the app, pull down, or tap Update.',
       },
     ],
   },
@@ -64,7 +64,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Dengan pemantauan menyala, Sulo bangun paling banyak sekitar 55 kali sehari: tiap 20 menit pukul 06.00-22.59 dan tiap 110 menit di malam hari. Setiap kali hanya satu permintaan kecil ke SIKOLA, lalu tidur lagi; tidak ada yang berjalan terus di latar belakang.',
-        en: 'With watching on, Sulo wakes at most about 55 times a day: every 20 minutes from 06.00 to 22.59 and every 110 minutes at night. Each time it sends one small request to SIKOLA and sleeps again; nothing keeps running in the background.',
+        en: 'With watching on, Sulo wakes at most about 55 times a day: every 20 minutes from 06:00 to 22:59 and every 110 minutes at night. Each time it sends one small request to SIKOLA and sleeps again; nothing keeps running in the background.',
       },
       {
         id: 'Saat Penghemat baterai menyala, Sulo mengecek tiap 110 menit, siang maupun malam, tanpa memeriksa materi mata kuliah, dan kembali normal saat penghemat dimatikan. Kalau ingin lebih hemat lagi, matikan pemantauan; Sulo tetap memperbarui saat aplikasi dibuka.',
@@ -126,7 +126,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Hanya dari halaman NEOSIA yang kamu buka sendiri lewat Sulo. Sulo tidak pernah meminta apa pun ke NEOSIA; saat halaman itu memuat datanya, Sulo menyalin bagian yang dibutuhkan (jadwal, kesiapan KRS, nilai) dan membuang data pribadi seperti NIM, alamat, dan kontak. Semua disimpan terenkripsi di HP ini, terpisah dari sesi SIKOLA.',
-        en: 'Only from NEOSIA pages you open yourself through Sulo. Sulo never asks NEOSIA for anything; when such a page loads its data, Sulo copies the parts it needs (schedule, KRS readiness, grades) and drops personal data such as your student number, address and contacts. Everything is stored encrypted on this phone, apart from your SIKOLA session.',
+        en: 'Only from NEOSIA pages you open yourself through Sulo. Sulo never asks NEOSIA for anything; when such a page loads its data, Sulo copies the parts it needs (schedule, KRS readiness, grades) and drops personal data such as your student number, address and contacts. Everything is stored encrypted on this phone, separately from your SIKOLA session.',
       },
       {
         id: 'Kamu masuk di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA. Jadwal dan nilai menunjukkan kapan terakhir diperbarui. Untuk memperbaruinya, ketuk "Perbarui dari NEOSIA": Sulo hanya membuka halaman NEOSIA itu.',

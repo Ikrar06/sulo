@@ -164,7 +164,7 @@ const en: Words = {
   preparing: {
     title: 'Setting up Sulo',
     stages: { tasks: 'Getting your tasks', courses: 'Finding your courses', calendar: 'Preparing the calendar', attendance: 'Getting attendance' },
-    chips: { tasks: (n) => `${n} tasks`, courses: (n) => `${n} courses`, calendar: 'calendar ready', attendance: 'attendance ready' },
+    chips: { tasks: (n) => (n === 1 ? '1 task' : `${n} tasks`), courses: (n) => (n === 1 ? '1 course' : `${n} courses`), calendar: 'calendar ready', attendance: 'attendance ready' },
     failedTitle: "Couldn't get your data.",
     retry: 'Try again',
     without: 'Continue without data',
@@ -189,14 +189,14 @@ const en: Words = {
     stages: { 1440: '1 day', 180: '3 hours', 60: '1 hour' },
     inTime: (stage) => `in ${stage}`,
     watchTitle: 'Watch for new tasks',
-    watchBody: 'Sulo checks SIKOLA in the background from time to time.',
+    watchBody: 'Sulo checks SIKOLA regularly in the background.',
     detail: 'Details',
     allow: 'Allow reminders',
     later: 'Not now',
   },
   done: {
     title: 'All set.',
-    tasks: (n) => `${n} tasks`,
+    tasks: (n) => (n === 1 ? '1 task' : `${n} tasks`),
     next: (when) => `next due ${when}`,
     empty: 'No tasks yet',
     open: 'Open Sulo',
@@ -209,7 +209,7 @@ const en: Words = {
   },
   sheets: {
     why: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your sign-in session is stored encrypted on this phone.', 'No Sulo server, no ads, no tracking.'],
-    watch: 'Sulo checks SIKOLA in the background from time to time so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
+    watch: 'Sulo checks SIKOLA regularly in the background so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
   },
   unofficial: 'Unofficial. Not affiliated with Universitas Hasanuddin.',
 };

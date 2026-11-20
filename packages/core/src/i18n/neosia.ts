@@ -322,7 +322,7 @@ const en: NeosiaWords = {
     semester: (n: number) => `Semester ${n}`,
     sksPassed: (n: number) => `${n} credits passed`,
     sksScale: (n: number) => `Scale: ${n} credits to graduate`,
-    sisa: (n: number) => `${n} semesters of study time left`,
+    sisa: (n: number) => (n === 1 ? '1 semester of study time left' : `${n} semesters of study time left`),
     ipk: 'GPA',
     ips: 'Semester GPA',
     show: 'Show',
@@ -441,7 +441,7 @@ const en: NeosiaWords = {
     open: 'Open',
     has: 'Has data',
     missing: 'No data yet',
-    last: (when: string) => `Last ${when}`,
+    last: (when: string) => `Updated ${when}`,
     sources: {
       beranda: { name: 'Home', desc: 'GPA, study time, payment, class schedule, KRS status' },
       khs: { name: 'Study results card (KHS)', desc: 'Grades, the chart, semester names' },
