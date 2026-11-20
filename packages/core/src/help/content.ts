@@ -211,8 +211,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Bagaimana cara berlangganan kalender akademik?', en: 'How do I subscribe to the academic calendar?' },
     a: [
       {
-        id: 'Di halaman Kalender, bagian "Tambahkan ke kalendermu", klik "Google Kalender" pada kalender yang kamu mau (Inti S1, Wisuda, atau Libur nasional). Google Kalender versi web terbuka dan meminta konfirmasi; setelah itu kalendernya muncul juga di HP. Outlook, Apple, dan "Salin alamat" untuk aplikasi lain ada di menu di sebelahnya. Isinya hanya tanggal akademik umum, tanpa data pribadi.',
-        en: 'On the Calendar page, under "Add to your calendar", click "Google Calendar" on the calendar you want (S1 core, Graduation or National holidays). Google Calendar on the web opens and asks you to confirm; after that the calendar also shows on your phone. Outlook, Apple and "Copy address" for other apps are in the menu next to it. They hold public academic dates only, nothing personal.',
+        id: 'Di halaman Kalender, bagian "Tambahkan ke kalendermu", klik "Google Kalender" pada kalender yang kamu mau (Inti S1, Wisuda, atau Libur nasional). Google Kalender versi web terbuka dan meminta konfirmasi; setelah itu kalendernya muncul juga di HP. Outlook, Apple, dan "Salin alamat" untuk aplikasi lain ada di menu di sebelahnya. Kalender-kalender ini hanya berisi tanggal akademik umum, tanpa data pribadi.',
+        en: 'On the Calendar page, under "Add to your calendar", click "Google Calendar" on the calendar you want (S1 core, Graduation or National holidays). Google Calendar on the web opens and asks you to confirm; after that the calendar also shows on your phone. Outlook, Apple and "Copy address" for other apps are in the menu next to it. These calendars hold public academic dates only, nothing personal.',
       },
     ],
   },

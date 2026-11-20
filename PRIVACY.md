@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-Last updated: 18 November 2026
+Last updated: 21 November 2026
 
 Sulo is an unofficial academic companion for Universitas Hasanuddin students. It is not affiliated with or endorsed by Universitas Hasanuddin.
 
