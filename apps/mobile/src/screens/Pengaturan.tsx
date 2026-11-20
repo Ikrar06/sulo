@@ -1,7 +1,7 @@
 // Pengaturan (M8c.1, cards): one group card per topic, switches instead of
 // checkboxes, and times or formats as a value on the right that opens a
 // bottom sheet. Pengingat, Jam tenang, Ringkasan pagi, Kalender akademik,
-// Tampilan, Keamanan, Laporan bug, Data. Only what makes sense on a phone;
+// Tampilan, NEOSIA (once connected), Keamanan, Laporan bug, Data. Only what makes sense on a phone;
 // every value is the same prefs field the extension uses.
 
 import { useEffect, useState } from 'react';
@@ -33,7 +33,8 @@ type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickna
 import { SignOutSheet } from './SignOutSheet';
 import { Group, Row, ValueRow } from './settings-rows';
 import { WatchSettings } from './WatchSettings';
-export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
+import { NeosiaSettings } from './neosia/NeosiaSettings';
+export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut: () => void; section?: string | null }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
   const t = d.pengaturan;
@@ -151,6 +152,8 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
         </Row>
       </Group>
 
+      <NeosiaSettings scrollTo={section === 'neosia'} />
+
       <Group title={w.connected.lock}>
         <Row label={w.connected.lock} help={lockAvailable ? w.connected.lockHelp : w.connected.lockUnavailable}>
           <Toggle checked={lock} disabled={!lockAvailable} label={w.connected.lock} onChange={() => void toggleLock()} />
@@ -175,8 +178,8 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
             value={prefs.dueFormat}
             options={DUE_FORMATS.map((f) => ({ value: f, label: m.popup.settings.formats[f] }))}
             onChoose={(v: DueFormat) => {
+              void actions.setPrefs({ dueFormat: v });
               setPicker(null);
-              afterSheetClosed(() => void actions.setPrefs({ dueFormat: v }));
             }}
           />
         ) : picker === 'animation' ? (
@@ -184,11 +187,10 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
             value={prefs.animation}
             options={ANIMATION_PREFS.map((a) => ({ value: a, label: w.settings.animationOptions[a] }))}
             onChoose={(v: AnimationPref) => {
+              // The setting is written at once; the motion changes once the sheet is gone.
+              void actions.setPrefs({ animation: v });
               setPicker(null);
-              afterSheetClosed(() => {
-                setAnimationPref(v);
-                void actions.setPrefs({ animation: v });
-              });
+              afterSheetClosed(() => setAnimationPref(v));
             }}
           />
         ) : picker !== null ? (
@@ -198,13 +200,11 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
               options={HOURS.map((h) => ({ value: h, label: hour(h) }))}
               onChoose={(v: number) => {
                 const which = picker;
+                if (which === 'quietStart') setRem({ quiet: { ...rem.quiet, startMin: v } });
+                else if (which === 'quietEnd') setRem({ quiet: { ...rem.quiet, endMin: v } });
+                else if (which === 'morning') setRem({ morning: { ...rem.morning, atMin: v } });
+                else setRem({ snoozeMorningMin: v });
                 setPicker(null);
-                afterSheetClosed(() => {
-                  if (which === 'quietStart') setRem({ quiet: { ...rem.quiet, startMin: v } });
-                  else if (which === 'quietEnd') setRem({ quiet: { ...rem.quiet, endMin: v } });
-                  else if (which === 'morning') setRem({ morning: { ...rem.morning, atMin: v } });
-                  else setRem({ snoozeMorningMin: v });
-                });
               }}
             />
           </div>

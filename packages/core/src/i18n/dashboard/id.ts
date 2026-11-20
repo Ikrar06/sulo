@@ -162,9 +162,9 @@ export const dashId = {
     colorAuto: 'Otomatis',
     colorNames: ['Merah', 'Oranye', 'Zaitun', 'Hijau', 'Toska', 'Biru', 'Lavender', 'Merah muda'],
     original: (name: string) => `Nama di SIKOLA: ${name}`,
-    accessTitle: 'Sulo belum bisa membuka mata kuliah ini',
+    accessTitle: 'Tidak bisa dibuka di SIKOLA',
     accessBody: (n: number) =>
-      `Percobaan terakhir ditolak SIKOLA (${plural(n, 'kali')} berturut-turut). Biasanya karena kamu belum terdaftar, mata kuliahnya ditutup, atau aksesnya dibatasi dosen. Sulo mencoba lagi besok. Tugas dari kalender tetap muncul.`,
+      `Ditolak SIKOLA ${plural(n, 'kali')} berturut-turut, biasanya karena belum terdaftar, mata kuliahnya ditutup, atau aksesnya dibatasi dosen. Sulo mencoba lagi ${n >= 3 ? 'seminggu sekali' : 'besok'}; tugas dari kalender tetap muncul. Matikan Dipantau kalau tidak perlu.`,
     empty: 'Mata kuliahmu akan muncul di sini setelah pengaturan selesai.',
   },
   kabar: {

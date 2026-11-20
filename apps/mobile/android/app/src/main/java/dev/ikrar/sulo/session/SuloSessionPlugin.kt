@@ -29,9 +29,20 @@ import java.util.concurrent.Executors
  */
 @CapacitorPlugin(name = "SuloSession")
 class SuloSessionPlugin : Plugin() {
+    private companion object {
+        /** How long a request waits for the background check to finish with SIKOLA. */
+        const val LOCK_WAIT_MS = 60_000L
+        const val DEFERRED = "sulo_deferred"
+    }
+
     private val io = Executors.newSingleThreadExecutor()
-    private val vault by lazy { SessionVault(context) }
-    private val http by lazy { SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)") }
+    private val vault by lazy { SessionVault.of(context) }
+    private val http by lazy {
+        SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)", strict = BuildConfig.DEBUG, onHandlerCleared = { Diag.of(context).note("cookie_handler_cleared") }).apply {
+            // Debug builds: which header and cookie NAMES SIKOLA answers with (for the load-balancer question).
+            if (BuildConfig.DEBUG) namesSeen = { headers, cookies -> HeaderNames.record(context, headers, cookies) }
+        }
+    }
 
     // ---------- Haptics ----------
 
@@ -98,11 +109,30 @@ class SuloSessionPlugin : Plugin() {
         }
         io.execute {
             // Signing in is the user's own activity: one GET /my/ for the sesskey, kept with the cookie.
-            val sesskey = runCatching { http.get("${Sikola.ORIGIN}/my/", session) }.getOrNull()
-                ?.takeIf { it.status == 200 }?.let { SikolaText.sesskey(it.body) }
-            vault.save(SikolaSession(session, sesskey))
+            SikolaLock.hold(context, LOCK_WAIT_MS) {
+                val kept = keeper(SikolaSession(session, null))
+                val sesskey = runCatching { http.get("${Sikola.ORIGIN}/my/", session, kept) }.getOrNull()
+                    ?.takeIf { it.status == 200 }?.let { SikolaText.sesskey(it.body) }
+                // Nothing is in the vault yet: a cookie set by /my/ counts only with a signed-in page.
+                val cookie = kept.pending()?.takeIf { sesskey != null } ?: session
+                vault.save(SikolaSession(cookie, sesskey))
+            }
+            // The new session's cookie to disk now (owner's rule: flush after signing in).
+            runCatching { CookieManager.getInstance().flush() }
             call.resolve(JSObject().put("status", "connected"))
         }
+    }
+
+    /** Debug builds: the session's event log (times and event codes only, see Diag). */
+    @PluginMethod
+    fun diagLog(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("not available")
+        call.resolve(
+            JSObject()
+                .put("events", com.getcapacitor.JSArray(Diag.of(context).entries().toString()))
+                .put("cookies", JSObject().apply { CookieStats.of(context).summary().forEach { (k, v) -> put(k, v.toIntOrNull() ?: 0) } })
+                .put("headerNames", HeaderNames.all(context)),
+        )
     }
 
     @PluginMethod
@@ -110,93 +140,219 @@ class SuloSessionPlugin : Plugin() {
         call.resolve(JSObject().put("status", vault.status()))
     }
 
+
+    private fun keeper(session: SikolaSession) = CookieKeeper(session, vault, CookieStats.of(context), Diag.of(context))
+
+    /**
+     * The app is going away (between onPause and onStop, or gone): no request
+     * starts now. The sync waits for the next open (owner's rule, 20 Nov 2026).
+     */
+    private fun deferIfClosing(call: PluginCall): Boolean {
+        if (dev.ikrar.sulo.MainActivity.inForeground) return false
+        context.getSharedPreferences(DEFERRED, Context.MODE_PRIVATE).edit().putBoolean("sync", true).commit()
+        Diag.of(context).note("request_deferred")
+        call.resolve(JSObject().put("deferred", true).put("sessionStatus", vault.status()))
+        return true
+    }
+
+    /**
+     * The session is over for sure: core asked SIKOLA twice (the second time a
+     * few seconds later, core_session_time_remaining alone) and both answers
+     * said "log in". The only way a session ends apart from Keluar and Batal.
+     */
+    @PluginMethod
+    fun endSession(call: PluginCall) {
+        val reason = (call.getString("reason") ?: "").replace(Regex("[^a-z0-9_:.>+-]"), "").take(60)
+        io.execute {
+            SikolaLock.hold(context, LOCK_WAIT_MS) { vault.markExpired("confirmed:$reason") }
+            call.resolve(JSObject().put("status", vault.status()))
+        }
+    }
+
+    /** Whether background watching thought the session ended (the app then syncs, and core asks twice). */
+    @PluginMethod
+    fun suspect(call: PluginCall) {
+        val prefs = context.getSharedPreferences(DEFERRED, Context.MODE_PRIVATE)
+        val deferred = prefs.getBoolean("sync", false)
+        if (deferred) prefs.edit().remove("sync").commit()
+        call.resolve(JSObject().put("suspect", vault.status() == "connected" && vault.suspectCount() > 0).put("deferred", deferred))
+    }
+
+    /** The app has drawn its first frame: the launch screen may go (MainActivity). */
+    @PluginMethod
+    fun ready(call: PluginCall) {
+        dev.ikrar.sulo.MainActivity.webReady = true
+        call.resolve()
+    }
+
+    /** One event code from the app for the session history (Diag keeps codes only). */
+    @PluginMethod
+    fun note(call: PluginCall) {
+        call.getString("e")?.let { Diag.of(context).noteFromApp(it) }
+        call.resolve()
+    }
+
     /**
      * One batch to service.php. body: the JSON array the core client built;
      * userInitiated decides nosessionupdate (SikolaRequest.noSessionUpdate).
-     * Answers { httpStatus, body } with Moodle's JSON, or { sessionStatus }
-     * when there is no usable session.
+     * Answers { httpStatus, body } with Moodle's JSON (a 303 when SIKOLA sent
+     * us to its login), or { sessionStatus } when there is no session, or
+     * { networkError } for a passing failure. It never ends the session:
+     * core asks once more and decides (endSession).
      */
     @PluginMethod
     fun request(call: PluginCall) {
         val body = call.getString("body") ?: return call.reject("body missing")
         val userInitiated = call.getBoolean("userInitiated") ?: false
+        // A new connection, closed after: core's second ask before a session ends.
+        val fresh = call.getBoolean("fresh") ?: false
         val functions = SikolaRequest.allowedFunctions(body) ?: return call.reject("not allowlisted")
+        if (deferIfClosing(call)) return
         io.execute {
-            val session = vault.load()
-            if (session == null) {
-                call.resolve(JSObject().put("sessionStatus", vault.status()))
-                return@execute
-            }
-            try {
-                var current = session
-                // A sesskey only comes from the user's own activity (sign-in or a sync they started).
-                if (current.sesskey == null) {
-                    if (!userInitiated) return@execute call.resolve(JSObject().put("sessionStatus", "connected").put("needsUser", true))
-                    current = refreshSesskey(current) ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
-                }
-                var reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body)
-                if (SikolaRequest.invalidSesskey(reply.body) && userInitiated) {
-                    current = refreshSesskey(current.copy(sesskey = null)) ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
-                    reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body)
-                }
-                if (SikolaRequest.loginRequired(reply.body) || reply.location?.contains("/login/") == true) vault.markExpired()
-                call.resolve(JSObject().put("httpStatus", reply.status).put("body", reply.body).put("sessionStatus", vault.status()))
-            } catch (e: Exception) {
-                // The kind of failure only, never a message that could carry the URL.
-                call.resolve(JSObject().put("networkError", e.javaClass.simpleName).put("sessionStatus", vault.status()))
-            }
+            val answered = SikolaLock.hold(context, LOCK_WAIT_MS) { batch(call, body, functions, userInitiated, fresh) }
+            if (answered == null) call.resolve(JSObject().put("networkError", "Busy").put("sessionStatus", vault.status()))
         }
+    }
+
+    private fun batch(call: PluginCall, body: String, functions: List<String>, userInitiated: Boolean, fresh: Boolean) {
+        val session = when (val read = vault.read()) {
+            is SessionVault.Read.Ok -> read.session
+            // Not readable right now (the Keystore not ready): a passing failure, the session stays.
+            is SessionVault.Read.Unavailable -> return call.resolve(JSObject().put("networkError", "VaultUnavailable").put("sessionStatus", vault.status()))
+            SessionVault.Read.Empty -> return call.resolve(JSObject().put("sessionStatus", vault.status()))
+        }
+        try {
+            var current = session
+            // A sesskey only comes from the user's own activity (sign-in or a sync they started).
+            if (current.sesskey == null) {
+                if (!userInitiated) return call.resolve(JSObject().put("sessionStatus", "connected").put("needsUser", true))
+                current = when (val r = refreshSesskey(current)) {
+                    is Refresh.Ok -> r.session
+                    Refresh.ToLogin -> return toLogin(call, "my")
+                    Refresh.None -> return call.resolve(JSObject().put("networkError", "NoSesskey").put("sessionStatus", vault.status()))
+                }
+            }
+            val kept = keeper(current)
+            var reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body, kept, fresh)
+            kept.settle(SikolaRequest.sessionAnswered(reply.body, functions))
+            current = kept.session
+            if (SikolaRequest.invalidSesskey(reply.body, functions) && userInitiated) {
+                current = when (val r = refreshSesskey(current.copy(sesskey = null))) {
+                    is Refresh.Ok -> r.session
+                    Refresh.ToLogin -> return toLogin(call, "my")
+                    Refresh.None -> return call.resolve(JSObject().put("networkError", "NoSesskey").put("sessionStatus", vault.status()))
+                }
+                val again = keeper(current)
+                reply = http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body, again, fresh)
+                again.settle(SikolaRequest.sessionAnswered(reply.body, functions))
+            }
+            if (reply.status in 300..399 && reply.location?.contains("/login/") == true) return toLogin(call, "batch")
+            if (SikolaRequest.loginRequired(reply.body, functions)) {
+                // SIKOLA said "log in" once; core asks again before anything ends.
+                Diag.of(context).note("sikola_login_signal:batch:${SikolaRequest.sessionCodes(reply.body, functions).firstOrNull() ?: "?"}")
+            } else if (SikolaRequest.sessionAnswered(reply.body, functions)) {
+                vault.clearSuspect()
+            }
+            call.resolve(JSObject().put("httpStatus", reply.status).put("body", reply.body).put("sessionStatus", vault.status()))
+        } catch (e: Exception) {
+            // The kind of failure only, never a message that could carry the URL.
+            call.resolve(JSObject().put("networkError", e.javaClass.simpleName).put("sessionStatus", vault.status()))
+        }
+    }
+
+    /** SIKOLA sent us to its login: a 303 for core, which asks once more before anything ends. */
+    private fun toLogin(call: PluginCall, where: String) {
+        Diag.of(context).note("sikola_login_signal:redirect:$where")
+        call.resolve(JSObject().put("httpStatus", 303).put("body", "").put("toLogin", true).put("sessionStatus", vault.status()))
     }
 
     /**
      * One allowlisted SIKOLA page (SikolaPage: attendance only, id/mode/view),
      * only for something the user started. Answers { httpStatus, html } with
-     * the page stripped for JavaScript (no head, scripts, forms or sesskey),
-     * or { sessionStatus } when there is no usable session.
+     * the page stripped for JavaScript (no head, scripts, forms or sesskey);
+     * a redirect comes back as its status, with toLogin when it goes to
+     * SIKOLA's login (core asks again). Never ends the session itself.
      */
     @PluginMethod
     fun page(call: PluginCall) {
         val path = call.getString("path") ?: return call.reject("path missing")
         val url = SikolaPage.allowedUrl(path) ?: return call.reject("not allowlisted")
         if (call.getBoolean("userInitiated") != true) return call.reject("user only")
+        if (deferIfClosing(call)) return
         io.execute {
-            val session = vault.load() ?: return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
-            try {
-                val reply = http.get(url, session.moodleSession)
-                if (reply.status in 300..399 && reply.location?.contains("/login/") == true) {
-                    vault.markExpired()
-                    return@execute call.resolve(JSObject().put("sessionStatus", vault.status()))
-                }
-                call.resolve(JSObject().put("httpStatus", reply.status).put("html", SikolaPage.forJs(reply.body, listOfNotNull(session.sesskey))).put("sessionStatus", vault.status()))
-            } catch (e: Exception) {
-                call.resolve(JSObject().put("networkError", e.javaClass.simpleName).put("sessionStatus", vault.status()))
-            }
+            val answered = SikolaLock.hold(context, LOCK_WAIT_MS) { fetchPage(call, url) }
+            if (answered == null) call.resolve(JSObject().put("networkError", "Busy").put("sessionStatus", vault.status()))
         }
     }
 
-    /** GET /my/ for a fresh sesskey; marks the session expired when SIKOLA sends us to its login. */
-    private fun refreshSesskey(session: SikolaSession): SikolaSession? {
-        val page = http.get("${Sikola.ORIGIN}/my/", session.moodleSession)
-        if (page.status in 300..399 && page.location?.contains("/login/") == true) {
-            vault.markExpired()
-            return null
+    private fun fetchPage(call: PluginCall, url: String) {
+        val session = when (val read = vault.read()) {
+            is SessionVault.Read.Ok -> read.session
+            // Not readable right now: a passing failure, never "signed out".
+            is SessionVault.Read.Unavailable -> return call.resolve(JSObject().put("networkError", "VaultUnavailable").put("sessionStatus", vault.status()))
+            SessionVault.Read.Empty -> return call.resolve(JSObject().put("sessionStatus", vault.status()))
         }
-        val sesskey = SikolaText.sesskey(page.body) ?: return null
-        return session.copy(sesskey = sesskey).also { vault.save(it) }
+        try {
+            val pageKeeper = keeper(session)
+            val reply = http.get(url, session.moodleSession, pageKeeper)
+            // A page cannot show the session is valid by itself: a new cookie from it is never used.
+            pageKeeper.settle(false)
+            if (reply.status in 300..399) {
+                val login = reply.location?.contains("/login/") == true
+                Diag.of(context).note(if (login) "sikola_login_signal:redirect:page" else "sikola_page_redirect")
+                return call.resolve(JSObject().put("httpStatus", reply.status).put("html", "").put("toLogin", login).put("sessionStatus", vault.status()))
+            }
+            call.resolve(JSObject().put("httpStatus", reply.status).put("html", SikolaPage.forJs(reply.body, listOfNotNull(session.sesskey))).put("sessionStatus", vault.status()))
+        } catch (e: Exception) {
+            call.resolve(JSObject().put("networkError", e.javaClass.simpleName).put("sessionStatus", vault.status()))
+        }
+    }
+
+    private sealed class Refresh {
+        data class Ok(val session: SikolaSession) : Refresh()
+        object ToLogin : Refresh()
+        object None : Refresh()
+    }
+
+    /** GET /my/ for a fresh sesskey. A redirect to SIKOLA's login is reported, never acted on here. */
+    private fun refreshSesskey(session: SikolaSession): Refresh {
+        val kept = keeper(session)
+        val page = http.get("${Sikola.ORIGIN}/my/", session.moodleSession, kept)
+        // A signed-in /my/ carries a sesskey; only then is a new cookie the session's.
+        kept.settle(page.status == 200 && SikolaText.sesskey(page.body) != null)
+        if (page.status in 300..399 && page.location?.contains("/login/") == true) return Refresh.ToLogin
+        val sesskey = SikolaText.sesskey(page.body) ?: return Refresh.None
+        return Refresh.Ok(kept.session.copy(sesskey = sesskey).also { vault.save(it) })
     }
 
     /** "Keluar": SIKOLA's cookies and web storage in this app, the vault and its Keystore key. */
     @PluginMethod
     fun logout(call: PluginCall) {
-        CookieManager.getInstance().removeAllCookies {
-            CookieManager.getInstance().flush()
-            WebStorage.getInstance().deleteAllData()
-            io.execute {
-                vault.wipe()
+        SignOut(
+            webData(),
+            vault,
+            listOf(
+                { Diag.of(context).clear() },
+                // NEOSIA's data of every account, its queue and its Keystore key (its web storage went with webData).
+                { dev.ikrar.sulo.neosia.NeosiaStore.of(context).wipeAll() },
                 // Keluar also ends background watching: no check, no queue, no plan.
-                runCatching { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
-                runCatching { dev.ikrar.sulo.watch.WatchStore(context).clear() }
-                call.resolve(JSObject().put("status", "none"))
+                { dev.ikrar.sulo.watch.WatchScheduler.stop(context) },
+                { dev.ikrar.sulo.watch.WatchStore(context).clear() },
+            ),
+        ).run { call.resolve(JSObject().put("status", "none")) }
+    }
+
+    /** The WebViews' data: cookies, web storage (NEOSIA's localStorage) and the HTTP cache. */
+    private fun webData() = object : CookieJar {
+        override fun clearAll(done: () -> Unit) {
+            CookieManager.getInstance().removeAllCookies {
+                CookieManager.getInstance().flush()
+                WebStorage.getInstance().deleteAllData()
+                // The cache is shared by every WebView of the app; clearing it needs one, on the main thread.
+                activity.runOnUiThread {
+                    runCatching { android.webkit.WebView(context).apply { clearCache(true); destroy() } }
+                    io.execute(done)
+                }
             }
         }
     }
@@ -225,19 +381,7 @@ class SuloSessionPlugin : Plugin() {
         }
     }
 
-    private fun accountReset() = AccountReset(
-        vault,
-        dev.ikrar.sulo.watch.WatchStore(context),
-        object : CookieJar {
-            override fun clearAll(done: () -> Unit) {
-                CookieManager.getInstance().removeAllCookies {
-                    CookieManager.getInstance().flush()
-                    WebStorage.getInstance().deleteAllData()
-                    io.execute(done)
-                }
-            }
-        },
-    ) { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
+    private fun accountReset() = AccountReset(vault, dev.ikrar.sulo.watch.WatchStore(context), webData()) { dev.ikrar.sulo.watch.WatchScheduler.stop(context) }
 
     // ---------- App lock (optional, off by default; the setting lives in the app) ----------
 
@@ -359,6 +503,60 @@ class SuloSessionPlugin : Plugin() {
     fun watchRunNow(call: PluginCall) {
         if (!BuildConfig.DEBUG) return call.reject("debug only")
         dev.ikrar.sulo.watch.WatchScheduler.next(context, 0, System.currentTimeMillis() / 1000, dev.ikrar.sulo.watch.WatchScheduler.MODE_CHECK_NOW)
+        call.resolve()
+    }
+
+    /**
+     * pnpm mobile:test-restart: writes the same session again and again for
+     * `ms` (decrypt, encrypt, atomic write), so the process can be ended in
+     * the middle of a vault write. No request; the session is unchanged.
+     */
+    @PluginMethod
+    fun devVaultChurn(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("debug only")
+        val until = System.currentTimeMillis() + (call.getInt("ms") ?: 3000).coerceIn(0, 20_000)
+        io.execute {
+            var writes = 0
+            SikolaLock.hold(context, LOCK_WAIT_MS) {
+                val session = vault.load() ?: return@hold
+                while (System.currentTimeMillis() < until) {
+                    vault.save(session, note = false)
+                    writes++
+                }
+            }
+            call.resolve(JSObject().put("writes", writes))
+        }
+    }
+
+    /**
+     * Debug builds: whether the vault's MoodleSession is the one in the WebView's
+     * CookieManager ("same", "different", "none_in_webview", "no_vault"), and how
+     * many MoodleSession entries the WebView holds for SIKOLA. Never a value.
+     */
+    @PluginMethod
+    fun devCookieCompare(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("debug only")
+        io.execute {
+            val vaultCookie = vault.load()?.moodleSession
+            val jar = CookieManager.getInstance().getCookie(Sikola.ORIGIN).orEmpty()
+            val inWebView = jar.split(';').map { it.trim() }.filter { it.startsWith("${Sikola.SESSION_COOKIE}=") }.map { it.substringAfter('=') }
+            val verdict = when {
+                vaultCookie == null -> "no_vault"
+                inWebView.isEmpty() -> "none_in_webview"
+                inWebView.contains(vaultCookie) -> "same"
+                else -> "different"
+            }
+            call.resolve(JSObject().put("verdict", verdict).put("webViewCount", inWebView.size).put("webViewCookieNames", com.getcapacitor.JSArray(jar.split(';').map { it.trim().substringBefore('=') }.filter { it.isNotEmpty() })))
+        }
+    }
+
+    /** Debug builds: the owner's one-off test budget for `date` (today); one background check may use it. */
+    @PluginMethod
+    fun devTestBudget(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("debug only")
+        val date = call.getString("date") ?: return call.reject("date missing")
+        dev.ikrar.sulo.watch.TestBudget.set(context, date)
+        Diag.of(context).note("test_budget_on")
         call.resolve()
     }
 

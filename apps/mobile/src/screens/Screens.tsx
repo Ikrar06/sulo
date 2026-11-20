@@ -6,7 +6,9 @@ import { lazy, Suspense, useState } from 'react';
 import { useNewAccount } from '@sulo/core/account/actions';
 import { useI18n } from '@sulo/ui/i18n';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { mobileWords } from '@sulo/core/i18n/mobile';
 import { useMobileData } from '../shell/data';
+import { NoDataSkeleton } from './Skeletons';
 import type { Screen } from '../shell/nav';
 import { clearScheduledReminders } from '../reminders';
 import { RingkasanScreen } from './Ringkasan';
@@ -25,16 +27,19 @@ const PengaturanScreen = lazy(() => import('./Pengaturan').then((m) => ({ defaul
 const BantuanScreen = lazy(() => import('./Bantuan').then((m) => ({ default: m.BantuanScreen })));
 const TentangScreen = lazy(() => import('./Tentang').then((m) => ({ default: m.TentangScreen })));
 const PrivasiScreen = lazy(() => import('./Privasi').then((m) => ({ default: m.PrivasiScreen })));
+const JadwalScreen = lazy(() => import('./neosia/Jadwal').then((m) => ({ default: m.JadwalScreen })));
+const NilaiScreen = lazy(() => import('./neosia/Nilai').then((m) => ({ default: m.NilaiScreen })));
 
 export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: Screen) => void; onSignedOut: () => void }) {
   const { data } = useMobileData();
+  const { locale } = useI18n();
   if (!data) return null;
   if (data.pending) return <AccountPending />;
   // Settings, help, about and privacy work without account data too.
   const page = (() => {
     switch (screen.name) {
       case 'pengaturan':
-        return <PengaturanScreen onSignedOut={onSignedOut} />;
+        return <PengaturanScreen onSignedOut={onSignedOut} section={screen.detail} />;
       case 'bantuan':
         return <BantuanScreen initialOpen={screen.detail} />;
       case 'tentang':
@@ -48,7 +53,8 @@ export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: S
     }
   })();
   if (page) return <Suspense fallback={null}>{page}</Suspense>;
-  if (!data.user) return null;
+  // No data yet (a new account, or Hapus data): a skeleton shaped like the screen, until the sync brings it.
+  if (!data.user) return <NoDataSkeleton screen={screen.name} label={mobileWords(locale).connected.sync.updating} />;
   switch (screen.name) {
     case 'tugas':
       return screen.detail !== null ? <TaskScreen eventId={Number(screen.detail)} /> : <TugasScreen go={go} />;
@@ -66,6 +72,18 @@ export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: S
       return (
         <Suspense fallback={null}>
           <MataKuliahScreen />
+        </Suspense>
+      );
+    case 'jadwal':
+      return (
+        <Suspense fallback={null}>
+          <JadwalScreen />
+        </Suspense>
+      );
+    case 'nilai':
+      return (
+        <Suspense fallback={null}>
+          <NilaiScreen go={go} />
         </Suspense>
       );
     default:

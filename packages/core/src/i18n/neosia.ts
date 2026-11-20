@@ -5,6 +5,27 @@
 import type { Locale } from './index';
 
 const id = {
+  /** The Android app (M8d). */
+  mobile: {
+    akademik: 'Akademik',
+    connectTitle: 'Hubungkan NEOSIA',
+    connectBody: 'Sulo membaca jadwal kuliah, kesiapan KRS, dan nilai dari halaman NEOSIA yang kamu buka sendiri di Sulo. Sulo tidak pernah mengirim permintaan ke NEOSIA, tidak membaca password atau token, dan tidak menyimpan data pribadi seperti NIK, alamat, atau nominal pembayaran. Nilai tersembunyi sampai kamu menyalakannya.',
+    connect: 'Hubungkan',
+    signIn: 'Masuk NEOSIA',
+    signInDesc: 'Login di halaman NEOSIA sendiri. Biasanya cukup sekali.',
+    expired: 'Sesi NEOSIA habis. Masuk lagi untuk melanjutkan.',
+    unsupported: 'NEOSIA belum bisa dipakai di HP ini karena WebView perlu diperbarui.',
+    updateWebView: 'Perbarui WebView',
+    gradesShown: 'Tampilkan nilai',
+    gradesHelp: 'Nilai dan IPK tersembunyi sampai kamu menyalakan ini. Tidak pernah masuk notifikasi, ekspor, atau laporan bug.',
+    disconnect: 'Putuskan NEOSIA',
+    disconnectBody: 'Semua data NEOSIA di HP ini dihapus. Data di NEOSIA tidak tersentuh.',
+    hiddenGrades: 'Nilai disembunyikan. Nyalakan di Pengaturan.',
+    openSettings: 'Buka Pengaturan',
+    nextItem: 'Berikutnya',
+    reset: 'Kembalikan',
+    unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
+  },
   noData: 'Belum ada data dari NEOSIA',
   changedShape: 'NEOSIA berubah, data mungkin tidak lengkap.',
   openNeosia: 'Buka NEOSIA',
@@ -216,6 +237,26 @@ const id = {
 export type NeosiaWords = typeof id;
 
 const en: NeosiaWords = {
+  mobile: {
+    akademik: 'Academics',
+    connectTitle: 'Connect NEOSIA',
+    connectBody: 'Sulo reads your class schedule, KRS readiness and grades from the NEOSIA pages you open yourself in Sulo. Sulo never sends a request to NEOSIA, never reads your password or token, and never stores personal data such as your ID number, address or payment amounts. Grades stay hidden until you turn them on.',
+    connect: 'Connect',
+    signIn: 'Sign in to NEOSIA',
+    signInDesc: "Sign in on NEOSIA's own page. Usually once is enough.",
+    expired: 'Your NEOSIA session ended. Sign in again to continue.',
+    unsupported: "NEOSIA can't be used on this phone yet: WebView needs an update.",
+    updateWebView: 'Update WebView',
+    gradesShown: 'Show grades',
+    gradesHelp: 'Grades and GPA stay hidden until you turn this on. They never appear in notifications, exports or bug reports.',
+    disconnect: 'Disconnect NEOSIA',
+    disconnectBody: 'All NEOSIA data on this phone is deleted. Nothing in NEOSIA changes.',
+    hiddenGrades: 'Grades are hidden. Turn them on in Settings.',
+    openSettings: 'Open Settings',
+    nextItem: 'Next',
+    reset: 'Reset',
+    unofficial: 'Unofficial and not affiliated with Universitas Hasanuddin.',
+  },
   noData: 'No data from NEOSIA yet',
   changedShape: 'NEOSIA has changed, so some data may be missing.',
   openNeosia: 'Open NEOSIA',

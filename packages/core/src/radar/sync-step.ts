@@ -2,6 +2,7 @@
 // (still one request) and turns their results into change-log entries.
 // Storage is injected; no browser APIs.
 
+import { NOT_RUN_CODE } from '../moodle/client';
 import { activeCourseIds } from '../courses/active-score';
 import { calls, type MoodleCall } from '../moodle/calls';
 import { MAX_STATE_CALLS_PER_BATCH, NOTIFICATIONS_LIMIT, NOTIFICATIONS_LIMIT_SMALL, TASKS_TTL_MIN, TTL_TOLERANCE_MIN } from '../moodle/limits';
@@ -65,11 +66,13 @@ export async function planRadarCalls(
   const radar = await readUser(store, userId, 'radar');
   const active = [...activeCourseIds(courses)];
   const accessFailedAt = Object.fromEntries(Object.entries(radar.courseAccess ?? {}).map(([id, a]) => [id, a.lastFailedAt]));
+  const accessFailures = Object.fromEntries(Object.entries(radar.courseAccess ?? {}).map(([id, a]) => [id, a.failures]));
   const courseIds =
     mode === 'saver'
       ? []
       : pickCoursesToCheck(active, radar.stateCheckedAt, now, {
           accessFailedAt,
+          accessFailures,
           soon: coursesDueSoon(tasks, now),
           ...(mode === 'full' ? { all: true, maxPerBatch: MAX_STATE_CALLS_PER_BATCH } : {}),
         });
@@ -168,6 +171,11 @@ export async function applyRadarResults(store: KeyValueStore, r: RadarResults): 
   for (const courseId of r.plan.courseIds) {
     const key = String(courseId);
     const result = r.results[index++];
+    // Moodle stopped the batch before this course: not checked, it comes first at the next sync.
+    if (result && !result.ok && result.errorcode === NOT_RUN_CODE) {
+      countError(NOT_RUN_CODE);
+      continue;
+    }
     stateCheckedAt[key] = r.now;
     const parsed = result ? parseCall('core_courseformat_get_state', result) : null;
     // Only a result that passed validation is diffed. A failed one is never

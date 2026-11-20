@@ -13,10 +13,17 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- No white or black flash between the launch screen and the first frame. -->
+        <item name="android:windowBackground">@color/sulo_screen</item>
     </style>
 
 
+    <!-- The launch screen (androidx SplashScreen: Android 12's own, the same look on 8 to 11):
+         the app's screen colour (light or dark) and the mascot in the middle, no text. MainActivity
+         keeps it until the WebView has drawn its first frame. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/sulo_screen</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

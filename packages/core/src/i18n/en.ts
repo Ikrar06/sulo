@@ -215,6 +215,7 @@ export const en: Messages = {
     stale: (since) => (since === null ? "Your tasks haven't been updated yet." : `Sulo couldn't update since ${since}. Try Update later.`),
     refreshNow: 'Update',
     notificationsOff: "Sulo's notifications are turned off in Chrome, so reminders won't show.",
+    syncing: 'Updating from SIKOLA…',
     notificationsHow: 'See how',
   },
 

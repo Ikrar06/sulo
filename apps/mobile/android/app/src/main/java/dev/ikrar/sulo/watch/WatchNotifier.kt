@@ -30,7 +30,8 @@ object WatchNotifier {
         val open = Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra(EXTRA_OPEN, notice.id)
         val tap = PendingIntent.getActivity(context, notice.numericId, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, CHANNEL)
-            .setSmallIcon(context.applicationInfo.icon)
+            // The mascot's silhouette, one colour (a full-colour app icon shows as a blank shape in the status bar).
+            .setSmallIcon(dev.ikrar.sulo.R.drawable.ic_stat_sulo)
             .setContentTitle(notice.title)
             .apply { if (notice.body.isNotEmpty()) setContentText(notice.body).setStyle(NotificationCompat.BigTextStyle().bigText(notice.body)) }
             .setContentIntent(tap)

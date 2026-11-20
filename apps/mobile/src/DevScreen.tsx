@@ -11,6 +11,8 @@ import { NotifyTests } from './dev/NotifyTests';
 import { PerfDev } from './dev/PerfDev';
 import { OnboardingDev } from './dev/OnboardingDev';
 import { TestConfig } from './dev/TestConfig';
+import { NeosiaTrialDev } from './dev/NeosiaTrialDev';
+import { SessionDiagDev } from './dev/SessionDiagDev';
 
 const time = (at: number) => new Date(at * 1000).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
 
@@ -55,6 +57,8 @@ export function DevScreen({ platform, w, onBack }: { platform: Platform; w: Mobi
       <OnboardingDev platform={platform} />
       <NotifyTests platform={platform} />
       <TestConfig platform={platform} />
+      <SessionDiagDev platform={platform} />
+      <NeosiaTrialDev />
       <div className="mt-auto pt-3">
         <PillButton full onPress={onBack}>
           {w.dev.back}

@@ -17,11 +17,17 @@ export interface BatchReply {
   networkError?: string;
   /** No sesskey yet and the request was not started by the user. */
   needsUser?: boolean;
+  /** The app was closing: nothing was sent; the sync waits for the next open. */
+  deferred?: boolean;
 }
 
 export interface PageReply {
   httpStatus?: number;
   html?: string;
+  /** A redirect to SIKOLA's login (asked again by core before anything ends). */
+  toLogin?: boolean;
+  /** The app was closing: nothing was sent. */
+  deferred?: boolean;
   sessionStatus: SessionStatus;
   networkError?: string;
 }
@@ -42,8 +48,25 @@ export interface SuloSessionPlugin {
    */
   login(labels?: { close: string; offline: string; retry: string }): Promise<{ status: 'connected' | 'cancelled' | 'offline' }>;
   status(): Promise<{ status: SessionStatus }>;
+  /**
+   * The session is over for sure: core asked twice and SIKOLA said "log in"
+   * both times (`reason`: the codes of both answers). The only way the vault
+   * ends a session, apart from the user's own Keluar or Batal.
+   */
+  endSession(options: { reason: string }): Promise<{ status: SessionStatus }>;
+  /** Background watching thought the session ended: the app confirms on its next sync (never the worker). */
+  suspect(): Promise<{ suspect: boolean; deferred?: boolean }>;
+  /** One event code for the session history (lowercase, digits, _:.>+-; no data). */
+  note(options: { e: string }): Promise<void>;
+  /** The first frame is drawn: the launch screen may go. */
+  ready(): Promise<void>;
+  /** Debug builds: the owner's one-off test budget for today (one background check may use it). */
+  devTestBudget(options: { date: string }): Promise<void>;
+  /** Debug builds: what happened to the session (times and event codes only, native Diag). */
+  diagLog(): Promise<{ events: { at: number; e: string }[]; cookies?: Record<string, number>; headerNames?: string }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */
-  request(options: { body: string; userInitiated: boolean }): Promise<BatchReply>;
+  /** fresh: over a new connection, closed after (core's second ask). */
+  request(options: { body: string; userInitiated: boolean; fresh?: boolean }): Promise<BatchReply>;
   /**
    * One allowlisted SIKOLA page (attendance only: id, mode, view), for
    * something the user started. The HTML comes stripped of its head,

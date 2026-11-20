@@ -30,6 +30,8 @@ export type Banner =
   /** The session ended; lastSyncAt dates the data still shown (M7.2). */
   | { kind: 'session_expired'; lastSyncAt: UnixSeconds | null }
   | { kind: 'offline' }
+  /** A sync is running (after signing in again, Perbarui, or on its own): the old data stays on screen. */
+  | { kind: 'syncing' }
   /** The last sync could not read SIKOLA's answer (PARSER_BROKEN). */
   | { kind: 'parser_broken' }
   /** Today's request budget is spent: nothing more until tomorrow (no numbers shown). */
@@ -169,6 +171,8 @@ export function bannerFor(input: PopupInput, stale: boolean): Banner | null {
   if (!input.remoteConfig.enabled) return { kind: 'disabled_remotely', message: input.remoteConfig.message };
   if (input.session === 'EXPIRED') return { kind: 'session_expired', lastSyncAt: input.user?.sync.lastSyncAt ?? null };
   if (offline(input)) return { kind: 'offline' };
+  // Updating says so in words, over the older status lines (the same pattern as the Android app, 20 Nov 2026).
+  if (input.syncing) return { kind: 'syncing' };
   if (input.syncStatus.lastOutcome?.status === 'parser_broken') return { kind: 'parser_broken' };
   const today = input.budget.date === localParts(input.now, input.timeZone).dateKey;
   if (today && (input.budget.used >= DAILY_BUDGET || (input.budget.calls ?? 0) >= DAILY_CALL_BUDGET)) return { kind: 'limit' };

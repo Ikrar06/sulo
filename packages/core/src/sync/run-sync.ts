@@ -10,7 +10,7 @@
 
 import { buildCourses, newInProgressIds } from '../courses/build';
 import { scoreCourse } from '../courses/active-score';
-import type { BatchOutcome, CallResult, MoodleClient } from '../moodle/client';
+import { callBatchOnceMore, type BatchOutcome, type CallResult, type MoodleClient } from '../moodle/client';
 import { readBudget, remainingQuota } from '../moodle/budget';
 import {
   CALENDAR_LOOKBACK_DAYS,
@@ -205,7 +205,8 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
     userId: knownUser,
     remaining: remainingQuota(budget),
   });
-  const result = await deps.client.callBatch(plan.calls, { source: deps.trigger, withCourseList: plan.withCourseList });
+  // A course that stops the batch (not reachable for this user): the calls after it once more, in one extra POST.
+  const result = await callBatchOnceMore(deps.client, plan.calls, { source: deps.trigger, withCourseList: plan.withCourseList });
   if (result.kind !== 'ok') {
     stage(deps, 'tasks', 'failed');
     return transportOutcome(result);
@@ -381,6 +382,8 @@ function transportOutcome(result: Exclude<BatchOutcome, { kind: 'ok' }>): SyncOu
       return { status: 'offline' };
     case 'timeout':
     case 'http_error':
+    // Asked twice, SIKOLA did not say the same twice: try again later, the session stays.
+    case 'session_unconfirmed':
       return { status: 'server_error' };
     case 'bad_response':
       return { status: 'parser_broken', where: 'transport' };
@@ -402,7 +405,7 @@ async function firstSyncRadar(deps: SyncDeps, userId: UserId, courses: readonly 
     return 'skipped';
   }
   // Every batch carries the session call: it alone may end the session.
-  const result = await deps.client.callBatch([calls.sessionTimeRemaining(), ...plan.calls], { source: deps.trigger });
+  const result = await callBatchOnceMore(deps.client, [calls.sessionTimeRemaining(), ...plan.calls], { source: deps.trigger });
   if (result.kind !== 'ok') {
     // Retried by the next sync, which plans the radar normally.
     const meta = await readUser(deps.store, userId, 'radar');

@@ -31,11 +31,18 @@ import { OnboardingFlow } from './onboarding/OnboardingFlow';
 import { SwitchAccount } from './onboarding/SwitchAccount';
 import { holdWatching, keepPreviousAccount, switchPending, useOtherAccount } from './switch-account';
 import { readSavedFlow, saveFlow } from './onboarding/data';
+import { flushSheetWork } from '@sulo/ui/mobile/sheet';
 import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow';
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
-import { lastSyncAt, resumeNeedsSync, syncAfterLogin, syncNow } from './sync';
+import { lastSyncAt, manualFresh, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
+import type { SyncDeps } from '@sulo/core/sync/run-sync';
+import { calls } from '@sulo/core/moodle/calls';
+import { TEST_BUDGET_FLAG, TEST_CHECK_GAP_MS, testCheckLimit } from './dev/test-budget';
+import { alignSession } from './session-truth';
+import { NeosiaProvider } from './neosia/NeosiaProvider';
+import { afterStage, DONE_MS, holdLeft, IDLE, running, type SyncUi } from './shell/sync-status';
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
 const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({ default: m.DevScreen }))) : null;
@@ -52,6 +59,21 @@ export function outcomeNote(o: SyncOutcome, w: MobileWords, rest: 'short' | 'day
   if (o.status === 'skipped' && o.reason === 'DISABLED_REMOTELY') return '';
   if (o.status === 'offline') return w.app.offline;
   return w.connected.failed;
+}
+
+/** Debug builds: pnpm mobile:test-restart may hold the sync on open (localStorage "sulo:dev:holdResume" = "1"). */
+function devHoldResume(): boolean {
+  try {
+    return localStorage.getItem('sulo:dev:holdResume') === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** Core's session state follows the vault; a change goes into the session history. */
+async function alignAndNote(platform: Platform, vault: SessionStatus): Promise<void> {
+  const changed = await alignSession(platform, vault).catch(() => null);
+  if (changed) await SuloSession.note({ e: changed }).catch(() => undefined);
 }
 
 /** The idle mount of Ringkasan waits at most this long. */
@@ -105,6 +127,10 @@ export function App({ platform }: { platform: Platform }) {
   const [last, setLast] = useState<UnixSeconds | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
+  // The one updating line on every screen (shell/sync-status.ts).
+  const [syncUi, setSyncUi] = useState<SyncUi>(IDLE);
+  const [news, setNews] = useState({ count: 0, seq: 0 });
+  const doneTimer = useRef<number | null>(null);
   const [dev, setDev] = useState(false);
   const [paused, setPaused] = useState<string | null>(null);
   const w = mobileWords(locale);
@@ -114,18 +140,34 @@ export function App({ platform }: { platform: Platform }) {
     setLast(await lastSyncAt(platform));
   }, [platform]);
 
-  /** Runs a sync and returns the line to show (empty when it went fine). */
+  /** "Sudah terbaru" for 2 seconds, then the line goes. */
+  const showDone = useCallback(() => {
+    setSyncUi({ phase: 'done', stage: null });
+    if (doneTimer.current !== null) window.clearTimeout(doneTimer.current);
+    doneTimer.current = window.setTimeout(() => setSyncUi((u) => (u.phase === 'done' ? IDLE : u)), DONE_MS);
+  }, []);
+
+  /**
+   * Runs a sync and returns the line to show (empty when it went fine). The
+   * updating state is set before anything is sent, follows runSync's real
+   * stages, and stays at least 400 ms; old data stays on screen throughout.
+   */
   const sync = useCallback(
-    async (run: () => Promise<SyncOutcome>): Promise<string> => {
+    async (run: (onStage: SyncDeps['onStage']) => Promise<SyncOutcome>): Promise<string> => {
+      const startedAt = performance.now();
+      if (doneTimer.current !== null) window.clearTimeout(doneTimer.current);
+      setSyncUi(running());
       setBusy(true);
       setNote('');
       let line = w.connected.failed;
+      let outcome: SyncOutcome | null = null;
       try {
-        const outcome = await run();
+        outcome = await run((stage, result) => setSyncUi((u) => afterStage(u, stage, result)));
         const rest = outcome.status === 'skipped' && outcome.reason === 'BUDGET_EXHAUSTED' ? restKind(await readBudget(platform.store, platform.clock), platform.clock.now()) : 'day';
         line = outcomeNote(outcome, w, rest);
         // News found while the app is open lands in Kabar terbaru without a notification.
-        await markChangesHandled(platform.store, platform.clock.now()).catch(() => 0);
+        const found = await markChangesHandled(platform.store, platform.clock.now()).catch(() => 0);
+        setNews((n) => ({ count: found, seq: n.seq + 1 }));
         await scheduleReminders(platform).catch(() => 0);
         // A sync the user started restarts the background interval.
         await applyWatchPlan(platform).catch(() => undefined);
@@ -133,14 +175,63 @@ export function App({ platform }: { platform: Platform }) {
         line = w.connected.failed;
       } finally {
         await refreshState();
-        setBusy(false);
       }
+      // Never shorter than 400 ms: no flicker.
+      await new Promise((r) => window.setTimeout(r, holdLeft(startedAt, performance.now())));
+      setBusy(false);
+      if (outcome?.status === 'session_expired') setSyncUi(IDLE);
+      else if (line === '' || line === w.connected.upToDate) showDone();
+      // Failed: the old data stays; the line says so and offers to try again.
+      else setSyncUi({ phase: 'failed', stage: null, message: line === w.connected.failed ? w.connected.sync.failed : line });
       setNote(line);
       return line;
     },
-    [platform, refreshState, w],
+    [platform, refreshState, w, showDone],
   );
-  const refresh = useCallback(() => sync(() => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__ })), [platform, sync]);
+  const refresh = useCallback(async () => {
+    // No connection: say so, never "Sudah terbaru" (the old data stays).
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setSyncUi({ phase: 'failed', stage: null, message: w.app.offline });
+      return w.app.offline;
+    }
+    // Perbarui within the 2-minute pause: "Sudah terbaru" at once, no spinner for nothing.
+    if (await manualFresh(platform)) {
+      showDone();
+      return w.connected.upToDate;
+    }
+    return sync((onStage) => syncNow(platform, { userInitiated: true, dev: __SULO_DEV__, onStage }));
+  }, [platform, sync, showDone, w]);
+  // The start effect runs once; it reaches the current refresh through this.
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
+  // Debug builds only: pnpm mobile:test-restart starts a sync like pull-to-refresh (to end the process mid-sync).
+  useEffect(() => {
+    if (!__SULO_DEV__) return;
+    const w = window as unknown as { __suloDevSync?: () => Promise<string>; __suloDevCheck?: (fresh?: boolean) => Promise<string>; __suloDevTestBudget?: () => Promise<string> };
+    let lastCheck = 0;
+    w.__suloDevSync = () => refreshRef.current();
+    // One core_session_time_remaining through core's client (gates, budget, queue): the session check of the staged tests.
+    // The owner's one-off test budget (dev/test-budget.ts): today only, debug only, this check only.
+    w.__suloDevTestBudget = async () => {
+      const today = platform.clock.localDate();
+      localStorage.setItem(TEST_BUDGET_FLAG, today);
+      await SuloSession.devTestBudget({ date: today }).catch(() => undefined);
+      return today;
+    };
+    w.__suloDevCheck = async (fresh = false) => {
+      // At least 10 seconds apart, one at a time (the client's queue).
+      if (Date.now() - lastCheck < TEST_CHECK_GAP_MS) return 'too_soon';
+      lastCheck = Date.now();
+      const dailyBudget = testCheckLimit({ dev: __SULO_DEV__, flagDate: localStorage.getItem(TEST_BUDGET_FLAG), today: platform.clock.localDate() });
+      return (await sikolaClient(platform, { userInitiated: true, dailyBudget }).callBatch([calls.sessionTimeRemaining()], { source: 'manual', freshConnection: fresh })).kind;
+    };
+    return () => {
+      delete w.__suloDevSync;
+      delete w.__suloDevCheck;
+      delete w.__suloDevTestBudget;
+    };
+  }, []);
 
   // Start: language, lock, state, and reminders from the data already here.
   useEffect(() => {
@@ -150,6 +241,7 @@ export function App({ platform }: { platform: Platform }) {
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       await refreshState();
       const now = (await SuloSession.status()).status;
+      await alignAndNote(platform, now);
       const signedIn = now !== 'none';
       // A question left open when the app was closed: it is asked again, and nothing runs meanwhile.
       const demoSwitch = __SULO_WEB_FAKE__ && import.meta.env.MODE === 'web' && new URLSearchParams(location.search).get('switch') === '1';
@@ -165,6 +257,8 @@ export function App({ platform }: { platform: Platform }) {
       const config = await readRemoteConfig(platform.store);
       setPaused(config.enabled ? null : config.message.trim() || mobileWords(loc).watch.paused);
       await applyWatchPlan(platform).catch(() => undefined);
+      const held = now === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
+      if ((held.suspect || held.deferred === true) && !(__SULO_DEV__ && devHoldResume())) void refreshRef.current();
     })();
     const onDev = () => __SULO_DEV__ && setDev(true);
     // Debug builds: the scenes' pace chosen on the dev screen, and a replay of the onboarding from the first screen.
@@ -185,16 +279,25 @@ export function App({ platform }: { platform: Platform }) {
   // Back in the foreground: lock again if on, and sync when the data is older than 15 minutes.
   useEffect(() => {
     const onVisible = async () => {
+      // To the background: work still waiting on a closing sheet runs now (Android may end the process).
+      if (document.visibilityState === 'hidden') return flushSheetWork();
       if (document.visibilityState !== 'visible') return;
       if ((await platform.store.get<boolean>(LOCK_KEY)) === true) setLocked(true);
       void refreshPublicData(platform, true);
       const s = (await SuloSession.status()).status;
+      await alignAndNote(platform, s);
       setStatus(s);
       // The different-account question is open: no sync, no background plan, until it is answered.
       if (await switchPending(platform)) return;
       const queue = await processWatchQueue(platform).catch(() => ({ applied: 0, fullSync: false }));
       if (queue.applied > 0) await scheduleReminders(platform).catch(() => 0);
-      if (s === 'connected' && (queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
+      // Background watching thought the session ended: only this sync (asking twice) may say so.
+      // Suspicion from background watching, or a sync held back while the app was closing.
+      const held = s === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
+      const suspect = held.suspect || held.deferred === true;
+      // Debug builds: the staged tests can hold the sync on open, to check the session before it runs.
+      if (__SULO_DEV__ && devHoldResume()) return;
+      if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
       else void applyWatchPlan(platform);
     };
     document.addEventListener('visibilitychange', onVisible);
@@ -208,7 +311,10 @@ export function App({ platform }: { platform: Platform }) {
       setNote(r.status === 'offline' ? w.app.offline : w.onboarding.cancelled);
       return;
     }
-    await sync(() => syncAfterLogin(platform, __SULO_DEV__));
+    // The same frame the login screen leaves: "Masuk lagi" becomes the updating line before anything is sent.
+    setStatus('connected');
+    setSyncUi(running());
+    await sync((onStage) => syncAfterLogin(platform, __SULO_DEV__, onStage));
     // Another account than the one whose data is here: the sync wrote nothing; ask.
     if (await switchPending(platform)) {
       await holdWatching();
@@ -221,20 +327,35 @@ export function App({ platform }: { platform: Platform }) {
     if (!(__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web')) return;
     (window as unknown as { __suloEnterDemo?: () => Promise<void> }).__suloEnterDemo = async () => {
       await SuloSession.login();
-      await sync(() => syncAfterLogin(platform, false));
+      await sync((onStage) => syncAfterLogin(platform, false, onStage));
       // Kept as finished, so a reload opens Ringkasan (a cold open with data, scripts/perf-measure.mjs).
       await saveFlow(platform, { step: 'finished', mode: 'first' });
       setFlow((f) => (f ? { ...f, step: 'finished' } : f));
     };
   }, [platform, sync]);
 
+  // The launch screen stays until the first real frame is painted (two frames after it renders).
+  useEffect(() => {
+    if (status === null || flow === null) return;
+    let b = 0;
+    const a = requestAnimationFrame(() => (b = requestAnimationFrame(() => void SuloSession.ready().catch(() => undefined))));
+    return () => {
+      cancelAnimationFrame(a);
+      cancelAnimationFrame(b);
+    };
+  }, [status === null || flow === null]);
+
   if (status === null || flow === null) return null;
   const onboarding = flow.step !== 'finished' || landing;
   const shell = (
     <MobileDataProvider platform={platform}>
+      <NeosiaProvider platform={platform}>
       <Shell
         expired={status === 'expired'}
         busy={busy}
+        syncUi={syncUi}
+        news={news}
+        onRetry={() => void refresh()}
         lastSyncAt={last}
         onRefresh={refresh}
         onSignIn={() => void signIn()}
@@ -245,6 +366,7 @@ export function App({ platform }: { platform: Platform }) {
           setFlow(resume(await readSavedFlow(platform), { signedIn: false, hasData: false }));
         }}
       />
+      </NeosiaProvider>
     </MobileDataProvider>
   );
   const lite = tier === 'lite';
@@ -312,6 +434,9 @@ export function App({ platform }: { platform: Platform }) {
               onNearlyDone={() => void refreshState()}
               onCelebrated={() => mountWarmWhenIdle()}
               onFinish={() => {
+                // "Buka Sulo": the onboarding is finished on disk now, before any landing motion
+                // (a process ended during it would otherwise come back on "Semua siap").
+                void saveFlow(platform, { step: 'finished', mode: flow.mode });
                 const land = () => {
                   // The hero greets with the same happy face the flying mascot wears (its own 1.5 s cheer), so the hand-over shows nothing.
                   window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: true } }));

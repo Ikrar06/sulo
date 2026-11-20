@@ -99,6 +99,14 @@ export function afterSheetClosed(fn: () => void, guardMs = CLOSE_MS + GUARD_MS):
   if (guard === null) guard = setTimeout(flush, guardMs);
 }
 
+/**
+ * Runs every waiting callback now (the app is going to the background, where
+ * Android may end the process before a sheet finishes closing).
+ */
+export function flushSheetWork(): void {
+  if (waiting.length > 0) flush();
+}
+
 /** A sheet started its exit. */
 export function sheetClosing(): void {
   closing += 1;

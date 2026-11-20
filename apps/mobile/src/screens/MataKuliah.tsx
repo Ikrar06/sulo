@@ -15,7 +15,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon } from '@sulo/ui/icons';
 import { Card, EmptyCard } from '@sulo/ui/mobile/cards';
 import { Toggle } from '@sulo/ui/mobile/controls';
-import { Sheet, SheetTextForm, afterSheetClosed } from '@sulo/ui/mobile/sheet';
+import { Sheet, SheetTextForm } from '@sulo/ui/mobile/sheet';
 import { initials, ON_SOLID, tintVar } from '@sulo/ui/mobile/tint';
 import { useMobileData } from '../shell/data';
 
@@ -109,8 +109,9 @@ export function MataKuliahScreen() {
                   aria-label={n === null ? t.colorAuto : t.colorNames[n - 1]}
                   onClick={() => {
                     const id = colorFor.id;
+                    // Written at once; the sheet closes after.
+                    edit(id, { kind: 'color', value: n });
                     setColorFor(null);
-                    afterSheetClosed(() => edit(id, { kind: 'color', value: n }));
                   }}
                   className={`m-hit flex aspect-square items-center justify-center rounded-full text-m12 outline-none focus-ring:ring-2 focus-ring:ring-focus ${chosen ? 'ring-2 ring-foreground ring-offset-2 ring-offset-[var(--m-card)]' : ''}`}
                   style={shown ? { background: tintVar(`course-${shown}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}

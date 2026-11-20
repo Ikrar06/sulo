@@ -36,4 +36,26 @@ object SikolaText {
     /** "a=1; MoodleSession=x; b=2" -> the value of one cookie. */
     fun cookieValue(header: String?, name: String): String? =
         header?.split(';')?.map { it.trim() }?.firstOrNull { it.startsWith("$name=") }?.substringAfter('=')?.takeIf { it.isNotEmpty() }
+
+    /** What a response's Set-Cookie headers said about the session cookie (never its value outside this process). */
+    sealed class SessionCookie {
+        object Absent : SessionCookie()
+        object Same : SessionCookie()
+        /** Moodle ending it ("deleted", or an expiry in the past). */
+        object Cleared : SessionCookie()
+        data class Replaced(val value: String) : SessionCookie()
+    }
+
+    /** Reads the MoodleSession among Set-Cookie headers, against the value the request sent. */
+    fun sessionCookie(setCookies: List<String>?, sent: String): SessionCookie {
+        val line = setCookies?.lastOrNull { it.trim().startsWith("${Sikola.SESSION_COOKIE}=") } ?: return SessionCookie.Absent
+        val value = line.trim().substringAfter('=').substringBefore(';').trim()
+        val attrs = line.lowercase()
+        val past = Regex("max-age=(-?\\d+)").find(attrs)?.groupValues?.get(1)?.toLongOrNull()?.let { it <= 0 } == true
+        return when {
+            value.isEmpty() || value == "deleted" || past -> SessionCookie.Cleared
+            value == sent -> SessionCookie.Same
+            else -> SessionCookie.Replaced(value)
+        }
+    }
 }

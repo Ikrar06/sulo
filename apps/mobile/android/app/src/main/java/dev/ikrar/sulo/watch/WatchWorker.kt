@@ -8,7 +8,11 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import dev.ikrar.sulo.BuildConfig
 import dev.ikrar.sulo.MainActivity
+import dev.ikrar.sulo.session.CookieKeeper
+import dev.ikrar.sulo.session.CookieStats
+import dev.ikrar.sulo.session.Diag
 import dev.ikrar.sulo.session.SessionVault
+import dev.ikrar.sulo.session.SikolaLock
 import dev.ikrar.sulo.session.SikolaHttp
 import dev.ikrar.sulo.session.SikolaRequest
 import org.json.JSONArray
@@ -29,9 +33,17 @@ class WatchWorker(context: Context, params: WorkerParameters) : Worker(context, 
         val mode = inputData.getString(WatchScheduler.MODE) ?: WatchScheduler.MODE_CHECK
         runCatching {
             if (mode == WatchScheduler.MODE_SIM_FLUSH) WatchSimulate(applicationContext).flush(inputData.getString(WatchScheduler.PREFIX) ?: "")
-            else WatchRun(applicationContext).run(mode)
+            // One holder at a time with the app's syncs; busy: the same check a little later (the chain stays).
+            else SikolaLock.hold(applicationContext, LOCK_WAIT_MS) { WatchRun(applicationContext).run(mode) }
+                ?: WatchScheduler.next(applicationContext, BUSY_RETRY_SEC, System.currentTimeMillis() / 1000, mode)
         }
         return Result.success()
+    }
+
+    private companion object {
+        /** How long a check waits for the app to finish with SIKOLA. */
+        const val LOCK_WAIT_MS = 30_000L
+        const val BUSY_RETRY_SEC = 120L
     }
 }
 
@@ -39,9 +51,9 @@ class WatchRun(private val context: Context) {
     /** The store's generation when this check started (see WatchStore.reset). */
     private var runGen = 0L
     private val store = WatchStore(context)
-    private val vault = SessionVault(context)
+    private val vault = SessionVault.of(context)
     private val userAgent = "Sulo/${BuildConfig.VERSION_NAME} (Android)"
-    private val http = SikolaHttp(userAgent)
+    private val http = SikolaHttp(userAgent, strict = BuildConfig.DEBUG, onHandlerCleared = { dev.ikrar.sulo.session.Diag.of(context).note("cookie_handler_cleared") })
 
     private fun nowSec() = System.currentTimeMillis() / 1000
     private fun minuteOfDay(): Int = Calendar.getInstance().let { it.get(Calendar.HOUR_OF_DAY) * 60 + it.get(Calendar.MINUTE) }
@@ -98,7 +110,9 @@ class WatchRun(private val context: Context) {
         }
         val budget = store.budget()
         val ctx = dayCtx(budget)
-        if (WatchCheck.nextDelayMinutes(plan, ctx) == null) return untilReset(now)
+        // Debug builds, the owner's one-off test budget (20 Nov 2026): one "Jalankan cek sekarang" may go past today's limit.
+        val testOnce = BuildConfig.DEBUG && mode == WatchScheduler.MODE_CHECK_NOW && TestBudget.available(context, today())
+        if (WatchCheck.nextDelayMinutes(plan, ctx) == null && !testOnce) return untilReset(now)
 
         // The Radar turn: every radarEvery-th daytime check, the next courses in rotation.
         val day = WatchCheck.isDay(ctx.minuteOfDay, plan)
@@ -112,14 +126,17 @@ class WatchRun(private val context: Context) {
 
         val batch = WatchCheck.buildBatch(plan, now, pick.ids)
         val reserved = WatchCheck.reserve(budget, today(), now, batch.length(), plan)
-        store.setBudget(reserved.next)
-        if (!reserved.ok) return scheduleNext(plan, now)
+        val viaTest = !reserved.ok && testOnce && TestBudget.take(context, today())
+        store.setBudget(if (viaTest) reserved.next.put("used", reserved.next.optInt("used", 0) + 1) else reserved.next)
+        if (!reserved.ok && !viaTest) return scheduleNext(plan, now)
         store.setRadarCursor(pick.cursor)
 
         val functions = (0 until batch.length()).map { batch.getJSONObject(it).getString("methodname") }
         if (SikolaRequest.allowedFunctions(batch.toString()) == null) return scheduleNext(plan, now)
         val reply = try {
-            http.postJson(SikolaRequest.watchBatchUrl(session!!.sesskey!!, functions), session.moodleSession, batch.toString())
+            val kept = CookieKeeper(session!!, vault, CookieStats.of(context), Diag.of(context))
+            http.postJson(SikolaRequest.watchBatchUrl(session.sesskey!!, functions), session.moodleSession, batch.toString(), kept)
+                .also { kept.settle(SikolaRequest.sessionAnswered(it.body, functions)) }
         } catch (e: Exception) {
             record(now, started, 0, "network")
             store.setBackoff(WatchCheck.afterFailure(backoff, now, null, Math.random()))
@@ -131,12 +148,11 @@ class WatchRun(private val context: Context) {
             store.setBackoff(WatchCheck.afterFailure(backoff, now, reply.retryAfter?.trim()?.toLongOrNull(), Math.random()))
             return scheduleNext(plan, now, waitUntil = store.backoff()?.optLong("nextAllowedAt", 0) ?: 0)
         }
-        if (SikolaRequest.loginRequired(reply.body) || (reply.status in 300..399 && reply.location?.contains("/login/") == true)) {
-            record(now, started, bytes, "expired")
-            vault.markExpired()
-            return sessionEnded(plan, now)
+        if (SikolaRequest.loginRequired(reply.body, functions) || (reply.status in 300..399 && reply.location?.contains("/login/") == true)) {
+            record(now, started, bytes, "suspect")
+            return loginSignal(plan, now, if (reply.status in 300..399) "redirect" else SikolaRequest.sessionCodes(reply.body, functions).firstOrNull() ?: "?")
         }
-        if (SikolaRequest.invalidSesskey(reply.body)) {
+        if (SikolaRequest.invalidSesskey(reply.body, functions)) {
             // Only the user's next sync may fetch a new sesskey; wait for it.
             record(now, started, bytes, "invalid_sesskey")
             vault.save(session!!.copy(sesskey = null))
@@ -152,12 +168,12 @@ class WatchRun(private val context: Context) {
         val results = runCatching { JSONArray(reply.body) }.getOrNull()
         when (val outcome = WatchCheck.detect(plan, store.overlay(), now, results, pick.ids)) {
             WatchCheck.Outcome.Expired -> {
-                record(now, started, bytes, "expired")
-                vault.markExpired()
-                return sessionEnded(plan, now)
+                record(now, started, bytes, "suspect")
+                return loginSignal(plan, now, "detect")
             }
             WatchCheck.Outcome.Unsure -> record(now, started, bytes, "unsure")
             is WatchCheck.Outcome.Ok -> {
+                vault.clearSuspect()
                 store.setOverlay(outcome.overlay, gen)
                 // A stale plan (over 48 hours): the baseline cannot be trusted, so no notice; core records it all.
                 // Not after a reset: the plan this check read belongs to the previous account.
@@ -245,6 +261,19 @@ class WatchRun(private val context: Context) {
     }
 
     /** The session ended: stop the chain, and one calm notice at most once a day, never in quiet hours. */
+    /**
+     * SIKOLA said "log in" to this check. The worker never ends the session:
+     * it marks it to be confirmed (the app asks twice on its next sync). Only
+     * the second such answer in a row tells the user, and stops the chain.
+     */
+    private fun loginSignal(plan: JSONObject, now: Long, code: String) {
+        val count = vault.markSuspect("watch:$code")
+        when (WatchGate.afterLoginSignal(count)) {
+            WatchGate.Signal.CHECK_AGAIN -> scheduleNext(plan, now)
+            WatchGate.Signal.NOTIFY_AND_STOP -> sessionEnded(plan, now)
+        }
+    }
+
     private fun sessionEnded(plan: JSONObject, now: Long) {
         val lastOk = store.timings().let { t -> (t.length() - 1 downTo 0).map { t.getJSONObject(it) }.firstOrNull { it.optString("outcome") == "ok" }?.optLong("ranAt", 0) ?: 0 }
         store.recordSessionEnd(JSONObject().put("at", now).put("sinceLastOkSec", if (lastOk > 0) now - lastOk else JSONObject.NULL).put("heldBack", lastOk > 0 && now - lastOk > 2 * 3600))
@@ -255,7 +284,7 @@ class WatchRun(private val context: Context) {
     @SuppressLint("MissingPermission")
     private fun expiredNotice(plan: JSONObject?, now: Long, chainStopped: Boolean) {
         // Once per ended session: never again until the user signs in (WatchStore.setPlan clears it).
-        if (plan == null || !WatchGate.mayNotifyExpired(store.expiredSent(), vault.status())) return
+        if (plan == null || !WatchGate.mayNotifyExpired(store.expiredSent(), vault.status(), vault.suspectCount())) return
         val quiet = plan.getJSONObject("quiet")
         if (WatchCheck.inQuiet(minuteOfDay(), quiet)) {
             // Later, when quiet hours end: a one-off that sends nothing to SIKOLA.

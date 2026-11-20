@@ -21,14 +21,14 @@ import type { LinkedMeeting } from '@sulo/core/neosia/linked';
 import { completion, sourceStatuses } from '@sulo/core/neosia/sources';
 import { NEOSIA_KHS, NEOSIA_KRS } from '@sulo/core/links';
 
-const STATE_ICON: Record<ItemState, ComponentType<SVGProps<SVGSVGElement>>> = {
+export const STATE_ICON: Record<ItemState, ComponentType<SVGProps<SVGSVGElement>>> = {
   ok: CheckCircleIcon,
   action: AlertCircleIcon,
   info: InfoCircleIcon,
   unknown: DashCircleIcon,
 };
 /** Line icons in status colors; no backgrounds, no colored edges. */
-const STATE_CLASS: Record<ItemState, string> = {
+export const STATE_CLASS: Record<ItemState, string> = {
   ok: 'text-foreground',
   action: 'text-urgency-soon',
   info: 'text-muted-foreground',
@@ -37,7 +37,8 @@ const STATE_CLASS: Record<ItemState, string> = {
 
 const date = (key: string, m: Messages) => formatDateKey(key, m.intl, { day: 'numeric', month: 'long' });
 
-function itemText(item: ReadinessItem, w: NeosiaWords, m: Messages) {
+/** A readiness item as text (dates formatted, credits and the advisor masked in privacy mode); shared with Android. */
+export function itemText(item: ReadinessItem, w: NeosiaWords, m: Messages) {
   const k = w.krs;
   switch (item.id) {
     case 'window':

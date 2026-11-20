@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CLOSE_MS, GUARD_MS, afterSheetClosed, closeTopSheet, dragEnd, openSheetCount, pushSheet, releaseSpeed, resetSheetMotion, sheetClosed, sheetClosing } from '@sulo/ui/mobile/sheet-motion';
+import { CLOSE_MS, GUARD_MS, afterSheetClosed, closeTopSheet, flushSheetWork, dragEnd, openSheetCount, pushSheet, releaseSpeed, resetSheetMotion, sheetClosed, sheetClosing } from '@sulo/ui/mobile/sheet-motion';
 
 afterEach(() => {
   resetSheetMotion();
@@ -88,5 +88,21 @@ describe('work after the exit', () => {
     sheetClosed();
     expect(run).toHaveBeenCalledTimes(1);
     err.mockRestore();
+  });
+});
+
+describe('going to the background', () => {
+  it('runs the waiting work at once, so a process ended mid-close loses nothing', () => {
+    vi.useFakeTimers();
+    const run = vi.fn();
+    sheetClosing();
+    afterSheetClosed(run);
+    expect(run).not.toHaveBeenCalled();
+    flushSheetWork();
+    expect(run).toHaveBeenCalledTimes(1);
+    // The sheet finishing later does not run it twice.
+    sheetClosed();
+    vi.advanceTimersByTime(CLOSE_MS + GUARD_MS + 10);
+    expect(run).toHaveBeenCalledTimes(1);
   });
 });

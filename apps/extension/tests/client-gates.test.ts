@@ -49,7 +49,7 @@ describe('session expired', () => {
   it('sets EXPIRED on a login redirect and then stops sending', async () => {
     const redirect = Object.defineProperty(new Response(null), 'type', { value: 'opaqueredirect' });
     const { client, fetch, store } = setup({}, { fetch: fakeFetch(() => redirect) });
-    expect(await client.callBatch([sessionCall])).toEqual({ kind: 'login_required' });
+    expect(await client.callBatch([sessionCall])).toMatchObject({ kind: 'login_required' });
     expect((store.dump()[SESSION_KEY] as { state: string }).state).toBe('EXPIRED');
     expect(await client.callBatch([sessionCall])).toEqual({ kind: 'refused', reason: 'SESSION_EXPIRED' });
     expect(fetch.calls).toHaveLength(1);

@@ -8,7 +8,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const dir = process.argv[2] ?? new URL('../dist', import.meta.url).pathname;
-const MARKS = ['[uji]', 'Uji notifikasi', 'watchSimulate', 'watchRunNow', 'Simulasikan', '__suloFitGreeting', '__suloGreetPhrases', '__suloCourseNames', '__suloEventTitles', 'Jalankan cek latar belakang', 'Config uji aktif', 'Kembali ke config resmi', 'mobile:dev:testConfig', 'Muat config uji', 'Tempo adegan', 'Putar ulang onboarding', '__suloMascot', '__suloEnterDemo', 'mobile:dev:sceneTempo', 'sulo:replay-onboarding', 'mobile:dev:perfTier', 'Paksa lite', 'Ikuti pilihan', 'sulo-perf', 'sulo:ringkasan'];
+const MARKS = ['[uji]', 'Uji notifikasi', 'watchSimulate', 'watchRunNow', 'Simulasikan', '__suloFitGreeting', '__suloGreetPhrases', '__suloCourseNames', '__suloEventTitles', 'Jalankan cek latar belakang', 'Config uji aktif', 'Kembali ke config resmi', 'mobile:dev:testConfig', 'Muat config uji', 'Tempo adegan', 'Putar ulang onboarding', '__suloMascot', '__suloEnterDemo', 'mobile:dev:sceneTempo', 'sulo:replay-onboarding', 'mobile:dev:perfTier', 'Paksa lite', 'Ikuti pilihan', 'sulo-perf', 'sulo:ringkasan', '__suloDevSync', '__suloDevCheck', 'sulo:dev:holdResume', 'sulo:dev:testBudget', '__suloDevTestBudget', 'devTestBudget'];
 const walk = (d) => readdirSync(d).flatMap((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : /\.(js|html|css)$/.test(n) ? [join(d, n)] : []));
 const found = [];
 for (const file of walk(dir)) {

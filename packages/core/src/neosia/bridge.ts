@@ -46,19 +46,37 @@ export function createBridge(deps: BridgeDeps): (event: MessageLike) => Promise<
         deps.other?.(data);
         return 'ignored';
       }
-      const capture = parseCapture(data);
-      if (!capture) return 'rejected';
-      const now = deps.nowMs();
-      const key = `${capture.endpoint}:${capture.status}:${await deps.hash(stableStringify(capture.status === 'ok' ? capture.data : null))}`;
-      recent = new Map([...recent].filter(([, at]) => now - at < DEDUP_MS));
-      if (recent.has(key)) return 'duplicate';
-      recent.set(key, now);
-      deps.send(capture);
+      const verdict = await admitCapture(data, recent, deps.nowMs(), deps.hash);
+      recent = verdict.recent;
+      if (verdict.capture === null) return verdict.why;
+      deps.send(verdict.capture);
       return 'sent';
     } catch {
       return 'rejected';
     }
   };
+}
+
+/**
+ * The one gate every capture passes, in the extension's bridge and on
+ * Android (the NEOSIA screen's queue): the Zod schema derived from the
+ * allowlist (size limit, schema version 2), then the same endpoint with the
+ * same projected data within DEDUP_MS is dropped. A rejected message is
+ * dropped without anything of it being recorded. Pure apart from `hash`.
+ */
+export async function admitCapture(
+  data: unknown,
+  recent: ReadonlyMap<string, number>,
+  now: number,
+  hash: (text: string) => Promise<string>,
+): Promise<{ capture: Capture | null; why: 'rejected' | 'duplicate'; recent: Map<string, number> }> {
+  const fresh = new Map([...recent].filter(([, at]) => now - at < DEDUP_MS));
+  const capture = parseCapture(data);
+  if (!capture) return { capture: null, why: 'rejected', recent: fresh };
+  const key = `${capture.endpoint}:${capture.status}:${await hash(stableStringify(capture.status === 'ok' ? capture.data : null))}`;
+  if (fresh.has(key)) return { capture: null, why: 'duplicate', recent: fresh };
+  fresh.set(key, now);
+  return { capture, why: 'rejected', recent: fresh };
 }
 
 /** SHA-256 hex with Web Crypto (content scripts have it). */

@@ -220,6 +220,7 @@ export const id = {
     stale: (since: string | null) => (since === null ? 'Tugasmu belum diperbarui.' : `Sulo belum bisa memperbarui sejak ${since}. Coba Perbarui nanti.`),
     refreshNow: 'Perbarui',
     notificationsOff: 'Notifikasi Sulo dimatikan di Chrome, jadi pengingat tidak muncul.',
+    syncing: 'Memperbarui dari SIKOLA…',
     notificationsHow: 'Lihat caranya',
   },
 

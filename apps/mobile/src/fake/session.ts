@@ -4,12 +4,12 @@
 import type { BatchReply, PageReply, SessionStatus, SuloSessionPlugin } from '../session';
 import { FAKE_DATA, FAKE_PAGES } from './fixtures';
 
-/** Screenshot switches: ?session=connected starts signed in (a cold open with data, scripts/perf-measure.mjs); ?session=expired signs in to an ended session; ?signin=cancel|offline closes the sign-in page; ?lock=wait, ?lock=fail or ?lock=nolock answers the app lock so. */
+/** Screenshot switches: ?session=connected starts signed in (a cold open with data, scripts/perf-measure.mjs); ?session=expired signs in to an ended session; ?session=ended opens on an ended session over the stored data (signing in again then connects); ?signin=cancel|offline closes the sign-in page; ?lock=wait, ?lock=fail or ?lock=nolock answers the app lock so. */
 const param = (name: string) => (typeof location === 'undefined' ? null : new URLSearchParams(location.search).get(name));
 // The measuring APK opens cold after signing in once: the stand-in remembers it (this browser or app only).
 const FAKE_SIGNED_IN = 'sulo:fake:signedIn';
 const remembered = () => { try { return localStorage.getItem(FAKE_SIGNED_IN) === '1'; } catch { return false; } };
-let status: SessionStatus = param('session') === 'connected' || remembered() ? 'connected' : 'none';
+let status: SessionStatus = param('session') === 'ended' ? 'expired' : param('session') === 'connected' || remembered() ? 'connected' : 'none';
 
 export function fakeSession(): SuloSessionPlugin {
   return {
@@ -23,6 +23,12 @@ export function fakeSession(): SuloSessionPlugin {
       return { status: 'connected' };
     },
     status: async () => ({ status }),
+    diagLog: async () => ({ events: [] }),
+    endSession: async () => ((status = 'expired'), { status }),
+    suspect: async () => ({ suspect: false }),
+    note: async () => undefined,
+    ready: async () => undefined,
+    devTestBudget: async () => undefined,
     haptic: async () => undefined,
     // ?device=low: a 2 GB, 4-core phone with an old WebView (the lite tier in the browser).
     deviceInfo: async () => (param('device') === 'low' ? { lowRamDevice: true, totalRamMb: 1900, cpuCores: 4, webView: '83.0.4103.106' } : { lowRamDevice: false, totalRamMb: 7600, cpuCores: 8, webView: navigator.userAgent.match(/Chrome\/([\d.]+)/)?.[1] ?? 'web' }),

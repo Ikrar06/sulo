@@ -6,6 +6,11 @@ const h = 3600;
 const base = { now, sessionExpired: false, offline: false };
 
 describe("mascotMood (the Android app's Ringkasan)", () => {
+  it('a running sync is busy, above everything else', () => {
+    expect(mascotMood({ now: 1_000_000, dueTimes: [999_000], sessionExpired: true, offline: false, syncing: true }).state).toBe('syncing');
+    expect(mascotMood({ now: 1_000_000, dueTimes: [], sessionExpired: false, offline: false, syncing: false }).state).not.toBe('syncing');
+  });
+
   it('an overdue task: urgent', () => {
     expect(mascotMood({ ...base, dueTimes: [now - h, now + 5 * h] })).toEqual({ state: 'urgent', alert: false });
   });

@@ -18,7 +18,7 @@ import { Input } from '../ui/input';
 import { CheckIcon, ChevronRightIcon } from '../icons';
 import { CLOSE_MS, DRAG_SLOP_PX, GUARD_MS, REDUCED_MS, afterSheetClosed, dragEnd, pushSheet, releaseSpeed, sheetClosed, sheetClosing } from './sheet-motion';
 
-export { afterSheetClosed, closeTopSheet } from './sheet-motion';
+export { afterSheetClosed, closeTopSheet, flushSheetWork } from './sheet-motion';
 
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Far enough below the largest viewport the page can get (the keyboard going down grows it). */
@@ -211,8 +211,8 @@ export function Sheet({ open: wanted, onOpenChange, title, children }: { open: b
 
 /**
  * A one-field form in a sheet (a nickname, a course name): its text is local
- * state, so typing re-renders only this form; "Selesai" closes the sheet and
- * hands the value over once the sheet is gone.
+ * state, so typing re-renders only this form; "Selesai" hands the value over
+ * at once (it is saved before anything else happens), then closes the sheet.
  */
 export function SheetTextForm({ label, initial, maxLength, placeholder, help, submitLabel, onSave }: { label: string; initial: string; maxLength: number; placeholder?: string; help: string; submitLabel: string; onSave: (value: string) => void }) {
   const [value, setValue] = useState(initial);
@@ -221,8 +221,9 @@ export function SheetTextForm({ label, initial, maxLength, placeholder, help, su
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        // Saved at once (a process ended mid-animation must not lose it), then the sheet closes.
+        onSave(value);
         close();
-        afterSheetClosed(() => onSave(value));
       }}
     >
       <Input autoFocus aria-label={label} maxLength={maxLength} placeholder={placeholder} value={value} onChange={(e) => setValue(e.target.value)} />

@@ -196,6 +196,8 @@ const cases = {
     { name: 'call-error', overlay: emptyOverlay(), radarIds: [], results: [session, { error: true, exception: { errorcode: 'x' } }, popups([])] },
     { name: 'bad-shape', overlay: emptyOverlay(), radarIds: [], results: [session, ok({ events: [{ id: 'x' }] }), popups([])] },
     { name: 'wrong-length', overlay: emptyOverlay(), radarIds: [11], results: [session, calendar([]), popups([])] },
+    // Moodle stopped the batch at a Radar course it would not open (20 Nov 2026): no notice, no session end.
+    { name: 'moodle-stopped-at-a-course', overlay: emptyOverlay(), radarIds: [11, 13], results: [session, calendar([]), popups([]), { error: true, exception: { errorcode: 'requireloginerror' } }] },
   ],
 };
 
@@ -250,7 +252,7 @@ describe('watch shared vectors', () => {
     expect(byName['far-and-announced'].changes).toEqual([]);
     expect(byName.radar.changes.map((c: { key: string; kind: string }) => `${c.kind} ${c.key}`)).toEqual(['task_added task:107:added', 'material cm:11:602:added', 'task_activity cm:11:606:added']);
     expect(byName.expired).toEqual({ status: 'expired' });
-    for (const n of ['other-account', 'call-error', 'bad-shape', 'wrong-length']) expect(byName[n]).toEqual({ status: 'unsure' });
+    for (const n of ['other-account', 'call-error', 'bad-shape', 'wrong-length', 'moodle-stopped-at-a-course']) expect(byName[n]).toEqual({ status: 'unsure' });
     const notes = Object.fromEntries(fresh.notices.map((c: { name: string; out: unknown }) => [c.name, c.out]));
     expect(notes['one-task'].send[0]).toMatchObject({ id: 'changes|task:103:added', title: 'Tugas baru: Kuis 3', body: 'Hidrologi' });
     expect(notes['per-course'].send.map((s: { title: string }) => s.title)).toEqual(['2 hal baru di Hidrologi', 'Nilai baru keluar untuk Mekanika Fluida']);

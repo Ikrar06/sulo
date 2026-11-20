@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from apps/extension/assets/brand/flame-full.svg and flame-mono-light.svg (Sulo's mascot). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Themed icons (Android 13+): the mascot's silhouette, one colour; the system tints it. -->
+    <group android:scaleX="0.088" android:scaleY="0.088" android:translateX="31.56" android:translateY="31.472">
+        <path android:fillColor="#FFFFFF" android:pathData="M334.217 0C445.192 58.0098 495.636 201.773 408.621 281.222C465.339 293.826 491.824 219.508 491.853 219.429C542.923 354.221 477.657 438.989 388.274 480.744C404.368 461.629 413.665 439.066 413.665 414.897C413.665 345.946 338.008 290.05 244.68 290.05C151.352 290.05 75.6943 345.946 75.6943 414.897C75.6945 438.955 84.9061 461.421 100.863 480.48C40.2393 450.867 0.88369 403.145 0.0292571 349.32C-3.7541 110.975 360.699 174.03 334.217 0Z"/>
+        <path android:fillColor="#FFFFFF" android:pathData="M334.217 0C338.586 2.28407 342.862 4.70139 347.039 7.24219C447.557 223.781 235.079 196.929 142.787 315.292C102.028 338.086 75.6943 374.219 75.6943 414.897C75.6945 438.954 84.906 461.42 100.862 480.479C40.2392 450.866 0.883683 403.144 0.0292571 349.32C-3.7541 110.975 360.699 174.03 334.217 0Z"/>
+        <path android:fillColor="#FFFFFF" android:pathData="M186.6407,360.67a25.2217,25.2217 0 0 1 25.2216,25.2217v40.3546a25.2217,25.2217 0 0 1 -50.4433,0v-40.3546a25.2217,25.2217 0 0 1 25.2217,-25.2217z M302.6607,360.67a25.2217,25.2217 0 0 1 25.2216,25.2217v40.3546a25.2217,25.2217 0 0 1 -50.4433,0v-40.3546a25.2217,25.2217 0 0 1 25.2217,-25.2217z"/>
+    </group>
+</vector>

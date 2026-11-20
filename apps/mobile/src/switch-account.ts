@@ -14,6 +14,8 @@
 //   "Batal": the session just signed in is thrown away (cookies, sesskey);
 //   the previous account's data is untouched and shows with "Masuk lagi".
 
+import { SuloNeosia } from './neosia-native';
+import { currentUser } from '@sulo/core/storage';
 import { ACCOUNT_PENDING_KEY, readPending } from '@sulo/core/account/pending';
 import type { Platform } from '@sulo/core/platform';
 import { writePrefs } from '@sulo/core/prefs';
@@ -43,6 +45,9 @@ export async function useOtherAccount(platform: Platform): Promise<boolean> {
   const { notifications } = await LocalNotifications.getPending().catch(() => ({ notifications: [] as { id: number }[] }));
   if (notifications.length > 0) await LocalNotifications.cancel({ notifications: notifications.map((n) => ({ id: n.id })) }).catch(() => undefined);
   await SuloSession.watchReset().catch(() => undefined);
+  // The previous account's NEOSIA data goes too (encrypted, its own file; M8d B2).
+  const previous = await currentUser(platform.store);
+  if (previous !== null) await SuloNeosia.wipe({ user: previous }).catch(() => undefined);
   // Every u:{previous}:* key goes; the other account becomes current, empty.
   await switchUser(platform.store, pending.userId);
   await writePrefs(platform.store, { nickname: '' });

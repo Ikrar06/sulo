@@ -58,6 +58,10 @@ export async function seedDemo(store: KeyValueStore, now: UnixSeconds): Promise<
   data['u:1:tasks'] = demoVariant(data['u:1:tasks'] as Task[], now, params.get('demo'));
   // ?lang=en and ?nick=Ikrar: the language and the nickname for a screenshot.
   const prefs = (data['global:prefs'] ?? {}) as Record<string, unknown>;
-  data['global:prefs'] = { ...prefs, locale: params.get('lang') ?? prefs.locale ?? 'auto', nickname: params.get('nick') ?? '' };
+  // ?grades=1: "Tampilkan nilai" on (NEOSIA screenshots).
+  data['global:prefs'] = { ...prefs, locale: params.get('lang') ?? prefs.locale ?? 'auto', nickname: params.get('nick') ?? '', ...(params.get('grades') === '1' ? { gradesShown: true } : {}) };
+  // ?neosia=<stage> (src/fake/neosia.ts): NEOSIA connected, except for the invite.
+  const neosia = params.get('neosia');
+  if (neosia !== null && neosia !== 'invite') data['global:neosia'] = { enabled: true, changedAt: now - 86_400 };
   for (const [key, value] of Object.entries(data)) await store.set(key, value);
 }

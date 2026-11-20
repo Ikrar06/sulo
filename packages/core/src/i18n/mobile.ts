@@ -32,6 +32,15 @@ const id = {
     expiredTitle: 'Sesi SIKOLA habis',
     expiredLine: 'Masuk lagi ke SIKOLA untuk memperbarui.',
     signInAgain: 'Masuk lagi',
+    /** The one updating line on every screen (owner's rules, 20 Nov 2026): the sync's real stages. */
+    sync: {
+      updating: 'Memperbarui dari SIKOLA…',
+      stages: { tasks: 'Mengambil tugas…', courses: 'Memeriksa mata kuliah…', attendance: 'Mengambil presensi…' },
+      upToDate: 'Sudah terbaru',
+      // Read with its button: "Belum bisa memperbarui. [Coba lagi]".
+      failed: 'Belum bisa memperbarui.',
+      retry: 'Coba lagi',
+    },
     updated: (when: string) => `Diperbarui ${when}`,
     never: 'Belum pernah diperbarui',
     refresh: 'Perbarui',
@@ -239,6 +248,13 @@ const en: MobileWords = {
     expiredTitle: 'SIKOLA session ended',
     expiredLine: 'Sign in to SIKOLA again to update.',
     signInAgain: 'Sign in again',
+    sync: {
+      updating: 'Updating from SIKOLA…',
+      stages: { tasks: 'Getting tasks…', courses: 'Checking courses…', attendance: 'Getting attendance…' },
+      upToDate: 'Up to date',
+      failed: "Couldn't update.",
+      retry: 'Try again',
+    },
     updated: (when: string) => `Updated ${when}`,
     never: 'Not updated yet',
     refresh: 'Update',

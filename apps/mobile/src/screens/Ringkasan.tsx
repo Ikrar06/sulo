@@ -35,6 +35,8 @@ import { useTaskDate } from '../shell/task-date';
 import { GreetingLines } from './GreetingLines';
 import { HeroMascot } from './HeroMascot';
 import { WeekCard } from './WeekCard';
+import { useSyncUi } from '../shell/SyncStatusLine';
+import { KrsReadinessCard, NeosiaSetupCard, StudiCard, TodayClassCard } from './neosia/RingkasanNeosia';
 import { URGENCY_TEXT } from './Tugas';
 
 /** Cards in "Berikutnya". */
@@ -85,7 +87,8 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   // "2 hari lagi" / "2 days left", "terlambat 1 hari".
   const left = (i: TaskItem) => (i.task.dueAt === null ? d.tugas.noDue : countdown ? countdownOrLate(i.task.dueAt, now, timeZone, m) : formatLeft(i.task.dueAt, now, timeZone, m));
   const banner = data!.view.banner?.kind;
-  const mood = mascotMood({ now, dueTimes: pendingOnly.flatMap((i) => (i.task.dueAt === null ? [] : [i.task.dueAt])), sessionExpired: banner === 'session_expired', offline: banner === 'offline' || !navigator.onLine });
+  const syncing = useSyncUi().phase === 'running';
+  const mood = mascotMood({ now, dueTimes: pendingOnly.flatMap((i) => (i.task.dueAt === null ? [] : [i.task.dueAt])), sessionExpired: banner === 'session_expired', offline: banner === 'offline' || !navigator.onLine, syncing });
   const dueToday = groups.find((g) => g.key === 'today')?.rows.length ?? 0;
   const dueTomorrow = groups.find((g) => g.key === 'tomorrow')?.rows.length ?? 0;
   const hello = greeting({ now, timeZone, nickname, overdue, dueToday }, w);
@@ -159,6 +162,10 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
           </Card>
         )}
       </div>
+
+      {/* NEOSIA (M8d): connect, the checklist, or a calm line; then Kesiapan KRS in its window. */}
+      <NeosiaSetupCard />
+      <KrsReadinessCard />
 
       <div className="grid grid-cols-3 gap-3">
         <StatCard label={w.app.statOverdue} value={String(overdue)} warn={overdue > 0} />
@@ -250,6 +257,9 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
               <p className="mt-1 text-m13 text-muted-foreground">{d.presensi.never}</p>
             )}
           </Card>
+          {/* From NEOSIA, when connected: today's next class and Studi (the GPA only when shown). */}
+          <TodayClassCard go={go} />
+          <StudiCard go={go} />
         </div>
       </section>
 

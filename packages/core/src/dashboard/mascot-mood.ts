@@ -1,5 +1,6 @@
 // The mascot's mood on the Android app's Ringkasan (M8c.1): one expression
 // for the state of things, in this order of priority:
+//   0. a sync is running: syncing (busy)
 //   1. the session ended or the phone is offline: sleepy (the data may be old)
 //   2. a task is overdue: urgent (worried, wide eyes)
 //   3. a deadline within 24 hours: idle, alert (blinks more often)
@@ -16,6 +17,8 @@ export interface MoodInput {
   dueTimes: readonly UnixSeconds[];
   sessionExpired: boolean;
   offline: boolean;
+  /** A sync is running: busy (owner's rules, 20 Nov 2026). */
+  syncing?: boolean;
 }
 
 export interface Mood {
@@ -26,7 +29,8 @@ export interface Mood {
 
 const DAY = 86_400;
 
-export function mascotMood({ now, dueTimes, sessionExpired, offline }: MoodInput): Mood {
+export function mascotMood({ now, dueTimes, sessionExpired, offline, syncing = false }: MoodInput): Mood {
+  if (syncing) return { state: 'syncing', alert: false };
   if (sessionExpired || offline) return { state: 'sleepy', alert: false };
   if (dueTimes.some((t) => t < now)) return { state: 'urgent', alert: false };
   if (dueTimes.some((t) => t - now < DAY)) return { state: 'idle', alert: true };

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- The app's screen colour (the light screen token in tokens.css), behind the mascot. -->
+    <color name="ic_launcher_background">#F1F1F4</color>
 </resources>

@@ -44,7 +44,12 @@
     "mobile:doctor": "pnpm --filter @sulo/mobile run doctor",
     "mobile:apk:debug": "pnpm --filter @sulo/mobile run apk:debug",
     "mobile:install": "pnpm --filter @sulo/mobile run install:apk",
+    "mobile:fetch-apk": "pnpm --filter @sulo/mobile run fetch:apk",
+    "mobile:test-restart": "pnpm --filter @sulo/mobile run test:restart",
     "mobile:live": "pnpm --filter @sulo/mobile run live",
-    "mobile:shots": "pnpm --filter @sulo/mobile run web:shots"
+    "mobile:shots": "pnpm --filter @sulo/mobile run web:shots",
+    "mobile:emu": "pnpm --filter @sulo/mobile run emu",
+    "mobile:emu:stop": "pnpm --filter @sulo/mobile run emu:stop",
+    "mobile:shots:device": "pnpm --filter @sulo/mobile run shots:device"
   }
 }
