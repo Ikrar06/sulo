@@ -20,6 +20,9 @@ import { createNeosiaStore } from '../platform/neosia-store';
 import { ingestQueued } from './ingest';
 import { GRADE_ENDPOINTS, withoutGrades } from './grade-guard';
 
+/** NEOSIA's sign-in was seen (a page left its login), kept until a page lands on the login again; NEOSIA data, so wiped with it. */
+const SIGNED_IN_KEY = 'neosia:signedIn';
+
 const PAGE_OF: Record<SourceId, NeosiaPage> = { beranda: 'home', khs: 'khs', krs: 'krs', transkrip: 'transkrip', matakuliah: 'matakuliah' };
 
 export interface NeosiaState {
@@ -61,12 +64,14 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
   const [lastResult, setLastResult] = useState<OpenResult>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [courseMap, setCourseMap] = useState<CourseMap>({});
+  const [signedInSeen, setSignedInSeen] = useState(false);
 
   const reload = useCallback(async () => {
     setModule(await readModuleState(platform.store));
     if ((await currentUser(platform.store)) === null) {
       setSnapshots({});
       setGradeKeys(new Set());
+      setSignedInSeen(false);
       return;
     }
     const keys = new Set(await store.keys(snapshotKey('' as EndpointId)));
@@ -83,6 +88,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
     }
     setSnapshots(next);
     setGradeKeys(grades);
+    setSignedInSeen((await store.get<boolean>(SIGNED_IN_KEY)) === true);
     setCourseMap(await readCourseMap(store).catch(() => ({})));
   }, [platform, store]);
 
@@ -103,7 +109,8 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
     for (const e of gradeKeys) stand[e] = { endpoint: e, v: 2, data: {}, changedAt: 0, seenAt: 0, unknownShapeAt: null } as NeosiaSnapshot;
     return sourcesDoneIn(stand);
   }, [snapshots, gradeKeys]);
-  const signedIn = lastResult === 'signed_in' || Object.keys(snapshots).length > 0 || gradeKeys.size > 0;
+  // Closing a page by hand says nothing about the session: only reaching NEOSIA's login does.
+  const signedIn = signedInSeen || lastResult === 'signed_in' || Object.keys(snapshots).length > 0 || gradeKeys.size > 0;
   const next = nextStep({ signedIn: signedIn && !needsLogin, lastResult: needsLogin ? 'needs_login' : lastResult, done });
 
   const enable = useCallback(async () => {
@@ -126,6 +133,8 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
       const { result } = await SuloNeosia.open({ page, close: 'Tutup' });
       setLastResult(result);
       setNeedsLogin(result === 'needs_login');
+      if (result === 'signed_in') await store.set(SIGNED_IN_KEY, true).catch(() => undefined);
+      if (result === 'needs_login') await store.remove(SIGNED_IN_KEY).catch(() => undefined);
       await ingestQueued({ take: () => SuloNeosia.takeCaptures(), store, now: () => platform.clock.now() });
       await reload();
       return result;
