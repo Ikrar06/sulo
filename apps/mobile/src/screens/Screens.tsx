@@ -27,6 +27,8 @@ const PengaturanScreen = lazy(() => import('./Pengaturan').then((m) => ({ defaul
 const BantuanScreen = lazy(() => import('./Bantuan').then((m) => ({ default: m.BantuanScreen })));
 const TentangScreen = lazy(() => import('./Tentang').then((m) => ({ default: m.TentangScreen })));
 const PrivasiScreen = lazy(() => import('./Privasi').then((m) => ({ default: m.PrivasiScreen })));
+const JadwalScreen = lazy(() => import('./neosia/Jadwal').then((m) => ({ default: m.JadwalScreen })));
+const NilaiScreen = lazy(() => import('./neosia/Nilai').then((m) => ({ default: m.NilaiScreen })));
 
 export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: Screen) => void; onSignedOut: () => void }) {
   const { data } = useMobileData();
@@ -37,7 +39,7 @@ export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: S
   const page = (() => {
     switch (screen.name) {
       case 'pengaturan':
-        return <PengaturanScreen onSignedOut={onSignedOut} />;
+        return <PengaturanScreen onSignedOut={onSignedOut} section={screen.detail} />;
       case 'bantuan':
         return <BantuanScreen initialOpen={screen.detail} />;
       case 'tentang':
@@ -70,6 +72,18 @@ export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: S
       return (
         <Suspense fallback={null}>
           <MataKuliahScreen />
+        </Suspense>
+      );
+    case 'jadwal':
+      return (
+        <Suspense fallback={null}>
+          <JadwalScreen />
+        </Suspense>
+      );
+    case 'nilai':
+      return (
+        <Suspense fallback={null}>
+          <NilaiScreen go={go} />
         </Suspense>
       );
     default:
