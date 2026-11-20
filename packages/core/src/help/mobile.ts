@@ -54,7 +54,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'HP-mu menunda pengecekan terlalu lama (misalnya penghemat baterai), sehingga terlalu lama tidak ada cek dan login SIKOLA berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
-        en: 'Your phone held the checks back too long (a battery saver, for example), so too long passed without one and the SIKOLA sign-in ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
+        en: 'Your phone held Sulo’s checks back for too long (a battery saver can do this), so your SIKOLA session ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
       },
     ],
   },
@@ -64,7 +64,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Dengan pemantauan menyala, Sulo bangun paling banyak sekitar 55 kali sehari: tiap 20 menit pukul 06.00-22.59 dan tiap 110 menit di malam hari. Setiap kali hanya satu permintaan kecil ke SIKOLA, lalu tidur lagi; tidak ada yang berjalan terus di latar belakang.',
-        en: 'With watching on, Sulo wakes at most about 55 times a day: every 20 minutes from 06:00 to 22:59 and every 110 minutes at night. Each time it sends one small request to SIKOLA and sleeps again; nothing keeps running in the background.',
+        en: 'With watching on, Sulo wakes at most about 55 times a day: every 20 minutes from 06:00 to 22:59 and every 110 minutes at night. Each time it does one small check of SIKOLA, then sleeps again. Nothing keeps running in the background.',
       },
       {
         id: 'Saat Penghemat baterai menyala, Sulo mengecek tiap 110 menit, siang maupun malam, tanpa memeriksa materi mata kuliah, dan kembali normal saat penghemat dimatikan. Kalau ingin lebih hemat lagi, matikan pemantauan; Sulo tetap memperbarui saat aplikasi dibuka.',
@@ -177,7 +177,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Buka Lainnya, Pengaturan, lalu Keluar dan hapus data. Sesi, semua data, dan pengingat terjadwal di HP ini terhapus. Menghapus aplikasi juga menghapus semuanya. Data di SIKOLA tidak tersentuh.',
-        en: 'Open More, Settings, then Sign out and delete data. The session, all data and scheduled reminders on this phone are deleted. Uninstalling the app deletes everything too. Nothing on SIKOLA changes.',
+        en: 'Open More, Settings, then Sign out and delete data. The session, all data and scheduled reminders on this phone are deleted. Uninstalling the app deletes everything too. Nothing in SIKOLA is touched.',
       },
     ],
   },

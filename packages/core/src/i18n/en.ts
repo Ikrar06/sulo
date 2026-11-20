@@ -54,8 +54,8 @@ export const en: Messages = {
     emptyBody: 'New tasks will show up here.',
     done: 'Done',
     openTask: (name) => `Open ${name} in SIKOLA`,
-    inactiveTasks: (n) => `${plural(n, 'task', 'tasks')} from courses you didn't pick`,
-    probablySubmitted: (n) => `${plural(n, 'task has', 'tasks have')} disappeared from SIKOLA, probably already submitted`,
+    inactiveTasks: (n) => `${plural(n, 'task', 'tasks')} from courses you don't follow`,
+    probablySubmitted: (n) => `${plural(n, 'task is', 'tasks are')} gone from SIKOLA, probably handed in`,
     reviewCourses: (n) => `${plural(n, 'new course', 'new courses')} found. Check your course choices.`,
     review: 'Check',
     groups: {
@@ -68,10 +68,10 @@ export const en: Messages = {
     copy: {
       button: 'Copy list',
       week: "This week's tasks",
-      all: 'Everything not yet submitted',
+      all: 'Everything not handed in yet',
       copied: (what) => `${what} copied`,
       weekHeading: "This week's tasks",
-      allHeading: 'Tasks not yet submitted',
+      allHeading: 'Tasks not handed in yet',
       none: 'none',
       noDue: 'no due date',
     },
@@ -212,7 +212,7 @@ export const en: Messages = {
     report: 'Copy info',
     reportCopied: 'Info copied. Send it to the Sulo maintainer.',
     offline: "You're offline. Showing your last data.",
-    stale: (since) => (since === null ? "Your tasks haven't been updated yet." : `Sulo couldn't update since ${since}. Try Update later.`),
+    stale: (since) => (since === null ? "Your tasks haven't been updated yet." : `Sulo hasn't updated since ${since}. Try Update later.`),
     refreshNow: 'Update',
     notificationsOff: "Sulo's notifications are turned off in Chrome, so reminders won't show.",
     syncing: 'Updating from SIKOLA…',
@@ -262,13 +262,13 @@ export const en: Messages = {
     changesDue: (name, shift) => `${name}: due date ${shift}`,
     changesGrade: (course) => (course ? `New grade or feedback in ${course}` : 'New grade or feedback'),
     changesForum: (course) => (course ? `New forum post in ${course}` : 'New forum post'),
-    changesMixed: (n, course) => (course ? `${n} new things in ${course}` : `${n} new things`),
+    changesMixed: (n, course) => (course ? `${n} updates in ${course}` : `${n} updates`),
     changesSummaryTitle: (n, courses) => `${plural(n, 'update', 'updates')} from ${plural(courses, 'course', 'courses')}`,
     changesSummaryBody: 'Open Sulo to see them all.',
     names: (names, more) =>
       more > 0 ? `${names.join(', ')} and ${more} more.` : names.length === 2 ? `${names[0]} and ${names[1]}.` : `${names.join(', ')}.`,
     dueBody: (course, clock) => (course ? `${course}. New due date ${clock}.` : `New due date ${clock}.`),
-    gradeBody: 'Open it on SIKOLA to see it.',
+    gradeBody: 'Open to see it in SIKOLA.',
     neosiaGrade: (course) => `New grade out for ${course}`,
     neosiaGrades: (n) => `New grades out for ${n} courses`,
     neosiaGradeBody: 'Open NEOSIA to see it.',
@@ -276,7 +276,7 @@ export const en: Messages = {
     nudgeGradesTitle: 'Grades may be out',
     nudgeGradesBody: 'Open your transcript in NEOSIA so Sulo knows too.',
     nudgeKrsTitle: 'KRS is open',
-    nudgeKrsBody: 'Open KRS in NEOSIA so your schedule and KRS readiness in Sulo are up to date too.',
+    nudgeKrsBody: 'Open KRS in NEOSIA to update your schedule and KRS readiness in Sulo.',
     krsDefaultCaption: 'KRS',
     krsH1: (caption) => `${caption} closes tomorrow`,
     krsBody: (date) => `The last day is ${date}. See your KRS readiness in Sulo.`,
@@ -315,7 +315,7 @@ export const en: Messages = {
       checking: 'Checking SIKOLA…',
       waiting: 'Waiting for you to sign in to SIKOLA…',
       connected: 'Connected',
-      loading: 'Fetching tasks, calendar, and attendance…',
+      loading: 'Getting tasks, calendar and attendance…',
       retry: 'Try again',
       failed: (reason) => reason,
     },
@@ -323,8 +323,8 @@ export const en: Messages = {
       title: 'Your courses this semester',
       lead: (n) =>
         n === 0
-          ? "Sulo didn't find any running courses yet. Tick the ones you're taking this semester."
-          : `Sulo picked ${plural(n, 'running course', 'running courses')}. Untick any you're not taking.`,
+          ? "Sulo didn't find any current courses yet. Tick the ones you're taking this semester."
+          : `Sulo picked ${plural(n, 'current course', 'current courses')}. Untick any you're not taking.`,
       search: 'Search courses',
       current: (n) => `This semester (${n})`,
       previous: (n) => `Previous semesters (${n})`,
@@ -349,7 +349,7 @@ export const en: Messages = {
     },
     accountChanged: {
       title: 'SIKOLA account changed',
-      body: "A different SIKOLA account is now active in this browser. Reload this page so your choices don't end up in the wrong account.",
+      body: "You're now signed in to SIKOLA with a different account. Reload this page so your choices don't end up in the wrong one.",
       reload: 'Reload',
     },
     whatsNew: {

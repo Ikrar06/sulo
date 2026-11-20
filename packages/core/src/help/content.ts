@@ -25,7 +25,7 @@ export const HOW_IT_WORKS: HelpSection[] = [
     paragraphs: [
       {
         id: 'Sulo membaca SIKOLA dengan login yang sudah ada di browsermu, persis seperti saat kamu membuka SIKOLA sendiri. Sulo tidak pernah meminta atau menyimpan password.',
-        en: 'Sulo reads SIKOLA with the login already in your browser, just like when you open SIKOLA yourself. Sulo never asks for or keeps your password.',
+        en: 'Sulo reads SIKOLA with the sign-in already in your browser, just like when you open SIKOLA yourself. Sulo never asks for or keeps your password.',
       },
       {
         id: 'Tugas dan tenggat diambil dari kalender SIKOLA, untuk mata kuliah yang kamu pantau. Sulo hanya membaca; ia tidak mengumpulkan tugas dan tidak mengubah apa pun di SIKOLA.',
@@ -42,7 +42,7 @@ export const HOW_IT_WORKS: HelpSection[] = [
       },
       {
         id: 'Sulo memeriksa dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
-        en: 'Sulo checks sparingly so it never weighs on SIKOLA, so new data sometimes shows up a little later.',
+        en: 'Sulo checks sparingly to go easy on SIKOLA, so new data sometimes shows up a little later.',
       },
     ],
   },
@@ -78,7 +78,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Tidak. Masuk ke SIKOLA seperti biasa di browser yang sama. Sulo memakai login itu dan tidak pernah melihat password-mu.',
-        en: 'No. Sign in to SIKOLA as usual in the same browser. Sulo uses that login and never sees your password.',
+        en: 'No. Sign in to SIKOLA as usual in the same browser. Sulo uses that sign-in and never sees your password.',
       },
     ],
   },
@@ -142,7 +142,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Pemeriksaan pertama tiap mata kuliah hanya mencatat keadaan awal, tanpa kabar. Setelah itu Sulo memeriksa isi mata kuliah paling sering 6 jam sekali, dan paling banyak lima mata kuliah sekaligus. Materi yang baru ditampilkan dosen dari keadaan tersembunyi, atau tugas yang tenggatnya baru masuk 90 hari ke depan, karena itu bisa terasa lama.',
-        en: 'The first check of each course only records how it looks, without updates. After that Sulo looks inside a course at most every 6 hours, five courses at a time. A material the lecturer just unhid, or a task that just came within 90 days, can therefore look old.',
+        en: 'The first check of each course only notes what’s there, with no updates. After that Sulo looks inside a course at most every 6 hours, up to five at a time. So something the lecturer just unhid, or a task now within 90 days, shows up as new even if it’s old.',
       },
     ],
   },
@@ -162,7 +162,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Rekap presensi diperbarui otomatis paling sering sekali sehari. Rincian per pertemuan diambil saat kamu membukanya.',
-        en: 'The attendance recap updates automatically at most once a day. Per-session details are fetched when you open them.',
+        en: 'The attendance recap updates automatically at most once a day. Per-session details load when you open them.',
       },
     ],
   },
@@ -236,7 +236,7 @@ export const FAQ: FaqEntry[] = [
       },
       {
         id: 'Data yang tidak boleh disimpan dibuang di halaman NEOSIA itu juga, sebelum sampai ke Sulo. Mematikan modul lewat "Putuskan dan hapus data" menghapus semuanya dan mencabut izinnya.',
-        en: 'What may not be kept is dropped right there on the NEOSIA page, before it reaches Sulo. Turning the module off with "Disconnect and delete data" deletes everything and removes the permission.',
+        en: 'What may not be kept is dropped right there on the NEOSIA page, before it reaches Sulo. "Disconnect and delete data" deletes everything and removes the permission.',
       },
     ],
   },
@@ -246,17 +246,17 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Password SIKOLA dan NEOSIA, token login NEOSIA, NIM, NIK, NISN, kontak (email dan nomor HP), alamat, tanggal lahir, nominal dan bank pembayaran, nilai angka, nomor induk dosen, dan tautan survei. Untuk dosen, yang disimpan hanya namanya. Sulo juga tidak membaca data mahasiswa lain.',
-        en: 'SIKOLA and NEOSIA passwords, the NEOSIA login token, student number, national ID, school ID, contact details (email and phone), address, date of birth, payment amounts and bank, numeric grades, lecturers’ ID numbers and the survey link. For lecturers, only the name is kept. Sulo never reads other students’ data either.',
+        en: 'SIKOLA and NEOSIA passwords, the NEOSIA sign-in token, student number, national ID, school ID, contact details (email and phone), address, date of birth, payment amounts and bank, numeric grades, lecturers’ ID numbers and the survey link. For lecturers, only the name is kept. Sulo never reads other students’ data either.',
       },
       {
         id: 'Nilai huruf, IPS, dan IPK memang disimpan di browsermu, tetapi tersembunyi sampai kamu memilih Tampilkan, dan tidak pernah masuk notifikasi, ekspor, daftar yang disalin, berkas kalender, atau info laporan bug.',
-        en: 'Letter grades and GPA are kept in your browser, but hidden until you choose Show, and never appear in notifications, exports, copied lists, calendar files or bug report info.',
+        en: 'Letter grades, semester GPA and GPA are kept in your browser, but hidden until you choose Show, and never appear in notifications, exports, copied lists, calendar files or bug report info.',
       },
     ],
   },
   {
     id: 'ipk-nilai',
-    q: { id: 'Bagaimana Sulo menghitung IPK di halaman Nilai?', en: 'How does Sulo count the GPA on the Grades page?' },
+    q: { id: 'Bagaimana Sulo menghitung IPK di halaman Nilai?', en: 'How does Sulo work out the GPA on the Grades page?' },
     a: [
       {
         id: 'IPK yang tampil di atas halaman Nilai adalah angka resmi dari NEOSIA. Sulo juga menghitung sendiri dari transkripmu (mata kuliah yang dihitung NEOSIA, dikali SKS) untuk grafik IPS dan simulasi. Kalau hitungan Sulo berbeda dari NEOSIA, Sulo memberi tahu, dan angka resmi tetap dari NEOSIA.',
