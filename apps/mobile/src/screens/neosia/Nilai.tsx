@@ -17,12 +17,13 @@ import { Card, EmptyCard, SectionHead, StatCard } from '@sulo/ui/mobile/cards';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
-import { Private } from '@sulo/ui/private';
+import { Private, usePrivacy } from '@sulo/ui/private';
 import { useI18n } from '@sulo/ui/i18n';
 import { useMobileData } from '../../shell/data';
 import type { Screen } from '../../shell/nav';
 import { useGrades, useNeosia } from '../../neosia/NeosiaProvider';
 
+const MASK = '•••';
 const two = (x: number | null) => (x === null ? '–' : x.toFixed(2));
 
 /** IPS per semester, oldest left: a line on core's adaptive axis, with the values also as text for screen readers. */
@@ -66,6 +67,7 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const t = n.nilai;
   const neo = useNeosia();
   const { data } = useMobileData();
+  const hide = usePrivacy();
   const prefs = data!.prefs;
   const shown = prefs.gradesShown;
   const grades = useGrades(neo.enabled && shown);
@@ -112,8 +114,9 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   return (
     <div className="space-y-4 pt-2">
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label={t.ipk} value={p?.ipk !== null && p?.ipk !== undefined ? p.ipk.toFixed(2) : '–'} />
-        <StatCard label={t.sksPassed} value={t.ofTarget(passedSks(rows), target)} />
+        {/* Plain-string cards: masked here in privacy mode, like the Studi card. */}
+        <StatCard label={t.ipk} value={hide ? MASK : p?.ipk !== null && p?.ipk !== undefined ? p.ipk.toFixed(2) : '–'} />
+        <StatCard label={t.sksPassed} value={hide ? MASK : t.ofTarget(passedSks(rows), target)} />
       </div>
 
       {points.length > 0 && (
@@ -198,7 +201,7 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
         {n.refresh.grades}
       </PillButton>
 
-      <Sheet open={picking !== null} onOpenChange={(o) => !o && setPicking(null)} title={picking?.name ?? ''}>
+      <Sheet open={picking !== null} onOpenChange={(o) => !o && setPicking(null)} title={hide ? t.sim : (picking?.name ?? '')}>
         {picking && (
           <SheetOptions
             value={sim[picking.key] ?? picking.letter ?? ''}
