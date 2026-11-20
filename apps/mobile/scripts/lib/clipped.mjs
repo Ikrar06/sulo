@@ -42,7 +42,8 @@ export const UNLABELLED = () => {
     if (cs.visibility === 'hidden' || cs.display === 'none') continue;
     if (el.closest('[aria-hidden="true"]')) continue;
     const named = (el.textContent ?? '').trim() || el.getAttribute('aria-label') || el.getAttribute('title') || [...el.querySelectorAll('img[alt], svg[aria-label], [role="img"][aria-label]')].some((n) => (n.getAttribute('alt') ?? n.getAttribute('aria-label') ?? '').trim());
-    const labelled = (el.getAttribute('aria-labelledby') ?? '').split(/\s+/).some((id) => id && (document.getElementById(id)?.textContent ?? '').trim());
+    // A <label for> or a wrapping <label> names a switch or a checkbox as well as aria-labelledby does.
+    const labelled = (el.getAttribute('aria-labelledby') ?? '').split(/\s+/).some((id) => id && (document.getElementById(id)?.textContent ?? '').trim()) || [...(el.labels ?? [])].some((l) => (l.textContent ?? '').trim()) || !!el.closest('label');
     if (named || labelled) continue;
     out.push({ text: `<${el.tagName.toLowerCase()}> di (${Math.round(r.left)}, ${Math.round(r.top)}) ${Math.round(r.width)}x${Math.round(r.height)}: ${el.outerHTML.replace(/\s+/g, ' ').slice(0, 90)}`, how: 'tanpa-label' });
   }
