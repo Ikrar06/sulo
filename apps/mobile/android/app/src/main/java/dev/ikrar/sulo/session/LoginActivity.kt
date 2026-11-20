@@ -95,6 +95,7 @@ class LoginActivity : Activity() {
             insets
         }
         setContentView(root)
+        c.applyTo(this, root)
         // Back: one page back inside SIKOLA, else close. Android 13+ (and 16, where onBackPressed is no longer called) through the dispatcher.
         if (Build.VERSION.SDK_INT >= 33) onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) { back() }
         if (online()) load() else showOffline(true)

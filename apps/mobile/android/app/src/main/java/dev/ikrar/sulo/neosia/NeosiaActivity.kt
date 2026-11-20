@@ -91,6 +91,7 @@ class NeosiaActivity : Activity() {
             insets
         }
         setContentView(root)
+        c.applyTo(this, root)
         if (Build.VERSION.SDK_INT >= 33) onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) { back() }
 
         // The script and the bridge only for a page that is not the login page, before it loads.
