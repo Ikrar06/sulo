@@ -42,7 +42,8 @@ const ALLOWED = {
 const walk = (p) => (statSync(p).isDirectory() ? readdirSync(p).flatMap((n) => walk(join(p, n))) : /\.(js|html|css|json|kt|java|xml)$/.test(p) ? [p] : []);
 const unknown = new Map();
 for (const file of [...walk(dist), ...NATIVE.flatMap(walk)]) {
-  for (const m of readFileSync(file, 'utf8').matchAll(/https?:\/\/([a-zA-Z0-9.-]+)/g)) {
+  // Regexes in the sources write a host's dots escaped (github\\.com): read them as plain dots.
+  for (const m of readFileSync(file, 'utf8').replace(/\\+\./g, '.').matchAll(/https?:\/\/([a-zA-Z0-9.-]+)/g)) {
     const host = m[1].toLowerCase();
     if (!(host in ALLOWED) && host !== 'localhost') unknown.set(host, file.replace(MOBILE, ''));
   }
