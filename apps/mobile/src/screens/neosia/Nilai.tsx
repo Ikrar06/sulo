@@ -33,6 +33,7 @@ function IpsChart({ points, label }: { points: { label: string; ips: number }[];
   const H = 156;
   const LEFT = 44;
   const PLOT = H - 34;
+  // The last label is right-aligned on its point, so it never runs past the edge.
   const x = (i: number) => (points.length === 1 ? (LEFT + W) / 2 : LEFT + (i * (W - LEFT - 14)) / (points.length - 1));
   const y = (v: number) => 8 + PLOT * (1 - (v - axis.min) / (axis.max - axis.min));
   return (
@@ -50,7 +51,7 @@ function IpsChart({ points, label }: { points: { label: string; ips: number }[];
         {points.map((p, i) => (
           <g key={p.label}>
             <circle cx={x(i)} cy={y(p.ips)} r="3.5" fill="currentColor" />
-            <text x={x(i)} y={H - 4} fontSize="10" textAnchor="middle" fill="currentColor" opacity="0.6">
+            <text x={x(i)} y={H - 4} fontSize="10" textAnchor={points.length > 1 && i === points.length - 1 ? 'end' : 'middle'} fill="currentColor" opacity="0.6">
               {p.label}
             </text>
           </g>
