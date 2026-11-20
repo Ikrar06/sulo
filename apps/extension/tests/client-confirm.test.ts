@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calls } from '@sulo/core/moodle/calls';
-import { createMoodleClient, interpretBatch, type MoodleClientDeps } from '@sulo/core/moodle/client';
+import { createMoodleClient, FRESH_CONNECTION_HEADER, interpretBatch, type MoodleClientDeps } from '@sulo/core/moodle/client';
 import { SESSION_KEY } from '@sulo/core/moodle/session';
 import { TECH_LOG_KEY } from '@sulo/core/net/tech-log';
 import { fakeFetch, fixedClock, jsonResponse, memoryStore } from './helpers';
@@ -54,6 +54,9 @@ describe('confirmLogin: one login answer is never enough', () => {
     expect(fetch.calls).toHaveLength(2);
     // The second ask is core_session_time_remaining alone.
     expect(JSON.parse(String(fetch.calls[1]!.init?.body)).map((c: { methodname: string }) => c.methodname)).toEqual(['core_session_time_remaining']);
+    // Over a new connection; the first ask is not.
+    expect(new Headers(fetch.calls[1]!.init?.headers).get(FRESH_CONNECTION_HEADER)).toBe('1');
+    expect(new Headers(fetch.calls[0]!.init?.headers).get(FRESH_CONNECTION_HEADER)).toBeNull();
     expect(state(store)).toBe('EXPIRED');
     expect(ended).toEqual(['session:servicerequireslogin+session:servicerequireslogin']);
   });

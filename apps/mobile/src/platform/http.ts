@@ -1,3 +1,4 @@
+import { FRESH_CONNECTION_HEADER } from '@sulo/core/moodle/client';
 import { SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import type { HttpClient } from '@sulo/core/platform';
 import { SuloSession } from '../session';
@@ -52,7 +53,8 @@ export function createSessionHttp(userInitiated: boolean, onBatch?: (body: strin
         // Anything else is refused here and again natively (SikolaPage, SikolaRequest).
         return new Response('', { status: 404 });
       }
-      const reply = await SuloSession.request({ body: init.body, userInitiated });
+      const fresh = new Headers(init.headers).get(FRESH_CONNECTION_HEADER) === '1';
+      const reply = await SuloSession.request({ body: init.body, userInitiated, ...(fresh ? { fresh: true } : {}) });
       if (reply.deferred) return closing();
       if (reply.networkError) throw new TypeError('network');
       // No usable session: answer like Moodle does, so core marks it expired.

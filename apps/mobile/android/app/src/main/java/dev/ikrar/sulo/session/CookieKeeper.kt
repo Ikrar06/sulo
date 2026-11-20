@@ -72,3 +72,20 @@ object GuardTimes {
 
     fun all(context: Context): String = context.applicationContext.getSharedPreferences("sulo_guard_times", Context.MODE_PRIVATE).getString("ms", "") ?: ""
 }
+
+/** Debug builds: the NAMES of the response headers and Set-Cookie cookies seen from SIKOLA (never a value). */
+object HeaderNames {
+    fun record(context: Context, headers: List<String>, cookies: List<String>) {
+        val prefs = context.applicationContext.getSharedPreferences("sulo_header_names", Context.MODE_PRIVATE)
+        synchronized(this) {
+            val h = (prefs.getStringSet("headers", emptySet()).orEmpty() + headers.map { it.lowercase() }).toSortedSet()
+            val c = (prefs.getStringSet("cookies", emptySet()).orEmpty() + cookies).toSortedSet()
+            prefs.edit().putStringSet("headers", h).putStringSet("cookies", c).commit()
+        }
+    }
+
+    fun all(context: Context): String {
+        val prefs = context.applicationContext.getSharedPreferences("sulo_header_names", Context.MODE_PRIVATE)
+        return "headers: ${prefs.getStringSet("headers", emptySet()).orEmpty().sorted().joinToString(",")}; cookies: ${prefs.getStringSet("cookies", emptySet()).orEmpty().sorted().joinToString(",")}"
+    }
+}

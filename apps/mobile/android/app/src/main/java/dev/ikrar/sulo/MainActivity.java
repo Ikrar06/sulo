@@ -30,6 +30,12 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         // The session's event log (times and codes only): when the app starts.
         dev.ikrar.sulo.session.Diag.Companion.of(this).note("app_start");
+        // Capacitor's built-in CapacitorCookies plugin makes itself java.net's default
+        // CookieHandler on every start, even switched off: every HttpURLConnection in the
+        // process then sends the WebView's cookies too and writes every Set-Cookie into the
+        // WebView (seen 20 Nov 2026). Sulo's requests to SIKOLA carry the vault's cookie
+        // only, so no handler: nothing outside the vault takes part in the session.
+        java.net.CookieHandler.setDefault(null);
         // Honor the phone's text size, clamped so screens never break (src/tokens.css).
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().getSettings().setTextZoom(textZoom(getResources().getConfiguration().fontScale));

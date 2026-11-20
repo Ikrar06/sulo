@@ -64,7 +64,8 @@ export interface SuloSessionPlugin {
   /** Debug builds: what happened to the session (times and event codes only, native Diag). */
   diagLog(): Promise<{ events: { at: number; e: string }[]; cookies?: Record<string, number>; guardMs?: string }>;
   /** One batch to service.php. userInitiated decides nosessionupdate (native). */
-  request(options: { body: string; userInitiated: boolean }): Promise<BatchReply>;
+  /** fresh: over a new connection, closed after (core's second ask). */
+  request(options: { body: string; userInitiated: boolean; fresh?: boolean }): Promise<BatchReply>;
   /**
    * One allowlisted SIKOLA page (attendance only: id, mode, view), for
    * something the user started. The HTML comes stripped of its head,

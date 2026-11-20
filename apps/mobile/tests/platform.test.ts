@@ -120,6 +120,17 @@ describe('reminders from the data already on the phone', () => {
   });
 });
 
+describe('the second ask over a new connection', () => {
+  it('the core marker becomes the native fresh option, and nothing else asks for it', async () => {
+    sent.length = 0;
+    nativeReply = { httpStatus: 200, body: '[]', sessionStatus: 'connected' };
+    const body = JSON.stringify([{ index: 0, methodname: 'core_session_time_remaining', args: {} }]);
+    await createSessionHttp(true).request('https://sikola-v2.unhas.ac.id/lib/ajax/service.php?sesskey=x', { method: 'POST', body, headers: { 'X-Sulo-Fresh-Connection': '1' } });
+    await createSessionHttp(true).request('https://sikola-v2.unhas.ac.id/lib/ajax/service.php?sesskey=x', { method: 'POST', body });
+    expect(sent.map((o) => (o as { fresh?: boolean }).fresh ?? false)).toEqual([true, false]);
+  });
+});
+
 describe('attendance pages through SuloSession.page', () => {
   const origin = 'https://sikola-v2.unhas.ac.id';
   beforeEach(() => {

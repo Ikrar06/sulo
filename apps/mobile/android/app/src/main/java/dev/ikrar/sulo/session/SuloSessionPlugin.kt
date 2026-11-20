@@ -37,7 +37,12 @@ class SuloSessionPlugin : Plugin() {
 
     private val io = Executors.newSingleThreadExecutor()
     private val vault by lazy { SessionVault.of(context) }
-    private val http by lazy { SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)") }
+    private val http by lazy {
+        SikolaHttp("Sulo/${BuildConfig.VERSION_NAME} (Android)").apply {
+            // Debug builds: which header and cookie NAMES SIKOLA answers with (for the load-balancer question).
+            if (BuildConfig.DEBUG) namesSeen = { headers, cookies -> HeaderNames.record(context, headers, cookies) }
+        }
+    }
 
     // ---------- Haptics ----------
 
@@ -126,7 +131,8 @@ class SuloSessionPlugin : Plugin() {
             JSObject()
                 .put("events", com.getcapacitor.JSArray(Diag.of(context).entries().toString()))
                 .put("cookies", JSObject().apply { CookieStats.of(context).summary().forEach { (k, v) -> put(k, v.toIntOrNull() ?: 0) } })
-                .put("guardMs", GuardTimes.all(context)),
+                .put("guardMs", GuardTimes.all(context))
+                .put("headerNames", HeaderNames.all(context)),
         )
     }
 
@@ -217,15 +223,17 @@ class SuloSessionPlugin : Plugin() {
     fun request(call: PluginCall) {
         val body = call.getString("body") ?: return call.reject("body missing")
         val userInitiated = call.getBoolean("userInitiated") ?: false
+        // A new connection, closed after: core's second ask before a session ends.
+        val fresh = call.getBoolean("fresh") ?: false
         val functions = SikolaRequest.allowedFunctions(body) ?: return call.reject("not allowlisted")
         if (deferIfClosing(call)) return
         io.execute {
-            val answered = SikolaLock.hold(context, LOCK_WAIT_MS) { batch(call, body, functions, userInitiated) }
+            val answered = SikolaLock.hold(context, LOCK_WAIT_MS) { batch(call, body, functions, userInitiated, fresh) }
             if (answered == null) call.resolve(JSObject().put("networkError", "Busy").put("sessionStatus", vault.status()))
         }
     }
 
-    private fun batch(call: PluginCall, body: String, functions: List<String>, userInitiated: Boolean) {
+    private fun batch(call: PluginCall, body: String, functions: List<String>, userInitiated: Boolean, fresh: Boolean) {
         val session = when (val read = vault.read()) {
             is SessionVault.Read.Ok -> read.session
             // Not readable right now (the Keystore not ready): a passing failure, the session stays.
@@ -244,7 +252,7 @@ class SuloSessionPlugin : Plugin() {
                 }
             }
             val kept = keeper(current)
-            var reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body, kept) }
+            var reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, userInitiated), current.moodleSession, body, kept, fresh) }
             kept.settle(SikolaRequest.sessionAnswered(reply.body, functions))
             current = kept.session
             if (SikolaRequest.invalidSesskey(reply.body, functions) && userInitiated) {
@@ -254,7 +262,7 @@ class SuloSessionPlugin : Plugin() {
                     Refresh.None -> return call.resolve(JSObject().put("networkError", "NoSesskey").put("sessionStatus", vault.status()))
                 }
                 val again = keeper(current)
-                reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body, again) }
+                reply = guarded("batch") { http.postJson(SikolaRequest.batchUrl(current.sesskey!!, functions, true), current.moodleSession, body, again, fresh) }
                 again.settle(SikolaRequest.sessionAnswered(reply.body, functions))
             }
             if (reply.status in 300..399 && reply.location?.contains("/login/") == true) return toLogin(call, "batch")
@@ -533,6 +541,28 @@ class SuloSessionPlugin : Plugin() {
                 }
             }
             call.resolve(JSObject().put("writes", writes))
+        }
+    }
+
+    /**
+     * Debug builds: whether the vault's MoodleSession is the one in the WebView's
+     * CookieManager ("same", "different", "none_in_webview", "no_vault"), and how
+     * many MoodleSession entries the WebView holds for SIKOLA. Never a value.
+     */
+    @PluginMethod
+    fun devCookieCompare(call: PluginCall) {
+        if (!BuildConfig.DEBUG) return call.reject("debug only")
+        io.execute {
+            val vaultCookie = vault.load()?.moodleSession
+            val jar = CookieManager.getInstance().getCookie(Sikola.ORIGIN).orEmpty()
+            val inWebView = jar.split(';').map { it.trim() }.filter { it.startsWith("${Sikola.SESSION_COOKIE}=") }.map { it.substringAfter('=') }
+            val verdict = when {
+                vaultCookie == null -> "no_vault"
+                inWebView.isEmpty() -> "none_in_webview"
+                inWebView.contains(vaultCookie) -> "same"
+                else -> "different"
+            }
+            call.resolve(JSObject().put("verdict", verdict).put("webViewCount", inWebView.size).put("webViewCookieNames", com.getcapacitor.JSArray(jar.split(';').map { it.trim().substringBefore('=') }.filter { it.isNotEmpty() })))
         }
     }
 

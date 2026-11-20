@@ -70,7 +70,16 @@ export interface RequestOptions {
   source?: RequestSource;
   /** True when the batch also carries the daily course list. */
   withCourseList?: boolean;
+  /**
+   * Over a new connection, closed after (mobile: core's second ask before a
+   * session ends). Passed to the platform's fetch as FRESH_CONNECTION_HEADER;
+   * the mobile adaptor turns it into a native option and never sends it on.
+   */
+  freshConnection?: boolean;
 }
+
+/** The marker for RequestOptions.freshConnection, read by the mobile HTTP adaptor (never sent to SIKOLA). */
+export const FRESH_CONNECTION_HEADER = 'X-Sulo-Fresh-Connection';
 
 export interface MoodleClient {
   callBatch(calls: readonly MoodleCall[], options?: RequestOptions): Promise<BatchOutcome>;
@@ -145,7 +154,7 @@ async function executeBatch(deps: ResolvedDeps, calls: readonly MoodleCall[], op
     batchPath(sesskey, deps.noSessionUpdate),
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(options.freshConnection ? { [FRESH_CONNECTION_HEADER]: '1' } : {}) },
       body: JSON.stringify(calls.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))),
     },
     options,
@@ -204,7 +213,8 @@ async function askSessionOnly(deps: ResolvedDeps, options: RequestOptions): Prom
   const sent = await send(
     deps,
     batchPath(sesskey, deps.noSessionUpdate),
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(only.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))) },
+    // A new connection: the second ask must not ride the first answer's connection (owner's rule, 20 Nov 2026).
+    { method: 'POST', headers: { 'Content-Type': 'application/json', [FRESH_CONNECTION_HEADER]: '1' }, body: JSON.stringify(only.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))) },
     options,
     1,
   );

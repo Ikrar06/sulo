@@ -170,10 +170,10 @@ export function App({ platform }: { platform: Platform }) {
   // Debug builds only: pnpm mobile:test-restart starts a sync like pull-to-refresh (to end the process mid-sync).
   useEffect(() => {
     if (!__SULO_DEV__) return;
-    const w = window as unknown as { __suloDevSync?: () => Promise<string>; __suloDevCheck?: () => Promise<string> };
+    const w = window as unknown as { __suloDevSync?: () => Promise<string>; __suloDevCheck?: (fresh?: boolean) => Promise<string> };
     w.__suloDevSync = () => refreshRef.current();
     // One core_session_time_remaining through core's client (gates, budget, queue): the session check of the staged tests.
-    w.__suloDevCheck = async () => (await sikolaClient(platform, { userInitiated: true }).callBatch([calls.sessionTimeRemaining()], { source: 'manual' })).kind;
+    w.__suloDevCheck = async (fresh = false) => (await sikolaClient(platform, { userInitiated: true }).callBatch([calls.sessionTimeRemaining()], { source: 'manual', freshConnection: fresh })).kind;
     return () => {
       delete w.__suloDevSync;
       delete w.__suloDevCheck;

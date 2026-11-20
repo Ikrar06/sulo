@@ -21,11 +21,15 @@ class SikolaHttp(private val userAgent: String) {
         fun seen(cookie: SikolaText.SessionCookie)
     }
 
-    fun get(url: String, moodleSession: String, watch: CookieWatch? = null): Reply = exchange(url, moodleSession, null, watch)
+    /** Debug builds: told the NAMES of the response's headers and of the cookies it sets (never a value). */
+    var namesSeen: ((headers: List<String>, setCookies: List<String>) -> Unit)? = null
 
-    fun postJson(url: String, moodleSession: String, body: String, watch: CookieWatch? = null): Reply = exchange(url, moodleSession, body, watch)
+    fun get(url: String, moodleSession: String, watch: CookieWatch? = null, fresh: Boolean = false): Reply = exchange(url, moodleSession, null, watch, fresh)
 
-    private fun exchange(url: String, moodleSession: String, body: String?, watch: CookieWatch?): Reply {
+    fun postJson(url: String, moodleSession: String, body: String, watch: CookieWatch? = null, fresh: Boolean = false): Reply = exchange(url, moodleSession, body, watch, fresh)
+
+    /** `fresh`: a new connection, closed after (the second ask before a session ends; owner's rule, 20 Nov 2026). */
+    private fun exchange(url: String, moodleSession: String, body: String?, watch: CookieWatch?, fresh: Boolean): Reply {
         require(url.startsWith("${Sikola.ORIGIN}/")) { "SIKOLA only" }
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.instanceFollowRedirects = false
@@ -34,6 +38,7 @@ class SikolaHttp(private val userAgent: String) {
         conn.useCaches = false
         conn.setRequestProperty("User-Agent", userAgent)
         conn.setRequestProperty("Cookie", "${Sikola.SESSION_COOKIE}=$moodleSession")
+        if (fresh) conn.setRequestProperty("Connection", "close")
         InFlight.add(conn)
         return try {
             if (body != null) {
@@ -43,7 +48,9 @@ class SikolaHttp(private val userAgent: String) {
                 conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             }
             val status = conn.responseCode
-            runCatching { watch?.seen(SikolaText.sessionCookie(conn.headerFields["Set-Cookie"] ?: conn.headerFields["set-cookie"], moodleSession)) }
+            val setCookies = conn.headerFields["Set-Cookie"] ?: conn.headerFields["set-cookie"]
+            runCatching { watch?.seen(SikolaText.sessionCookie(setCookies, moodleSession)) }
+            runCatching { namesSeen?.invoke(conn.headerFields.keys.filterNotNull(), setCookies.orEmpty().map { it.substringBefore('=').trim() }) }
             val stream = if (status in 200..299) conn.inputStream else conn.errorStream
             Reply(status, conn.getHeaderField("Location"), stream?.bufferedReader()?.use { it.readText() } ?: "", conn.getHeaderField("Retry-After"))
         } finally {
