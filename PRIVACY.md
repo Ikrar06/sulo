@@ -94,7 +94,7 @@ Any time, in Settings with "Disconnect and delete data". All NEOSIA data is dele
 ## Deleting your data
 
 - Removing the extension from your browser deletes all of its data. This works today.
-- "Delete all data" in the popup settings menu deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.
+- "Delete all data" in Settings (under "Delete data") deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.
 - "Disconnect and delete data" on the NEOSIA card (Settings) deletes all NEOSIA data and removes its permissions. "Delete all data" also turns the NEOSIA module off.
 
 ## Changes to this policy

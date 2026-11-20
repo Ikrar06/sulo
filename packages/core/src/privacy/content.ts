@@ -65,7 +65,7 @@ export const NEOSIA_CONSENT: ConsentText = {
   keptTitle: { id: 'Yang disimpan di browsermu', en: 'What is kept in your browser' },
   kept: [
     { id: 'Jadwal kuliah: mata kuliah, kelas, hari, jam, ruang, dan nama dosen', en: 'Class schedule: courses, classes, days, times, rooms and lecturer names' },
-    { id: 'Jendela dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
+    { id: 'Masa pengisian dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
     { id: 'Sudah bayar atau belum, tanpa nominal', en: 'Paid or not paid, without amounts' },
     { id: 'Status survei: sudah diisi atau belum', en: 'The survey status: filled in or not' },
     { id: 'Nilai huruf, IPS, IPK, dan SKS. Tersembunyi sampai kamu memilih Tampilkan', en: 'Letter grades, semester and overall GPA, and credits. Hidden until you choose Show' },
@@ -200,7 +200,7 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: '"Tambah ke Google Calendar" di menu tugas hanya membuka halaman Google Calendar di tab baru, saat kamu mengekliknya. Halaman itu sudah berisi nama tugas, nama mata kuliah, tenggat, dan tautan ke tugas di SIKOLA. Sulo sendiri tidak mengirim apa pun ke Google dan tidak butuh login; kamu yang memutuskan menyimpannya di Google Calendar.',
+          id: '"Tambah ke Google Kalender" di menu tugas hanya membuka halaman Google Kalender di tab baru, saat kamu mengekliknya. Halaman itu sudah berisi nama tugas, nama mata kuliah, tenggat, dan tautan ke tugas di SIKOLA. Sulo sendiri tidak mengirim apa pun ke Google dan tidak butuh login; kamu yang memutuskan menyimpannya di Google Kalender.',
           en: '"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no login; you decide whether to save it in Google Calendar.',
         },
       },
@@ -268,7 +268,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'Mencopot ekstensi dari browser menghapus semua datanya. Ini sudah berlaku sekarang.', en: 'Removing the extension from your browser deletes all of its data. This works today.' },
-          { id: '"Hapus semua data" di menu pengaturan popup menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in the popup settings menu deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.' },
+          { id: '"Hapus semua data" di Pengaturan (bagian "Hapus data") menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in Settings (under "Delete data") deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.' },
           { id: '"Putuskan dan hapus data" di kartu NEOSIA (Pengaturan) menghapus semua data NEOSIA dan mencabut izinnya. "Hapus semua data" juga mematikan modul NEOSIA.', en: '"Disconnect and delete data" on the NEOSIA card (Settings) deletes all NEOSIA data and removes its permissions. "Delete all data" also turns the NEOSIA module off.' },
         ],
       },
