@@ -1,21 +1,29 @@
 name: Android rilis
 
-# Manual only. Builds a signed release APK from the repository secrets and
-# keeps it as an artifact with its SHA-256 and the certificate fingerprint.
+# Manual (workflow_dispatch) or a pushed tag "v*" only: never on a pull
+# request, so a fork's code never runs with the signing secrets. Builds a
+# signed release APK and keeps it as an artifact with its SHA-256; the
+# certificate must be exactly the one in apps/mobile/release-cert.json.
 # Publishing a GitHub Release is a separate, deliberate step (not here).
+# No step prints a secret: they reach Gradle only as environment variables.
 #
-# Secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
-# ANDROID_KEY_ALIAS (optional, default "sulo"), ANDROID_KEY_PASSWORD
-# (optional, default the keystore password). See docs/MOBILE-SETUP.md.
+# Secrets (set by the owner with gh secret set, docs/rilis/keystore.md):
+# ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS
+# (optional, default "sulo"), ANDROID_KEY_PASSWORD (optional, default the
+# keystore password).
 
 on:
   workflow_dispatch:
+  push:
+    tags: ['v*']
 
 permissions:
   contents: read
 
 jobs:
   release-apk:
+    # Only in the owner's repository (a fork has neither the secrets nor the right).
+    if: github.repository == 'Ikrar06/sulo'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -61,6 +69,10 @@ jobs:
           cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk "$OUT"
           APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
           "$APKSIGNER" verify --verbose --print-certs "$OUT" | tee .output/signature.txt
+          # The certificate must be Sulo's release certificate (public constant), never a debug or stray key.
+          EXPECTED=$(node -p "require('./apps/mobile/release-cert.json').sha256.replace(/:/g, '').toLowerCase()")
+          ACTUAL=$(grep -m1 'certificate SHA-256 digest' .output/signature.txt | awk '{print $NF}' | tr 'A-F' 'a-f')
+          test -n "$ACTUAL" && test "$ACTUAL" = "$EXPECTED" || { echo "Sertifikat APK bukan sertifikat rilis Sulo (release-cert.json)."; exit 1; }
           (cd .output && sha256sum "sulo-$VERSION-android.apk" > "sulo-$VERSION-android.apk.sha256")
           cat ".output/sulo-$VERSION-android.apk.sha256"
           node apps/extension/scripts/check-leaks.mjs --zip "$OUT"

@@ -22,7 +22,8 @@
     "check:onboarding-layout": "node scripts/check-onboarding-layout.mjs",
     "emu": "node scripts/emu.mjs",
     "emu:stop": "node scripts/emu.mjs --stop",
-    "shots:device": "node scripts/device-shots.mjs"
+    "shots:device": "node scripts/device-shots.mjs",
+    "keystore:buat": "node scripts/keystore-create.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.6.2",
