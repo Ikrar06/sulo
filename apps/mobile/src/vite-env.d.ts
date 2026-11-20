@@ -9,3 +9,8 @@ declare const __SULO_COMMIT__: string;
 declare module '*/demo-presensi.mjs' {
   export function demoPresensi(now?: number): Record<string, unknown>;
 }
+
+// The extension's synthetic NEOSIA snapshots (made-up names and grades).
+declare module '*/demo-neosia.mjs' {
+  export function demoNeosia(now?: number): Record<string, unknown>;
+}

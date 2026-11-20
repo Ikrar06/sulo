@@ -41,6 +41,7 @@ import type { SyncDeps } from '@sulo/core/sync/run-sync';
 import { calls } from '@sulo/core/moodle/calls';
 import { TEST_BUDGET_FLAG, TEST_CHECK_GAP_MS, testCheckLimit } from './dev/test-budget';
 import { alignSession } from './session-truth';
+import { NeosiaProvider } from './neosia/NeosiaProvider';
 import { afterStage, DONE_MS, holdLeft, IDLE, running, type SyncUi } from './shell/sync-status';
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
@@ -348,6 +349,7 @@ export function App({ platform }: { platform: Platform }) {
   const onboarding = flow.step !== 'finished' || landing;
   const shell = (
     <MobileDataProvider platform={platform}>
+      <NeosiaProvider platform={platform}>
       <Shell
         expired={status === 'expired'}
         busy={busy}
@@ -364,6 +366,7 @@ export function App({ platform }: { platform: Platform }) {
           setFlow(resume(await readSavedFlow(platform), { signedIn: false, hasData: false }));
         }}
       />
+      </NeosiaProvider>
     </MobileDataProvider>
   );
   const lite = tier === 'lite';

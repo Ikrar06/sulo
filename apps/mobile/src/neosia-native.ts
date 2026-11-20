@@ -1,5 +1,5 @@
 // SuloNeosia, the native NEOSIA screen (apps/mobile/android, Kotlin; M8d).
-// B0: debug builds only. It opens one of NEOSIA's pages from a tap and reads
+// It opens one of NEOSIA's pages from a tap and reads
 // the trial's counters (labels and numbers only; no captured data).
 import { registerPlugin } from '@capacitor/core';
 
@@ -31,10 +31,13 @@ export interface SuloNeosiaPlugin {
   storeSet(o: { user: number; key: string; value: string }): Promise<void>;
   storeRemove(o: { user: number; keys: string[] }): Promise<void>;
   storeKeys(o: { user: number; prefix: string }): Promise<{ keys: string[] }>;
-  /** One account's NEOSIA data, or every account's (no user). */
-  wipe(o: { user?: number }): Promise<void>;
+  /** One account's NEOSIA data, or every account's (no user); web: NEOSIA's own cookies and web storage too ("Putuskan NEOSIA"). */
+  wipe(o: { user?: number; web?: boolean }): Promise<void>;
   trialStats(): Promise<NeosiaTrialStats>;
   resetTrial(): Promise<void>;
 }
 
-export const SuloNeosia = registerPlugin<SuloNeosiaPlugin>('SuloNeosia');
+export const SuloNeosia = registerPlugin<SuloNeosiaPlugin>('SuloNeosia', {
+  // pnpm mobile:web and Vitest: synthetic snapshots in memory, no NEOSIA page (src/fake/neosia.ts).
+  ...(__SULO_WEB_FAKE__ ? { web: () => import('./fake/neosia').then((m) => m.fakeNeosia()) } : {}),
+});

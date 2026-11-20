@@ -36,6 +36,7 @@ import { GreetingLines } from './GreetingLines';
 import { HeroMascot } from './HeroMascot';
 import { WeekCard } from './WeekCard';
 import { useSyncUi } from '../shell/SyncStatusLine';
+import { KrsReadinessCard, NeosiaSetupCard, StudiCard, TodayClassCard } from './neosia/RingkasanNeosia';
 import { URGENCY_TEXT } from './Tugas';
 
 /** Cards in "Berikutnya". */
@@ -162,6 +163,10 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
         )}
       </div>
 
+      {/* NEOSIA (M8d): connect, the checklist, or a calm line; then Kesiapan KRS in its window. */}
+      <NeosiaSetupCard />
+      <KrsReadinessCard />
+
       <div className="grid grid-cols-3 gap-3">
         <StatCard label={w.app.statOverdue} value={String(overdue)} warn={overdue > 0} />
         <StatCard label={w.app.statWeek} value={String(dueThisWeek)} />
@@ -252,6 +257,9 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
               <p className="mt-1 text-m13 text-muted-foreground">{d.presensi.never}</p>
             )}
           </Card>
+          {/* From NEOSIA, when connected: today's next class and Studi (the GPA only when shown). */}
+          <TodayClassCard go={go} />
+          <StudiCard go={go} />
         </div>
       </section>
 

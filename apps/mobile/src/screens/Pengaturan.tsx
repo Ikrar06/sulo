@@ -1,7 +1,7 @@
 // Pengaturan (M8c.1, cards): one group card per topic, switches instead of
 // checkboxes, and times or formats as a value on the right that opens a
 // bottom sheet. Pengingat, Jam tenang, Ringkasan pagi, Kalender akademik,
-// Tampilan, Keamanan, Laporan bug, Data. Only what makes sense on a phone;
+// Tampilan, NEOSIA (once connected), Keamanan, Laporan bug, Data. Only what makes sense on a phone;
 // every value is the same prefs field the extension uses.
 
 import { useEffect, useState } from 'react';
@@ -33,7 +33,8 @@ type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickna
 import { SignOutSheet } from './SignOutSheet';
 import { Group, Row, ValueRow } from './settings-rows';
 import { WatchSettings } from './WatchSettings';
-export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
+import { NeosiaSettings } from './neosia/NeosiaSettings';
+export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut: () => void; section?: string | null }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
   const t = d.pengaturan;
@@ -150,6 +151,8 @@ export function PengaturanScreen({ onSignedOut }: { onSignedOut: () => void }) {
           <span className="text-m13 text-muted-foreground">{LANGUAGE_NAMES[locale]}</span>
         </Row>
       </Group>
+
+      <NeosiaSettings scrollTo={section === 'neosia'} />
 
       <Group title={w.connected.lock}>
         <Row label={w.connected.lock} help={lockAvailable ? w.connected.lockHelp : w.connected.lockUnavailable}>

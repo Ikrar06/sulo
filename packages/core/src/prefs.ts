@@ -58,6 +58,8 @@ export interface Prefs {
   privacyMode: boolean;
   /** Credits to graduate, the scale of the overview's credits bar (NEOSIA, 100 to 200). */
   sksTarget: number;
+  /** Android (M8d): grades and GPA are shown only once turned on in Pengaturan; hidden by default. */
+  gradesShown: boolean;
   /** Mobile: how much motion (perf/tier.ts); "auto" follows the detected tier. */
   animation: AnimationPref;
 }
@@ -74,6 +76,7 @@ export const DEFAULT_PREFS: Prefs = {
   calendarFilter: DEFAULT_GROUP_FILTER,
   privacyMode: false,
   sksTarget: 144,
+  gradesShown: false,
   animation: 'auto',
 };
 
@@ -90,6 +93,7 @@ const prefsSchema = z.object({
   calendarFilter: groupFilterSchema,
   privacyMode: z.boolean().catch(false),
   sksTarget: z.number().int().min(100).max(200).catch(144),
+  gradesShown: z.boolean().catch(false),
   animation: z.enum(['auto', 'full', 'lite']).catch('auto'),
 });
 

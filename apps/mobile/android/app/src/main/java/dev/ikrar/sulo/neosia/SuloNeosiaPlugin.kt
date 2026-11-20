@@ -14,9 +14,9 @@ import com.getcapacitor.annotation.CapacitorPlugin
 import dev.ikrar.sulo.BuildConfig
 
 /**
- * SuloNeosia (M8d B0): opens a NEOSIA page from a tap, and reads the trial's
- * counters. Debug builds only for now (the trial); the release build answers
- * every call with an error and opens nothing.
+ * SuloNeosia (M8d): opens a NEOSIA page from a tap, keeps NEOSIA's data in
+ * the encrypted NeosiaStore, and wipes it (with NEOSIA's own web data on
+ * "Putuskan NEOSIA"). The trial's counters stay debug-only.
  */
 @CapacitorPlugin(name = "SuloNeosia")
 class SuloNeosiaPlugin : Plugin() {
@@ -107,10 +107,12 @@ class SuloNeosiaPlugin : Plugin() {
     @PluginMethod
     fun wipe(call: PluginCall) {
         val user = call.getLong("user")
+        val web = call.getBoolean("web") ?: false
         io.execute {
             if (user != null) store.wipe(user) else store.wipeAll()
             queue.take()
-            call.resolve()
+            // "Putuskan NEOSIA": NEOSIA's own cookies and web storage go too (SIKOLA's stay).
+            if (web) bridge.executeOnMainThread { NeosiaWebData.clear { call.resolve() } } else call.resolve()
         }
     }
 
