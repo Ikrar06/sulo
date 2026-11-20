@@ -43,8 +43,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Seberapa cepat Sulo tahu ada tugas baru?', en: 'How soon does Sulo know about a new task?' },
     a: [
       {
-        id: 'Kalau "Pantau tugas baru" menyala dan HP tidak menidurkan Sulo, sekitar 20 menit di siang hari (06.00-22.59) dan sekitar satu jam di malam hari. Kalau mati, saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
-        en: 'With "Watch for new tasks" on and the phone not putting Sulo to sleep, about 20 minutes by day (06.00-22.59) and about an hour at night. With it off, when you open the app, pull down, or tap Update.',
+        id: 'Kalau "Pantau tugas baru" menyala dan HP tidak menidurkan Sulo, sekitar 20 menit di siang hari (06.00-22.59) dan sekitar 110 menit di malam hari. Kalau mati, saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
+        en: 'With "Watch for new tasks" on and the phone not putting Sulo to sleep, about 20 minutes by day (06.00-22.59) and about 110 minutes at night. With it off, when you open the app, pull down, or tap Update.',
       },
     ],
   },
@@ -63,12 +63,12 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Apakah pemantauan boros baterai?', en: 'Does watching drain the battery?' },
     a: [
       {
-        id: 'Dengan pemantauan menyala, Sulo bangun paling banyak sekitar 58 kali sehari: tiap 20 menit pukul 06.00-22.59 dan tiap jam di malam hari. Setiap kali hanya satu permintaan kecil ke SIKOLA, lalu tidur lagi; tidak ada yang berjalan terus di latar belakang.',
-        en: 'With watching on, Sulo wakes at most about 58 times a day: every 20 minutes from 06.00 to 22.59 and every hour at night. Each time it sends one small request to SIKOLA and sleeps again; nothing keeps running in the background.',
+        id: 'Dengan pemantauan menyala, Sulo bangun paling banyak sekitar 55 kali sehari: tiap 20 menit pukul 06.00-22.59 dan tiap 110 menit di malam hari. Setiap kali hanya satu permintaan kecil ke SIKOLA, lalu tidur lagi; tidak ada yang berjalan terus di latar belakang.',
+        en: 'With watching on, Sulo wakes at most about 55 times a day: every 20 minutes from 06.00 to 22.59 and every 110 minutes at night. Each time it sends one small request to SIKOLA and sleeps again; nothing keeps running in the background.',
       },
       {
-        id: 'Saat Penghemat baterai menyala, Sulo mengecek sekali per jam, siang maupun malam, tanpa memeriksa materi mata kuliah, dan kembali normal saat penghemat dimatikan. Kalau ingin lebih hemat lagi, matikan pemantauan; Sulo tetap memperbarui saat aplikasi dibuka.',
-        en: 'With Battery Saver on, Sulo checks once an hour, day and night, without looking at course materials, and goes back to normal when the saver is off. To save even more, turn watching off; Sulo still updates when you open the app.',
+        id: 'Saat Penghemat baterai menyala, Sulo mengecek tiap 110 menit, siang maupun malam, tanpa memeriksa materi mata kuliah, dan kembali normal saat penghemat dimatikan. Kalau ingin lebih hemat lagi, matikan pemantauan; Sulo tetap memperbarui saat aplikasi dibuka.',
+        en: 'With Battery Saver on, Sulo checks every 110 minutes, day and night, without looking at course materials, and goes back to normal when the saver is off. To save even more, turn watching off; Sulo still updates when you open the app.',
       },
     ],
   },
