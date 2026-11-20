@@ -73,6 +73,14 @@ describe('NEOSIA data on Android (M8d B2)', () => {
     expect(await ingestQueued({ take: async () => ({ messages: [message('dashboard'), message('dashboard')] }), store: on, now: () => 100, nowMs: () => 10_000 })).toBe(1);
   });
 
+  it('a native store that refuses (the "user missing" bug, 20 Nov 2026) leaves a data-free line in the technical log', async () => {
+    const main = memory({ 'global:currentUser': 7, [NEOSIA_MODULE_KEY]: { enabled: true, changedAt: 1 } });
+    const refusing: NeosiaNative = { ...native(), storeSet: async () => Promise.reject(new Error('user missing')), storeGet: async () => Promise.reject(new Error('user missing')), storeKeys: async () => Promise.reject(new Error('user missing')) };
+    const stored = await ingestQueued({ take: async () => ({ messages: [message('dashboard')] }), store: createNeosiaStore(main, refusing), now: () => 100 });
+    expect(stored).toBe(0);
+    expect(main.dump()['global:techLog']).toEqual([{ at: 100, fn: 'neosia:dashboard', status: 'store_failed' }]);
+  });
+
   it('no current account: nothing is written', async () => {
     const n = native();
     const store = createNeosiaStore(memory({ [NEOSIA_MODULE_KEY]: { enabled: true, changedAt: 1 } }), n);

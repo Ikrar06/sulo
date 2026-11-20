@@ -18,6 +18,19 @@ import dev.ikrar.sulo.BuildConfig
  * the encrypted NeosiaStore, and wipes it (with NEOSIA's own web data on
  * "Putuskan NEOSIA"). The trial's counters stay debug-only.
  */
+/**
+ * The SIKOLA user id from a call. Capacitor's getLong answers null for an
+ * Integer, and a JSON number that small arrives as one: every store call was
+ * refused as "user missing" (seen on the emulator, 20 Nov 2026). Any whole,
+ * positive number is taken; anything else is null. Pure.
+ */
+fun userOf(raw: Any?): Long? {
+    val n = raw as? Number ?: return null
+    val d = n.toDouble()
+    if (d <= 0 || d != Math.floor(d) || d > Long.MAX_VALUE.toDouble()) return null
+    return n.toLong()
+}
+
 @CapacitorPlugin(name = "SuloNeosia")
 class SuloNeosiaPlugin : Plugin() {
     /** Opens one of NeosiaRules.Page in the NEOSIA screen. Called only from a tap in the app. */
@@ -70,14 +83,14 @@ class SuloNeosiaPlugin : Plugin() {
     /** core's NEOSIA store for one SIKOLA account (src/platform/neosia-store.ts): encrypted values, endpoint-id keys. */
     @PluginMethod
     fun storeGet(call: PluginCall) {
-        val user = call.getLong("user") ?: return call.reject("user missing")
+        val user = userOf(call.data.opt("user")) ?: return call.reject("user missing")
         val key = call.getString("key") ?: return call.reject("key missing")
         io.execute { call.resolve(JSObject().put("value", store.get(user, key) ?: JSObject.NULL)) }
     }
 
     @PluginMethod
     fun storeSet(call: PluginCall) {
-        val user = call.getLong("user") ?: return call.reject("user missing")
+        val user = userOf(call.data.opt("user")) ?: return call.reject("user missing")
         val key = call.getString("key") ?: return call.reject("key missing")
         val value = call.getString("value") ?: return call.reject("value missing")
         io.execute {
@@ -88,7 +101,7 @@ class SuloNeosiaPlugin : Plugin() {
 
     @PluginMethod
     fun storeRemove(call: PluginCall) {
-        val user = call.getLong("user") ?: return call.reject("user missing")
+        val user = userOf(call.data.opt("user")) ?: return call.reject("user missing")
         val keys = call.getArray("keys")?.toList<String>() ?: return call.reject("keys missing")
         io.execute {
             store.remove(user, keys)
@@ -98,7 +111,7 @@ class SuloNeosiaPlugin : Plugin() {
 
     @PluginMethod
     fun storeKeys(call: PluginCall) {
-        val user = call.getLong("user") ?: return call.reject("user missing")
+        val user = userOf(call.data.opt("user")) ?: return call.reject("user missing")
         val prefix = call.getString("prefix") ?: ""
         io.execute { call.resolve(JSObject().put("keys", JSArray(store.keys(user, prefix)))) }
     }
@@ -106,7 +119,7 @@ class SuloNeosiaPlugin : Plugin() {
     /** A new SIKOLA account: the previous account's NEOSIA data goes (or every account's with no user). */
     @PluginMethod
     fun wipe(call: PluginCall) {
-        val user = call.getLong("user")
+        val user = userOf(call.data.opt("user"))
         val web = call.getBoolean("web") ?: false
         io.execute {
             if (user != null) store.wipe(user) else store.wipeAll()

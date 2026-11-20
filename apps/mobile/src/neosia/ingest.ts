@@ -1,10 +1,13 @@
 // After the NEOSIA screen closes: the captures it queued go through core's
 // gate (admitCapture: the allowlist's Zod schema, 256 KiB, schema v2, the
 // 5-second dedupe) and core's ingestCapture into the encrypted store. A
-// rejected message is dropped without anything of it being recorded.
+// rejected message is dropped without anything of it being recorded. A write
+// that fails is never silent: the technical log gets the endpoint's name and
+// "store_failed" (no data), so a bug report shows it.
 
 import { admitCapture } from '@sulo/core/neosia/bridge';
 import { ingestCapture } from '@sulo/core/neosia/store';
+import { recordTech } from '@sulo/core/net/tech-log';
 import type { KeyValueStore } from '@sulo/core/platform';
 
 // Only ordering and dedupe (endpoint + data hash), no data: lost on restart, harmless.
@@ -36,7 +39,11 @@ export async function ingestQueued(deps: IngestDeps): Promise<number> {
     const verdict = await admitCapture(data, recent, (deps.nowMs ?? Date.now)(), sha256Hex);
     recent = verdict.recent;
     if (!verdict.capture) continue;
-    const result = await ingestCapture(deps.store, deps.now(), verdict.capture).catch(() => null);
+    const result = await ingestCapture(deps.store, deps.now(), verdict.capture).catch(() => 'failed' as const);
+    if (result === 'failed') {
+      await recordTech(deps.store, { at: deps.now(), fn: `neosia:${verdict.capture.endpoint}`, status: 'store_failed' }).catch(() => undefined);
+      continue;
+    }
     if (result?.kind === 'stored') stored++;
   }
   return stored;
