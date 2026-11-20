@@ -60,6 +60,8 @@ export function outcomeNote(o: SyncOutcome, w: MobileWords, rest: 'short' | 'day
   if (o.status === 'skipped' && o.reason === 'BUDGET_EXHAUSTED') return rest === 'short' ? w.app.restShort : w.app.restDay;
   // Paused by the maintainer: the calm notice says so; no failure line.
   if (o.status === 'skipped' && o.reason === 'DISABLED_REMOTELY') return '';
+  // Below a required update: the "Sulo perlu diperbarui" screen says it all; no failure line.
+  if (o.status === 'skipped' && o.reason === 'UPDATE_REQUIRED') return '';
   if (o.status === 'offline') return w.app.offline;
   return w.connected.failed;
 }

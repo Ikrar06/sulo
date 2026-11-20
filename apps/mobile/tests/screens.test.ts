@@ -180,6 +180,12 @@ describe('reminders scheduled on the phone', () => {
   });
 });
 
+describe('a required update (M8e E3)', () => {
+  it('leaves no failure line: the full screen says it', () => {
+    expect(outcomeNote({ status: 'skipped', reason: 'UPDATE_REQUIRED' }, mobileWords('id'))).toBe('');
+  });
+});
+
 describe('Perbarui without a connection', () => {
   it('sends nothing and says "Tidak ada koneksi"', async () => {
     const online = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
