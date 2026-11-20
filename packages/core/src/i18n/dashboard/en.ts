@@ -278,7 +278,7 @@ export const dashEn: DashMessages = {
     howTitle: 'How Sulo works',
     faqTitle: 'Frequently asked questions',
     onThisPage: 'On this page',
-    stuckTitle: 'Still unsure?',
+    stuckTitle: 'Still stuck?',
     stuckBody: 'Ask through the feedback form, and the answer may join the FAQ.',
     feedback: 'Send feedback',
   },

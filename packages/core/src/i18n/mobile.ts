@@ -256,7 +256,7 @@ const en: MobileWords = {
       'No ads, no tracking, no Sulo server.',
     ],
     signIn: 'Sign in to SIKOLA',
-    cancelled: 'Not signed in. Try again any time.',
+    cancelled: 'Not signed in yet. Try again anytime.',
   },
   connected: {
     title: 'Connected to SIKOLA',
