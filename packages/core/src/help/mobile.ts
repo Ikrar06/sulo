@@ -129,7 +129,7 @@ const PHONE: FaqEntry[] = [
         en: 'Only from NEOSIA pages you open yourself through Sulo. Sulo never asks NEOSIA for anything; when such a page loads its data, Sulo copies the parts it needs (schedule, KRS readiness, grades) and drops personal data such as your student number, address and contacts. Everything is stored encrypted on this phone, apart from your SIKOLA session.',
       },
       {
-        id: 'Kamu login di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA. Jadwal dan nilai menunjukkan kapan terakhir diperbarui. Untuk memperbaruinya, ketuk "Perbarui dari NEOSIA": Sulo hanya membuka halaman NEOSIA itu.',
+        id: 'Kamu masuk di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA. Jadwal dan nilai menunjukkan kapan terakhir diperbarui. Untuk memperbaruinya, ketuk "Perbarui dari NEOSIA": Sulo hanya membuka halaman NEOSIA itu.',
         en: 'You sign in on NEOSIA’s own page; Sulo reads neither your password nor NEOSIA’s sign-in token. The schedule and grades show when they were last updated. To update them, tap "Update from NEOSIA": Sulo only opens that NEOSIA page.',
       },
     ],
@@ -149,7 +149,7 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo bilang sesi NEOSIA habis?', en: 'Why does Sulo say my NEOSIA session ended?' },
     a: [
       {
-        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan halaman NEOSIA meminta login, ketuk Masuk NEOSIA dan login di sana. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan login NEOSIA di HP ini.',
+        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan halaman NEOSIA meminta masuk lagi, ketuk Masuk NEOSIA dan masuk di sana. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan login NEOSIA di HP ini.',
         en: 'Sulo does not keep your NEOSIA session alive. When you update and the NEOSIA page asks you to sign in, tap Sign in to NEOSIA and sign in there. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
       },
     ],

@@ -41,7 +41,7 @@ export const HOW_IT_WORKS: HelpSection[] = [
         en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It does not check from 00:00 to 06:00. Opening the popup or the dashboard never checks SIKOLA.',
       },
       {
-        id: 'Sulo mengecek dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
+        id: 'Sulo memeriksa dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
         en: 'Sulo checks sparingly so it never weighs on SIKOLA, so new data sometimes shows up a little later.',
       },
     ],
@@ -141,7 +141,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Kenapa ada kabar materi baru padahal materinya sudah lama ada?', en: 'Why is a material "new" when it has been there a while?' },
     a: [
       {
-        id: 'Pemeriksaan pertama tiap mata kuliah hanya mencatat keadaan awal, tanpa kabar. Setelah itu Sulo memeriksa isi mata kuliah paling sering 6 jam sekali, dan paling banyak lima mata kuliah sekaligus. Materi yang baru ditampilkan dosen dari keadaan tersembunyi, atau tugas yang baru masuk jendela 90 hari, karena itu bisa terasa lama.',
+        id: 'Pemeriksaan pertama tiap mata kuliah hanya mencatat keadaan awal, tanpa kabar. Setelah itu Sulo memeriksa isi mata kuliah paling sering 6 jam sekali, dan paling banyak lima mata kuliah sekaligus. Materi yang baru ditampilkan dosen dari keadaan tersembunyi, atau tugas yang tenggatnya baru masuk 90 hari ke depan, karena itu bisa terasa lama.',
         en: 'The first check of each course only records how it looks, without updates. After that Sulo looks inside a course at most every 6 hours, five courses at a time. A material the lecturer just unhid, or a task that just came within 90 days, can therefore look old.',
       },
     ],
@@ -151,8 +151,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Bagaimana cara memilih mata kuliah yang dipantau?', en: 'How do I choose the courses Sulo follows?' },
     a: [
       {
-        id: 'Buka dashboard, halaman Mata kuliah, lalu nyalakan atau matikan sakelar Dipantau. Kalau mata kuliah baru belum ada di daftar, klik "Muat ulang daftar".',
-        en: 'Open the dashboard’s Courses page and turn the Followed switch on or off. If a new course is not listed yet, click "Reload list".',
+        id: 'Buka dashboard, halaman Mata kuliah, lalu nyalakan atau matikan Dipantau. Kalau mata kuliah baru belum ada di daftar, klik "Muat ulang daftar".',
+        en: 'Open the dashboard’s Courses page and turn Followed on or off. If a new course is not listed yet, click "Reload list".',
       },
     ],
   },
@@ -181,8 +181,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Bagaimana cara menghapus semua data Sulo?', en: 'How do I delete all of Sulo’s data?' },
     a: [
       {
-        id: 'Di Pengaturan, bagian "Data", atau ⚙ di popup, pilih "Hapus semua data". Ini menghapus tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan di browser ini. Data di SIKOLA tidak tersentuh. Mencopot ekstensi juga menghapus semuanya.',
-        en: 'In Settings, "Data", or ⚙ in the popup, choose "Delete all data". It deletes tasks, courses, reminders, latest updates and settings in this browser. Nothing in SIKOLA is touched. Removing the extension deletes everything too.',
+        id: 'Di Pengaturan, bagian "Hapus data", pilih "Hapus semua data". Ini menghapus tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan di browser ini. Data di SIKOLA tidak tersentuh. Mencopot ekstensi juga menghapus semuanya.',
+        en: 'In Settings, under "Delete data", choose "Delete all data". It deletes tasks, courses, reminders, latest updates and settings in this browser. Nothing in SIKOLA is touched. Removing the extension deletes everything too.',
       },
     ],
   },
@@ -191,7 +191,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Apakah Sulo resmi dari Unhas?', en: 'Is Sulo official?' },
     a: [
       {
-        id: 'Tidak. Sulo adalah aplikasi tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Untuk hal penting, selalu rujuk SIKOLA dan dokumen resmi kampus.',
+        id: 'Tidak. Sulo adalah aplikasi tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Untuk hal penting, selalu cek SIKOLA dan dokumen resmi kampus.',
         en: 'No. Sulo is not an official app and is not affiliated with Universitas Hasanuddin. For anything important, always check SIKOLA and the university’s official documents.',
       },
     ],
@@ -211,17 +211,17 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Bagaimana cara berlangganan kalender akademik?', en: 'How do I subscribe to the academic calendar?' },
     a: [
       {
-        id: 'Di halaman Kalender, klik "Tambah ke Google Kalender" pada feed yang kamu mau (Inti S1, Wisuda, atau Libur nasional). Google Kalender versi web terbuka dan meminta konfirmasi; setelah itu kalendernya muncul juga di HP. Ada juga tombol untuk Outlook dan Apple, serta "Salin alamat" untuk aplikasi lain. Feed hanya berisi tanggal akademik umum, tanpa data pribadi.',
-        en: 'On the Calendar page, click "Add to Google Calendar" on the feed you want (S1 core, Graduation or National holidays). Google Calendar on the web opens and asks you to confirm; after that the calendar also shows on your phone. There are buttons for Outlook and Apple too, and "Copy address" for other apps. Feeds hold public academic dates only, nothing personal.',
+        id: 'Di halaman Kalender, bagian "Tambahkan ke kalendermu", klik "Google Kalender" pada kalender yang kamu mau (Inti S1, Wisuda, atau Libur nasional). Google Kalender versi web terbuka dan meminta konfirmasi; setelah itu kalendernya muncul juga di HP. Outlook, Apple, dan "Salin alamat" untuk aplikasi lain ada di menu di sebelahnya. Isinya hanya tanggal akademik umum, tanpa data pribadi.',
+        en: 'On the Calendar page, under "Add to your calendar", click "Google Calendar" on the calendar you want (S1 core, Graduation or National holidays). Google Calendar on the web opens and asks you to confirm; after that the calendar also shows on your phone. Outlook, Apple and "Copy address" for other apps are in the menu next to it. They hold public academic dates only, nothing personal.',
       },
     ],
   },
   {
     id: 'langganan-terlambat',
-    q: { id: 'Kenapa langganan di Google Calendar terlambat diperbarui?', en: 'Why is my Google Calendar subscription late?' },
+    q: { id: 'Kenapa langganan di Google Kalender terlambat diperbarui?', en: 'Why is my Google Calendar subscription late?' },
     a: [
       {
-        id: 'Google Calendar memperbarui kalender langganan dengan jadwalnya sendiri, bisa berjam-jam sampai sehari. Sulo tidak bisa mempercepatnya. Untuk tanggal terbaru, lihat halaman Kalender di dashboard.',
+        id: 'Google Kalender memperbarui kalender langganan dengan jadwalnya sendiri, bisa berjam-jam sampai sehari. Sulo tidak bisa mempercepatnya. Untuk tanggal terbaru, lihat halaman Kalender di dashboard.',
         en: 'Google Calendar refreshes subscribed calendars on its own schedule, from hours up to a day. Sulo cannot speed that up. For the latest dates, look at the Calendar page in the dashboard.',
       },
     ],

@@ -75,11 +75,11 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     },
     clip: 'mata-kuliah',
     size: { width: 1200, height: 538 },
-    alt: { id: 'Daftar mata kuliah dengan titik warna, nama, dan sakelar Dipantau.', en: 'The course list with color dots, names and Followed switches.' },
+    alt: { id: 'Daftar mata kuliah dengan titik warna, nama, dan pilihan Dipantau.', en: 'The course list with color dots, names and the Followed setting.' },
     points: [
       { id: 'Klik nama, ketik nama baru, lalu Enter. Kosongkan untuk kembali ke nama SIKOLA.', en: 'Click the name, type a new one and press Enter. Clear it to go back to the SIKOLA name.' },
       { id: 'Klik titik warna, pilih dengan panah, lalu Enter.', en: 'Click the color dot, pick with the arrow keys, then Enter.' },
-      { id: 'Matikan sakelar Dipantau untuk berhenti memantau mata kuliah itu.', en: 'Turn the Followed switch off to stop following that course.' },
+      { id: 'Matikan Dipantau untuk berhenti memantau mata kuliah itu.', en: 'Turn Followed off to stop following that course.' },
     ],
   },
   {
@@ -107,7 +107,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     },
     clip: 'kalender',
     size: { width: 1200, height: 978 },
-    alt: { id: 'Halaman Kalender dengan filter kategori, grid bulan, dan kartu langganan.', en: 'The Calendar page with category filters, the month grid and subscription cards.' },
+    alt: { id: 'Halaman Kalender dengan filter kategori, tampilan bulan, dan kartu langganan.', en: 'The Calendar page with category filters, the month view and subscription cards.' },
     points: [
       { id: 'Klik kategori untuk menyembunyikan atau menampilkannya.', en: 'Click a category to hide or show it.' },
       { id: 'Klik tanggal untuk melihat acaranya di panel kanan.', en: 'Click a date to see its events in the side panel.' },
@@ -138,7 +138,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     },
     clip: 'jadwal',
     size: { width: 1200, height: 912 },
-    alt: { id: 'Ringkasan dengan kuliah hari ini, lalu halaman Jadwal dengan grid jam dan popover kelas.', en: 'The overview with today\'s classes, then the Schedule page with its time grid and a class popover.' },
+    alt: { id: 'Ringkasan dengan kuliah hari ini, lalu halaman Jadwal dengan tabel jam dan rincian satu kelas.', en: 'The overview with today\'s classes, then the Schedule page with its timetable and one class\'s details.' },
     points: [
       { id: 'Kuliah hari ini muncul paling atas di kartu Tugas.', en: "Today's classes come first in the Tasks card." },
       { id: 'Kartu Studi menyimpan IPK sampai kamu memilih Tampilkan.', en: 'The Studies card keeps your GPA hidden until you choose Show.' },
