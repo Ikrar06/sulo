@@ -16,7 +16,7 @@ export interface Section {
   blocks: Block[];
 }
 
-export const PRIVACY_UPDATED: Text = { id: '18 November 2026', en: '18 November 2026' };
+export const PRIVACY_UPDATED: Text = { id: '21 November 2026', en: '21 November 2026' };
 
 export const PRIVACY_TITLE: Text = { id: 'Kebijakan Privasi', en: 'Privacy Policy' };
 
@@ -65,7 +65,7 @@ export const NEOSIA_CONSENT: ConsentText = {
   keptTitle: { id: 'Yang disimpan di browsermu', en: 'What is kept in your browser' },
   kept: [
     { id: 'Jadwal kuliah: mata kuliah, kelas, hari, jam, ruang, dan nama dosen', en: 'Class schedule: courses, classes, days, times, rooms and lecturer names' },
-    { id: 'Masa pengisian dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
+    { id: 'Masa KRS (tanggal buka dan tutup) dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
     { id: 'Sudah bayar atau belum, tanpa nominal', en: 'Paid or not paid, without amounts' },
     { id: 'Status survei: sudah diisi atau belum', en: 'The survey status: filled in or not' },
     { id: 'Nilai huruf, IPS, IPK, dan SKS. Tersembunyi sampai kamu memilih Tampilkan', en: 'Letter grades, semester and overall GPA, and credits. Hidden until you choose Show' },
