@@ -6,12 +6,14 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { DEBUG_APK, adbPath } from './env.mjs';
+import { pickDevice } from './device.mjs';
 import { against, apkInfo, git, sha256 } from './apk-info.mjs';
 
 if (!existsSync(DEBUG_APK)) {
   console.error(`Belum ada ${DEBUG_APK}. Jalankan pnpm mobile:fetch-apk (dari CI) atau pnpm mobile:apk:debug dulu.`);
   process.exit(1);
 }
+const device = pickDevice();
 const info = apkInfo(DEBUG_APK);
 const branch = git('rev-parse', '--abbrev-ref', 'HEAD');
 console.log(`APK     : ${DEBUG_APK}`);
@@ -28,7 +30,7 @@ else console.log(`Sama dengan HEAD ${branch} (${head}).`);
 // adb waits while the phone asks (Play Protect, or Samsung's install over USB): say where to look.
 console.log('Memasang. Kalau berhenti di "Performing Streamed Install", lihat layar HP: jawab dialog Play Protect atau konfirmasi pemasangan lewat USB.');
 try {
-  const out = execFileSync(adbPath(), ['install', '-r', DEBUG_APK], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  const out = execFileSync(adbPath(), ['-s', device.serial, 'install', '-r', DEBUG_APK], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   process.stdout.write(out);
 } catch (e) {
   const text = `${e.stdout ?? ''}${e.stderr ?? ''}`;
@@ -36,7 +38,7 @@ try {
   if (/INSTALL_FAILED_UPDATE_INCOMPATIBLE/.test(text)) {
     console.error('\nSulo di HP ditandatangani dengan kunci debug lain (build lama atau dari laptop lain).');
     console.error('Hapus dulu, lalu pasang lagi. Data Sulo di HP ikut terhapus (sesi SIKOLA, pengaturan):');
-    console.error(`  ${adbPath()} uninstall dev.ikrar.sulo && pnpm mobile:install`);
+    console.error(`  ${adbPath()} -s ${device.serial} uninstall dev.ikrar.sulo && pnpm mobile:install --device=${device.kind}`);
   }
   process.exit(1);
 }

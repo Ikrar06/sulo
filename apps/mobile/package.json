@@ -19,7 +19,10 @@
     "test": "vitest run",
     "lint": "node scripts/check-native-logs.mjs && node scripts/check-type-tokens.mjs && node scripts/check-card-layout.mjs",
     "check:fit": "node scripts/check-countdown-fit.mjs && node scripts/check-onboarding-fit.mjs",
-    "check:onboarding-layout": "node scripts/check-onboarding-layout.mjs"
+    "check:onboarding-layout": "node scripts/check-onboarding-layout.mjs",
+    "emu": "node scripts/emu.mjs",
+    "emu:stop": "node scripts/emu.mjs --stop",
+    "shots:device": "node scripts/device-shots.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.6.2",

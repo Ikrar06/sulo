@@ -22,12 +22,11 @@
 // It reads on the phone (run-as, debug build only) and prints only states,
 // sizes, counts, step names and event codes: never a cookie, a sesskey, a
 // token, the vault's content or anything SIKOLA or NEOSIA sent.
-import { execFileSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
-import { adbPath } from './env.mjs';
+import { adbFor, pickDevice } from './device.mjs';
 
 const PKG = 'dev.ikrar.sulo';
-const adb = (args, input) => execFileSync(adbPath(), args, { encoding: 'utf8', input, stdio: [input ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
+const adb = adbFor(pickDevice().serial);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 
@@ -251,10 +250,6 @@ async function step(name, rl) {
   return problems.length === 0;
 }
 
-if (!adb(['devices']).split('\n').slice(1).some((l) => /\tdevice$/.test(l))) {
-  console.error('test-restart: tidak ada HP yang tersambung (adb devices).');
-  process.exit(2);
-}
 let ok = true;
 if (arg('loop')) ok = await loop(Number(arg('loop')));
 else if (arg('neosia')) ok = await neosia(Number(arg('neosia')));
