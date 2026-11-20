@@ -40,10 +40,11 @@ import dev.ikrar.sulo.ui.Palette
  * Neither is added for the login page; both are taken away before the screen
  * goes to a login page. No addJavascriptInterface, no evaluateJavascript.
  *
- * B0 trial: what arrives is counted (endpoint id, size) in NeosiaTrial and
- * dropped; nothing is stored. Debug builds also count NEOSIA's requests as
- * they pass (host and path only), without changing them, to compare with
- * Chrome.
+ * What arrives (already projected in the page) goes, encrypted, into the
+ * CaptureQueue; the app takes it, runs core's gate (Zod schema, 5-second
+ * dedupe) and stores it in the encrypted NeosiaStore (M8d B2). Counted by
+ * endpoint id and size in NeosiaTrial for the dev screen. Debug builds also
+ * count NEOSIA's requests as they pass (host and path only), unchanged.
  */
 class NeosiaActivity : Activity() {
     private lateinit var webView: WebView
@@ -53,6 +54,7 @@ class NeosiaActivity : Activity() {
     private var lastUrl: String? = null
     private lateinit var page: NeosiaRules.Page
     private var closing = false
+    private val queue by lazy { CaptureQueue.of(this) }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,8 +110,13 @@ class NeosiaActivity : Activity() {
         WebViewCompat.addWebMessageListener(webView, NeosiaRules.PORT, origins) { view, message, sourceOrigin, isMainFrame, _ ->
             val data = message.data
             val verdict = NeosiaRules.judge(sourceOrigin.toString().trimEnd('/'), isMainFrame, view.url, data)
-            if (verdict == NeosiaRules.Verdict.ACCEPT && data != null) NeosiaTrial.capture(NeosiaRules.label(data), data.toByteArray(Charsets.UTF_8).size)
-            else NeosiaTrial.reject(verdict.name)
+            if (verdict == NeosiaRules.Verdict.ACCEPT && data != null) {
+                // Already projected in the page; encrypted in the queue until the app runs core's gate and stores it.
+                runCatching { queue.append(data) }
+                NeosiaTrial.capture(NeosiaRules.label(data), data.toByteArray(Charsets.UTF_8).size)
+            } else {
+                NeosiaTrial.reject(verdict.name)
+            }
         }
         listening = true
         script = WebViewCompat.addDocumentStartJavaScript(webView, source, origins)

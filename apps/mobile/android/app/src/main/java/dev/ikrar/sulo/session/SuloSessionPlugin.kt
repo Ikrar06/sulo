@@ -333,6 +333,8 @@ class SuloSessionPlugin : Plugin() {
             vault,
             listOf(
                 { Diag.of(context).clear() },
+                // NEOSIA's data of every account, its queue and its Keystore key (its web storage went with webData).
+                { dev.ikrar.sulo.neosia.NeosiaStore.of(context).wipeAll() },
                 // Keluar also ends background watching: no check, no queue, no plan.
                 { dev.ikrar.sulo.watch.WatchScheduler.stop(context) },
                 { dev.ikrar.sulo.watch.WatchStore(context).clear() },
