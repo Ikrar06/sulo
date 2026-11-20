@@ -55,7 +55,7 @@ export const id = {
     emptyBody: 'Tugas baru akan muncul di sini.',
     done: 'Selesai',
     openTask: (name: string) => `Buka ${name} di SIKOLA`,
-    inactiveTasks: (n: number) => `${n} tugas dari mata kuliah yang tidak kamu pilih`,
+    inactiveTasks: (n: number) => `${n} tugas dari mata kuliah yang tidak dipantau`,
     probablySubmitted: (n: number) => `${n} tugas sudah hilang dari SIKOLA, mungkin sudah kamu kumpulkan`,
     reviewCourses: (n: number) => `Ada ${n} mata kuliah baru. Cek pilihan mata kuliahmu.`,
     review: 'Cek',
@@ -357,7 +357,7 @@ export const id = {
     },
     accountChanged: {
       title: 'Akun SIKOLA berganti',
-      body: 'Ada akun SIKOLA lain yang sekarang aktif di browser ini. Supaya pilihanmu tidak masuk ke akun yang salah, muat ulang halaman ini.',
+      body: 'Kamu sekarang masuk ke SIKOLA dengan akun lain. Supaya pilihanmu tidak masuk ke akun yang salah, muat ulang halaman ini.',
       reload: 'Muat ulang',
     },
     whatsNew: {
