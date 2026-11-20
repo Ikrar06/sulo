@@ -41,6 +41,9 @@ export function NeosiaTrialDev() {
     setComparing(true);
     setDiff(null);
     try {
+      // A first load fills the WebView's cache; without it the first measured load fetches NEOSIA's bundles
+      // and the second does not (seen on the emulator, 20 Nov 2026: a false difference of two .js files).
+      await SuloNeosia.open({ page: 'home', close: 'Tutup', script: false, autoCloseMs: 8000 });
       await SuloNeosia.resetTrial();
       await SuloNeosia.open({ page: 'home', close: 'Tutup', script: false, autoCloseMs: 8000 });
       const without = (await SuloNeosia.trialStats()).requests;
