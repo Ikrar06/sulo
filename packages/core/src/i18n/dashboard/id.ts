@@ -39,14 +39,14 @@ export const dashId = {
     notConnectedTitle: 'Sulo belum terhubung',
     notConnectedBody: 'Selesaikan pengaturan dulu supaya tugasmu muncul di sini.',
     continueSetup: 'Lanjutkan pengaturan',
-    mismatchTitle: 'Akun SIKOLA berbeda terdeteksi',
+    mismatchTitle: 'Akun SIKOLA berganti',
     mismatchBody: 'Tugas akun sebelumnya disembunyikan. Buka popup Sulo untuk memilih akun.',
   },
   ringkasan: {
     greeting: { pagi: 'Selamat pagi', siang: 'Selamat siang', sore: 'Selamat sore', malam: 'Selamat malam' },
     tasksTitle: 'Tugas',
     groups: { overdue: 'Terlambat', today: 'Hari ini', tomorrow: 'Besok', week: 'Minggu ini', next: 'Berikutnya' },
-    nothingSoon: 'Tidak ada tugas yang belum selesai.',
+    nothingSoon: 'Semua beres.',
     moreRows: (n: number) => `+${n} lainnya`,
     allTasks: 'Lihat semua tugas',
     // Each part wraps its number: [before, after].
@@ -72,7 +72,7 @@ export const dashId = {
     loadEmpty: 'Tenggat dan acara 14 hari ke depan akan muncul di sini.',
     loadDay: (date: string, tasks: number, events: string) => `${date}: ${plural(tasks, 'tugas')}${events ? `, ${events}` : ''}`,
     updatesTitle: 'Kabar terbaru',
-    updatesEmpty: 'Perubahan dari mata kuliah yang dipantau akan muncul di sini.',
+    updatesEmpty: 'Kabar dari mata kuliah yang dipantau akan muncul di sini.',
     allUpdates: 'Lihat semua kabar',
     importantTitle: 'Tanggal penting terdekat',
     openCalendar: 'Buka kalender',
@@ -120,7 +120,7 @@ export const dashId = {
   presensi: {
     lead: 'Rekap presensi dari SIKOLA untuk mata kuliah yang dipantau. Diperbarui otomatis sekali sehari, rincian per pertemuan diambil saat kamu membukanya.',
     updated: (when: string) => `Diperbarui ${when}`,
-    never: 'Belum pernah diambil',
+    never: 'Belum pernah diperbarui',
     refresh: 'Perbarui',
     loading: 'Mengambil rekap presensi…',
     taken: (n: number) => `${n} sesi tercatat`,
@@ -192,7 +192,7 @@ export const dashId = {
     upcomingEmpty: 'Tidak ada acara mendatang.',
     notifyAria: 'Notifikasi kalender',
     // [before, after] around the accent number.
-    examIn: (label: string, _n: number): [string, string] => [`${label} dalam `, ' hari'],
+    examIn: (label: string, _n: number): [string, string] => [`${label} `, ' hari lagi'],
     dueAt: (time: string) => `tenggat ${time}`,
     selectDay: (date: string, count: number) => (count > 0 ? `${date}, ${plural(count, 'acara')}` : date),
     showPast: 'Tampilkan yang sudah lewat',
