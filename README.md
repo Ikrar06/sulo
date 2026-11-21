@@ -18,7 +18,7 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
 **Not an official Unhas app.** Sulo is an independent project, not affiliated with or endorsed by Universitas Hasanuddin. The name means "torch" in Buginese and Makassarese.
 
 <!--
-Screenshots go here once the mockups are exported (see docs-publik/ in this repository):
+Screenshots go here once the mockups are exported:
 
 <p align="center">
   <picture>
@@ -43,20 +43,20 @@ Screenshots go here once the mockups are exported (see docs-publik/ in this repo
 ## What it does
 
 - **Tasks from every course in one list**, grouped as overdue, today and tomorrow, this week and later. Mark a task as done, split it into steps, add a note or a due date of your own.
-- **Reminders** before a due date. You pick when: 3 days, 1 day, 6 hours, 3 hours or 1 hour before. Quiet hours and a morning summary are there if you want them.
+- **Reminders** before a due date. You pick when: 3 days, 1 day, 6 hours, 3 hours or 1 hour before. Quiet hours are on from the start (22:00 to 06:00, yours to change), and a morning summary is there if you want it.
 - **Latest updates**: new tasks and materials, changed due dates, new grades or feedback, forum posts.
 - **Attendance** as SIKOLA records it, per course and per session.
-- **The Unhas academic calendar** next to your own deadlines. Its public calendars can be added to Google Calendar, Outlook or Apple Calendar.
+- **The Unhas academic calendar** next to your own deadlines. Its public calendars can be added to Google Calendar (and, from the extension, to Outlook or Apple Calendar).
 - **Only the courses you follow**, each with a display name and color you choose.
 - **Optional: NEOSIA.** Your class schedule, KRS status and grades, read from the NEOSIA pages you open yourself. Off until you turn it on. Grades stay hidden until you choose to show them.
-- **On Android:** all of the above, an optional app lock, and an optional background check for new tasks.
+- **On Android:** the same on your phone, plus an optional app lock and an optional background check for new tasks.
 - Light and dark themes, Indonesian and English.
 
 ## How it works
 
 Sulo reads what you could read yourself in SIKOLA and lays it out so nothing gets missed.
 
-- **In the browser** it uses the SIKOLA session you already have. Sign in to SIKOLA as usual, and Sulo picks it up. There is no Sulo account.
+- **In the browser** it uses the sign-in your browser already has with SIKOLA (the session). Sign in to SIKOLA as usual, and Sulo picks it up. There is no Sulo account.
 - **On Android** you sign in on SIKOLA's own page inside the app. Sulo keeps the session, never the password.
 - **Everything is kept on your device.** There is no Sulo server for it to go to.
 - **It only reads.** Sulo cannot hand in work, fill in attendance or change anything in SIKOLA or NEOSIA.
@@ -71,11 +71,11 @@ When SIKOLA signs you out, Sulo keeps showing the last data it has and asks you 
 - **Two places only.** Sulo talks to SIKOLA, and to its own public data repository for a small settings file and the academic calendar. Those requests carry nothing about you. Every other link (Google Calendar, the official calendar PDF, the feedback form) opens in your browser only when you click it.
 - **Sensitive things are hidden by default.** Grades and GPA never appear in notifications, exports or copied lists.
 
-The full policy is in [PRIVACY.md](PRIVACY.md), and as a page in [English](https://ikrar06.github.io/sulo-data/privacy.html) and [Indonesian](https://ikrar06.github.io/sulo-data/privasi.html).
+The extension's full policy is in [PRIVACY.md](PRIVACY.md). The public page covers the extension and the Android app, in [English](https://ikrar06.github.io/sulo-data/privacy.html) and [Indonesian](https://ikrar06.github.io/sulo-data/privasi.html).
 
 ## Install
 
-Sulo is in a limited trial. It is not in the Chrome Web Store or Edge Add-ons yet, and there is no public Android release yet. Until then it can be built from this repository.
+Sulo is in a limited trial. It is not in the Chrome Web Store or Edge Add-ons yet, and there is no public Android release yet. Until then it can be built from this repository. If you do not build software yourself, wait for the first release; this page will say so when it is out.
 
 **Extension, from source**
 
@@ -87,12 +87,14 @@ Sulo is in a limited trial. It is not in the Chrome Web Store or Edge Add-ons ye
 
 **Android**
 
-Needs Android 8.0 or newer with an up-to-date Android System WebView (version 111 or newer). Releases will be published as an APK on this repository's GitHub Releases and nowhere else. Before installing one, check that it is the file built here:
+Needs Android 8.0 or newer with an up-to-date Android System WebView (version 111 or newer). Releases will be published as an APK on this repository's GitHub Releases and nowhere else. Before installing one, check that it is the file built here. Step 1 is enough for most people; step 2 is for those who have the Android SDK.
 
-1. Compare the file's SHA-256 with the `.sha256` file next to it on the release page: `shasum -a 256 sulo-<version>-android.apk`.
-2. Check the signing certificate with `apksigner verify --print-certs sulo-<version>-android.apk`. Its SHA-256 digest must be exactly
+1. Compare the file's SHA-256 with the `.sha256` file next to it on the release page: `shasum -a 256 sulo-<version>-android.apk` (Windows: `certutil -hashfile sulo-<version>-android.apk SHA256`).
+2. Check the signing certificate with `apksigner verify --print-certs sulo-<version>-android.apk` (apksigner comes with the Android SDK build-tools). The line "certificate SHA-256 digest" must read
 
-   `43:BF:DB:C7:4D:C1:82:C7:55:97:74:27:FA:E9:C4:95:C5:5C:CA:00:5C:AE:87:05:5D:F2:BB:65:1D:87:82:7F`
+   `43bfdbc74dc182c755977427fae9c495c55cca005cae87055df2bb651d87827f`
+
+   Other tools show the same value as `43:BF:DB:C7:4D:C1:82:C7:55:97:74:27:FA:E9:C4:95:C5:5C:CA:00:5C:AE:87:05:5D:F2:BB:65:1D:87:82:7F`.
 
 An APK with another fingerprint is not from this project.
 
@@ -104,9 +106,11 @@ An APK with another fingerprint is not from this project.
 
 **Does Sulo see my password?** No. You sign in on SIKOLA's own page. Sulo only uses the session that sign-in creates.
 
-**Why does it ask me to sign in to SIKOLA again?** SIKOLA ends a session after some hours. The browser extension does nothing to keep it alive. On Android the session is only kept going while you have "Watch for new tasks" on.
+**Why does it ask me to sign in to SIKOLA again?** SIKOLA ends a session after some hours. The browser extension does nothing to keep it alive. On Android, an update you start yourself counts as activity, the same as opening SIKOLA; nothing keeps the session going in the background unless you turn on "Watch for new tasks".
 
 **Does it put load on SIKOLA?** Sulo asks one thing at a time, never in parallel, stays under a daily limit, and backs off when SIKOLA is slow or refuses. The maintainer can pause every installation remotely.
+
+**How do I delete my data?** In the extension: Settings, "Delete data", then "Delete all data". On Android: More, Settings, "Sign out and delete data". Nothing in SIKOLA is touched.
 
 **What if Sulo shows something wrong?** It can be out of date or incomplete. Check SIKOLA, then [tell us](#reporting-a-problem).
 
@@ -132,7 +136,9 @@ git config core.hooksPath .githooks   # scans every commit for personal or sessi
 | `pnpm mobile:apk:debug` | A debug APK |
 | `pnpm shots:audit --out <dir>` | Screenshots of every screen and state, from synthetic data |
 
-`pnpm mobile:web` is the quickest way to look around: it needs no SIKOLA account and makes no request to SIKOLA.
+`pnpm mobile:web` is the quickest way to look around: it needs no SIKOLA account and makes no request to SIKOLA. For the extension, `pnpm dev` adds a preview page (`preview.html`) that shows the popup and the first-run guide from the same kind of synthetic data.
+
+Tests live in `apps/extension/tests/` (they also cover `packages/core`) and `apps/mobile/tests/`. One file: `pnpm --filter @sulo/extension exec vitest run tests/backoff.test.ts`.
 
 ### Repository layout
 
@@ -142,17 +148,19 @@ packages/core/     shared logic, no browser or DOM APIs: the SIKOLA client, sync
 packages/ui/       shared React components, icons and the mascot
 apps/extension/    the browser extension (WXT, Manifest V3): popup, dashboard, onboarding
 apps/mobile/       the Android app (Capacitor) and its web mode for development
+apps/mobile/android/  native Kotlin: SIKOLA's login screen, the encrypted session store,
+                   the background watch worker
 ```
 
 Stack: TypeScript, React, Tailwind CSS, Zod and Vitest, with WXT for the extension and Capacitor for Android.
 
 ### Rules the code holds itself to
 
-- **One door to SIKOLA.** Every request goes through `packages/core/src/moodle/client.ts`: an allowlist of read-only Moodle functions, a serial queue (never two requests at once), a daily budget, and a backoff of 3, 6, 12 and then 24 hours after failures. The numbers are in `packages/core/src/moodle/limits.ts`.
+- **One door to SIKOLA.** Every request the extension makes, and every request the Android app makes while it is open, goes through `packages/core/src/moodle/client.ts`: an allowlist of read-only Moodle functions, a serial queue (never two requests at once), a daily budget, and a backoff of 3, 6, 12 and then 24 hours after failures. The numbers are in `packages/core/src/moodle/limits.ts`. The Android background check is a small native worker (`WatchWorker.kt`) that only follows a plan the shared logic writes (`packages/core/src/watch/plan.ts`): the same calls, the same budget and backoff.
 - **Nothing trusted unchecked.** Every SIKOLA response is validated with Zod. A response that does not fit is reported to the user as a reading problem, never shown as an empty list.
-- **Quiet in the background.** The extension updates about every 3 hours while the browser is open, not between 00:00 and 06:00, and does not extend the SIKOLA session. The Android app checks in the background only when the user turns on "Watch for new tasks": every 20 minutes by day, every 110 minutes at night.
+- **Quiet in the background.** The extension updates about every 3 hours while you are using the computer, once more when you come back to it if the data is over an hour old, never between 00:00 and 06:00, and it does not extend the SIKOLA session. The Android app checks in the background only when the user turns on "Watch for new tasks": by default about every 20 minutes by day and every 110 minutes at night.
 - **Zero requests to NEOSIA.** The optional module reads only the responses NEOSIA's own page asks for, keeps an allowlisted set of fields and drops the rest before anything is stored.
-- **No real data in the repository.** Fixtures in `apps/extension/fixtures/synthetic/` are written by hand, and `pnpm check-leaks` runs before every commit and first in CI.
+- **No real data in the repository.** Fixtures in `apps/extension/fixtures/synthetic/` are made up by hand. The one exception is three attendance pages that keep SIKOLA's real page structure, with every name, id and remark replaced. And `pnpm check-leaks` runs before every commit and first in CI.
 - **A remote off switch.** A public settings file can pause updates for every installation. It is data only, validated, and can never carry code.
 
 ### Permissions
@@ -161,7 +169,7 @@ Stack: TypeScript, React, Tailwind CSS, Zod and Vitest, with WXT for the extensi
 | --- | --- | --- |
 | Extension | `storage`, `alarms`, `notifications`, `idle` | keep data locally, schedule updates and reminders, show them, and stay quiet while you are away |
 | Extension | host `https://sikola-v2.unhas.ac.id/*` | read SIKOLA with your session |
-| Extension, optional | `scripting` and the NEOSIA hosts | only when you turn the NEOSIA module on; removed when you turn it off |
+| Extension, optional | `scripting` and the NEOSIA host (`https://neosia.unhas.ac.id/*`) | only when you turn the NEOSIA module on; removed when you turn it off |
 | Android | internet and network state | read SIKOLA and the public data repository |
 | Android | notifications, restart and wake lock | reminders and background checks, rescheduled after a restart |
 | Android | biometric | the optional app lock |
@@ -170,7 +178,7 @@ The Android list is enforced on every release build by `apps/mobile/scripts/chec
 
 ### Tests and CI
 
-CI (`.github/workflows/ci.yml`) runs the personal-data scan, lint, typecheck, the unit tests, the production build of the extension and a debug build of the Android app. Layout checks that need a browser (`check:fit`, `check:onboarding-layout`) and the screenshot scripts run locally. Tests and screenshots use synthetic data only: never put real student data in a fixture, a screenshot, an issue or a commit.
+CI (`.github/workflows/ci.yml`) runs the personal-data scan, lint, typecheck, the unit tests, the production build of the extension and a debug build of the Android app. Layout checks that need a browser (`pnpm --filter @sulo/extension check:fit`, `pnpm --filter @sulo/mobile check:fit`, and `check:onboarding-layout` the same way) and the screenshot scripts run locally. Tests and screenshots use synthetic data only: never put real student data in a fixture, a screenshot, an issue or a commit.
 
 ## Reporting a problem
 
