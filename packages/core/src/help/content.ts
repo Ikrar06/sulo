@@ -141,8 +141,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Kenapa ada kabar materi baru padahal materinya sudah lama ada?', en: 'Why is a material "new" when it has been there a while?' },
     a: [
       {
-        id: 'Pemeriksaan pertama tiap mata kuliah hanya mencatat keadaan awal, tanpa kabar. Setelah itu Sulo memeriksa isi mata kuliah paling sering 6 jam sekali, dan paling banyak lima mata kuliah sekaligus. Materi yang baru ditampilkan dosen dari keadaan tersembunyi, atau tugas yang tenggatnya baru masuk 90 hari ke depan, karena itu bisa terasa lama.',
-        en: 'The first check of each course only notes what’s there, with no updates. After that Sulo looks inside a course at most every 6 hours, up to five at a time. So something the lecturer just unhid, or a task now within 90 days, shows up as new even if it’s old.',
+        id: 'Pemeriksaan pertama tiap mata kuliah hanya mencatat keadaan awal, tanpa kabar. Setelah itu Sulo memeriksa isi mata kuliah paling sering 6 jam sekali, dan paling banyak lima mata kuliah sekaligus. Jadi materi yang baru ditampilkan dosen, atau tugas yang tenggatnya baru masuk 90 hari ke depan, muncul sebagai kabar baru walau sudah lama ada.',
+        en: 'The first check of each course only notes what’s there, with no updates. After that Sulo looks inside a course at most every 6 hours, up to five at a time. So a material the lecturer just unhid, or a task whose due date just came within 90 days, shows up as new even if it’s old.',
       },
     ],
   },
@@ -151,8 +151,8 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Bagaimana cara memilih mata kuliah yang dipantau?', en: 'How do I choose the courses Sulo follows?' },
     a: [
       {
-        id: 'Buka dashboard, halaman Mata kuliah, lalu nyalakan atau matikan Dipantau. Kalau mata kuliah baru belum ada di daftar, klik "Muat ulang daftar".',
-        en: 'Open the dashboard’s Courses page and turn Followed on or off. If a new course is not listed yet, click "Reload list".',
+        id: 'Buka dashboard, halaman Mata kuliah, lalu klik tombol di kanan mata kuliah untuk memantau atau berhenti memantaunya. Kalau mata kuliah baru belum ada di daftar, klik "Muat ulang daftar".',
+        en: 'Open the dashboard’s Courses page and use the switch on the right of a course to follow it or stop. If a new course is not listed yet, click "Reload list".',
       },
     ],
   },
@@ -235,7 +235,7 @@ export const FAQ: FaqEntry[] = [
         en: 'Only if you turn on "Connect NEOSIA" in Settings. After that, when you open NEOSIA yourself, Sulo reads what that page already loaded: schedule, KRS, payment status, survey and grades. Sulo never contacts NEOSIA, so the data is updated only when you open NEOSIA again.',
       },
       {
-        id: 'Data yang tidak boleh disimpan dibuang di halaman NEOSIA itu juga, sebelum sampai ke Sulo. Mematikan modul lewat "Putuskan dan hapus data" menghapus semuanya dan mencabut izinnya.',
+        id: 'Data yang tidak boleh disimpan dibuang di halaman NEOSIA itu juga, sebelum sampai ke Sulo. "Putuskan dan hapus data" menghapus semuanya dan mencabut izinnya.',
         en: 'What may not be kept is dropped right there on the NEOSIA page, before it reaches Sulo. "Disconnect and delete data" deletes everything and removes the permission.',
       },
     ],
@@ -260,7 +260,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'IPK yang tampil di atas halaman Nilai adalah angka resmi dari NEOSIA. Sulo juga menghitung sendiri dari transkripmu (mata kuliah yang dihitung NEOSIA, dikali SKS) untuk grafik IPS dan simulasi. Kalau hitungan Sulo berbeda dari NEOSIA, Sulo memberi tahu, dan angka resmi tetap dari NEOSIA.',
-        en: "The GPA at the top of the Grades page is NEOSIA's official figure. Sulo also counts from your transcript itself (the courses NEOSIA counts, weighted by credits) for the semester chart and the simulation. If Sulo's count differs from NEOSIA's, Sulo says so, and the official figure stays NEOSIA's.",
+        en: "The GPA at the top of the Grades page is NEOSIA's official figure. Sulo also works it out from your transcript (the courses NEOSIA counts, weighted by credits) for the semester chart and the simulation. If Sulo's figure differs from NEOSIA's, Sulo says so, and NEOSIA's stays the official one.",
       },
       {
         id: 'Simulasi hanya perkiraan. Bobot nilai huruf yang dipakai (A = 4 sampai E = 0) belum diverifikasi dari aturan resmi, dan simulasi tidak disimpan.',

@@ -23,7 +23,7 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kapan data di Sulo diperbarui?', en: 'When does Sulo update its data?' },
     a: [
       {
-        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Jarak antarpembaruan paling cepat 2 menit. Kalau "Pantau tugas baru" menyala, Sulo juga mengecek berkala di latar belakang (sekitar tiap 20 menit siang hari, tiap 110 menit malam hari).',
+        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Paling cepat 2 menit sekali. Kalau "Pantau tugas baru" menyala, Sulo juga mengecek berkala di latar belakang (sekitar tiap 20 menit siang hari, tiap 110 menit malam hari).',
         en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. Updates are at least 2 minutes apart. With "Watch for new tasks" on, Sulo also checks regularly in the background (about every 20 minutes by day, every 110 minutes at night).',
       },
     ],
@@ -53,7 +53,7 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo minta masuk lagi padahal pemantauan menyala?', en: 'Why does Sulo ask me to sign in again when watching is on?' },
     a: [
       {
-        id: 'HP-mu menunda pengecekan terlalu lama (misalnya penghemat baterai), sehingga terlalu lama tidak ada cek dan login SIKOLA berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
+        id: 'HP-mu menunda pengecekan Sulo terlalu lama (misalnya karena penghemat baterai), jadi login SIKOLA-mu berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
         en: 'Your phone held Sulo’s checks back for too long (a battery saver can do this), so your SIKOLA session ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
       },
     ],
@@ -149,7 +149,7 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo bilang sesi NEOSIA habis?', en: 'Why does Sulo say my NEOSIA session ended?' },
     a: [
       {
-        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan halaman NEOSIA meminta masuk lagi, ketuk Masuk NEOSIA dan masuk di sana. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan login NEOSIA di HP ini.',
+        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan NEOSIA memintamu masuk lagi, ketuk Masuk NEOSIA. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan login NEOSIA di HP ini.',
         en: 'Sulo does not keep your NEOSIA session alive. When you update and the NEOSIA page asks you to sign in, tap Sign in to NEOSIA and sign in there. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
       },
     ],
@@ -158,7 +158,7 @@ const PHONE: FaqEntry[] = [
     id: 'mata-kuliah-hp',
     q: { id: 'Bagaimana cara memilih mata kuliah yang dipantau?', en: 'How do I choose the courses Sulo follows?' },
     a: [
-      { id: 'Buka Lainnya, Mata kuliah, lalu nyalakan atau matikan Dipantau. Di sana juga bisa mengganti nama dan warna.', en: 'Open More, Courses, and turn Followed on or off. You can rename courses and change their colors there too.' },
+      { id: 'Buka Lainnya, Mata kuliah, lalu ketuk tombol di kanan mata kuliah untuk memantau atau berhenti memantaunya. Di sana juga bisa mengganti nama dan warna.', en: 'Open More, Courses, and use the switch on the right of a course to follow it or stop. You can rename courses and change their colors there too.' },
     ],
   },
   {
