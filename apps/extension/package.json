@@ -4,6 +4,11 @@
   "private": true,
   "description": "Pendamping akademik untuk mahasiswa Unhas. Tidak resmi.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ikrar06/sulo.git",
+    "directory": "apps/extension"
+  },
   "author": "Ikrar Gempur Tirani",
   "homepage": "https://github.com/Ikrar06/sulo#readme",
   "type": "module",

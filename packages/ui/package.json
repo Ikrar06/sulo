@@ -4,6 +4,12 @@
   "private": true,
   "description": "Sulo's shared interface pieces for the extension and the Android app: React components with no chrome.*, no WXT and no Capacitor.",
   "license": "MIT",
+  "author": "Ikrar Gempur Tirani",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ikrar06/sulo.git",
+    "directory": "packages/ui"
+  },
   "type": "module",
   "exports": {
     "./*": "./src/*"
