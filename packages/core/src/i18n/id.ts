@@ -122,7 +122,7 @@ export const id = {
       wipe: 'Hapus semua data',
       dueFormat: 'Format waktu tenggat',
       formats: {
-        both: 'Sisa waktu dan jam',
+        both: 'Sisa dan jam',
         remaining: 'Sisa waktu',
         clock: 'Jam tenggat',
         countdown: 'Hitung mundur',

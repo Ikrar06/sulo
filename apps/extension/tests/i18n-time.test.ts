@@ -13,7 +13,7 @@ const NOW = at(2026, 11, 13, 10, 0); // Fri 13 Nov 2026, 10.00 WITA
 const H = 3600;
 
 describe('due time formats', () => {
-  it('"Sisa waktu dan jam": time left plus the due day and time', () => {
+  it('"Sisa dan jam": time left plus the due day and time', () => {
     expect(formatLeft(NOW + 5 * H, NOW, TZ)).toBe('5 jam lagi');
     expect(formatDueClock(NOW + 5 * H, NOW, TZ)).toBe('hari ini 15.00');
     expect(formatLeft(at(2026, 11, 19, 23, 59), NOW, TZ)).toBe('6 hari lagi');
@@ -69,7 +69,7 @@ describe('language', () => {
 });
 
 describe('preferences', () => {
-  it('defaults to following the browser and the "Sisa waktu dan jam" format', async () => {
+  it('defaults to following the browser and the "Sisa dan jam" format', async () => {
     expect(await readPrefs(memoryStore())).toEqual(DEFAULT_PREFS);
   });
 
