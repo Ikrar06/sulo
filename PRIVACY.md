@@ -14,7 +14,7 @@ Sulo uses the SIKOLA session that already exists in your browser to read your ow
 
 - your list of courses
 - assignments and their due dates, including quiz deadlines
-- the structure of each active course (sections and activities), a few times a day, to spot new materials and tasks
+- the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks
 - your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts
 
 Sulo only reads. It never submits work, never marks anything as read, never changes data in SIKOLA, never reads quiz content, and never reads other students' data.

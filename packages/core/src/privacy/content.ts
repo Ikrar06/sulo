@@ -108,7 +108,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         items: [
           { id: 'daftar mata kuliahmu', en: 'your list of courses' },
           { id: 'tugas dan tenggatnya, termasuk tenggat kuis', en: 'assignments and their due dates, including quiz deadlines' },
-          { id: 'susunan tiap mata kuliah aktif (bagian dan aktivitas), beberapa kali sehari, untuk mengetahui materi dan tugas baru', en: 'the structure of each active course (sections and activities), a few times a day, to spot new materials and tasks' },
+          { id: 'susunan tiap mata kuliah yang dipantau (bagian dan aktivitas), beberapa kali sehari, untuk mengetahui materi dan tugas baru', en: 'the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks' },
           { id: '20 notifikasi SIKOLA terbarumu, untuk mengetahui nilai, feedback, dan kabar forum baru', en: 'your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts' },
         ],
       },
