@@ -63,7 +63,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Apakah Sulo aman?', en: 'Is Sulo safe?' },
     a: [
       {
-        id: 'Sulo hanya membaca data akunmu sendiri di SIKOLA, tidak meminta password, dan tidak mengirim data ke mana pun. Kodenya tidak memuat apa pun dari luar ekstensi. Izinnya hanya SIKOLA, penyimpanan, alarm, notifikasi, dan apakah laptopmu sedang dipakai. Izin untuk NEOSIA hanya diminta kalau kamu menyalakan "Hubungkan NEOSIA".',
+        id: 'Sulo hanya membaca data akunmu sendiri di SIKOLA, tidak meminta password, dan tidak mengirim data ke mana pun. Kodenya tidak memuat apa pun dari luar ekstensi. Izinnya hanya SIKOLA, penyimpanan, alarm, notifikasi, dan izin untuk tahu apakah laptopmu sedang dipakai. Izin untuk NEOSIA hanya diminta kalau kamu menyalakan "Hubungkan NEOSIA".',
         en: 'Sulo only reads your own account’s data in SIKOLA, never asks for your password and sends your data nowhere. It loads no code from outside the extension. Its permissions are SIKOLA, storage, alarms, notifications and whether your laptop is in use. Permission for NEOSIA is asked for only if you turn on "Connect NEOSIA".',
       },
       {

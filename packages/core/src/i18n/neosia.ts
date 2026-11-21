@@ -279,7 +279,7 @@ const en: NeosiaWords = {
     sksTarget: 'Credits to graduate',
     sksTargetHelp: 'For the credits bar on Overview. 144 by default; enter 100 to 200 for your programme.',
     privacyMode: 'Privacy mode',
-    privacyHelp: 'Masks names, grades, GPA, semester GPA and credits on screen, for example before a screenshot.',
+    privacyHelp: 'Masks names, grades, GPAs and credits on screen, for example before a screenshot.',
   },
   privacy: {
     hide: 'Turn on privacy mode',

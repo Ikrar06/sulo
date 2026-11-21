@@ -132,7 +132,7 @@ export const dashId = {
     unknownShape: 'Sulo belum bisa membaca halaman presensi SIKOLA. Data terakhir tetap tampil.',
     failed: 'Presensi belum bisa diambil. Coba lagi nanti.',
     noAttendanceYet: 'Sulo belum menemukan presensi di SIKOLA. Buka halaman presensi salah satu mata kuliah di SIKOLA sekali, lalu klik Perbarui.',
-    notFetched: 'Belum diambil',
+    notFetched: 'Belum diperbarui',
     back: 'Semua mata kuliah',
     sessionsTitle: 'Sesi',
     noDetail: 'Belum ada sesi tercatat.',

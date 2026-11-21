@@ -203,7 +203,7 @@ const en: Words = {
   },
   switchAccount: {
     title: 'Different account',
-    body: "The previous account's data on this phone will be deleted.",
+    body: "The previous account's data here will be deleted.",
     use: 'Use this account',
     cancel: 'Cancel',
   },

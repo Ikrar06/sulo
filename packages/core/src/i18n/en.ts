@@ -104,8 +104,8 @@ export const en: Messages = {
       title: 'Delete all Sulo data?',
       body: 'This deletes everything Sulo keeps in this browser:',
       items: [
-        'your task list, including done marks, notes and steps',
-        'the courses you picked',
+        'your task list, done marks, notes and steps',
+        'the courses you follow',
         'reminders and latest updates',
         'settings, including language and due time format',
       ],

@@ -131,7 +131,7 @@ export const dashEn: DashMessages = {
     unknownShape: "Sulo can't read SIKOLA's attendance page yet. Showing your last data.",
     failed: "Couldn't get attendance. Try again later.",
     noAttendanceYet: "Sulo hasn't found attendance in SIKOLA yet. Open one course's attendance page in SIKOLA once, then click Update.",
-    notFetched: 'Not loaded yet',
+    notFetched: 'Not updated yet',
     back: 'All courses',
     sessionsTitle: 'Sessions',
     noDetail: 'No sessions recorded yet.',

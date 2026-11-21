@@ -106,8 +106,8 @@ export const id = {
       title: 'Hapus semua data Sulo?',
       body: 'Ini menghapus semua yang Sulo simpan di browser ini:',
       items: [
-        'daftar tugas, termasuk tanda selesai, catatan, dan langkahmu',
-        'mata kuliah yang kamu pilih',
+        'daftar tugas, tanda selesai, catatan, dan langkahmu',
+        'mata kuliah yang kamu pantau',
         'pengingat dan kabar terbaru',
         'pengaturan, termasuk bahasa dan format waktu',
       ],

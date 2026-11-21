@@ -75,7 +75,7 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 
 | Keadaan | Tulisan |
 |---|---|
-| Akun lain masuk ke SIKOLA | Judul "Akun SIKOLA berbeda terdeteksi". Tombol "Pakai akun ini" dan "Nanti, aku akan masuk dengan akun sebelumnya" |
+| Akun lain masuk ke SIKOLA | Judul "Akun SIKOLA berganti". Tombol "Pakai akun ini" dan "Nanti, aku akan masuk dengan akun sebelumnya" |
 | Setelah "Nanti" | "Tugas akun sebelumnya disembunyikan" + "Masuk lagi ke SIKOLA dengan akun sebelumnya, lalu klik Perbarui." |
 | Hapus semua data | Judul "Hapus semua data Sulo?", tombol "Hapus semua data" dan "Batal" |
 | Atur mata kuliah | Judul "Mata kuliahmu", tombol "Segarkan daftar" dan "Simpan", lalu "Tidak ada perubahan" atau "Tersimpan" dengan "Kembali ke Sulo" |
