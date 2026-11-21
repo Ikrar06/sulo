@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // pnpm mobile:doctor: what is ready for building the Android app without
-// Android Studio, and what is missing (docs/MOBILE-SETUP.md has the steps).
+// Android Studio, and what is missing (CONTRIBUTING.md, "Setting up", has the steps).
 import { execFileSync } from 'node:child_process';
 import { adbPath, installed, java21, NEEDED, sdkRoot, tool } from './env.mjs';
 
@@ -28,5 +28,5 @@ check('HP terhubung (USB debugging)', devices.length > 0, 'Aktifkan USB debuggin
 
 for (const r of rows) console.log(`${r.ok ? 'ada  ' : 'KURANG'}  ${r.name}${r.ok ? '' : `\n         ${r.hint}`}`);
 const missing = rows.filter((r) => !r.ok && !r.name.startsWith('HP'));
-console.log(missing.length === 0 ? '\nSiap membangun APK.' : `\n${missing.length} hal kurang untuk membangun APK. Lihat docs/MOBILE-SETUP.md.`);
+console.log(missing.length === 0 ? '\nSiap membangun APK.' : `\n${missing.length} hal kurang untuk membangun APK. Lihat CONTRIBUTING.md (bagian Setting up).`);
 process.exitCode = missing.length === 0 ? 0 : 1;

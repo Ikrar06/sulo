@@ -31,7 +31,7 @@ Please do not test against SIKOLA, NEOSIA or anyone else's account. Sulo's own c
 
 - A leak of session data (cookies, sesskey) or of personal or academic data outside the user's own device: out of the browser's storage, or out of the Android app's encrypted session store.
 - Requests that break the documented limits: more requests than the daily budget, parallel requests to SIKOLA, background HTML scraping, or any request to NEOSIA.
-- Execution of code that comes from outside the extension, including through the remote configuration or data files.
+- Execution of code that comes from outside Sulo (the extension or the Android app), including through the remote configuration or data files.
 - A bypass of an allowlist: calling a Moodle function, fetching a page or capturing a NEOSIA endpoint that is not on the list.
 - Data that should be dropped reaching storage, exports or logs: notification bodies, or the identity and payment details the NEOSIA module discards.
 - Messages from web pages being trusted without validation, or rendered as HTML.
@@ -44,6 +44,6 @@ This is a one-person project, so timelines are best effort:
 
 - Acknowledgement within 7 days.
 - A first assessment within 14 days.
-- A fix or mitigation for serious issues as soon as possible. If needed, the remote kill switch can stop all requests from every installation within a day.
+- A fix or mitigation for serious issues as soon as possible. If needed, the remote off switch stops requests from every installation once it has read the switch: within about a day for most, two days at the latest for one that is in use.
 
 You will be credited in the changelog unless you prefer otherwise.

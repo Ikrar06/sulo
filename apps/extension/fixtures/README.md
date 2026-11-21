@@ -1,6 +1,6 @@
 # Fixtures
 
-Folder ini hanya berisi data buatan. Fixture dari akun nyata tidak pernah masuk repo, walau sudah disanitasi. Lihat bagian "Data rules" di `CONTRIBUTING.md`.
+Folder ini berisi data buatan. Satu pengecualian: tiga halaman presensi di `synthetic/pages/` (`attendance-all-courses.html`, `attendance-course.html`, `attendance-course-sessions.html`) memakai struktur halaman SIKOLA asli, dengan semua nama, id, dan keterangan sudah diganti. Fixture lain dari akun nyata tidak masuk repo. Lihat bagian "Data rules" di `CONTRIBUTING.md`.
 
 | Folder | Isi |
 |---|---|

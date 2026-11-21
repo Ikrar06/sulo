@@ -4,13 +4,13 @@ The source code of Sulo is licensed under the [MIT License](LICENSE). The Sulo n
 
 ## What is covered
 
-The brand assets in `assets/brand/`, including:
+The brand assets in `apps/extension/assets/brand/`, including:
 - the flame icon
 - the lockups with the "SULO" wordmark
-- the app icons in `public/icon/`
+- the app icons in `apps/extension/public/icon/`
 - the mascot and its expressions
 
-The name "Sulo" when used as the name of a browser extension or study tool.
+The name "Sulo" when used as the name of a browser extension, Android app or study tool.
 
 ## What you may do
 
@@ -24,7 +24,7 @@ The name "Sulo" when used as the name of a browser extension or study tool.
 
 ## Fonts
 
-The bundled fonts, Inter and Plus Jakarta Sans, are licensed under the SIL Open Font License 1.1. The licenses are in `assets/fonts/inter/OFL.txt` and `assets/fonts/plus-jakarta-sans/OFL.txt`.
+The bundled fonts, Inter and Plus Jakarta Sans, are licensed under the SIL Open Font License 1.1. The licenses are in `apps/extension/assets/fonts/inter/OFL.txt` and `apps/extension/assets/fonts/plus-jakarta-sans/OFL.txt`.
 
 ## University identity
 
