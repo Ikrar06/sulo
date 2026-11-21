@@ -164,7 +164,7 @@ export const dashId = {
     original: (name: string) => `Nama di SIKOLA: ${name}`,
     accessTitle: 'Tidak bisa dibuka di SIKOLA',
     accessBody: (n: number) =>
-      `Ditolak SIKOLA ${plural(n, 'kali')} berturut-turut, biasanya karena belum terdaftar, mata kuliahnya ditutup, atau aksesnya dibatasi dosen. Sulo mencoba lagi ${n >= 3 ? 'seminggu sekali' : 'besok'}; tugas dari kalender tetap muncul. Matikan Dipantau kalau tidak perlu.`,
+      `Ditolak SIKOLA ${plural(n, 'kali')} berturut-turut, biasanya karena belum terdaftar, mata kuliahnya ditutup, atau aksesnya dibatasi dosen. Sulo mencoba lagi ${n >= 3 ? 'seminggu sekali' : 'besok'}. Tugas dari kalender tetap muncul. Kalau tidak perlu, berhenti memantaunya.`,
     empty: 'Mata kuliahmu akan muncul di sini setelah pengaturan selesai.',
   },
   kabar: {
@@ -306,7 +306,7 @@ export const dashId = {
     coffeeHint: '(lewat Trakteer, membuka tab baru)',
     feedback: 'Kirim masukan',
     feedbackNote: 'Jangan kirim NIM, password, atau nilai.',
-    externalNote: 'Semua tautan di halaman ini membuka situs lain di tab baru hanya saat kamu mengkliknya. Sulo tidak mengirim data apa pun ke sana.',
+    externalNote: 'Semua tautan di halaman ini membuka situs lain di tab baru hanya saat kamu mengekliknya. Sulo tidak mengirim data apa pun ke sana.',
   },
   pengaturan: {
     bugReport: {

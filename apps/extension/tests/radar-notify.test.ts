@@ -74,9 +74,9 @@ describe('update notification text', () => {
   const ctx = (m = id) => ({ now: DAYTIME, timeZone: TZ, m, courseName: () => '', courseNameById: (c: number | null) => (c === 401 ? 'Hidrologi' : c === 402 ? 'Analisa Struktur I' : null) });
   const notice = (changes: Change[], courseId: number | null) => ({ kind: 'changes' as const, key: 'k', courseId, entries: appendChanges([], changes, DAYTIME) });
 
-  it('several changes in one course: one summary, "3 hal baru di …"', () => {
+  it('several changes in one course: one summary, "3 kabar baru di …"', () => {
     const v = noticeView(notice([added(401, 1, 'Modul 5'), added(401, 2, 'Video 6'), added(401, 3, 'Kuis latihan')], 401), ctx());
-    expect([v.title, v.message, v.icon]).toEqual(['3 hal baru di Hidrologi', 'Modul 5, Video 6, dan 1 lainnya.', 'idle']);
+    expect([v.title, v.message, v.icon]).toEqual(['3 kabar baru di Hidrologi', 'Modul 5, Video 6, dan 1 lainnya.', 'idle']);
   });
 
   it('one new material keeps its own title', () => {
@@ -103,7 +103,7 @@ describe('update notification text', () => {
 
   it('mixes kinds with a count per kind', () => {
     const v = noticeView(notice([added(401, 1), dueChanged(at(2026, 11, 20, 23, 59), at(2026, 11, 21, 23, 59))], 401), ctx());
-    expect([v.title, v.message]).toEqual(['2 hal baru di Hidrologi', '1 materi baru, 1 tenggat berubah.']);
+    expect([v.title, v.message]).toEqual(['2 kabar baru di Hidrologi', '1 materi baru, 1 tenggat berubah.']);
   });
 
   it('describes shifts in hours under half a day', () => {

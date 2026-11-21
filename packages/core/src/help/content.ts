@@ -37,7 +37,7 @@ export const HOW_IT_WORKS: HelpSection[] = [
     heading: { id: 'Kapan Sulo memeriksa', en: 'When Sulo checks' },
     paragraphs: [
       {
-        id: 'Sulo memeriksa kira-kira tiap 3 jam selama browser terbuka dan kamu sedang memakai laptop, sebentar setelah browser dibuka, dan saat kamu mengklik "Perbarui". Pukul 00.00 sampai 06.00 Sulo tidak memeriksa. Membuka popup atau dashboard tidak memeriksa SIKOLA.',
+        id: 'Sulo memeriksa kira-kira tiap 3 jam selama browser terbuka dan kamu sedang memakai laptop, sebentar setelah browser dibuka, dan saat kamu mengeklik "Perbarui". Pukul 00.00 sampai 06.00 Sulo tidak memeriksa. Membuka popup atau dashboard tidak memeriksa SIKOLA.',
         en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It does not check from 00:00 to 06:00. Opening the popup or the dashboard never checks SIKOLA.',
       },
       {
@@ -63,7 +63,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Apakah Sulo aman?', en: 'Is Sulo safe?' },
     a: [
       {
-        id: 'Sulo hanya membaca data akunmu sendiri di SIKOLA, tidak meminta password, dan tidak mengirim data ke mana pun. Kodenya tidak memuat apa pun dari luar ekstensi. Izinnya hanya SIKOLA, penyimpanan, alarm, notifikasi, dan status aktif atau tidaknya laptop. Izin untuk NEOSIA hanya diminta kalau kamu menyalakan "Hubungkan NEOSIA".',
+        id: 'Sulo hanya membaca data akunmu sendiri di SIKOLA, tidak meminta password, dan tidak mengirim data ke mana pun. Kodenya tidak memuat apa pun dari luar ekstensi. Izinnya hanya SIKOLA, penyimpanan, alarm, notifikasi, dan apakah laptopmu sedang dipakai. Izin untuk NEOSIA hanya diminta kalau kamu menyalakan "Hubungkan NEOSIA".',
         en: 'Sulo only reads your own account’s data in SIKOLA, never asks for your password and sends your data nowhere. It loads no code from outside the extension. Its permissions are SIKOLA, storage, alarms, notifications and whether your laptop is in use. Permission for NEOSIA is asked for only if you turn on "Connect NEOSIA".',
       },
       {

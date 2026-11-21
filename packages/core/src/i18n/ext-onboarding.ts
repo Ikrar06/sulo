@@ -20,7 +20,7 @@ const id = {
     moreCards: [{ course: 'Kimia Dasar', title: 'Laporan titrasi', due: '6 hari lagi', tone: 'later' }],
   },
   intro3: {
-    title: 'Datamu tetap di browser-mu',
+    title: 'Datamu tetap di browsermu',
     body: 'Tanpa server, tanpa iklan, tanpa pelacakan.',
     badges: ['Tanpa password', 'Hanya membaca', 'Tanpa server'],
     data: ['Tugas', 'Kalender', 'Presensi'],

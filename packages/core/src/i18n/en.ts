@@ -104,7 +104,7 @@ export const en: Messages = {
       title: 'Delete all Sulo data?',
       body: 'This deletes everything Sulo keeps in this browser:',
       items: [
-        'your task list and the tasks you marked as done',
+        'your task list, including done marks, notes and steps',
         'the courses you picked',
         'reminders and latest updates',
         'settings, including language and due time format',
@@ -120,7 +120,7 @@ export const en: Messages = {
       wipe: 'Delete all data',
       dueFormat: 'Due time format',
       formats: {
-        both: 'Both',
+        both: 'Time left and due time',
         remaining: 'Time left',
         clock: 'Due time',
         countdown: 'Countdown',
@@ -212,7 +212,7 @@ export const en: Messages = {
     report: 'Copy info',
     reportCopied: 'Info copied. Send it to the Sulo maintainer.',
     offline: "You're offline. Showing your last data.",
-    stale: (since) => (since === null ? "Your tasks haven't been updated yet." : `Sulo hasn't updated since ${since}. Try Update later.`),
+    stale: (since) => (since === null ? "Your tasks haven't been updated yet." : `Sulo hasn't been able to update since ${since}. Try Update later.`),
     refreshNow: 'Update',
     notificationsOff: "Sulo's notifications are turned off in Chrome, so reminders won't show.",
     syncing: 'Updating from SIKOLA…',

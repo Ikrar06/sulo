@@ -145,7 +145,7 @@ const id = {
   },
   schedule: {
     thisWeek: 'Minggu ini',
-    download: 'Unduh untuk kalender',
+    download: 'Unduh berkas kalender',
     howTo: 'Cara memasukkan ke kalender',
     noClassDays: (days: string) => `${days}: tidak ada kuliah`,
     lecturers: 'Dosen',
@@ -376,7 +376,7 @@ const en: NeosiaWords = {
   },
   schedule: {
     thisWeek: 'This week',
-    download: 'Download for calendar',
+    download: 'Download calendar file',
     howTo: 'How to add it to a calendar',
     noClassDays: (days: string) => `${days}: no classes`,
     lecturers: 'Lecturers',

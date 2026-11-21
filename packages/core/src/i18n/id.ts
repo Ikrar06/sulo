@@ -106,7 +106,7 @@ export const id = {
       title: 'Hapus semua data Sulo?',
       body: 'Ini menghapus semua yang Sulo simpan di browser ini:',
       items: [
-        'daftar tugas dan tugas yang kamu tandai selesai',
+        'daftar tugas, termasuk tanda selesai, catatan, dan langkahmu',
         'mata kuliah yang kamu pilih',
         'pengingat dan kabar terbaru',
         'pengaturan, termasuk bahasa dan format waktu',
@@ -122,7 +122,7 @@ export const id = {
       wipe: 'Hapus semua data',
       dueFormat: 'Format waktu tenggat',
       formats: {
-        both: 'Keduanya',
+        both: 'Sisa waktu dan jam',
         remaining: 'Sisa waktu',
         clock: 'Jam tenggat',
         countdown: 'Hitung mundur',
@@ -269,7 +269,7 @@ export const id = {
     changesDue: (name: string, shift: string) => `Tenggat ${name} ${shift}`,
     changesGrade: (course: string | null) => (course ? `Ada nilai atau feedback baru di ${course}` : 'Ada nilai atau feedback baru'),
     changesForum: (course: string | null) => (course ? `Kabar baru di forum ${course}` : 'Kabar baru di forum'),
-    changesMixed: (n: number, course: string | null) => (course ? `${n} hal baru di ${course}` : `${n} hal baru`),
+    changesMixed: (n: number, course: string | null) => (course ? `${n} kabar baru di ${course}` : `${n} kabar baru`),
     changesSummaryTitle: (n: number, courses: number) => `${n} kabar baru dari ${courses} mata kuliah`,
     changesSummaryBody: 'Buka Sulo untuk melihat semuanya.',
     names: (names: string[], more: number) =>

@@ -23,7 +23,7 @@ export const dashEn: DashMessages = {
   notice: {
     sessionExpired: (since: string | null) => (since ? `Your SIKOLA session ended. The data below is from ${since}.` : 'Your SIKOLA session ended.'),
     signIn: 'Sign in again',
-    stale: (since) => `Sulo hasn't updated since ${since}. Try Update later.`,
+    stale: (since) => `Sulo hasn't been able to update since ${since}. Try Update later.`,
   },
   common: {
     refresh: 'Update',
@@ -163,7 +163,7 @@ export const dashEn: DashMessages = {
     original: (name) => `Name in SIKOLA: ${name}`,
     accessTitle: "Can't be opened in SIKOLA",
     accessBody: (n) =>
-      `SIKOLA refused it ${plural(n, 'time', 'times')} in a row, usually because you are not enrolled, the course is closed, or the lecturer limited access. Sulo tries again ${n >= 3 ? 'once a week' : 'tomorrow'}; tasks from the calendar still show up. Turn off Followed if you don't need it.`,
+      `SIKOLA refused it ${plural(n, 'time', 'times')} in a row, usually because you're not enrolled, the course is closed, or the lecturer limited access. Sulo tries again ${n >= 3 ? 'once a week' : 'tomorrow'}. Tasks from the calendar still show up. Stop following it if you don't need it.`,
     empty: 'Your courses will show up here once setup is done.',
   },
   kabar: {
