@@ -108,6 +108,6 @@ describe('update notification text', () => {
 
   it('describes shifts in hours under half a day', () => {
     expect(dueShift(DAYTIME, DAYTIME + 5 * H, TZ, id)).toBe('diundur 5 jam');
-    expect(dueShift(null, DAYTIME, TZ, id)).toBe('sekarang punya tenggat');
+    expect(dueShift(null, DAYTIME, TZ, id)).toBe('ditambahkan');
   });
 });

@@ -58,7 +58,7 @@ describe('sync after signing in again', () => {
     expect(step({ kind: 'sesskey', wasExpired: true }, 'UNKNOWN', a.marker, NOW + RELOGIN_WINDOW_SEC + 1)).toEqual({ marker: { sesskeyAt: NOW + RELOGIN_WINDOW_SEC + 1, pageAt: null }, sync: false });
   });
 
-  it('"Sulo sudah diperbarui" only after a sync that brought data, never in quiet hours', () => {
+  it('"Tugasmu sudah diperbarui" only after a sync that brought data, never in quiet hours', () => {
     expect(announceRelogin({ status: 'ok', inQuietHours: false })).toBe(true);
     expect(announceRelogin({ status: 'ok', inQuietHours: true })).toBe(false);
     for (const status of ['skipped', 'session_expired', 'offline', 'invalid_sesskey']) expect(announceRelogin({ status, inQuietHours: false })).toBe(false);
