@@ -41,6 +41,7 @@
     "notify-icons": "pnpm --filter @sulo/extension notify-icons",
     "guide:shots": "pnpm --filter @sulo/extension guide:shots",
     "shots:audit": "node scripts/shots.mjs",
+    "shots:mockup": "node scripts/mockup.mjs",
     "mobile:web": "pnpm --filter @sulo/mobile run web",
     "mobile:doctor": "pnpm --filter @sulo/mobile run doctor",
     "mobile:apk:debug": "pnpm --filter @sulo/mobile run apk:debug",
