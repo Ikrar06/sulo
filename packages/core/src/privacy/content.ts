@@ -189,7 +189,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         items: [
           {
             id: 'SIKOLA (sikola-v2.unhas.ac.id), untuk membaca datamu sendiri. Maksimal 40 request per hari (biasanya 5 sampai 10), satu per satu, tidak pada jam tenang (00.00 sampai 06.00), dan tidak saat komputermu sedang tidak dipakai.',
-            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00.00 to 06.00), and not while your computer is idle.',
+            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00:00 to 06:00), and not while your computer is idle.',
           },
           {
             id: 'Repo data publik Sulo di GitHub Pages (ikrar06.github.io/sulo-data), untuk mengambil berkas konfigurasi kecil dan data kalender akademik. Permintaan ini tidak membawa informasi apa pun tentangmu (tanpa cookie, header tambahan, atau parameter) dan paling sering sekali sehari per berkas. Seperti situs mana pun, GitHub dapat melihat alamat IP-mu saat berkas diambil.',
@@ -201,7 +201,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'p',
         text: {
           id: '"Tambah ke Google Kalender" di menu tugas hanya membuka halaman Google Kalender di tab baru, saat kamu mengekliknya. Halaman itu sudah berisi nama tugas, nama mata kuliah, tenggat, dan tautan ke tugas di SIKOLA. Sulo sendiri tidak mengirim apa pun ke Google dan tidak butuh login; kamu yang memutuskan menyimpannya di Google Kalender.',
-          en: '"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no login; you decide whether to save it in Google Calendar.',
+          en: '"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no sign-in; you decide whether to save it in Google Calendar.',
         },
       },
       {
@@ -243,7 +243,7 @@ export const PRIVACY_SECTIONS: Section[] = [
           },
           {
             id: 'Tautan survei, data pribadimu di NEOSIA, dan halaman pengunduran diri tidak pernah dibaca. Token login NEOSIA tidak pernah dibaca.',
-            en: 'The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA login token is never read.',
+            en: 'The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA sign-in token is never read.',
           },
           {
             id: 'Nilai dan IPK tidak pernah masuk notifikasi, ekspor, daftar yang disalin, berkas kalender, atau info laporan bug. Notifikasi nilai baru hanya menyebut nama mata kuliah.',
@@ -251,7 +251,7 @@ export const PRIVACY_SECTIONS: Section[] = [
           },
           {
             id: 'Mode privasi (Pengaturan, atau ikon mata di dashboard) menyamarkan nama, nilai, IPK, IPS, dan SKS di layar.',
-            en: 'Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA and credits on screen.',
+            en: 'Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA and credits on screen.',
           },
           {
             id: 'Tidak ada otomatisasi: Sulo tidak mengisi KRS, survei, atau presensi, dan tidak memantau kuota kelas.',

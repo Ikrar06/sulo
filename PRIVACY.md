@@ -48,10 +48,10 @@ Data is tied to your SIKOLA account, recognised by your SIKOLA user number (user
 
 Sulo makes requests to two places only:
 
-1. SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00.00 to 06.00), and not while your computer is idle.
+1. SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00:00 to 06:00), and not while your computer is idle.
 2. Sulo's public data repository on GitHub Pages (ikrar06.github.io/sulo-data), to fetch a small configuration file and the academic calendar data. These requests carry no information about you (no cookies, extra headers or parameters) and are made at most once a day per file. As with any website, GitHub can see your IP address when a file is fetched.
 
-"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no login; you decide whether to save it in Google Calendar.
+"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no sign-in; you decide whether to save it in Google Calendar.
 
 The "Buy me a coffee" button (Trakteer), social media links and "Send feedback" (Google Form) on the About page, and the link to the official calendar PDF, only open that site in a new tab when you click them. Until you click, Sulo does not contact that site at all, and no script, image or font from it is loaded into Sulo's pages. Sulo sends no data there and never fills in a form for you.
 
@@ -86,9 +86,9 @@ Any time, in Settings with "Disconnect and delete data". All NEOSIA data is dele
 
 - Its permissions are optional: "scripting" and access to the neosia.unhas.ac.id pages. Both are asked for only when you turn the module on, and removed when it is turned off. Sulo does not ask for access to the NEOSIA API address. If you remove one in Chrome's settings, the module turns itself off and its data is deleted.
 - Sulo never sends a request to NEOSIA. Two small scripts on NEOSIA pages read the responses the NEOSIA app already asked for, pick out the fields that may be kept right there on the page, and drop the rest. The full responses are never stored, logged or sent.
-- The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA login token is never read.
+- The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA sign-in token is never read.
 - Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.
-- Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA and credits on screen.
+- Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA and credits on screen.
 - No automation: Sulo never fills in KRS, surveys or attendance, and never watches class capacity.
 
 ## Deleting your data
