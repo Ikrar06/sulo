@@ -1,0 +1,15 @@
+# Text files are stored with LF and checked out with LF on every system.
+* text=auto eol=lf
+
+# Never touched as text.
+*.png binary
+*.webp binary
+*.webm binary
+*.woff2 binary
+*.ico binary
+*.keystore binary
+*.jar binary
+
+# Generated; kept out of language statistics and collapsed in diffs.
+pnpm-lock.yaml linguist-generated=true -diff
+packages/ui/src/mascot/shapes.generated.ts linguist-generated=true
