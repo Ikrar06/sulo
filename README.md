@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/lockup-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/brand/lockup-light.svg">
-    <img alt="Sulo" src="assets/brand/lockup-light.svg" width="320">
+    <source media="(prefers-color-scheme: dark)" srcset="apps/extension/assets/brand/lockup-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="apps/extension/assets/brand/lockup-light.svg">
+    <img alt="Sulo" src="apps/extension/assets/brand/lockup-light.svg" width="320">
   </picture>
 </p>
 
@@ -11,171 +11,179 @@
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
-An unofficial academic companion for Universitas Hasanuddin students. Works with SIKOLA, with optional NEOSIA support.
+<p align="center"><a href="README.id.md">Bahasa Indonesia</a></p>
 
-Sulo is not affiliated with or endorsed by Universitas Hasanuddin. The name means "torch" in Buginese and Makassarese. Today it reads assignments and deadlines from SIKOLA, the university's Moodle; the academic calendar and NEOSIA are planned.
+Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic calendar in one place, and reminds you before things are due. It is a browser extension (Chrome and Edge) and an Android app.
 
-<!-- Screenshot of the popup goes here once the Today view (M2) is usable. -->
+**Not an official Unhas app.** Sulo is an independent project, not affiliated with or endorsed by Universitas Hasanuddin. The name means "torch" in Buginese and Makassarese.
 
-## Status
+<!--
+Screenshots go here once the mockups are exported (see docs-publik/ in this repository):
 
-Early development, limited trial. Only the SIKOLA part works today. Sulo is installed manually by a small group of testers (at most 10) and is not on the Chrome Web Store. Publishing waits for permission from the SIKOLA administrators.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.png">
+    <img alt="Sulo's popup, dashboard and Android app" src="docs-publik/hero-light.png" width="860">
+  </picture>
+</p>
+-->
 
-## Features
+## Contents
 
-Working now:
+- [What it does](#what-it-does)
+- [How it works](#how-it-works)
+- [Privacy](#privacy)
+- [Install](#install)
+- [Questions people ask](#questions-people-ask)
+- [For developers](#for-developers)
+- [Reporting a problem](#reporting-a-problem)
+- [License](#license)
 
-- Passive session detection: a content script reads the sesskey already present on SIKOLA pages. It makes no extra request.
-- Connection test from the popup through the service worker, using the browser's existing SIKOLA session.
-- A single request gateway with an allowlist of read-only functions, a serial queue, a persistent daily budget, backoff, login-redirect detection and a remote kill switch.
-- Validation of all five Moodle web service responses with Zod. A mismatch is reported as a parser problem, never as empty data.
-- A fixture recorder and sanitizer for development, so tests run on realistic data without personal information.
+## What it does
 
-Planned:
+- **Tasks from every course in one list**, grouped as overdue, today and tomorrow, this week and later. Mark a task as done, split it into steps, add a note or a due date of your own.
+- **Reminders** before a due date. You pick when: 3 days, 1 day, 6 hours, 3 hours or 1 hour before. Quiet hours and a morning summary are there if you want them.
+- **Latest updates**: new tasks and materials, changed due dates, new grades or feedback, forum posts.
+- **Attendance** as SIKOLA records it, per course and per session.
+- **The Unhas academic calendar** next to your own deadlines. Its public calendars can be added to Google Calendar, Outlook or Apple Calendar.
+- **Only the courses you follow**, each with a display name and color you choose.
+- **Optional: NEOSIA.** Your class schedule, KRS status and grades, read from the NEOSIA pages you open yourself. Off until you turn it on. Grades stay hidden until you choose to show them.
+- **On Android:** all of the above, an optional app lock, and an optional background check for new tasks.
+- Light and dark themes, Indonesian and English.
 
-- Today view: overdue, today and tomorrow, this week, later, no due date. Copy the list as plain text, WhatsApp or Markdown.
-- Deadline reminders 3 days, 1 day and 3 hours before, with snooze.
-- Change radar: new, removed, renamed and hidden activities, due date changes, new grades, feedback and forum posts.
-- Dashboard with a change feed, a 14-day workload map and course management.
-- Academic calendar alongside your deadlines.
-- NEOSIA as an optional module, off by default and enabled only with explicit consent.
+## How it works
 
-## Privacy and safety
+Sulo reads what you could read yourself in SIKOLA and lays it out so nothing gets missed.
 
-- **No password.** Sulo never asks for, reads or stores credentials. It uses the session you already have in the browser.
-- **Read only.** Only an allowlist of read-only Moodle functions can be called. Sulo never submits work, marks anything as read or keeps the session alive on its own.
-- **Local data.** Everything is stored in `chrome.storage` on your device, keyed by SIKOLA user id. When a different account signs in, the previous account's data is hidden and all activity stops; it is deleted only after you confirm, or with "Delete all data" in the settings menu.
-- **No telemetry.** No analytics and no third-party requests. Apart from SIKOLA, Sulo only fetches public data from its own data repository (a kill-switch file now, the academic calendar later): data only, validated, at most once a day, with nothing that identifies the user.
-- **Small footprint.** At most 40 requests per day per installation, with a typical target of 5 to 10. Requests run one at a time, never during quiet hours (00.00 to 06.00) or while the computer is idle, and back off for 3 to 24 hours after server errors.
-- **Optional modules are off by default.** Planned modules such as NEOSIA must be turned on explicitly, never send requests of their own, and remove their data when turned off.
-- **No academic automation.** Sulo does not fill in course registration, surveys or attendance, and does not watch class quotas.
-- **Minimal permissions.** `storage`, `alarms`, `notifications`, `idle`, and access to `https://sikola-v2.unhas.ac.id/*` only.
+- **In the browser** it uses the SIKOLA session you already have. Sign in to SIKOLA as usual, and Sulo picks it up. There is no Sulo account.
+- **On Android** you sign in on SIKOLA's own page inside the app. Sulo keeps the session, never the password.
+- **Everything is kept on your device.** There is no Sulo server for it to go to.
+- **It only reads.** Sulo cannot hand in work, fill in attendance or change anything in SIKOLA or NEOSIA.
 
-Full policy: [PRIVACY.md](PRIVACY.md).
+When SIKOLA signs you out, Sulo keeps showing the last data it has and asks you to sign in again. It never does that for you.
 
-## Architecture
+## Privacy
 
-```
-+-------------------+      messages      +----------------------+
-| Popup             | <----------------> |                      |
-+-------------------+                    |   Service worker     |
-| Dashboard (M5)    | <----------------> |   (background.ts)    |
-+-------------------+                    |                      |
-| Content script    | -- sesskey ------> |  sync, diff,         |
-| (SIKOLA pages)    |                    |  notifications       |
-+-------------------+                    +----------+-----------+
-                                                    |
-                                packages/core/src/moodle/client.ts
-                                   allowlist, queue, budget, backoff
-                                                    |
-                                   sikola-v2.unhas.ac.id (JSON batch)
-```
+- **No password.** Sulo never asks for, reads or stores your username or password.
+- **Read only.** No submitting, no marking as read, no attendance, no KRS. Sulo sends no request to NEOSIA at all: it only notes what NEOSIA's own page loads while you have it open.
+- **Your data stays on your device.** No Sulo server, no analytics, no ads. On Android the SIKOLA session is encrypted with a key held in the Android Keystore and is left out of device backups.
+- **Two places only.** Sulo talks to SIKOLA, and to its own public data repository for a small settings file and the academic calendar. Those requests carry nothing about you. Every other link (Google Calendar, the official calendar PDF, the feedback form) opens in your browser only when you click it.
+- **Sensitive things are hidden by default.** Grades and GPA never appear in notifications, exports or copied lists.
 
-All requests to SIKOLA leave from the service worker through one client. Pages that need HTML ask the service worker for it and parse it themselves. Everything in `packages/core` (moodle, radar, reminders, sync rules, NEOSIA projection and more) never touches browser APIs or the DOM; storage, clock, fetch and notifications come in through adaptors (`packages/core/src/platform`), so the same logic can be tested in Node and reused by the planned Android app.
+The full policy is in [PRIVACY.md](PRIVACY.md), and as a page in [English](https://ikrar06.github.io/sulo-data/privacy.html) and [Indonesian](https://ikrar06.github.io/sulo-data/privasi.html).
 
-## Tech stack
+## Install
 
-TypeScript (strict), [WXT](https://wxt.dev) for Manifest V3, React, Tailwind CSS 4 with shadcn/ui, Zod, Vitest. Fonts (Inter, Plus Jakarta Sans) are bundled locally.
+Sulo is in a limited trial. It is not in the Chrome Web Store or Edge Add-ons yet, and there is no public Android release yet. Until then it can be built from this repository.
 
-## Local development
+**Extension, from source**
 
-Prerequisites: Node.js 24 or newer and pnpm 10 (the version is pinned in `package.json`).
+1. Install [Node.js](https://nodejs.org) 24 and [pnpm](https://pnpm.io) 10.
+2. In this folder, run `pnpm install --frozen-lockfile`, then `pnpm build`.
+3. Open `chrome://extensions` (or `edge://extensions`) and turn on Developer mode.
+4. Choose "Load unpacked" and select the folder `.output/chrome-mv3`.
+5. Sulo opens a short guide. Sign in to SIKOLA when it asks, then pick the courses to follow.
+
+**Android**
+
+Needs Android 8.0 or newer with an up-to-date Android System WebView (version 111 or newer). Releases will be published as an APK on this repository's GitHub Releases and nowhere else. Before installing one, check that it is the file built here:
+
+1. Compare the file's SHA-256 with the `.sha256` file next to it on the release page: `shasum -a 256 sulo-<version>-android.apk`.
+2. Check the signing certificate with `apksigner verify --print-certs sulo-<version>-android.apk`. Its SHA-256 digest must be exactly
+
+   `43:BF:DB:C7:4D:C1:82:C7:55:97:74:27:FA:E9:C4:95:C5:5C:CA:00:5C:AE:87:05:5D:F2:BB:65:1D:87:82:7F`
+
+An APK with another fingerprint is not from this project.
+
+## Questions people ask
+
+**Is this from the university?** No. Sulo is made by one Unhas student, on their own time. Deadlines, grades and rules in SIKOLA, NEOSIA and from your academic advisor are the ones that count.
+
+**Can Sulo hand in a task, or fill in attendance or KRS for me?** No, and it never will. Sulo only reads.
+
+**Does Sulo see my password?** No. You sign in on SIKOLA's own page. Sulo only uses the session that sign-in creates.
+
+**Why does it ask me to sign in to SIKOLA again?** SIKOLA ends a session after some hours. The browser extension does nothing to keep it alive. On Android the session is only kept going while you have "Watch for new tasks" on.
+
+**Does it put load on SIKOLA?** Sulo asks one thing at a time, never in parallel, stays under a daily limit, and backs off when SIKOLA is slow or refuses. The maintainer can pause every installation remotely.
+
+**What if Sulo shows something wrong?** It can be out of date or incomplete. Check SIKOLA, then [tell us](#reporting-a-problem).
+
+## For developers
+
+### Requirements and setup
+
+Node.js 24 or newer and pnpm 10 (the exact pnpm version is pinned in `package.json`). The Android build also needs JDK 21 and the Android SDK; `pnpm mobile:doctor` says what is missing.
 
 ```sh
 pnpm install --frozen-lockfile
-git config core.hooksPath .githooks   # leak scan and commit message checks
+git config core.hooksPath .githooks   # scans every commit for personal or session data
 ```
 
 | Command | What it does |
-|---|---|
-| `pnpm dev` | Builds to `.output/chrome-mv3-dev` with hot reload and opens a fresh Chrome profile |
-| `pnpm build:dev` | Development build in `.output/chrome-mv3-dev`, without opening a browser |
-| `pnpm build` | Production build to `.output/chrome-mv3` |
-| `pnpm zip` | Production zip in `.output/` |
-| `pnpm test` | Vitest, no browser needed |
-| `pnpm typecheck` | `tsc` for `packages/core` (no DOM), then `wxt prepare` and `tsc --noEmit` for the extension |
-| `pnpm lint` | UI rules, the core's no-platform rule and the leak scan |
-| `pnpm check-leaks` | Scans the repository for personal or session data |
+| --- | --- |
+| `pnpm dev` | The extension with hot reload |
+| `pnpm build` | Production build of the extension in `.output/chrome-mv3` |
+| `pnpm test` | Unit tests of the extension, the shared logic it uses, and the Android app (Vitest) |
+| `pnpm typecheck` | TypeScript, strict, for every package |
+| `pnpm lint` | UI rules, the core's no-platform rule and the personal-data scan |
+| `pnpm mobile:web` | The Android app's interface in a desktop browser, with a synthetic demo account |
+| `pnpm mobile:apk:debug` | A debug APK |
+| `pnpm shots:audit --out <dir>` | Screenshots of every screen and state, from synthetic data |
 
-Load the extension in your own Chrome profile, where you are logged in to SIKOLA:
+`pnpm mobile:web` is the quickest way to look around: it needs no SIKOLA account and makes no request to SIKOLA.
 
-1. Run `pnpm build` (or `pnpm build:dev` for the development build).
-2. Open `chrome://extensions` and turn on Developer mode.
-3. Choose "Load unpacked" and select `.output/chrome-mv3` (or `.output/chrome-mv3-dev`).
-
-Trial testers receive an installation guide directly from the maintainer.
-
-Asset scripts (in `apps/extension`): `node scripts/build-mascot.mjs` rebuilds the static mascots. `sh scripts/build-icons.sh` rebuilds the 128 px icon and needs `rsvg-convert` (librsvg) installed locally.
-
-## Project structure
-
-A pnpm workspace:
+### Repository layout
 
 ```
-packages/core/            shared logic, no chrome.* and no DOM
-  src/moodle/             the only path to SIKOLA (client, calls, limits)
-  src/platform/           adaptor interfaces the apps implement
-apps/extension/           the browser extension (WXT)
-  entrypoints/            background, content script, popup, recorder (dev only)
-  components/ui/          shadcn/ui components
-  lib/                    extension-only helpers (messages, UI, dev tools)
-  src/platform/           chrome.* implementations of the adaptors
-  assets/                 design tokens (tailwind.css), fonts, brand assets
-  public/icon/            extension icons
-  tests/                  Vitest suites
-  fixtures/               sanitized test data only
-  scripts/                leak scan, sanitizer, asset builders
-apps/mobile/              the Android app (planned)
+packages/core/     shared logic, no browser or DOM APIs: the SIKOLA client, sync, tasks,
+                   reminders, calendar, attendance, NEOSIA parsing, and every text (i18n)
+packages/ui/       shared React components, icons and the mascot
+apps/extension/    the browser extension (WXT, Manifest V3): popup, dashboard, onboarding
+apps/mobile/       the Android app (Capacitor) and its web mode for development
 ```
 
-Builds and zips still land in `.output/` at the repository root.
+Stack: TypeScript, React, Tailwind CSS, Zod and Vitest, with WXT for the extension and Capacitor for Android.
 
-## Verifikasi APK
+### Rules the code holds itself to
 
-The Android app (in development) will be distributed as an APK on GitHub Releases, never through another channel. Before installing, check that the file is the one built here:
+- **One door to SIKOLA.** Every request goes through `packages/core/src/moodle/client.ts`: an allowlist of read-only Moodle functions, a serial queue (never two requests at once), a daily budget, and a backoff of 3, 6, 12 and then 24 hours after failures. The numbers are in `packages/core/src/moodle/limits.ts`.
+- **Nothing trusted unchecked.** Every SIKOLA response is validated with Zod. A response that does not fit is reported to the user as a reading problem, never shown as an empty list.
+- **Quiet in the background.** The extension updates about every 3 hours while the browser is open, not between 00:00 and 06:00, and does not extend the SIKOLA session. The Android app checks in the background only when the user turns on "Watch for new tasks": every 20 minutes by day, every 110 minutes at night.
+- **Zero requests to NEOSIA.** The optional module reads only the responses NEOSIA's own page asks for, keeps an allowlisted set of fields and drops the rest before anything is stored.
+- **No real data in the repository.** Fixtures in `apps/extension/fixtures/synthetic/` are written by hand, and `pnpm check-leaks` runs before every commit and first in CI.
+- **A remote off switch.** A public settings file can pause updates for every installation. It is data only, validated, and can never carry code.
 
-1. Compare the file's SHA-256 with the `.sha256` file next to it on the release page:
-   `sha256sum sulo-<version>-android.apk` (macOS: `shasum -a 256 sulo-<version>-android.apk`).
-2. Check the signing certificate with `apksigner verify --print-certs sulo-<version>-android.apk` (from the Android build-tools). Its SHA-256 digest must be exactly:
+### Permissions
 
-   `Sidik jari sertifikat SHA-256: belum ada (diisi saat kunci rilis dibuat)`
+| Where | Permission | Why |
+| --- | --- | --- |
+| Extension | `storage`, `alarms`, `notifications`, `idle` | keep data locally, schedule updates and reminders, show them, and stay quiet while you are away |
+| Extension | host `https://sikola-v2.unhas.ac.id/*` | read SIKOLA with your session |
+| Extension, optional | `scripting` and the NEOSIA hosts | only when you turn the NEOSIA module on; removed when you turn it off |
+| Android | internet and network state | read SIKOLA and the public data repository |
+| Android | notifications, restart and wake lock | reminders and background checks, rescheduled after a restart |
+| Android | biometric | the optional app lock |
 
-An APK with another fingerprint is not from this project; do not install it. There is no release yet.
+The Android list is enforced on every release build by `apps/mobile/scripts/check-permissions.mjs`.
 
-## Roadmap
+### Tests and CI
 
-M0 scaffold and M1 request safety are done. Next: Today view (M2), reminders (M3), change radar (M4), dashboard and academic calendar (M5a), calendar export (M5b), attendance and next-day prep (M6), the optional NEOSIA module (M7), a course registration planner (M8), and course status rules (M9).
+CI (`.github/workflows/ci.yml`) runs the personal-data scan, lint, typecheck, the unit tests, the production build of the extension and a debug build of the Android app. Layout checks that need a browser (`check:fit`, `check:onboarding-layout`) and the screenshot scripts run locally. Tests and screenshots use synthetic data only: never put real student data in a fixture, a screenshot, an issue or a commit.
 
-## Documentation
+## Reporting a problem
 
-- [PRIVACY.md](PRIVACY.md): what Sulo reads, stores and never does
-- [CONTRIBUTING.md](CONTRIBUTING.md): setup, project rules and review
-- [SECURITY.md](SECURITY.md): reporting vulnerabilities
-- [CHANGELOG.md](CHANGELOG.md): notable changes
-- [TRADEMARK.md](TRADEMARK.md): use of the name, logo and mascot
-- [fixtures/README.md](fixtures/README.md): test data and how to record it safely
+Open an issue with the bug report form. Leave out cookies, tokens, student numbers and screenshots that show personal data. For a security problem, follow [SECURITY.md](SECURITY.md) instead of opening an issue.
 
-Internal design notes are kept private during the limited trial.
-
-## Contributing
-
-Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md): it covers setup, conventions, the data and request rules, and the kinds of features that will not be accepted. Sulo is maintained by one person, so please open an issue before larger changes. Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## Security
-
-Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), and never include personal data or credentials in a report.
-
-## Disclaimer
-
-Sulo is an independent, unofficial project. It is not affiliated with, endorsed by or supported by Universitas Hasanuddin. SIKOLA and NEOSIA are named only to describe where data comes from. Information shown by Sulo can be incomplete or out of date. For anything that matters, such as deadlines, grades or academic rules, the university's own systems and your academic advisor are authoritative.
+Thinking of contributing? Read [CONTRIBUTING.md](CONTRIBUTING.md) first; larger changes start as an issue. Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-The source code is released under the [MIT License](LICENSE).
+The code is under the [MIT License](LICENSE).
 
-- **Fonts.** The bundled fonts (Inter and Plus Jakarta Sans) are under the SIL Open Font License 1.1. See `assets/fonts/*/OFL.txt`.
-- **Brand.** The Sulo name, logo, icons and mascot are not covered by the MIT License. They may not be used for derived products that could be mistaken for Sulo. See [TRADEMARK.md](TRADEMARK.md).
+- The bundled fonts, Inter and Plus Jakarta Sans, are under the SIL Open Font License 1.1 (`apps/extension/assets/fonts/*/OFL.txt`).
+- Some interface icons are adapted from [Lucide](https://lucide.dev) (ISC License); see [NOTICE](NOTICE).
+- The Sulo name, logo and mascot are not covered by the MIT License; see [TRADEMARK.md](TRADEMARK.md).
 
-## Acknowledgements
-
-Built with [WXT](https://wxt.dev), [React](https://react.dev), [Tailwind CSS](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), [Zod](https://zod.dev) and [Vitest](https://vitest.dev). Fonts: [Inter](https://rsms.me/inter/) and [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans).
+Sulo can be incomplete or out of date. For anything that matters, such as deadlines, grades or academic rules, the university's own systems and your academic advisor are authoritative.
