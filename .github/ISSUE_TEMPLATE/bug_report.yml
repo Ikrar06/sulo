@@ -46,7 +46,7 @@ body:
     id: version
     attributes:
       label: Sulo version or commit
-      description: Shown on the extension card in chrome://extensions, or under Lainnya, Tentang in the Android app.
+      description: Shown on the extension card in chrome://extensions, or under Lainnya, Tentang (More, About) in the Android app.
       placeholder: 0.2.0
   - type: input
     id: browser
@@ -65,13 +65,13 @@ body:
     id: status
     attributes:
       label: Status shown by Sulo
-      description: The status line Sulo shows, word for word, for example "Sesi SIKOLA habis" or "Sulo belum bisa membaca SIKOLA dengan benar".
+      description: The status line Sulo shows, word for word, for example "Sesi SIKOLA habis" or "Sulo belum bisa membaca SIKOLA dengan benar". In English if that is what you see.
   - type: textarea
     id: debug-bundle
     attributes:
       label: Info for a bug report (optional)
       description: |
-        In Settings, "Salin info untuk laporan bug" shows exactly what it copies: the version and a technical note of the last checks, with no name, student number or task content. Read it before pasting it here. Do not paste raw responses from SIKOLA or NEOSIA.
+        In Settings, "Salin info untuk laporan bug" ("Copy info for a bug report") shows exactly what it copies: the version and a technical note of the last checks, with no name, student number or task content. Read it before pasting it here. Do not paste raw responses from SIKOLA or NEOSIA.
   - type: checkboxes
     id: no-personal-data
     attributes:

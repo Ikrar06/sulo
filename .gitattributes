@@ -1,5 +1,6 @@
-# Text files are stored with LF and checked out with LF on every system.
+# Text files are stored and checked out with LF on every system, except Windows batch files.
 * text=auto eol=lf
+*.bat text eol=crlf
 
 # Never touched as text.
 *.png binary

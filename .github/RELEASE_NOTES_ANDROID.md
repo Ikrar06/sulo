@@ -16,9 +16,10 @@ Bukan aplikasi resmi Unhas. Sulo tidak resmi dan tidak berafiliasi dengan Univer
 
 1. Cocokkan SHA-256 berkas dengan `sulo-<versi>-android.apk.sha256` di halaman ini:
    `shasum -a 256 sulo-<versi>-android.apk`
-2. Sertifikat tanda tangan harus bersidik jari SHA-256 persis seperti di README (bagian Android). APK dengan sidik jari lain bukan dari proyek ini.
+   (Windows: `certutil -hashfile sulo-<versi>-android.apk SHA256`)
+2. Kalau punya Android SDK: `apksigner verify --print-certs sulo-<versi>-android.apk`. Baris "certificate SHA-256 digest" harus sama persis dengan yang tertulis di README (bagian Android). APK dengan sidik jari lain bukan dari proyek ini.
 
-The APK's SHA-256 must match the `.sha256` file on this page, and its signing certificate must have exactly the SHA-256 fingerprint given in the README.
+The APK's SHA-256 must match the `.sha256` file on this page, and the "certificate SHA-256 digest" that `apksigner verify --print-certs` prints must be exactly the one given in the README.
 
 ## Catatan / Notes
 
