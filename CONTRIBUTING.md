@@ -22,10 +22,13 @@ The second command enables two git hooks: a scan for personal or session data be
 | `pnpm dev` | Development build with hot reload in a fresh Chrome profile |
 | `pnpm build:dev` | Development build in `.output/chrome-mv3-dev`, to load in your own Chrome profile |
 | `pnpm build` | Production build in `.output/chrome-mv3` |
-| `pnpm test` | Vitest, no browser needed |
-| `pnpm typecheck` | `wxt prepare` and `tsc --noEmit` |
+| `pnpm test` | Unit tests of the extension, the shared logic and the Android app (Vitest, no browser needed) |
+| `pnpm typecheck` | TypeScript, strict, for every package (`packages/core` is checked without DOM types) |
+| `pnpm lint` | UI rules, the core's no-platform rule and the personal-data scan |
 | `pnpm check-leaks` | Scans the repository for personal or session data |
-| `pnpm notify-icons` | Rebuilds the notification icons in `public/notify/` from the static mascots (needs `rsvg-convert`, see below) |
+| `pnpm mobile:web` | The Android app's interface in a desktop browser, with a synthetic demo account |
+| `pnpm mobile:apk:debug` | A debug APK (needs JDK 21 and the Android SDK; `pnpm mobile:doctor` says what is missing) |
+| `pnpm notify-icons` | Rebuilds the notification icons in `apps/extension/public/notify/` from the static mascots (needs `rsvg-convert`, see below) |
 
 To try the extension, open `chrome://extensions`, turn on Developer mode, choose "Load unpacked" and select the build folder.
 
@@ -47,21 +50,21 @@ Notifications cannot use SVG, so `apps/extension/public/notify/*.png` are built 
 
 These rules hold for every change, however small.
 
-1. **Read only.** No request may change data in SIKOLA: no submissions, no marking notifications as read, no keeping the session alive.
+1. **Read only.** No request may change data in SIKOLA: no submissions and no marking notifications as read. The extension never keeps the session alive. The Android app does so only while the user has turned on "Pantau tugas baru" (background watching), and says so where it is turned on.
 2. **One gateway.** Every request to SIKOLA goes through `packages/core/src/moodle/client.ts`, which enforces the allowlist, the daily budget, the serial queue and backoff. No other code calls `fetch` against SIKOLA.
 3. **Never parallel.** Requests to SIKOLA run one at a time.
-4. **No background scraping.** HTML is fetched only when the user opens a view that needs it, and is then cached.
-5. **No disguise.** No changed user agent, no randomized patterns to avoid detection, no hidden requests.
+4. **No background scraping.** HTML is fetched only when the user opens a view that needs it, and is then cached. The one exception is the attendance recap: one page, at most once a day, as part of an update, and never in the phone's background checks.
+5. **No disguise.** Requests never pretend to be something else: no borrowed user agent, no randomized patterns to avoid detection, no hidden requests. The Android app's user agent names Sulo and its version.
 6. **No credentials.** Never ask for, read or store usernames or passwords.
-7. **No data leaves the browser.** No telemetry or analytics. The only non-SIKOLA requests go to the public data repository [Ikrar06/sulo-data](https://github.com/Ikrar06/sulo-data): data only, validated, at most once a day per file, carrying nothing that identifies the user.
+7. **No data leaves the device.** No telemetry or analytics. The only non-SIKOLA requests go to the public data repository [Ikrar06/sulo-data](https://github.com/Ikrar06/sulo-data): data only, validated, at most once a day per file (the Android app's background watching may re-read the settings file every 6 hours), carrying nothing that identifies the user.
 8. **Minimal permissions.** Adding a permission needs an issue and the maintainer's approval first.
-9. **Zero requests to NEOSIA.** The planned NEOSIA module only reads responses the NEOSIA app itself already requested, is off by default, and discards identity and payment details before anything leaves the page.
+9. **Zero requests to NEOSIA.** The optional NEOSIA module only reads responses the NEOSIA app itself already requested, is off by default, and discards identity and payment details before anything leaves the page.
 10. **Sensitive academic data is hidden by default** and never included in exports.
 
 ## Code conventions
 
 - TypeScript strict. Identifiers and comments in English, UI text in Indonesian, collected in `packages/core/src/i18n/id.ts`.
-- `packages/core` never imports browser APIs, WXT or the DOM (`pnpm lint` and its `tsconfig.json` enforce it). Storage, clock, fetch, alarms and notifications come in through the adaptors in `packages/core/src/platform`, so the code runs in Vitest and later in the Android app.
+- `packages/core` never imports browser APIs, WXT or the DOM (`pnpm lint` and its `tsconfig.json` enforce it). Storage, clock, fetch, alarms and notifications come in through the adaptors in `packages/core/src/platform`, so the same code runs in Vitest, in the extension and in the Android app.
 - The service worker keeps no state in module variables. All state lives in storage.
 - Every Moodle response is validated with Zod. A validation failure is a parser problem, never empty data.
 - Logic never depends on interface text that Moodle translates (`formattedtime`, `activitystr`, `modname`, notification subjects, attendance labels). Identify kinds by codes (`modulename`, `module`, `component`, `eventtype`) and times by timestamps. If an HTML parser must use text, provide English and Indonesian variants with tests, and fall back to `unknown` for other languages.
@@ -106,10 +109,11 @@ Never include real student data in any form: fixtures, screenshots, logs, issue 
 
 Tests use synthetic fixtures only:
 
-- `fixtures/synthetic/` holds hand-written data with the same field names, types and structure as real SIKOLA responses. CI validates every file in it against the schemas.
-- Do not add fixtures taken from a real account, not even sanitized ones. If you need a new case, write it by hand in `fixtures/synthetic/`.
+- `apps/extension/fixtures/synthetic/` holds hand-written data with the same field names, types and structure as real SIKOLA responses. CI validates every file in it against the schemas.
+- Do not add fixtures taken from a real account, not even sanitized ones. If you need a new case, write it by hand in that folder.
 - The maintainer keeps sanitized recordings outside git and checks that the synthetic fixtures still match their shape with `pnpm fixtures:compare` (field names and types only). The check is skipped when the recordings are absent.
 - Never commit raw responses. `fixtures/raw/` is ignored by git for local use only.
+- Screenshots follow the same rule: take them from the synthetic demo account (`pnpm shots:audit`, `pnpm store:shots`), never from a real one.
 
 ## Request rules
 
