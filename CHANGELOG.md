@@ -9,7 +9,7 @@ Planned as 0.2.0. Tester builds only; not submitted to any store, and no public 
 ### Added
 
 - **An Android app.** Your tasks, the academic calendar, attendance and latest updates on your phone, with reminders. You sign in on SIKOLA's own page; Sulo never sees your password, and the session is stored encrypted on the phone. Optional: "Watch for new tasks" checks SIKOLA in the background (about every 20 minutes by day, every 110 minutes at night) and can be turned off at any time; an app lock with your fingerprint or screen lock; a lighter mode with less motion.
-- **Attendance.** Your attendance as SIKOLA records it, per course and per session. Read only; the recap updates at most once a day.
+- **Attendance.** Your attendance as SIKOLA records it, per course and per session. Read only; the recap updates itself once a day, or when you press Update.
 - **A new first-run guide** in the extension, with the mascot showing what Sulo does before it asks for anything.
 - "Add to Google Calendar" on a task: title, course and due time only, opened in a new tab when you click it.
 - Sulo says in words when it is updating, when it is up to date and when it could not update.
@@ -28,11 +28,7 @@ Planned as 0.2.0. Tester builds only; not submitted to any store, and no public 
 ### Fixed
 
 - Help answers that pointed to buttons and places that had moved: "Delete all data" is in Settings under "Delete data", and the calendar feeds are added with the "Google Calendar" button on each calendar.
-- The Android help said background checks run hourly at night; they run every 110 minutes.
 - The same thing is called the same everywhere (reload the list, copied, connected, Google Kalender in Indonesian), and English texts that read like a word-for-word translation were rewritten.
-- On the phone, the "All courses" filter label is no longer cut off on narrow screens.
-- On the phone, the mascot no longer covers the title while the keyboard is open on the nickname screen.
-- On the phone, the round buttons at the top and a task's check circle are easier to hit, and the greeting no longer comes out smaller than it should on a cold start.
 
 ### Privacy
 
