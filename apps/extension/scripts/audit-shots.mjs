@@ -137,6 +137,9 @@ async function shoot(page, dir, name, full = true, { keepPointer = false } = {})
   // The pointer rests outside the page unless the shot is about a hover: no row is left highlighted.
   if (!keepPointer) await page.mouse.move(0, 0);
   await page.waitForTimeout(600);
+  // Two frames more: with reduced motion every transition lasts 0.01 ms, and a headless shot could
+  // land between a new width and the chart's dots that follow it one frame later (Nilai at 1280).
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
   const file = join(dir, `${name}.png`);
   await page.screenshot({ path: file, fullPage: full });
   await clips.note(page, relative(out, file), TEXTS[file.includes('/en/') ? 'en' : 'id']);
