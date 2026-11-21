@@ -204,7 +204,10 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
     };
     // Only when something can really have moved the spot (no polling: measuring forces a layout).
     let raf = 0;
+    // A glide's promise can settle after this effect is gone (the landing on Ringkasan changes the spot): then it does nothing.
+    let live = true;
     const soon = () => {
+      if (!live) return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(follow);
     };
@@ -226,6 +229,7 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
     document.addEventListener('scroll', soon, { capture: true, passive: true });
     window.visualViewport?.addEventListener('resize', soon);
     return () => {
+      live = false;
       cancelAnimationFrame(raf);
       ro?.disconnect();
       watchSpot.current = () => undefined;
