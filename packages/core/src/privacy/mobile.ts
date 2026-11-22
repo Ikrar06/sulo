@@ -35,8 +35,8 @@ export const MOBILE_PRIVACY_INTRO: Block[] = [
   {
     kind: 'p',
     text: {
-      id: 'Sulo tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Singkatnya: datamu tetap di HP ini, sesi login disimpan terenkripsi, dan Sulo hanya menghubungi SIKOLA serta repo data publik Sulo.',
-      en: 'Sulo is unofficial and not affiliated with Universitas Hasanuddin. In short: your data stays on this phone, the sign-in session is stored encrypted, and Sulo only contacts SIKOLA and Sulo’s public data repository.',
+      id: 'Sulo tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Singkatnya: datamu tetap di HP ini, sesi SIKOLA disimpan terenkripsi, dan Sulo hanya menghubungi SIKOLA serta repo data publik Sulo.',
+      en: 'Sulo is unofficial and not affiliated with Universitas Hasanuddin. In short: your data stays on this phone, the SIKOLA session is stored encrypted, and Sulo only contacts SIKOLA and Sulo’s public data repository.',
     },
   },
 ];
@@ -52,7 +52,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           { id: 'Daftar mata kuliah, termasuk nama dan warna yang kamu pilih.', en: 'Your course list, including the names and colors you choose.' },
           { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Latest updates (activity names and kinds, not their content).' },
           { id: 'Rekap presensi untuk mata kuliah yang dipantau, dan rincian per pertemuan yang kamu buka.', en: 'The attendance recap for the courses you follow, and the per-session details you open.' },
-          { id: 'Pengaturan, dan sesi login SIKOLA.', en: 'Your settings, and the SIKOLA sign-in session.' },
+          { id: 'Pengaturan, dan sesi SIKOLA.', en: 'Your settings, and the SIKOLA session.' },
         ],
       },
       {
@@ -89,7 +89,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'ul',
         items: [
-          { id: 'Sesi login SIKOLA dienkripsi dengan AES-256-GCM. Kuncinya ada di Android Keystore dan tidak bisa dikeluarkan dari HP.', en: 'The SIKOLA sign-in session is encrypted with AES-256-GCM. Its key lives in the Android Keystore and cannot leave the phone.' },
+          { id: 'Sesi SIKOLA dienkripsi dengan AES-256-GCM. Kuncinya ada di Android Keystore dan tidak bisa dikeluarkan dari HP.', en: 'The SIKOLA session is encrypted with AES-256-GCM. Its key lives in the Android Keystore and cannot leave the phone.' },
           { id: 'Sesi itu tidak pernah sampai ke bagian tampilan aplikasi, tidak masuk log, dan tidak ikut info laporan bug.', en: 'The session never reaches the app’s interface code, never goes into a log, and is never part of the bug report info.' },
           { id: 'Kunci aplikasi (opsional) meminta sidik jari atau kunci layar HP setiap Sulo dibuka.', en: 'The optional app lock asks for your fingerprint or the phone’s screen lock whenever Sulo opens.' },
           { id: 'Data Sulo baru bisa dibuka setelah HP dibuka pertama kali sejak dinyalakan. Kalau kunci sesi hilang atau tidak bisa dipakai lagi, sesi yang tidak terbaca dihapus dan Sulo meminta kamu masuk lagi.', en: 'Sulo’s data can only be opened after the phone has been unlocked once since it was turned on. If the session key is lost or can no longer be used, the unreadable session is deleted and Sulo asks you to sign in again.' },
@@ -154,8 +154,8 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'With "Watch for new tasks" on, Sulo checks SIKOLA regularly even when the app is closed: about every 20 minutes from 06:00 to 22:59 and every 110 minutes at night. Each check is one request that only reads tasks, updates and the session’s time left.',
           },
           {
-            id: 'Selama fitur ini menyala, login SIKOLA-mu tetap aktif di HP ini, karena cek berkala dihitung SIKOLA sebagai aktivitas. Matikan fitur ini kalau kamu tidak mau sesimu tetap aktif.',
-            en: 'While it is on, your SIKOLA sign-in stays active on this phone, because SIKOLA counts the checks as activity. Turn it off if you do not want your session kept active.',
+            id: 'Selama fitur ini menyala, sesi SIKOLA-mu tetap aktif di HP ini, karena cek berkala dihitung SIKOLA sebagai aktivitas. Matikan fitur ini kalau kamu tidak mau sesimu tetap aktif.',
+            en: 'While it is on, your SIKOLA session stays active on this phone, because SIKOLA counts the checks as activity. Turn it off if you do not want your session kept active.',
           },
           {
             id: 'Mematikannya: Lainnya, Pengaturan, Notifikasi, "Pantau tugas baru". Cek berhenti seketika; sesudah itu Sulo hanya mengecek saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
@@ -198,7 +198,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'Lainnya, Pengaturan, Keluar dan hapus data: menghapus sesi, kuncinya di Keystore, semua data Sulo, dan semua pengingat terjadwal di HP ini.', en: 'More, Settings, Sign out and delete data: deletes the session, its Keystore key, all of Sulo’s data and every scheduled reminder on this phone.' },
-          { id: 'Lainnya, Pengaturan, NEOSIA, Putuskan NEOSIA: menghapus semua data NEOSIA beserta login NEOSIA di HP ini. Keluar juga menghapusnya.', en: 'More, Settings, NEOSIA, Disconnect NEOSIA: deletes all NEOSIA data and the NEOSIA sign-in on this phone. Signing out deletes it too.' },
+          { id: 'Lainnya, Pengaturan, NEOSIA, Putuskan NEOSIA: menghapus semua data NEOSIA beserta sesi NEOSIA di HP ini. Keluar juga menghapusnya.', en: 'More, Settings, NEOSIA, Disconnect NEOSIA: deletes all NEOSIA data and the NEOSIA sign-in on this phone. Signing out deletes it too.' },
           { id: 'Menghapus aplikasi juga menghapus semuanya.', en: 'Uninstalling the app deletes everything too.' },
           { id: 'Data di SIKOLA dan NEOSIA tidak tersentuh.', en: 'Nothing on SIKOLA or NEOSIA changes.' },
         ],

@@ -24,7 +24,7 @@ export const HOW_IT_WORKS: HelpSection[] = [
     heading: { id: 'Dari mana tugasmu datang', en: 'Where your tasks come from' },
     paragraphs: [
       {
-        id: 'Sulo membaca SIKOLA dengan login yang sudah ada di browsermu, persis seperti saat kamu membuka SIKOLA sendiri. Sulo tidak pernah meminta atau menyimpan password.',
+        id: 'Sulo membaca SIKOLA dengan sesi SIKOLA yang sudah ada di browsermu, persis seperti saat kamu membuka SIKOLA sendiri. Sulo tidak pernah meminta atau menyimpan password.',
         en: 'Sulo reads SIKOLA with the sign-in already in your browser, just like when you open SIKOLA yourself. Sulo never asks for or keeps your password.',
       },
       {
@@ -77,7 +77,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Apakah Sulo perlu password SIKOLA?', en: 'Does Sulo need my SIKOLA password?' },
     a: [
       {
-        id: 'Tidak. Masuk ke SIKOLA seperti biasa di browser yang sama. Sulo memakai login itu dan tidak pernah melihat password-mu.',
+        id: 'Tidak. Masuk ke SIKOLA seperti biasa di browser yang sama. Sulo memakai sesi itu dan tidak pernah melihat password-mu.',
         en: 'No. Sign in to SIKOLA as usual in the same browser. Sulo uses that sign-in and never sees your password.',
       },
     ],
@@ -107,7 +107,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Kenapa Sulo minta aku masuk lagi ke SIKOLA?', en: 'Why does Sulo ask me to sign in to SIKOLA again?' },
     a: [
       {
-        id: 'Login SIKOLA punya batas waktu. Sulo tidak memperpanjangnya. Begitu kamu masuk lagi di SIKOLA, Sulo langsung memperbarui datanya sendiri. Pengingat tetap jalan walaupun belum masuk lagi.',
+        id: 'Sesi SIKOLA punya batas waktu. Sulo tidak memperpanjangnya. Begitu kamu masuk lagi di SIKOLA, Sulo langsung memperbarui datanya sendiri. Pengingat tetap jalan walaupun belum masuk lagi.',
         en: 'A SIKOLA sign-in lasts only so long, and Sulo does not extend it. As soon as you sign in to SIKOLA again, Sulo updates its data by itself. Reminders keep coming even before you sign in again.',
       },
     ],

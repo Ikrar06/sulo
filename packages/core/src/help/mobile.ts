@@ -13,7 +13,7 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Apakah Sulo aman di HP?', en: 'Is Sulo safe on my phone?' },
     a: [
       {
-        id: 'Kamu masuk di halaman SIKOLA sendiri, jadi Sulo tidak pernah melihat password-mu. Sesi login disimpan terenkripsi dengan kunci di Android Keystore, dan Sulo hanya membaca dari SIKOLA. Tidak ada iklan, pelacakan, atau server Sulo.',
+        id: 'Kamu masuk di halaman SIKOLA sendiri, jadi Sulo tidak pernah melihat password-mu. Sesi SIKOLA disimpan terenkripsi dengan kunci di Android Keystore, dan Sulo hanya membaca dari SIKOLA. Tidak ada iklan, pelacakan, atau server Sulo.',
         en: 'You sign in on SIKOLA’s own page, so Sulo never sees your password. The session is stored encrypted with a key in the Android Keystore, and Sulo only reads from SIKOLA. No ads, no tracking, no Sulo server.',
       },
     ],
@@ -53,7 +53,7 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo minta masuk lagi padahal pemantauan menyala?', en: 'Why does Sulo ask me to sign in again when watching is on?' },
     a: [
       {
-        id: 'HP-mu menunda pengecekan Sulo terlalu lama (misalnya karena penghemat baterai), jadi login SIKOLA-mu berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
+        id: 'HP-mu menunda pengecekan Sulo terlalu lama (misalnya karena penghemat baterai), jadi sesi SIKOLA-mu berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
         en: 'Your phone held Sulo’s checks back for too long (a battery saver can do this), so your SIKOLA session ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
       },
     ],
@@ -149,7 +149,7 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa NEOSIA memintaku masuk lagi?', en: 'Why does NEOSIA ask me to sign in again?' },
     a: [
       {
-        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan NEOSIA memintamu masuk lagi, ketuk Masuk NEOSIA. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan login NEOSIA di HP ini.',
+        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan NEOSIA memintamu masuk lagi, ketuk Masuk NEOSIA. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan sesi NEOSIA di HP ini.',
         en: 'Sulo does not keep your NEOSIA session alive. When you update and the NEOSIA page asks you to sign in, tap Sign in to NEOSIA and sign in there. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
       },
     ],
