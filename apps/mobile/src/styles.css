@@ -125,6 +125,9 @@ body {
    --head-q (72-120 px) brings Ringkasan's small title in. Written by a CSS
    scroll timeline where supported and only while there is something to
    scroll (.m-sdt.m-scrollable), else by a passive listener once per frame.
+   Either way they are set on the header itself, the one place that reads
+   them: on the root, every element of the screen had its style worked out
+   again on each scrolled frame.
    Transform and opacity only; never a font size, never a timed animation. */
 @property --head-p { syntax: '<number>'; inherits: true; initial-value: 0; }
 @property --head-q { syntax: '<number>'; inherits: true; initial-value: 0; }
@@ -134,7 +137,7 @@ body {
 @keyframes m-head-s { from { --head-s: 0; } to { --head-s: 1; } }
 .m-root.m-sdt { timeline-scope: --m-main; }
 .m-root.m-sdt .m-scroll { scroll-timeline: --m-main block; }
-.m-root.m-sdt.m-scrollable {
+.m-root.m-sdt.m-scrollable .m-head {
   animation: m-head-p linear both, m-head-q linear both, m-head-s linear both;
   animation-timeline: --m-main, --m-main, --m-main;
   animation-range: 0px 56px, 72px 120px, 0px 8px;
