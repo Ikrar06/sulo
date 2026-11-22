@@ -12,6 +12,9 @@ function Icon({ children, ...props }: IconProps) {
   );
 }
 
+// Drawn once in icons.tsx (the popup uses them too); the names the dashboard and the phone already use stay.
+export { AlertIcon as AlertCircleIcon, BellIcon as NewsIcon, ChevronLeftIcon as ArrowLeftIcon, ClockIcon, GearIcon, MoreIcon } from './icons';
+
 export const HomeIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M3 10.5 12 3l9 7.5" />
@@ -45,24 +48,10 @@ export const AttendanceIcon = (p: IconProps) => (
   </Icon>
 );
 
-export const NewsIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
-    <path d="M10.3 20a1.94 1.94 0 0 0 3.4 0" />
-  </Icon>
-);
-
 export const CalendarIcon = (p: IconProps) => (
   <Icon {...p}>
     <rect x="3" y="4.5" width="18" height="17" rx="2.5" />
     <path d="M3 10h18M8 2.5v4M16 2.5v4" />
-  </Icon>
-);
-
-export const GearIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </Icon>
 );
 
@@ -76,7 +65,7 @@ export const HelpIcon = (p: IconProps) => (
 
 export const InfoIcon = (p: IconProps) => (
   <Icon {...p}>
-    <circle cx="12" cy="12" r="9.5" />
+    <circle cx="12" cy="12" r="9" />
     <path d="M12 16v-4M12 8h.01" />
   </Icon>
 );
@@ -131,14 +120,6 @@ export const GlobeIcon = (p: IconProps) => (
   </Icon>
 );
 
-/** Weekly class schedule (Jadwal): a clock. */
-export const ClockIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3 2" />
-  </Icon>
-);
-
 /** Privacy mode off: data visible. */
 export const EyeIcon = (p: IconProps) => (
   <Icon {...p}>
@@ -165,21 +146,7 @@ export const CheckCircleIcon = (p: IconProps) => (
   </Icon>
 );
 
-export const AlertCircleIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7.5v5" />
-    <path d="M12 16.2v.1" />
-  </Icon>
-);
-
-export const InfoCircleIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 11v5" />
-    <path d="M12 7.8v.1" />
-  </Icon>
-);
+export const InfoCircleIcon = InfoIcon;
 
 export const DashCircleIcon = (p: IconProps) => (
   <Icon {...p}>
@@ -197,18 +164,6 @@ export const GradeIcon = (p: IconProps) => (
   </Icon>
 );
 
-/** A small info mark for "how to" popovers. */
-export const InfoSmallIcon = InfoCircleIcon;
-
-/** "Lainnya" in the Android app's tab bar: three dots in a row. */
-export const MoreIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="5" cy="12" r="1.5" />
-    <circle cx="12" cy="12" r="1.5" />
-    <circle cx="19" cy="12" r="1.5" />
-  </Icon>
-);
-
 /** The Android app's privacy notice. */
 export const ShieldIcon = (p: IconProps) => (
   <Icon {...p}>
@@ -216,8 +171,3 @@ export const ShieldIcon = (p: IconProps) => (
   </Icon>
 );
 
-export const ArrowLeftIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="m15 18-6-6 6-6" />
-  </Icon>
-);

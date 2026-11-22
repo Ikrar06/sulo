@@ -32,7 +32,11 @@ body:
       options:
         - Popup
         - Dashboard
+        - Android app
         - Notifications and reminders
+        - Calendar
+        - Attendance
+        - NEOSIA
         - Session or connection
         - Installation
         - Other
@@ -42,13 +46,13 @@ body:
     id: version
     attributes:
       label: Sulo version or commit
-      description: Shown on the extension card in chrome://extensions.
-      placeholder: 0.0.1
+      description: Shown on the extension card in chrome://extensions, or under Lainnya, Tentang (More, About) in the Android app.
+      placeholder: 0.2.0
   - type: input
     id: browser
     attributes:
-      label: Browser and version
-      placeholder: Chrome 131 on macOS
+      label: Browser or Android version
+      placeholder: Chrome 131 on macOS, or Android 14
   - type: dropdown
     id: ui-language
     attributes:
@@ -61,13 +65,13 @@ body:
     id: status
     attributes:
       label: Status shown by Sulo
-      description: The status line in the popup, for example "Sesi habis" or "SIKOLA berubah, respons tidak dikenali".
+      description: The status line Sulo shows, word for word, for example "SIKOLA memintamu masuk lagi" or "Sulo belum bisa membaca SIKOLA dengan benar". In English if that is what you see.
   - type: textarea
     id: debug-bundle
     attributes:
-      label: Debug bundle (optional)
+      label: Info for a bug report (optional)
       description: |
-        When your version of Sulo has "Ekspor bundel debug" in its settings, attach that file. It goes through the same sanitizer as the test fixtures. Open it and check it yourself before attaching. Do not paste raw responses from SIKOLA or NEOSIA.
+        In Settings, "Salin info untuk laporan bug" ("Copy info for a bug report") shows exactly what it copies: the version and a technical note of the last checks, with no name, student number or task content. Read it before pasting it here. Do not paste raw responses from SIKOLA or NEOSIA.
   - type: checkboxes
     id: no-personal-data
     attributes:

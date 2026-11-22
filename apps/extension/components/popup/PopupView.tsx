@@ -357,7 +357,7 @@ export function PopupView(props: PopupViewProps) {
                 <span className={`flex-1 ${view.updatesUnseen > 0 ? 'font-semibold' : 'text-muted-foreground'}`}>
                   {view.updatesUnseen > 0 ? m.popup.updates.line(view.updatesUnseen) : m.popup.updates.lineNone}
                 </span>
-                <ChevronRightIcon className="size-3.5 text-muted-foreground" />
+                <ChevronRightIcon className="size-4 text-muted-foreground" />
               </button>
             </div>
           )}

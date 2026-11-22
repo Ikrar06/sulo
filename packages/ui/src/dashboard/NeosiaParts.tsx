@@ -2,7 +2,7 @@
 // line and the short profile. All data is NEOSIA
 // page data validated twice; it is rendered as text only, never as HTML.
 
-import { useState, type ComponentType, type SVGProps } from 'react';
+import { useState, type ComponentType, type ReactNode, type SVGProps } from 'react';
 import { useI18n } from '../i18n';
 import { Private, usePrivacy } from '../private';
 import { Button } from '../ui/button';
@@ -131,18 +131,45 @@ export interface AttendanceSummary {
   lowest: { name: string; percent: number } | null;
 }
 
+/** Stand-ins for a value inside a dictionary sentence, so the value can be an element (a masked one in privacy mode). */
+const PCT = '\u0001';
+const NAME = '\u0002';
+/** The sentence with each stand-in replaced by its element, in the sentence's own order. */
+function withValues(sentence: string, values: Record<string, ReactNode>): ReactNode[] {
+  const keys = Object.keys(values).sort((a, b) => b.length - a.length);
+  const out: ReactNode[] = [];
+  let rest = sentence;
+  while (rest.length > 0) {
+    const hit = keys.map((k) => ({ k, at: rest.indexOf(k) })).filter((x) => x.at >= 0).sort((a, b) => a.at - b.at)[0];
+    if (!hit) {
+      out.push(rest);
+      break;
+    }
+    if (hit.at > 0) out.push(rest.slice(0, hit.at));
+    out.push(<span key={out.length}>{values[hit.k]}</span>);
+    rest = rest.slice(hit.at + hit.k.length);
+  }
+  return out;
+}
+
 function AttendanceLine({ summary }: { summary: AttendanceSummary | null }) {
   const { locale } = useI18n();
   if (summary === null) return null;
   const words = dashFor(locale).presensi;
   const pct = (n: number) => n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+  // The sentences come whole from the dictionary; the percentages and the course name are masked in privacy mode, as on the phone.
+  const percent = (n: number) => <Private>{pct(n)}%</Private>;
   return (
     <div className="mt-3 text-[14px]">
       <p className="flex items-center justify-between gap-2">
-        <span>{words.average(pct(summary.average))}</span>
+        <span>{withValues(words.average(PCT), { [`${PCT}%`]: percent(summary.average) })}</span>
         <CardLink href={routeHash('presensi')}>{dashFor(locale).nav.presensi}</CardLink>
       </p>
-      {summary.lowest && <p className="mt-1 truncate text-muted-foreground">{words.lowest(summary.lowest.name, pct(summary.lowest.percent))}</p>}
+      {summary.lowest && (
+        <p className="mt-1 truncate text-muted-foreground">
+          {withValues(words.lowest(NAME, PCT), { [NAME]: <Private>{summary.lowest.name}</Private>, [`${PCT}%`]: percent(summary.lowest.percent) })}
+        </p>
+      )}
     </div>
   );
 }

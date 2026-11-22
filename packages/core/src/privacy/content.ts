@@ -16,7 +16,7 @@ export interface Section {
   blocks: Block[];
 }
 
-export const PRIVACY_UPDATED: Text = { id: '18 November 2026', en: '18 November 2026' };
+export const PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
 
 export const PRIVACY_TITLE: Text = { id: 'Kebijakan Privasi', en: 'Privacy Policy' };
 
@@ -65,7 +65,7 @@ export const NEOSIA_CONSENT: ConsentText = {
   keptTitle: { id: 'Yang disimpan di browsermu', en: 'What is kept in your browser' },
   kept: [
     { id: 'Jadwal kuliah: mata kuliah, kelas, hari, jam, ruang, dan nama dosen', en: 'Class schedule: courses, classes, days, times, rooms and lecturer names' },
-    { id: 'Jendela dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
+    { id: 'Masa KRS (tanggal buka dan tutup) dan status KRS, serta kuota SKS', en: 'The KRS window and status, and your credit limit' },
     { id: 'Sudah bayar atau belum, tanpa nominal', en: 'Paid or not paid, without amounts' },
     { id: 'Status survei: sudah diisi atau belum', en: 'The survey status: filled in or not' },
     { id: 'Nilai huruf, IPS, IPK, dan SKS. Tersembunyi sampai kamu memilih Tampilkan', en: 'Letter grades, semester and overall GPA, and credits. Hidden until you choose Show' },
@@ -108,7 +108,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         items: [
           { id: 'daftar mata kuliahmu', en: 'your list of courses' },
           { id: 'tugas dan tenggatnya, termasuk tenggat kuis', en: 'assignments and their due dates, including quiz deadlines' },
-          { id: 'susunan tiap mata kuliah aktif (bagian dan aktivitas), beberapa kali sehari, untuk mengetahui materi dan tugas baru', en: 'the structure of each active course (sections and activities), a few times a day, to spot new materials and tasks' },
+          { id: 'susunan tiap mata kuliah yang dipantau (bagian dan aktivitas), beberapa kali sehari, untuk mengetahui materi dan tugas baru', en: 'the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks' },
           { id: '20 notifikasi SIKOLA terbarumu, untuk mengetahui nilai, feedback, dan kabar forum baru', en: 'your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts' },
         ],
       },
@@ -116,7 +116,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'p',
         text: {
           id: 'Sulo hanya membaca. Sulo tidak pernah mengumpulkan tugas, tidak menandai apa pun sebagai dibaca, tidak mengubah data di SIKOLA, tidak membaca isi kuis, dan tidak membaca data mahasiswa lain.',
-          en: "Sulo only reads. It never submits work, never marks anything as read, never changes data in SIKOLA, never reads quiz content, and never reads other students' data.",
+          en: "Sulo only reads. It never submits work, never marks anything as read, never changes data on SIKOLA, never reads quiz content, and never reads other students' data.",
         },
       },
     ],
@@ -138,7 +138,7 @@ export const PRIVACY_SECTIONS: Section[] = [
           { id: 'rekap presensi dari SIKOLA, diperbarui otomatis paling sering sekali sehari, dan rincian per pertemuan yang diambil hanya saat kamu membukanya (untuk mata kuliah yang dipantau: sesi tercatat, poin, persentase, status, dan keterangan)', en: 'your attendance recap from SIKOLA, updated automatically at most once a day, and the per-session details, fetched only when you open them (for the courses you follow: sessions recorded, points, percentage, status, and remarks)' },
           { id: 'susunan mata kuliah terakhir yang terlihat dan log "Kabar terbaru" (paling banyak 200 entri)', en: 'the last seen structure of each course and the "Latest updates" log (at most 200 entries)' },
           { id: 'pilihanmu: mata kuliah yang dipantau, tugas yang ditandai selesai, nama tampilan dan warna mata kuliah, serta nama panggilan yang kamu isi sendiri', en: 'your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself' },
-          { id: 'log teknis 300 pemeriksaan terakhir ke SIKOLA: hanya waktu, nama fungsi, dan status, tanpa isi apa pun; tidak pernah dikirim, dan hanya ikut kalau kamu sendiri menyalin "info untuk laporan bug"', en: 'a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself' },
+          { id: 'log teknis 300 pengecekan terakhir ke SIKOLA: hanya waktu, nama fungsi, dan status, tanpa isi apa pun; tidak pernah dikirim, dan hanya ikut kalau kamu sendiri menyalin "info untuk laporan bug"', en: 'a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself' },
           { id: 'penghitung pemakaian lokal, yang tidak pernah keluar dari perangkatmu kecuali kamu sendiri mengekspornya', en: 'local usage counters, which never leave your device unless you export them yourself' },
         ],
       },
@@ -159,8 +159,8 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Data terikat ke akun SIKOLA-mu, dikenali dari nomor pengguna SIKOLA (userid) yang disimpan apa adanya di browsermu. Kalau akun lain masuk ke SIKOLA di browser yang sama, data akun sebelumnya langsung disembunyikan dan Sulo berhenti memeriksa serta mengingatkan. Data itu baru dihapus setelah kamu memilih "Pakai akun ini", atau saat kamu memakai "Hapus semua data". Kalau kamu masuk lagi dengan akun sebelumnya, semuanya muncul kembali.',
-          en: "Data is tied to your SIKOLA account, recognised by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose \"Use this account\", or when you use \"Delete all data\". If you sign in with the previous account again, everything comes back.",
+          id: 'Data terikat ke akun SIKOLA-mu, dikenali dari nomor pengguna SIKOLA (userid) yang disimpan apa adanya di browsermu. Kalau akun lain masuk ke SIKOLA di browser yang sama, data akun sebelumnya langsung disembunyikan dan Sulo berhenti mengecek serta mengingatkan. Data itu baru dihapus setelah kamu memilih "Pakai akun ini", atau saat kamu memakai "Hapus semua data". Kalau kamu masuk lagi dengan akun sebelumnya, semuanya muncul kembali.',
+          en: "Data is tied to your SIKOLA account, recognized by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose \"Use this account\", or when you use \"Delete all data\". If you sign in with the previous account again, everything comes back.",
         },
       },
     ],
@@ -188,8 +188,8 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ol',
         items: [
           {
-            id: 'SIKOLA (sikola-v2.unhas.ac.id), untuk membaca datamu sendiri. Maksimal 40 request per hari (biasanya 5 sampai 10), satu per satu, tidak pada jam tenang (00.00 sampai 06.00), dan tidak saat komputermu sedang tidak dipakai.',
-            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00.00 to 06.00), and not while your computer is idle.',
+            id: 'SIKOLA (sikola-v2.unhas.ac.id), untuk membaca datamu sendiri. Sulo mengecek SIKOLA seperlunya, satu per satu. Ada batas pengaman 150 permintaan per hari. Kalau batas itu tercapai, Sulo berhenti mengecek sampai besok. Sulo tidak mengecek sendiri pada jam tenang (00.00 sampai 06.00) dan saat komputermu sedang tidak dipakai.',
+            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. Sulo checks SIKOLA only as needed, one request at a time. A safety limit caps it at 150 requests a day. If Sulo reaches the limit, it stops checking until the next day. Sulo does not check on its own during quiet hours (00:00 to 06:00) or while your computer is idle.',
           },
           {
             id: 'Repo data publik Sulo di GitHub Pages (ikrar06.github.io/sulo-data), untuk mengambil berkas konfigurasi kecil dan data kalender akademik. Permintaan ini tidak membawa informasi apa pun tentangmu (tanpa cookie, header tambahan, atau parameter) dan paling sering sekali sehari per berkas. Seperti situs mana pun, GitHub dapat melihat alamat IP-mu saat berkas diambil.',
@@ -200,8 +200,8 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: '"Tambah ke Google Calendar" di menu tugas hanya membuka halaman Google Calendar di tab baru, saat kamu mengekliknya. Halaman itu sudah berisi nama tugas, nama mata kuliah, tenggat, dan tautan ke tugas di SIKOLA. Sulo sendiri tidak mengirim apa pun ke Google dan tidak butuh login; kamu yang memutuskan menyimpannya di Google Calendar.',
-          en: '"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no login; you decide whether to save it in Google Calendar.',
+          id: '"Tambah ke Google Kalender" di menu tugas hanya membuka halaman Google Kalender di tab baru, saat kamu mengekliknya. Halaman itu sudah berisi nama tugas, nama mata kuliah, tenggat, dan tautan ke tugas di SIKOLA. Sulo sendiri tidak mengirim apa pun ke Google dan tidak butuh login; kamu yang memutuskan menyimpannya di Google Kalender.',
+          en: '"Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no sign-in; you decide whether to save it in Google Calendar.',
         },
       },
       {
@@ -243,15 +243,15 @@ export const PRIVACY_SECTIONS: Section[] = [
           },
           {
             id: 'Tautan survei, data pribadimu di NEOSIA, dan halaman pengunduran diri tidak pernah dibaca. Token login NEOSIA tidak pernah dibaca.',
-            en: 'The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA login token is never read.',
+            en: 'The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA sign-in token is never read.',
           },
           {
             id: 'Nilai dan IPK tidak pernah masuk notifikasi, ekspor, daftar yang disalin, berkas kalender, atau info laporan bug. Notifikasi nilai baru hanya menyebut nama mata kuliah.',
             en: 'Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.',
           },
           {
-            id: 'Mode privasi (Pengaturan, atau ikon mata di dashboard) menyamarkan nama, nilai, IPK, IPS, dan SKS di layar.',
-            en: 'Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA and credits on screen.',
+            id: 'Mode privasi (Pengaturan, atau ikon mata di dashboard) menyamarkan nama, nilai, IPK, IPS, SKS, dan persentase presensi di layar.',
+            en: 'Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA, credits and attendance percentages on screen.',
           },
           {
             id: 'Tidak ada otomatisasi: Sulo tidak mengisi KRS, survei, atau presensi, dan tidak memantau kuota kelas.',
@@ -268,7 +268,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'Mencopot ekstensi dari browser menghapus semua datanya. Ini sudah berlaku sekarang.', en: 'Removing the extension from your browser deletes all of its data. This works today.' },
-          { id: '"Hapus semua data" di menu pengaturan popup menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in the popup settings menu deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.' },
+          { id: '"Hapus semua data" di Pengaturan (bagian "Hapus data") menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in Settings (under "Delete data") deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing on SIKOLA is touched.' },
           { id: '"Putuskan dan hapus data" di kartu NEOSIA (Pengaturan) menghapus semua data NEOSIA dan mencabut izinnya. "Hapus semua data" juga mematikan modul NEOSIA.', en: '"Disconnect and delete data" on the NEOSIA card (Settings) deletes all NEOSIA data and removes its permissions. "Delete all data" also turns the NEOSIA module off.' },
         ],
       },

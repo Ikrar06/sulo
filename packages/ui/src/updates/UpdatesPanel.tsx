@@ -152,7 +152,7 @@ export function UpdatesPanel({ entries, courseNames, courseColors, now, timeZone
         {showSettings && (
           <section className="mx-4 mt-2 border-t border-border pt-3">
             <h2 className="flex items-center gap-1.5 text-(length:--fs-caption) font-semibold text-muted-foreground">
-              <BellIcon className="size-3.5" aria-hidden="true" />
+              <BellIcon className="size-4" aria-hidden="true" />
               {u.settings}
             </h2>
             <UpdateSettingsChecks settings={settings} onChange={onChangeSettings} />

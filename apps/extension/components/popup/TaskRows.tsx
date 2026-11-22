@@ -69,7 +69,7 @@ function Row({ row, due, actions }: { row: TaskRow; due: DueContext; actions: Ro
           )}
           {row.snoozedUntil !== null && (
             <span className="flex shrink-0 items-center" title={m.popup.row.snoozedUntil(formatDueClock(row.snoozedUntil, due.now, due.timeZone, m))}>
-              <ClockIcon aria-hidden="true" className="size-3" />
+              <ClockIcon aria-hidden="true" className="size-4" />
               <span className="sr-only">{m.popup.row.snoozedUntil(formatDueClock(row.snoozedUntil, due.now, due.timeZone, m))}</span>
             </span>
           )}

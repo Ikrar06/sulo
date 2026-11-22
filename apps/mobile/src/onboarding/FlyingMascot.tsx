@@ -86,6 +86,8 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
   const at = useRef<Box | null>(null);
   const arrived = useRef(onArrived);
   arrived.current = onArrived;
+  /** Starts watching the current screen's spot for a change of its own size (set by the follow effect below). */
+  const watchSpot = useRef<() => void>(() => undefined);
   const timers = useRef<{ flash: number; gaze: number }>({ flash: 0, gaze: 0 });
   const lastPoke = useRef(0);
 
@@ -171,7 +173,13 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
   // A new screen: measure after its layout (two frames, so fonts and the scene's scale have settled).
   useLayoutEffect(() => {
     let r2 = 0;
-    const r1 = requestAnimationFrame(() => (r2 = requestAnimationFrame(() => move(true))));
+    const r1 = requestAnimationFrame(
+      () =>
+        (r2 = requestAnimationFrame(() => {
+          move(true);
+          watchSpot.current();
+        })),
+    );
     // Once more when the screen has settled (fonts, the scene's scale): a correction glides.
     const settle = window.setTimeout(() => move(false), 700);
     return () => {
@@ -187,21 +195,44 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
     const follow = () => {
       const node = el.current;
       if (!node) return;
+      watch();
       // No spot on this screen just now (the nickname screen with the keyboard up), or scrolled out of view: the mascot steps out.
       node.style.opacity = scrolledOut(selector) || !measure(selector) ? '0' : '1';
       if (node.getAnimations().length === 0) move(false);
+      // The spot may have moved on while the mascot was gliding (Android's keyboard arrives in steps): look again when it lands.
+      else void Promise.allSettled(node.getAnimations().map((a) => a.finished)).then(soon);
     };
     // Only when something can really have moved the spot (no polling: measuring forces a layout).
     let raf = 0;
+    // A glide's promise can settle after this effect is gone (the landing on Ringkasan changes the spot): then it does nothing.
+    let live = true;
     const soon = () => {
+      if (!live) return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(follow);
     };
+    // The spot's own box can change after the last resize event: the nickname screen makes it
+    // smaller once the keyboard is up, a frame after the window has stopped changing. Without
+    // this the mascot stayed at its old size, over the title.
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(soon);
+    let watched: Element | null = null;
+    const watch = () => {
+      const spot = [...document.querySelectorAll(selector)].find((n) => !n.closest('[data-onb-leaving]')) ?? null;
+      if (!ro || spot === watched) return;
+      ro.disconnect();
+      watched = spot;
+      if (spot) ro.observe(spot);
+    };
+    watchSpot.current = watch;
+    watch();
     window.addEventListener('resize', soon);
     document.addEventListener('scroll', soon, { capture: true, passive: true });
     window.visualViewport?.addEventListener('resize', soon);
     return () => {
+      live = false;
       cancelAnimationFrame(raf);
+      ro?.disconnect();
+      watchSpot.current = () => undefined;
       window.removeEventListener('resize', soon);
       document.removeEventListener('scroll', soon, { capture: true });
       window.visualViewport?.removeEventListener('resize', soon);

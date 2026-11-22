@@ -74,7 +74,7 @@ export function StepCourses({ courses, onToggle, title, lead }: StepCoursesProps
       </div>
       <Lead>{lead ?? t.courses.lead(suggested)}</Lead>
       <div className="relative max-w-[420px]">
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-muted-foreground" />
+        <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="search"
           className="h-12 w-full rounded-xl border border-border bg-background pr-4 pl-11 text-[16px] outline-none placeholder:text-muted-foreground focus-visible:border-focus focus-visible:ring-3 focus-visible:ring-ring/40"

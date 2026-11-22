@@ -113,6 +113,8 @@ export function AppShell(props: ShellProps) {
   navRef.current = nav;
   const scroller = useRef<HTMLElement | null>(null);
   const root = useRef<HTMLDivElement | null>(null);
+  /** The header: the scroll progress is written here, where everything that reads it lives, not on the root (every element under the root would have its style worked out again on each scrolled frame). */
+  const head = useRef<HTMLElement | null>(null);
   /** CSS scroll-driven header where supported (decided once); else a passive listener writes the same variables. */
   const [cssTimeline] = useState(useCssScrollTimeline);
   /** Where each tab's first screen was scrolled to, kept across tab switches (no state, no re-render). */
@@ -202,12 +204,12 @@ export function AppShell(props: ShellProps) {
   const isDetail = nav.stack.length > 0;
   const writeHead = useCallback(() => {
     const el = scroller.current;
-    const r = root.current;
-    if (!el || !r || cssTimeline) return;
+    const h = head.current;
+    if (!el || !h || cssTimeline) return;
     const y = effectiveScroll(el.scrollTop, el.scrollHeight, el.clientHeight);
-    r.style.setProperty('--head-p', String(headProgress(y, HEAD_P_RANGE)));
-    r.style.setProperty('--head-q', String(headProgress(y, HEAD_Q_RANGE)));
-    r.style.setProperty('--head-s', String(headProgress(y, HEAD_S_RANGE)));
+    h.style.setProperty('--head-p', String(headProgress(y, HEAD_P_RANGE)));
+    h.style.setProperty('--head-q', String(headProgress(y, HEAD_Q_RANGE)));
+    h.style.setProperty('--head-s', String(headProgress(y, HEAD_S_RANGE)));
   }, [cssTimeline]);
   useEffect(() => {
     const el = scroller.current;
@@ -298,7 +300,7 @@ export function AppShell(props: ShellProps) {
     <div ref={root} className={`db-layout m-root bg-m-screen text-foreground ${cssTimeline ? 'm-sdt' : ''}`}>
       {/* The bar is a sticky layer inside what scrolls: 56 px at rest, rising 8 px to 48 (layout-free, by the compositor). */}
       <main ref={scroller} className="m-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
-      <header className={`m-head sticky z-30 flex h-14 shrink-0 items-center gap-2 bg-m-screen px-4 ${detail ? 'top-0' : 'm-head-shrink'}`}>
+      <header ref={head} className={`m-head sticky z-30 flex h-14 shrink-0 items-center gap-2 bg-m-screen px-4 ${detail ? 'top-0' : 'm-head-shrink'}`}>
           {detail ? (
             // Three columns so the title stays centered whatever sits on the right (a screen's tools, Perbarui).
             <div className="grid w-full grid-cols-[minmax(40px,1fr)_minmax(0,auto)_minmax(40px,1fr)] items-center gap-2">

@@ -21,6 +21,7 @@ import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet, SheetOptions, SheetTextForm, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { stageAmount } from '@sulo/ui/reminders/RemindersPanel';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { notificationsAllowed } from '../platform/notifications';
 import { LOCK_KEY } from '../account';
 import { setAnimationPref } from '../perf';
 import { SuloSession } from '../session';
@@ -98,6 +99,8 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
           <PillButton
             small
             onPress={async () => {
+              // Without permission the test would make Android ask; that question is the onboarding's alone.
+              if (!(await notificationsAllowed())) return setNote(w.notify.denied);
               await LocalNotifications.schedule({ notifications: [{ id: 1, title: m.notify.testTitle, body: m.notify.testBody, isExactNotification: false }] });
               setNote(t.testSent);
             }}

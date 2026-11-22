@@ -122,7 +122,7 @@ function CourseRow({ course, followed, color, autoColor, access, entering, d, on
         {access && access.failures > 0 && (
           <p className="mt-1 flex items-start gap-2 text-[12px] leading-normal">
             {/* Calm: a muted icon, no warning colour (no notification, nothing on Ringkasan either). */}
-            <AlertIcon className="mt-1 size-3 shrink-0 text-muted-foreground" />
+            <AlertIcon className="mt-px size-4 shrink-0 text-muted-foreground" />
             <span>
               <span className="font-semibold text-foreground">{t.accessTitle}.</span> <span className="text-muted-foreground">{t.accessBody(access.failures)}</span>
             </span>
@@ -186,7 +186,7 @@ function InlineName({ course, name, label, muted, onSave }: { course: CourseReco
       className={`group -mx-1 flex max-w-full items-center gap-2 rounded px-1 text-left text-[14px] leading-6 font-semibold outline-none focus-ring:ring-2 focus-ring:ring-focus ${muted ? 'text-muted-foreground' : ''}`}
     >
       <span className="truncate">{name}</span>
-      <PencilIcon className="size-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-ring:opacity-100" />
+      <PencilIcon className="size-4 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-ring:opacity-100" />
     </button>
   );
 }

@@ -32,7 +32,7 @@ export function BantuanScreen({ initialOpen = null }: { initialOpen?: string | n
   return (
     <div className="space-y-6">
       <Card dense className="has-focus-ring:ring-2 has-focus-ring:ring-focus">
-        <label className="flex items-center gap-3">
+        <label className="-m-3 flex items-center gap-3 p-3">
           <SearchIcon aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
           <input
             type="search"
@@ -44,7 +44,7 @@ export function BantuanScreen({ initialOpen = null }: { initialOpen?: string | n
           />
           {query !== '' && (
             <button type="button" onClick={() => setQuery('')} aria-label={h.clearSearch} className="m-hit flex size-7 shrink-0 items-center justify-center rounded-full bg-m-inset outline-none focus-ring:ring-2 focus-ring:ring-focus">
-              <XIcon className="size-3.5" />
+              <XIcon className="size-4" />
             </button>
           )}
         </label>

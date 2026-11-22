@@ -56,12 +56,11 @@ export const CopyIcon = (p: IconProps) => (
   </Icon>
 );
 
-export const SettingsIcon = (p: IconProps) => (
+/** Settings, everywhere: the popup's menu button, the dashboard's page, the phone's list. */
+export const GearIcon = (p: IconProps) => (
   <Icon {...p}>
-    <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" />
-    <circle cx="16" cy="6" r="2" />
-    <circle cx="10" cy="12" r="2" />
-    <circle cx="18" cy="18" r="2" />
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </Icon>
 );
 
@@ -77,13 +76,6 @@ export const SearchIcon = (p: IconProps) => (
   <Icon {...p}>
     <circle cx="11" cy="11" r="7" />
     <path d="m21 21-4.3-4.3" />
-  </Icon>
-);
-
-export const PinIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M12 17v5" />
-    <path d="M9 10.76V4h6v6.76l2 2.24v2H7v-2z" />
   </Icon>
 );
 
@@ -131,9 +123,9 @@ export const KeyIcon = (p: IconProps) => (
 
 export const MoreIcon = (p: IconProps) => (
   <Icon {...p}>
-    <circle cx="5" cy="12" r="1" />
-    <circle cx="12" cy="12" r="1" />
-    <circle cx="19" cy="12" r="1" />
+    <circle cx="5" cy="12" r="1.5" />
+    <circle cx="12" cy="12" r="1.5" />
+    <circle cx="19" cy="12" r="1.5" />
   </Icon>
 );
 

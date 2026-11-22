@@ -76,7 +76,15 @@ export function GreetingLines({ line1, line2 }: { line1: string; line2: string }
     run();
     const ro = new ResizeObserver(run);
     ro.observe(a.parentElement ?? a);
-    return () => ro.disconnect();
+    // On a cold start the first measure can run before the heading font has swapped in, and a
+    // step down to 22 asks for another weight. The column keeps its width, so the observer
+    // stays quiet: measure again whenever a font has finished loading.
+    const fonts = typeof document === 'undefined' ? undefined : document.fonts;
+    fonts?.addEventListener('loadingdone', run);
+    return () => {
+      ro.disconnect();
+      fonts?.removeEventListener('loadingdone', run);
+    };
   }, [line1, text2]);
 
   // pnpm check:fit (web build only): try any pair in the live lines, then restore.

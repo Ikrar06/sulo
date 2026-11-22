@@ -1,6 +1,6 @@
 // SuloSession, the app's own native plugin (apps/mobile/android, Kotlin).
 // JavaScript only ever gets statuses and Moodle's JSON: the SIKOLA cookie
-// and the sesskey never cross into this side (CLAUDE.md, mobile rule 2).
+// and the sesskey never cross into this side (one of Sulo's hard rules for the phone).
 
 import { Capacitor, registerPlugin } from '@capacitor/core';
 

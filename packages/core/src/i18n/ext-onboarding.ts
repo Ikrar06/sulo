@@ -20,7 +20,7 @@ const id = {
     moreCards: [{ course: 'Kimia Dasar', title: 'Laporan titrasi', due: '6 hari lagi', tone: 'later' }],
   },
   intro3: {
-    title: 'Datamu tetap di browser-mu',
+    title: 'Datamu tetap di browsermu',
     body: 'Tanpa server, tanpa iklan, tanpa pelacakan.',
     badges: ['Tanpa password', 'Hanya membaca', 'Tanpa server'],
     data: ['Tugas', 'Kalender', 'Presensi'],
@@ -37,13 +37,13 @@ const id = {
     body: 'Masuk di tab SIKOLA seperti biasa.',
     switchBody: 'Hubungkan akun yang sedang masuk di SIKOLA.',
     open: 'Buka SIKOLA',
-    checking: 'Memeriksa SIKOLA',
+    checking: 'Mengecek SIKOLA',
     waiting: 'Menunggu kamu masuk ke SIKOLA',
     needLogin: 'Belum masuk. Buka SIKOLA untuk masuk.',
-    connected: 'Tersambung',
+    connected: 'Terhubung',
   },
   preparing: {
-    connected: 'Tersambung ke SIKOLA',
+    connected: 'Terhubung ke SIKOLA',
     rows: { tasks: 'Tugas', courses: 'Mata kuliah', attendance: 'Presensi', attendanceDone: 'Presensi siap' },
   },
   why: 'Kenapa aman?',
@@ -65,7 +65,7 @@ type ExtWords = typeof id;
 
 const en: ExtWords = {
   scene: {
-    steps: ['Click Open SIKOLA', 'Log in as usual', 'Sulo recognises it at once'],
+    steps: ['Click Open SIKOLA', 'Log in as usual', 'Sulo recognizes it at once'],
     calendarTitle: 'Midterms start tomorrow',
     calendarTag: 'Exam',
     moreCards: [{ course: 'Basic Chemistry', title: 'Titration report', due: 'in 6 days', tone: 'later' }],
@@ -96,7 +96,7 @@ const en: ExtWords = {
     connected: 'Connected to SIKOLA',
     rows: { tasks: 'Tasks', courses: 'Courses', attendance: 'Attendance', attendanceDone: 'Attendance ready' },
   },
-  why: 'Why is it safe?',
+  why: 'Why is this safe?',
   close: 'Close',
   privacyLink: 'Read the privacy policy',
   courses: {

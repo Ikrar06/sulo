@@ -28,7 +28,7 @@ import dev.ikrar.sulo.ui.Palette
 /**
  * SIKOLA's own login page in a plain WebView. Sulo only watches where the
  * page goes: no evaluateJavascript, no addJavascriptInterface, no script of
- * any kind is added to the page (CLAUDE.md, mobile rule 8). The user types
+ * any kind is added to the page (one of Sulo's hard rules for the phone). The user types
  * the password into SIKOLA itself; Sulo never sees it.
  *
  * A native bar above the page (M8c.2): a lock, the host the page is really

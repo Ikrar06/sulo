@@ -50,7 +50,7 @@ export function MataKuliahScreen() {
             disabled={!on}
             onClick={() => setColorFor(c)}
             aria-label={t.colorButton(display, color === null ? t.colorAuto : t.colorNames[color - 1]!)}
-            className="m-hit m-press flex size-10 shrink-0 items-center justify-center rounded-ctl text-m13 font-semibold outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-40"
+            className="m-hit m-hit-x m-press flex size-10 shrink-0 items-center justify-center rounded-ctl text-m13 font-semibold outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-40"
             style={on ? { background: tintVar(color ? `course-${color}` : 'neutral'), ...ON_SOLID } : { background: 'var(--m-inset)', color: 'var(--muted)' }}
           >
             <span aria-hidden="true">{initials(display)}</span>

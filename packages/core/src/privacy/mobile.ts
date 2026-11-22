@@ -5,7 +5,7 @@
 
 import type { Block, Section, Text } from './content';
 
-export const MOBILE_PRIVACY_UPDATED: Text = { id: '21 November 2026', en: '21 November 2026' };
+export const MOBILE_PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
 
 /** The three points shown first, each restating a section below (no new claim). */
 export const MOBILE_PRIVACY_SUMMARY: readonly { icon: 'key' | 'shield' | 'eye'; title: Text; body: Text }[] = [
@@ -35,8 +35,8 @@ export const MOBILE_PRIVACY_INTRO: Block[] = [
   {
     kind: 'p',
     text: {
-      id: 'Sulo tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Singkatnya: datamu tetap di HP ini, sesi login disimpan terenkripsi, dan Sulo hanya menghubungi SIKOLA serta repo data publik Sulo.',
-      en: 'Sulo is unofficial and not affiliated with Universitas Hasanuddin. In short: your data stays on this phone, the sign-in session is stored encrypted, and Sulo only contacts SIKOLA and Sulo’s public data repository.',
+      id: 'Sulo tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Singkatnya: datamu tetap di HP ini, sesi SIKOLA disimpan terenkripsi, dan Sulo hanya menghubungi SIKOLA serta repo data publik Sulo.',
+      en: 'Sulo is unofficial and not affiliated with Universitas Hasanuddin. In short: your data stays on this phone, the SIKOLA session is stored encrypted, and Sulo only contacts SIKOLA and Sulo’s public data repository.',
     },
   },
 ];
@@ -50,9 +50,9 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
         items: [
           { id: 'Tugas dan tenggat dari SIKOLA, serta catatan, langkah, dan tenggat pribadi yang kamu tambahkan sendiri.', en: 'Tasks and deadlines from SIKOLA, and the notes, steps and personal deadlines you add yourself.' },
           { id: 'Daftar mata kuliah, termasuk nama dan warna yang kamu pilih.', en: 'Your course list, including the names and colors you choose.' },
-          { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Updates (activity names and kinds, not their content).' },
+          { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Latest updates (activity names and kinds, not their content).' },
           { id: 'Rekap presensi untuk mata kuliah yang dipantau, dan rincian per pertemuan yang kamu buka.', en: 'The attendance recap for the courses you follow, and the per-session details you open.' },
-          { id: 'Pengaturan, dan sesi login SIKOLA.', en: 'Your settings, and the SIKOLA sign-in session.' },
+          { id: 'Pengaturan, dan sesi SIKOLA.', en: 'Your settings, and the SIKOLA session.' },
         ],
       },
       {
@@ -65,7 +65,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Data terikat ke akun SIKOLA-mu. Kalau akun lain masuk, data akun sebelumnya langsung disembunyikan dan Sulo berhenti memeriksa serta mengingatkan, termasuk pemantauan latar belakang. Data itu, juga data NEOSIA-nya, baru dihapus setelah kamu memilih "Pakai akun ini".',
+          id: 'Data terikat ke akun SIKOLA-mu. Kalau akun lain masuk, data akun sebelumnya langsung disembunyikan dan Sulo berhenti mengecek serta mengingatkan, termasuk pemantauan latar belakang. Data itu, juga data NEOSIA-nya, baru dihapus setelah kamu memilih "Pakai akun ini".',
           en: 'Data is tied to your SIKOLA account. When another account signs in, the previous account’s data is hidden at once and Sulo stops checking and reminding, background watching included. That data, its NEOSIA data too, is deleted only after you choose "Use this account".',
         },
       },
@@ -89,7 +89,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'ul',
         items: [
-          { id: 'Sesi login SIKOLA dienkripsi dengan AES-256-GCM. Kuncinya ada di Android Keystore dan tidak bisa dikeluarkan dari HP.', en: 'The SIKOLA sign-in session is encrypted with AES-256-GCM. Its key lives in the Android Keystore and cannot leave the phone.' },
+          { id: 'Sesi SIKOLA dienkripsi dengan AES-256-GCM. Kuncinya ada di Android Keystore dan tidak bisa dikeluarkan dari HP.', en: 'The SIKOLA session is encrypted with AES-256-GCM. Its key lives in the Android Keystore and cannot leave the phone.' },
           { id: 'Sesi itu tidak pernah sampai ke bagian tampilan aplikasi, tidak masuk log, dan tidak ikut info laporan bug.', en: 'The session never reaches the app’s interface code, never goes into a log, and is never part of the bug report info.' },
           { id: 'Kunci aplikasi (opsional) meminta sidik jari atau kunci layar HP setiap Sulo dibuka.', en: 'The optional app lock asks for your fingerprint or the phone’s screen lock whenever Sulo opens.' },
           { id: 'Data Sulo baru bisa dibuka setelah HP dibuka pertama kali sejak dinyalakan. Kalau kunci sesi hilang atau tidak bisa dipakai lagi, sesi yang tidak terbaca dihapus dan Sulo meminta kamu masuk lagi.', en: 'Sulo’s data can only be opened after the phone has been unlocked once since it was turned on. If the session key is lost or can no longer be used, the unreadable session is deleted and Sulo asks you to sign in again.' },
@@ -108,15 +108,15 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'sikola-v2.unhas.ac.id: you sign in on SIKOLA’s own page, then Sulo reads tasks, the calendar, courses, updates and attendance. Read only; Sulo changes nothing on SIKOLA. Requests name themselves as Sulo and its version.',
           },
           {
-            id: 'ikrar06.github.io: repo data publik Sulo, untuk dua berkas data saja, yaitu pengaturan jarak jauh (termasuk sakelar pemantauan) dan kalender akademik terbaru. Kalender dibaca paling sering sekali sehari, ditambah saat aplikasi dibuka kalau bacaan terakhir lebih dari 6 jam. Pengaturan jarak jauh dibaca paling sering tiap 6 jam, oleh aplikasi saat dibuka atau oleh pemantauan latar belakang kalau menyala. Permintaannya tidak membawa cookie atau apa pun yang mengenali kamu.',
-            en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including the watching switch) and the latest academic calendar. The calendar is read at most once a day, plus when you open the app and the last read is over 6 hours old. The remote settings are read at most every 6 hours, by the app when you open it or by background watching if it is on. The request carries no cookie and nothing that identifies you.',
+            id: 'ikrar06.github.io: repo data publik Sulo, untuk dua berkas data saja, yaitu pengaturan jarak jauh (termasuk apakah pemantauan sedang dimatikan pengelola) dan kalender akademik terbaru. Kalender dibaca paling sering sekali sehari, ditambah saat aplikasi dibuka kalau bacaan terakhir lebih dari 6 jam. Pengaturan jarak jauh dibaca paling sering tiap 6 jam, oleh aplikasi saat dibuka atau oleh pemantauan latar belakang kalau menyala. Permintaannya tidak membawa cookie atau apa pun yang mengenali kamu.',
+            en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including whether the developer has turned watching off) and the latest academic calendar. The calendar is read at most once a day, plus when you open the app and the last read is over 6 hours old. The remote settings are read at most every 6 hours, by the app when you open it or by background watching if it is on. The request carries no cookie and nothing that identifies you.',
           },
           {
             id: 'neosia.unhas.ac.id (hanya kalau kamu menghubungkan NEOSIA): halaman NEOSIA terbuka di dalam Sulo hanya saat kamu mengetuknya, dan halaman itu memuat datanya sendiri. Sulo tidak pernah mengirim permintaan ke NEOSIA.',
             en: 'neosia.unhas.ac.id (only if you connect NEOSIA): NEOSIA’s pages open inside Sulo only when you tap them, and those pages load their own data. Sulo never sends a request to NEOSIA.',
           },
           {
-            id: 'Pengaturan jarak jauh yang sama juga memberi tahu kalau ada versi baru Sulo. Tombol Unduh membuka halaman rilis di github.com lewat browser; Sulo tidak mengunduh atau memasang apa pun sendiri. Untuk perbaikan keamanan, versi lama bisa diminta memperbarui dulu: selama itu Sulo tidak memeriksa SIKOLA, dan datamu tetap ada.',
+            id: 'Pengaturan jarak jauh yang sama juga memberi tahu kalau ada versi baru Sulo. Tombol Unduh membuka halaman rilis di github.com lewat browser; Sulo tidak mengunduh atau memasang apa pun sendiri. Untuk perbaikan keamanan, versi lama bisa diminta memperbarui dulu: selama itu Sulo tidak mengecek SIKOLA, dan datamu tetap ada.',
             en: 'The same remote settings also tell you when a new Sulo version is out. Download opens the release page on github.com in your browser; Sulo never downloads or installs anything itself. For a security fix, an old version can be asked to update first: until then Sulo does not check SIKOLA, and your data stays.',
           },
           {
@@ -132,7 +132,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
     ],
   },
   {
-    heading: { id: 'Kapan Sulo memeriksa SIKOLA', en: 'When Sulo checks SIKOLA' },
+    heading: { id: 'Kapan Sulo mengecek SIKOLA', en: 'When Sulo checks SIKOLA' },
     blocks: [
       {
         kind: 'p',
@@ -151,26 +151,26 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
         items: [
           {
             id: 'Kalau "Pantau tugas baru" menyala, Sulo mengecek SIKOLA berkala walau aplikasi tertutup: sekitar tiap 20 menit pukul 06.00-22.59 dan tiap 110 menit di malam hari. Setiap cek satu permintaan yang hanya membaca tugas, kabar, dan sisa waktu sesi.',
-            en: 'With "Watch for new tasks" on, Sulo checks SIKOLA regularly even when the app is closed: about every 20 minutes from 06.00 to 22.59 and every 110 minutes at night. Each check is one request that only reads tasks, updates and the session’s time left.',
+            en: 'With "Watch for new tasks" on, Sulo checks SIKOLA regularly even when the app is closed: about every 20 minutes from 06:00 to 22:59 and every 110 minutes at night. Each check is one request that only reads tasks, updates and the session’s time left.',
           },
           {
-            id: 'Selama fitur ini menyala, login SIKOLA-mu tetap aktif di HP ini, karena cek berkala dihitung SIKOLA sebagai aktivitas. Matikan fitur ini kalau kamu tidak mau sesimu tetap aktif.',
-            en: 'While it is on, your SIKOLA sign-in stays active on this phone, because SIKOLA counts the checks as activity. Turn it off if you do not want your session kept active.',
+            id: 'Selama fitur ini menyala, sesi SIKOLA-mu tetap aktif di HP ini, karena cek berkala dihitung SIKOLA sebagai aktivitas. Matikan fitur ini kalau kamu tidak mau sesimu tetap aktif.',
+            en: 'While it is on, your SIKOLA session stays active on this phone, because SIKOLA counts the checks as activity. Turn it off if you do not want your session kept active.',
           },
           {
-            id: 'Mematikannya: Lainnya, Pengaturan, Notifikasi, "Pantau tugas baru". Cek berhenti seketika; sesudah itu Sulo hanya memeriksa saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
+            id: 'Mematikannya: Lainnya, Pengaturan, Notifikasi, "Pantau tugas baru". Cek berhenti seketika; sesudah itu Sulo hanya mengecek saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
             en: 'To turn it off: More, Settings, Notifications, "Watch for new tasks". Checks stop at once; after that Sulo only checks when you open the app, pull down, or tap Update.',
           },
           {
             id: 'Pengelola Sulo bisa mematikan atau memperlambat pemantauan untuk semua pengguna lewat pengaturan jarak jauh, misalnya kalau ada keberatan dari kampus. Pemantauan membaca pengaturan itu sendiri paling sering tiap 6 jam, jadi perubahannya berlaku tanpa kamu membuka aplikasi. Kalau pengaturan tidak terbaca selama 72 jam, pemantauan berhenti mengecek SIKOLA sampai terbaca lagi.',
-            en: 'Sulo’s maintainer can turn watching off or slow it down for everyone through the remote settings, for example if the university objects. Watching reads those settings itself at most every 6 hours, so a change applies without you opening the app. If the settings cannot be read for 72 hours, watching stops checking SIKOLA until they can.',
+            en: 'Sulo’s developer can turn watching off or slow it down for everyone through the remote settings, for example if the university objects. Watching reads those settings itself at most every 6 hours, so a change applies without you opening the app. If the settings cannot be read for 72 hours, watching stops checking SIKOLA until they can.',
           },
           {
             id: 'Kalau kamu tidak membuka Sulo selama 7 hari, pemantauan berhenti dengan satu notifikasi. Buka Sulo untuk melanjutkannya.',
             en: 'If you do not open Sulo for 7 days, watching stops with one notification. Open Sulo to resume it.',
           },
           {
-            id: 'Cek berkala ikut batas harian yang sama dengan pemeriksaan lain, dan tidak pernah mengambil rekap presensi.',
+            id: 'Cek berkala ikut batas harian yang sama dengan pengecekan lain, dan tidak pernah mengambil rekap presensi.',
             en: 'The checks count against the same daily limits as every other check, and never fetch the attendance recap.',
           },
         ],
@@ -183,9 +183,9 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'ul',
         items: [
-          { id: 'Mati sampai kamu menghubungkannya. Kamu login di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA, dan halaman login tidak pernah mendapat skrip Sulo.', en: 'Off until you connect it. You sign in on NEOSIA’s own page; Sulo reads neither your password nor NEOSIA’s sign-in token, and the sign-in page never gets Sulo’s script.' },
-          { id: 'Dari halaman yang kamu buka, Sulo menyimpan jadwal kuliah, kelas, status KRS, nama PA, status bayar (lunas atau belum), nilai huruf, IPS, IPK, SKS, masa studi, jendela KRS, dan status survei. NIM, NIK, alamat, tanggal lahir, kontak, nilai angka, dan nominal pembayaran dibuang sebelum disimpan. Tautan survei tidak pernah dibaca.', en: 'From the pages you open, Sulo keeps the class schedule, classes, KRS status, your advisor’s name, payment status (paid or not), letter grades, semester and cumulative GPA, credits, study period, the KRS window and the survey status. Student number, ID number, address, birth date, contacts, numeric scores and payment amounts are dropped before anything is stored. The survey link is never read.' },
-          { id: 'Semua data NEOSIA disimpan terenkripsi dengan kunci Android Keystore tersendiri, terpisah dari sesi SIKOLA. Nilai dan IPK tersembunyi secara bawaan, hanya dibuka saat layar Nilai atau kartu Studi menampilkannya, dan tidak pernah masuk notifikasi, ekspor, atau info laporan bug.', en: 'All NEOSIA data is stored encrypted with an Android Keystore key of its own, apart from the SIKOLA session. Grades and GPA are hidden by default, opened only while the Grades screen or the Studi card shows them, and never go into notifications, exports or the bug report info.' },
+          { id: 'Mati sampai kamu menghubungkannya. Kamu masuk di halaman NEOSIA sendiri; Sulo tidak membaca password maupun token login NEOSIA, dan halaman login tidak pernah mendapat skrip Sulo.', en: 'Off until you connect it. You sign in on NEOSIA’s own page; Sulo reads neither your password nor NEOSIA’s sign-in token, and the sign-in page never gets Sulo’s script.' },
+          { id: 'Dari halaman yang kamu buka, Sulo menyimpan jadwal kuliah, kelas, status KRS, nama PA, status bayar (lunas atau belum), nilai huruf, IPS, IPK, SKS, masa studi, masa KRS (tanggal buka dan tutup), dan status survei. NIM, NIK, alamat, tanggal lahir, kontak, nilai angka, dan nominal pembayaran dibuang sebelum disimpan. Tautan survei tidak pernah dibaca.', en: 'From the pages you open, Sulo keeps the class schedule, classes, KRS status, your advisor’s name, payment status (paid or not), letter grades, semester and cumulative GPA, credits, study period, the KRS window and the survey status. Student number, national ID number, address, birth date, contacts, numeric scores and payment amounts are dropped before anything is stored. The survey link is never read.' },
+          { id: 'Semua data NEOSIA disimpan terenkripsi dengan kunci Android Keystore tersendiri, terpisah dari sesi SIKOLA. Nilai dan IPK tersembunyi secara bawaan, hanya dibuka saat layar Nilai atau kartu Studi menampilkannya, dan tidak pernah masuk notifikasi, ekspor, atau info laporan bug.', en: 'All NEOSIA data is stored encrypted with an Android Keystore key of its own, separate from the SIKOLA session. Grades and GPA are hidden by default, opened only while the Grades screen or the Studies card shows them, and never go into notifications, exports or the bug report info.' },
           { id: 'Selama nilai atau IPK tampil di layar, layar Sulo tidak bisa direkam atau ditangkap aplikasi lain, dan pratinjaunya di daftar aplikasi terbaru kosong.', en: 'While grades or the GPA are on screen, other apps cannot record or capture Sulo’s screen, and its preview in the recent-apps list is blank.' },
         ],
       },
@@ -198,7 +198,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'Lainnya, Pengaturan, Keluar dan hapus data: menghapus sesi, kuncinya di Keystore, semua data Sulo, dan semua pengingat terjadwal di HP ini.', en: 'More, Settings, Sign out and delete data: deletes the session, its Keystore key, all of Sulo’s data and every scheduled reminder on this phone.' },
-          { id: 'Lainnya, Pengaturan, NEOSIA, Putuskan NEOSIA: menghapus semua data NEOSIA beserta login NEOSIA di HP ini. Keluar juga menghapusnya.', en: 'More, Settings, NEOSIA, Disconnect NEOSIA: deletes all NEOSIA data and the NEOSIA sign-in on this phone. Signing out deletes it too.' },
+          { id: 'Lainnya, Pengaturan, NEOSIA, Putuskan NEOSIA: menghapus semua data NEOSIA beserta sesi NEOSIA di HP ini. Keluar juga menghapusnya.', en: 'More, Settings, NEOSIA, Disconnect NEOSIA: deletes all NEOSIA data and the NEOSIA sign-in on this phone. Signing out deletes it too.' },
           { id: 'Menghapus aplikasi juga menghapus semuanya.', en: 'Uninstalling the app deletes everything too.' },
           { id: 'Data di SIKOLA dan NEOSIA tidak tersentuh.', en: 'Nothing on SIKOLA or NEOSIA changes.' },
         ],

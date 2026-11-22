@@ -10,7 +10,7 @@ import { ChevronDownIcon } from '../icons';
 const ring = 'outline-none focus-ring:ring-2 focus-ring:ring-focus';
 
 /** Primary: a 44 pill in the accent. Secondary: a 40 pill on the inset layer. */
-/** A pill button; with `href` it is a plain outside link that opens a new tab (CLAUDE.md, "Tautan ke layanan luar"). */
+/** A pill button; with `href` it is a plain outside link that opens a new tab (Sulo's rule for links to outside services). */
 export function PillButton({ children, onPress, href, kind = 'secondary', disabled = false, full = false, icon: Icon, small = false, danger = false }: { children: ReactNode; onPress?: () => void; href?: string; kind?: 'primary' | 'secondary'; disabled?: boolean; full?: boolean; icon?: ComponentType<SVGProps<SVGSVGElement>>; small?: boolean; danger?: boolean }) {
   const size = small ? 'h-8 px-3 text-m13' : kind === 'primary' ? 'h-11 px-5 text-m15' : 'h-10 px-4 text-m15';
   const look = kind === 'primary' ? 'bg-primary text-primary-foreground' : danger ? 'bg-m-inset text-urgency-overdue' : 'bg-m-inset text-foreground';
@@ -36,7 +36,7 @@ export function PillButton({ children, onPress, href, kind = 'secondary', disabl
 
 /** A 40 circle on the card layer, with one icon; its label is for TalkBack. */
 export function IconButton({ icon: Icon, label, onPress, disabled = false, spinning = false, href, inset = false }: { icon: ComponentType<SVGProps<SVGSVGElement>>; label: string; onPress?: () => void; disabled?: boolean; spinning?: boolean; href?: string; inset?: boolean }) {
-  const cls = `m-hit m-press inline-flex size-10 shrink-0 items-center justify-center rounded-full ${inset ? 'bg-m-inset' : 'm-card'} text-foreground ${ring} disabled:opacity-50`;
+  const cls = `m-hit m-hit-x m-press inline-flex size-10 shrink-0 items-center justify-center rounded-full ${inset ? 'bg-m-inset' : 'm-card'} text-foreground ${ring} disabled:opacity-50`;
   const icon = <Icon className={`size-5 ${spinning ? 'animate-spin motion-reduce:animate-none' : ''}`} />;
   if (href)
     return (
@@ -77,7 +77,7 @@ export function CheckCircle({ checked, onChange, label, size = 'md', still = fal
         e.stopPropagation();
         onChange(!checked);
       }}
-      className={`m-hit inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
+      className={`m-hit m-hit-x inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
     >
       <svg viewBox="0 0 24 24" className={size === 'sm' ? 'size-3' : 'size-4'} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M5 12.5 10 17 19 7.5" />
@@ -120,22 +120,26 @@ export function Toggle({ checked, onChange, label, disabled = false, id }: { che
 }
 
 /**
- * A filter button for a choice with many or long options (36 high, sharing
- * the row's width): tapping the label opens its sheet. Inactive: the inset
+ * A filter button for a choice with many or long options (36 high; the row's
+ * width is shared by what each label needs, never under 120 px, so a short
+ * label does not take room a longer one is cut for; a chosen option gives way
+ * first, so the other pill's label stays whole; its shrink factor is that large
+ * because even a 25th of a pixel taken from the other label ends it in an ellipsis):
+ * tapping the label opens its sheet. Inactive: the inset
  * layer and a small chevron. Active: filled with the text color, the chosen
  * option as its label (ellipsis when long) and an X with a 44 px touch area
  * that clears it.
  */
 export function FilterPill({ label, active, onOpen, onClear, clearLabel }: { label: string; active: boolean; onOpen: () => void; onClear: () => void; clearLabel: string }) {
   return (
-    <div className={`flex h-9 min-w-0 flex-1 items-center rounded-full ${active ? 'bg-foreground text-bg' : 'bg-m-inset text-foreground'}`}>
+    <div className={`flex h-9 min-w-[7.5rem] items-center rounded-full ${active ? 'flex-[1_100000_auto] bg-foreground text-bg' : 'flex-[1_1_auto] bg-m-inset text-foreground'}`}>
       <button type="button" aria-haspopup="dialog" onClick={onOpen} className={`m-hit flex h-full min-w-0 flex-1 items-center gap-1 rounded-full pl-4 text-left text-m13 ${active ? 'pr-1' : 'pr-3'} ${ring}`}>
         <span className="min-w-0 flex-1 truncate">{label}</span>
         {!active && <ChevronDownIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />}
       </button>
       {active && (
-        <button type="button" onClick={onClear} aria-label={clearLabel} className={`m-hit mr-1 flex size-7 shrink-0 items-center justify-center rounded-full ${ring}`}>
-          <XIcon aria-hidden="true" className="size-3.5" />
+        <button type="button" onClick={onClear} aria-label={clearLabel} className={`m-hit m-hit-end mr-1 flex size-7 shrink-0 items-center justify-center rounded-full ${ring}`}>
+          <XIcon aria-hidden="true" className="size-4" />
         </button>
       )}
     </div>

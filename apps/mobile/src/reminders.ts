@@ -11,7 +11,7 @@ import { readPending } from '@sulo/core/account/pending';
 import type { Platform } from '@sulo/core/platform';
 import type { KeyValueStore, UnixSeconds } from '@sulo/core/types';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { numericId } from './platform/notifications';
+import { notificationsAllowed, numericId } from './platform/notifications';
 import { currentUser, readUser } from '@sulo/core/storage';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { keepAliveFrom } from '@sulo/core/remote/keep-alive';
@@ -103,7 +103,13 @@ export async function planReminders(store: KeyValueStore, now: UnixSeconds, time
   return out.slice(0, MAX_SCHEDULED);
 }
 
-/** Replaces the previously scheduled reminders with a fresh plan. */
+/**
+ * Replaces the previously scheduled reminders with a fresh plan. Without the
+ * notification permission nothing is scheduled and nothing is asked: the
+ * question is put once, by the onboarding's reminders step, and a later
+ * "yes" in the phone's settings is picked up the next time this runs (app
+ * start, after a sync, on coming back to the app).
+ */
 export async function scheduleReminders(platform: Platform): Promise<number> {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   // Another account is waiting for the user's answer: the previous account's reminders are cancelled, none planned (as the extension does).
@@ -112,6 +118,10 @@ export async function scheduleReminders(platform: Platform): Promise<number> {
   const planned = pending ? [] : await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language, neosia);
   const previous = (await platform.store.get<number[]>(SCHEDULED_KEY)) ?? [];
   if (previous.length > 0) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
+  if (planned.length > 0 && !(await notificationsAllowed())) {
+    if (previous.length > 0) await platform.store.set(SCHEDULED_KEY, []);
+    return 0;
+  }
   const notifications = planned.map((p) => ({
     id: numericId(p.id),
     title: p.view.title,
@@ -124,6 +134,18 @@ export async function scheduleReminders(platform: Platform): Promise<number> {
   if (notifications.length > 0) await LocalNotifications.schedule({ notifications });
   await platform.store.set(SCHEDULED_KEY, notifications.map((n) => n.id));
   return notifications.length;
+}
+
+/**
+ * Coming back to the app: when nothing is scheduled, plan again. This is how
+ * reminders start after the user allowed notifications in the phone's own
+ * settings, without waiting for the next sync. With a plan in place it does
+ * nothing.
+ */
+export async function scheduleIfNoneScheduled(platform: Platform): Promise<number> {
+  const previous = (await platform.store.get<number[]>(SCHEDULED_KEY)) ?? [];
+  if (previous.length > 0 || !(await notificationsAllowed())) return 0;
+  return scheduleReminders(platform);
 }
 
 /** Cancels every reminder Sulo scheduled (sign-out, account switch). */

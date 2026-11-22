@@ -12,7 +12,7 @@ vi.mock('@capacitor/preferences', () => ({
     keys: async () => ({ keys: [...prefs.keys()] }),
   },
 }));
-vi.mock('@capacitor/local-notifications', () => ({ LocalNotifications: { schedule: async () => undefined, cancel: async () => undefined, getPending: async () => ({ notifications: [] }), addListener: async () => ({ remove: async () => undefined }) } }));
+vi.mock('@capacitor/local-notifications', () => ({ LocalNotifications: { checkPermissions: async () => ({ display: 'granted' }), schedule: async () => undefined, cancel: async () => undefined, getPending: async () => ({ notifications: [] }), addListener: async () => ({ remove: async () => undefined }) } }));
 
 const { createMobilePlatform } = await import('../src/platform');
 const { planReminders } = await import('../src/reminders');

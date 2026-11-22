@@ -43,7 +43,7 @@ describe('statuses and remarks in the glossary', () => {
   });
 });
 
-describe('Studi card lines from the sanitized real recap page', async () => {
+describe('Studi card lines from the recap page fixture', async () => {
   const { readFileSync } = await import('node:fs');
   const { parseRecap } = await import('@sulo/core/presensi/parse');
   const { averagePercent, lowestBelowAverage } = await import('@sulo/core/presensi/service');

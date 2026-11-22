@@ -21,7 +21,7 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 | Synced 2 mins ago | Updated 2 minutes ago |
 | session expired, token invalid | Sign in to SIKOLA again so Sulo can update your tasks |
 | parser error, unrecognised response | Sulo can't read SIKOLA properly yet. Try again later |
-| daily budget reached, request limit, backoff | Never shown (M5a.4). Data older than 12 hours: "Sulo couldn't update since {time}. Try Update later." |
+| daily budget reached, request limit, backoff | Never shown (M5a.4). Data older than 12 hours: "Sulo hasn't been able to update since {time}. Try Update later." |
 | stale data | Last updated 7 hours ago |
 | offline, no network connection | You're offline. Showing your last data |
 | toggle, enable, disable | pick, tick, untick |
@@ -77,7 +77,7 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 | Choose courses | Title "Your courses", buttons "Refresh list" and "Save", then "No changes" or "Saved" with "Back to Sulo" |
 
 - Say what happens to the data in everyday words: "hidden", "deleted", "not touched". Never mention user ids, storage or an "active" account.
-- Every sentence about deleting says that nothing in SIKOLA is touched.
+- Every sentence about deleting says that nothing on SIKOLA is touched.
 
 ## Dashboard and calendar
 

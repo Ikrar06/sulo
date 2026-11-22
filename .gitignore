@@ -13,8 +13,6 @@ web-ext.config.ts
 .DS_Store
 
 # Private development notes, kept out of the public repository
-CLAUDE.md
-.claude/
 PROMPT-PEMBUKA.md
 docs/
 

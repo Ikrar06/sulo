@@ -49,7 +49,7 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 | Tugas | Laporan praktikum, 3 jam lagi | Fisika Dasar. Tenggat Kamis 23.59. |
 | Ringkasan | 3 tugas mendekati tenggat | Yang terdekat: Laporan praktikum, 5 jam lagi. |
 | Ringkasan pagi | Tugasmu hari ini | 1 tugas hari ini, 3 minggu ini. Yang terdekat: ... |
-| Sesi habis | Tugasmu belum bisa diperbarui | Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu. |
+| SIKOLA meminta masuk lagi (baris status: "SIKOLA memintamu masuk lagi. Data di bawah dari ...") | Tugasmu belum bisa diperbarui | Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu. |
 | Uji | Notifikasi uji dari Sulo | Kalau kamu melihat ini, pengingat Sulo akan muncul. |
 
 - Tombol: "Tunda 1 jam", "Tandai selesai". Di popup: "Tunda pengingat", "Besok pagi, 07.00", "Batalkan tunda".
@@ -75,7 +75,7 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 
 | Keadaan | Tulisan |
 |---|---|
-| Akun lain masuk ke SIKOLA | Judul "Akun SIKOLA berbeda terdeteksi". Tombol "Pakai akun ini" dan "Nanti, aku akan masuk dengan akun sebelumnya" |
+| Akun lain masuk ke SIKOLA | Judul "Akun SIKOLA berganti". Tombol "Pakai akun ini" dan "Nanti, aku akan masuk dengan akun sebelumnya" |
 | Setelah "Nanti" | "Tugas akun sebelumnya disembunyikan" + "Masuk lagi ke SIKOLA dengan akun sebelumnya, lalu klik Perbarui." |
 | Hapus semua data | Judul "Hapus semua data Sulo?", tombol "Hapus semua data" dan "Batal" |
 | Atur mata kuliah | Judul "Mata kuliahmu", tombol "Segarkan daftar" dan "Simpan", lalu "Tidak ada perubahan" atau "Tersimpan" dengan "Kembali ke Sulo" |
@@ -87,7 +87,7 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 
 - Halaman dashboard: Ringkasan, Tugas, Mata kuliah, Kabar terbaru, Kalender, Pengaturan, Bantuan, Tentang.
 - "Tenggat pribadi" untuk tenggat yang dibuat pengguna; tidak pernah mengubah SIKOLA.
-- "Tanggal penting", "Pekan 14 dari 16", "Pekan belum tersedia", "14 hari lagi", "Sampai 12 Feb".
+- "Tanggal penting", "Minggu ke-14 dari 16", "Minggu belum tersedia", "14 hari lagi", "Sampai 12 Feb".
 - Tanda kalender: "Perkiraan bulan", "Tanpa tanggal akhir", "Perlu dicek". Setiap tampilan kalender menutup dengan "Rujuk dokumen resmi".
 - "Traktir kopi" dengan keterangan "lewat Trakteer". "Statistik pemakaian (lokal)" dan "Ekspor statistik".
 

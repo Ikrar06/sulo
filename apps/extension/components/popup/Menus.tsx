@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { ROW_ACTION, ROW_ACTION_SHOWN } from '@sulo/ui/row-actions';
 import { useI18n } from '@sulo/ui/i18n';
-import { CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, MoreIcon, SettingsIcon } from '@sulo/ui/icons';
+import { CalendarPlusIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CopyIcon, GearIcon, MoreIcon } from '@sulo/ui/icons';
 import { Button } from '@sulo/ui/ui/button';
 import {
   DropdownMenu,
@@ -82,7 +82,7 @@ export function SettingsMenu({ dueFormat, onSetDueFormat, onSetLocale, onManageC
   return (
     <DropdownMenu>
       <MenuButton label={s.button} triggerRef={triggerRef}>
-        <SettingsIcon className="size-4" />
+        <GearIcon className="size-4" />
       </MenuButton>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onSelect={onOpenDashboard}>{s.openDashboard}</DropdownMenuItem>
@@ -224,7 +224,7 @@ export function RowMenu({ row, snoozeOptions, onDone, onAddToCalendar, onSnooze 
                   <ClockIcon className="size-4" />
                   <span className="flex-1">{r.snooze}</span>
                   {row.snoozedUntil !== null && <span aria-hidden="true" className="size-1.5 rounded-full bg-foreground" />}
-                  <ChevronRightIcon className="size-3.5 text-muted-foreground" />
+                  <ChevronRightIcon className="size-4 text-muted-foreground" />
                 </DropdownMenuItem>
               )}
               {row.dueAt !== null && (

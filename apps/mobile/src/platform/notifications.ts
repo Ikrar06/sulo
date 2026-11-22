@@ -4,6 +4,22 @@ import type { AlarmScheduler, Notifier, ScheduledAlarm } from '@sulo/core/platfo
 // Local notifications. Never exact alarms (no SCHEDULE_EXACT_ALARM): a
 // reminder may come a few minutes late, which the plan accepts.
 
+/**
+ * Whether Android lets Sulo show notifications right now. It only reads the
+ * answer. On Android 13 and later the plugin's schedule() asks the user for
+ * the permission itself when it is missing; that question belongs to one
+ * place, the "Izinkan pengingat" button of the onboarding's reminders step.
+ * Everything else that would schedule or show a notification asks here first
+ * and does nothing without permission. Unknown counts as "no".
+ */
+export async function notificationsAllowed(): Promise<boolean> {
+  try {
+    return (await LocalNotifications.checkPermissions()).display === 'granted';
+  } catch {
+    return false;
+  }
+}
+
 /** Stable numeric ids for Android from Sulo's string ids. */
 export function numericId(id: string): number {
   let h = 0;
@@ -14,6 +30,7 @@ export function numericId(id: string): number {
 export function createNotifier(): Notifier {
   return {
     async show(id, view, options = {}) {
+      if (!(await notificationsAllowed())) return;
       await LocalNotifications.schedule({
         notifications: [{ id: numericId(id), title: view.title, body: view.message, extra: { suloId: id }, isExactNotification: false, ...(options.silent ? { silent: true } : {}) }],
       });
@@ -38,6 +55,7 @@ export function createAlarmScheduler(): AlarmScheduler {
   return {
     async schedule(name, when) {
       const at = when.at !== undefined ? when.at * 1000 : Date.now() + (when.delayMinutes ?? 1) * 60_000;
+      if (!(await notificationsAllowed())) return;
       await LocalNotifications.schedule({ notifications: [{ id: numericId(name), title: 'Sulo', body: '', extra: { suloId: name }, schedule: { at: new Date(at), allowWhileIdle: true }, isExactNotification: false }] });
     },
     async cancel(name) {

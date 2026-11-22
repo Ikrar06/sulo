@@ -18,6 +18,7 @@ vi.mock('@capacitor/preferences', () => ({
 const pending = new Map<number, string>();
 vi.mock('@capacitor/local-notifications', () => ({
   LocalNotifications: {
+    checkPermissions: async () => ({ display: 'granted' }),
     schedule: async ({ notifications }: { notifications: { id: number; title: string }[] }) => notifications.forEach((n) => pending.set(n.id, n.title)),
     cancel: async ({ notifications }: { notifications: { id: number }[] }) => notifications.forEach((n) => pending.delete(n.id)),
     getPending: async () => ({ notifications: [...pending.keys()].map((id) => ({ id })) }),

@@ -24,8 +24,9 @@ export function PullToRefresh({ children, onRefresh, disabled, labels, scroller 
     if (disabled || !onScreen(e) || (scroller.current?.scrollTop ?? 0) > 0) return;
     start.current = e.touches[0]!.clientY;
   };
-  // The pull, for anything that follows it (Ringkasan's mascot dips up to 10 px).
-  const share = (px: number) => document.documentElement.style.setProperty('--m-pull-y', `${Math.min(10, (px / PULL_THRESHOLD) * 10).toFixed(1)}px`);
+  // The pull, for what follows it: Ringkasan's mascot dips up to 10 px. Written on that element, not on the
+  // root, so a pull does not make the browser work out the style of every element on each move.
+  const share = (px: number) => document.querySelector<HTMLElement>('.m-mascot-pull')?.style.setProperty('--m-pull-y', `${Math.min(10, (px / PULL_THRESHOLD) * 10).toFixed(1)}px`);
   const onMove = (e: React.TouchEvent) => {
     if (start.current === null) return;
     const dy = e.touches[0]!.clientY - start.current;

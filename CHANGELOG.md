@@ -2,21 +2,41 @@
 
 User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - Unreleased
+## [Unreleased]
 
-Tester build only; not submitted to any store.
+Planned as 0.2.0. Tester builds only; not submitted to any store, and no public Android release yet.
 
 ### Added
 
+- **An Android app.** Your tasks, the academic calendar, attendance and latest updates on your phone, with reminders. You sign in on SIKOLA's own page; Sulo never sees your password, and the session is stored encrypted on the phone. Optional: "Watch for new tasks" checks SIKOLA in the background (about every 20 minutes by day, every 110 minutes at night) and can be turned off at any time; an app lock with your fingerprint or screen lock; a lighter mode with less motion.
+- **Attendance.** Your attendance as SIKOLA records it, per course and per session. Read only; the recap updates itself once a day, or when you press Update.
+- **A new first-run guide** in the extension, with the mascot showing what Sulo does before it asks for anything.
+- "Add to Google Calendar" on a task: title, course and due time only, opened in a new tab when you click it.
+- Sulo says in words when it is updating, when it is up to date and when it could not update.
 - **NEOSIA, optional and off by default.** "Connect NEOSIA" in Settings shows what is kept and what is dropped before Chrome asks for permission. Sulo never contacts NEOSIA: it reads what the NEOSIA pages you open already loaded, keeps an allowlist of fields and drops the rest on the page. "Disconnect and delete data" removes everything and the permission.
 - **KRS readiness** on the overview from 14 days before the KRS window until it closes: dates, paid or not, advisor, survey, credit limit and KRS status, with reminders 3 days and 1 day before it closes.
 - **Schedule** page: your weekly classes from Monday to Saturday, holidays marked, and a calendar file for Google Calendar. Classes can also show in the calendar.
 - A short profile on the overview (semester, credits, GPA behind Show) and a note when a new grade is out, naming the course only.
 - Privacy mode: the eye in the dashboard header masks names, grades, GPA and credits.
 
+### Changed
+
+- One look for the extension and the phone: cards, course chips, round check marks and one set of icons.
+- Settings has one icon everywhere (a gear), and small icons share one size.
+- Courses SIKOLA will not open no longer stop the rest of an update.
+- When SIKOLA signs you out, Sulo says "SIKOLA asks you to sign in again" instead of "Your SIKOLA session ended".
+
+### Fixed
+
+- Help answers that pointed to buttons and places that had moved: "Delete all data" is in Settings under "Delete data", and the calendar feeds are added with the "Google Calendar" button on each calendar.
+- The same thing is called the same everywhere (reload the list, copied, connected, Google Kalender in Indonesian), and English texts that read like a word-for-word translation were rewritten.
+
 ### Privacy
 
 - Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. The bug report says only whether NEOSIA is on and when its data last came.
+- On Android, the screen cannot be captured or recorded while grades are shown.
+- Privacy mode also masks attendance percentages in the extension, as it does on the phone.
+- The privacy page states the limit as it is: Sulo checks SIKOLA only as needed, one request at a time, with a safety limit of 150 requests a day.
 
 ## [0.1.0] - 2026-11-18
 

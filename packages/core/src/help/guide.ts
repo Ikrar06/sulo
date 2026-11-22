@@ -44,7 +44,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     alt: { id: 'Popup Sulo dengan daftar tugas terdekat.', en: 'The Sulo popup with the tasks due soonest.' },
     points: [
       { id: 'Tugas yang paling dekat tenggatnya ada di atas.', en: 'The tasks due soonest are at the top.' },
-      { id: 'Perbarui memeriksa SIKOLA sekarang. Kalau baru saja diperbarui, tombolnya cukup bilang "Sudah terbaru".', en: 'Update checks SIKOLA now. Right after an update it just says "Up to date".' },
+      { id: 'Perbarui mengecek SIKOLA sekarang. Kalau baru saja diperbarui, tombolnya cukup bilang "Sudah terbaru".', en: 'Update checks SIKOLA now. Right after an update it just says "Up to date".' },
       { id: 'Pengaturan, lalu Buka dashboard.', en: 'Settings, then Open dashboard.' },
     ],
   },
@@ -75,11 +75,11 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     },
     clip: 'mata-kuliah',
     size: { width: 1200, height: 538 },
-    alt: { id: 'Daftar mata kuliah dengan titik warna, nama, dan sakelar Dipantau.', en: 'The course list with color dots, names and Followed switches.' },
+    alt: { id: 'Daftar mata kuliah dengan titik warna, nama, dan pilihan Dipantau.', en: 'The course list with color dots, names and the Followed setting.' },
     points: [
       { id: 'Klik nama, ketik nama baru, lalu Enter. Kosongkan untuk kembali ke nama SIKOLA.', en: 'Click the name, type a new one and press Enter. Clear it to go back to the SIKOLA name.' },
       { id: 'Klik titik warna, pilih dengan panah, lalu Enter.', en: 'Click the color dot, pick with the arrow keys, then Enter.' },
-      { id: 'Matikan sakelar Dipantau untuk berhenti memantau mata kuliah itu.', en: 'Turn the Followed switch off to stop following that course.' },
+      { id: 'Klik tombol di kanan untuk berhenti memantau mata kuliah itu.', en: 'Use the switch on the right to stop following that course.' },
     ],
   },
   {
@@ -87,7 +87,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     title: { id: 'Lihat presensi', en: 'See your attendance' },
     body: {
       id: 'Halaman Presensi merangkum kehadiranmu dari SIKOLA untuk mata kuliah yang dipantau. Rekapnya diperbarui otomatis sekali sehari, rincian per pertemuan diambil saat kamu membukanya.',
-      en: 'The Attendance page sums up your SIKOLA attendance for the courses you follow. The recap updates automatically once a day; per-session details are fetched when you open them.',
+      en: 'The Attendance page sums up your SIKOLA attendance for the courses you follow. The recap updates automatically once a day; session details load when you open them.',
     },
     clip: 'presensi',
     size: { width: 1200, height: 912 },
@@ -95,7 +95,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     points: [
       { id: 'Tiap mata kuliah menampilkan sesi tercatat, poin, dan persentase.', en: 'Each course shows its recorded sessions, points and percentage.' },
       { id: 'Klik mata kuliah untuk melihat status tiap sesi.', en: 'Click a course to see the status of each session.' },
-      { id: 'Perbarui mengambil data terbaru, paling sering tiap 2 menit.', en: 'Update fetches the latest data, at most every 2 minutes.' },
+      { id: 'Perbarui mengambil data terbaru, paling sering tiap 2 menit.', en: 'Update gets the latest data, at most every 2 minutes.' },
     ],
   },
   {
@@ -107,7 +107,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     },
     clip: 'kalender',
     size: { width: 1200, height: 978 },
-    alt: { id: 'Halaman Kalender dengan filter kategori, grid bulan, dan kartu langganan.', en: 'The Calendar page with category filters, the month grid and subscription cards.' },
+    alt: { id: 'Halaman Kalender dengan filter kategori, tampilan bulan, dan kartu langganan.', en: 'The Calendar page with category filters, the month view and subscription cards.' },
     points: [
       { id: 'Klik kategori untuk menyembunyikan atau menampilkannya.', en: 'Click a category to hide or show it.' },
       { id: 'Klik tanggal untuk melihat acaranya di panel kanan.', en: 'Click a date to see its events in the side panel.' },
@@ -134,14 +134,14 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     title: { id: 'Lihat kuliah dan jadwal (dengan NEOSIA)', en: 'See classes and your schedule (with NEOSIA)' },
     body: {
       id: 'Kalau NEOSIA terhubung, Ringkasan menampilkan kuliah hari ini dan kartu Studi, dan halaman Jadwal menampilkan jadwal mingguanmu.',
-      en: 'With NEOSIA connected, the overview shows today\'s classes and a Studies card, and the Schedule page shows your week.',
+      en: 'With NEOSIA connected, Overview shows today\'s classes and a Studies card, and the Schedule page shows your week.',
     },
     clip: 'jadwal',
     size: { width: 1200, height: 912 },
-    alt: { id: 'Ringkasan dengan kuliah hari ini, lalu halaman Jadwal dengan grid jam dan popover kelas.', en: 'The overview with today\'s classes, then the Schedule page with its time grid and a class popover.' },
+    alt: { id: 'Ringkasan dengan kuliah hari ini, lalu halaman Jadwal dengan tabel jam dan rincian satu kelas.', en: 'Overview with today\'s classes, then the Schedule page with its timetable and one class\'s details.' },
     points: [
       { id: 'Kuliah hari ini muncul paling atas di kartu Tugas.', en: "Today's classes come first in the Tasks card." },
-      { id: 'Kartu Studi menyimpan IPK sampai kamu memilih Tampilkan.', en: 'The Studies card keeps your GPA hidden until you choose Show.' },
+      { id: 'Kartu Studi menyembunyikan IPK sampai kamu memilih Tampilkan.', en: 'The Studies card keeps your GPA hidden until you choose Show.' },
       { id: 'Di Jadwal, klik kelas untuk melihat dosen dan ruang.', en: 'On Schedule, click a class to see its lecturers and room.' },
     ],
   },
@@ -157,8 +157,8 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     alt: { id: 'Kartu NEOSIA di Pengaturan, layar persetujuan, lalu kartu yang sudah terhubung.', en: 'The NEOSIA card in Settings, the consent screen, then the connected card.' },
     points: [
       { id: 'Di Pengaturan, nyalakan Hubungkan NEOSIA.', en: 'In Settings, turn on Connect NEOSIA.' },
-      { id: 'Baca apa yang disimpan dan apa yang dibuang, lalu pilih Hubungkan. Chrome menanyakan izinnya, lalu Sulo membuka transkripmu di NEOSIA.', en: 'Read what is kept and what is dropped, then choose Connect. Chrome asks for permission, then Sulo opens your transcript in NEOSIA.' },
-      { id: 'Lengkapi data dari NEOSIA: buka halaman yang belum ada datanya. Matikan kapan saja lewat Putuskan dan hapus data.', en: 'Complete your data from NEOSIA: open the pages without data. Turn it off any time with Disconnect and delete data.' },
+      { id: 'Baca apa yang disimpan dan apa yang dibuang, lalu pilih Hubungkan. Chrome menanyakan izinnya, lalu Sulo membuka beranda NEOSIA.', en: 'Read what is kept and what is dropped, then choose Connect. Chrome asks for permission, then Sulo opens the NEOSIA home page.' },
+      { id: 'Lengkapi data dari NEOSIA: buka halaman yang belum ada datanya. Matikan kapan saja lewat Putuskan dan hapus data.', en: 'Complete your data from NEOSIA: open the pages without data. Turn it off anytime with Disconnect and delete data.' },
     ],
   },
 ];

@@ -17,7 +17,8 @@ const id = {
   stepOf: (i: number, n: number) => `Langkah ${i} dari ${n}`,
   splash: { name: 'Sulo', tagline: 'Pendamping akademik mahasiswa Unhas' },
   intro1: {
-    title: 'Semua tenggat, satu tempat',
+    // \u00A0: the last two words stay together where text-wrap: balance is missing (WebView 111 to 113).
+    title: 'Semua tenggat, satu\u00A0tempat',
     body: 'Tugas dari semua mata kuliah SIKOLA.',
     stage: 'Tiga contoh kartu tugas merapikan diri jadi satu tumpukan.',
     cards: [
@@ -28,7 +29,7 @@ const id = {
     ],
   },
   intro2: {
-    title: 'Diingatkan sebelum terlambat',
+    title: 'Diingatkan sebelum\u00A0terlambat',
     body: 'Tenggat, kalender akademik, dan presensi.',
     stage: 'Contoh notifikasi pengingat, hitung mundur tenggat, dan presensi.',
     notifyTitle: 'Kuis bab 4',
@@ -47,7 +48,7 @@ const id = {
   },
   signin: {
     title: 'Masuk ke SIKOLA',
-    body: 'Kamu login di halaman asli. Sulo tidak melihat password-mu.',
+    body: 'Kamu masuk di halaman asli. Sulo tidak melihat password-mu.',
     address: 'sikola-v2.unhas.ac.id',
     open: 'Masuk',
     why: 'Kenapa aman?',
@@ -105,8 +106,8 @@ const id = {
     cancel: 'Batal',
   },
   sheets: {
-    why: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi login disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
-    watch: 'Sulo memeriksa SIKOLA berkala di latar belakang supaya tugas baru cepat diberitahu. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
+    why: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi SIKOLA disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
+    watch: 'Sulo mengecek SIKOLA berkala di latar belakang supaya kamu cepat tahu ada tugas baru. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
   },
   unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
 };
@@ -145,7 +146,7 @@ const en: Words = {
     title: 'Data stays on your phone',
     body: 'No server, no ads, no tracking.',
     stage: 'Your data is kept inside the phone, locked.',
-    badges: ['Password safe', 'Encrypted', 'No server'],
+    badges: ['No password kept', 'Encrypted', 'No server'],
     data: ['Tasks', 'Grades', 'Attendance'],
     start: 'Get started',
   },
@@ -164,7 +165,7 @@ const en: Words = {
   preparing: {
     title: 'Setting up Sulo',
     stages: { tasks: 'Getting your tasks', courses: 'Finding your courses', calendar: 'Preparing the calendar', attendance: 'Getting attendance' },
-    chips: { tasks: (n) => `${n} tasks`, courses: (n) => `${n} courses`, calendar: 'calendar ready', attendance: 'attendance ready' },
+    chips: { tasks: (n) => (n === 1 ? '1 task' : `${n} tasks`), courses: (n) => (n === 1 ? '1 course' : `${n} courses`), calendar: 'calendar ready', attendance: 'attendance ready' },
     failedTitle: "Couldn't get your data.",
     retry: 'Try again',
     without: 'Continue without data',
@@ -189,27 +190,27 @@ const en: Words = {
     stages: { 1440: '1 day', 180: '3 hours', 60: '1 hour' },
     inTime: (stage) => `in ${stage}`,
     watchTitle: 'Watch for new tasks',
-    watchBody: 'Sulo checks SIKOLA in the background from time to time.',
+    watchBody: 'Sulo checks SIKOLA regularly in the background.',
     detail: 'Details',
     allow: 'Allow reminders',
     later: 'Not now',
   },
   done: {
     title: 'All set.',
-    tasks: (n) => `${n} tasks`,
+    tasks: (n) => (n === 1 ? '1 task' : `${n} tasks`),
     next: (when) => `next due ${when}`,
     empty: 'No tasks yet',
     open: 'Open Sulo',
   },
   switchAccount: {
     title: 'Different account',
-    body: 'Data from the previous account will be removed.',
+    body: "The previous account's data here will be deleted.",
     use: 'Use this account',
     cancel: 'Cancel',
   },
   sheets: {
-    why: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your sign-in session is stored encrypted on this phone.', 'No Sulo server, no ads, no tracking.'],
-    watch: 'Sulo checks SIKOLA in the background from time to time so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
+    why: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your SIKOLA session is stored encrypted on this phone.', 'No Sulo server, no ads, no tracking.'],
+    watch: 'Sulo checks SIKOLA regularly in the background so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
   },
   unofficial: 'Unofficial. Not affiliated with Universitas Hasanuddin.',
 };

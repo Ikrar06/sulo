@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The app's own native code never logs: the SIKOLA cookie and the sesskey
 // pass through it, and a log line is the easiest way for them to leak
-// (CLAUDE.md, mobile rule 2). Fails on Log.*, println, print, printStackTrace,
+// (one of Sulo's hard rules for the phone). Fails on Log.*, println, print, printStackTrace,
 // System.out/err and Timber in apps/mobile/android/app/src/main.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';

@@ -41,7 +41,7 @@ export function BantuanPage({ d, route }: PageProps) {
       <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{b.stuckBody}</p>
       <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={`${secondary} mt-3`}>
         {b.feedback}
-        <ExternalIcon className="size-3.5 text-muted-foreground" />
+        <ExternalIcon className="size-4 text-muted-foreground" />
       </a>
     </div>
   ) : null;

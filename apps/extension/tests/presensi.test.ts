@@ -26,9 +26,9 @@ describe('recap ("All courses", mode=1)', () => {
   });
   it('reads course id, attendance cmid, taken sessions, points and percentage; "-" is null; the average row is skipped', () => {
     if (parsed.kind !== 'ok') throw new Error('shape');
-    expect(parsed.value).toHaveLength(44);
-    expect(parsed.value[0]).toEqual({ courseId: 36673, cmid: 197570, taken: 16, points: { got: 31, max: 32 }, percent: 96.9 });
-    expect(parsed.value.find((r) => r.courseId === 27353)).toEqual({ courseId: 27353, cmid: 161378, taken: 0, points: { got: 0, max: 0 }, percent: null });
+    expect(parsed.value).toHaveLength(6);
+    expect(parsed.value[0]).toEqual({ courseId: 94001, cmid: 950001, taken: 14, points: { got: 27, max: 28 }, percent: 96.4 });
+    expect(parsed.value.find((r) => r.courseId === 94005)).toEqual({ courseId: 94005, cmid: 950005, taken: 0, points: { got: 0, max: 0 }, percent: null });
   });
   it('another page is "unknown_shape", never an error', () => {
     expect(parseRecap('<html><body><table><tr><td>x</td></tr></table></body></html>')).toEqual({ kind: 'unknown_shape' });
@@ -63,8 +63,8 @@ describe('details (one course, view=5 "All")', () => {
 
 describe('read-only URLs', () => {
   it('builds the recap and detail URLs with id, mode and view only', () => {
-    expect(recapPath(197570)).toBe('/mod/attendance/view.php?id=197570&mode=1');
-    expect(detailPath(197570)).toBe('/mod/attendance/view.php?id=197570&view=5');
+    expect(recapPath(950001)).toBe('/mod/attendance/view.php?id=950001&mode=1');
+    expect(detailPath(950001)).toBe('/mod/attendance/view.php?id=950001&view=5');
     expect(isReadOnlyAttendanceUrl(recapPath(1)) && isReadOnlyAttendanceUrl(detailPath(1))).toBe(true);
   });
   it('refuses anything that could mark attendance or change data', () => {
@@ -108,14 +108,14 @@ function pageClient(answer: (path: string) => PageOutcome = (p) => ({ kind: 'ok'
   };
 }
 
-async function setup(monitored = new Set([36673, 48298])) {
+async function setup(monitored = new Set([94001, 94002])) {
   const store = memoryStore();
   await switchUser(store, 1);
   const snapshot = (courseId: number, cmId: number, module: string) => ({
     userId: 1, courseId, fetchedAt: NOW, parserVersion: 1,
     items: { [cmId]: { cmId, module, name: 'Presensi', sectionId: 1, visible: true, uservisible: true, url: null, firstSeenAt: NOW, missCount: 0 } },
   });
-  await writeUser(store, 1, 'snapshots', { '36673': snapshot(36673, 197570, 'attendance'), '99999': snapshot(99999, 5, 'assign') } as never);
+  await writeUser(store, 1, 'snapshots', { '94001': snapshot(94001, 950001, 'attendance'), '99999': snapshot(99999, 5, 'assign') } as never);
   let now = NOW;
   const clock = { ...fixedClock(), now: () => now };
   const client = pageClient();
@@ -127,16 +127,16 @@ describe('fetching: monitored courses only, 24-hour cache, 2-minute cooldown', (
   it('finds the attendance activity in the stored course structures, without a request', async () => {
     const { store } = await setup();
     const { readUser } = await import('@sulo/core/storage');
-    expect([...attendanceCmids(await readUser(store, 1, 'snapshots'))]).toEqual([[36673, 197570]]);
+    expect([...attendanceCmids(await readUser(store, 1, 'snapshots'))]).toEqual([[94001, 950001]]);
   });
 
   it('opening the page: one GET of the recap, kept for monitored courses only', async () => {
     const { client, deps, store } = await setup();
     expect(await refreshRecap(deps, { force: false })).toEqual({ status: 'ok' });
-    expect(client.pages).toEqual(['/mod/attendance/view.php?id=197570&mode=1']);
+    expect(client.pages).toEqual(['/mod/attendance/view.php?id=950001&mode=1']);
     const data = await readPresensi(store, 1);
-    expect(data.recap?.rows.map((r) => r.courseId)).toEqual([36673, 48298]);
-    expect(averagePercent(data.recap!.rows)).toBe(98.4);
+    expect(data.recap?.rows.map((r) => r.courseId)).toEqual([94001, 94002]);
+    expect(averagePercent(data.recap!.rows)).toBe(98.1);
   });
 
   it('opening the page again within 24 hours sends nothing; after that, once', async () => {
@@ -164,15 +164,15 @@ describe('fetching: monitored courses only, 24-hour cache, 2-minute cooldown', (
     await refreshRecap(deps, { force: false });
     expect(await refreshDetail(deps, 99999, { force: false })).toEqual({ status: 'not_monitored' });
     deps.clock.now = (() => NOW + PRESENSI_COOLDOWN_SEC) as never;
-    expect(await refreshDetail(deps, 48298, { force: false })).toEqual({ status: 'ok' });
-    expect(client.pages).toEqual(['/mod/attendance/view.php?id=197570&mode=1', '/mod/attendance/view.php?id=307194&view=5']);
-    expect((await readPresensi(store, 1)).details['307194']?.sessions).toHaveLength(7);
+    expect(await refreshDetail(deps, 94002, { force: false })).toEqual({ status: 'ok' });
+    expect(client.pages).toEqual(['/mod/attendance/view.php?id=950001&mode=1', '/mod/attendance/view.php?id=950002&view=5']);
+    expect((await readPresensi(store, 1)).details['950002']?.sessions).toHaveLength(7);
   });
 
   it('no attendance activity anywhere (structures known, none has one): says so, sends nothing', async () => {
     const { client, deps, store } = await setup();
     const none = (courseId: number) => ({ userId: 1, courseId, fetchedAt: NOW, parserVersion: 1, items: {} });
-    await writeUser(store, 1, 'snapshots', { '36673': none(36673), '48298': none(48298) } as never);
+    await writeUser(store, 1, 'snapshots', { '94001': none(94001), '94002': none(94002) } as never);
     expect(await refreshRecap(deps, { force: true })).toEqual({ status: 'no_attendance' });
     expect(client.pages).toEqual([]);
   });
@@ -342,21 +342,21 @@ const snap = (courseId: number, items: { cmId: number; module: string; uservisib
 
 describe('finding an attendance activity for the recap (stop at the first that works)', () => {
   it('a. from the structure of any stored course, followed or not; a hidden one as a last resort', async () => {
-    const { store, monitored } = await bareSetup([48298], { '36673': snap(36673, [{ cmId: 197570, module: 'attendance' }]) });
+    const { store, monitored } = await bareSetup([94002], { '94001': snap(94001, [{ cmId: 950001, module: 'attendance' }]) });
     const { client, posts, pages } = probeClient({});
     const deps = { client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored };
-    expect(await findRecapCmid(deps, await readPresensi(store, 1), true)).toEqual({ cmid: 197570, via: 'snapshot', probes: 0 });
+    expect(await findRecapCmid(deps, await readPresensi(store, 1), true)).toEqual({ cmid: 950001, via: 'snapshot', probes: 0 });
     expect(await refreshRecap(deps, { force: true })).toEqual({ status: 'ok' });
     expect(posts).toEqual([]);
-    expect(pages).toEqual(['/mod/attendance/view.php?id=197570&mode=1']);
+    expect(pages).toEqual(['/mod/attendance/view.php?id=950001&mode=1']);
     const hidden = await bareSetup([1], { '5': snap(5, [{ cmId: 77, module: 'attendance', uservisible: false }]) });
     expect((await findRecapCmid({ ...deps, store: hidden.store, monitored: hidden.monitored }, await readPresensi(hidden.store, 1), false)).cmid).toBe(77);
   });
 
   it('b. from a cmid seen before, without a request', async () => {
-    const { store, monitored } = await bareSetup([48298], {}, [307194]);
+    const { store, monitored } = await bareSetup([94002], {}, [950002]);
     const { client, posts } = probeClient({});
-    expect(await findRecapCmid({ client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored }, await readPresensi(store, 1), true)).toEqual({ cmid: 307194, via: 'known', probes: 0 });
+    expect(await findRecapCmid({ client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored }, await readPresensi(store, 1), true)).toEqual({ cmid: 950002, via: 'known', probes: 0 });
     expect(posts).toEqual([]);
   });
 
@@ -364,13 +364,13 @@ describe('finding an attendance activity for the recap (stop at the first that w
     const { store, monitored } = await bareSetup([10, 20, 30, 40]);
     const radar = await readUserFor(store, 1, 'radar');
     await writeUser(store, 1, 'radar', { ...radar, stateCheckedAt: { '10': NOW - 100, '20': NOW - 5000, '30': NOW - 50 } });
-    const { client, posts, pages } = probeClient({ 10: 197570 });
+    const { client, posts, pages } = probeClient({ 10: 950001 });
     const deps = { client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored };
     expect(await refreshRecap(deps, { force: true })).toEqual({ status: 'ok' });
     // 40 never checked, then 20, then 10 (found): 30 is never asked.
     expect(posts).toEqual([40, 20, 10]);
-    expect(pages).toEqual(['/mod/attendance/view.php?id=197570&mode=1']);
-    expect((await readPresensi(store, 1)).knownCmids?.[0]).toBe(197570);
+    expect(pages).toEqual(['/mod/attendance/view.php?id=950001&mode=1']);
+    expect((await readPresensi(store, 1)).knownCmids?.[0]).toBe(950001);
   });
 
   it('c. at most 3 course structures per click; a course whose stored structure has none is not asked', async () => {
@@ -401,21 +401,21 @@ describe('finding an attendance activity for the recap (stop at the first that w
 
 describe('an attendance page the user opened on SIKOLA', () => {
   it('only the numeric id from the URL', () => {
-    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=197570')).toBe(197570);
-    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=197570&mode=1')).toBe(197570);
-    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/take.php?id=197570')).toBeNull();
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=950001')).toBe(950001);
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=950001&mode=1')).toBe(950001);
+    expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/take.php?id=950001')).toBeNull();
     expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/mod/attendance/view.php?id=abc')).toBeNull();
     expect(attendanceCmidFromUrl('https://evil.example/mod/attendance/view.php?id=1')).toBeNull();
     expect(attendanceCmidFromUrl('https://sikola-v2.unhas.ac.id/course/view.php?id=5')).toBeNull();
   });
 
   it('is remembered and opens the recap next time', async () => {
-    const { store, monitored } = await bareSetup([48298]);
-    expect(await recordSeenCmid(store, 1, 307194)).toBe(true);
+    const { store, monitored } = await bareSetup([94002]);
+    expect(await recordSeenCmid(store, 1, 950002)).toBe(true);
     const { client, posts, pages } = probeClient({});
     expect(await refreshRecap({ client, store, clock: fixedClock(), timeZone: TZ, userId: 1, monitored }, { force: true })).toEqual({ status: 'ok' });
     expect(posts).toEqual([]);
-    expect(pages).toEqual(['/mod/attendance/view.php?id=307194&mode=1']);
+    expect(pages).toEqual(['/mod/attendance/view.php?id=950002&mode=1']);
   });
 });
 
@@ -451,18 +451,18 @@ describe('probe limits by caller', () => {
   });
 });
 
-describe('details from a real SIKOLA page (sanitized: name, remarks)', () => {
+describe('details with the date and the time in one cell, as SIKOLA prints them (a hand-written page)', () => {
   const parsed = parseDetail(page('attendance-course-sessions'), TZ);
   it('golden', async () => {
     expect(parsed.kind).toBe('ok');
-    await expect(`${JSON.stringify(parsed, null, 2)}\n`).toMatchFileSnapshot('../fixtures/presensi/golden/detail-real.json');
+    await expect(`${JSON.stringify(parsed, null, 2)}\n`).toMatchFileSnapshot('../fixtures/presensi/golden/detail-one-cell.json');
   });
   it('reads every session: date and time from one cell, status, points', () => {
     if (parsed.kind !== 'ok') throw new Error('shape');
     expect(parsed.value.length).toBeGreaterThan(0);
-    expect(parsed.value[0]).toMatchObject({ dateText: 'Thu 20 Aug 2026', timeText: '7:50AM - 10:20AM', description: 'Pertemuan ke-1', status: 'present', points: { got: 2, max: 2 } });
-    // 20 August 2026, 07.50 WITA.
-    expect(parsed.value[0]!.at).toBe(Date.UTC(2026, 7, 19, 23, 50) / 1000);
+    expect(parsed.value[0]).toMatchObject({ dateText: 'Tue 1 Sep 2026', timeText: '1PM - 2:40PM', description: 'Pertemuan ke-1', status: 'present', points: { got: 2, max: 2 } });
+    // 1 September 2026, 13.00 WITA.
+    expect(parsed.value[0]!.at).toBe(Date.UTC(2026, 8, 1, 5, 0) / 1000);
     expect(parsed.value.every((s) => s.at !== null && s.status !== 'unknown')).toBe(true);
     expect(new Set(parsed.value.map((s) => s.status))).toEqual(new Set(['present', 'late', 'absent']));
   });
@@ -473,10 +473,10 @@ describe('details: per-course cooldown and when the cooldown line shows', () => 
     const { client, deps } = await setup();
     await refreshRecap(deps, { force: false });
     // Same second: the recap's cooldown does not hold details back.
-    expect(await refreshDetail(deps, 36673, { force: false })).toEqual({ status: 'ok' });
-    expect(await refreshDetail(deps, 48298, { force: false })).toEqual({ status: 'ok' });
+    expect(await refreshDetail(deps, 94001, { force: false })).toEqual({ status: 'ok' });
+    expect(await refreshDetail(deps, 94002, { force: false })).toEqual({ status: 'ok' });
     // Perbarui on the same course at once: its own cooldown.
-    expect((await refreshDetail(deps, 36673, { force: true })).status).toBe('cooldown');
+    expect((await refreshDetail(deps, 94001, { force: true })).status).toBe('cooldown');
     expect(client.pages.filter((p) => p.includes('view=5'))).toHaveLength(2);
   });
 
@@ -512,7 +512,7 @@ describe('a fetched attendance page must answer for the active account', () => {
     if (target === 'detail') await refreshRecap(deps, { force: false });
     const before = await readPresensi(store, 1);
     deps.client = pageClient((p) => ({ kind: 'ok', html: p.includes('mode=1') ? withUser(recapHtml, id) : withUser(detailHtml, id) }));
-    const outcome = target === 'recap' ? await refreshRecap(deps, { force: true }) : await refreshDetail(deps, 36673, { force: false });
+    const outcome = target === 'recap' ? await refreshRecap(deps, { force: true }) : await refreshDetail(deps, 94001, { force: false });
     return { outcome, before, after: await readPresensi(store, 1), pending: await store.get(ACCOUNT_PENDING_KEY) };
   }
 
@@ -566,7 +566,7 @@ describe('reading the account id of a page (numbers only)', () => {
     expect(pageUserId('<div data-userid="abc"></div><section id="region-main"></section>')).toBeNull();
   });
 
-  it('every sanitized attendance fixture carries the synthetic account', () => {
+  it('every attendance fixture carries the synthetic account', () => {
     for (const name of ['attendance-all-courses', 'attendance-course', 'attendance-course-sessions', 'attendance-course-sessions.synthetic']) expect(pageUserId(page(name))).toBe(1);
   });
 });

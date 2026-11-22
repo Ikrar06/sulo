@@ -96,7 +96,7 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
         {date && (
           <button type="button" onClick={() => setDate(null)} aria-label={w.app.clearDate(dateLabel)} className="m-hit inline-flex h-[30px] shrink-0 items-center gap-1 rounded-full bg-foreground pr-2 pl-3 text-m12 text-bg outline-none focus-ring:ring-2 focus-ring:ring-focus">
             {dateLabel}
-            <XIcon aria-hidden="true" className="size-3.5" />
+            <XIcon aria-hidden="true" className="size-4" />
           </button>
         )}
         {chips.map((c) => (
