@@ -29,7 +29,7 @@ export const HOW_IT_WORKS: HelpSection[] = [
       },
       {
         id: 'Tugas dan tenggat diambil dari kalender SIKOLA, untuk mata kuliah yang kamu pantau. Sulo hanya membaca; ia tidak mengumpulkan tugas dan tidak mengubah apa pun di SIKOLA.',
-        en: 'Tasks and due dates come from the SIKOLA calendar, for the courses you follow. Sulo only reads; it never hands in work or changes anything in SIKOLA.',
+        en: 'Tasks and due dates come from the SIKOLA calendar, for the courses you follow. Sulo only reads; it never hands in work or changes anything on SIKOLA.',
       },
     ],
   },
@@ -38,7 +38,7 @@ export const HOW_IT_WORKS: HelpSection[] = [
     paragraphs: [
       {
         id: 'Sulo mengecek kira-kira tiap 3 jam selama browser terbuka dan kamu sedang memakai laptop, sebentar setelah browser dibuka, dan saat kamu mengeklik "Perbarui". Pukul 00.00 sampai 06.00 Sulo tidak mengecek. Membuka popup atau dashboard tidak mengecek SIKOLA.',
-        en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It does not check from 00:00 to 06:00. Opening the popup or the dashboard never checks SIKOLA.',
+        en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It doesn’t check from 00:00 to 06:00. Opening the popup or the dashboard never checks SIKOLA.',
       },
       {
         id: 'Sulo mengecek dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
@@ -64,7 +64,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Sulo hanya membaca data akunmu sendiri di SIKOLA, tidak meminta password, dan tidak mengirim data ke mana pun. Kodenya tidak memuat apa pun dari luar ekstensi. Izinnya hanya SIKOLA, penyimpanan, alarm, notifikasi, dan izin untuk tahu apakah laptopmu sedang dipakai. Izin untuk NEOSIA hanya diminta kalau kamu menyalakan "Hubungkan NEOSIA".',
-        en: 'Sulo only reads your own account’s data in SIKOLA, never asks for your password and sends your data nowhere. It loads no code from outside the extension. Its permissions are SIKOLA, storage, alarms, notifications and whether your laptop is in use. Permission for NEOSIA is asked for only if you turn on "Connect NEOSIA".',
+        en: 'Sulo only reads your own account’s data on SIKOLA, never asks for your password and sends your data nowhere. It loads no code from outside the extension. Its permissions are SIKOLA, storage, alarms, notifications and whether your laptop is in use. Permission for NEOSIA is asked for only if you turn on "Connect NEOSIA".',
       },
       {
         id: 'Pakai Sulo di laptopmu sendiri, jangan di komputer bersama.',
@@ -88,17 +88,17 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Biasanya karena salah satu ini: mata kuliahnya belum dipantau (dashboard, halaman Mata kuliah); tugasnya belum dibuka dosen atau tidak punya tenggat di kalender SIKOLA; tenggatnya lebih dari 90 hari lagi; atau kamu sudah menandainya selesai. Tugas yang sudah dikumpulkan bisa hilang dari kalender SIKOLA, dan Sulo menyebutnya "mungkin sudah dikumpulkan".',
-        en: 'Usually one of these: the course is not followed (the dashboard’s Courses page); the lecturer has not opened the task yet or it has no due date in the SIKOLA calendar; it is due more than 90 days away; or you marked it as done. Handed-in tasks can drop out of the SIKOLA calendar, and Sulo calls them "probably handed in".',
+        en: 'Usually one of these: the course isn’t followed (the dashboard’s Courses page); the lecturer hasn’t opened the task yet or it has no due date in the SIKOLA calendar; it is due more than 90 days away; or you marked it as done. Handed-in tasks can drop out of the SIKOLA calendar, and Sulo calls them "probably handed in".',
       },
     ],
   },
   {
     id: 'tidak-diperbarui',
-    q: { id: 'Kenapa daftarku tidak berubah?', en: 'Why is my list not changing?' },
+    q: { id: 'Kenapa daftarku tidak berubah?', en: 'Why isn’t my list changing?' },
     a: [
       {
         id: 'Pertama, pastikan kamu masih masuk di SIKOLA: buka SIKOLA, dan kalau diminta, masuk lagi. Setelah itu klik Perbarui di popup atau dashboard, lalu tunggu sebentar. Kalau kamu offline, daftar terakhir tetap tampil. Sulo juga tidak mengecek saat laptop tidak dipakai atau pada pukul 00.00 sampai 06.00.',
-        en: 'First, make sure you are still signed in to SIKOLA: open SIKOLA and sign in again if it asks. Then click Update in the popup or the dashboard and wait a moment. When you are offline, the last list stays. Sulo also does not check while the laptop is not in use or from 00:00 to 06:00.',
+        en: 'First, make sure you are still signed in to SIKOLA: open SIKOLA and sign in again if it asks. Then click Update in the popup or the dashboard and wait a moment. When you are offline, the last list stays. Sulo also doesn’t check while the laptop isn’t in use or from 00:00 to 06:00.',
       },
     ],
   },
@@ -108,21 +108,21 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Sesi SIKOLA punya batas waktu. Sulo tidak memperpanjangnya. Begitu kamu masuk lagi di SIKOLA, Sulo langsung memperbarui datanya sendiri. Pengingat tetap jalan walaupun belum masuk lagi.',
-        en: 'A SIKOLA sign-in lasts only so long, and Sulo does not extend it. As soon as you sign in to SIKOLA again, Sulo updates its data by itself. Reminders keep coming even before you sign in again.',
+        en: 'A SIKOLA sign-in lasts only so long, and Sulo doesn’t extend it. As soon as you sign in to SIKOLA again, Sulo updates its data by itself. Reminders keep coming even before you sign in again.',
       },
     ],
   },
   {
     id: 'pengingat',
-    q: { id: 'Kenapa pengingat tidak muncul?', en: 'Why do reminders not show up?' },
+    q: { id: 'Kenapa pengingat tidak muncul?', en: 'Why don’t reminders show up?' },
     a: [
       {
         id: 'Coba "Kirim notifikasi uji" di Pengaturan. Kalau tidak muncul, nyalakan notifikasi untuk Chrome di komputermu: di macOS lewat Pengaturan Sistem, Notifikasi, Google Chrome; di Windows lewat Pengaturan, Sistem, Notifikasi, lalu matikan "Fokus" atau "Jangan ganggu".',
-        en: 'Try "Send a test notification" in Settings. If nothing shows, turn on notifications for Chrome on your computer: on macOS in System Settings, Notifications, Google Chrome; on Windows in Settings, System, Notifications, and turn off Focus or Do not disturb.',
+        en: 'Try "Send a test notification" in Settings. If nothing shows, turn on notifications for Chrome on your computer: on macOS in System Settings, Notifications, Google Chrome; on Windows in Settings, System, Notifications, and turn off Focus or Don’t disturb.',
       },
       {
         id: 'Pengingat juga diam selama jam tenang (bawaan 22.00 sampai 06.00, kecuali pengingat terakhir), untuk mata kuliah yang tidak dipantau, dan untuk tugas yang sudah kamu tandai selesai.',
-        en: 'Reminders also stay quiet during quiet hours (22:00 to 06:00 by default, except the last reminder), for courses you do not follow, and for tasks you marked as done.',
+        en: 'Reminders also stay quiet during quiet hours (22:00 to 06:00 by default, except the last reminder), for courses you don’t follow, and for tasks you marked as done.',
       },
     ],
   },
@@ -152,7 +152,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Buka dashboard, halaman Mata kuliah, lalu klik tombol di kanan mata kuliah untuk memantau atau berhenti memantaunya. Kalau mata kuliah baru belum ada di daftar, klik "Muat ulang daftar".',
-        en: 'Open the dashboard’s Courses page and use the switch on the right of a course to follow it or stop. If a new course is not listed yet, click "Reload list".',
+        en: 'Open the dashboard’s Courses page and use the switch on the right of a course to follow it or stop. If a new course isn’t listed yet, click "Reload list".',
       },
     ],
   },
@@ -172,7 +172,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Sulo langsung menyembunyikan tugas akun sebelumnya dan berhenti mengecek serta mengingatkan. Popup bertanya: "Pakai akun ini" menghapus data akun sebelumnya di Sulo dan memulai pengaturan untuk akun baru; "Nanti" membiarkan semuanya tersembunyi sampai kamu masuk lagi dengan akun sebelumnya. Data di SIKOLA tidak tersentuh.',
-        en: 'Sulo hides the previous account’s tasks at once and stops checking and reminding. The popup asks: "Use this account" deletes the previous account’s data in Sulo and starts setup for the new one; "Later" keeps everything hidden until you sign in with the previous account again. Nothing in SIKOLA is touched.',
+        en: 'Sulo hides the previous account’s tasks at once and stops checking and reminding. The popup asks: "Use this account" deletes the previous account’s data in Sulo and starts setup for the new one; "Later" keeps everything hidden until you sign in with the previous account again. Nothing on SIKOLA is touched.',
       },
     ],
   },
@@ -182,7 +182,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Di Pengaturan, bagian "Hapus data", pilih "Hapus semua data". Ini menghapus tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan di browser ini. Data di SIKOLA tidak tersentuh. Mencopot ekstensi juga menghapus semuanya.',
-        en: 'In Settings, under "Delete data", choose "Delete all data". It deletes tasks, courses, reminders, latest updates and settings in this browser. Nothing in SIKOLA is touched. Removing the extension deletes everything too.',
+        en: 'In Settings, under "Delete data", choose "Delete all data". It deletes tasks, courses, reminders, latest updates and settings in this browser. Nothing on SIKOLA is touched. Removing the extension deletes everything too.',
       },
     ],
   },
@@ -192,7 +192,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Tidak. Sulo adalah aplikasi tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin. Untuk hal penting, selalu cek SIKOLA dan dokumen resmi kampus.',
-        en: 'No. Sulo is not an official app and is not affiliated with Universitas Hasanuddin. For anything important, always check SIKOLA and the university’s official documents.',
+        en: 'No. Sulo isn’t an official app and isn’t affiliated with Universitas Hasanuddin. For anything important, always check SIKOLA and the university’s official documents.',
       },
     ],
   },
@@ -202,7 +202,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Kalau Sulo tidak lagi bisa membaca SIKOLA dengan benar, popup menulis "Sulo belum bisa membaca SIKOLA dengan benar" dan Sulo tidak menebak isinya. Daftar terakhir tetap tampil. Klik "Salin info" dan kirim teksnya ke pengelola; teks itu tidak memuat data pribadi.',
-        en: 'If Sulo can no longer read SIKOLA properly, the popup says "Sulo can’t read SIKOLA properly yet" and Sulo does not guess. Your last list stays. Click "Copy info" and send the text to the maintainer; it holds no personal data.',
+        en: 'If Sulo can no longer read SIKOLA properly, the popup says "Sulo can’t read SIKOLA properly yet" and Sulo doesn’t guess. Your last list stays. Click "Copy info" and send the text to the developer; it holds no personal data.',
       },
     ],
   },
@@ -222,7 +222,7 @@ export const FAQ: FaqEntry[] = [
     a: [
       {
         id: 'Google Kalender memperbarui kalender langganan dengan jadwalnya sendiri, bisa berjam-jam sampai sehari. Sulo tidak bisa mempercepatnya. Untuk tanggal terbaru, lihat halaman Kalender di dashboard.',
-        en: 'Google Calendar refreshes subscribed calendars on its own schedule, from hours up to a day. Sulo cannot speed that up. For the latest dates, look at the Calendar page in the dashboard.',
+        en: 'Google Calendar refreshes subscribed calendars on its own schedule, from hours up to a day. Sulo can’t speed that up. For the latest dates, look at the Calendar page in the dashboard.',
       },
     ],
   },
@@ -264,7 +264,7 @@ export const FAQ: FaqEntry[] = [
       },
       {
         id: 'Simulasi hanya perkiraan. Bobot nilai huruf yang dipakai (A = 4 sampai E = 0) belum diverifikasi dari aturan resmi, dan simulasi tidak disimpan.',
-        en: 'The simulation is only an estimate. The letter weights it uses (A = 4 down to E = 0) are not yet verified against the official rules, and the simulation is not saved.',
+        en: 'The simulation is only an estimate. The letter weights it uses (A = 4 down to E = 0) aren’t yet verified against the official rules, and the simulation isn’t saved.',
       },
     ],
   },

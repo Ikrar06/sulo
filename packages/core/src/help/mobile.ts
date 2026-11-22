@@ -34,7 +34,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Sesi SIKOLA berakhir setelah beberapa jam tanpa aktivitas (bisa sampai sekitar 8 jam, tergantung SIKOLA). Kalau "Pantau tugas baru" mati, Sulo tidak menjaga sesimu tetap aktif, jadi kamu diminta masuk lagi sesekali. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui.',
-        en: 'A SIKOLA session ends after some hours without activity (up to about 8 hours, depending on SIKOLA). With "Watch for new tasks" off, Sulo does not keep your session active, so it asks you to sign in now and then. The latest data stays on screen; tap Sign in again to update.',
+        en: 'A SIKOLA session ends after some hours without activity (up to about 8 hours, depending on SIKOLA). With "Watch for new tasks" off, Sulo doesn’t keep your session active, so it asks you to sign in now and then. The latest data stays on screen; tap Sign in again to update.',
       },
     ],
   },
@@ -54,7 +54,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'HP-mu menunda pengecekan Sulo terlalu lama (misalnya karena penghemat baterai), jadi sesi SIKOLA-mu berakhir. Masuk lagi, lalu izinkan Sulo berjalan di latar belakang di pengaturan aplikasi HP supaya tidak terulang.',
-        en: 'Your phone held Sulo’s checks back for too long (a battery saver can do this), so your SIKOLA session ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it does not happen again.',
+        en: 'Your phone held Sulo’s checks back for too long (a battery saver can do this), so your SIKOLA session ended. Sign in again, then allow Sulo to run in the background in the phone’s app settings so it doesn’t happen again.',
       },
     ],
   },
@@ -78,11 +78,11 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Pemantauan dijeda kalau Sulo tidak dibuka selama 7 hari, supaya tidak terus mengecek SIKOLA atas namamu tanpa kamu sadari. Kamu mendapat satu notifikasi "Pemantauan dijeda"; buka Sulo dan pemantauan jalan lagi.',
-        en: 'Watching pauses when Sulo has not been opened for 7 days, so it does not keep checking SIKOLA for you without you noticing. You get one "Watching is paused" notification; open Sulo and it starts again.',
+        en: 'Watching pauses when Sulo hasn’t been opened for 7 days, so it doesn’t keep checking SIKOLA for you without you noticing. You get one "Watching is paused" notification; open Sulo and it starts again.',
       },
       {
         id: 'Pemantauan juga berhenti mengecek kalau pengelola mematikannya lewat pengaturan jarak jauh, atau kalau pengaturan itu tidak terbaca selama 72 jam. Sulo membacanya lagi tiap 6 jam dan melanjutkan sendiri begitu boleh.',
-        en: 'Watching also stops checking when the maintainer turns it off through the remote settings, or when those settings cannot be read for 72 hours. Sulo reads them again every 6 hours and resumes on its own once allowed.',
+        en: 'Watching also stops checking when the developer turns it off through the remote settings, or when those settings can’t be read for 72 hours. Sulo reads them again every 6 hours and resumes on its own once allowed.',
       },
     ],
   },
@@ -92,7 +92,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Sulo memakai Android System WebView bawaan HP untuk menampilkan layarnya, dan butuh versi 111 atau lebih baru. Versi yang lebih lama menampilkan halaman "Perlu pembaruan"; selama itu Sulo tidak mengecek SIKOLA sama sekali.',
-        en: 'Sulo uses the phone’s Android System WebView to draw its screens and needs version 111 or newer. Older versions show the "Update needed" page; until then Sulo does not check SIKOLA at all.',
+        en: 'Sulo uses the phone’s Android System WebView to draw its screens and needs version 111 or newer. Older versions show the "Update needed" page; until then Sulo doesn’t check SIKOLA at all.',
       },
       {
         id: 'Langkahnya: ketuk Perbarui di halaman itu, atau buka Play Store, cari "Android System WebView", lalu ketuk Perbarui. Perbarui juga Google Chrome kalau ada. Setelah itu tutup Sulo sepenuhnya dan buka lagi.',
@@ -106,7 +106,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Bisa, sebagai pelengkap Sulo. Di SIKOLA, buka menu profil, Preferensi, lalu Preferensi notifikasi, dan nyalakan kolom Email untuk jenis yang kamu mau (misalnya tugas dan forum). Tombol di Lainnya, Pengaturan, Notifikasi membuka halaman preferensi SIKOLA di browser. Sulo tidak mengubah pengaturan itu.',
-        en: 'Yes, alongside Sulo. On SIKOLA, open the profile menu, Preferences, then Notification preferences, and turn on the Email column for the kinds you want (assignments and forums, for example). The button under More, Settings, Notifications opens SIKOLA’s preferences page in your browser. Sulo does not change those settings.',
+        en: 'Yes, alongside Sulo. On SIKOLA, open the profile menu, Preferences, then Notification preferences, and turn on the Email column for the kinds you want (assignments and forums, for example). The button under More, Settings, Notifications opens SIKOLA’s preferences page in your browser. Sulo doesn’t change those settings.',
       },
     ],
   },
@@ -150,7 +150,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan NEOSIA memintamu masuk lagi, ketuk Masuk NEOSIA. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan sesi NEOSIA di HP ini.',
-        en: 'Sulo does not keep your NEOSIA session alive. When you update and the NEOSIA page asks you to sign in, tap Sign in to NEOSIA and sign in there. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
+        en: 'Sulo doesn’t keep your NEOSIA session alive. When you update and the NEOSIA page asks you to sign in, tap Sign in to NEOSIA and sign in there. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
       },
     ],
   },
@@ -177,7 +177,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Buka Lainnya, Pengaturan, lalu Keluar dan hapus data. Sesi, semua data, dan pengingat terjadwal di HP ini terhapus. Menghapus aplikasi juga menghapus semuanya. Data di SIKOLA tidak tersentuh.',
-        en: 'Open More, Settings, then Sign out and delete data. The session, all data and scheduled reminders on this phone are deleted. Uninstalling the app deletes everything too. Nothing in SIKOLA is touched.',
+        en: 'Open More, Settings, then Sign out and delete data. The session, all data and scheduled reminders on this phone are deleted. Uninstalling the app deletes everything too. Nothing on SIKOLA is touched.',
       },
     ],
   },
@@ -187,7 +187,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Biasanya karena salah satu ini: mata kuliahnya belum dipantau (Lainnya, Mata kuliah); tugasnya belum dibuka dosen atau tidak punya tenggat di kalender SIKOLA; tenggatnya lebih dari 90 hari lagi; atau kamu sudah menandainya selesai. Tugas yang sudah dikumpulkan bisa hilang dari kalender SIKOLA, dan Sulo menyebutnya "mungkin sudah dikumpulkan".',
-        en: 'Usually one of these: the course is not followed (More, Courses); the lecturer has not opened the task yet or it has no due date in the SIKOLA calendar; it is due more than 90 days away; or you marked it as done. Handed-in tasks can drop out of the SIKOLA calendar, and Sulo calls them "probably handed in".',
+        en: 'Usually one of these: the course isn’t followed (More, Courses); the lecturer hasn’t opened the task yet or it has no due date in the SIKOLA calendar; it is due more than 90 days away; or you marked it as done. Handed-in tasks can drop out of the SIKOLA calendar, and Sulo calls them "probably handed in".',
       },
     ],
   },
@@ -197,7 +197,7 @@ const PHONE: FaqEntry[] = [
     a: [
       {
         id: 'Kalau Sulo tidak lagi bisa membaca SIKOLA dengan benar, Sulo menuliskannya di layar dan tidak menebak isinya. Data terakhir tetap tampil. Buka Lainnya, Pengaturan, Salin info untuk laporan bug, lalu kirim teksnya ke pengelola; teks itu tidak memuat data pribadi.',
-        en: 'If Sulo can no longer read SIKOLA properly, it says so on screen and does not guess. Your latest data stays. Open More, Settings, Copy info for a bug report, and send the text to the maintainer; it holds no personal data.',
+        en: 'If Sulo can no longer read SIKOLA properly, it says so on screen and doesn’t guess. Your latest data stays. Open More, Settings, Copy info for a bug report, and send the text to the developer; it holds no personal data.',
       },
     ],
   },

@@ -109,7 +109,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           },
           {
             id: 'ikrar06.github.io: repo data publik Sulo, untuk dua berkas data saja, yaitu pengaturan jarak jauh (termasuk apakah pemantauan sedang dimatikan pengelola) dan kalender akademik terbaru. Kalender dibaca paling sering sekali sehari, ditambah saat aplikasi dibuka kalau bacaan terakhir lebih dari 6 jam. Pengaturan jarak jauh dibaca paling sering tiap 6 jam, oleh aplikasi saat dibuka atau oleh pemantauan latar belakang kalau menyala. Permintaannya tidak membawa cookie atau apa pun yang mengenali kamu.',
-            en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including whether the maintainer has turned watching off) and the latest academic calendar. The calendar is read at most once a day, plus when you open the app and the last read is over 6 hours old. The remote settings are read at most every 6 hours, by the app when you open it or by background watching if it is on. The request carries no cookie and nothing that identifies you.',
+            en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including whether the developer has turned watching off) and the latest academic calendar. The calendar is read at most once a day, plus when you open the app and the last read is over 6 hours old. The remote settings are read at most every 6 hours, by the app when you open it or by background watching if it is on. The request carries no cookie and nothing that identifies you.',
           },
           {
             id: 'neosia.unhas.ac.id (hanya kalau kamu menghubungkan NEOSIA): halaman NEOSIA terbuka di dalam Sulo hanya saat kamu mengetuknya, dan halaman itu memuat datanya sendiri. Sulo tidak pernah mengirim permintaan ke NEOSIA.',
@@ -163,7 +163,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           },
           {
             id: 'Pengelola Sulo bisa mematikan atau memperlambat pemantauan untuk semua pengguna lewat pengaturan jarak jauh, misalnya kalau ada keberatan dari kampus. Pemantauan membaca pengaturan itu sendiri paling sering tiap 6 jam, jadi perubahannya berlaku tanpa kamu membuka aplikasi. Kalau pengaturan tidak terbaca selama 72 jam, pemantauan berhenti mengecek SIKOLA sampai terbaca lagi.',
-            en: 'Sulo’s maintainer can turn watching off or slow it down for everyone through the remote settings, for example if the university objects. Watching reads those settings itself at most every 6 hours, so a change applies without you opening the app. If the settings cannot be read for 72 hours, watching stops checking SIKOLA until they can.',
+            en: 'Sulo’s developer can turn watching off or slow it down for everyone through the remote settings, for example if the university objects. Watching reads those settings itself at most every 6 hours, so a change applies without you opening the app. If the settings cannot be read for 72 hours, watching stops checking SIKOLA until they can.',
           },
           {
             id: 'Kalau kamu tidak membuka Sulo selama 7 hari, pemantauan berhenti dengan satu notifikasi. Buka Sulo untuk melanjutkannya.',

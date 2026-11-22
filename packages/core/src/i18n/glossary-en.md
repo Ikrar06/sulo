@@ -77,7 +77,7 @@ The English text in `lib/i18n/en.ts` follows the same standard as the Indonesian
 | Choose courses | Title "Your courses", buttons "Refresh list" and "Save", then "No changes" or "Saved" with "Back to Sulo" |
 
 - Say what happens to the data in everyday words: "hidden", "deleted", "not touched". Never mention user ids, storage or an "active" account.
-- Every sentence about deleting says that nothing in SIKOLA is touched.
+- Every sentence about deleting says that nothing on SIKOLA is touched.
 
 ## Dashboard and calendar
 

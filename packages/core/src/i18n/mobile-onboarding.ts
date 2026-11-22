@@ -145,7 +145,7 @@ const en: Words = {
     title: 'Data stays on your phone',
     body: 'No server, no ads, no tracking.',
     stage: 'Your data is kept inside the phone, locked.',
-    badges: ['Password safe', 'Encrypted', 'No server'],
+    badges: ['No password kept', 'Encrypted', 'No server'],
     data: ['Tasks', 'Grades', 'Attendance'],
     start: 'Get started',
   },

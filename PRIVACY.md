@@ -17,7 +17,7 @@ Sulo uses the SIKOLA session that already exists in your browser to read your ow
 - the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks
 - your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts
 
-Sulo only reads. It never submits work, never marks anything as read, never changes data in SIKOLA, never reads quiz content, and never reads other students' data.
+Sulo only reads. It never submits work, never marks anything as read, never changes data on SIKOLA, never reads quiz content, and never reads other students' data.
 
 ## What Sulo stores, and where
 
@@ -34,7 +34,7 @@ From SIKOLA notifications, Sulo keeps only the id, the subject, the component an
 
 Local usage statistics (how often the popup and dashboard were opened, tasks marked as done and reminders shown) are numbers only and stay in your browser. Sulo never sends them. They are not shown and cannot be exported in the regular version; only development builds show them.
 
-Data is tied to your SIKOLA account, recognised by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose "Use this account", or when you use "Delete all data". If you sign in with the previous account again, everything comes back.
+Data is tied to your SIKOLA account, recognized by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose "Use this account", or when you use "Delete all data". If you sign in with the previous account again, everything comes back.
 
 ## What Sulo never does
 
@@ -94,7 +94,7 @@ Any time, in Settings with "Disconnect and delete data". All NEOSIA data is dele
 ## Deleting your data
 
 - Removing the extension from your browser deletes all of its data. This works today.
-- "Delete all data" in Settings (under "Delete data") deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.
+- "Delete all data" in Settings (under "Delete data") deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing on SIKOLA is touched.
 - "Disconnect and delete data" on the NEOSIA card (Settings) deletes all NEOSIA data and removes its permissions. "Delete all data" also turns the NEOSIA module off.
 
 ## Changes to this policy

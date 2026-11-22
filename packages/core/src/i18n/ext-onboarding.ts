@@ -65,7 +65,7 @@ type ExtWords = typeof id;
 
 const en: ExtWords = {
   scene: {
-    steps: ['Click Open SIKOLA', 'Log in as usual', 'Sulo recognises it at once'],
+    steps: ['Click Open SIKOLA', 'Log in as usual', 'Sulo recognizes it at once'],
     calendarTitle: 'Midterms start tomorrow',
     calendarTag: 'Exam',
     moreCards: [{ course: 'Basic Chemistry', title: 'Titration report', due: 'in 6 days', tone: 'later' }],

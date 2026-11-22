@@ -277,7 +277,7 @@ const en: MobileWords = {
     offline: 'No connection.',
     signOut: 'Sign out',
     signOutTitle: 'Sign out and delete data?',
-    signOutBody: "The SIKOLA session and all of Sulo's data on this phone are deleted. Nothing in SIKOLA is touched.",
+    signOutBody: "The SIKOLA session and all of Sulo's data on this phone are deleted. Nothing on SIKOLA is touched.",
     cancel: 'Cancel',
     lock: 'App lock',
     lockHelp: "Asks for your fingerprint or the phone's screen lock when Sulo opens.",
@@ -353,7 +353,7 @@ const en: MobileWords = {
   },
   notify: {
     title: 'Allow reminders?',
-    body: 'Sulo reminds you of task deadlines and key academic calendar dates with notifications on this phone. They are scheduled on the phone; nothing is sent out.',
+    body: 'Sulo reminds you of task deadlines and key academic calendar dates with notifications on this phone. They are scheduled on the phone. Nothing is sent out.',
     allow: 'Allow',
     later: 'Later',
     denied: "Notifications are off. Turn them on in the phone's Settings, under Apps, Sulo, Notifications.",
@@ -432,7 +432,7 @@ const en: MobileWords = {
     templates: {
       taskAdded: { title: 'New task: {name}', body: '{course}' },
       dueChanged: { title: 'Due date changed: {name}', body: '{course}' },
-      grade: { title: 'New grade out for {course}', body: 'Open to see it in SIKOLA.' },
+      grade: { title: 'New grade out for {course}', body: 'Open to see it on SIKOLA.' },
       forum: { title: 'New forum post in {course}', body: '' },
       material: { title: 'New material in {course}', body: '{name}' },
       mixed: { title: '{n} updates in {course}', body: 'Open Sulo to see them.' },

@@ -116,7 +116,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'p',
         text: {
           id: 'Sulo hanya membaca. Sulo tidak pernah mengumpulkan tugas, tidak menandai apa pun sebagai dibaca, tidak mengubah data di SIKOLA, tidak membaca isi kuis, dan tidak membaca data mahasiswa lain.',
-          en: "Sulo only reads. It never submits work, never marks anything as read, never changes data in SIKOLA, never reads quiz content, and never reads other students' data.",
+          en: "Sulo only reads. It never submits work, never marks anything as read, never changes data on SIKOLA, never reads quiz content, and never reads other students' data.",
         },
       },
     ],
@@ -160,7 +160,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'p',
         text: {
           id: 'Data terikat ke akun SIKOLA-mu, dikenali dari nomor pengguna SIKOLA (userid) yang disimpan apa adanya di browsermu. Kalau akun lain masuk ke SIKOLA di browser yang sama, data akun sebelumnya langsung disembunyikan dan Sulo berhenti mengecek serta mengingatkan. Data itu baru dihapus setelah kamu memilih "Pakai akun ini", atau saat kamu memakai "Hapus semua data". Kalau kamu masuk lagi dengan akun sebelumnya, semuanya muncul kembali.',
-          en: "Data is tied to your SIKOLA account, recognised by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose \"Use this account\", or when you use \"Delete all data\". If you sign in with the previous account again, everything comes back.",
+          en: "Data is tied to your SIKOLA account, recognized by your SIKOLA user number (userid), stored as is in your browser. If a different account signs in to SIKOLA on the same browser, the previous account's data is hidden at once and Sulo stops checking and reminding. That data is deleted only after you choose \"Use this account\", or when you use \"Delete all data\". If you sign in with the previous account again, everything comes back.",
         },
       },
     ],
@@ -268,7 +268,7 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ul',
         items: [
           { id: 'Mencopot ekstensi dari browser menghapus semua datanya. Ini sudah berlaku sekarang.', en: 'Removing the extension from your browser deletes all of its data. This works today.' },
-          { id: '"Hapus semua data" di Pengaturan (bagian "Hapus data") menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in Settings (under "Delete data") deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing in SIKOLA is touched.' },
+          { id: '"Hapus semua data" di Pengaturan (bagian "Hapus data") menghapus semua yang Sulo simpan di browser ini (tugas, mata kuliah, pengingat, kabar terbaru, dan pengaturan) tanpa mencopot ekstensi. Data di SIKOLA tidak tersentuh.', en: '"Delete all data" in Settings (under "Delete data") deletes everything Sulo keeps in this browser (tasks, courses, reminders, latest updates and settings) without removing the extension. Nothing on SIKOLA is touched.' },
           { id: '"Putuskan dan hapus data" di kartu NEOSIA (Pengaturan) menghapus semua data NEOSIA dan mencabut izinnya. "Hapus semua data" juga mematikan modul NEOSIA.', en: '"Disconnect and delete data" on the NEOSIA card (Settings) deletes all NEOSIA data and removes its permissions. "Delete all data" also turns the NEOSIA module off.' },
         ],
       },
