@@ -17,7 +17,8 @@ const id = {
   stepOf: (i: number, n: number) => `Langkah ${i} dari ${n}`,
   splash: { name: 'Sulo', tagline: 'Pendamping akademik mahasiswa Unhas' },
   intro1: {
-    title: 'Semua tenggat, satu tempat',
+    // \u00A0: the last two words stay together where text-wrap: balance is missing (WebView 111 to 113).
+    title: 'Semua tenggat, satu\u00A0tempat',
     body: 'Tugas dari semua mata kuliah SIKOLA.',
     stage: 'Tiga contoh kartu tugas merapikan diri jadi satu tumpukan.',
     cards: [
@@ -28,7 +29,7 @@ const id = {
     ],
   },
   intro2: {
-    title: 'Diingatkan sebelum terlambat',
+    title: 'Diingatkan sebelum\u00A0terlambat',
     body: 'Tenggat, kalender akademik, dan presensi.',
     stage: 'Contoh notifikasi pengingat, hitung mundur tenggat, dan presensi.',
     notifyTitle: 'Kuis bab 4',
