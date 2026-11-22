@@ -116,7 +116,7 @@ export function SourceFooter({ calendar, d }: { calendar: CalendarFile; d: DashM
       <a className="m-hit inline-flex items-center gap-1 rounded underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus" href={calendar.sumber.pdf_url} target="_blank" rel="noopener noreferrer">
         {k.officialPdf}
         {/* 14 px: inside a sentence of 12 px text, where 16 would stand taller than the capitals. */}
-        <ExternalIcon className="size-3.5" />
+        <ExternalIcon className="size-4" />
       </a>
       <span aria-hidden="true"> · </span>
       {k.refer}

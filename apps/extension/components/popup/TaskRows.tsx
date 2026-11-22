@@ -172,7 +172,7 @@ export function Group({ group, due, actions, lingering = [] }: { group: TaskGrou
       <CollapsibleTrigger className="flex w-full items-center gap-1.5 rounded-md px-3 py-1.5 text-left text-[12.5px] font-semibold text-muted-foreground hover:text-foreground">
         <span>{m.popup.groups[group.key]}</span>
         <span className="tabular-nums font-normal">{group.rows.length}</span>
-        <ChevronDownIcon className={`ml-auto size-3.5 transition-transform duration-200 ${open ? '' : '-rotate-90'}`} />
+        <ChevronDownIcon className={`ml-auto size-4 transition-transform duration-200 ${open ? '' : '-rotate-90'}`} />
       </CollapsibleTrigger>
       <CollapsibleContent>
         <ul>

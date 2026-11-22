@@ -348,7 +348,7 @@ export function ScenePrivate({ w, compact, width, play, lead }: SceneProps) {
         {tags.map((label, i) => (
           <At key={label} x={badgeX(i)} y={zone + i * (BADGE_H + 2)} w={BADGE_W} h={BADGE_H} pieceRef={(n) => void (badges.current[i] = n)} z={2}>
             <span className="flex h-full w-full items-center justify-center gap-1.5 rounded-full bg-m-inset text-m12 font-medium whitespace-nowrap">
-              <CheckIcon aria-hidden="true" className="size-3.5" />
+              <CheckIcon aria-hidden="true" className="size-4" />
               {label}
             </span>
           </At>

@@ -27,7 +27,7 @@ export function SceneConnect() {
         <div className="rounded-[20px] border-2" style={{ borderColor: faint }}>
           <div className="flex h-14 items-center px-4">
             <span className="inline-flex h-8 items-center gap-2 rounded-full px-3 text-[13px] whitespace-nowrap text-muted-foreground" style={{ background: 'var(--layer-inset)' }}>
-              <LockIcon className="size-3.5" />
+              <LockIcon className="size-4" />
               {phone.signin.address}
             </span>
           </div>
