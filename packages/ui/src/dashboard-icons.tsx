@@ -1,173 +1,261 @@
-// Dashboard-only inline SVG icons (kept out of components/icons.tsx so the
-// popup bundle does not grow). Stroke uses currentColor.
-import type { SVGProps } from 'react';
-
-type IconProps = SVGProps<SVGSVGElement>;
-
-function Icon({ children, ...props }: IconProps) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
-      {children}
-    </svg>
-  );
-}
+// Icons the dashboard and the phone use and the popup does not (kept out of
+// icons.tsx so the popup bundle does not grow). Drawn by Phosphor Icons, bold,
+// like icons.tsx; the "Solid" ones are Phosphor's fill weight of the same
+// drawing, for the selected item of the tab bar and the sidebar only.
+import { IconBase, type IconProps } from './icons';
 
 // Drawn once in icons.tsx (the popup uses them too); the names the dashboard and the phone already use stay.
 export { AlertIcon as AlertCircleIcon, BellIcon as NewsIcon, ChevronLeftIcon as ArrowLeftIcon, ClockIcon, GearIcon, MoreIcon } from './icons';
 
+/** Ringkasan. Phosphor: house. */
 export const HomeIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M3 10.5 12 3l9 7.5" />
-    <path d="M5 9.5V21h14V9.5" />
-    <path d="M10 21v-6h4v6" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M222.14,105.85l-80-80a20,20,0,0,0-28.28,0l-80,80A19.86,19.86,0,0,0,28,120v96a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V164h24v52a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V120A19.86,19.86,0,0,0,222.14,105.85ZM204,204H164V152a12,12,0,0,0-12-12H104a12,12,0,0,0-12,12v52H52V121.65l76-76,76,76Z" />
+  </IconBase>
 );
 
+/** Tugas: a clipboard with lines. Phosphor: clipboard-text. */
 export const TasksIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="m4 6 1.5 1.5L8 5" />
-    <path d="m4 12 1.5 1.5L8 11" />
-    <path d="m4 18 1.5 1.5L8 17" />
-    <path d="M11 6h9M11 12h9M11 18h9" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M172,164a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,164Zm-12-52H96a12,12,0,0,0,0,24h64a12,12,0,0,0,0-24Zm60-64V216a20,20,0,0,1-20,20H56a20,20,0,0,1-20-20V48A20,20,0,0,1,56,28H90.53a51.88,51.88,0,0,1,74.94,0H200A20,20,0,0,1,220,48ZM100.29,60h55.42a28,28,0,0,0-55.42,0ZM196,52H178.59A52.13,52.13,0,0,1,180,64v8a12,12,0,0,1-12,12H88A12,12,0,0,1,76,72V64a52.13,52.13,0,0,1,1.41-12H60V212H196Z" />
+  </IconBase>
 );
 
+/** Mata kuliah. Phosphor: book-open. */
 export const BookIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
-    <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M232,44H160a43.86,43.86,0,0,0-32,13.85A43.86,43.86,0,0,0,96,44H24A12,12,0,0,0,12,56V200a12,12,0,0,0,12,12H96a20,20,0,0,1,20,20,12,12,0,0,0,24,0,20,20,0,0,1,20-20h72a12,12,0,0,0,12-12V56A12,12,0,0,0,232,44ZM96,188H36V68H96a20,20,0,0,1,20,20V192.81A43.79,43.79,0,0,0,96,188Zm124,0H160a43.71,43.71,0,0,0-20,4.83V88a20,20,0,0,1,20-20h60Z" />
+  </IconBase>
 );
 
-/** Presensi: a clipboard with a check. */
+/** Presensi, wherever it appears: a raised hand ("hadir"). Phosphor: hand-palm. */
 export const AttendanceIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M9 4h6v3H9z" />
-    <path d="M15 5h3v16H6V5h3" />
-    <path d="m9 14 2 2 4-4" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M188,84a32,32,0,0,0-8,1V60a32,32,0,0,0-43.21-30A32,32,0,0,0,76,44v1A32,32,0,0,0,36,76v76a92,92,0,0,0,184,0V116A32,32,0,0,0,188,84Zm8,68a68,68,0,0,1-136,0V76a8,8,0,0,1,16,0v40a12,12,0,0,0,24,0V44a8,8,0,0,1,16,0v64a12,12,0,0,0,24,0V60a8,8,0,0,1,16,0v65.4A52.09,52.09,0,0,0,116,176a12,12,0,0,0,24,0,28,28,0,0,1,28-28,12,12,0,0,0,12-12V116a8,8,0,0,1,16,0Z" />
+  </IconBase>
 );
 
+/** Kalender. Phosphor: calendar-blank. */
 export const CalendarIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="3" y="4.5" width="18" height="17" rx="2.5" />
-    <path d="M3 10h18M8 2.5v4M16 2.5v4" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M208,28H188V24a12,12,0,0,0-24,0v4H92V24a12,12,0,0,0-24,0v4H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28ZM68,52a12,12,0,0,0,24,0h72a12,12,0,0,0,24,0h16V76H52V52ZM52,204V100H204V204Z" />
+  </IconBase>
 );
 
+/** Nilai (grades): a page. (Phosphor's exam paper, with its "A+", is a smudge at 16 px.) Phosphor: file-text. */
+export const GradeIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M216.49,79.52l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.52ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Zm112-80a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,132Zm0,40a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,172Z" />
+  </IconBase>
+);
+
+/** Phosphor: question. */
 export const HelpIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9.5" />
-    <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
-    <path d="M12 17h.01" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M144,180a16,16,0,1,1-16-16A16,16,0,0,1,144,180Zm92-52A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128ZM128,64c-24.26,0-44,17.94-44,40v4a12,12,0,0,0,24,0v-4c0-8.82,9-16,20-16s20,7.18,20,16-9,16-20,16a12,12,0,0,0-12,12v8a12,12,0,0,0,23.73,2.56C158.31,137.88,172,122.37,172,104,172,81.94,152.26,64,128,64Z" />
+  </IconBase>
 );
 
+/** Phosphor: info. */
 export const InfoIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 16v-4M12 8h.01" />
-  </Icon>
-);
-
-export const PencilIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M17 3.5a2.1 2.1 0 0 1 3 3L8 18.5 3.5 20 5 15.5z" />
-    <path d="m14.5 6 3.5 3.5" />
-  </Icon>
-);
-
-export const XIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M18 6 6 18M6 6l12 12" />
-  </Icon>
-);
-
-export const PlusIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M12 5v14M5 12h14" />
-  </Icon>
-);
-
-// Profile icons for "Dibuat oleh": simple line drawings kept in the repo,
-// never loaded from a CDN or the services themselves.
-
-export const InstagramIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="3" y="3" width="18" height="18" rx="5" />
-    <circle cx="12" cy="12" r="4" />
-    <path d="M17.5 6.5h.01" />
-  </Icon>
-);
-
-export const LinkedInIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="3" y="3" width="18" height="18" rx="2.5" />
-    <path d="M8 10.5V17M8 7.5v.01M12 17v-6.5M12 13.5c0-1.7 1.2-3 2.75-3S17 11.6 17 13.3V17" />
-  </Icon>
-);
-
-export const GitHubIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" />
-  </Icon>
-);
-
-export const GlobeIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-  </Icon>
-);
-
-/** Privacy mode off: data visible. */
-export const EyeIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-    <circle cx="12" cy="12" r="3" />
-  </Icon>
-);
-
-/** Privacy mode on: data masked. */
-export const EyeOffIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.4 3.4" />
-    <path d="M6.6 6.6A17.4 17.4 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6" />
-    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    <path d="m3 3 18 18" />
-  </Icon>
-);
-
-/** Status icons for the KRS readiness rows (line icons in status token colors). */
-export const CheckCircleIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="m8.5 12.5 2.5 2.5 4.5-5" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M108,84a16,16,0,1,1,16,16A16,16,0,0,1,108,84Zm128,44A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Zm-72,36.68V132a20,20,0,0,0-20-20,12,12,0,0,0-4,23.32V168a20,20,0,0,0,20,20,12,12,0,0,0,4-23.32Z" />
+  </IconBase>
 );
 
 export const InfoCircleIcon = InfoIcon;
 
+/** Phosphor: pencil-simple. */
+export const PencilIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M230.14,70.54,185.46,25.85a20,20,0,0,0-28.29,0L33.86,149.17A19.85,19.85,0,0,0,28,163.31V208a20,20,0,0,0,20,20H92.69a19.86,19.86,0,0,0,14.14-5.86L230.14,98.82a20,20,0,0,0,0-28.28ZM91,204H52V165l84-84,39,39ZM192,103,153,64l18.34-18.34,39,39Z" />
+  </IconBase>
+);
+
+/** Phosphor: x. */
+export const XIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z" />
+  </IconBase>
+);
+
+/** Phosphor: plus. */
+export const PlusIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z" />
+  </IconBase>
+);
+
+/** Phosphor: globe-simple. */
+export const GlobeIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm83.13,96H179.56a144.3,144.3,0,0,0-21.35-66.36A84.22,84.22,0,0,1,211.13,116ZM128,207c-9.36-10.81-24.46-33.13-27.45-67h54.94a119.74,119.74,0,0,1-17.11,52.77A108.61,108.61,0,0,1,128,207Zm-27.45-91a119.74,119.74,0,0,1,17.11-52.77A108.61,108.61,0,0,1,128,49c9.36,10.81,24.46,33.13,27.45,67ZM97.79,49.64A144.3,144.3,0,0,0,76.44,116H44.87A84.22,84.22,0,0,1,97.79,49.64ZM44.87,140H76.44a144.3,144.3,0,0,0,21.35,66.36A84.22,84.22,0,0,1,44.87,140Zm113.34,66.36A144.3,144.3,0,0,0,179.56,140h31.57A84.22,84.22,0,0,1,158.21,206.36Z" />
+  </IconBase>
+);
+
+/** Privacy mode off: data visible. Phosphor: eye. */
+export const EyeIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M251,123.13c-.37-.81-9.13-20.26-28.48-39.61C196.63,57.67,164,44,128,44S59.37,57.67,33.51,83.52C14.16,102.87,5.4,122.32,5,123.13a12.08,12.08,0,0,0,0,9.75c.37.82,9.13,20.26,28.49,39.61C59.37,198.34,92,212,128,212s68.63-13.66,94.48-39.51c19.36-19.35,28.12-38.79,28.49-39.61A12.08,12.08,0,0,0,251,123.13Zm-46.06,33C183.47,177.27,157.59,188,128,188s-55.47-10.73-76.91-31.88A130.36,130.36,0,0,1,29.52,128,130.45,130.45,0,0,1,51.09,99.89C72.54,78.73,98.41,68,128,68s55.46,10.73,76.91,31.89A130.36,130.36,0,0,1,226.48,128,130.45,130.45,0,0,1,204.91,156.12ZM128,84a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,84Zm0,64a20,20,0,1,1,20-20A20,20,0,0,1,128,148Z" />
+  </IconBase>
+);
+
+/** Privacy mode on: data masked. Phosphor: eye-slash. */
+export const EyeOffIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M56.88,31.93A12,12,0,1,0,39.12,48.07l16,17.65C20.67,88.66,5.72,121.58,5,123.13a12.08,12.08,0,0,0,0,9.75c.37.82,9.13,20.26,28.49,39.61C59.37,198.34,92,212,128,212a131.34,131.34,0,0,0,51-10l20.09,22.1a12,12,0,0,0,17.76-16.14ZM128,188c-29.59,0-55.47-10.73-76.91-31.88A130.69,130.69,0,0,1,29.52,128c5.27-9.31,18.79-29.9,42-44.29l90.09,99.11A109.33,109.33,0,0,1,128,188Zm123-55.12c-.36.81-9,20-28,39.16a12,12,0,1,1-17-16.9A130.48,130.48,0,0,0,226.48,128a130.36,130.36,0,0,0-21.57-28.12C183.46,78.73,157.59,68,128,68c-3.35,0-6.7.14-10,.42a12,12,0,1,1-2-23.91c3.93-.34,8-.51,12-.51,36,0,68.63,13.67,94.49,39.52,19.35,19.35,28.11,38.8,28.48,39.61A12.08,12.08,0,0,1,251,132.88Z" />
+  </IconBase>
+);
+
+/** Status icons for the KRS readiness rows (in status token colors). Phosphor: check-circle. */
+export const CheckCircleIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M176.49,95.51a12,12,0,0,1,0,17l-56,56a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L112,143l47.51-47.52A12,12,0,0,1,176.49,95.51ZM236,128A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Z" />
+  </IconBase>
+);
+
+/** Phosphor: minus-circle. */
 export const DashCircleIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M8.5 12h7" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M180,128a12,12,0,0,1-12,12H88a12,12,0,0,1,0-24h80A12,12,0,0,1,180,128Zm56,0A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Z" />
+  </IconBase>
 );
 
-/** Nilai (grades): a document with a check. */
-export const GradeIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z" />
-    <path d="M14 3v5h5" />
-    <path d="m9 14 2 2 4-4" />
-  </Icon>
-);
-
-/** The Android app's privacy notice. */
+/** The Android app's privacy notice. Phosphor: shield-check. */
 export const ShieldIcon = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z" />
-  </Icon>
+  <IconBase {...p}>
+    <path d="M208,36H48A20,20,0,0,0,28,56v56c0,54.29,26.32,87.22,48.4,105.29,23.71,19.39,47.44,26,48.44,26.29a12.1,12.1,0,0,0,6.32,0c1-.28,24.73-6.9,48.44-26.29,22.08-18.07,48.4-51,48.4-105.29V56A20,20,0,0,0,208,36Zm-4,76c0,35.71-13.09,64.69-38.91,86.15A126.28,126.28,0,0,1,128,219.38a126.14,126.14,0,0,1-37.09-21.23C65.09,176.69,52,147.71,52,112V60H204ZM79.51,144.49a12,12,0,1,1,17-17L112,143l47.51-47.52a12,12,0,0,1,17,17l-56,56a12,12,0,0,1-17,0Z" />
+  </IconBase>
 );
 
+/** The onboarding's "why is this safe?" list. Phosphor: browser. */
+export const BrowserIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M216,36H40A20,20,0,0,0,20,56V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V56A20,20,0,0,0,216,36Zm-4,24V84H44V60ZM44,196V108H212v88Z" />
+  </IconBase>
+);
+
+/** No server of Sulo's own. Phosphor: cloud-slash. */
+export const CloudOffIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M56.88,31.93A12,12,0,1,0,39.12,48.07L71.79,84A68,68,0,0,0,72,220h88a91.26,91.26,0,0,0,30.66-5.24l8.46,9.31a12,12,0,0,0,17.76-16.14ZM160,196H72a44,44,0,0,1-1.8-87.95A91.91,91.91,0,0,0,68,128a12,12,0,0,0,24,0,68.22,68.22,0,0,1,2.66-18.84l77.88,85.67A68.67,68.67,0,0,1,160,196Zm92-68a91.32,91.32,0,0,1-17.53,54,12,12,0,1,1-19.41-14.11,68,68,0,0,0-89.57-98.53,12,12,0,0,1-12.2-20.66A92,92,0,0,1,252,128Z" />
+  </IconBase>
+);
+
+/** The support button. Phosphor: coffee. */
+export const CoffeeIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M212,76H32A12,12,0,0,0,20,88v48a100.24,100.24,0,0,0,26.73,68H32a12,12,0,0,0,0,24H208a12,12,0,0,0,0-24H193.27a100.75,100.75,0,0,0,20-32A44,44,0,0,0,256,128v-8A44.05,44.05,0,0,0,212,76Zm-16,60a76.27,76.27,0,0,1-42,68H86a76.27,76.27,0,0,1-42-68V100H196Zm36-8a20,20,0,0,1-12.57,18.55A97.17,97.17,0,0,0,220,136V101.68A20,20,0,0,1,232,120ZM68,48V24a12,12,0,0,1,24,0V48a12,12,0,0,1-24,0Zm40,0V24a12,12,0,0,1,24,0V48a12,12,0,0,1-24,0Zm40,0V24a12,12,0,0,1,24,0V48a12,12,0,0,1-24,0Z" />
+  </IconBase>
+);
+
+/** Opens elsewhere, inside a button. Phosphor: arrow-up-right. */
+export const ArrowUpRightIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" />
+  </IconBase>
+);
+
+// Profile links for "Dibuat oleh": kept in the repo, never loaded from a CDN or
+// the services themselves.
+
+/** Phosphor: instagram-logo. */
+export const InstagramIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,72a24,24,0,1,1,24-24A24,24,0,0,1,128,152ZM176,20H80A60.07,60.07,0,0,0,20,80v96a60.07,60.07,0,0,0,60,60h96a60.07,60.07,0,0,0,60-60V80A60.07,60.07,0,0,0,176,20Zm36,156a36,36,0,0,1-36,36H80a36,36,0,0,1-36-36V80A36,36,0,0,1,80,44h96a36,36,0,0,1,36,36ZM196,76a16,16,0,1,1-16-16A16,16,0,0,1,196,76Z" />
+  </IconBase>
+);
+
+/** Phosphor: linkedin-logo. */
+export const LinkedInIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M216,20H40A20,20,0,0,0,20,40V216a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V40A20,20,0,0,0,216,20Zm-4,192H44V44H212ZM112,176V120a12,12,0,0,1,21.43-7.41A40,40,0,0,1,192,148v28a12,12,0,0,1-24,0V148a16,16,0,0,0-32,0v28a12,12,0,0,1-24,0ZM96,120v56a12,12,0,0,1-24,0V120a12,12,0,0,1,24,0ZM68,80A16,16,0,1,1,84,96,16,16,0,0,1,68,80Z" />
+  </IconBase>
+);
+
+/** Phosphor: github-logo. */
+export const GitHubIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M212.62,75.17A63.7,63.7,0,0,0,206.39,26,12,12,0,0,0,196,20a63.71,63.71,0,0,0-50,24H126A63.71,63.71,0,0,0,76,20a12,12,0,0,0-10.39,6,63.7,63.7,0,0,0-6.23,49.17A61.5,61.5,0,0,0,52,104v8a60.1,60.1,0,0,0,45.76,58.28A43.66,43.66,0,0,0,92,192v4H76a20,20,0,0,1-20-20,44.05,44.05,0,0,0-44-44,12,12,0,0,0,0,24,20,20,0,0,1,20,20,44.05,44.05,0,0,0,44,44H92v12a12,12,0,0,0,24,0V192a20,20,0,0,1,40,0v40a12,12,0,0,0,24,0V192a43.66,43.66,0,0,0-5.76-21.72A60.1,60.1,0,0,0,220,112v-8A61.5,61.5,0,0,0,212.62,75.17ZM196,112a36,36,0,0,1-36,36H112a36,36,0,0,1-36-36v-8a37.87,37.87,0,0,1,6.13-20.12,11.65,11.65,0,0,0,1.58-11.49,39.9,39.9,0,0,1-.4-27.72,39.87,39.87,0,0,1,26.41,17.8A12,12,0,0,0,119.82,68h32.35a12,12,0,0,0,10.11-5.53,39.84,39.84,0,0,1,26.41-17.8,39.9,39.9,0,0,1-.4,27.72,12,12,0,0,0,1.61,11.53A37.85,37.85,0,0,1,196,104Z" />
+  </IconBase>
+);
+
+// The selected item of the tab bar and the sidebar: the same drawing, filled.
+// The silhouette never changes between the two, only the inside.
+
+/** Phosphor: house (fill). */
+export const HomeSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z" />
+  </IconBase>
+);
+
+/** Phosphor: clipboard-text (fill). */
+export const TasksSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M200,32H163.74a47.92,47.92,0,0,0-71.48,0H56A16,16,0,0,0,40,48V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm-72,0a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm32,128H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm0-32H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Z" />
+  </IconBase>
+);
+
+/** Phosphor: book-open (fill). */
+export const BookSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M240,56V200a8,8,0,0,1-8,8H160a24,24,0,0,0-24,23.94,7.9,7.9,0,0,1-5.12,7.55A8,8,0,0,1,120,232a24,24,0,0,0-24-24H24a8,8,0,0,1-8-8V56a8,8,0,0,1,8-8H88a32,32,0,0,1,32,32v87.73a8.17,8.17,0,0,0,7.47,8.25,8,8,0,0,0,8.53-8V80a32,32,0,0,1,32-32h64A8,8,0,0,1,240,56Z" />
+  </IconBase>
+);
+
+/** Phosphor: hand-palm (fill). */
+export const AttendanceSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M216,104v48a88,88,0,0,1-176,0V64a16,16,0,0,1,32,0v56a8,8,0,0,0,16,0V32a16,16,0,0,1,32,0v80a8,8,0,0,0,16,0V48a16,16,0,0,1,32,0v80.67A48.08,48.08,0,0,0,128,176a8,8,0,0,0,16,0,32,32,0,0,1,32-32,8,8,0,0,0,8-8V104a16,16,0,0,1,32,0Z" />
+  </IconBase>
+);
+
+/** Phosphor: bell (fill). */
+export const NewsSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216Z" />
+  </IconBase>
+);
+
+/** Phosphor: calendar-blank (fill). */
+export const CalendarSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,48H48V48H72v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24Z" />
+  </IconBase>
+);
+
+/** Phosphor: clock (fill). */
+export const ClockSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm56,112H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48a8,8,0,0,1,0,16Z" />
+  </IconBase>
+);
+
+/** Phosphor: file-text (fill). */
+export const GradeSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,176H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm0-32H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm-8-56V44l44,44Z" />
+  </IconBase>
+);
+
+/** Phosphor: gear (fill). */
+export const GearSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M216,130.16q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.6,107.6,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.29,107.29,0,0,0-26.25-10.86,8,8,0,0,0-7.06,1.48L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.6,107.6,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z" />
+  </IconBase>
+);
+
+/** Phosphor: question (fill). */
+export const HelpSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,168a12,12,0,1,1,12-12A12,12,0,0,1,128,192Zm8-48.72V144a8,8,0,0,1-16,0v-8a8,8,0,0,1,8-8c13.23,0,24-9,24-20s-10.77-20-24-20-24,9-24,20v4a8,8,0,0,1-16,0v-4c0-19.85,17.94-36,40-36s40,16.15,40,36C168,125.38,154.24,139.93,136,143.28Z" />
+  </IconBase>
+);
+
+/** Phosphor: info (fill). */
+export const InfoSolidIcon = (p: IconProps) => (
+  <IconBase {...p}>
+    <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-4,48a12,12,0,1,1-12,12A12,12,0,0,1,124,72Zm12,112a16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40a8,8,0,0,1,0,16Z" />
+  </IconBase>
+);

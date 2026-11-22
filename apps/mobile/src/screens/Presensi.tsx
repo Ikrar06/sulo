@@ -46,6 +46,7 @@ export function PresensiScreen({ courseId, go }: { courseId: number | null; go: 
   const { data, platform } = useMobileData();
   const user = data!.user!;
   const presensi = user.presensi ?? EMPTY_PRESENSI;
+  const masked = usePrivacy();
   const followed = useMemo(() => {
     const active = activeCourseIds(user.courses);
     return user.courses.filter((c) => active.has(c.id)).sort((a, b) => courseAlias(a).localeCompare(courseAlias(b), 'id'));
@@ -98,7 +99,7 @@ export function PresensiScreen({ courseId, go }: { courseId: number | null; go: 
       {summary ? (
         <Card hero>
           <div className="flex items-center gap-4">
-            <ProgressRing value={summary.average} label={`${w.app.attendance} ${pct(summary.average, locale)}%`} />
+            <ProgressRing value={summary.average} masked={masked} label={masked ? w.app.attendance : `${w.app.attendance} ${pct(summary.average, locale)}%`} />
             <div className="min-w-0 flex-1">
               <p className="text-m12 text-muted-foreground">
                 {w.app.attendance} {w.app.average}
@@ -146,19 +147,48 @@ export function PresensiScreen({ courseId, go }: { courseId: number | null; go: 
   );
 }
 
+/** In privacy mode only the track is drawn: a filled bar gives the percent away as surely as the number. */
 function Bar({ percent }: { percent: number }) {
+  const masked = usePrivacy();
   return (
     <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-m-inset" aria-hidden="true">
-      <span className="block h-full rounded-full bg-foreground" style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
+      {!masked && <span className="block h-full rounded-full bg-foreground" style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />}
     </span>
   );
 }
 
-function CourseCard({ course, color, row, fetched, d, w, locale, onOpen }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; fetched: boolean; d: ReturnType<typeof mobileDash>; w: ReturnType<typeof mobileWords>; locale: 'id' | 'en'; onOpen: () => void }) {
+/** The session count with the points after it; the points are masked in privacy mode (the percent follows from them). */
+function Masked({ count, points }: { count: string; points: boolean }) {
+  return (
+    <>
+      {count}
+      {points && (
+        <>
+          {' · '}
+          <Private>{null}</Private>
+        </>
+      )}
+    </>
+  );
+}
+
+export function CourseCard({ course, color, row, fetched, d, w, locale, onOpen }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; fetched: boolean; d: ReturnType<typeof mobileDash>; w: ReturnType<typeof mobileWords>; locale: 'id' | 'en'; onOpen: () => void }) {
   const pw = d.presensi;
   const name = courseAlias(course);
   const status = courseStatus(row, fetched);
-  const line = status === 'not_fetched' ? pw.notFetched : status === 'no_module' ? pw.noModule : status === 'no_sessions' ? pw.noSessions : w.app.sessions(row!.taken, row!.points?.got ?? null, row!.points?.max ?? null);
+  const masked = usePrivacy();
+  const line =
+    status === 'not_fetched' ? (
+      pw.notFetched
+    ) : status === 'no_module' ? (
+      pw.noModule
+    ) : status === 'no_sessions' ? (
+      pw.noSessions
+    ) : masked ? (
+      <Masked count={w.app.sessions(row!.taken, null, null)} points={Boolean(row!.points)} />
+    ) : (
+      w.app.sessions(row!.taken, row!.points?.got ?? null, row!.points?.max ?? null)
+    );
   const body = (
     <>
       <div className="flex items-center gap-3">
@@ -189,13 +219,14 @@ function CourseCard({ course, color, row, fetched, d, w, locale, onOpen }: { cou
   );
 }
 
-function CourseHeader({ course, color, row, d, locale, when }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; d: ReturnType<typeof mobileDash>; locale: 'id' | 'en'; when: string }) {
+export function CourseHeader({ course, color, row, d, locale, when }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; d: ReturnType<typeof mobileDash>; locale: 'id' | 'en'; when: string }) {
   const pw = d.presensi;
   const name = courseAlias(course);
+  const masked = usePrivacy();
   return (
     <Card hero>
       <div className="flex items-center gap-4">
-        {row && row.percent !== null ? <ProgressRing value={row.percent} label={`${name} ${pct(row.percent, locale)}%`} /> : <Tile color={courseTint(color)} size={44}>{initials(name)}</Tile>}
+        {row && row.percent !== null ? <ProgressRing value={row.percent} masked={masked} label={masked ? name : `${name} ${pct(row.percent, locale)}%`} /> : <Tile color={courseTint(color)} size={44}>{initials(name)}</Tile>}
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-m18">{name}</p>
           {row && row.percent !== null && (
@@ -203,7 +234,11 @@ function CourseHeader({ course, color, row, d, locale, when }: { course: CourseR
               <Private>{pct(row.percent, locale)}%</Private>
             </p>
           )}
-          {row && <p className="text-m13 text-muted-foreground tabular-nums">{row.taken === 0 ? pw.noSessions : [pw.taken(row.taken), row.points ? pw.points(row.points.got, row.points.max) : null].filter(Boolean).join(' · ')}</p>}
+          {row && (
+            <p className="text-m13 text-muted-foreground tabular-nums">
+              {row.taken === 0 ? pw.noSessions : masked ? <Masked count={pw.taken(row.taken)} points={Boolean(row.points)} /> : [pw.taken(row.taken), row.points ? pw.points(row.points.got, row.points.max) : null].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
       </div>
       <p className="mt-3 text-m12 font-normal text-muted-foreground" role="status">
@@ -214,7 +249,7 @@ function CourseHeader({ course, color, row, d, locale, when }: { course: CourseR
 }
 
 /** Sessions by month, one group card each. */
-function Sessions({ sessions, loading, d, locale }: { sessions: SessionRow[] | null; loading: boolean; d: ReturnType<typeof mobileDash>; locale: 'id' | 'en' }) {
+export function Sessions({ sessions, loading, d, locale }: { sessions: SessionRow[] | null; loading: boolean; d: ReturnType<typeof mobileDash>; locale: 'id' | 'en' }) {
   const { m } = useI18n();
   const pw = d.presensi;
   const masked = usePrivacy();
@@ -255,7 +290,13 @@ function Sessions({ sessions, loading, d, locale }: { sessions: SessionRow[] | n
                           {s.status === 'unknown' ? s.statusText || '-' : pw.status[s.status]}
                         </Chip>
                       </span>
-                      {s.points && <span className="text-m12 font-normal text-muted-foreground tabular-nums">{s.points.got}/{s.points.max}</span>}
+                      {s.points && (
+                        <span className="text-m12 font-normal text-muted-foreground tabular-nums">
+                          <Private>
+                            {s.points.got}/{s.points.max}
+                          </Private>
+                        </span>
+                      )}
                     </span>
                   </div>
                 );

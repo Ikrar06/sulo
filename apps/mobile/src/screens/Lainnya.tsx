@@ -9,7 +9,7 @@ import { formatAgo } from '@sulo/core/format/time';
 import { FEEDBACK_FORM_URL, isShownLink, TRAKTEER_URL } from '@sulo/core/links';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
-import { BookIcon, CalendarIcon, GearIcon, GradeIcon, HelpIcon, InfoIcon, NewsIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
+import { BookIcon, ClockIcon, GearIcon, GradeIcon, HelpIcon, InfoIcon, NewsIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { Mascot } from '@sulo/ui/mascot/Mascot';
 import { Card, IconTile } from '@sulo/ui/mobile/cards';
@@ -31,7 +31,7 @@ const ITEMS: { name: ScreenName; icon: ComponentType<SVGProps<SVGSVGElement>>; t
 
 type Item = (typeof ITEMS)[number];
 const ACADEMIC: Item[] = [
-  { name: 'jadwal', icon: CalendarIcon, tint: 'course-4' },
+  { name: 'jadwal', icon: ClockIcon, tint: 'course-4' },
   { name: 'nilai', icon: GradeIcon, tint: 'course-1' },
 ];
 

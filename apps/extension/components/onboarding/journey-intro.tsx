@@ -10,10 +10,11 @@
 //   3. a browser window drawn as an outline, three data chips inside, a lock
 //      closing on its top edge, three short badges on its bottom edge
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type Ref, type SVGProps } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import { formatCountdown } from '@sulo/core/format/countdown';
 import { extOnboardingWords } from '@sulo/core/i18n/ext-onboarding';
 import { useI18n } from '@sulo/ui/i18n';
+import { BrowserIcon, CalendarIcon, CloudOffIcon, EyeIcon } from '@sulo/ui/dashboard-icons';
 import { BellIcon, CheckIcon, KeyIcon } from '@sulo/ui/icons';
 import { Chip } from '@sulo/ui/mobile/cards';
 import { ProgressRing } from '@sulo/ui/mobile/ring';
@@ -137,13 +138,6 @@ function Banner({ icon, title, children, bannerRef }: { icon: ReactNode; title: 
   );
 }
 
-const CalendarIcon = (p: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}>
-    <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
-    <path d="M3.5 10h17M8 3v4M16 3v4" />
-  </svg>
-);
-
 /** Base times (ms, before SCENE_TEMPO): the reminder lands; the calendar banner follows 150 ms after. */
 const LAND_MS = 520;
 
@@ -264,7 +258,7 @@ function ScenePrivate() {
           {w.badges.map((b, i) => (
             <In key={b} i={i + 5} delay={160}>
               <span className="m-card inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium whitespace-nowrap">
-                <CheckIcon className="size-3.5 text-muted-foreground" />
+                <CheckIcon className="size-4 text-muted-foreground" />
                 {b}
               </span>
             </In>
@@ -324,32 +318,6 @@ export function IntroText({ page, onNext, onGo, onBack, onWhy }: { page: number;
 
 // ---------- "Kenapa aman?" ----------
 
-type IconProps = SVGProps<SVGSVGElement>;
-const Line = ({ children, ...p }: IconProps & { children: ReactNode }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}>
-    {children}
-  </svg>
-);
-const BrowserIcon = (p: IconProps) => (
-  <Line {...p}>
-    <rect x="3" y="4" width="18" height="16" rx="3" />
-    <path d="M3 9h18M7 6.5h.01M10 6.5h.01" />
-  </Line>
-);
-const EyeIcon = (p: IconProps) => (
-  <Line {...p}>
-    <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z" />
-    <circle cx="12" cy="12" r="2.5" />
-  </Line>
-);
-const NoServerIcon = (p: IconProps) => (
-  <Line {...p}>
-    <rect x="4" y="4" width="16" height="6" rx="2" />
-    <rect x="4" y="14" width="16" height="6" rx="2" />
-    <path d="M3 3l18 18" />
-  </Line>
-);
-
 export function WhyDialog({ open, onOpenChange, outdated, onPrivacy }: { open: boolean; onOpenChange: (v: boolean) => void; outdated?: string; onPrivacy: () => void }) {
   const { locale } = useI18n();
   const { ext } = words(locale);
@@ -357,7 +325,7 @@ export function WhyDialog({ open, onOpenChange, outdated, onPrivacy }: { open: b
     [BrowserIcon, ext.whyPoints.browser],
     [KeyIcon, ext.whyPoints.password],
     [EyeIcon, ext.whyPoints.read],
-    [NoServerIcon, ext.whyPoints.server],
+    [CloudOffIcon, ext.whyPoints.server],
   ] as const;
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
