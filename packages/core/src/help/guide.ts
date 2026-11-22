@@ -44,7 +44,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     alt: { id: 'Popup Sulo dengan daftar tugas terdekat.', en: 'The Sulo popup with the tasks due soonest.' },
     points: [
       { id: 'Tugas yang paling dekat tenggatnya ada di atas.', en: 'The tasks due soonest are at the top.' },
-      { id: 'Perbarui memeriksa SIKOLA sekarang. Kalau baru saja diperbarui, tombolnya cukup bilang "Sudah terbaru".', en: 'Update checks SIKOLA now. Right after an update it just says "Up to date".' },
+      { id: 'Perbarui mengecek SIKOLA sekarang. Kalau baru saja diperbarui, tombolnya cukup bilang "Sudah terbaru".', en: 'Update checks SIKOLA now. Right after an update it just says "Up to date".' },
       { id: 'Pengaturan, lalu Buka dashboard.', en: 'Settings, then Open dashboard.' },
     ],
   },

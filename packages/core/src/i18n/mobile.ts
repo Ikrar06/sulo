@@ -35,7 +35,7 @@ const id = {
     /** The one updating line on every screen (owner's rules, 20 Nov 2026): the sync's real stages. */
     sync: {
       updating: 'Memperbarui dari SIKOLA…',
-      stages: { tasks: 'Mengambil tugas…', courses: 'Memeriksa mata kuliah…', attendance: 'Mengambil presensi…' },
+      stages: { tasks: 'Mengambil tugas…', courses: 'Mengecek mata kuliah…', attendance: 'Mengambil presensi…' },
       upToDate: 'Sudah terbaru',
       // Read with its button: "Belum bisa memperbarui. [Coba lagi]".
       failed: 'Belum bisa memperbarui.',
@@ -141,7 +141,7 @@ const id = {
   settings: {
     language: 'Bahasa',
     languageNote: 'Mengikuti bahasa HP.',
-    bugHelp: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya versi aplikasi dan catatan teknis pemeriksaan terakhir, tanpa nama, NIM, sesi, atau isi tugas.',
+    bugHelp: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya versi aplikasi dan catatan teknis pengecekan terakhir, tanpa nama, NIM, sesi, atau isi tugas.',
     copied: 'Info disalin.',
     signOutDelete: 'Keluar dan hapus data',
     nicknameHelp: 'Opsional, maksimal 24 karakter. Hanya untuk menyapamu di Ringkasan, disimpan di HP ini.',
@@ -166,7 +166,7 @@ const id = {
     howTo: 'Buka berkas yang terunduh, lalu pilih Perbarui.',
     aboutRow: (v: string) => `Versi baru tersedia: ${v}`,
     requiredTitle: 'Sulo perlu diperbarui',
-    requiredBody: 'Sulo berhenti memeriksa SIKOLA sampai diperbarui.',
+    requiredBody: 'Sulo berhenti mengecek SIKOLA sampai diperbarui.',
     requiredData: 'Datamu tetap ada di HP ini.',
   },
   /** Ringkasan's greeting (core dashboard/mobile-greeting.ts). [s] marks a casual line, only when nothing is overdue or due today. */

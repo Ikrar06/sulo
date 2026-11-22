@@ -67,7 +67,7 @@ const PHONE: FaqEntry[] = [
         en: 'With watching on, Sulo wakes at most about 55 times a day: every 20 minutes from 06:00 to 22:59 and every 110 minutes at night. Each time it sends one small request to SIKOLA, then sleeps again. Nothing keeps running in the background.',
       },
       {
-        id: 'Saat Penghemat baterai menyala, Sulo mengecek tiap 110 menit, siang maupun malam, tanpa memeriksa materi mata kuliah, dan kembali normal saat penghemat dimatikan. Kalau ingin lebih hemat lagi, matikan pemantauan; Sulo tetap memperbarui saat aplikasi dibuka.',
+        id: 'Saat Penghemat baterai menyala, Sulo mengecek tiap 110 menit, siang maupun malam, tanpa mengecek materi mata kuliah, dan kembali normal saat penghemat dimatikan. Kalau ingin lebih hemat lagi, matikan pemantauan; Sulo tetap memperbarui saat aplikasi dibuka.',
         en: 'With Battery Saver on, Sulo checks every 110 minutes, day and night, without looking at course materials, and goes back to normal when the saver is off. To save even more, turn watching off; Sulo still updates when you open the app.',
       },
     ],

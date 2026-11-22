@@ -37,7 +37,7 @@ const id = {
     body: 'Masuk di tab SIKOLA seperti biasa.',
     switchBody: 'Hubungkan akun yang sedang masuk di SIKOLA.',
     open: 'Buka SIKOLA',
-    checking: 'Memeriksa SIKOLA',
+    checking: 'Mengecek SIKOLA',
     waiting: 'Menunggu kamu masuk ke SIKOLA',
     needLogin: 'Belum masuk. Buka SIKOLA untuk masuk.',
     connected: 'Terhubung',

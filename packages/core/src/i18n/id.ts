@@ -93,7 +93,7 @@ export const id = {
     },
     account: {
       title: 'Akun SIKOLA berganti',
-      body: 'Kamu masuk ke SIKOLA dengan akun lain. Tugas akun sebelumnya disembunyikan, dan Sulo berhenti memeriksa serta mengingatkan sampai kamu memilih.',
+      body: 'Kamu masuk ke SIKOLA dengan akun lain. Tugas akun sebelumnya disembunyikan, dan Sulo berhenti mengecek serta mengingatkan sampai kamu memilih.',
       useThis: 'Pakai akun ini',
       useThisNote: 'Data akun sebelumnya di Sulo akan dihapus. Data di SIKOLA tidak tersentuh.',
       later: 'Nanti, aku akan masuk dengan akun sebelumnya',
@@ -320,7 +320,7 @@ export const id = {
       title: 'Hubungkan dengan SIKOLA',
       lead: 'Buka SIKOLA dan masuk seperti biasa. Sulo akan langsung mengenalinya.',
       open: 'Buka SIKOLA',
-      checking: 'Memeriksa SIKOLA…',
+      checking: 'Mengecek SIKOLA…',
       waiting: 'Menunggu kamu masuk ke SIKOLA…',
       connected: 'Terhubung',
       loading: 'Mengambil tugas, kalender, dan presensi…',

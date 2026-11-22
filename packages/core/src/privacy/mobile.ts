@@ -65,7 +65,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Data terikat ke akun SIKOLA-mu. Kalau akun lain masuk, data akun sebelumnya langsung disembunyikan dan Sulo berhenti memeriksa serta mengingatkan, termasuk pemantauan latar belakang. Data itu, juga data NEOSIA-nya, baru dihapus setelah kamu memilih "Pakai akun ini".',
+          id: 'Data terikat ke akun SIKOLA-mu. Kalau akun lain masuk, data akun sebelumnya langsung disembunyikan dan Sulo berhenti mengecek serta mengingatkan, termasuk pemantauan latar belakang. Data itu, juga data NEOSIA-nya, baru dihapus setelah kamu memilih "Pakai akun ini".',
           en: 'Data is tied to your SIKOLA account. When another account signs in, the previous account’s data is hidden at once and Sulo stops checking and reminding, background watching included. That data, its NEOSIA data too, is deleted only after you choose "Use this account".',
         },
       },
@@ -116,7 +116,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'neosia.unhas.ac.id (only if you connect NEOSIA): NEOSIA’s pages open inside Sulo only when you tap them, and those pages load their own data. Sulo never sends a request to NEOSIA.',
           },
           {
-            id: 'Pengaturan jarak jauh yang sama juga memberi tahu kalau ada versi baru Sulo. Tombol Unduh membuka halaman rilis di github.com lewat browser; Sulo tidak mengunduh atau memasang apa pun sendiri. Untuk perbaikan keamanan, versi lama bisa diminta memperbarui dulu: selama itu Sulo tidak memeriksa SIKOLA, dan datamu tetap ada.',
+            id: 'Pengaturan jarak jauh yang sama juga memberi tahu kalau ada versi baru Sulo. Tombol Unduh membuka halaman rilis di github.com lewat browser; Sulo tidak mengunduh atau memasang apa pun sendiri. Untuk perbaikan keamanan, versi lama bisa diminta memperbarui dulu: selama itu Sulo tidak mengecek SIKOLA, dan datamu tetap ada.',
             en: 'The same remote settings also tell you when a new Sulo version is out. Download opens the release page on github.com in your browser; Sulo never downloads or installs anything itself. For a security fix, an old version can be asked to update first: until then Sulo does not check SIKOLA, and your data stays.',
           },
           {
@@ -132,7 +132,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
     ],
   },
   {
-    heading: { id: 'Kapan Sulo memeriksa SIKOLA', en: 'When Sulo checks SIKOLA' },
+    heading: { id: 'Kapan Sulo mengecek SIKOLA', en: 'When Sulo checks SIKOLA' },
     blocks: [
       {
         kind: 'p',
@@ -158,7 +158,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'While it is on, your SIKOLA sign-in stays active on this phone, because SIKOLA counts the checks as activity. Turn it off if you do not want your session kept active.',
           },
           {
-            id: 'Mematikannya: Lainnya, Pengaturan, Notifikasi, "Pantau tugas baru". Cek berhenti seketika; sesudah itu Sulo hanya memeriksa saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
+            id: 'Mematikannya: Lainnya, Pengaturan, Notifikasi, "Pantau tugas baru". Cek berhenti seketika; sesudah itu Sulo hanya mengecek saat kamu membuka aplikasi, menarik layar, atau mengetuk Perbarui.',
             en: 'To turn it off: More, Settings, Notifications, "Watch for new tasks". Checks stop at once; after that Sulo only checks when you open the app, pull down, or tap Update.',
           },
           {
@@ -170,7 +170,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'If you do not open Sulo for 7 days, watching stops with one notification. Open Sulo to resume it.',
           },
           {
-            id: 'Cek berkala ikut batas harian yang sama dengan pemeriksaan lain, dan tidak pernah mengambil rekap presensi.',
+            id: 'Cek berkala ikut batas harian yang sama dengan pengecekan lain, dan tidak pernah mengambil rekap presensi.',
             en: 'The checks count against the same daily limits as every other check, and never fetch the attendance recap.',
           },
         ],

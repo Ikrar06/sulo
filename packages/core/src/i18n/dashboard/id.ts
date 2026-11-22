@@ -311,10 +311,10 @@ export const dashId = {
   pengaturan: {
     bugReport: {
       cardTitle: 'Laporan bug',
-      help: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya hanya versi, browser, dan catatan teknis pemeriksaan terakhir, tanpa nama, NIM, atau isi tugas.',
+      help: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya hanya versi, browser, dan catatan teknis pengecekan terakhir, tanpa nama, NIM, atau isi tugas.',
       button: 'Salin info untuk laporan bug',
       title: 'Info untuk laporan bug',
-      body: 'Ini yang akan disalin. Periksa dulu, lalu salin.',
+      body: 'Ini yang akan disalin. Cek dulu, lalu salin.',
       copy: 'Salin',
       copied: 'Info disalin',
     },

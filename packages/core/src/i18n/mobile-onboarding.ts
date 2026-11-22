@@ -106,7 +106,7 @@ const id = {
   },
   sheets: {
     why: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi login disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
-    watch: 'Sulo memeriksa SIKOLA berkala di latar belakang supaya tugas baru cepat diberitahu. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
+    watch: 'Sulo mengecek SIKOLA berkala di latar belakang supaya tugas baru cepat diberitahu. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
   },
   unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
 };

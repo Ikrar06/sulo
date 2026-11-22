@@ -34,14 +34,14 @@ export const HOW_IT_WORKS: HelpSection[] = [
     ],
   },
   {
-    heading: { id: 'Kapan Sulo memeriksa', en: 'When Sulo checks' },
+    heading: { id: 'Kapan Sulo mengecek', en: 'When Sulo checks' },
     paragraphs: [
       {
-        id: 'Sulo memeriksa kira-kira tiap 3 jam selama browser terbuka dan kamu sedang memakai laptop, sebentar setelah browser dibuka, dan saat kamu mengeklik "Perbarui". Pukul 00.00 sampai 06.00 Sulo tidak memeriksa. Membuka popup atau dashboard tidak memeriksa SIKOLA.',
+        id: 'Sulo mengecek kira-kira tiap 3 jam selama browser terbuka dan kamu sedang memakai laptop, sebentar setelah browser dibuka, dan saat kamu mengeklik "Perbarui". Pukul 00.00 sampai 06.00 Sulo tidak mengecek. Membuka popup atau dashboard tidak mengecek SIKOLA.',
         en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It does not check from 00:00 to 06:00. Opening the popup or the dashboard never checks SIKOLA.',
       },
       {
-        id: 'Sulo memeriksa dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
+        id: 'Sulo mengecek dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
         en: 'Sulo checks sparingly to go easy on SIKOLA, so new data sometimes shows up a little later.',
       },
     ],
@@ -97,7 +97,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Kenapa daftarku tidak berubah?', en: 'Why is my list not changing?' },
     a: [
       {
-        id: 'Pertama, pastikan kamu masih masuk di SIKOLA: buka SIKOLA, dan kalau diminta, masuk lagi. Setelah itu klik Perbarui di popup atau dashboard, lalu tunggu sebentar. Kalau kamu offline, daftar terakhir tetap tampil. Sulo juga tidak memeriksa saat laptop tidak dipakai atau pada pukul 00.00 sampai 06.00.',
+        id: 'Pertama, pastikan kamu masih masuk di SIKOLA: buka SIKOLA, dan kalau diminta, masuk lagi. Setelah itu klik Perbarui di popup atau dashboard, lalu tunggu sebentar. Kalau kamu offline, daftar terakhir tetap tampil. Sulo juga tidak mengecek saat laptop tidak dipakai atau pada pukul 00.00 sampai 06.00.',
         en: 'First, make sure you are still signed in to SIKOLA: open SIKOLA and sign in again if it asks. Then click Update in the popup or the dashboard and wait a moment. When you are offline, the last list stays. Sulo also does not check while the laptop is not in use or from 00:00 to 06:00.',
       },
     ],
@@ -141,7 +141,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Kenapa ada kabar materi baru padahal materinya sudah lama ada?', en: 'Why is a material "new" when it has been there a while?' },
     a: [
       {
-        id: 'Pemeriksaan pertama tiap mata kuliah hanya mencatat keadaan awal, tanpa kabar. Setelah itu Sulo memeriksa isi mata kuliah paling sering 6 jam sekali, dan paling banyak lima mata kuliah sekaligus. Jadi materi yang baru ditampilkan dosen, atau tugas yang tenggatnya baru masuk 90 hari ke depan, muncul sebagai kabar baru walau sudah lama ada.',
+        id: 'Pengecekan pertama tiap mata kuliah hanya mencatat keadaan awal, tanpa kabar. Setelah itu Sulo mengecek isi mata kuliah paling sering 6 jam sekali, dan paling banyak lima mata kuliah sekaligus. Jadi materi yang baru ditampilkan dosen, atau tugas yang tenggatnya baru masuk 90 hari ke depan, muncul sebagai kabar baru walau sudah lama ada.',
         en: 'The first check of each course only notes what’s there, with no updates. After that Sulo looks inside a course at most every 6 hours, up to five at a time. So a material the lecturer just unhid, or a task whose due date just came within 90 days, shows up as new even if it’s old.',
       },
     ],
@@ -171,7 +171,7 @@ export const FAQ: FaqEntry[] = [
     q: { id: 'Apa yang terjadi kalau aku masuk SIKOLA dengan akun lain?', en: 'What happens if I sign in to SIKOLA with another account?' },
     a: [
       {
-        id: 'Sulo langsung menyembunyikan tugas akun sebelumnya dan berhenti memeriksa serta mengingatkan. Popup bertanya: "Pakai akun ini" menghapus data akun sebelumnya di Sulo dan memulai pengaturan untuk akun baru; "Nanti" membiarkan semuanya tersembunyi sampai kamu masuk lagi dengan akun sebelumnya. Data di SIKOLA tidak tersentuh.',
+        id: 'Sulo langsung menyembunyikan tugas akun sebelumnya dan berhenti mengecek serta mengingatkan. Popup bertanya: "Pakai akun ini" menghapus data akun sebelumnya di Sulo dan memulai pengaturan untuk akun baru; "Nanti" membiarkan semuanya tersembunyi sampai kamu masuk lagi dengan akun sebelumnya. Data di SIKOLA tidak tersentuh.',
         en: 'Sulo hides the previous account’s tasks at once and stops checking and reminding. The popup asks: "Use this account" deletes the previous account’s data in Sulo and starts setup for the new one; "Later" keeps everything hidden until you sign in with the previous account again. Nothing in SIKOLA is touched.',
       },
     ],
