@@ -138,7 +138,7 @@ export function FilterPill({ label, active, onOpen, onClear, clearLabel }: { lab
         {!active && <ChevronDownIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />}
       </button>
       {active && (
-        <button type="button" onClick={onClear} aria-label={clearLabel} className={`m-hit mr-1 flex size-7 shrink-0 items-center justify-center rounded-full ${ring}`}>
+        <button type="button" onClick={onClear} aria-label={clearLabel} className={`m-hit m-hit-end mr-1 flex size-7 shrink-0 items-center justify-center rounded-full ${ring}`}>
           <XIcon aria-hidden="true" className="size-4" />
         </button>
       )}
