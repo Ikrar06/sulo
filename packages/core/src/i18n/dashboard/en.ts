@@ -153,7 +153,6 @@ export const dashEn: DashMessages = {
     refreshList: 'Reload list',
     refreshing: 'Reloading the list…',
     refreshed: 'The list is up to date.',
-    isActive: 'Active',
     displayName: 'Display name',
     displayNameHelp: 'Leave a display name empty to use the name from SIKOLA.',
     color: 'Color',

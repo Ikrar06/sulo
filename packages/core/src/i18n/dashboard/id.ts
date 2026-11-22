@@ -154,7 +154,6 @@ export const dashId = {
     refreshList: 'Muat ulang daftar',
     refreshing: 'Memuat ulang daftar…',
     refreshed: 'Daftar sudah diperbarui.',
-    isActive: 'Aktif',
     displayName: 'Nama tampilan',
     displayNameHelp: 'Kosongkan nama tampilan untuk memakai nama dari SIKOLA.',
     color: 'Warna',

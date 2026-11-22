@@ -314,7 +314,6 @@ export const id = {
       ],
       noticeUpdated: 'Ada yang berubah di pemberitahuan ini sejak terakhir kamu baca.',
       start: 'Mulai',
-      sampleLabel: 'Contoh tampilan',
     },
     connect: {
       title: 'Hubungkan dengan SIKOLA',
@@ -368,10 +367,7 @@ export const id = {
     done: {
       title: 'Siap dipakai',
       summary: (tasks: number) => (tasks === 0 ? 'Belum ada tugas yang menunggu. Sulo akan memberi tahu kalau ada yang baru.' : `Ada ${tasks} tugas yang menunggu.`),
-      pinTitle: 'Sematkan Sulo supaya selalu terlihat',
-      pinSteps: ['Klik ikon puzzle di kanan atas browser.', 'Klik pin di samping Sulo.'],
       open: 'Lihat tugasku',
-      listLabel: 'Daftar tugasmu sekarang',
       openFallback: 'Klik ikon Sulo di toolbar untuk melihat tugasmu.',
     },
   },

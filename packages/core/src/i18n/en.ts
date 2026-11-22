@@ -306,7 +306,6 @@ export const en: Messages = {
       ],
       noticeUpdated: 'Something in this notice changed since you last read it.',
       start: 'Start',
-      sampleLabel: 'Example view',
     },
     connect: {
       title: 'Connect to SIKOLA',
@@ -360,10 +359,7 @@ export const en: Messages = {
     done: {
       title: 'Ready to go',
       summary: (tasks) => (tasks === 0 ? "No tasks waiting yet. Sulo will let you know when something new shows up." : `${plural(tasks, 'task is', 'tasks are')} waiting.`),
-      pinTitle: 'Pin Sulo so it stays in sight',
-      pinSteps: ['Click the puzzle icon at the top right of your browser.', 'Click the pin next to Sulo.'],
       open: 'See my tasks',
-      listLabel: 'Your tasks right now',
       openFallback: 'Click the Sulo icon in the toolbar to see your tasks.',
     },
   },
