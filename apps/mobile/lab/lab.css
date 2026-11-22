@@ -1,0 +1,17 @@
+/* The mascot lab's own styles: the app's tokens and theme, Tailwind over this folder only. Development only. */
+@import "tailwindcss";
+@import "../../extension/assets/tokens.css";
+@import "../src/tokens.css";
+@source "./";
+
+html, body, #root { min-height: 100%; }
+body { margin: 0; background: var(--layer-screen); color: var(--text); font-family: var(--font-sans, system-ui, sans-serif); }
+
+.lab-btn { height: 2rem; padding: 0 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background: var(--surface); font-size: 13px; white-space: nowrap; }
+.lab-btn:hover { background: var(--surface-raised); }
+.lab-btn[aria-pressed="true"] { background: var(--text); color: var(--layer-screen); border-color: var(--text); }
+.lab-cell { width: 1.6rem; height: 1.6rem; border-radius: 0.3rem; border: 1px solid var(--border); background: var(--surface); font-size: 10px; }
+.lab-cell:hover { background: var(--brand-orange); color: #fff; }
+.lab-stage { background: var(--layer-screen); }
+.lab-card { background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; }
+.lab-muted { color: var(--muted); }
