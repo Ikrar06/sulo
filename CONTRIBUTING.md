@@ -15,7 +15,7 @@ pnpm install --frozen-lockfile
 git config core.hooksPath .githooks
 ```
 
-The second command enables the repository's git hooks: a scan for personal or session data before every commit, and a check of the commit message.
+The second command enables the repository's git hook: a scan for personal or session data before every commit.
 
 | Command | What it does |
 |---|---|
@@ -111,8 +111,8 @@ Never include real student data in any form: fixtures, screenshots, logs, issue 
 
 Tests use synthetic fixtures only:
 
-- `apps/extension/fixtures/synthetic/` holds data made up by hand, with the same field names, types and structure as real SIKOLA responses. CI validates every JSON file in it against the schemas.
-- Do not add fixtures taken from a real account. If you need a new case, write it by hand in that folder. The one exception already there is the maintainer's three attendance pages, which keep SIKOLA's real page structure with every name, id and remark replaced; do not add more of that kind.
+- `apps/extension/fixtures/synthetic/` holds hand-written data with the same field names, types and structure as real SIKOLA responses. CI validates every JSON file in it against the schemas.
+- Do not add fixtures taken from a real account, not even sanitized ones. If you need a new case, write it by hand in that folder.
 - The maintainer keeps sanitized recordings outside git and checks that the synthetic fixtures still match their shape with `pnpm fixtures:compare` (field names and types only). The check is skipped when the recordings are absent.
 - Never commit raw responses. `fixtures/raw/` is ignored by git for local use only.
 - Screenshots follow the same rule: take them from the synthetic demo account (`pnpm shots:audit`, `pnpm store:shots`), never from a real one.

@@ -1,0 +1,109 @@
+{
+  "kind": "ok",
+  "value": [
+    {
+      "dateText": "Tue 1 Sep 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1788238800,
+      "description": "Pertemuan ke-1",
+      "status": "present",
+      "statusText": "Present",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Tue 8 Sep 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1788843600,
+      "description": "Pertemuan ke-2",
+      "status": "present",
+      "statusText": "Present",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Tue 15 Sep 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1789448400,
+      "description": "Pertemuan ke-3",
+      "status": "late",
+      "statusText": "Late",
+      "points": {
+        "got": 1,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Tue 22 Sep 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1790053200,
+      "description": "Pertemuan ke-4",
+      "status": "present",
+      "statusText": "Present",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Tue 29 Sep 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1790658000,
+      "description": "Pertemuan ke-5",
+      "status": "absent",
+      "statusText": "Absent",
+      "points": {
+        "got": 0,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Tue 6 Oct 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1791262800,
+      "description": "Pertemuan ke-6",
+      "status": "present",
+      "statusText": "Present",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Tue 13 Oct 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1791867600,
+      "description": "Pertemuan ke-7",
+      "status": "late",
+      "statusText": "Late",
+      "points": {
+        "got": 1,
+        "max": 2
+      },
+      "remarks": ""
+    },
+    {
+      "dateText": "Tue 20 Oct 2026",
+      "timeText": "1PM - 2:40PM",
+      "at": 1792472400,
+      "description": "Pertemuan ke-8",
+      "status": "present",
+      "statusText": "Present",
+      "points": {
+        "got": 2,
+        "max": 2
+      },
+      "remarks": ""
+    }
+  ]
+}

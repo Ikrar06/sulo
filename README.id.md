@@ -160,7 +160,7 @@ Teknologi: TypeScript, React, Tailwind CSS, Zod, dan Vitest, dengan WXT untuk ek
 - **Tidak ada yang dipercaya tanpa dicek.** Setiap respons SIKOLA divalidasi dengan Zod. Respons yang tidak cocok dilaporkan ke pengguna sebagai masalah membaca, tidak pernah ditampilkan sebagai daftar kosong.
 - **Tenang di latar belakang.** Ekstensi memperbarui kira-kira tiap 3 jam selama kamu memakai komputer, sekali lagi saat kamu kembali kalau datanya sudah lebih dari sejam, tidak pernah antara pukul 00.00 dan 06.00, dan tidak memperpanjang sesi SIKOLA. Aplikasi Android mengecek di latar belakang hanya kalau pengguna menyalakan "Pantau tugas baru": bawaannya kira-kira tiap 20 menit di siang hari dan tiap 110 menit di malam hari.
 - **Nol permintaan ke NEOSIA.** Modul opsional itu hanya membaca respons yang diminta halaman NEOSIA sendiri, hanya mengambil kolom yang ada di daftar yang diizinkan, dan membuang sisanya sebelum ada yang disimpan.
-- **Tidak ada data asli di repo.** Fixture di `apps/extension/fixtures/synthetic/` dikarang dengan tangan. Satu pengecualian: tiga halaman presensi yang memakai struktur halaman SIKOLA asli, dengan semua nama, id, dan keterangan sudah diganti. Dan `pnpm check-leaks` berjalan sebelum tiap commit dan paling awal di CI.
+- **Tidak ada data asli di repo.** Fixture di `apps/extension/fixtures/synthetic/` ditulis tangan, dan `pnpm check-leaks` berjalan sebelum tiap commit dan paling awal di CI.
 - **Tombol henti jarak jauh.** Satu berkas pengaturan publik bisa menjeda pembaruan di semua pemasangan. Isinya hanya data, divalidasi, dan tidak pernah bisa membawa kode.
 
 ### Izin

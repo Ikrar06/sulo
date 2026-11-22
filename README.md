@@ -160,7 +160,7 @@ Stack: TypeScript, React, Tailwind CSS, Zod and Vitest, with WXT for the extensi
 - **Nothing trusted unchecked.** Every SIKOLA response is validated with Zod. A response that does not fit is reported to the user as a reading problem, never shown as an empty list.
 - **Quiet in the background.** The extension updates about every 3 hours while you are using the computer, once more when you come back to it if the data is over an hour old, never between 00:00 and 06:00, and it does not extend the SIKOLA session. The Android app checks in the background only when the user turns on "Watch for new tasks": by default about every 20 minutes by day and every 110 minutes at night.
 - **Zero requests to NEOSIA.** The optional module reads only the responses NEOSIA's own page asks for, keeps an allowlisted set of fields and drops the rest before anything is stored.
-- **No real data in the repository.** Fixtures in `apps/extension/fixtures/synthetic/` are made up by hand. The one exception is three attendance pages that keep SIKOLA's real page structure, with every name, id and remark replaced. And `pnpm check-leaks` runs before every commit and first in CI.
+- **No real data in the repository.** Fixtures in `apps/extension/fixtures/synthetic/` are written by hand, and `pnpm check-leaks` runs before every commit and first in CI.
 - **A remote off switch.** A public settings file can pause updates for every installation. It is data only, validated, and can never carry code.
 
 ### Permissions
