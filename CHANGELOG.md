@@ -24,6 +24,7 @@ Planned as 0.2.0. Tester builds only; not submitted to any store, and no public 
 - One look for the extension and the phone: cards, course chips, round check marks and one set of icons.
 - Settings has one icon everywhere (a gear), and small icons share one size.
 - Courses SIKOLA will not open no longer stop the rest of an update.
+- When SIKOLA signs you out, Sulo says "SIKOLA asks you to sign in again" instead of "Your SIKOLA session ended".
 
 ### Fixed
 
@@ -34,6 +35,8 @@ Planned as 0.2.0. Tester builds only; not submitted to any store, and no public 
 
 - Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. The bug report says only whether NEOSIA is on and when its data last came.
 - On Android, the screen cannot be captured or recorded while grades are shown.
+- Privacy mode also masks attendance percentages in the extension, as it does on the phone.
+- The privacy page states the limit as it is: Sulo checks SIKOLA only as needed, one request at a time, with a safety limit of 150 requests a day.
 
 ## [0.1.0] - 2026-11-18
 
