@@ -191,7 +191,7 @@ Mau ikut menyumbang? Baca [CONTRIBUTING.md](CONTRIBUTING.md) dulu; perubahan bes
 Kodenya berlisensi [MIT](LICENSE).
 
 - Font yang dibundel, Inter dan Plus Jakarta Sans, berlisensi SIL Open Font License 1.1 (`apps/extension/assets/fonts/*/OFL.txt`).
-- Sebagian ikon antarmuka diadaptasi dari [Lucide](https://lucide.dev) (lisensi ISC); lihat [NOTICE](NOTICE).
+- Ikon antarmuka berasal dari [Phosphor Icons](https://phosphoricons.com) (lisensi MIT); lihat [NOTICE](NOTICE).
 - Nama, logo, dan maskot Sulo tidak termasuk lisensi MIT; lihat [TRADEMARK.md](TRADEMARK.md).
 
 Isi Sulo bisa tidak lengkap atau ketinggalan. Untuk hal penting seperti tenggat, nilai, dan aturan akademik, yang berlaku adalah sistem resmi kampus dan dosen PA-mu.

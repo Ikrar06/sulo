@@ -191,7 +191,7 @@ Thinking of contributing? Read [CONTRIBUTING.md](CONTRIBUTING.md) first; larger 
 The code is under the [MIT License](LICENSE).
 
 - The bundled fonts, Inter and Plus Jakarta Sans, are under the SIL Open Font License 1.1 (`apps/extension/assets/fonts/*/OFL.txt`).
-- Some interface icons are adapted from [Lucide](https://lucide.dev) (ISC License); see [NOTICE](NOTICE).
+- The interface icons are from [Phosphor Icons](https://phosphoricons.com) (MIT License); see [NOTICE](NOTICE).
 - The Sulo name, logo and mascot are not covered by the MIT License; see [TRADEMARK.md](TRADEMARK.md).
 
 Sulo can be incomplete or out of date. For anything that matters, such as deadlines, grades or academic rules, the university's own systems and your academic advisor are authoritative.

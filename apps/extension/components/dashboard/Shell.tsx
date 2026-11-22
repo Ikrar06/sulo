@@ -8,7 +8,32 @@ import { useQuietRefresh } from '@/components/quiet-refresh';
 import { formatAgo } from '@sulo/core/format/time';
 import { PAGES, routeHash, type Page } from '@sulo/core/dashboard/routes';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
-import { AttendanceIcon, BookIcon, CalendarIcon, ClockIcon, EyeIcon, EyeOffIcon, GearIcon, GradeIcon, HelpIcon, HomeIcon, InfoIcon, NewsIcon, TasksIcon } from '@sulo/ui/dashboard-icons';
+import {
+  AttendanceIcon,
+  AttendanceSolidIcon,
+  BookIcon,
+  BookSolidIcon,
+  CalendarIcon,
+  CalendarSolidIcon,
+  ClockIcon,
+  ClockSolidIcon,
+  EyeIcon,
+  EyeOffIcon,
+  GearIcon,
+  GearSolidIcon,
+  GradeIcon,
+  GradeSolidIcon,
+  HelpIcon,
+  HelpSolidIcon,
+  HomeIcon,
+  HomeSolidIcon,
+  InfoIcon,
+  InfoSolidIcon,
+  NewsIcon,
+  NewsSolidIcon,
+  TasksIcon,
+  TasksSolidIcon,
+} from '@sulo/ui/dashboard-icons';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import './dashboard.css';
@@ -17,18 +42,20 @@ import './dashboard.css';
 // gradients, no glows, no colored edge lines. Depth from thin borders and
 // the --bg / --surface difference.
 
-const ICONS: Record<Page, ComponentType<SVGProps<SVGSVGElement>>> = {
-  ringkasan: HomeIcon,
-  tugas: TasksIcon,
-  'mata-kuliah': BookIcon,
-  presensi: AttendanceIcon,
-  kabar: NewsIcon,
-  kalender: CalendarIcon,
-  jadwal: ClockIcon,
-  nilai: GradeIcon,
-  pengaturan: GearIcon,
-  bantuan: HelpIcon,
-  tentang: InfoIcon,
+type IconType = ComponentType<SVGProps<SVGSVGElement>>;
+/** Each page's drawing, and the same drawing filled for the current page. */
+const ICONS: Record<Page, { line: IconType; selected: IconType }> = {
+  ringkasan: { line: HomeIcon, selected: HomeSolidIcon },
+  tugas: { line: TasksIcon, selected: TasksSolidIcon },
+  'mata-kuliah': { line: BookIcon, selected: BookSolidIcon },
+  presensi: { line: AttendanceIcon, selected: AttendanceSolidIcon },
+  kabar: { line: NewsIcon, selected: NewsSolidIcon },
+  kalender: { line: CalendarIcon, selected: CalendarSolidIcon },
+  jadwal: { line: ClockIcon, selected: ClockSolidIcon },
+  nilai: { line: GradeIcon, selected: GradeSolidIcon },
+  pengaturan: { line: GearIcon, selected: GearSolidIcon },
+  bantuan: { line: HelpIcon, selected: HelpSolidIcon },
+  tentang: { line: InfoIcon, selected: InfoSolidIcon },
 };
 
 export interface ShellProps {
@@ -67,14 +94,14 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
         </a>
         <nav aria-label={d.nav.label} className="db-nav">
           {PAGES.filter((p) => !hiddenPages?.has(p)).map((p) => {
-            const Icon = ICONS[p];
             const current = p === page;
+            const Icon = current ? ICONS[p].selected : ICONS[p].line;
             return (
               <a
                 key={p}
                 href={routeHash(p)}
                 aria-current={current ? 'page' : undefined}
-                // Active: a thin surface-raised fill, semibold text and icon in text color (the text is the cue). Hover: half that fill, weight unchanged. No gradient.
+                // Active: a thin surface-raised fill, semibold text, and the icon filled in text color. Hover: half that fill, weight unchanged. No gradient.
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] whitespace-nowrap outline-none focus-ring:ring-2 focus-ring:ring-focus ${
                   current ? 'bg-surface-raised font-semibold text-foreground' : 'text-muted-foreground hover:bg-nav-hover hover:text-foreground'
                 }`}

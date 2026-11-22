@@ -23,6 +23,8 @@ Planned as 0.2.0. Tester builds only; not submitted to any store, and no public 
 
 - One look for the extension and the phone: cards, course chips, round check marks and one set of icons.
 - Settings has one icon everywhere (a gear), and small icons share one size.
+- New interface icons (Phosphor Icons): a heavier, rounder line. The selected tab on the phone and the current page in the dashboard's sidebar show the same drawing, filled.
+- The overdue count on the phone's Tugas tab sits beside the icon and no longer covers it.
 - Courses SIKOLA will not open no longer stop the rest of an update.
 - When SIKOLA signs you out, Sulo says "SIKOLA asks you to sign in again" instead of "Your SIKOLA session ended".
 
