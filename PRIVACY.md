@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-Last updated: 21 November 2026
+Last updated: 22 November 2026
 
 Sulo is an unofficial academic companion for Universitas Hasanuddin students. It is not affiliated with or endorsed by Universitas Hasanuddin.
 
@@ -48,7 +48,7 @@ Data is tied to your SIKOLA account, recognised by your SIKOLA user number (user
 
 Sulo makes requests to two places only:
 
-1. SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00:00 to 06:00), and not while your computer is idle.
+1. SIKOLA (sikola-v2.unhas.ac.id), to read your own data. Sulo checks SIKOLA only as needed, one request at a time. A safety limit caps it at 150 requests a day. If Sulo reaches the limit, it stops checking until the next day. Sulo does not check on its own during quiet hours (00:00 to 06:00) or while your computer is idle.
 2. Sulo's public data repository on GitHub Pages (ikrar06.github.io/sulo-data), to fetch a small configuration file and the academic calendar data. These requests carry no information about you (no cookies, extra headers or parameters) and are made at most once a day per file. As with any website, GitHub can see your IP address when a file is fetched.
 
 "Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no sign-in; you decide whether to save it in Google Calendar.

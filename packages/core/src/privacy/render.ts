@@ -81,7 +81,7 @@ ${sections}
 // ---- The public page for both apps (M8e E4) ----
 
 /** The public page's own date: set when it is published. */
-export const PUBLIC_PRIVACY_UPDATED: Text = { id: '21 November 2026', en: '21 November 2026' };
+export const PUBLIC_PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
 
 const PUBLIC_INTRO: Block[] = [
   {

@@ -5,7 +5,7 @@
 
 import type { Block, Section, Text } from './content';
 
-export const MOBILE_PRIVACY_UPDATED: Text = { id: '21 November 2026', en: '21 November 2026' };
+export const MOBILE_PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
 
 /** The three points shown first, each restating a section below (no new claim). */
 export const MOBILE_PRIVACY_SUMMARY: readonly { icon: 'key' | 'shield' | 'eye'; title: Text; body: Text }[] = [

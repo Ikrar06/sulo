@@ -16,7 +16,7 @@ export interface Section {
   blocks: Block[];
 }
 
-export const PRIVACY_UPDATED: Text = { id: '21 November 2026', en: '21 November 2026' };
+export const PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
 
 export const PRIVACY_TITLE: Text = { id: 'Kebijakan Privasi', en: 'Privacy Policy' };
 
@@ -188,8 +188,8 @@ export const PRIVACY_SECTIONS: Section[] = [
         kind: 'ol',
         items: [
           {
-            id: 'SIKOLA (sikola-v2.unhas.ac.id), untuk membaca datamu sendiri. Maksimal 40 request per hari (biasanya 5 sampai 10), satu per satu, tidak pada jam tenang (00.00 sampai 06.00), dan tidak saat komputermu sedang tidak dipakai.',
-            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. At most 40 requests per day (typically 5 to 10), one at a time, not during quiet hours (00:00 to 06:00), and not while your computer is idle.',
+            id: 'SIKOLA (sikola-v2.unhas.ac.id), untuk membaca datamu sendiri. Sulo mengecek SIKOLA seperlunya, satu per satu. Ada batas pengaman 150 permintaan per hari. Kalau batas itu tercapai, Sulo berhenti mengecek sampai besok. Sulo tidak mengecek sendiri pada jam tenang (00.00 sampai 06.00) dan saat komputermu sedang tidak dipakai.',
+            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. Sulo checks SIKOLA only as needed, one request at a time. A safety limit caps it at 150 requests a day. If Sulo reaches the limit, it stops checking until the next day. Sulo does not check on its own during quiet hours (00:00 to 06:00) or while your computer is idle.',
           },
           {
             id: 'Repo data publik Sulo di GitHub Pages (ikrar06.github.io/sulo-data), untuk mengambil berkas konfigurasi kecil dan data kalender akademik. Permintaan ini tidak membawa informasi apa pun tentangmu (tanpa cookie, header tambahan, atau parameter) dan paling sering sekali sehari per berkas. Seperti situs mana pun, GitHub dapat melihat alamat IP-mu saat berkas diambil.',
