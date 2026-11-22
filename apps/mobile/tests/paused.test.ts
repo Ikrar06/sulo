@@ -12,7 +12,8 @@ vi.mock('@capacitor/preferences', () => ({
   },
 }));
 vi.mock('@capacitor/local-notifications', () => ({
-  LocalNotifications: { schedule: async () => undefined, cancel: async () => undefined, getPending: async () => ({ notifications: [] }), addListener: async () => ({ remove: async () => undefined }) },
+  LocalNotifications: {
+    checkPermissions: async () => ({ display: 'granted' }), schedule: async () => undefined, cancel: async () => undefined, getPending: async () => ({ notifications: [] }), addListener: async () => ({ remove: async () => undefined }) },
 }));
 const requests: unknown[] = [];
 const pages: unknown[] = [];

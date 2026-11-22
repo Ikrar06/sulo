@@ -28,7 +28,7 @@ import { UpdateRequiredScreen } from './screens/ReleaseNotice';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { applyWatchPlan, processWatchQueue } from './watch-native';
 import { markChangesHandled } from '@sulo/core/watch/queue';
-import { scheduleReminders } from './reminders';
+import { scheduleIfNoneScheduled, scheduleReminders } from './reminders';
 import { LockScreen } from './screens/Gate';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
 import { SwitchAccount } from './onboarding/SwitchAccount';
@@ -304,6 +304,8 @@ export function App({ platform }: { platform: Platform }) {
       if (await switchPending(platform)) return;
       const queue = await processWatchQueue(platform).catch(() => ({ applied: 0, fullSync: false }));
       if (queue.applied > 0) await scheduleReminders(platform).catch(() => 0);
+      // Notifications allowed in the phone's settings while Sulo was in the background: the reminders start now.
+      else await scheduleIfNoneScheduled(platform).catch(() => 0);
       // Background watching thought the session ended: only this sync (asking twice) may say so.
       // Suspicion from background watching, or a sync held back while the app was closing.
       const held = s === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };

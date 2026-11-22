@@ -13,6 +13,7 @@ vi.mock('@capacitor/preferences', () => ({
 const scheduled: { id: number; title: string; at: number }[] = [];
 vi.mock('@capacitor/local-notifications', () => ({
   LocalNotifications: {
+    checkPermissions: async () => ({ display: 'granted' }),
     schedule: async ({ notifications }: { notifications: { id: number; title: string; schedule?: { at: Date } }[] }) =>
       void scheduled.push(...notifications.map((n) => ({ id: n.id, title: n.title, at: n.schedule?.at.getTime() ?? 0 }))),
     cancel: async ({ notifications }: { notifications: { id: number }[] }) => {
