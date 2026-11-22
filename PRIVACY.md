@@ -88,7 +88,7 @@ Any time, in Settings with "Disconnect and delete data". All NEOSIA data is dele
 - Sulo never sends a request to NEOSIA. Two small scripts on NEOSIA pages read the responses the NEOSIA app already asked for, pick out the fields that may be kept right there on the page, and drop the rest. The full responses are never stored, logged or sent.
 - The survey link, your personal data page in NEOSIA and the withdrawal page are never read. The NEOSIA sign-in token is never read.
 - Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.
-- Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA and credits on screen.
+- Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA, credits and attendance percentages on screen.
 - No automation: Sulo never fills in KRS, surveys or attendance, and never watches class capacity.
 
 ## Deleting your data

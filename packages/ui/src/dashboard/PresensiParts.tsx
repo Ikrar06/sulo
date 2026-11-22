@@ -2,7 +2,8 @@
 // a course row (sessions, points, a neutral bar), a course's sessions with
 // their statuses, and the one line a fetch outcome may show. Numbers only:
 // no limit or warning color about a minimum (presensi/rules.ts); only Alpa
-// uses a warning color. Remarks stay hidden in privacy mode.
+// uses a warning color. In privacy mode the percentages are masked and the
+// remarks stay hidden, as on the phone.
 
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { courseAlias } from '@sulo/core/courses/display-name';
@@ -72,7 +73,11 @@ export function CourseRow({ course, color, row, fetched, w, locale }: { course: 
         {line && <p className="mt-1 text-[12px] text-muted-foreground">{line}</p>}
         {row && row.percent !== null && <Bar percent={row.percent} />}
       </div>
-      {row && row.percent !== null && <span className="shrink-0 text-[16px] font-semibold tabular-nums">{pct(row.percent, locale)}%</span>}
+      {row && row.percent !== null && (
+        <span className="shrink-0 text-[16px] font-semibold tabular-nums">
+          <Private>{pct(row.percent, locale)}%</Private>
+        </span>
+      )}
       {row && <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />}
     </div>
   );
@@ -121,7 +126,13 @@ export function Detail({ course, color, row, sessions, loading, w, locale, compa
           {courseAlias(course)}
         </span>
       }
-      action={row && row.percent !== null ? <span className="text-[16px] font-semibold tabular-nums">{pct(row.percent, locale)}%</span> : undefined}
+      action={
+        row && row.percent !== null ? (
+          <span className="text-[16px] font-semibold tabular-nums">
+            <Private>{pct(row.percent, locale)}%</Private>
+          </span>
+        ) : undefined
+      }
     >
       {row && (
         <p className="text-[12px] text-muted-foreground">

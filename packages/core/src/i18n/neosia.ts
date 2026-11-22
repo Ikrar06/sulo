@@ -48,7 +48,7 @@ const id = {
     sksTarget: 'Patokan SKS kelulusan',
     sksTargetHelp: 'Untuk bilah SKS di Ringkasan. Bawaan 144, isi 100 sampai 200 sesuai prodimu.',
     privacyMode: 'Mode privasi',
-    privacyHelp: 'Menyamarkan nama, nilai, IPK, IPS, dan SKS di layar, misalnya sebelum membuat tangkapan layar.',
+    privacyHelp: 'Menyamarkan nama, nilai, IPK, IPS, SKS, dan persentase presensi di layar, misalnya sebelum membuat tangkapan layar.',
   },
   privacy: {
     hide: 'Nyalakan mode privasi',
@@ -277,7 +277,7 @@ const en: NeosiaWords = {
     sksTarget: 'Credits to graduate',
     sksTargetHelp: 'For the credits bar on Overview. 144 by default. Enter 100 to 200 for your program.',
     privacyMode: 'Privacy mode',
-    privacyHelp: 'Masks names, grades, GPAs and credits on screen, for example before a screenshot.',
+    privacyHelp: 'Masks names, grades, GPAs, credits and attendance percentages on screen, for example before a screenshot.',
   },
   privacy: {
     hide: 'Turn on privacy mode',

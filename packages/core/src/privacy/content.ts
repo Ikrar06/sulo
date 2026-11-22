@@ -250,8 +250,8 @@ export const PRIVACY_SECTIONS: Section[] = [
             en: 'Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.',
           },
           {
-            id: 'Mode privasi (Pengaturan, atau ikon mata di dashboard) menyamarkan nama, nilai, IPK, IPS, dan SKS di layar.',
-            en: 'Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA and credits on screen.',
+            id: 'Mode privasi (Pengaturan, atau ikon mata di dashboard) menyamarkan nama, nilai, IPK, IPS, SKS, dan persentase presensi di layar.',
+            en: 'Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA, credits and attendance percentages on screen.',
           },
           {
             id: 'Tidak ada otomatisasi: Sulo tidak mengisi KRS, survei, atau presensi, dan tidak memantau kuota kelas.',
