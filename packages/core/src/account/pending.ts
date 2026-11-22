@@ -1,7 +1,7 @@
 // Another SIKOLA account signed in on this browser. Sulo does not wipe the
 // previous account at once: it hides that account's data, stops syncing and
 // reminders, and asks. Data is deleted only when the user confirms ("Pakai
-// akun ini") or uses "Hapus semua data" (CLAUDE.md rule 10). Pure.
+// akun ini") or uses "Hapus semua data" (one of Sulo's hard rules: data is locked to its account). Pure.
 
 import { MISMATCH_CHECK_GAP_MIN } from '../moodle/limits';
 import type { KeyValueStore, UnixSeconds, UserId } from '../types';

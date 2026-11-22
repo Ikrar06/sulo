@@ -1,6 +1,6 @@
 // Which screen shows for the current place in the navigation. While another
 // SIKOLA account is signed in, the previous account's data stays hidden and
-// only the choice shows (CLAUDE.md, hard rule 10).
+// only the choice shows (one of Sulo's hard rules: data is locked to its account).
 
 import { lazy, Suspense, useState } from 'react';
 import { useNewAccount } from '@sulo/core/account/actions';

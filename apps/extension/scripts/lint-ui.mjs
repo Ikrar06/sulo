@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Project UI and safety rules that a type checker cannot see (docs/UI.md,
-// CLAUDE.md). No dependencies, so it runs anywhere. Exit 1 on any finding.
+// CONTRIBUTING.md, "Code conventions"). No dependencies, so it runs anywhere. Exit 1 on any finding.
 //
 // Everywhere in components/ and entrypoints/:
 // - focus rings for keyboard only: no plain `focus:` utilities

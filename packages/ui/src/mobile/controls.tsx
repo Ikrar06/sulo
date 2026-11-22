@@ -10,7 +10,7 @@ import { ChevronDownIcon } from '../icons';
 const ring = 'outline-none focus-ring:ring-2 focus-ring:ring-focus';
 
 /** Primary: a 44 pill in the accent. Secondary: a 40 pill on the inset layer. */
-/** A pill button; with `href` it is a plain outside link that opens a new tab (CLAUDE.md, "Tautan ke layanan luar"). */
+/** A pill button; with `href` it is a plain outside link that opens a new tab (Sulo's rule for links to outside services). */
 export function PillButton({ children, onPress, href, kind = 'secondary', disabled = false, full = false, icon: Icon, small = false, danger = false }: { children: ReactNode; onPress?: () => void; href?: string; kind?: 'primary' | 'secondary'; disabled?: boolean; full?: boolean; icon?: ComponentType<SVGProps<SVGSVGElement>>; small?: boolean; danger?: boolean }) {
   const size = small ? 'h-8 px-3 text-m13' : kind === 'primary' ? 'h-11 px-5 text-m15' : 'h-10 px-4 text-m15';
   const look = kind === 'primary' ? 'bg-primary text-primary-foreground' : danger ? 'bg-m-inset text-urgency-overdue' : 'bg-m-inset text-foreground';

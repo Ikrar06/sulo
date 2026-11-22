@@ -8,7 +8,7 @@ import java.net.URI
  * script (never the login page), where the WebView may go, and which bridge
  * messages are taken.
  *
- * Sulo makes no request to NEOSIA (CLAUDE.md, mobile rule 4): it only opens
+ * Sulo makes no request to NEOSIA (one of Sulo's hard rules; CONTRIBUTING.md, "Project rules"): it only opens
  * NEOSIA's own pages from a tap, and reads what those pages already asked for.
  */
 object NeosiaRules {

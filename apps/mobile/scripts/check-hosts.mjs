@@ -13,7 +13,7 @@ const NATIVE = ['android/app/src/main/java', 'android/app/src/main/res', 'androi
 
 /** host -> why it may appear. */
 const ALLOWED = {
-  // Requests Sulo makes (CLAUDE.md, mobile rules 3 and 5).
+  // Requests Sulo makes (Sulo's hard rules for the phone).
   'sikola-v2.unhas.ac.id': 'SIKOLA: login page and read-only requests (core client.ts)',
   'ikrar06.github.io': "Sulo's public data repository: remote config and academic calendar",
   // Pages the user opens; Sulo sends nothing there itself.

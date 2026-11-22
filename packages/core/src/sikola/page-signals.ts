@@ -3,7 +3,7 @@
 // A page counts as "logged out" only from its structure: a form with a
 // password field and no sesskey anywhere (no sesskey input, no link with
 // sesskey=). Element contents, labels and other text are never read, so the
-// page language does not matter (CLAUDE.md, "Bahasa antarmuka").
+// page language does not matter (CONTRIBUTING.md, "Code conventions").
 // - Login page: password field, no sesskey -> logged out.
 // - "Already logged in as ..." page: logout button carries a sesskey -> not.
 // - Any normal page while logged in: sesskey in the user menu -> not.
