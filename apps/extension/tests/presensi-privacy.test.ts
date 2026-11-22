@@ -1,12 +1,12 @@
 // Privacy mode on the dashboard's attendance (P-02): the percentages are
 // masked on the Presensi page and in the Studi card's attendance lines, as on
-// the phone. The course name in a row stays (it is a course, not a person);
+// the phone, and so is what a percent follows from: the bar's fill and the points. The course name in a row stays (it is a course, not a person);
 // the lowest course's name in the Studi card is masked, as on the phone.
 import { createElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { dashFor } from '@sulo/core/i18n/dashboard';
-import type { RecapRow } from '@sulo/core/presensi/types';
+import type { RecapRow, SessionRow } from '@sulo/core/presensi/types';
 import type { CourseRecord } from '@sulo/core/types';
 import { StudiCard } from '@sulo/ui/dashboard/NeosiaParts';
 import { CourseRow, Detail } from '@sulo/ui/dashboard/PresensiParts';
@@ -40,6 +40,29 @@ describe('privacy mode masks attendance percentages on the dashboard', () => {
     const masked = text(node, true);
     expect(masked).not.toContain('78,6');
     expect(masked).toContain(MASK);
+  });
+
+  it('a course row: the bar draws its track only and the points are masked; the session count stays', () => {
+    const node = createElement(CourseRow, { course, color: 1, row, fetched: true, w, locale: 'id' });
+    const markup = (privacy: boolean) => renderToStaticMarkup(createElement(I18nProvider, { locale: 'id', children: createElement(PrivacyProvider, { value: privacy, children: node }) }));
+    expect(markup(false)).toMatch(/style="width:\s*78\.6%"/);
+    expect(text(node, false)).toContain('11 dari 14 poin');
+    expect(markup(true)).not.toMatch(/style="width/);
+    const masked = text(node, true);
+    expect(masked).not.toMatch(/11 dari 14|78[.,]6/);
+    expect(masked).toContain('7 sesi tercatat');
+  });
+
+  it("a course's detail: the points under the title and each session's points are masked, the status stays", () => {
+    const session = { at: 1788238800, dateText: 'Sel 1 Sep 2026', timeText: '1PM - 2:40PM', description: 'Pertemuan 1', status: 'present', statusText: 'Present', points: { got: 2, max: 2 }, remarks: '' } as unknown as SessionRow;
+    const node = createElement(Detail, { course, color: 1, row, sessions: [session], loading: false, w, locale: 'id' });
+    const open = text(node, false);
+    expect(open).toContain('11 dari 14 poin');
+    expect(open).toContain('2/2');
+    const masked = text(node, true);
+    expect(masked).not.toMatch(/11 dari 14|2\/2/);
+    expect(masked).toContain('7 sesi tercatat');
+    expect(masked).toContain(w.status.present);
   });
 
   it('the Studi card: the average, the lowest percent and the lowest course are masked, the sentence stays', () => {

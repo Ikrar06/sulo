@@ -2,9 +2,11 @@
 // a course row (sessions, points, a neutral bar), a course's sessions with
 // their statuses, and the one line a fetch outcome may show. Numbers only:
 // no limit or warning color about a minimum (presensi/rules.ts); only Alpa
-// uses a warning color. In privacy mode the percentages are masked and the
-// remarks stay hidden, as on the phone.
+// uses a warning color. In privacy mode the percentages, the bar's fill and
+// the points are masked (each gives the number away) and the remarks stay
+// hidden, as on the phone. The session count and each session's status stay.
 
+import type { ReactNode } from 'react';
 import { routeHash } from '@sulo/core/dashboard/routes';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
@@ -41,21 +43,38 @@ function Dot({ color }: { color: number | null }) {
 }
 
 /** Solid neutral bar, like the credits bar; nothing colored about a limit. */
+/** In privacy mode only the track is drawn: a filled bar gives the percent away as surely as the number. */
 function Bar({ percent }: { percent: number }) {
+  const masked = usePrivacy();
   return (
     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-raised" aria-hidden="true">
-      <div className="h-full rounded-full bg-foreground" style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
+      {!masked && <div className="h-full rounded-full bg-foreground" style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />}
     </div>
   );
 }
 
+/** "7 sesi tercatat · 11 dari 14 poin": the points are masked in privacy mode (the percent follows from them), the session count stays. */
+function TakenLine({ row, w }: { row: RecapRow; w: W }) {
+  return (
+    <>
+      {w.taken(row.taken)}
+      {row.points && (
+        <>
+          {' · '}
+          <Private>{w.points(row.points.got, row.points.max)}</Private>
+        </>
+      )}
+    </>
+  );
+}
+
 /** The line under a course name, from its status (presensi/service.ts courseStatus). */
-function courseLine(row: RecapRow | undefined, fetched: boolean, w: W): string {
+function courseLine(row: RecapRow | undefined, fetched: boolean, w: W): ReactNode {
   const status = courseStatus(row, fetched);
   if (status === 'not_fetched') return w.notFetched;
   if (status === 'no_module') return w.noModule;
   if (status === 'no_sessions') return w.noSessions;
-  return [w.taken(row!.taken), row!.points ? w.points(row!.points.got, row!.points.max) : null].filter(Boolean).join(' · ');
+  return <TakenLine row={row!} w={w} />;
 }
 
 export function CourseRow({ course, color, row, fetched, w, locale }: { course: CourseRecord; color: number | null; row: RecapRow | undefined; fetched: boolean; w: W; locale: string }) {
@@ -136,7 +155,7 @@ export function Detail({ course, color, row, sessions, loading, w, locale, compa
     >
       {row && (
         <p className="text-[12px] text-muted-foreground">
-          {row.taken === 0 ? w.noSessions : [w.taken(row.taken), row.points ? w.points(row.points.got, row.points.max) : null].filter(Boolean).join(' · ')}
+          {row.taken === 0 ? w.noSessions : <TakenLine row={row} w={w} />}
         </p>
       )}
       {sessions === null ? (loading ? <SessionsSkeleton /> : null) : sessions.length === 0 ? (
@@ -165,7 +184,13 @@ export function Detail({ course, color, row, sessions, loading, w, locale, compa
                 )}
               </div>
               <span className={`shrink-0 rounded-md border px-2 py-1 text-[12px] leading-none font-medium ${STATUS_CLASS[s.status]}`}>{s.status === 'unknown' ? s.statusText || '-' : w.status[s.status]}</span>
-              {s.points && <span className="w-12 shrink-0 text-right text-[12px] text-muted-foreground tabular-nums">{s.points.got}/{s.points.max}</span>}
+              {s.points && (
+                <span className="w-12 shrink-0 text-right text-[12px] text-muted-foreground tabular-nums">
+                  <Private>
+                    {s.points.got}/{s.points.max}
+                  </Private>
+                </span>
+              )}
             </li>
           ))}
         </ul>
