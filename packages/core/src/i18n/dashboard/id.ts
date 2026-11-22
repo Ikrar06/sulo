@@ -21,7 +21,7 @@ export const dashId = {
     tentang: 'Tentang',
   },
   notice: {
-    sessionExpired: (since: string | null) => (since ? `Sesi SIKOLA habis. Data di bawah dari ${since}.` : 'Sesi SIKOLA habis.'),
+    sessionExpired: (since: string | null) => (since ? `SIKOLA memintamu masuk lagi. Data di bawah dari ${since}.` : 'SIKOLA memintamu masuk lagi.'),
     signIn: 'Masuk lagi',
     stale: (since: string) => `Sulo belum bisa memperbarui sejak ${since}. Coba Perbarui nanti.`,
   },

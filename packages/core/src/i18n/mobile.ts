@@ -29,7 +29,7 @@ const id = {
   },
   connected: {
     title: 'Terhubung ke SIKOLA',
-    expiredTitle: 'Sesi SIKOLA habis',
+    expiredTitle: 'SIKOLA memintamu masuk lagi',
     expiredLine: 'Masuk lagi ke SIKOLA untuk memperbarui.',
     signInAgain: 'Masuk lagi',
     /** The one updating line on every screen (owner's rules, 20 Nov 2026): the sync's real stages. */
@@ -260,7 +260,7 @@ const en: MobileWords = {
   },
   connected: {
     title: 'Connected to SIKOLA',
-    expiredTitle: 'SIKOLA session ended',
+    expiredTitle: 'SIKOLA asks you to sign in again',
     expiredLine: 'Sign in to SIKOLA again to update.',
     signInAgain: 'Sign in again',
     sync: {

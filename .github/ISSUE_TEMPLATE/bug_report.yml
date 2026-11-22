@@ -65,7 +65,7 @@ body:
     id: status
     attributes:
       label: Status shown by Sulo
-      description: The status line Sulo shows, word for word, for example "Sesi SIKOLA habis" or "Sulo belum bisa membaca SIKOLA dengan benar". In English if that is what you see.
+      description: The status line Sulo shows, word for word, for example "SIKOLA memintamu masuk lagi" or "Sulo belum bisa membaca SIKOLA dengan benar". In English if that is what you see.
   - type: textarea
     id: debug-bundle
     attributes:

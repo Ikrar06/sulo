@@ -146,7 +146,7 @@ const PHONE: FaqEntry[] = [
   },
   {
     id: 'sesi-neosia-hp',
-    q: { id: 'Kenapa Sulo bilang sesi NEOSIA habis?', en: 'Why does Sulo say my NEOSIA session ended?' },
+    q: { id: 'Kenapa NEOSIA memintaku masuk lagi?', en: 'Why does NEOSIA ask me to sign in again?' },
     a: [
       {
         id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan NEOSIA memintamu masuk lagi, ketuk Masuk NEOSIA. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan login NEOSIA di HP ini.',

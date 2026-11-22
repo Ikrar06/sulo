@@ -209,7 +209,7 @@ export const id = {
 
   banner: {
     disabledFallback: 'Sulo sedang istirahat sebentar.',
-    sessionExpired: (since: string | null) => (since ? `Sesi SIKOLA habis. Data di bawah dari ${since}.` : 'Sesi SIKOLA habis.'),
+    sessionExpired: (since: string | null) => (since ? `SIKOLA memintamu masuk lagi. Data di bawah dari ${since}.` : 'SIKOLA memintamu masuk lagi.'),
     signIn: 'Masuk lagi',
     parserBroken: 'Sulo belum bisa membaca SIKOLA dengan benar. Coba lagi nanti.',
     limit: 'Sulo istirahat dulu sampai besok. Data terakhir tetap bisa dibuka.',

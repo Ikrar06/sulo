@@ -21,7 +21,7 @@ export const dashEn: DashMessages = {
     tentang: 'About',
   },
   notice: {
-    sessionExpired: (since: string | null) => (since ? `Your SIKOLA session ended. The data below is from ${since}.` : 'Your SIKOLA session ended.'),
+    sessionExpired: (since: string | null) => (since ? `SIKOLA asks you to sign in again. The data below is from ${since}.` : 'SIKOLA asks you to sign in again.'),
     signIn: 'Sign in again',
     stale: (since) => `Sulo hasn't been able to update since ${since}. Try Update later.`,
   },

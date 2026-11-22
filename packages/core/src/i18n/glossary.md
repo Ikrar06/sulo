@@ -49,7 +49,7 @@ Pengguna Sulo adalah mahasiswa, bukan programmer. Semua teks di `lib/i18n/id.ts`
 | Tugas | Laporan praktikum, 3 jam lagi | Fisika Dasar. Tenggat Kamis 23.59. |
 | Ringkasan | 3 tugas mendekati tenggat | Yang terdekat: Laporan praktikum, 5 jam lagi. |
 | Ringkasan pagi | Tugasmu hari ini | 1 tugas hari ini, 3 minggu ini. Yang terdekat: ... |
-| Sesi habis | Tugasmu belum bisa diperbarui | Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu. |
+| SIKOLA meminta masuk lagi (baris status: "SIKOLA memintamu masuk lagi. Data di bawah dari ...") | Tugasmu belum bisa diperbarui | Masuk ke SIKOLA lagi supaya Sulo bisa memperbarui tugasmu. |
 | Uji | Notifikasi uji dari Sulo | Kalau kamu melihat ini, pengingat Sulo akan muncul. |
 
 - Tombol: "Tunda 1 jam", "Tandai selesai". Di popup: "Tunda pengingat", "Besok pagi, 07.00", "Batalkan tunda".

@@ -204,7 +204,7 @@ export const en: Messages = {
 
   banner: {
     disabledFallback: 'Sulo is taking a short break.',
-    sessionExpired: (since: string | null) => (since ? `Your SIKOLA session ended. The data below is from ${since}.` : 'Your SIKOLA session ended.'),
+    sessionExpired: (since: string | null) => (since ? `SIKOLA asks you to sign in again. The data below is from ${since}.` : 'SIKOLA asks you to sign in again.'),
     signIn: 'Sign in again',
     parserBroken: "Sulo can't read SIKOLA properly yet. Try again later.",
     limit: 'Sulo is resting until tomorrow. Your latest data is still here.',
