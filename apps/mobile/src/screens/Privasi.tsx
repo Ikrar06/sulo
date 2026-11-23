@@ -45,7 +45,7 @@ export function PrivasiScreen() {
               {s.blocks.flatMap((b) => (b.kind === 'p' ? [b.text] : b.items)).map((t, i) => (
                 <li key={i} className="flex gap-3 py-3 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
                   <GlobeIcon aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
-                  <span className="text-m15r">{t[locale]}</span>
+                  <span className="min-w-0 text-m15r">{t[locale]}</span>
                 </li>
               ))}
             </ul>

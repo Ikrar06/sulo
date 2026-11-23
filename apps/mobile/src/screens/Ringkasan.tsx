@@ -181,8 +181,9 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
             {upcoming.map((i) => {
               const isDone = i.status === 'done';
               return (
-                <li key={i.task.eventId} className="flex w-[240px] shrink-0">
-                  <Card dense className="flex-1" inner="flex h-full flex-col" onPress={() => go({ name: 'tugas', detail: String(i.task.eventId) })} label={i.task.name}>
+                // 240 wide at 100%, wider with larger text, never past 85% of the screen; the card never wider than its slot.
+                <li key={i.task.eventId} className="flex w-[min(calc(240px*var(--m-zoom)),85%)] shrink-0">
+                  <Card dense className="min-w-0 flex-1" inner="flex h-full flex-col" onPress={() => go({ name: 'tugas', detail: String(i.task.eventId) })} label={i.task.name}>
                     {/* The chip as wide as its name (ellipsis at the card's width), not stretched. */}
                     <span className="flex min-w-0">
                       <Chip small color={courseTint(i.courseColor)}>
@@ -205,7 +206,7 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
 
       <section aria-labelledby="academic-title">
         <SectionHead id="academic-title" title={w.app.academic} />
-        <div className="grid grid-cols-2 items-stretch gap-3">
+        <div className="m-cols-2 items-stretch">
           <Card onPress={() => go({ name: 'kalender', detail: null })} label={r.calendarTitle} className="h-full min-w-0" inner="flex h-full flex-col">
             <p className="text-m12 text-muted-foreground">{r.calendarTitle}</p>
             {next && c ? (
@@ -225,16 +226,15 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
               </div>
             )}
           </Card>
-          <Card onPress={() => go({ name: 'presensi', detail: null })} label={w.app.attendance} className="h-full min-w-0" inner="flex h-full flex-col">
+          <Card onPress={() => go({ name: 'presensi', detail: null })} label={w.app.attendance} className="h-full min-w-0" inner="m-cq flex h-full flex-col">
             <p className="text-m12 text-muted-foreground">{w.app.attendance}</p>
             {attendance ? (
               <>
-                <p className="mt-1 flex items-baseline gap-2">
-                  <span className="text-m22 font-semibold tabular-nums">
-                    <Private>{pct(attendance.average, locale)}%</Private>
-                  </span>
-                  <span className="text-m13 text-muted-foreground">{w.app.average}</span>
+                {/* The number on its own line, its label under it: they never compete for one line. */}
+                <p className="mt-1 text-m22 m-num-fit font-semibold whitespace-nowrap tabular-nums">
+                  <Private>{pct(attendance.average, locale)}%</Private>
                 </p>
+                <p className="text-m13 text-muted-foreground">{w.app.average}</p>
                 {/* The lowest course in its own rows: the percent never shares a line with a long name. */}
                 {attendance.lowest && attendanceSpread(user.presensi?.recap?.rows) && (
                   <div className="mt-auto pt-3">

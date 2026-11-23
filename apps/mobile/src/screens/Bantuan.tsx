@@ -43,7 +43,7 @@ export function BantuanScreen({ initialOpen = null }: { initialOpen?: string | n
             className="m-search h-8 min-w-0 flex-1 bg-transparent text-m15 outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
           />
           {query !== '' && (
-            <button type="button" onClick={() => setQuery('')} aria-label={h.clearSearch} className="m-hit flex size-7 shrink-0 items-center justify-center rounded-full bg-m-inset outline-none focus-ring:ring-2 focus-ring:ring-focus">
+            <button type="button" onClick={() => setQuery('')} aria-label={h.clearSearch} className="m-hit m-hit-x flex size-7 shrink-0 items-center justify-center rounded-full bg-m-inset outline-none focus-ring:ring-2 focus-ring:ring-focus">
               <XIcon className="size-4" />
             </button>
           )}

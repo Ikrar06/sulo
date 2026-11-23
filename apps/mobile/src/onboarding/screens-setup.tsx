@@ -173,7 +173,7 @@ function CourseRow({ course, on, onToggle }: { course: CourseChoice; on: boolean
       className={`m-hit onb-row flex min-h-14 w-full items-center gap-3 rounded-card px-3 py-2 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus ${on ? 'is-on' : 'm-card'}`}
       style={{ '--row-tint': tintBg(tint, 16, 'var(--m-card)') } as CSSProperties}
     >
-      <span aria-hidden="true" className={`flex size-10 shrink-0 items-center justify-center rounded-ctl text-m13 font-semibold transition-opacity duration-150 ${on ? '' : 'opacity-60'}`} style={course.color ? { background: tintVar(`course-${course.color}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}>
+      <span aria-hidden="true" className={`flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-ctl px-1 text-m13 font-semibold transition-opacity duration-150 ${on ? '' : 'opacity-60'}`} style={course.color ? { background: tintVar(`course-${course.color}`), ...ON_SOLID } : { background: 'var(--m-inset)' }}>
         {initials(course.name)}
       </span>
       <span className={`min-w-0 flex-1 text-m15 transition-opacity duration-150 ${on ? '' : 'opacity-60'}`}>{course.name}</span>

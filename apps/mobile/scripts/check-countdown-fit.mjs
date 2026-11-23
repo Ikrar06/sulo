@@ -58,8 +58,10 @@ async function check(lang, width, zoom) {
     const lines = Math.round(copy.getBoundingClientRect().height / lh);
     copy.remove();
     const row = el.previousElementSibling;
-    const [a, b] = [...el.closest('.grid').children].map((c) => Math.round(c.getBoundingClientRect().height));
-    return { name: longest, lines, rowOverflow: row.scrollWidth > row.clientWidth + 0.5, equal: a === b };
+    // The cards are one height while they sit side by side; stacked (one column, large text) each takes its own.
+    const [a, b] = [...el.closest('.m-cols-2, .grid').children].map((c) => c.getBoundingClientRect());
+    const sideBySide = Math.abs(a.top - b.top) < 1;
+    return { name: longest, lines, rowOverflow: row.scrollWidth > row.clientWidth + 0.5, equal: !sideBySide || Math.round(a.height) === Math.round(b.height) };
   });
   attendance.push({ ...att, lang, width, zoom });
   // Part 4: Kalender's event cards with the longest event name: the title in two lines at most,

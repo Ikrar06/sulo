@@ -45,6 +45,32 @@ jobs:
       - name: Recorder tidak ikut build produksi
         run: test ! -e .output/chrome-mv3/recorder.html
 
+  # The Android app's layout at the phone's font sizes (check-mobile-layout.mjs): widths 300, 360, 412 and 600,
+  # font sizes 100%, 130% and 200%, Indonesian and English. The full matrix runs locally (pnpm check:mobile-layout).
+  mobile-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Chromium untuk Playwright
+        run: pnpm --filter @sulo/mobile exec playwright install --with-deps chromium
+      - name: Tata letak HP (lebar, ukuran font, bahasa)
+        run: pnpm --filter @sulo/mobile run check:mobile-layout:ci
+      - name: Simpan potret yang gagal
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: layout-gagal
+          path: .output/layout-gagal
+          if-no-files-found: ignore
+          retention-days: 7
+
   # The Android app (M8b): debug APK and Kotlin unit tests, no release signing.
   android:
     runs-on: ubuntu-latest

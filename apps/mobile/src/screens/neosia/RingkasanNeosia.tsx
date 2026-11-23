@@ -69,7 +69,7 @@ export function NeosiaSetupCard() {
         <p className="text-m15 font-semibold">{asking ? t.connectTitle : n.checklist.title}</p>
         <p className="text-m13 text-muted-foreground">{asking ? t.connectBody : n.invite.text}</p>
         {asking && <p className="text-m12 text-muted-foreground">{t.unofficial}</p>}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {asking ? (
             <>
               <PillButton kind="primary" small disabled={busy} onPress={() => run(neo.enable)}>

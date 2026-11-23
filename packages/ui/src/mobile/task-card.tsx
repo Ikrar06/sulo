@@ -29,13 +29,14 @@ export function TaskCardView({ course, color, title, relative, tone, date, done,
   return (
     <Card dense onPress={onOpen} label={onOpen ? title : undefined}>
       {/* Row 1: the course; the time left in its urgency color, then the date when it fits. */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="min-w-0 shrink">
           <Chip small color={color}>
             {course}
           </Chip>
         </span>
-        <span className="ml-auto flex min-w-0 shrink-0 items-baseline justify-end overflow-hidden text-m12 whitespace-nowrap tabular-nums">
+        {/* The time left, then the date: each whole, the date under the time when both do not fit on one line. */}
+        <span className="ml-auto flex min-w-0 flex-wrap items-baseline justify-end text-m12 whitespace-nowrap tabular-nums">
           <span className={tone}>{relative}</span>
           {date}
         </span>

@@ -41,7 +41,7 @@ export function SectionHead({ title, action, id }: { title: string; action?: { l
         {title}
       </h2>
       {action && (
-        <button type="button" onClick={action.onPress} className={`m-hit text-m13 text-muted-foreground ${ring} rounded`}>
+        <button type="button" onClick={action.onPress} className={`m-hit m-hit-x text-m13 text-muted-foreground ${ring} rounded`}>
           {action.label}
         </button>
       )}
@@ -51,14 +51,15 @@ export function SectionHead({ title, action, id }: { title: string; action?: { l
 
 /** A square tile: a soft tint behind an icon or a date, or (solid) a course's own color behind its initials in dark text. */
 export function Tile({ color, size = 36, children, label, solid = false }: { color: TintColor | null | undefined; size?: 32 | 36 | 40 | 44 | 64; children: ReactNode; label?: string; solid?: boolean }) {
-  const box = size === 64 ? 'size-16' : size === 44 ? 'size-11' : size === 40 ? 'size-10' : size === 32 ? 'size-8' : 'size-9';
+  // The size is a minimum: a tile holding text (a date, initials) grows with the phone's text size instead of letting it out.
+  const box = size === 64 ? 'min-h-16 min-w-16' : size === 44 ? 'min-h-11 min-w-11' : size === 40 ? 'min-h-10 min-w-10' : size === 32 ? 'min-h-8 min-w-8' : 'min-h-9 min-w-9';
   // 32: the course initial tile in a list row (radius 10, initials 12 bold).
   const shape = size === 64 ? 'rounded-[18px] text-m13 font-semibold' : size === 32 ? 'rounded-[10px] text-m12 font-bold' : 'rounded-ctl text-m13 font-semibold';
   const fill = solid ? { background: tintVar(color), ...ON_SOLID } : { background: tintBg(color, 18), color: 'var(--text)' };
   // The type token sets its own weight; the 32 tile's initials are bold everywhere.
   const style = size === 32 ? { ...fill, fontWeight: 700 } : fill;
   return (
-    <span role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} className={`${box} flex shrink-0 flex-col items-center justify-center ${shape}`} style={style}>
+    <span role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} className={`${box} flex shrink-0 flex-col items-center justify-center px-1 py-0.5 ${shape}`} style={style}>
       {children}
     </span>
   );
@@ -75,7 +76,8 @@ export function IconTile({ color, icon: Icon, size = 36 }: { color: TintColor | 
 
 /** A pill chip (30): a dot or a tint in its color; `selected` fills it with the text color. */
 export function Chip({ children, color, dot = false, selected, onPress, small = false, dashed = false }: { children: ReactNode; color?: TintColor | null; dot?: boolean; selected?: boolean; onPress?: () => void; small?: boolean; dashed?: boolean }) {
-  const size = small ? 'h-6 px-2 text-m12' : 'h-[30px] px-3 text-m12';
+  // Heights are minimums: with a large text size the chip grows rather than letting its text out.
+  const size = small ? 'min-h-6 px-2 py-0.5 text-m12' : 'min-h-[30px] px-3 py-1 text-m12';
   const look = selected ? 'bg-foreground text-bg' : dashed ? 'border border-dashed border-m-line text-muted-foreground' : '';
   const style = !selected && !dashed && color && !dot ? { background: tintBg(color, 16, 'var(--m-card)') } : !selected && !dashed ? { background: 'var(--m-inset)' } : undefined;
   const inner = (
@@ -84,7 +86,8 @@ export function Chip({ children, color, dot = false, selected, onPress, small = 
       <span className="truncate">{children}</span>
     </>
   );
-  const cls = `inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-full ${size} ${look}`;
+  // A chip that is a button is at least 44 wide (its touch target); a label chip keeps its own width.
+  const cls = `inline-flex max-w-full shrink-0 items-center justify-center gap-1.5 rounded-full ${onPress ? 'min-w-11' : ''} ${size} ${look}`;
   if (onPress)
     return (
       <button type="button" aria-pressed={selected} onClick={onPress} className={`m-hit ${cls} ${ring}`} style={style}>
@@ -102,7 +105,8 @@ export function Chip({ children, color, dot = false, selected, onPress, small = 
 export function StatCard({ label, value, note, accent = false, warn = false }: { label: string; value: string; note?: string; accent?: boolean; warn?: boolean }) {
   return (
     <section className="m-card min-w-0 rounded-card p-3">
-      <p className="truncate text-m12 font-normal text-muted-foreground">{label}</p>
+      {/* Two lines rather than an ellipsis: a cut label ("Days to fin…") loses its meaning. */}
+      <p className="line-clamp-2 text-m12 font-normal break-words text-muted-foreground">{label}</p>
       <p className={`mt-1 text-m22 tabular-nums ${accent ? 'db-accent-text' : warn ? 'text-urgency-overdue' : ''}`}>{value}</p>
       {note && <p className="truncate text-m12 font-normal text-muted-foreground">{note}</p>}
     </section>

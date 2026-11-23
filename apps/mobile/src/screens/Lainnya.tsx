@@ -48,12 +48,12 @@ export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; on
 
   return (
     <div className="space-y-6">
-      <Card hero className="flex items-center gap-4">
+      <Card hero className="flex flex-wrap items-center gap-4">
         <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-m-inset" aria-hidden="true">
           <SuloMascot mood="neutral" size={40} />
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-m15 font-semibold">{w.connected.title}</p>
+        <div className="min-w-[min(100%,calc(120px*var(--m-zoom)))] flex-1">
+          <p className="text-m15 font-semibold break-words">{w.connected.title}</p>
           <p className="truncate text-m13 text-muted-foreground">{last === null ? w.connected.never : w.connected.updated(formatAgo(last, data!.now, m))}</p>
         </div>
         <PillButton small onPress={() => setConfirm(true)}>
@@ -101,7 +101,8 @@ export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; on
 
 function TileGrid({ items, go, label, unseen }: { items: Item[]; go: (s: Screen) => void; label: (n: ScreenName) => string; unseen: number }) {
   return (
-        <ul className="grid grid-cols-2 gap-3">
+        // Two columns while a tile holds its label, one when not (large text, a narrow screen).
+        <ul className="m-cols-2 [--m-col:120px]">
           {items.map(({ name, icon, tint }) => (
             <li key={name}>
               {/* As tall as its icon and label: the whole page, Dukung Sulo and the disclaimer included, sits close. */}
@@ -110,7 +111,7 @@ function TileGrid({ items, go, label, unseen }: { items: Item[]; go: (s: Screen)
                   <IconTile color={tint} icon={icon} size={36} />
                   {name === 'kabar' && unseen > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-m-inset px-2 text-m12 tabular-nums">{unseen > 99 ? '99+' : unseen}</span>}
                 </div>
-                <p className="mt-2 text-m15">{label(name)}</p>
+                <p className="mt-2 text-m15 break-words">{label(name)}</p>
               </Card>
             </li>
           ))}

@@ -72,7 +72,7 @@ export function WatchSettings({ lock, lockAvailable, onLockOn, after }: { lock: 
         <Row label={k.title} help={remoteOff ? offMessage : k.help} dim={remoteOff}>
           <Toggle checked={watch.enabled && !remoteOff} disabled={remoteOff} label={k.title} onChange={(v) => void toggle(v)} />
         </Row>
-        <div className="flex min-h-11 items-center justify-between gap-3 py-2 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
+        <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
           <span className="text-m12 text-muted-foreground tabular-nums">{watch.enabled && !remoteOff ? status : k.noCheck}</span>
           <a href={FAQ_HASH} className="m-hit rounded text-m13 underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
             {k.more}

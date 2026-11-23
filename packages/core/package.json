@@ -1,6 +1,6 @@
 {
   "name": "@sulo/core",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "description": "Sulo's shared logic for the extension and the Android app: no chrome.*, no DOM.",
   "license": "MIT",
