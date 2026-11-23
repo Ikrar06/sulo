@@ -122,7 +122,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
       en: 'Sulo notes new materials and tasks, changed deadlines, grades and announcements. You choose which ones notify you.',
     },
     clip: 'kabar',
-    size: { width: 1200, height: 556 },
+    size: { width: 1200, height: 602 },
     alt: { id: 'Halaman Kabar terbaru dengan filter jenis dan pengaturan notifikasi yang terbuka.', en: 'The Latest updates page with the kind filter and the notification settings open.' },
     points: [
       { id: 'Saring menurut jenis perubahan.', en: 'Filter by kind of change.' },

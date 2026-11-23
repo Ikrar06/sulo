@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { GUIDE_STEPS, GUIDE_TIP } from '@sulo/core/help/guide';
 
@@ -13,6 +13,11 @@ describe('"Mulai pakai" guide', () => {
       for (const theme of ['light', 'dark'])
         for (const locale of ['id', 'en'])
           for (const ext of ['webm', 'webp']) expect(existsSync(`public/guide/${s.clip}-${theme}-${locale}.${ext}`), `${s.clip}-${theme}-${locale}.${ext}`).toBe(true);
+  });
+
+  it('each step states the size its clip was recorded at (scripts/guide/sizes.json, written by pnpm guide:shots)', () => {
+    const recorded = JSON.parse(readFileSync('scripts/guide/sizes.json', 'utf8')) as Record<string, { width: number; height: number }>;
+    for (const s of GUIDE_STEPS) expect(s.size, s.clip).toEqual(recorded[s.clip]);
   });
 
   it('every step lists what it shows, in both languages, with alt text', () => {
