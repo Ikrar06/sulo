@@ -8,9 +8,10 @@
 //
 // For each sound it reports the length, the channels, the peak, how loud it
 // is, and the silence at its start and end; then it cuts the silence at the
-// start and brings all of them to one loudness, so none is much louder than
-// the rest. Nothing is cut at the end and nothing is shortened: a sound
-// longer than 2 s is only reported.
+// start, cuts the silence at the end down to a short tail that fades out
+// (so the sound does not end with a click), and brings all of them to one
+// loudness, so none is much louder than the rest. The sound itself is never
+// shortened: one longer than 2 s is only reported.
 //
 // Format: Ogg Vorbis when a tool for it is on this machine (ffmpeg with
 // libvorbis, or oggenc); otherwise MP3 through lame; without either, the
@@ -34,6 +35,8 @@ const TARGET_DB = -20;
 /** ...unless that would push its peak above this. */
 const PEAK_CEILING_DB = -1;
 const LONG_S = 2;
+/** What is kept after the last sample that is not silence: this long, fading out to nothing (owner, 23 Nov 2026: about 80 to 120 ms). */
+const TAIL_MS = 100;
 const checkOnly = process.argv.includes('--check');
 
 const db = (v) => 20 * Math.log10(Math.max(v, 1e-9));
@@ -123,7 +126,9 @@ export function measure({ channels, rate, samples, frames }) {
     loudDb: db(Math.sqrt(best)),
     leadMs: first < 0 ? 0 : (first / rate) * 1000,
     tailMs: last < 0 ? 0 : ((frames - 1 - last) / rate) * 1000,
+    lastSample: frames > 0 ? samples[(frames - 1) * channels] : 0,
     firstFrame: Math.max(0, first),
+    lastFrame: last < 0 ? frames - 1 : last,
   };
 }
 
@@ -138,11 +143,19 @@ try {
   for (const n of SOUNDS) {
     const wav = readWav(join(SRC, `${n}.wav`));
     const before = measure(wav);
-    // Cut the silence at the start; leave the end as the owner made it.
-    const trimmed = wav.samples.subarray(before.firstFrame * wav.channels);
+    // Cut the silence at the start. At the end keep a short tail after the last sample that is not silence
+    // (or what there is, when the owner left less), and let it fade out along half a cosine: no click, no dead air.
+    const tail = Math.min(wav.frames - 1 - before.lastFrame, Math.round((wav.rate * TAIL_MS) / 1000));
+    const end = before.lastFrame + tail + 1;
+    const trimmed = wav.samples.slice(before.firstFrame * wav.channels, end * wav.channels);
+    const frames = trimmed.length / wav.channels;
+    for (let f = Math.max(0, frames - tail); f < frames; f += 1) {
+      const fade = 0.5 + 0.5 * Math.cos((Math.PI * (f - (frames - tail) + 1)) / tail);
+      for (let c = 0; c < wav.channels; c += 1) trimmed[f * wav.channels + c] *= fade;
+    }
     const gainDb = Math.min(TARGET_DB - before.loudDb, PEAK_CEILING_DB - before.peakDb);
     const gain = 10 ** (gainDb / 20);
-    const out = { channels: wav.channels, rate: wav.rate, samples: trimmed.map((v) => v * gain), frames: trimmed.length / wav.channels };
+    const out = { channels: wav.channels, rate: wav.rate, samples: trimmed.map((v) => v * gain), frames };
     const after = measure(out);
     rows.push({ n, before, gainDb, after });
     if (checkOnly) continue;
@@ -166,7 +179,7 @@ try {
 const f1 = (v) => v.toFixed(1);
 console.log('\nSumber (WAV pemilik):');
 for (const { n, before: b } of rows) console.log(`  ${n}.wav  ${b.seconds.toFixed(3)} s  ${b.channels} kanal  ${b.rate} Hz  puncak ${f1(b.peakDb)} dBFS  kekerasan ${f1(b.loudDb)} dB  hening awal ${Math.round(b.leadMs)} ms, akhir ${Math.round(b.tailMs)} ms${b.seconds > LONG_S ? `  LEBIH DARI ${LONG_S} s (tidak dipotong)` : ''}`);
-console.log(`\nSesudah (hening awal dipangkas, kekerasan disamakan ke ${TARGET_DB} dB, puncak paling tinggi ${PEAK_CEILING_DB} dBFS):`);
-for (const { n, gainDb, after: a } of rows) console.log(`  sulo_notif_${n}  ${a.seconds.toFixed(3)} s  penguatan ${gainDb >= 0 ? '+' : ''}${f1(gainDb)} dB  puncak ${f1(a.peakDb)} dBFS  kekerasan ${f1(a.loudDb)} dB`);
+console.log(`\nSesudah (hening awal dipangkas, ekor ${TAIL_MS} ms yang memudar, kekerasan disamakan ke ${TARGET_DB} dB, puncak paling tinggi ${PEAK_CEILING_DB} dBFS):`);
+for (const { n, before: b, gainDb, after: a } of rows) console.log(`  sulo_notif_${n}  ${a.seconds.toFixed(3)} s (tadinya ${b.seconds.toFixed(3)} s)  penguatan ${gainDb >= 0 ? '+' : ''}${f1(gainDb)} dB  puncak ${f1(a.peakDb)} dBFS  kekerasan ${f1(a.loudDb)} dB  sampel terakhir ${f1(db(Math.abs(a.lastSample)))} dBFS`);
 if (encoder === null) console.log('\nPERHATIAN: tidak ada alat pengubah format; MP3 pemilik disalin apa adanya dan kekerasannya TIDAK disamakan.');
 if (!checkOnly) console.log(`\nDitulis: ${RAW}/sulo_notif_<n>.${ext} dan ${PREVIEW}/sulo_notif_<n>.${ext}`);
