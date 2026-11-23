@@ -4,11 +4,12 @@
 // Tampilan, NEOSIA (once connected), Keamanan, Laporan bug, Data. Only what makes sense on a phone;
 // every value is the same prefs field the extension uses.
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
 import { formatClock } from '@sulo/core/format/time';
 import { LANGUAGE_NAMES } from '@sulo/core/i18n';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
+import { NOTIFY_SOUNDS, type NotifySound } from '@sulo/core/notify/channels';
 import { readTechLog } from '@sulo/core/net/tech-log';
 import { ANIMATION_PREFS, type AnimationPref } from '@sulo/core/perf/tier';
 import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, type DueFormat } from '@sulo/core/prefs';
@@ -20,8 +21,10 @@ import { useI18n } from '@sulo/ui/i18n';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet, SheetOptions, SheetTextForm, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { stageAmount } from '@sulo/ui/reminders/RemindersPanel';
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { notificationsAllowed } from '../platform/notifications';
+import { changeNotifySound, previewFile, readNotifySound } from '../notify-sound';
+import { notificationsAllowed, scheduleOnChannels } from '../platform/notifications';
+import { scheduleReminders } from '../reminders';
+import { applyWatchPlan } from '../watch-native';
 import { LOCK_KEY } from '../account';
 import { setAnimationPref } from '../perf';
 import { SuloSession } from '../session';
@@ -29,7 +32,7 @@ import { timeZone, useMobileData } from '../shell/data';
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h * 60);
 
-type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickname' | 'animation' | null;
+type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickname' | 'animation' | 'sound' | null;
 
 import { SignOutSheet } from './SignOutSheet';
 import { Group, Row, ValueRow } from './settings-rows';
@@ -50,8 +53,42 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
   const [confirm, setConfirm] = useState(false);
   const [bug, setBug] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  // The notification sound: the saved choice, its preview, and whether it changed while the sheet was open.
+  const [sound, setSound] = useState<NotifySound | null>(null);
+  const preview = useRef<HTMLAudioElement | null>(null);
+  const soundChanged = useRef(false);
+  const stopPreview = useCallback(() => {
+    preview.current?.pause();
+    preview.current = null;
+  }, []);
+  // Leaving the screen with a preview still playing: it stops.
+  useEffect(() => stopPreview, [stopPreview]);
+  const chooseSound = (next: NotifySound) => {
+    // The preview is ordinary media playback: once, at the phone's media volume. "Bawaan HP" and "Senyap" have nothing to play.
+    stopPreview();
+    const file = previewFile(next);
+    if (file) {
+      const audio = new Audio(new URL(file, document.baseURI).href);
+      preview.current = audio;
+      void audio.play().catch(() => undefined);
+    }
+    if (next === sound) return;
+    setSound(next);
+    soundChanged.current = true;
+    // Saved at once, and the channels swapped: the new sound's are made, the previous one's removed. No permission is asked.
+    void changeNotifySound(platform.store, next);
+  };
+  const closeSound = () => {
+    stopPreview();
+    if (!soundChanged.current) return;
+    soundChanged.current = false;
+    // What is already scheduled names the previous sound's channels: plan again, and tell the background worker.
+    void scheduleReminders(platform).catch(() => 0);
+    void applyWatchPlan(platform).catch(() => undefined);
+  };
 
   useEffect(() => {
+    void readNotifySound(platform.store).then(setSound);
     void platform.store.get<boolean>(LOCK_KEY).then((v) => setLock(v === true));
     void SuloSession.lockAvailable().then((x) => setLockAvailable(x.available));
   }, [platform]);
@@ -79,7 +116,7 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
 
   return (
     <div className="space-y-6">
-      <WatchSettings lock={lock} lockAvailable={lockAvailable} onLockOn={() => setLock(true)} />
+      <WatchSettings lock={lock} lockAvailable={lockAvailable} onLockOn={() => setLock(true)} after={<ValueRow label={w.notifySound.label} value={sound ? w.notifySound.options[sound] : ''} onPress={() => setPicker('sound')} />} />
 
       <Group title={t.sections.pengingat}>
         <Row label={r.enabled}>
@@ -101,7 +138,8 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
             onPress={async () => {
               // Without permission the test would make Android ask; that question is the onboarding's alone.
               if (!(await notificationsAllowed())) return setNote(w.notify.denied);
-              await LocalNotifications.schedule({ notifications: [{ id: 1, title: m.notify.testTitle, body: m.notify.testBody, isExactNotification: false }] });
+              // On the reminders' channel, so it sounds as a real reminder will.
+              await scheduleOnChannels(platform.store, [{ id: 1, title: m.notify.testTitle, body: m.notify.testBody, extra: { suloId: 'test|1' }, isExactNotification: false }]);
               setNote(t.testSent);
             }}
           >
@@ -173,7 +211,14 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
         </button>
       </Group>
 
-      <Sheet open={picker !== null} onOpenChange={(o) => !o && setPicker(null)} title={picker === 'nickname' ? t.nickname : picker === 'due' ? t.dueFormat : picker === 'animation' ? w.settings.animation : picker === 'quietStart' ? `${r.quiet}: ${r.from}` : picker === 'quietEnd' ? `${r.quiet}: ${r.to}` : picker === 'morning' ? r.morning : r.snoozeMorning}>
+      <Sheet
+        open={picker !== null}
+        onOpenChange={(o) => {
+          if (o) return;
+          if (picker === 'sound') closeSound();
+          setPicker(null);
+        }}
+        title={picker === 'nickname' ? t.nickname : picker === 'due' ? t.dueFormat : picker === 'sound' ? w.notifySound.label : picker === 'animation' ? w.settings.animation : picker === 'quietStart' ? `${r.quiet}: ${r.from}` : picker === 'quietEnd' ? `${r.quiet}: ${r.to}` : picker === 'morning' ? r.morning : r.snoozeMorning}>
         {picker === 'nickname' ? (
           <SheetTextForm label={t.nickname} initial={prefs.nickname} maxLength={NICKNAME_MAX} help={w.settings.nicknameHelp} submitLabel={w.app.doneSheet} onSave={(v) => void actions.setPrefs({ nickname: normalizeNickname(v) })} />
         ) : picker === 'due' ? (
@@ -185,6 +230,12 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
               setPicker(null);
             }}
           />
+        ) : picker === 'sound' ? (
+          <>
+            {/* Stays open after a choice, so the sounds can be tried one after another; each tap plays its preview once. */}
+            <SheetOptions value={sound ?? NOTIFY_SOUNDS[0]} options={NOTIFY_SOUNDS.map((s) => ({ value: s, label: w.notifySound.options[s] }))} onChoose={chooseSound} />
+            <p className="mt-3 px-1 text-m12 font-normal text-muted-foreground">{w.notifySound.help}</p>
+          </>
         ) : picker === 'animation' ? (
           <SheetOptions
             value={prefs.animation}

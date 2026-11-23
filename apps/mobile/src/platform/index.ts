@@ -25,8 +25,8 @@ export function createMobilePlatform(): Platform {
   return {
     store,
     secrets: nativeOnlySecrets,
-    alarms: createAlarmScheduler(),
-    notifier: createNotifier(),
+    alarms: createAlarmScheduler(store),
+    notifier: createNotifier(store),
     // Plain requests are background-free reads; a sync the user starts makes its own (sync.ts).
     http: createSessionHttp(false),
     clock: systemClock,

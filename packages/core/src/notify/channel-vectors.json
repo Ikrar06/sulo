@@ -1,0 +1,984 @@
+{
+ "names": {
+  "due": "Pengingat tenggat",
+  "news": "Tugas dan kabar baru",
+  "morning": "Ringkasan pagi",
+  "session": "Masuk lagi ke SIKOLA",
+  "paused": "Pemantauan dijeda",
+  "release": "Versi baru"
+ },
+ "plans": [
+  {
+   "sound": "sound1",
+   "out": {
+    "version": 1,
+    "sound": "sound1",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara1",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara1",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara1",
+     "news": "sulo_kabar_suara1",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   }
+  },
+  {
+   "sound": "sound2",
+   "out": {
+    "version": 1,
+    "sound": "sound2",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara2",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_2",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara2",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_2",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara2",
+     "news": "sulo_kabar_suara2",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   }
+  },
+  {
+   "sound": "sound3",
+   "out": {
+    "version": 1,
+    "sound": "sound3",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara3",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_3",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara3",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_3",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara3",
+     "news": "sulo_kabar_suara3",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   }
+  },
+  {
+   "sound": "sound4",
+   "out": {
+    "version": 1,
+    "sound": "sound4",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara4",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_4",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara4",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_4",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara4",
+     "news": "sulo_kabar_suara4",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   }
+  },
+  {
+   "sound": "device",
+   "out": {
+    "version": 1,
+    "sound": "device",
+    "channels": [
+     {
+      "id": "sulo_tenggat_bawaan",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "default",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_bawaan",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "default",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_bawaan",
+     "news": "sulo_kabar_bawaan",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   }
+  },
+  {
+   "sound": "silent",
+   "out": {
+    "version": 1,
+    "sound": "silent",
+    "channels": [
+     {
+      "id": "sulo_tenggat_senyap",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_kabar_senyap",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_senyap",
+     "news": "sulo_kabar_senyap",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   }
+  }
+ ],
+ "kinds": [
+  {
+   "id": "task|101|t:101:h1",
+   "out": "due"
+  },
+  {
+   "id": "summary|s:1795000000",
+   "out": "due"
+  },
+  {
+   "id": "calendar|c:uts:h7",
+   "out": "due"
+  },
+  {
+   "id": "krs|k:h1",
+   "out": "due"
+  },
+  {
+   "id": "changes|task:101:added",
+   "out": "news"
+  },
+  {
+   "id": "changes|course:11|c:1",
+   "out": "news"
+  },
+  {
+   "id": "changes_summary|cs:1",
+   "out": "news"
+  },
+  {
+   "id": "morning|m:2026-11-23",
+   "out": "morning"
+  },
+  {
+   "id": "session|s:1",
+   "out": "session"
+  },
+  {
+   "id": "session|watch:1795000000",
+   "out": "session"
+  },
+  {
+   "id": "watch|paused:1795000000",
+   "out": "paused"
+  },
+  {
+   "id": "release|42",
+   "out": "release"
+  },
+  {
+   "id": "something-else",
+   "out": "due"
+  },
+  {
+   "id": "",
+   "out": "due"
+  }
+ ],
+ "changes": [
+  {
+   "existing": [],
+   "plan": {
+    "version": 1,
+    "sound": "sound1",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara1",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara1",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara1",
+     "news": "sulo_kabar_suara1",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [
+     "sulo_tenggat_suara1",
+     "sulo_kabar_suara1",
+     "sulo_pagi",
+     "sulo_sesi",
+     "sulo_jeda"
+    ],
+    "remove": []
+   }
+  },
+  {
+   "existing": [
+    "default",
+    "sulo_kabar"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "sound1",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara1",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara1",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara1",
+     "news": "sulo_kabar_suara1",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [
+     "sulo_tenggat_suara1",
+     "sulo_kabar_suara1",
+     "sulo_pagi",
+     "sulo_sesi",
+     "sulo_jeda"
+    ],
+    "remove": [
+     "default",
+     "sulo_kabar"
+    ]
+   }
+  },
+  {
+   "existing": [
+    "default",
+    "sulo_tenggat_suara1",
+    "sulo_kabar_suara1",
+    "sulo_pagi",
+    "sulo_sesi",
+    "sulo_jeda"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "sound1",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara1",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara1",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_1",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara1",
+     "news": "sulo_kabar_suara1",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [],
+    "remove": [
+     "default"
+    ]
+   }
+  },
+  {
+   "existing": [
+    "sulo_tenggat_suara1",
+    "sulo_kabar_suara1",
+    "sulo_pagi",
+    "sulo_sesi",
+    "sulo_jeda"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "sound3",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara3",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_3",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara3",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_3",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara3",
+     "news": "sulo_kabar_suara3",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [
+     "sulo_tenggat_suara3",
+     "sulo_kabar_suara3"
+    ],
+    "remove": [
+     "sulo_kabar_suara1",
+     "sulo_tenggat_suara1"
+    ]
+   }
+  },
+  {
+   "existing": [
+    "sulo_tenggat_suara3",
+    "sulo_kabar_suara3",
+    "sulo_pagi",
+    "sulo_sesi",
+    "sulo_jeda"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "device",
+    "channels": [
+     {
+      "id": "sulo_tenggat_bawaan",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "default",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_bawaan",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "default",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_bawaan",
+     "news": "sulo_kabar_bawaan",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [
+     "sulo_tenggat_bawaan",
+     "sulo_kabar_bawaan"
+    ],
+    "remove": [
+     "sulo_kabar_suara3",
+     "sulo_tenggat_suara3"
+    ]
+   }
+  },
+  {
+   "existing": [
+    "sulo_tenggat_bawaan",
+    "sulo_kabar_bawaan",
+    "sulo_pagi",
+    "sulo_sesi",
+    "sulo_jeda"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "silent",
+    "channels": [
+     {
+      "id": "sulo_tenggat_senyap",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_kabar_senyap",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_senyap",
+     "news": "sulo_kabar_senyap",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [
+     "sulo_tenggat_senyap",
+     "sulo_kabar_senyap"
+    ],
+    "remove": [
+     "sulo_kabar_bawaan",
+     "sulo_tenggat_bawaan"
+    ]
+   }
+  },
+  {
+   "existing": [
+    "sulo_tenggat_senyap",
+    "sulo_kabar_senyap",
+    "sulo_pagi",
+    "sulo_sesi",
+    "sulo_jeda"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "sound2",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara2",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_2",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara2",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_2",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara2",
+     "news": "sulo_kabar_suara2",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [
+     "sulo_tenggat_suara2",
+     "sulo_kabar_suara2"
+    ],
+    "remove": [
+     "sulo_kabar_senyap",
+     "sulo_tenggat_senyap"
+    ]
+   }
+  },
+  {
+   "existing": [
+    "sulo_tenggat_suara1",
+    "sulo_kabar_suara2",
+    "sulo_tenggat_suara2",
+    "sulo_pagi"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "sound2",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara2",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_2",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara2",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_2",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara2",
+     "news": "sulo_kabar_suara2",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [
+     "sulo_sesi",
+     "sulo_jeda"
+    ],
+    "remove": [
+     "sulo_tenggat_suara1"
+    ]
+   }
+  },
+  {
+   "existing": [
+    "miscellaneous",
+    "sound_chime",
+    "sulo_tenggat_suara4",
+    "sulo_kabar_suara4",
+    "sulo_pagi",
+    "sulo_sesi",
+    "sulo_jeda",
+    "sulo_versi"
+   ],
+   "plan": {
+    "version": 1,
+    "sound": "sound4",
+    "channels": [
+     {
+      "id": "sulo_tenggat_suara4",
+      "kind": "due",
+      "name": "Pengingat tenggat",
+      "sound": "sulo_notif_4",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_kabar_suara4",
+      "kind": "news",
+      "name": "Tugas dan kabar baru",
+      "sound": "sulo_notif_4",
+      "importance": "default"
+     },
+     {
+      "id": "sulo_pagi",
+      "kind": "morning",
+      "name": "Ringkasan pagi",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_sesi",
+      "kind": "session",
+      "name": "Masuk lagi ke SIKOLA",
+      "sound": null,
+      "importance": "low"
+     },
+     {
+      "id": "sulo_jeda",
+      "kind": "paused",
+      "name": "Pemantauan dijeda",
+      "sound": null,
+      "importance": "low"
+     }
+    ],
+    "byKind": {
+     "due": "sulo_tenggat_suara4",
+     "news": "sulo_kabar_suara4",
+     "morning": "sulo_pagi",
+     "session": "sulo_sesi",
+     "paused": "sulo_jeda",
+     "release": "sulo_versi"
+    }
+   },
+   "out": {
+    "create": [],
+    "remove": [
+     "sulo_versi"
+    ]
+   }
+  }
+ ]
+}

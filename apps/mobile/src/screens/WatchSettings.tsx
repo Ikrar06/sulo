@@ -5,7 +5,7 @@
 // email notifications. While the remote config turns watching off, the
 // switch is disabled with the config's message.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { formatAgo } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
@@ -28,7 +28,7 @@ export const SIKOLA_PREFERENCES_URL = `${SIKOLA_ORIGIN}/user/preferences.php`;
 /** Bantuan, opened at the question on how fast Sulo hears about new tasks. */
 const FAQ_HASH = '#bantuan/seberapa-cepat-hp';
 
-export function WatchSettings({ lock, lockAvailable, onLockOn }: { lock: boolean; lockAvailable: boolean; onLockOn: () => void }) {
+export function WatchSettings({ lock, lockAvailable, onLockOn, after }: { lock: boolean; lockAvailable: boolean; onLockOn: () => void; /** More rows of the Notifikasi group, under the watching rows (the notification sound). */ after?: ReactNode }) {
   const { m, locale } = useI18n();
   const t = mobileDash(locale).pengaturan;
   const k = mobileWords(locale).watch;
@@ -72,12 +72,13 @@ export function WatchSettings({ lock, lockAvailable, onLockOn }: { lock: boolean
         <Row label={k.title} help={remoteOff ? offMessage : k.help} dim={remoteOff}>
           <Toggle checked={watch.enabled && !remoteOff} disabled={remoteOff} label={k.title} onChange={(v) => void toggle(v)} />
         </Row>
-        <div className="flex min-h-11 items-center justify-between gap-3 py-2">
+        <div className="flex min-h-11 items-center justify-between gap-3 py-2 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
           <span className="text-m12 text-muted-foreground tabular-nums">{watch.enabled && !remoteOff ? status : k.noCheck}</span>
           <a href={FAQ_HASH} className="m-hit rounded text-m13 underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
             {k.more}
           </a>
         </div>
+        {after}
       </Group>
 
       {showSleepHelp && (

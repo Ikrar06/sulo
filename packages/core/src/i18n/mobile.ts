@@ -137,6 +137,13 @@ const id = {
     later: 'Nanti',
     denied: 'Notifikasi mati. Nyalakan lewat Pengaturan HP, bagian Aplikasi, Sulo, Notifikasi.',
   },
+  /** The notification sound (Pengaturan), and the channels' names as the phone's own settings show them. */
+  notifySound: {
+    label: 'Suara notifikasi',
+    help: 'Dipakai untuk pengingat tenggat dan untuk tugas dan kabar baru. Ringkasan pagi dan pemberitahuan lain selalu senyap.',
+    options: { sound1: 'Suara 1', sound2: 'Suara 2', sound3: 'Suara 3', sound4: 'Suara 4', device: 'Bawaan HP', silent: 'Senyap' },
+    channels: { due: 'Pengingat tenggat', news: 'Tugas dan kabar baru', morning: 'Ringkasan pagi', session: 'Masuk lagi ke SIKOLA', paused: 'Pemantauan dijeda', release: 'Versi baru' },
+  },
   settings: {
     language: 'Bahasa',
     languageNote: 'Mengikuti bahasa HP.',
@@ -357,6 +364,12 @@ const en: MobileWords = {
     allow: 'Allow',
     later: 'Later',
     denied: "Notifications are off. Turn them on in the phone's Settings, under Apps, Sulo, Notifications.",
+  },
+  notifySound: {
+    label: 'Notification sound',
+    help: 'Used for deadline reminders and for new tasks and updates. The morning summary and other notices are always silent.',
+    options: { sound1: 'Sound 1', sound2: 'Sound 2', sound3: 'Sound 3', sound4: 'Sound 4', device: 'Phone default', silent: 'Silent' },
+    channels: { due: 'Deadline reminders', news: 'New tasks and updates', morning: 'Morning summary', session: 'Sign in to SIKOLA again', paused: 'Watching paused', release: 'New version' },
   },
   settings: {
     language: 'Language',

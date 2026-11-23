@@ -98,14 +98,15 @@ describe('the notification permission is asked in one place only', () => {
   });
 
   it('showing a notification and setting an alarm also wait for the permission', async () => {
+    const { store } = createMobilePlatform();
     expect(await notificationsAllowed()).toBe(false);
-    await createNotifier().show('x', { title: 'a', message: 'b', icon: 'idle' } as never);
-    await createAlarmScheduler().schedule('y', { delayMinutes: 5 });
+    await createNotifier(store).show('x', { title: 'a', message: 'b', icon: 'idle' } as never);
+    await createAlarmScheduler(store).schedule('y', { delayMinutes: 5 });
     expect(phone.scheduled).toHaveLength(0);
     expect(phone.asked).toBe(0);
     phone.display = 'granted';
-    await createNotifier().show('x', { title: 'a', message: 'b', icon: 'idle' } as never);
-    await createAlarmScheduler().schedule('y', { delayMinutes: 5 });
+    await createNotifier(store).show('x', { title: 'a', message: 'b', icon: 'idle' } as never);
+    await createAlarmScheduler(store).schedule('y', { delayMinutes: 5 });
     expect(phone.scheduled).toHaveLength(2);
     expect(phone.asked).toBe(0);
   });
