@@ -256,14 +256,36 @@ export function SceneRemind({ w, compact, width, play, lead }: SceneProps) {
   // The banner's and the tiles' contents, measured: the tiles are as tall as the taller one's content (at least their
   // drawn size), the banner as tall as its own.
   const parts = useRef<(HTMLDivElement | null)[]>([]);
+  const count = useRef<HTMLParagraphElement | null>(null);
   const sizes = useSizes(parts, 3, [width, compact]);
+  // Side by side while the countdown fits half the canvas, one above the other when it does not (large text on a
+  // narrow phone): its own width is measured from its text (in canvas px), never assumed.
+  // Once stacked it stays stacked for this canvas width: the countdown's size follows its tile's width, so measuring
+  // it again in a wider tile could flip the choice back and forth.
+  const [stack, setStack] = useState<{ width: number; on: boolean }>({ width, on: false });
+  useLayoutEffect(() => {
+    const el = count.current;
+    const text = el?.firstChild;
+    if (!el || !text || el.offsetWidth === 0) return;
+    if (stack.width === width && stack.on) return;
+    const r = document.createRange();
+    r.selectNodeContents(text);
+    const scale = el.getBoundingClientRect().width / el.offsetWidth;
+    const on = r.getBoundingClientRect().width / scale + 28 > (width - 12) / 2 + 0.5;
+    if (stack.width !== width || stack.on !== on) setStack({ width, on });
+  }, [width, compact, sizes, stack]);
+  const stacked = stack.width === width && stack.on;
   const minTile = compact ? 84 : 136;
-  const tileH = Math.max(minTile, sizes ? Math.max(sizes[1]?.h ?? 0, sizes[2]?.h ?? 0) + 28 : 0);
+  const tileH = stacked ? 0 : Math.max(minTile, sizes ? Math.max(sizes[1]?.h ?? 0, sizes[2]?.h ?? 0) + 28 : 0);
+  const ownH = (i: 1 | 2) => (sizes?.[i]?.h ?? 56) + 28;
   const bannerH = sizes?.[0]?.h ?? 68;
-  const tileW = (width - 12) / 2;
-  // Two tiles 24 px above the mascot, the banner 16 px above them (above the canvas, if large text needs it: the
-  // stage then fits the scene's whole height, Scene.tsx).
-  const tileY = mascotAt(compact, width).y - MASCOT_GAP - tileH;
+  const tileW = stacked ? width : (width - 12) / 2;
+  // Two tiles 24 px above the mascot (side by side, or the attendance under the countdown), the banner 16 px above
+  // them (above the canvas, if large text needs it: the stage then fits the scene's whole height, Scene.tsx).
+  const floor = mascotAt(compact, width).y - MASCOT_GAP;
+  const rightY = stacked ? floor - ownH(2) : floor - tileH;
+  const leftY = stacked ? rightY - 12 - ownH(1) : rightY;
+  const tileY = leftY;
   return (
     <>
       <Layer depth={70}>
@@ -274,17 +296,17 @@ export function SceneRemind({ w, compact, width, play, lead }: SceneProps) {
         </At>
       </Layer>
       <Layer depth={-40}>
-        <At x={0} y={tileY} w={tileW} h={tileH} pieceRef={left}>
+        <At x={0} y={leftY} w={tileW} h={stacked ? ownH(1) : tileH} pieceRef={left}>
           <Card dense className="flex h-full flex-col justify-center">
-            <div ref={(n) => void (parts.current[1] = n)} className="min-w-0">
+            <div ref={(n) => void (parts.current[1] = n)} className="m-cq min-w-0">
               <p className="text-m12 text-muted-foreground">{t.countdownLabel}</p>
-              {/* The app's own countdown format, fixed-width digits, a real second every second. */}
-              <p className="mt-1 text-m22 m-num-fit whitespace-nowrap text-primary tabular-nums">{formatCountdown(secs * 1000, 'id')}</p>
+              {/* The app's own countdown format, fixed-width digits, a real second every second; as large as the tile holds. */}
+              <p ref={count} className="mt-1 text-m22 m-num-fit-8 whitespace-nowrap text-primary tabular-nums">{formatCountdown(secs * 1000, 'id')}</p>
               {!compact && <p className="mt-1 line-clamp-2 text-m12 text-muted-foreground">{t.notifyTitle}</p>}
             </div>
           </Card>
         </At>
-        <At x={tileW + 12} y={tileY} w={tileW} h={tileH} pieceRef={right}>
+        <At x={stacked ? 0 : tileW + 12} y={rightY} w={tileW} h={stacked ? ownH(2) : tileH} pieceRef={right}>
           <Card dense className="flex h-full flex-col justify-center">
             <div ref={(n) => void (parts.current[2] = n)} className="min-w-0">
               <p className="text-m12 text-muted-foreground">{t.attendanceLabel}</p>

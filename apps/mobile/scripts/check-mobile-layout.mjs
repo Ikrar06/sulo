@@ -32,6 +32,7 @@
 //
 // Usage: node scripts/check-mobile-layout.mjs [--no-build] [--out=<dir>] [--ci]
 //   [--only=<text in the state name>] [--json=<file>] [--dist=<dir>] [--port=<n>] [--time]
+//   [--widths=300,360] [--heights=640] [--scales=1,2]  a part of the matrix, for working on a finding
 //   --ci  a shorter matrix for CI: widths 300, 360, 412, 600; heights 640;
 //         scales 1, 1.3, 2; both languages; light/full.
 import { execFileSync, spawn } from 'node:child_process';
@@ -49,9 +50,10 @@ const only = arg('only', null)?.split(',') ?? null;
 const out = resolve(process.env.INIT_CWD ?? process.cwd(), arg('out', join(ROOT, 'docs/uji-layout/sebelum')));
 const jsonOut = arg('json', null);
 
-const WIDTHS = CI ? [300, 360, 412, 600] : [300, 320, 360, 384, 412, 430, 480, 600, 700];
-const HEIGHTS = CI ? [640] : [640, 915];
-const SCALES = CI ? [1, 1.3, 2] : [0.85, 1, 1.15, 1.3, 1.5, 2];
+const list = (name) => arg(name, null)?.split(',').map(Number) ?? null;
+const WIDTHS = list('widths') ?? (CI ? [300, 360, 412, 600] : [300, 320, 360, 384, 412, 430, 480, 600, 700]);
+const HEIGHTS = list('heights') ?? (CI ? [640] : [640, 915]);
+const SCALES = list('scales') ?? (CI ? [1, 1.3, 2] : [0.85, 1, 1.15, 1.3, 1.5, 2]);
 const LANGS = ['en', 'id'];
 // Each value of each axis: light with the full tier, dark with the lite tier. Theme changes colours only and the
 // tier motion only, so a pairing covers both without doubling the run.

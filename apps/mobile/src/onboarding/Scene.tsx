@@ -10,9 +10,13 @@
 // holding text take their height from it; it is hidden from screen readers
 // (the stage carries one label).
 
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 export const MIN_SCALE = 0.8;
+/** Sent when a scene's canvas moves or scales: the flying mascot looks for its spot again (FlyingMascot.tsx). */
+export const SCENE_MOVED = 'sulo:scene-moved';
+/** Rounds per stage size in which a scene's overhang may also shrink (Scene below). */
+const SETTLE_ROUNDS = 6;
 /**
  * The stage's floor: below it the screen scrolls instead of the scene shrinking further. Large text on a short
  * screen leaves the scene almost no room; at 180 px the compact scene still shows a card and the mascot at about
@@ -36,6 +40,10 @@ export function Scene({ label, h, compactH, children, hidden = false, top = fals
   const stage = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLDivElement | null>(null);
   const [fit, setFit] = useState<{ compact: boolean; scale: number; width: number; lift: number; over: number } | null>(null);
+  // The fit changes the canvas width, the width changes how the pieces wrap, and that changes the overhang again. The
+  // overhang follows the pieces for a few rounds per stage size; after that it only grows, so the loop always settles
+  // instead of going round forever.
+  const most = useRef({ stage: '', over: 0, rounds: 0 });
   useLayoutEffect(() => {
     const el = stage.current;
     if (!el) return;
@@ -45,7 +53,13 @@ export function Scene({ label, h, compactH, children, hidden = false, top = fals
       // How far the pieces reach above the canvas (large text makes a scene's pieces taller than drawn): the stage
       // fits the whole of it, so nothing is pushed out of the stage.
       const pieces = canvas.current ? [...canvas.current.querySelectorAll<HTMLElement>('[data-onb-piece]')] : [];
-      const over = Math.max(0, ...pieces.map((p) => -p.offsetTop));
+      const key = `${Math.round(r.width)}x${Math.round(r.height)}x${h}x${compactH}`;
+      if (most.current.stage !== key) most.current = { stage: key, over: 0, rounds: 0 };
+      const seen = Math.max(0, ...pieces.map((p) => -p.offsetTop));
+      const settled = most.current.rounds >= SETTLE_ROUNDS;
+      const over = settled ? Math.max(most.current.over, seen) : seen;
+      if (Math.abs(over - most.current.over) >= 0.5) most.current.rounds += 1;
+      most.current.over = over;
       const f = fitScene(r, h + over, compactH + over);
       // Free height above the scene when centered; `top` keeps at most 12 px of it.
       const free = (r.height - ((f.compact ? compactH : h) + over) * f.scale) / 2;
@@ -63,6 +77,10 @@ export function Scene({ label, h, compactH, children, hidden = false, top = fals
       mo.disconnect();
     };
   }, [h, compactH, top]);
+  // The canvas moved without the window changing (a scene laid itself out again): the mascot's spot moved with it.
+  useEffect(() => {
+    if (fit) window.dispatchEvent(new Event(SCENE_MOVED));
+  }, [fit]);
   const compact = fit?.compact ?? false;
   // Pieces reaching `over` px above the canvas: the canvas moves down by half of that, so the whole scene is centered.
   const down = ((fit?.over ?? 0) / 2) * (fit?.scale ?? 1);

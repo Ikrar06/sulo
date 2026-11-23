@@ -58,6 +58,11 @@
    middle term is divided by --m-zoom and multiplied by --m-tz, so the WebView's zoom (phone) and --m-tz (preview)
    land on the same size. */
 .m-cq { container-type: inline-size; }
+/* The same for an 8-character number (a 00:00:00 countdown): 14 at least, 22 at most. */
+.m-num-fit-8 {
+  font-size: clamp(calc(14px * var(--m-tz)), calc(19cqi / var(--m-zoom) * var(--m-tz)), calc(22px * var(--m-tz)));
+  line-height: 1.2;
+}
 /* FitLine's last step: the line wraps between words (whitespace and overflow back to normal). */
 .m-fit-wrap { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; overflow-wrap: anywhere; }
 .m-num-fit {

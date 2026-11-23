@@ -225,6 +225,8 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
     watchSpot.current = watch;
     watch();
     window.addEventListener('resize', soon);
+    // A scene's canvas moved or scaled by itself (Scene.tsx): the spot moved, the window did not.
+    window.addEventListener('sulo:scene-moved', soon);
     document.addEventListener('scroll', soon, { capture: true, passive: true });
     window.visualViewport?.addEventListener('resize', soon);
     return () => {
@@ -233,6 +235,7 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
       ro?.disconnect();
       watchSpot.current = () => undefined;
       window.removeEventListener('resize', soon);
+      window.removeEventListener('sulo:scene-moved', soon);
       document.removeEventListener('scroll', soon, { capture: true });
       window.visualViewport?.removeEventListener('resize', soon);
     };

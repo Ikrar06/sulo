@@ -55,8 +55,12 @@ export function SwitchAccount({ w, onUse, onCancel }: { w: OnboardingWords; onUs
     }
   };
   return (
-    <FlyingMascotLayer spotKey="switch">
-      <SwitchScreen w={w} busy={busy} onUse={() => void run(onUse)()} onCancel={() => void run(onCancel)()} />
-    </FlyingMascotLayer>
+    // A fixed layer, like the onboarding's steps: the body's own top padding (the status bar's inset) would come on
+    // top of the frame's, pushing "Batal" under the gesture bar.
+    <div className="fixed inset-0 bg-m-screen">
+      <FlyingMascotLayer spotKey="switch">
+        <SwitchScreen w={w} busy={busy} onUse={() => void run(onUse)()} onCancel={() => void run(onCancel)()} />
+      </FlyingMascotLayer>
+    </div>
   );
 }

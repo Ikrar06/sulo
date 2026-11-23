@@ -19,7 +19,7 @@ export function SyncStatusLine({ ui, w, onRetry }: { ui: SyncUi; w: MobileWords;
       {ui.phase === 'running' && <span aria-hidden="true" className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent opacity-70 motion-reduce:animate-none" />}
       <span className={`min-w-0 flex-1 ${ui.phase === 'failed' ? '' : 'truncate'}`}>{text}</span>
       {ui.phase === 'failed' && (
-        <button type="button" onClick={onRetry} className="m-press -mr-2 shrink-0 rounded-full px-2 py-1 font-semibold text-m-accent outline-none focus-ring:ring-2 focus-ring:ring-focus">
+        <button type="button" onClick={onRetry} className="m-hit m-press -mr-2 shrink-0 rounded-full px-2 py-1 font-semibold text-m-accent outline-none focus-ring:ring-2 focus-ring:ring-focus">
           {s.retry}
         </button>
       )}

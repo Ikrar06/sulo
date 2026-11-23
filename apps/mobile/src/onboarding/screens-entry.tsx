@@ -122,14 +122,15 @@ export function SignIn({ w, note, busy, paused, onOpen, onBack }: { w: Onboardin
             <>
               <At x={0} y={compact ? 20 : 16} w={width} pieceRef={bar}>
                 <Card dense>
-                  {/* The address, always whole: the user is asked to check it. */}
-                  <div className="flex h-10 items-center gap-3 rounded-full bg-m-inset px-4">
+                  {/* The address, always whole: the user is asked to check it. With large text it breaks inside the pill
+                      (at a dot or a hyphen first) rather than being cut. */}
+                  <div className="flex min-h-10 items-center gap-3 rounded-full bg-m-inset px-4 py-2">
                     {/* overflow-visible: the shackle starts raised past the top of the icon's own box, and must not be cut off there. */}
                     <svg viewBox="0 0 24 24" className="size-5 shrink-0 overflow-visible" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <rect x="5" y="11" width="14" height="10" rx="2" />
                       <path ref={shackle} d="M8 11V7a4 4 0 0 1 8 0v4" />
                     </svg>
-                    <span className="text-m15 font-medium whitespace-nowrap">{t.address}</span>
+                    <span className="min-w-0 text-m15 font-medium [overflow-wrap:anywhere]">{t.address}</span>
                   </div>
                   {!compact && (
                     // The page under the address: two fields and a button, as plain shapes.
