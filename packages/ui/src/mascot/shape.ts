@@ -3,7 +3,7 @@
 // one bend (warp.ts) can move every control point of all three together.
 // Pure: no DOM.
 
-import { MASCOT_SHAPES } from '../mascot/shapes.generated';
+import { MASCOT_SHAPES } from './shapes.generated';
 
 export interface Pt {
   readonly x: number;

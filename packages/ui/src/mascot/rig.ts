@@ -7,7 +7,8 @@
 //   settled.
 // - Idle life (sway, breath, flicker; a smiling eye's bob; a drifting z):
 //   no animation runs. One timer writes the flame's shape thirty times a
-//   second, and nothing else changes (the face and the eyes follow the pose
+//   second (and turns what turns without end: spiral eyes, star eyes, the
+//   stars round a dizzy head), and nothing else changes (the face and the eyes follow the pose
 //   without the sway, which is constant then). An animation that never
 //   stops makes the page produce every frame, whatever it animates; on a
 //   low-end phone that is the whole cost of a mascot, and this halves it.
@@ -29,7 +30,7 @@ import { Clock } from './clock';
 import { eyePaths } from './eyes';
 import { initialState, reduce, REACTIONS, type Effect, type MachineState } from './machine';
 import { MOOD, type Mood } from './moods';
-import { addExtra, busyFor, changeMood, frameAt, IDLE_EXTRA, REACTION_BODY, smallChange, startMotion, type Motion, type ReactionName } from './motion';
+import { addExtra, busyFor, changeMood, frameAt, IDLE_EXTRA, REACTION_BODY, smallChange, startMotion, type Motion, type PlayedReaction, type ReactionName } from './motion';
 import { EYES_CENTER, GLANCE } from './shape';
 import { BLINK_MS, EASE, EYE_CHANGE_MS, IDLE_HZ, MOVE_KEYS, SMALL_GAIN } from './tempo';
 import { backPath, eyesTransform, facePath, frontPath, rootTransform } from './warp';
@@ -70,8 +71,6 @@ export interface RigOptions {
   motion: MotionMode;
   tier: SizeTier;
   effects: boolean;
-  /** Lab only: the front flame layer plays this many seconds behind the back one. 0 moves them as one body. */
-  layerLag?: number;
 }
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
@@ -88,7 +87,6 @@ export class MascotRig {
   private mode: MotionMode;
   private tier: SizeTier;
   private effects: boolean;
-  private layerLag: number;
   private active = false;
   private destroyed = false;
   private readonly clock = new Clock();
@@ -97,8 +95,12 @@ export class MascotRig {
   private body: Animation[] = [];
   private eyeAnims: (Animation | null)[] = [null, null];
   private faceChange = 0;
+  /** The eyes that are drawings of their own, when one shows; it turns by the idle timer, from this moment. */
+  private special: 'none' | 'spiral' | 'star' = 'none';
+  /** Stars circling a dizzy head (the idle timer moves them). */
+  private orbiting = false;
+  /** One-shot animations of the special eyes (the stars popping out). */
   private spins: Animation[] = [];
-  private drifts: Animation[] = [];
   private sparkAnims = new Map<SVGElement, Animation>();
   private nextSpark = 0;
   /** The idle timer, and what it moves besides the flame: what drifts off it (a z), a pure function of its age. */
@@ -128,7 +130,6 @@ export class MascotRig {
     this.mode = options.motion;
     this.tier = options.tier;
     this.effects = options.effects;
-    this.layerLag = options.layerLag ?? 0;
   }
 
   // ---------- The clock ----------
@@ -244,11 +245,6 @@ export class MascotRig {
     if (was) this.start();
   }
 
-  setLayerLag(seconds: number) {
-    this.layerLag = seconds;
-    this.run();
-  }
-
   private start() {
     if (!this.drawing) return;
     this.clock.start();
@@ -277,13 +273,15 @@ export class MascotRig {
     this.body = [];
     this.eyeAnims = [null, null];
     this.spins = [];
-    this.drifts = [];
+    this.special = 'none';
+    this.orbiting = false;
     this.sparkAnims.clear();
     this.ticking = 0;
     cancelAnimationFrame(this.raf);
     this.raf = 0;
     this.unlisten();
-    this.machine = { ...this.machine, face: this.machine.mood, reaction: null };
+    // The clock starts from zero next time: nothing timed on it is kept.
+    this.machine = initialState(this.machine.mood);
     this.reactionLook = null;
     this.wander = { x: 0, y: 0 };
     this.gaze = { x: 0, y: 0 };
@@ -295,6 +293,8 @@ export class MascotRig {
     parts.drawn.removeAttribute('transform');
     for (const f of this.floating) f.el.setAttribute('opacity', '0');
     this.floating = [];
+    for (const el of parts.orbit) el.setAttribute('opacity', '0');
+    for (const el of [...parts.spiralEyes, ...parts.starEyes, parts.stars]) el.style.transform = '';
     // What the idle timer wrote goes back to the expression's stance (what the component's markup says).
     const rest = MOOD[this.machine.mood].pose;
     parts.back.setAttribute('d', backPath(rest));
@@ -339,7 +339,7 @@ export class MascotRig {
       const t = now + (i * span) / (count - 1);
       const f = frameAt(this.motion, t, this.gain);
       back.push(path(backPath(f.pose)));
-      front.push(path(frontPath(this.layerLag > 0 ? frameAt(this.motion, t - this.layerLag, this.gain).pose : f.pose)));
+      front.push(path(frontPath(f.pose)));
       // The face and the eyes follow the pose without the sway and the breath.
       face.push(path(facePath(f.core)));
       eyes.push(eyesTransform(f.core));
@@ -384,11 +384,12 @@ export class MascotRig {
     if (this.body.length === 0) {
       const pose = frameAt(this.motion, now, this.gain).pose;
       parts.back.setAttribute('d', backPath(pose));
-      parts.front.setAttribute('d', frontPath(this.layerLag > 0 ? frameAt(this.motion, now - this.layerLag, this.gain).pose : pose));
+      parts.front.setAttribute('d', frontPath(pose));
     }
     // Smiling eyes do not blink; they bob.
     if (MOOD[this.machine.face].idle.bob) parts.drawn.setAttribute('transform', `translate(0 ${(-3.5 + 3.5 * Math.cos((2 * Math.PI * now) / 1.5)).toFixed(2)})`);
     else if (parts.drawn.hasAttribute('transform')) parts.drawn.removeAttribute('transform');
+    this.turn(now);
     if (this.floating.length === 0) return;
     this.floating = this.floating.filter((f) => {
       const u = (now - f.born) / f.life;
@@ -419,9 +420,14 @@ export class MascotRig {
     this.aim();
   }
 
+  /**
+   * A one-shot reaction. A mascot that moves plays all of it. Lite (and
+   * reduced motion) keeps only what is not movement: the face it borrows,
+   * changed behind a blink, and the tint.
+   */
   react(name: ReactionName) {
-    if (!this.moving) return;
-    this.apply(reduce(this.machine, { type: 'react', name }));
+    if (!this.drawing) return;
+    this.apply(reduce(this.machine, { type: 'react', name, now: this.now() }));
   }
 
   private apply({ state, effects }: { state: MachineState; effects: Effect[] }) {
@@ -448,10 +454,12 @@ export class MascotRig {
     }
   }
 
-  private startReaction(name: ReactionName, id: number) {
+  private startReaction(name: PlayedReaction, id: number) {
     const spec = REACTIONS[name];
-    this.motion = addExtra(this.motion, REACTION_BODY[name], this.now());
-    this.run();
+    if (this.moving) {
+      this.motion = addExtra(this.motion, REACTION_BODY[name], this.now());
+      this.run();
+    }
     const group = this.reactionTimers;
     const cue = (face: Mood | null) => this.apply(reduce(this.machine, { type: 'cue', id, face }));
     for (const c of spec.cues) {
@@ -459,8 +467,8 @@ export class MascotRig {
       else this.after(c.at, () => cue(c.face), group);
     }
     for (const at of spec.blinks ?? []) this.after(at, () => this.blinkOnce(), group);
-    if (this.effects && this.tier === 'full') for (const b of spec.bursts ?? []) this.after(b.at, () => this.burst(b.count, b.power), group);
-    if (spec.look) {
+    if (this.moving && this.effects && this.tier === 'full') for (const b of spec.bursts ?? []) this.after(b.at, () => this.burst(b.count, b.power), group);
+    if (spec.look && this.moving) {
       const { x, y, from, to } = spec.look;
       this.after(from, () => {
         this.reactionLook = { x, y };
@@ -480,7 +488,7 @@ export class MascotRig {
 
   // ---------- The eyes' shape ----------
 
-  /** Which of the three eye drawings shows, and their spin. */
+  /** Which of the three eye drawings shows. The special ones turn by the idle timer (turn()), so nothing endless is ever running. */
   private setSpecial(kind: 'none' | 'spiral' | 'star') {
     const { parts } = this;
     parts.drawn.style.opacity = kind === 'none' ? '1' : '0';
@@ -488,16 +496,37 @@ export class MascotRig {
     parts.spirals.style.opacity = kind === 'spiral' ? '1' : '0';
     for (const a of this.spins) a.cancel();
     this.spins = [];
-    if (kind === 'none' || !this.moving) return;
-    const spin = (el: SVGElement, ms: number, turn: 1 | -1) => this.spins.push(this.track(el.animate({ transform: ['rotate(0deg)', `rotate(${360 * turn}deg)`] }, { duration: ms, iterations: Infinity, easing: 'linear' })));
-    if (kind === 'spiral') {
-      // Each spiral at its own pace, as dizziness goes.
-      parts.spiralEyes.forEach((el, i) => spin(el, i === 0 ? 1050 : 1300, 1));
-      return;
+    if (kind !== this.special) for (const el of [...parts.spiralEyes, ...parts.starEyes, parts.stars]) el.style.transform = '';
+    this.special = kind;
+    if (this.moving) this.turn(this.now());
+  }
+
+  /**
+   * What turns without end, written by the idle timer: the spiral eyes
+   * (each at its own pace, as dizziness goes), the star eyes (toward each
+   * other, a touch out of step, swelling as they turn), and the stars that
+   * circle a dizzy head. Each is a function of the clock, so it is the same
+   * at any speed and steps with it.
+   */
+  private turn(now: number) {
+    const { parts } = this;
+    const degrees = (period: number, direction = 1) => `rotate(${(((now / period) % 1) * 360 * direction).toFixed(1)}deg)`;
+    if (this.special === 'spiral') {
+      parts.spiralEyes.forEach((el, i) => (el.style.transform = degrees(i === 0 ? 1.05 : 1.3)));
+    } else if (this.special === 'star') {
+      parts.starEyes.forEach((el, i) => (el.style.transform = degrees(i === 0 ? 1.1 : 1.24, i === 0 ? 1 : -1)));
+      parts.stars.style.transform = `scale(${(1.065 - 0.065 * Math.cos((2 * Math.PI * now) / 0.64)).toFixed(3)})`;
     }
-    // The star eyes spin toward each other, a touch out of step, and swell as they turn.
-    parts.starEyes.forEach((el, i) => spin(el, i === 0 ? 1100 : 1240, i === 0 ? 1 : -1));
-    this.spins.push(this.track(parts.stars.animate({ transform: ['scale(1)', 'scale(1.13)', 'scale(1)'] }, { duration: 640, iterations: Infinity, easing: 'ease-in-out' })));
+    if (!this.orbiting) return;
+    // A flat ring over the head: nearer stars larger and plainer.
+    const count = parts.orbit.length;
+    parts.orbit.forEach((el, i) => {
+      const around = now / 2.6 + i / count;
+      const angle = around * Math.PI * 2;
+      const near = (Math.sin(angle) + 1) / 2;
+      el.setAttribute('transform', `translate(${(250 + Math.cos(angle) * 215).toFixed(1)} ${(150 + Math.sin(angle) * 58).toFixed(1)}) scale(${(11 + 6 * near).toFixed(1)}) rotate(${((around % 1) * 180).toFixed(0)})`);
+      el.setAttribute('opacity', (0.55 + 0.45 * near).toFixed(2));
+    });
   }
 
   /** Holds both eyes at a face (no animation of the change): what start() and a closed lid do. */
@@ -562,8 +591,8 @@ export class MascotRig {
 
   /** The small things an idle expression does by itself: a look around, a sweep of the eyes, a bob, a bounce, a shiver, what drifts off it. Only a mascot that moves does any of them. */
   private scheduleIdle() {
-    for (const a of this.drifts) a.cancel();
-    this.drifts = [];
+    if (this.orbiting) for (const el of this.parts.orbit) el.setAttribute('opacity', '0');
+    this.orbiting = false;
     if (!this.moving) return;
     const spec = MOOD[this.machine.mood];
     const idle = spec.idle;
@@ -615,7 +644,7 @@ export class MascotRig {
         }, group);
       snore(true);
     } else if (spec.drift === 'orbit') {
-      this.circle();
+      this.orbiting = true;
     }
   }
 
@@ -765,21 +794,6 @@ export class MascotRig {
       const y = 112 - 138 * u;
       const turn = -10 + 16 * Math.sin(u * Math.PI * 2);
       return { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${size.toFixed(2)}) rotate(${turn.toFixed(1)})`, opacity: u < 0.15 ? u / 0.15 : u > 0.7 ? (1 - u) / 0.3 : 1 };
-    });
-  }
-
-  /** Three small stars circling over a dizzy head, on a flat ring: nearer ones larger. */
-  private circle() {
-    const center = { x: 250, y: 150 };
-    const steps = 16;
-    this.parts.orbit.forEach((el, i) => {
-      const frames: Keyframe[] = [];
-      for (let s = 0; s <= steps; s += 1) {
-        const angle = (s / steps) * Math.PI * 2 + (i * Math.PI * 2) / this.parts.orbit.length;
-        const near = (Math.sin(angle) + 1) / 2; // 1 at the front of the ring
-        frames.push({ transform: `translate(${(center.x + Math.cos(angle) * 215).toFixed(1)}px, ${(center.y + Math.sin(angle) * 58).toFixed(1)}px) scale(${(11 + 6 * near).toFixed(1)}) rotate(${(s / steps) * 180}deg)`, opacity: 0.55 + 0.45 * near });
-      }
-      this.drifts.push(this.track(el.animate(frames, { duration: 2600, iterations: Infinity, easing: 'linear' })));
     });
   }
 

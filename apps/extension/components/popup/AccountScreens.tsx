@@ -1,5 +1,5 @@
 import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Button } from '@sulo/ui/ui/button';
 
 /**
@@ -21,7 +21,7 @@ export function MismatchScreen({
   const a = useI18n().m.popup.account;
   return (
     <div className="flex flex-col items-center px-6 pt-4 pb-6 text-center">
-      <Mascot state="sleepy" size={104} still={still} />
+      <SuloMascot mood="stale" size={104} motion={still ? 'off' : undefined} />
       <h2 className="mt-3 font-heading text-[17px] leading-[22px] text-balance">{deferred ? a.deferredTitle : a.title}</h2>
       <p className="mt-1.5 text-[13px] leading-[19px] text-muted-foreground">{deferred ? a.deferredBody : a.body}</p>
       <div className="mt-4 flex w-full flex-col gap-2">

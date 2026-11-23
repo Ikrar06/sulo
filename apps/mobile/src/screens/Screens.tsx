@@ -5,7 +5,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { useNewAccount } from '@sulo/core/account/actions';
 import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { mobileWords } from '@sulo/core/i18n/mobile';
 import { useMobileData } from '../shell/data';
 import { NoDataSkeleton } from './Skeletons';
@@ -100,7 +100,7 @@ function AccountPending() {
   return (
     <Card>
       <div className="flex flex-col items-center text-center">
-        <Mascot state="sleepy" size={48} />
+        <SuloMascot mood="stale" size={48} />
         <h2 className="mt-3 text-m18 font-semibold">{later ? a.deferredTitle : a.title}</h2>
         <p className="mt-1 text-m15r text-muted-foreground">{later ? a.deferredBody : a.body}</p>
       </div>

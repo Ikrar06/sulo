@@ -11,7 +11,7 @@ import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { BookIcon, ClockIcon, GearIcon, GradeIcon, HelpIcon, InfoIcon, NewsIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, IconTile } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import type { TintColor } from '@sulo/ui/mobile/tint';
@@ -50,7 +50,7 @@ export function LainnyaScreen({ go, onSignedOut }: { go: (s: Screen) => void; on
     <div className="space-y-6">
       <Card hero className="flex items-center gap-4">
         <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-m-inset" aria-hidden="true">
-          <Mascot state="idle" size={40} />
+          <SuloMascot mood="neutral" size={40} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-m15 font-semibold">{w.connected.title}</p>

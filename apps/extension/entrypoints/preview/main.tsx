@@ -1,6 +1,7 @@
 import React, { useEffect, useState, type ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { MOODS, type Mood } from '@sulo/ui/mascot/moods';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { CoursesFooter, StepCourses } from '@/components/onboarding/CourseStep';
 import { OnboardingShell } from '@/components/onboarding/Shell';
 import { Journey } from '@/components/onboarding/journey';
@@ -54,7 +55,6 @@ const localized = (index: number) => {
   return lang === 'id' ? state.view : buildPopupView({ ...state.input, messages: messagesFor('en') });
 };
 
-const MASCOT_STATES: MascotState[] = ['idle', 'onboarding', 'syncing', 'all-done', 'celebrate', 'urgent', 'sleepy', 'stale', 'dizzy'];
 const CONNECT: ConnectStatus[] = ['checking', 'need_login', 'waiting', 'connected', 'failed'];
 
 function Themes({ children }: { children: (theme: Theme) => ReactNode }) {
@@ -78,18 +78,18 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-/** Switch states and replay the celebrate sequence on a large mascot. */
+/** Switch expressions and replay the celebration on a large mascot. */
 function MascotPlayground() {
-  const [state, setState] = useState<MascotState>('idle');
+  const [state, setState] = useState<Mood>('neutral');
   const [celebrate, setCelebrate] = useState(0);
   const [follow, setFollow] = useState(true);
   return (
     <Themes>
       {() => (
         <div className="flex w-[620px] flex-col items-center gap-4 p-5">
-          <Mascot state={state} size={240} celebrate={celebrate} followCursor={follow} effects grounded />
+          <SuloMascot mood={state} size={240} reaction={celebrate > 0 ? { name: 'celebrate', key: celebrate } : null} followCursor={follow} effects grounded />
           <div className="flex flex-wrap justify-center gap-1.5">
-            {MASCOT_STATES.filter((s) => s !== 'celebrate').map((s) => (
+            {MOODS.map((s) => (
               <Button key={s} size="sm" variant={s === state ? 'default' : 'outline'} onClick={() => setState(s)}>
                 {s}
               </Button>
@@ -156,9 +156,9 @@ function Overview() {
         <Themes>
           {() => (
             <div className="flex flex-wrap gap-4 p-4">
-              {MASCOT_STATES.map((s) => (
+              {MOODS.map((s) => (
                 <figure key={s} className="flex flex-col items-center gap-1 text-xs">
-                  <Mascot state={s} size={72} effects />
+                  <SuloMascot mood={s} size={72} />
                   <figcaption>{s}</figcaption>
                 </figure>
               ))}
@@ -250,13 +250,13 @@ function WhatsNewPage() {
   );
 }
 
-/** Every mascot state at screenshot size. */
+/** Every expression at screenshot size. */
 function MascotSheet() {
   return (
     <main className="grid grid-cols-3 gap-6 p-8 text-foreground">
-      {MASCOT_STATES.map((s) => (
+      {MOODS.map((s) => (
         <figure key={s} className="flex flex-col items-center gap-2 rounded-xl bg-surface p-4 text-sm">
-          <Mascot state={s} size={160} effects />
+          <SuloMascot mood={s} size={160} effects />
           <figcaption>{s}</figcaption>
         </figure>
       ))}
@@ -303,11 +303,12 @@ function SinglePopup({ still, index = 0 }: { still: boolean; index?: number }) {
 }
 
 /**
- * One large mascot for recordings: ?mascot=<state>[&celebrate] (celebrate
- * starts 600 ms after load, on top of <state>).
+ * One large mascot for recordings: ?mascot=<expression>[&celebrate] (the
+ * celebration starts 600 ms after load, on top of the expression).
  */
 function MascotStage() {
-  const state = (params.get('mascot') as MascotState | null) || 'idle';
+  const asked = params.get('mascot') as Mood | null;
+  const state: Mood = asked && MOODS.includes(asked) ? asked : 'neutral';
   const [celebrate, setCelebrate] = useState(0);
   useEffect(() => {
     if (!params.has('celebrate')) return;
@@ -316,7 +317,7 @@ function MascotStage() {
   }, []);
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
-      <Mascot state={state} size={Number(params.get('size')) || 300} celebrate={celebrate} effects={!params.has('nofx')} grounded still={params.has('still')} />
+      <SuloMascot mood={state} size={Number(params.get('size')) || 300} reaction={celebrate > 0 ? { name: 'celebrate', key: celebrate } : null} effects={!params.has('nofx')} grounded motion={params.has('still') ? 'off' : undefined} />
     </main>
   );
 }

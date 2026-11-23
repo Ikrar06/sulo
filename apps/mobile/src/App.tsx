@@ -5,7 +5,7 @@
 // Perbarui; each is the user's own activity (nosessionupdate=false). An
 // ended session keeps the data on screen with one calm line.
 
-import { MascotMotionContext } from '@sulo/ui/mascot/Mascot';
+import { MascotScopeContext } from '@sulo/ui/mascot/context';
 import { usePerfTier } from './perf';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { resolveLocale, type Locale } from '@sulo/core/i18n';
@@ -387,7 +387,7 @@ export function App({ platform }: { platform: Platform }) {
   const lite = tier === 'lite';
   return (
     <I18nProvider locale={locale}>
-      <MascotMotionContext.Provider value={{ lite }}>
+      <MascotScopeContext.Provider value={{ lite }}>
       {required ? (
         // No SIKOLA request (the client refuses), no sign-in, the worker holds; the data stays.
         <UpdateRequiredScreen release={required} openExternal={(url) => void window.open(url, '_blank', 'noopener,noreferrer')} />
@@ -437,7 +437,7 @@ export function App({ platform }: { platform: Platform }) {
             // One geometry in every phase (no layout work when it is revealed): hidden and inert while it only waits under the onboarding.
             <div className={`contents ${landing ? 'm-landing' : ''} ${flow.step !== 'finished' && !landing ? 'invisible' : ''}`} inert={flow.step !== 'finished' && !landing ? true : undefined}>
               {/* Waiting under the onboarding, its mascot holds still. */}
-              <MascotMotionContext.Provider value={{ lite, paused: flow.step !== 'finished' && !landing }}>{shell}</MascotMotionContext.Provider>
+              <MascotScopeContext.Provider value={{ lite, paused: flow.step !== 'finished' && !landing }}>{shell}</MascotScopeContext.Provider>
             </div>
           )}
           {onboarding && (
@@ -477,7 +477,7 @@ export function App({ platform }: { platform: Platform }) {
           )}
         </>
       )}
-      </MascotMotionContext.Provider>
+      </MascotScopeContext.Provider>
     </I18nProvider>
   );
 }

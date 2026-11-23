@@ -81,5 +81,14 @@ export default defineConfig(({ mode }) => ({
   // __SULO_DEV__: the hidden session-age screen, in mobile:web and the debug APK (mode "debug") only.
   define: { __SULO_VERSION__: JSON.stringify(pkg.version), __SULO_COMMIT__: JSON.stringify(commit.short), __SULO_WEB_FAKE__: JSON.stringify(mode === 'web'), __SULO_DEV__: JSON.stringify(mode === 'web' || mode === 'debug') },
   server: { port: 5174, strictPort: true },
-  build: { outDir: 'dist', emptyOutDir: true, target: 'es2022' },
+  // SULO_LAB=1 with the measuring build (mode "web") also packs the mascot lab (lab/index.html), so one
+  // expression can be measured by itself in a device's WebView. Never in a release: check-no-dev-code refuses its marks.
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    target: 'es2022',
+    ...(mode === 'web' && process.env.SULO_LAB === '1'
+      ? { rollupOptions: { input: { main: fileURLToPath(new URL('./index.html', import.meta.url)), lab: fileURLToPath(new URL('./lab/index.html', import.meta.url)) } } }
+      : {}),
+  },
 }));

@@ -11,13 +11,13 @@
 //   lookX/Y     where the eyes look, -1..1 (x right, y down); leave out for the expression's own gaze
 //   followCursor  the eyes follow a fine pointer nearby and return when it rests
 //   motion      full | lite | off; by default lite under reduced motion or the lite tier, else full
-//   reaction    { name, key }: plays `name` once each time `key` changes; or call react() on the ref
+//   reaction    { name, key }: plays `name` once for each new `key` (one given at mount plays too); or call react() on the ref
 //   size        px or any CSS length; under 32 px it is a still drawing with larger eyes,
 //               under 72 px it idles at half the keys and has no stars or z's
 
 import { forwardRef, useContext, useEffect, useId, useImperativeHandle, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
-import { spiralPath, STAR_CENTERS, Z_PATH } from '../mascot/geometry';
-import { MASCOT_SHAPES } from '../mascot/shapes.generated';
+import { spiralPath, STAR_CENTERS, Z_PATH } from './geometry';
+import { MASCOT_SHAPES } from './shapes.generated';
 import { MascotScopeContext } from './context';
 import { eyePaths } from './eyes';
 import { MOOD, type Mood } from './moods';
@@ -43,12 +43,6 @@ export interface SuloMascotProps {
   /** Accessible label; decorative when left out. */
   label?: string;
   className?: string;
-  /** On trial in the lab: 0 is today's colors. */
-  palette?: 0 | 1 | 2;
-  /** On trial in the lab: the face a step lighter in the dark theme. */
-  faceAlt?: boolean;
-  /** On trial in the lab: the front flame layer this many seconds behind the back one. */
-  layerLag?: number;
 }
 
 export interface SuloMascotHandle {
@@ -105,7 +99,7 @@ const ZS = 3;
 const ORBIT = 3;
 
 export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function SuloMascot(
-  { mood, size = 48, lookX, lookY, followCursor = false, motion, reaction = null, effects, grounded = false, label, className, palette = 0, faceAlt = false, layerLag = 0 },
+  { mood, size = 48, lookX, lookY, followCursor = false, motion, reaction = null, effects, grounded = false, label, className },
   ref,
 ) {
   const scope = useContext(MascotScopeContext);
@@ -134,8 +128,8 @@ export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function
   const fxGroup = useRef<SVGGElement>(null);
   const rig = useRef<MascotRig | null>(null);
   // What the rig is told when it is (re)made: the newest of each.
-  const told = useRef({ mood, mode, tier, fx, layerLag, followCursor, lookX, lookY });
-  told.current = { mood, mode, tier, fx, layerLag, followCursor, lookX, lookY };
+  const told = useRef({ mood, mode, tier, fx, followCursor, lookX, lookY });
+  told.current = { mood, mode, tier, fx, followCursor, lookX, lookY };
 
   const visible = useVisible(svg, !still) && !scope.paused;
 
@@ -167,7 +161,7 @@ export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function
         zs: all('.sm-z'),
         orbit: all('.sm-orbit'),
       },
-      { mood: now.mood, motion: now.mode, tier: now.tier, effects: now.fx, layerLag: now.layerLag },
+      { mood: now.mood, motion: now.mode, tier: now.tier, effects: now.fx },
     );
     made.setFollow(now.followCursor);
     made.setLook(now.lookX === undefined && now.lookY === undefined ? null : { x: now.lookX ?? 0, y: now.lookY ?? 0 });
@@ -181,14 +175,14 @@ export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function
 
   useEffect(() => rig.current?.setMotion(mode), [mode]);
   useEffect(() => rig.current?.setTier(tier, fx), [tier, fx]);
-  useEffect(() => rig.current?.setLayerLag(layerLag), [layerLag]);
   useEffect(() => rig.current?.setMood(mood), [mood]);
   useEffect(() => rig.current?.setFollow(followCursor), [followCursor]);
   useEffect(() => rig.current?.setLook(lookX === undefined && lookY === undefined ? null : { x: lookX ?? 0, y: lookY ?? 0 }), [lookX, lookY]);
   // Last, so the rig starts with everything above already told.
   useEffect(() => rig.current?.setActive(visible), [visible, still, fx, grounded]);
 
-  const played = useRef(reaction?.key);
+  // A reaction it is given plays once: also one it is mounted with (the empty list that has just been cleared).
+  const played = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (!reaction || reaction.key === played.current) return;
     played.current = reaction.key;
@@ -221,8 +215,6 @@ export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function
       viewBox={`${VIEW_BOX.x} ${VIEW_BOX.y} ${VIEW_BOX.width} ${VIEW_BOX.height}`}
       style={{ width: cssSize, height: cssSize } as CSSProperties}
       className={classes}
-      data-palette={palette === 0 ? undefined : palette}
-      data-face={faceAlt ? 'alt' : undefined}
       role={label ? 'img' : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}

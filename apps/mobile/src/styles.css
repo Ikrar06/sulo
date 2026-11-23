@@ -165,10 +165,8 @@ body {
 .m-mascot-enter { animation: m-mascot-enter 320ms cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes m-mascot-enter { from { opacity: 0; transform: translateY(8px) scale(0.96); } }
 .m-mascot-pull { transform: translateY(var(--m-pull-y, 0px)); transition: transform 160ms ease-out; }
-.m-mascot-mood { animation: m-mascot-mood 200ms ease-out; }
-@keyframes m-mascot-mood { from { opacity: 0.55; transform: scale(0.98); } }
 @media (prefers-reduced-motion: reduce) {
-  .m-mascot-enter, .m-mascot-mood { animation: none; }
+  .m-mascot-enter { animation: none; }
   .m-mascot-pull { transform: none; transition: none; }
 }
 
@@ -181,12 +179,6 @@ body {
 .m-bar-grow { transform-origin: bottom; animation: m-bar-grow 240ms ease-out both; animation-delay: calc(var(--i, 0) * 20ms); }
 @keyframes m-bar-grow { from { transform: scaleY(0); } }
 @media (prefers-reduced-motion: reduce) { .m-bar-grow { animation: none; } }
-
-/* Offline and an ended session (M8c.1): the mascot keeps its own colors and
-   only its calm, half-closed eyes; no drifting Z (nothing is asleep). The
-   extension's sleepy look is unchanged (this file is the phone's only). */
-html .sulo-mascot.is-sleepy { --f1: var(--brand-amber); --f2: var(--brand-orange); --f3: var(--brand-crimson); }
-html .sulo-mascot .m-z { display: none; }
 
 /* Onboarding (M8c.2, onboarding/). Transform and opacity only; nothing
    starts from scale(0); no blur. */
@@ -268,11 +260,10 @@ html .sulo-mascot .m-z { display: none; }
 [data-onb-tight] > [aria-hidden="true"].shrink-0 { min-height: 6px !important; }
 
 /* Lite tier (src/perf.ts, data-perf on <html>): every screen looks the
-   same; only motion is lighter. The mascot's living loops stop (blinking,
-   driven from JS, stays); the scroll-edge fades become a solid 1 px edge
+   same; only motion is lighter. The mascot's body stays still (the component
+   reads the tier from MascotScopeContext; a blink stays); the scroll-edge fades become a solid 1 px edge
    (no gradient to composite on every scroll); response motion (sheets,
    presses, screen changes, onboarding steps) runs at 0.8 of its time. */
-:root[data-perf="lite"] .sulo-mascot.is-animated :is(.m-breath, .m-flame, .m-follow, .m-flame-front, .m-orbit) { animation: none; }
 :root[data-perf="lite"] .m-fade-top { background: var(--m-line); height: 1px; }
 :root[data-perf="lite"] .m-fade-bottom { background: linear-gradient(to top, var(--m-screen) calc(100% - 32px), var(--m-line) calc(100% - 32px), var(--m-line) calc(100% - 31px), transparent calc(100% - 31px)); } /* lint-ui-allow: hard stops only, a solid band under a 1 px edge (no fade) */
 :root[data-perf="lite"] .m-press, :root[data-perf="lite"] .m-press-host { transition-duration: 80ms; }
@@ -281,7 +272,6 @@ html .sulo-mascot .m-z { display: none; }
 :root[data-perf="lite"] .m-sheet[data-state="closed"], :root[data-perf="lite"] .m-scrim[data-state="closed"] { animation-duration: calc(var(--m-sheet-dur, 200ms) * 0.8); }
 :root[data-perf="lite"] .sulo-toast { animation-duration: 120ms; }
 :root[data-perf="lite"] .m-mascot-enter { animation-duration: 256ms; }
-:root[data-perf="lite"] .m-mascot-mood { animation-duration: 160ms; }
 :root[data-perf="lite"] .m-bar-grow { animation-duration: 192ms; }
 :root[data-perf="lite"] .onb-press, :root[data-perf="lite"] .onb-row { transition-duration: 224ms; }
 :root[data-perf="lite"] .onb-letter { animation-duration: 256ms; }

@@ -1,49 +1,66 @@
-// Ringkasan's mascot (Tahap 2): the phone's expression for the state of
-// things (core mascotMood) and its living motion, at the dashboard's size.
-// Transform and opacity only, all still under prefers-reduced-motion; the
-// shared Mascot stops its loops while the tab is hidden or it is off screen.
+// Ringkasan's mascot: the expression for the state of things (core
+// mascotMood) at the dashboard's size, its eyes following the pointer, and
+// short reactions read from what the page already knows. Under reduced
+// motion the body stays still; it stops while the tab is hidden or it is
+// off screen.
 //   - enters with one small hop (320 ms)
-//   - a change of expression fades through 200 ms
-//   - `cheer` (a task marked done) shows happy for 1.5 s
+//   - a task marked done (`ticked` grows): a glad hop, with stars only for
+//     the first of a run; the last pending one: the full celebration
+//   - a sync that ends: a nod (done), perking up (a task came in), a shiver
+//     (a deadline is now within a day), or a shake of the head (it failed)
 // Not a button: no click reaction on the desktop, where it would be a
 // target keyboards cannot reach.
 
-import { useEffect, useRef, useState } from 'react';
-import type { Mood } from '@sulo/core/dashboard/mascot-mood';
-import type { MascotState } from '@sulo/core/view/popup-view';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { moodFor, type Mood } from '@sulo/core/dashboard/mascot-mood';
+import type { ReactionName } from '@sulo/ui/mascot/motion';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 
-const CHEER_MS = 1500;
+/** The data a sync brought may land a moment after it ends: the reaction is picked once it has. */
+const SETTLE_MS = 450;
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function HeroMascot({ mood, cheer, size = 56 }: { mood: Mood; cheer: number; size?: number }) {
+export function HeroMascot({ mood, ticked, pending, syncing, failed, size = 56 }: { mood: Mood; /** Tasks marked done and still in their undo window. */ ticked: number; /** Tasks still pending. */ pending: number; syncing: boolean; /** The last sync did not get through (no connection, a page SIKOLA changed). */ failed: boolean; size?: number }) {
   const box = useRef<HTMLDivElement>(null);
-  const [happy, setHappy] = useState(false);
+  const [reaction, setReaction] = useState<{ name: ReactionName; key: number } | null>(null);
+  const play = useCallback((name: ReactionName) => setReaction((r) => ({ name, key: (r?.key ?? 0) + 1 })), []);
 
   useEffect(() => {
     if (reduced() || !box.current?.animate) return;
     box.current.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)', offset: 0.45 }, { transform: 'translateY(0)' }], { duration: 320, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
   }, []);
 
-  useEffect(() => {
-    if (cheer === 0) return;
-    setHappy(true);
-    const t = window.setTimeout(() => setHappy(false), CHEER_MS);
-    return () => window.clearTimeout(t);
-  }, [cheer]);
+  const latest = useRef({ pending, alert: mood.alert, failed });
+  latest.current = { pending, alert: mood.alert, failed };
 
-  const state: MascotState = happy ? 'all-done' : mood.state;
-  const shown = useRef(state);
+  const seen = useRef(ticked);
   useEffect(() => {
-    if (shown.current === state) return;
-    shown.current = state;
-    if (reduced() || !box.current?.animate) return;
-    box.current.animate([{ opacity: 0.55, transform: 'scale(0.98)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 200, easing: 'ease-out' });
-  }, [state]);
+    const more = ticked > seen.current;
+    seen.current = ticked;
+    if (more) play(latest.current.pending === 0 ? 'allClear' : 'checked');
+  }, [ticked, play]);
+
+  const atStart = useRef({ pending, alert: mood.alert });
+  const was = useRef(syncing);
+  useEffect(() => {
+    const before = was.current;
+    was.current = syncing;
+    if (syncing) {
+      atStart.current = { pending: latest.current.pending, alert: latest.current.alert };
+      return;
+    }
+    if (!before) return;
+    const t = window.setTimeout(() => {
+      const start = atStart.current;
+      const now = latest.current;
+      play(now.failed ? 'fail' : now.alert && !start.alert ? 'near' : now.pending > start.pending ? 'incoming' : 'done');
+    }, SETTLE_MS);
+    return () => window.clearTimeout(t);
+  }, [syncing, play]);
 
   return (
     <div ref={box} className="shrink-0">
-      <Mascot state={state} alert={mood.alert} size={size} />
+      <SuloMascot mood={moodFor(mood.state, mood.alert)} size={size} followCursor effects reaction={reaction} />
     </div>
   );
 }

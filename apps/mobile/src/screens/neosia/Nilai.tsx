@@ -16,7 +16,7 @@ import type { Projected } from '@sulo/core/neosia/project';
 import { Card, EmptyCard, SectionHead, StatCard } from '@sulo/ui/mobile/cards';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Private, usePrivacy } from '@sulo/ui/private';
 import { useI18n } from '@sulo/ui/i18n';
 import { useMobileData } from '../../shell/data';
@@ -82,11 +82,11 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const rows = useMemo(() => readTranscript(grades ? (dataOf(grades, 'getTranskripMahasiswa') as Projected) : null), [grades]);
   const semesters = useMemo(() => readSemesters(grades ? (dataOf(grades, 'mahasiswa/semester') as Projected) : null), [grades]);
 
-  if (!neo.enabled) return <EmptyCard mascot={<Mascot state="idle" size={48} />} text={n.invite.text} />;
+  if (!neo.enabled) return <EmptyCard mascot={<SuloMascot mood="neutral" size={48} />} text={n.invite.text} />;
   if (!shown) {
     return (
       <div className="space-y-3 pt-2">
-        <EmptyCard mascot={<Mascot state="idle" size={48} />} text={n.mobile.hiddenGrades} />
+        <EmptyCard mascot={<SuloMascot mood="neutral" size={48} />} text={n.mobile.hiddenGrades} />
         <PillButton full onPress={() => go({ name: 'pengaturan', detail: 'neosia' })}>
           {n.mobile.openSettings}
         </PillButton>
@@ -97,7 +97,7 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   if (rows.length === 0) {
     return (
       <div className="space-y-3 pt-2">
-        <EmptyCard mascot={<Mascot state="idle" size={48} />} text={t.empty} />
+        <EmptyCard mascot={<SuloMascot mood="neutral" size={48} />} text={t.empty} />
         <PillButton full onPress={() => void neo.open('khs')}>
           {n.refresh.openKhs}
         </PillButton>

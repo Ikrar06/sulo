@@ -1,12 +1,15 @@
-// The mascot's mood on the Android app's Ringkasan (M8c.1): one expression
-// for the state of things, in this order of priority:
+// The mascot's mood on Ringkasan (the Android app and the dashboard): one
+// expression for the state of things, in this order of priority:
 //   0. a sync is running: syncing (busy)
-//   1. the session ended or the phone is offline: sleepy (the data may be old)
-//   2. a task is overdue: urgent (worried, wide eyes)
-//   3. a deadline within 24 hours: idle, alert (blinks more often)
-//   4. no deadline in the next 7 days: all-done (happy)
-//   5. otherwise: idle
+//   1. SIKOLA asks to sign in again: sleepy (the only time it sleeps)
+//   2. no connection: stale (the data may be old)
+//   3. a task is overdue: urgent (worried, wide eyes)
+//   4. a deadline within 24 hours: idle, alert (keen)
+//   5. no deadline in the next 7 days: all-done (happy)
+//   6. otherwise: idle
 // Pure; the screen adds short reactions on top (a tap, a refresh, a task done).
+// Below it: the mascot's thirteen expressions by name, which of them each
+// state of the app shows, and the onboarding's named expressions.
 
 import type { MascotState } from '../view/popup-view';
 import type { UnixSeconds } from '../types';
@@ -23,7 +26,7 @@ export interface MoodInput {
 
 export interface Mood {
   state: MascotState;
-  /** Blinks more often: something is due within a day. */
+  /** Something is due within a day: the keen look. */
   alert: boolean;
 }
 
@@ -31,7 +34,8 @@ const DAY = 86_400;
 
 export function mascotMood({ now, dueTimes, sessionExpired, offline, syncing = false }: MoodInput): Mood {
   if (syncing) return { state: 'syncing', alert: false };
-  if (sessionExpired || offline) return { state: 'sleepy', alert: false };
+  if (sessionExpired) return { state: 'sleepy', alert: false };
+  if (offline) return { state: 'stale', alert: false };
   if (dueTimes.some((t) => t < now)) return { state: 'urgent', alert: false };
   if (dueTimes.some((t) => t - now < DAY)) return { state: 'idle', alert: true };
   if (!dueTimes.some((t) => t - now < 7 * DAY)) return { state: 'all-done', alert: false };
@@ -39,32 +43,63 @@ export function mascotMood({ now, dueTimes, sessionExpired, offline, syncing = f
 }
 
 /**
- * The mascot's named expressions (M8c.2), for any screen: which state draws
- * it (eyes, flame colors, idle motion), an optional variant on top (a tilt of
- * the eyes, one eye closed, a smaller flame), and where it looks (-1..1 of
- * the eyes' travel; x right, y down). The component blinks on its own.
+ * The mascot's expressions (owner's decision, 23 Nov 2026). Each has its own
+ * stance and its own eyes; the component (packages/ui/src/mascot) draws them.
  */
-export type MascotVariant = 'sad' | 'proud' | 'wink' | 'surprised' | 'busy';
+export const MASCOT_MOODS = ['neutral', 'happy', 'proud', 'busy', 'keen', 'worried', 'sad', 'sleepy', 'stale', 'surprised', 'wink', 'celebrate', 'dizzy'] as const;
+export type MascotMood = (typeof MASCOT_MOODS)[number];
 
+/**
+ * Which expression a state of the app shows. `alert` (a deadline within a
+ * day) turns the plain idle look into the keen one. Sleepy is kept for an
+ * ended session; no connection and old data are stale.
+ */
+export function moodFor(state: MascotState, alert = false): MascotMood {
+  switch (state) {
+    case 'idle':
+      return alert ? 'keen' : 'neutral';
+    case 'syncing':
+      return 'busy';
+    case 'all-done':
+      return 'happy';
+    case 'celebrate':
+      return 'celebrate';
+    case 'urgent':
+      return 'worried';
+    case 'sleepy':
+      return 'sleepy';
+    case 'stale':
+      return 'stale';
+    case 'dizzy':
+      return 'dizzy';
+    case 'onboarding':
+      return 'neutral';
+  }
+}
+
+/**
+ * The onboarding's named expressions (M8c.2): the expression and, for some,
+ * where it looks (-1..1 of the eyes' travel; x right, y down). The four
+ * looks are the neutral expression with a gaze. The component blinks on its own.
+ */
 export interface MascotExpressionSpec {
-  state: MascotState;
-  variant?: MascotVariant;
+  mood: MascotMood;
   look?: { x: number; y: number };
 }
 
 export const MASCOT_EXPRESSIONS = {
-  neutral: { state: 'onboarding' },
-  happy: { state: 'all-done' },
-  lookUp: { state: 'onboarding', look: { x: 0, y: -1 } },
-  lookLeft: { state: 'onboarding', look: { x: -1, y: 0 } },
-  lookRight: { state: 'onboarding', look: { x: 1, y: 0 } },
-  lookDown: { state: 'onboarding', look: { x: 0, y: 1 } },
-  proud: { state: 'all-done', variant: 'proud' },
-  busy: { state: 'syncing', variant: 'busy' },
-  sad: { state: 'onboarding', variant: 'sad', look: { x: 0, y: 0.8 } },
-  celebrate: { state: 'celebrate' },
-  wink: { state: 'onboarding', variant: 'wink' },
-  surprised: { state: 'urgent', variant: 'surprised', look: { x: 0, y: 0 } },
+  neutral: { mood: 'neutral' },
+  happy: { mood: 'happy' },
+  lookUp: { mood: 'neutral', look: { x: 0, y: -1 } },
+  lookLeft: { mood: 'neutral', look: { x: -1, y: 0 } },
+  lookRight: { mood: 'neutral', look: { x: 1, y: 0 } },
+  lookDown: { mood: 'neutral', look: { x: 0, y: 1 } },
+  proud: { mood: 'proud' },
+  busy: { mood: 'busy' },
+  sad: { mood: 'sad' },
+  celebrate: { mood: 'celebrate' },
+  wink: { mood: 'wink' },
+  surprised: { mood: 'surprised' },
 } as const satisfies Record<string, MascotExpressionSpec>;
 
 export type MascotExpression = keyof typeof MASCOT_EXPRESSIONS;

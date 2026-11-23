@@ -1,13 +1,14 @@
 // The new mascot engine's pure parts: the body's bend, the eyes' shapes, the
 // motion as a function of time, and the expression state machine. No DOM.
 import { describe, expect, it } from 'vitest';
-import { Clock } from '@sulo/ui/mascot-next/clock';
-import { EYE, eyeOutline, eyePaths, type EyeForm } from '@sulo/ui/mascot-next/eyes';
-import { initialState, reduce, REACTIONS, type MachineState } from '@sulo/ui/mascot-next/machine';
-import { eyeChange, MOOD, MOODS } from '@sulo/ui/mascot-next/moods';
-import { addExtra, busyFor, changeMood, frameAt, IDLE_EXTRA, REACTION_BODY, stanceAt, startMotion, type ReactionName } from '@sulo/ui/mascot-next/motion';
-import { BASE, BODY, BRAND_BODY, faceCorners, nearestOn, outlineToPath, parseOutline, type Outline, type Pt } from '@sulo/ui/mascot-next/shape';
-import { bodyPaths, REST, warpPoint, type Pose } from '@sulo/ui/mascot-next/warp';
+import { Clock } from '@sulo/ui/mascot/clock';
+import { EYE, eyeOutline, eyePaths, type EyeForm } from '@sulo/ui/mascot/eyes';
+import { CHECK_QUIET, initialState, reduce, REACTIONS, type MachineState } from '@sulo/ui/mascot/machine';
+import { eyeChange, MOOD, MOODS } from '@sulo/ui/mascot/moods';
+import { addExtra, busyFor, changeMood, frameAt, IDLE_EXTRA, REACTION_BODY, stanceAt, startMotion, type ReactionName } from '@sulo/ui/mascot/motion';
+import { BASE, BODY, BRAND_BODY, faceCorners, nearestOn, outlineToPath, parseOutline, VIEW_BOX, type Outline, type Pt } from '@sulo/ui/mascot/shape';
+import { SMALL_GAIN } from '@sulo/ui/mascot/tempo';
+import { backPath, bodyPaths, facePath, frontPath, REST, warpPoint, type Pose } from '@sulo/ui/mascot/warp';
 
 const pose = (p: Partial<Pose>): Pose => ({ ...REST, ...p });
 const TIP = { x: 334.217, y: 0 };
@@ -248,7 +249,7 @@ describe('the expression state machine', () => {
   });
 
   it('a reaction borrows the face and gives it back to whatever the app shows by then', () => {
-    const started = reduce(initialState('neutral'), { type: 'react', name: 'celebrate' });
+    const started = reduce(initialState('neutral'), { type: 'react', name: 'celebrate', now: 0 });
     const id = started.state.reaction!.id;
     const r = run(started.state, { type: 'cue', id, face: 'celebrate' }, { type: 'mood', mood: 'worried' }, { type: 'cue', id, face: 'happy' }, { type: 'end', id });
     expect(r.state).toMatchObject({ mood: 'worried', face: 'worried', reaction: null });
@@ -258,19 +259,110 @@ describe('the expression state machine', () => {
   });
 
   it('a lower reaction waits out a higher one; an equal or higher one takes over', () => {
-    const celebrating = reduce(initialState('happy'), { type: 'react', name: 'celebrate' }).state;
-    expect(reduce(celebrating, { type: 'react', name: 'tap' }).effects).toEqual([]);
-    const tapped = reduce(initialState('happy'), { type: 'react', name: 'tap' }).state;
-    const again = reduce(tapped, { type: 'react', name: 'tap' });
+    const celebrating = reduce(initialState('happy'), { type: 'react', name: 'celebrate', now: 0 }).state;
+    expect(reduce(celebrating, { type: 'react', name: 'tap', now: 0 }).effects).toEqual([]);
+    const tapped = reduce(initialState('happy'), { type: 'react', name: 'tap', now: 0 }).state;
+    const again = reduce(tapped, { type: 'react', name: 'tap', now: 0 });
     expect(again.effects.map((e) => e.type)).toEqual(['cancel', 'start']);
     expect(again.state.reaction!.id).not.toBe(tapped.reaction!.id);
   });
 
+  it('a ticked task gets its stars once; ticks that follow soon get the hop alone, until a pause', () => {
+    const tick = (state: MachineState, now: number) => reduce(state, { type: 'react', name: 'checked', now });
+    const started = (r: ReturnType<typeof reduce>) => r.effects.flatMap((e) => (e.type === 'start' ? [e.name] : []));
+    const first = tick(initialState('neutral'), 10);
+    expect(started(first)).toEqual(['checked']);
+    // Three more, each within the quiet time of the one before: none of them has stars.
+    let state = first.state;
+    for (const now of [12, 16, 21]) {
+      const next = tick(state, now);
+      expect(started(next)).toEqual(['checkedAgain']);
+      state = next.state;
+    }
+    // The quiet time runs from the last tick, not the first: 26.9 is still inside it, 27.1 is not.
+    expect(started(tick(state, 21 + CHECK_QUIET - 0.1))).toEqual(['checkedAgain']);
+    expect(started(tick(state, 21 + CHECK_QUIET + 0.1))).toEqual(['checked']);
+    expect(REACTIONS.checked.bursts?.length).toBe(1);
+    expect(REACTIONS.checkedAgain.bursts).toBeUndefined();
+    // The same hop either way, and the celebration is not touched by any of it.
+    expect(REACTION_BODY.checkedAgain).toBe(REACTION_BODY.checked);
+    expect(started(reduce(state, { type: 'react', name: 'allClear', now: 22 }))).toEqual(['allClear']);
+  });
+
+  it('a tick that a celebration drowns out does not start the quiet time', () => {
+    const celebrating = reduce(initialState('neutral'), { type: 'react', name: 'allClear', now: 5 }).state;
+    const ignored = reduce(celebrating, { type: 'react', name: 'checked', now: 6 });
+    expect(ignored.effects).toEqual([]);
+    expect(ignored.state.checkedAt).toBeNull();
+  });
+
   it("cues of a reaction that was cut short do nothing", () => {
-    const first = reduce(initialState('neutral'), { type: 'react', name: 'done' }).state;
-    const second = reduce(first, { type: 'react', name: 'fail' }).state;
+    const first = reduce(initialState('neutral'), { type: 'react', name: 'done', now: 0 }).state;
+    const second = reduce(first, { type: 'react', name: 'fail', now: 0 }).state;
     expect(reduce(second, { type: 'cue', id: first.reaction!.id, face: 'happy' }).effects).toEqual([]);
     expect(reduce(second, { type: 'end', id: first.reaction!.id }).state).toBe(second);
+  });
+});
+
+// Layouts give the mascot a box and count on the drawing staying in it (the onboarding's layout check measures it).
+describe('the drawing stays inside its box', () => {
+  const bounds = (d: string) => {
+    const o = parseOutline(d);
+    let x0 = Infinity;
+    let x1 = -Infinity;
+    let y0 = Infinity;
+    let y1 = -Infinity;
+    let from = o.start;
+    for (const [a, b, c] of o.segs) {
+      for (let i = 0; i <= 10; i += 1) {
+        const t = i / 10;
+        const u = 1 - t;
+        const x = u * u * u * from.x + 3 * u * u * t * a.x + 3 * u * t * t * b.x + t * t * t * c.x;
+        const y = u * u * u * from.y + 3 * u * u * t * a.y + 3 * u * t * t * b.y + t * t * t * c.y;
+        x0 = Math.min(x0, x);
+        x1 = Math.max(x1, x);
+        y0 = Math.min(y0, y);
+        y1 = Math.max(y1, y);
+      }
+      from = c;
+    }
+    return { x0, x1, y0, y1 };
+  };
+  /** How far the drawing reaches past its box over a stretch of time, in the drawing's units (590 across); 0 or less is inside. */
+  const overflow = (m: ReturnType<typeof startMotion>, from: number, to: number, step: number, gain: number) => {
+    let out = -Infinity;
+    for (let t = from; t <= to; t += step) {
+      const f = frameAt(m, t, gain);
+      // The body's own sideways shift and its lift move every layer alike.
+      for (const d of [backPath(f.pose), frontPath(f.pose), facePath(f.core)]) {
+        const b = bounds(d);
+        out = Math.max(out, VIEW_BOX.x - (b.x0 + f.shift), b.x1 + f.shift - (VIEW_BOX.x + VIEW_BOX.width), VIEW_BOX.y - (b.y0 - f.lift), b.y1 - (VIEW_BOX.y + VIEW_BOX.height));
+      }
+    }
+    return out;
+  };
+  // The layout check allows 2 px at 176 px across: 6.7 units. Inside that, with room to spare.
+  const ALLOWED = 4;
+
+  it('in every expression while it idles, at full size and with a small mascot\'s larger sway', () => {
+    for (const gain of [1, SMALL_GAIN]) for (const mood of MOODS) expect(overflow(startMotion(mood, 0), 0, 70, 0.07, gain), `${mood} x${gain}`).toBeLessThan(ALLOWED);
+  });
+
+  it('through every change from one expression to another, tip swing and all', () => {
+    for (const from of MOODS) for (const to of MOODS) if (from !== to) expect(overflow(changeMood(startMotion(from, 0), to, 6), 6, 8.5, 1 / 30, 1), `${from} to ${to}`).toBeLessThan(ALLOWED);
+  });
+
+  it('through the small things it does by itself: a bounce, a shiver, the nod of a small change', () => {
+    for (const mood of MOODS) {
+      const idle = MOOD[mood].idle;
+      // Each expression with what it really does: every one may get the nod; only some bounce or shiver.
+      const extras = [IDLE_EXTRA.nod, ...(idle.bounceEvery > 0 ? [IDLE_EXTRA.bounce] : []), ...(idle.shiverEvery > 0 ? [IDLE_EXTRA.shiver] : [])];
+      for (const extra of extras) for (const at of [5, 6.3, 7.9]) expect(overflow(addExtra(startMotion(mood, 0), extra, at, 'idle'), at, at + 1.2, 1 / 60, 1), mood).toBeLessThan(ALLOWED);
+    }
+  });
+
+  it('a jump is meant to leave it: reactions are not held under the ceiling', () => {
+    expect(overflow(addExtra(startMotion('neutral', 0), REACTION_BODY.jump, 5), 5, 6.5, 1 / 60, 1)).toBeGreaterThan(10);
   });
 });
 

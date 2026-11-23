@@ -121,13 +121,15 @@ export function frameAt(m: Motion, now: number, gain = 1): Frame {
   const droop = size * 0.3 * Math.sin((TAU * sway) / 5.1 + 0.4);
   // A breath: the flame above the chin rises and falls. The face does not breathe (see warp.ts, `rise`).
   const breath = m.breathAt + t / spec.idle.breathEvery;
-  const rise = idle.breath * gain * (0.5 - 0.5 * Math.cos(TAU * breath));
+  // The breath is not enlarged for a small mascot: it is the one part of the idle life that uses the room above the tip.
+  const rise = idle.breath * (0.5 - 0.5 * Math.cos(TAU * breath));
   let core = stance;
   let pose = addPose(stance, { lean, tip, droop, rise, wave: idle.flicker * gain, phase: sway / 2.3 });
   let lift = 0;
   let shift = 0;
   let tilt = idle.rock * Math.sin((TAU * sway) / 1.9);
-  for (const { extra, start } of m.extras) {
+  let reacting = false;
+  for (const { extra, start, kind } of m.extras) {
     const u = now - start;
     if (u < 0 || u >= extra.duration) continue;
     const d = extra.at(u);
@@ -136,8 +138,29 @@ export function frameAt(m: Motion, now: number, gain = 1): Frame {
     lift += d.lift ?? 0;
     shift += d.shift ?? 0;
     tilt += d.tilt ?? 0;
+    if (kind !== 'idle') reacting = true;
   }
-  return { pose, core, lift, shift, tilt };
+  // By itself it never leaves its box. A reaction may: a jump is meant to.
+  return { pose: reacting ? pose : underCeiling(pose), core, lift, shift, tilt };
+}
+
+/** The room above the flame's tip at rest, as a share of its height (shape.ts VIEW_BOX: 60 of 512 units). */
+export const HEADROOM = 60 / 512;
+/** From this height the tip starts to give. */
+const KNEE = 0.095;
+
+/**
+ * Keeps the tip under the top of the mascot's box: a stance, its breath and
+ * the swing of a change of expression may add up to more room than there is,
+ * and then the tip bends down by what is too much, softly (nothing is cut
+ * off). Layouts count on the drawing staying inside the box it was given.
+ */
+function underCeiling(pose: Pose): Pose {
+  const up = pose.stretch - pose.droop + pose.rise;
+  if (up <= KNEE) return pose;
+  const room = HEADROOM - KNEE;
+  const pressed = KNEE + room * (1 - Math.exp(-(up - KNEE) / room));
+  return { ...pose, droop: pose.droop + (up - pressed) };
 }
 
 /** The stance alone (no idle, no reactions): what a still mascot shows, and what a change leaves from. */
@@ -297,9 +320,21 @@ function jumps(heights: readonly number[]): Extra {
 export const CELEBRATE_JUMPS = [88, 46] as const;
 
 export type ReactionName = 'tap' | 'jump' | 'celebrate' | 'startle' | 'sag' | 'done' | 'fail' | 'checked' | 'incoming' | 'near' | 'allClear';
+/** What is actually played: a ticked task soon after another is the same hop without the stars (machine.ts picks it). */
+export type PlayedReaction = ReactionName | 'checkedAgain';
+
+// A task ticked: a glad little hop.
+const TICK_HOP: Extra = {
+  duration: 0.95,
+  at: (t) => ({
+    stretch: keys([[0, 0], [0.07, -0.08], [0.17, 0.08], [0.36, -0.05], [0.46, 0]])(t) + settle(t - 0.46, 0.04, 3.4, 0.15),
+    lift: hop(t, 0.1, 0.36, 22),
+    droop: keys([[0, 0], [0.1, 0.035], [0.36, -0.04], [0.5, 0]])(t) + settle(t - 0.5, -0.03, 2.6, 0.22),
+  }),
+};
 
 /** What a reaction does to the body. */
-export const REACTION_BODY: Record<ReactionName, Extra> = {
+export const REACTION_BODY: Record<PlayedReaction, Extra> = {
   // Touched: pressed down, a small hop, the tip flicking after it.
   tap: {
     duration: 1.05,
@@ -360,15 +395,8 @@ export const REACTION_BODY: Record<ReactionName, Extra> = {
       };
     },
   },
-  // A task ticked: a glad little hop.
-  checked: {
-    duration: 0.95,
-    at: (t) => ({
-      stretch: keys([[0, 0], [0.07, -0.08], [0.17, 0.08], [0.36, -0.05], [0.46, 0]])(t) + settle(t - 0.46, 0.04, 3.4, 0.15),
-      lift: hop(t, 0.1, 0.36, 22),
-      droop: keys([[0, 0], [0.1, 0.035], [0.36, -0.04], [0.5, 0]])(t) + settle(t - 0.5, -0.03, 2.6, 0.22),
-    }),
-  },
+  checked: TICK_HOP,
+  checkedAgain: TICK_HOP,
   // Something new came in: it perks up.
   incoming: {
     duration: 1.2,
@@ -399,9 +427,9 @@ export const IDLE_EXTRA = {
   bounce: {
     duration: 0.9,
     at: (t: number): Offset => ({
-      stretch: keys([[0, 0], [0.09, -0.07], [0.2, 0.07], [0.4, -0.04], [0.5, 0]])(t) + settle(t - 0.5, 0.035, 3.3, 0.15),
-      lift: hop(t, 0.12, 0.4, 20),
-      droop: keys([[0, 0], [0.12, 0.03], [0.4, -0.035], [0.52, 0]])(t) + settle(t - 0.52, -0.028, 2.6, 0.22),
+      stretch: keys([[0, 0], [0.09, -0.07], [0.2, 0.03], [0.4, -0.03], [0.5, 0]])(t) + settle(t - 0.5, 0.018, 3.3, 0.15),
+      lift: hop(t, 0.12, 0.4, 10),
+      droop: keys([[0, 0], [0.12, 0.03], [0.4, -0.012], [0.52, 0]])(t) + settle(t - 0.52, -0.01, 2.6, 0.22),
     }),
   },
   shiver: {
@@ -415,9 +443,9 @@ export const IDLE_EXTRA = {
   nod: {
     duration: 0.62,
     at: (t: number): Offset => ({
-      stretch: keys([[0, 0], [0.09, -0.055], [0.22, 0.04], [0.36, 0]])(t) + settle(t - 0.36, 0.02, 3.3, 0.13),
+      stretch: keys([[0, 0], [0.09, -0.055], [0.22, 0.03], [0.36, 0]])(t) + settle(t - 0.36, 0.015, 3.3, 0.13),
       puff: keys([[0, 0], [0.09, 0.025], [0.22, -0.012], [0.36, 0]])(t),
-      droop: keys([[0, 0], [0.12, 0.02], [0.28, -0.025], [0.42, 0]])(t) + settle(t - 0.42, -0.012, 2.6, 0.18),
+      droop: keys([[0, 0], [0.12, 0.02], [0.28, -0.015], [0.42, 0]])(t) + settle(t - 0.42, -0.008, 2.6, 0.18),
     }),
   },
 } as const satisfies Record<string, Extra>;

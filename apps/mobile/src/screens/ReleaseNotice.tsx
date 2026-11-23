@@ -11,7 +11,7 @@ import { mobileWords } from '@sulo/core/i18n/mobile';
 import type { ReleaseInfo, ReleaseNotice } from '@sulo/core/remote/release';
 import type { Platform } from '@sulo/core/platform';
 import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { dismissRelease, releaseState, showChecksum } from '../release';
@@ -116,7 +116,7 @@ export function UpdateRequiredScreen({ release, openExternal }: { release: Relea
     <main className="flex min-h-dvh flex-col justify-center bg-background px-4 py-8">
       <div className="mx-auto w-full max-w-md space-y-4">
         <div className="flex flex-col items-center text-center">
-          <Mascot state="sleepy" size={48} />
+          <SuloMascot mood="stale" size={48} />
           <h1 className="mt-3 text-m22 font-semibold">{t.requiredTitle}</h1>
           <p className="mt-2 text-m15r text-muted-foreground">{t.requiredBody}</p>
           <p className="text-m15r text-muted-foreground">{t.requiredData}</p>

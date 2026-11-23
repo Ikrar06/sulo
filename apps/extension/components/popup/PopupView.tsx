@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } 
 import './list-fade.css';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronRightIcon, RefreshIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Button } from '@sulo/ui/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@sulo/ui/ui/tooltip';
 import type { CopyScope } from '@sulo/core/format/copy-list';
@@ -165,7 +165,7 @@ function EmptyState({ celebrate, still }: { celebrate: number; still?: boolean }
   const t = useI18n().m.popup;
   return (
     <div className="flex flex-col items-center px-6 pt-6 pb-8 text-center">
-      <Mascot state="all-done" size={132} celebrate={celebrate} still={still} grounded />
+      <SuloMascot mood="happy" size={132} reaction={celebrate > 0 ? { name: 'allClear', key: celebrate } : null} motion={still ? 'off' : undefined} grounded />
       <p className="mt-3 font-heading text-[17px]">{t.emptyTitle}</p>
       <p className="mt-0.5 text-[13px] text-muted-foreground">{t.emptyBody}</p>
     </div>
@@ -329,7 +329,7 @@ export function PopupView(props: PopupViewProps) {
             <MismatchScreen deferred={view.mismatchDeferred} still={props.mascotStill} onUseNew={props.onUseNewAccount} onDefer={props.onDeferAccount} />
           ) : !view.onboarded ? (
             <div className="flex flex-col items-center px-8 pt-4 pb-8 text-center">
-              <Mascot state="onboarding" size={116} still={props.mascotStill} />
+              <SuloMascot mood="neutral" size={116} motion={props.mascotStill ? 'off' : undefined} />
               <p className="mt-3 font-heading text-[17px]">{t.notOnboardedTitle}</p>
               <p className="mt-1 text-[13px] text-muted-foreground">{t.notOnboardedBody}</p>
               <Button className="mt-4" onClick={() => props.onOpenOnboarding()}>

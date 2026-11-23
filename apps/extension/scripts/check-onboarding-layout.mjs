@@ -109,7 +109,7 @@ const measure = () => {
     vw,
     vh,
     cut,
-    mascots: document.querySelectorAll('.m-face').length,
+    mascots: document.querySelectorAll('.sm-face').length,
     mascot: box(frame.querySelector('[data-onb-mascot]')),
     scene: box(scene),
     stage: box(stage),

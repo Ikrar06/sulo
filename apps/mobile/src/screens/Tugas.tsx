@@ -17,7 +17,7 @@ import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { XIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { SearchIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, Chip, EmptyCard } from '@sulo/ui/mobile/cards';
 import { CheckCircle, IconButton } from '@sulo/ui/mobile/controls';
 import { TaskCardView } from '@sulo/ui/mobile/task-card';
@@ -109,7 +109,7 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
         {t.count(taskCount)}
       </p>
       {taskCount === 0 ? (
-        <EmptyCard mascot={allClear ? <Mascot state="idle" size={48} /> : undefined} text={allClear ? t.allClear : t.empty} />
+        <EmptyCard mascot={allClear ? <SuloMascot mood="neutral" size={48} /> : undefined} text={allClear ? t.allClear : t.empty} />
       ) : (
         <LongList
           items={rows}

@@ -330,7 +330,7 @@ export function OnboardingFlow({ platform, locale, initial, paused, onSynced, on
   }, [onLanded]);
 
   return (
-    <FlyingMascotLayer spotKey={landing ? 'landing' : swapKey} selector={landing ? HERO_SPOT : undefined} duration={landing ? MS.landing : MS.mascotMove} onArrived={landing ? arrive : undefined} forced={landing ? { state: 'all-done' } : undefined}>
+    <FlyingMascotLayer spotKey={landing ? 'landing' : swapKey} selector={landing ? HERO_SPOT : undefined} duration={landing ? MS.landing : MS.mascotMove} onArrived={landing ? arrive : undefined} forced={landing ? { mood: 'happy' } : undefined}>
       {/* While landing, the last screen fades away over Ringkasan as it comes in. */}
       <div key="screens" aria-hidden={landing ? true : undefined} className={landing ? 'm-onb-leave pointer-events-none fixed inset-0 z-40' : 'contents'}>
         <StepSwap stepKey={swapKey} order={STEPS.indexOf(state.step)}>

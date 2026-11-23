@@ -1,21 +1,19 @@
-// Lab maskot: the owner's bench for judging the mascot. Old and new side by
-// side on one clock, every expression and reaction a click away, at any
-// size, theme and motion mode, slowed down or stepped frame by frame.
-// Development only (pnpm maskot:lab); never part of a production build.
+// Lab maskot: the owner's bench for judging the mascot. Every expression
+// and reaction a click away, at any size, theme and motion mode, slowed
+// down or stepped frame by frame. Development only (pnpm maskot:lab, and
+// the measuring APK built with SULO_LAB=1); never part of a release.
 //
 // For scripts (frame sheets, clips, measurements): query switches
-//   ?bare=1 only the mascots  &mood= &size= &theme=light|dark &mode=full|lite|off
-//   &palette=0|1|2 &show=new|old|both &effects=0 &follow=0 &ground=0
+//   ?bare=1 only the mascot  &mood= &size= &theme=light|dark &mode=full|lite|off
+//   &effects=0 &follow=0 &ground=0
 // and window.__lab: setMood, react, pause, step, setRate.
 import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { MascotVariant } from '@sulo/core/dashboard/mascot-mood';
-import type { MascotState } from '@sulo/core/view/popup-view';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
-import { MOODS, type Mood } from '@sulo/ui/mascot-next/moods';
-import type { ReactionName } from '@sulo/ui/mascot-next/motion';
-import type { MotionMode } from '@sulo/ui/mascot-next/rig';
-import { SuloMascot, type SuloMascotHandle } from '@sulo/ui/mascot-next/SuloMascot';
+import { CHECK_QUIET } from '@sulo/ui/mascot/machine';
+import { MOODS, type Mood } from '@sulo/ui/mascot/moods';
+import type { ReactionName } from '@sulo/ui/mascot/motion';
+import type { MotionMode } from '@sulo/ui/mascot/rig';
+import { SuloMascot, type SuloMascotHandle } from '@sulo/ui/mascot/SuloMascot';
 import tileDark from '../../extension/assets/brand/tile-dark.svg';
 import tileLight from '../../extension/assets/brand/tile-light.svg';
 import './lab.css';
@@ -53,25 +51,7 @@ const REACTIONS: { name: ReactionName; label: string }[] = [
   { name: 'allClear', label: 'Semua beres' },
 ];
 
-/** What the old mascot can show for each new expression (its state, variant and gaze). */
-const OLD: Record<Mood, { state: MascotState; variant?: MascotVariant; look?: { x: number; y: number }; alert?: boolean }> = {
-  neutral: { state: 'idle' },
-  happy: { state: 'all-done' },
-  proud: { state: 'all-done', variant: 'proud' },
-  busy: { state: 'syncing', variant: 'busy' },
-  keen: { state: 'idle', alert: true },
-  worried: { state: 'urgent' },
-  sad: { state: 'onboarding', variant: 'sad', look: { x: 0, y: 0.8 } },
-  sleepy: { state: 'sleepy' },
-  stale: { state: 'stale' },
-  surprised: { state: 'urgent', variant: 'surprised', look: { x: 0, y: 0 } },
-  wink: { state: 'onboarding', variant: 'wink' },
-  celebrate: { state: 'celebrate' },
-  dizzy: { state: 'dizzy' },
-};
-
 const SIZES = [24, 48, 120, 160, 240] as const;
-type Show = 'new' | 'old' | 'both';
 type Mode = 'full' | 'lite' | 'reduced' | 'off';
 
 interface Cost {
@@ -119,12 +99,8 @@ function Lab() {
   const [size, setSize] = useState<number>(Number(q.get('size')) || 240);
   const [theme, setTheme] = useState<'light' | 'dark'>((q.get('theme') as 'light' | 'dark') || 'light');
   const [mode, setMode] = useState<Mode>((q.get('mode') as Mode) || 'full');
-  const [show, setShow] = useState<Show>((q.get('show') as Show) || 'both');
-  const [palette, setPalette] = useState<0 | 1 | 2>((Number(q.get('palette')) || 0) as 0 | 1 | 2);
   const [follow, setFollow] = useState(q.get('follow') !== '0' && !BARE);
   const [ground, setGround] = useState(q.get('ground') !== '0');
-  const [faceAlt, setFaceAlt] = useState(q.has('facealt'));
-  const [layerLag, setLayerLag] = useState(q.has('layerlag'));
   const [icon, setIcon] = useState(false);
   const [rate, setRate] = useState(1);
   const [paused, setPaused] = useState(false);
@@ -140,11 +116,7 @@ function Lab() {
     }, 500);
     return () => window.clearInterval(t);
   }, [measure]);
-  // The old mascot's one-shot counters.
-  const [poke, setPoke] = useState(0);
-  const [party, setParty] = useState(0);
   const fresh = useRef<SuloMascotHandle>(null);
-  const oldBox = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -153,40 +125,16 @@ function Lab() {
   const motion: MotionMode = mode === 'reduced' ? 'lite' : mode;
   const effects = q.get('effects') !== '0';
 
-  /** The old mascot's animations (CSS and Web Animations; its timers cannot be slowed). */
-  const oldAnimations = useCallback(() => (oldBox.current ? document.getAnimations().filter((a) => a.effect instanceof KeyframeEffect && a.effect.target && oldBox.current!.contains(a.effect.target)) : []), []);
-
-  const applyRate = useCallback(
-    (r: number) => {
-      setRate(r);
-      fresh.current?.rig?.setRate(r);
-      for (const a of oldAnimations()) a.playbackRate = r;
-    },
-    [oldAnimations],
-  );
-  const applyPaused = useCallback(
-    (p: boolean) => {
-      setPaused(p);
-      fresh.current?.rig?.setPaused(p);
-      for (const a of oldAnimations()) {
-        if (p) a.pause();
-        else a.play();
-      }
-    },
-    [oldAnimations],
-  );
-  const step = useCallback(
-    (ms: number) => {
-      fresh.current?.rig?.step(ms);
-      for (const a of oldAnimations()) a.currentTime = ((a.currentTime as number | null) ?? 0) + ms;
-    },
-    [oldAnimations],
-  );
-  const react = useCallback((name: ReactionName) => {
-    fresh.current?.react(name);
-    if (name === 'celebrate' || name === 'allClear') setParty((n) => n + 1);
-    else if (name === 'tap' || name === 'jump' || name === 'checked') setPoke((n) => n + 1);
+  const applyRate = useCallback((r: number) => {
+    setRate(r);
+    fresh.current?.rig?.setRate(r);
   }, []);
+  const applyPaused = useCallback((p: boolean) => {
+    setPaused(p);
+    fresh.current?.rig?.setPaused(p);
+  }, []);
+  const step = useCallback((ms: number) => fresh.current?.rig?.step(ms), []);
+  const react = useCallback((name: ReactionName) => fresh.current?.react(name), []);
 
   // A new rig starts at speed 1 and running: tell it the bench's speed again when one is made.
   useEffect(() => {
@@ -196,10 +144,10 @@ function Lab() {
     }, 60);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size, mode, show, ground]);
+  }, [size, mode, ground]);
 
   useEffect(() => {
-    (window as unknown as { __lab: unknown }).__lab = { setMood, react, pause: applyPaused, step, setRate: applyRate, setLook, setTheme, setSize, setMode, setPalette, rig: () => fresh.current?.rig ?? null };
+    (window as unknown as { __lab: unknown }).__lab = { setMood, react, pause: applyPaused, step, setRate: applyRate, setLook, setTheme, setSize, setMode, rig: () => fresh.current?.rig ?? null };
   }, [react, applyPaused, step, applyRate]);
 
   /** From one expression to another: sets the first at once, waits for it to settle, then changes. */
@@ -208,7 +156,6 @@ function Lab() {
     window.setTimeout(() => setMood(to), 900);
   }, []);
 
-  const old = OLD[mood];
   const newMascot = (px: number, key?: string) => (
     <SuloMascot
       key={key}
@@ -221,34 +168,17 @@ function Lab() {
       lookY={look?.y}
       grounded={ground && px >= 96}
       effects={effects ? undefined : false}
-      palette={palette}
-      faceAlt={faceAlt}
-      layerLag={layerLag ? 0.09 : 0}
     />
-  );
-  const oldMascot = (px: number) => (
-    <Mascot state={old.state} variant={old.variant} look={look ?? old.look ?? null} alert={old.alert} size={px} still={mode === 'off'} followCursor={follow && px === size} grounded={ground && px >= 96} poke={poke} celebrate={party} effects={effects && px >= 96} />
   );
   const tile = (px: number) => <img src={theme === 'dark' ? tileDark : tileLight} alt="" width={px} height={px} style={{ borderRadius: px * 0.22 }} />;
 
   const stage = (
     <div className="lab-stage flex flex-wrap items-end justify-center gap-10 px-6 py-10" data-stage>
-      {(show === 'old' || show === 'both') && (
-        <figure className="m-0 flex flex-col items-center gap-3">
-          <div ref={oldBox} data-old style={{ padding: size * 0.25 }}>
-            {oldMascot(size)}
-          </div>
-          {!BARE && <figcaption className="lab-muted text-[13px]">LAMA</figcaption>}
-        </figure>
-      )}
-      {(show === 'new' || show === 'both') && (
-        <figure className="m-0 flex flex-col items-center gap-3">
-          <div data-new style={{ padding: size * 0.25 }}>
-            {newMascot(size)}
-          </div>
-          {!BARE && <figcaption className="lab-muted text-[13px]">BARU</figcaption>}
-        </figure>
-      )}
+      <figure className="m-0 flex flex-col items-center gap-3">
+        <div data-new style={{ padding: size * 0.25 }}>
+          {newMascot(size)}
+        </div>
+      </figure>
       {icon && (
         <figure className="m-0 flex flex-col items-center gap-3">
           <div style={{ padding: size * 0.25 }}>{tile(size * 0.8)}</div>
@@ -296,8 +226,6 @@ function Lab() {
           <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border)] p-3">
             <span className="lab-muted text-[12px]">Ukuran</span>
             <Pick value={size} set={setSize} options={SIZES.map((s) => [s, `${s}`] as const)} />
-            <span className="lab-muted ml-3 text-[12px]">Tampilkan</span>
-            <Pick value={show} set={setShow} options={[['both', 'Lama dan baru'], ['new', 'Baru'], ['old', 'Lama']]} />
             <Toggle on={icon} set={setIcon}>Ikon aplikasi</Toggle>
           </div>
         </div>
@@ -306,10 +234,7 @@ function Lab() {
           <div className="lab-stage flex flex-wrap items-end gap-8 rounded-lg p-4">
             {[24, 48, 120, 160].map((px) => (
               <div key={px} className="flex flex-col items-center gap-2">
-                <div className="flex items-end gap-4">
-                  {show !== 'new' && oldMascot(px)}
-                  {show !== 'old' && newMascot(px, `strip-${px}`)}
-                </div>
+                {newMascot(px, `strip-${px}`)}
                 <span className="lab-muted text-[11px]">{px} px</span>
               </div>
             ))}
@@ -350,7 +275,7 @@ function Lab() {
         <Group title="Ekspresi">
           <Pick value={mood} set={setMood} options={MOODS.map((m) => [m, MOOD_LABEL[m]] as const)} />
         </Group>
-        <Group title="Reaksi" note="Sekali main di atas ekspresi yang sedang tampil. Maskot lama hanya punya sentuhan dan perayaan.">
+        <Group title="Reaksi" note={`Sekali main di atas ekspresi yang sedang tampil. Tugas dicentang: bintang hanya untuk centang pertama; centang berikutnya dalam ${CHECK_QUIET} detik cukup lompatan kecil. Perayaan penuh hanya untuk Semua beres.`}>
           <div className="flex flex-wrap gap-1.5">
             {REACTIONS.map((r) => (
               <button key={r.name} type="button" className="lab-btn" onClick={() => react(r.name)}>
@@ -359,7 +284,7 @@ function Lab() {
             ))}
           </div>
         </Group>
-        <Group title="Tema dan mode gerak" note={reduced ? 'Perangkat ini meminta gerak dikurangi: maskot lama diam total apa pun pilihan di sini.' : undefined}>
+        <Group title="Tema dan mode gerak" note={reduced ? 'Perangkat ini meminta gerak dikurangi: di aplikasi maskot memakai mode Ringan.' : undefined}>
           <Pick value={theme} set={setTheme} options={[['light', 'Terang'], ['dark', 'Gelap']]} />
           <Pick value={mode} set={setMode} options={[['full', 'Penuh'], ['lite', 'Ringan'], ['reduced', 'Gerak dikurangi'], ['off', 'Diam']]} />
           <div className="flex flex-wrap gap-1.5">
@@ -377,7 +302,7 @@ function Lab() {
           </div>
           <button type="button" className="lab-btn w-fit" onClick={() => setLook(null)}>Lepas (tatapan ekspresi sendiri)</button>
         </Group>
-        <Group title="Kecepatan" note="Maskot baru sepenuhnya mengikuti jam ini. Maskot lama hanya sebagian: pewaktunya (kedip, lirikan) tetap berjalan waktu nyata.">
+        <Group title="Kecepatan" note="Semua gerak maskot mengikuti jam ini: animasi, pewaktu, kedip, dan lirikan.">
           <label className="flex items-center gap-3 text-[13px]">
             <input type="range" min={0.25} max={2} step={0.05} value={rate} onChange={(e) => applyRate(Number(e.target.value))} className="flex-1" />
             <span className="w-12 text-right tabular-nums">{rate.toFixed(2)}x</span>
@@ -388,13 +313,6 @@ function Lab() {
             <button type="button" className="lab-btn" onClick={() => step(100)} disabled={!paused}>Maju 100 ms</button>
             <button type="button" className="lab-btn" onClick={() => applyRate(1)}>1x</button>
           </div>
-        </Group>
-        <Group title="Warna" note="0: warna sekarang. 1: penyetelan halus. 2: lebih berani, tetap di keluarga jingga api. Nyalakan Ikon aplikasi untuk melihat selisihnya.">
-          <Pick value={palette} set={setPalette} options={[[0, '0 Sekarang'], [1, '1 Halus'], [2, '2 Berani']]} />
-        </Group>
-        <Group title="Dua pembanding (bawaannya mati)" note="Hanya untuk dinilai dengan mata. Tidak diterapkan ke aplikasi.">
-          <Toggle on={faceAlt} set={setFaceAlt}>Wajah tema gelap: alternatif</Toggle>
-          <Toggle on={layerLag} set={setLayerLag}>Lapis api: sedikit beda fase</Toggle>
         </Group>
         <Group title="Biaya" note="Waktu antar-bingkai halaman ini selagi diukur. Bingkai jatuh: lebih dari 25 ms.">
           <div className="flex flex-wrap items-center gap-1.5">

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Private } from '@sulo/ui/private';
 import { Button } from '@sulo/ui/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@sulo/ui/ui/popover';
@@ -92,7 +92,7 @@ export function JadwalPage({ data, actions }: PageProps) {
     return (
       <Card>
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-          <Mascot state="idle" size={56} />
+          <SuloMascot mood="neutral" size={56} />
           <p className="min-w-0 flex-1 text-[14px]">{w.invite.text}</p>
           <Button onClick={consent.start}>{w.invite.connect}</Button>
         </div>

@@ -20,7 +20,7 @@ import type { ChangeLogEntry } from '@sulo/core/types';
 import { BookIcon, GradeIcon, NewsIcon, TasksIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { BellIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, EmptyCard, IconTile } from '@sulo/ui/mobile/cards';
 import { FilterPill, IconButton, PillButton, Toggle } from '@sulo/ui/mobile/controls';
 import { Sheet, SheetOptions, afterSheetClosed } from '@sulo/ui/mobile/sheet';
@@ -82,7 +82,7 @@ export function KabarScreen({ courseId }: { courseId: number | null; go: (s: Scr
       )}
 
       {view.updates.length === 0 ? (
-        <EmptyCard mascot={<Mascot state="all-done" boldHappy size={48} />} text={u.empty} />
+        <EmptyCard mascot={<SuloMascot mood="happy" size={48} />} text={u.empty} />
       ) : entries.length === 0 ? (
         <Card>
           <p role="status" className="text-m15">

@@ -3,25 +3,13 @@
 // expression must be told from the others by silhouette and eyes alone, at
 // 24 px too, so no two share both. Pure data: no DOM.
 
+import { MASCOT_MOODS, type MascotMood } from '@sulo/core/dashboard/mascot-mood';
 import { EYE, type Eyes } from './eyes';
 import { REST, type Pose } from './warp';
 
-export type Mood =
-  | 'neutral'
-  | 'happy'
-  | 'proud'
-  | 'busy'
-  | 'keen'
-  | 'worried'
-  | 'sad'
-  | 'sleepy'
-  | 'stale'
-  | 'surprised'
-  | 'wink'
-  | 'celebrate'
-  | 'dizzy';
-
-export const MOODS: readonly Mood[] = ['neutral', 'happy', 'proud', 'busy', 'keen', 'worried', 'sad', 'sleepy', 'stale', 'surprised', 'wink', 'celebrate', 'dizzy'];
+/** The thirteen expressions: the names are core's (which state of the app shows which is decided there). */
+export type Mood = MascotMood;
+export const MOODS: readonly Mood[] = MASCOT_MOODS;
 
 /** How an expression idles. Sizes are fractions of the frame's height; periods are seconds. */
 export interface Idle {
@@ -76,13 +64,13 @@ const SMILING = { blink: null, glances: false, bob: true } as const;
 export const MOOD: Record<Mood, MoodSpec> = {
   neutral: { pose: REST, eyes: both(EYE.open), look: { x: 0, y: 0 }, idle: CALM, drift: 'none', special: 'none' },
   // Perky: a little taller, the tip up; smiling eyes that bob, and a bounce now and then.
-  happy: { pose: pose({ stretch: 0.04, droop: -0.025 }), eyes: both(EYE.happy), look: { x: 0, y: 0 }, idle: { ...CALM, ...SMILING, bounceEvery: 6.5 }, drift: 'none', special: 'none' },
+  happy: { pose: pose({ stretch: 0.025, droop: -0.018 }), eyes: both(EYE.happy), look: { x: 0, y: 0 }, idle: { ...CALM, ...SMILING, bounceEvery: 6.5 }, drift: 'none', special: 'none' },
   // Tall and slim, chin up, almost still.
-  proud: { pose: pose({ stretch: 0.11, puff: -0.06, droop: -0.055, lean: -0.012 }), eyes: both(EYE.proud), look: { x: 0, y: 0 }, idle: { ...CALM, ...SMILING, sway: 0.014, breath: 0.03, breathEvery: 4.6, bob: false }, drift: 'none', special: 'none' },
+  proud: { pose: pose({ stretch: 0.068, puff: -0.075, droop: -0.02, lean: -0.012 }), eyes: both(EYE.proud), look: { x: 0, y: 0 }, idle: { ...CALM, ...SMILING, sway: 0.014, breath: 0.02, breathEvery: 4.6, bob: false }, drift: 'none', special: 'none' },
   // Leaning into the work, flickering fast, eyes sweeping.
   busy: { pose: pose({ stretch: -0.02, lean: 0.075, tip: 0.03 }), eyes: both(EYE.busy), look: { x: 0, y: 0.1 }, idle: { ...CALM, sway: 0.02, pace: 1.9, breath: 0.018, breathEvery: 1.7, flicker: 0.02, blink: [3.5, 7], glances: false, scan: true }, drift: 'none', special: 'none' },
   // Something is due soon: upright and set on it, the inner ends of the lids down, looking at the list, blinking often.
-  keen: { pose: pose({ stretch: 0.055, puff: -0.025, droop: -0.03 }), eyes: both(EYE.keen), look: { x: 0, y: 0.45 }, idle: { ...CALM, sway: 0.018, pace: 1.25, blink: [1.4, 3], glances: false }, drift: 'none', special: 'none' },
+  keen: { pose: pose({ stretch: 0.05, puff: -0.025, droop: -0.025 }), eyes: both(EYE.keen), look: { x: 0, y: 0.45 }, idle: { ...CALM, sway: 0.018, pace: 1.25, blink: [1.4, 3], glances: false }, drift: 'none', special: 'none' },
   // Something is late: thin and tense, wide eyes on the list, a shiver now and then.
   worried: { pose: pose({ stretch: 0.06, puff: -0.085, lean: -0.014 }), eyes: both(EYE.worried), look: { x: 0, y: 0.7 }, idle: { ...CALM, sway: 0.016, pace: 2.1, breath: 0.02, breathEvery: 1.9, flicker: 0.022, blink: [2.2, 4.5], glances: false, shiverEvery: 4.2 }, drift: 'none', special: 'none' },
   // Thin and hanging: the tip bowed right over, eyes down.
@@ -92,10 +80,10 @@ export const MOOD: Record<Mood, MoodSpec> = {
   // The data is old: nearly upright but dull, level half-closed lids, hardly breathing.
   stale: { pose: pose({ stretch: -0.03, droop: 0.02 }), eyes: both(EYE.half), look: { x: 0, y: 0.2 }, idle: { ...CALM, sway: 0.008, pace: 0.5, breath: 0.01, breathEvery: 6.5, flicker: 0.002, blink: [5, 9], glances: false }, drift: 'none', special: 'none' },
   // Pulled up tall, round eyes.
-  surprised: { pose: pose({ stretch: 0.085, puff: 0.02, droop: -0.04 }), eyes: both(EYE.round), look: { x: 0, y: 0 }, idle: { ...CALM, sway: 0.016, blink: [3, 6], glances: false }, drift: 'none', special: 'none' },
+  surprised: { pose: pose({ stretch: 0.065, puff: 0.03, droop: -0.015 }), eyes: both(EYE.round), look: { x: 0, y: 0 }, idle: { ...CALM, sway: 0.016, blink: [3, 6], glances: false }, drift: 'none', special: 'none' },
   wink: { pose: pose({ lean: 0.016, stretch: 0.015 }), eyes: [EYE.open, EYE.wink], look: { x: 0, y: 0 }, idle: { ...CALM, blink: null, glances: false }, drift: 'none', special: 'none' },
   // Celebrating: the brand's star eyes, spinning (the jumps and the burst of stars are its reaction).
-  celebrate: { pose: pose({ stretch: 0.05, droop: -0.03 }), eyes: both(EYE.star), look: { x: 0, y: 0 }, idle: { ...CALM, pace: 1.3, blink: null, glances: false }, drift: 'none', special: 'star' },
+  celebrate: { pose: pose({ stretch: 0.05, droop: -0.025 }), eyes: both(EYE.star), look: { x: 0, y: 0 }, idle: { ...CALM, pace: 1.3, blink: null, glances: false }, drift: 'none', special: 'star' },
   // The page could not be read: rocking, spiral eyes, the flame rippling, stars circling overhead.
   dizzy: { pose: pose({ stretch: -0.03, droop: 0.03 }), eyes: both(EYE.round), look: { x: 0, y: 0 }, idle: { ...CALM, pace: 0.8, flicker: 0.024, rock: 5, blink: null, glances: false }, drift: 'orbit', special: 'spiral' },
 };

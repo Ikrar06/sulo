@@ -1,5 +1,5 @@
 import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Button } from '@sulo/ui/ui/button';
 import { Lead, Title } from './Shell';
 
@@ -44,7 +44,7 @@ export function ManageSaved({ onBack, onClose, note }: { onBack: () => void; onC
   const t = useI18n().m.onboarding.manage;
   return (
     <div className="space-y-6">
-      <Mascot state="all-done" size={96} grounded />
+      <SuloMascot mood="happy" size={96} grounded />
       <Title>{t.savedTitle}</Title>
       <Lead>{t.savedBody}</Lead>
       <div className="flex flex-wrap gap-3">
@@ -65,7 +65,7 @@ export function ManageNoChanges() {
   const t = useI18n().m.onboarding.manage;
   return (
     <div role="status" className="space-y-6">
-      <Mascot state="idle" size={96} grounded />
+      <SuloMascot mood="neutral" size={96} grounded />
       <Title>{t.noChanges}</Title>
     </div>
   );
