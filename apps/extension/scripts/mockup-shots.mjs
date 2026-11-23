@@ -4,6 +4,8 @@
 // audit-shots.mjs (production build, seeded synthetic demo account, fixed
 // clock, no network), with livelier task titles and nothing overdue
 // (scripts/lib/mockup-data.mjs). Grades and the Nilai page are never shot.
+// The version on screen reads 1.0.0, the one that will be public: the pages
+// load copies of the builds whose manifest says so (SHOWN_VERSION below).
 //
 // The owner sets the mockups in MacBook Pro frames (23 Nov 2026), so the
 // pages are shot at those screens, at scale 2:
@@ -23,7 +25,7 @@
 //
 // Usage: node scripts/mockup-shots.mjs --out=<dir> [--no-build] [--themes=light,dark] [--langs=id,en]
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { livelyTasks } from '../../../scripts/lib/mockup-data.mjs';
@@ -73,6 +75,22 @@ if (!process.argv.includes('--no-build')) {
   execFileSync('pnpm', ['exec', 'wxt', 'build', '--mode', 'development'], { cwd: root, stdio: 'ignore' });
 }
 
+/**
+ * The version the mockups show: the one that will be public (owner, 23 Nov
+ * 2026). The pages read it from the manifest, so the mockups load copies of
+ * the two builds whose manifest says so; the builds themselves, and anything
+ * released from them, keep the real version.
+ */
+const SHOWN_VERSION = '1.0.0';
+for (const build of ['chrome-mv3', 'chrome-mv3-dev']) {
+  const from = join(root, `../../.output/${build}`);
+  const to = join(root, `../../.output/mockup-${build}`);
+  rmSync(to, { recursive: true, force: true });
+  cpSync(from, to, { recursive: true });
+  const manifest = JSON.parse(readFileSync(join(to, 'manifest.json'), 'utf8'));
+  writeFileSync(join(to, 'manifest.json'), JSON.stringify({ ...manifest, version: SHOWN_VERSION }));
+}
+
 /** The demo account around NOW with mockup tasks and attendance, NEOSIA only when asked; fresh, so no sync starts. */
 function seed(prefs, { neosia = false } = {}) {
   const { generatedAt, storage } = JSON.parse(readFileSync(join(root, 'fixtures/guide/demo-seed.json'), 'utf8'));
@@ -106,7 +124,7 @@ const fixClock = (fixed) => {
 };
 
 async function open(build) {
-  const ext = join(root, `../../.output/${build}`);
+  const ext = join(root, `../../.output/mockup-${build}`);
   const ctx = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, timezoneId: 'Asia/Makassar', deviceScaleFactor: SCALE, args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, OFFLINE] });
   let [sw] = ctx.serviceWorkers();
   if (!sw) sw = await ctx.waitForEvent('serviceworker');

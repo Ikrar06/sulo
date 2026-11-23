@@ -4,7 +4,9 @@
 // Same ground as audit-shots.mjs (production build of the web mode, the
 // synthetic demo account, fixed clock, no network), with livelier task
 // titles and nothing overdue (scripts/lib/mockup-data.mjs). Grades and the
-// Nilai screen are never shot.
+// Nilai screen are never shot. Every version number on screen reads 1.0.0,
+// the version that will be public (its own build in .output/mockup-mobile-web,
+// SULO_SHOT_VERSION; the app's real version is untouched).
 //
 // The owner sets the mockups in an iPhone 18 Pro frame (23 Nov 2026), so the
 // screens are shot at that phone's screen: 402 x 874 points at scale 3
@@ -39,7 +41,9 @@ const out = resolve(process.env.INIT_CWD ?? process.cwd(), outArg);
 const themes = arg('themes', 'light,dark').split(',');
 const langs = arg('langs', 'id,en').split(',');
 const THEME_DIR = { light: 'terang', dark: 'gelap' };
-const DIST = join(ROOT, '.output/audit-mobile-web');
+const DIST = join(ROOT, '.output/mockup-mobile-web');
+/** The version the mockups show: the one that will be public (owner, 23 Nov 2026). Only this build sees it (vite.config.ts, web mode only). */
+const SHOWN_VERSION = '1.0.0';
 const PORT = 5198;
 const SIZE = { width: 402, height: 874 };
 const SCALE = 3;
@@ -72,7 +76,7 @@ const ONBOARDING = new Map([
 
 if (!process.argv.includes('--no-build')) {
   log('build web mode (production)');
-  execFileSync('pnpm', ['exec', 'vite', 'build', '--mode', 'web', '--outDir', DIST, '--emptyOutDir', '--logLevel', 'warn'], { cwd: MOBILE, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, GITHUB_SHA: 'audit00' } });
+  execFileSync('pnpm', ['exec', 'vite', 'build', '--mode', 'web', '--outDir', DIST, '--emptyOutDir', '--logLevel', 'warn'], { cwd: MOBILE, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, GITHUB_SHA: 'audit00', SULO_SHOT_VERSION: SHOWN_VERSION } });
 }
 const WORDS = await loadWords();
 const server = spawn('pnpm', ['exec', 'vite', 'preview', '--mode', 'web', '--outDir', DIST, '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
