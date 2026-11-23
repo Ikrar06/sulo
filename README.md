@@ -19,8 +19,9 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
 
 <p align="center">
   <picture>
+    <source type="image/webp" media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.webp">
+    <source type="image/webp" media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.webp">
     <source media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.png">
     <img alt="Sulo's dashboard on a laptop, showing today's tasks, the academic calendar and a 14-day workload strip, next to Sulo's phone app showing the nearest deadline, 3 hours left. Sample data." src="docs-publik/hero-light.png" width="860">
   </picture>
 </p>

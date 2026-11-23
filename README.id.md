@@ -19,8 +19,9 @@ Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akadem
 
 <p align="center">
   <picture>
+    <source type="image/webp" media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.id.webp">
+    <source type="image/webp" media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.id.webp">
     <source media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.id.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.id.png">
     <img alt="Dashboard Sulo di laptop dengan tugas hari ini, kalender akademik, dan beban 14 hari ke depan, di samping aplikasi HP Sulo yang menampilkan tenggat terdekat, 3 jam lagi. Data contoh." src="docs-publik/hero-light.id.png" width="860">
   </picture>
 </p>
