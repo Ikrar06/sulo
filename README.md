@@ -17,17 +17,15 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
 
 **Not an official Unhas app.** Sulo is an independent project, not affiliated with or endorsed by Universitas Hasanuddin. The name means "torch" in Buginese and Makassarese.
 
-<!--
-Screenshots go here once the mockups are exported:
-
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.png">
     <source media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.png">
-    <img alt="Sulo's popup, dashboard and Android app" src="docs-publik/hero-light.png" width="860">
+    <img alt="Sulo's dashboard on a laptop, showing today's tasks, the academic calendar and a 14-day workload strip, next to Sulo's phone app showing the nearest deadline, 3 hours left. Sample data." src="docs-publik/hero-light.png" width="860">
   </picture>
 </p>
--->
+
+<p align="center"><sub>The extension's dashboard and the Android app, with sample data. The phone frame is only for the picture: Sulo's phone app is for Android.</sub></p>
 
 ## Contents
 

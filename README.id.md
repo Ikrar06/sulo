@@ -17,17 +17,15 @@ Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akadem
 
 **Bukan aplikasi resmi Unhas.** Sulo proyek mandiri, tidak berafiliasi dengan dan tidak didukung oleh Universitas Hasanuddin. "Sulo" berarti obor dalam bahasa Bugis dan Makassar.
 
-<!--
-Tangkapan layar ditaruh di sini setelah mockup diekspor:
-
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.png">
-    <img alt="Popup, dashboard, dan aplikasi Android Sulo" src="docs-publik/hero-light.png" width="860">
+    <source media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.id.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.id.png">
+    <img alt="Dashboard Sulo di laptop dengan tugas hari ini, kalender akademik, dan beban 14 hari ke depan, di samping aplikasi HP Sulo yang menampilkan tenggat terdekat, 3 jam lagi. Data contoh." src="docs-publik/hero-light.id.png" width="860">
   </picture>
 </p>
--->
+
+<p align="center"><sub>Dashboard ekstensi dan aplikasi Android, dengan data contoh. Bingkai ponsel hanya untuk gambar: aplikasi HP Sulo untuk Android.</sub></p>
 
 ## Daftar isi
 
