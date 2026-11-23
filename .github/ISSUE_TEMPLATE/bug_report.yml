@@ -47,7 +47,7 @@ body:
     attributes:
       label: Sulo version or commit
       description: Shown on the extension card in chrome://extensions, or under Lainnya, Tentang (More, About) in the Android app.
-      placeholder: 0.2.0
+      placeholder: 0.9.0
   - type: input
     id: browser
     attributes:
