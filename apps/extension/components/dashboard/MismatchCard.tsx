@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@sulo/ui/ui/alert-dialog';
 import { Button } from '@sulo/ui/ui/button';
 
@@ -14,7 +14,7 @@ export function MismatchCard({ deferred, onUseNew, onDefer }: { deferred: boolea
   const [confirm, setConfirm] = useState(false);
   return (
     <div className="flex items-start gap-4 rounded-xl border border-border bg-surface p-5">
-      <Mascot state="sleepy" size={56} />
+      <SuloMascot mood="stale" size={56} />
       <div className="min-w-0 flex-1">
         <h2 className="text-[16px] font-semibold">{deferred ? a.deferredTitle : a.title}</h2>
         <p className="mt-1 max-w-[68ch] text-[14px] text-muted-foreground">{deferred ? a.deferredBody : a.body}</p>

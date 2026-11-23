@@ -67,7 +67,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const updates = data.view.updates.slice(0, 6);
   // The phone's mood (core mascotMood) and greeting line.
   const banner = data.view.banner?.kind;
-  const mood = mascotMood({ now: data.now, dueTimes: pendingItems.filter((i) => i.status === 'pending' && i.task.dueAt !== null).map((i) => i.task.dueAt!), sessionExpired: banner === 'session_expired', offline: banner === 'offline' });
+  const mood = mascotMood({ now: data.now, dueTimes: pendingItems.filter((i) => i.status === 'pending' && i.task.dueAt !== null).map((i) => i.task.dueAt!), sessionExpired: banner === 'session_expired', offline: banner === 'offline', syncing: data.view.syncing });
   const nickname = data.prefs.privacyMode ? '' : data.prefs.nickname.trim();
   // The phone's greeting slot (core greetSlot) and its line, without the phone's whole word list.
   const line1 = GREET_LINE1[locale][greetSlot(Math.floor(localParts(data.now, timeZone).minuteOfDay / 60))].replace(/,$/, '');
@@ -96,7 +96,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
       {/* Hero: full width, no card, nothing else on its row. One mascot on this page; it idles and stops for reduced motion. */}
       <section className="flex items-center gap-4 pb-2">
         {/* 75 box: the drawing itself 64 tall, centred on the greeting and its line. */}
-        <HeroMascot mood={mood} cheer={done.lingering.size} size={75} />
+        <HeroMascot mood={mood} ticked={done.lingering.size} pending={pendingItems.filter((i) => i.status === 'pending').length} syncing={data.view.syncing} failed={banner === 'offline' || banner === 'parser_broken'} size={75} />
         <div className="min-w-0 flex-1">
           {/* The phone's greeting line (core mobile-greeting), without its playful second line. The
               nickname from the settings only, never a name from NEOSIA. */}

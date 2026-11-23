@@ -50,6 +50,7 @@
     "mobile:test-restart": "pnpm --filter @sulo/mobile run test:restart",
     "mobile:live": "pnpm --filter @sulo/mobile run live",
     "mobile:shots": "pnpm --filter @sulo/mobile run web:shots",
+    "maskot:lab": "pnpm --filter @sulo/mobile run maskot:lab",
     "mobile:emu": "pnpm --filter @sulo/mobile run emu",
     "mobile:emu:stop": "pnpm --filter @sulo/mobile run emu:stop",
     "mobile:shots:device": "pnpm --filter @sulo/mobile run shots:device",

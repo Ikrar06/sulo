@@ -19,10 +19,11 @@
 
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { extOnboardingWords } from '@sulo/core/i18n/ext-onboarding';
+import { moodFor } from '@sulo/core/dashboard/mascot-mood';
 import type { MascotState } from '@sulo/core/view/popup-view';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronLeftIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Button } from '@sulo/ui/ui/button';
 import { BrandMark } from '../BrandMark';
 
@@ -194,7 +195,7 @@ export function Journey({ stepKey, progress, onSkip, scene, sceneInteractive = f
           )}
           <section className="obj-side">
             <div data-onb-mascot="" className="obj-mascot" aria-hidden="true">
-              <Mascot state={mascot.state} size={size} celebrate={spec.celebrate ?? 0} look={mascot.look} />
+              <SuloMascot mood={moodFor(mascot.state)} size={size} reaction={spec.celebrate ? { name: 'celebrate', key: spec.celebrate } : null} lookX={mascot.look?.x} lookY={mascot.look?.y} followCursor />
             </div>
             <div key={shown.key} className={`obj-text ${swap}`}>
               {shown.children}

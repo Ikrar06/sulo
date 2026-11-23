@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronDownIcon, ExternalIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { DocLayout } from '@sulo/ui/ui/doc-layout';
 import { FAQ, HOW_IT_WORKS } from '@sulo/core/help/content';
 import { GUIDE_TITLE } from '@sulo/core/help/guide';
@@ -35,7 +35,7 @@ export function BantuanPage({ d, route }: PageProps) {
   const stuck = isShownLink(FEEDBACK_FORM_URL) ? (
     <div className="rounded-xl border border-border bg-surface p-5">
       <div className="flex items-center gap-3">
-        <Mascot state="idle" size={40} still />
+        <SuloMascot mood="neutral" size={40} motion="off" />
         <p className="text-[14px] font-semibold">{b.stuckTitle}</p>
       </div>
       <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{b.stuckBody}</p>

@@ -23,7 +23,7 @@ import { localParts } from '@sulo/core/reminders/zoned';
 import { SourceFooter, useRange, useWeekText, WeekBar } from '@sulo/ui/dashboard/CalendarParts';
 import { useI18n } from '@sulo/ui/i18n';
 import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, Chip, EmptyCard, SectionHead, Tile } from '@sulo/ui/mobile/cards';
 import { IconButton, PillButton, Segmented } from '@sulo/ui/mobile/controls';
 import { courseTint, tintBg, type TintColor } from '@sulo/ui/mobile/tint';
@@ -190,7 +190,7 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
         </button>
       )}
       {shown.length === 0 ? (
-        <EmptyCard mascot={<Mascot state="all-done" boldHappy size={48} />} text={k.listEmpty} />
+        <EmptyCard mascot={<SuloMascot mood="happy" size={48} />} text={k.listEmpty} />
       ) : (
         months.map((month) => (
           <section key={month}>

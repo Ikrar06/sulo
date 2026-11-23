@@ -222,7 +222,8 @@ function ClosingLock() {
   }, []);
   return (
     <span className="absolute -top-5 left-1/2 flex size-10 -translate-x-1/2 items-center justify-center rounded-full" style={{ background: 'var(--layer-screen)' }}>
-      <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {/* overflow-visible: while it is open the shackle is raised past the top of the icon's own box, and must not be cut off there. */}
+      <svg viewBox="0 0 24 24" className="size-6 overflow-visible" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <rect x="5" y="11" width="14" height="10" rx="2" />
         <path ref={shackle} d="M8 11V7a4 4 0 0 1 8 0v4" />
       </svg>

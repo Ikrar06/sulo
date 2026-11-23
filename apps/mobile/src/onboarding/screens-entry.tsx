@@ -124,7 +124,8 @@ export function SignIn({ w, note, busy, paused, onOpen, onBack }: { w: Onboardin
                 <Card dense>
                   {/* The address, always whole: the user is asked to check it. */}
                   <div className="flex h-10 items-center gap-3 rounded-full bg-m-inset px-4">
-                    <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    {/* overflow-visible: the shackle starts raised past the top of the icon's own box, and must not be cut off there. */}
+                    <svg viewBox="0 0 24 24" className="size-5 shrink-0 overflow-visible" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <rect x="5" y="11" width="14" height="10" rx="2" />
                       <path ref={shackle} d="M8 11V7a4 4 0 0 1 8 0v4" />
                     </svg>

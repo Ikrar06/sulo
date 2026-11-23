@@ -22,7 +22,7 @@ import { localParts } from '@sulo/core/reminders/zoned';
 import type { CourseRecord } from '@sulo/core/types';
 import { presensiNote } from '@sulo/ui/dashboard/PresensiParts';
 import { useI18n } from '@sulo/ui/i18n';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, Chip, EmptyCard, Tile } from '@sulo/ui/mobile/cards';
 import { ProgressRing } from '@sulo/ui/mobile/ring';
 import { courseTint, initials, type TintColor } from '@sulo/ui/mobile/tint';
@@ -129,7 +129,7 @@ export function PresensiScreen({ courseId, go }: { courseId: number | null; go: 
         </Card>
       ) : (
         <div role="status">
-          <EmptyCard mascot={<Mascot state="idle" size={48} />} text={note || when} />
+          <EmptyCard mascot={<SuloMascot mood="neutral" size={48} />} text={note || when} />
         </div>
       )}
       {followed.length === 0 ? (
@@ -254,7 +254,7 @@ export function Sessions({ sessions, loading, d, locale }: { sessions: SessionRo
   const pw = d.presensi;
   const masked = usePrivacy();
   if (sessions === null) return loading ? <SessionsSkeleton /> : null;
-  if (sessions.length === 0) return <EmptyCard mascot={<Mascot state="idle" size={48} />} text={pw.noDetail} />;
+  if (sessions.length === 0) return <EmptyCard mascot={<SuloMascot mood="neutral" size={48} />} text={pw.noDetail} />;
   const monthOf = (s: SessionRow) => (s.at !== null ? localParts(s.at, timeZone).dateKey.slice(0, 7) : '');
   const months = [...new Set(sessions.map(monthOf))];
   return (

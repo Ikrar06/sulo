@@ -89,7 +89,7 @@ const measure = () => {
     const box = mascot.getBoundingClientRect();
     const k = box.width / 176;
     let out = 0;
-    for (const el of mascot.querySelectorAll('.m-flame-back, .m-flame-front, .m-face')) {
+    for (const el of mascot.querySelectorAll('.sm-back, .sm-front, .sm-face')) {
       const r = el.getBoundingClientRect();
       out = Math.max(out, (box.left - r.left) / k, (r.right - box.right) / k, (box.top - r.top) / k, (r.bottom - box.bottom) / k);
     }
@@ -176,7 +176,7 @@ try {
                 const box = holder.getBoundingClientRect();
                 const k = box.width / 176;
                 let out = 0;
-                for (const el of holder.querySelectorAll('.m-flame-back, .m-flame-front, .m-face')) {
+                for (const el of holder.querySelectorAll('.sm-back, .sm-front, .sm-face')) {
                   const r = el.getBoundingClientRect();
                   out = Math.max(out, (box.left - r.left) / k, (r.right - box.right) / k, (box.top - r.top) / k, (r.bottom - box.bottom) / k);
                 }

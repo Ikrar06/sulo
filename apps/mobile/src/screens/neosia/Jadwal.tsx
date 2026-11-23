@@ -13,7 +13,7 @@ import { addDays, weekday } from '@sulo/core/calendar/dates';
 import { Card, Chip, EmptyCard } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { useI18n } from '@sulo/ui/i18n';
 import { useMobileData } from '../../shell/data';
 import { useNeosia } from '../../neosia/NeosiaProvider';
@@ -31,7 +31,7 @@ export function JadwalScreen() {
   if (!neo.enabled || meetings.length === 0) {
     return (
       <div className="space-y-3 pt-2">
-        <EmptyCard mascot={<Mascot state="idle" size={48} />} text={neo.enabled ? n.schedule.emptyNoData : n.invite.text} />
+        <EmptyCard mascot={<SuloMascot mood="neutral" size={48} />} text={neo.enabled ? n.schedule.emptyNoData : n.invite.text} />
         {neo.enabled && (
           <PillButton full onPress={() => void neo.open('krs')}>
             {n.refresh.openKrs}

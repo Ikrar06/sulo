@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ChevronDownIcon, SearchIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Button } from '@sulo/ui/ui/button';
 import { Checkbox } from '@sulo/ui/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@sulo/ui/ui/collapsible';
@@ -69,7 +69,7 @@ export function StepCourses({ courses, onToggle, title, lead }: StepCoursesProps
   return (
     <div className="space-y-6">
       <div className="flex items-end gap-4">
-        <Mascot state="onboarding" size={72} followCursor grounded className="-mb-1 shrink-0" />
+        <SuloMascot mood="neutral" size={72} followCursor grounded className="-mb-1 shrink-0" />
         <Title>{title ?? t.courses.title}</Title>
       </div>
       <Lead>{lead ?? t.courses.lead(suggested)}</Lead>

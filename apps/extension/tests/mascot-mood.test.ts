@@ -24,10 +24,16 @@ describe("mascotMood (the Android app's Ringkasan)", () => {
   it('due within the week but not within a day: idle', () => {
     expect(mascotMood({ ...base, dueTimes: [now + 3 * 24 * h] })).toEqual({ state: 'idle', alert: false });
   });
-  it('an ended session or no connection wins over everything: sleepy', () => {
+  it('an ended session wins over everything: sleepy, the only time it sleeps', () => {
     expect(mascotMood({ ...base, sessionExpired: true, dueTimes: [now - h] })).toEqual({ state: 'sleepy', alert: false });
-    expect(mascotMood({ ...base, offline: true, dueTimes: [now + h] })).toEqual({ state: 'sleepy', alert: false });
+    expect(mascotMood({ ...base, sessionExpired: true, offline: true, dueTimes: [] })).toEqual({ state: 'sleepy', alert: false });
   });
+
+  it('no connection is stale, not asleep, and wins over the deadlines', () => {
+    expect(mascotMood({ ...base, offline: true, dueTimes: [now + h] })).toEqual({ state: 'stale', alert: false });
+    expect(mascotMood({ ...base, offline: true, dueTimes: [now - h] })).toEqual({ state: 'stale', alert: false });
+  });
+
   it('the edges: exactly now counts as due within a day, exactly 7 days as within the week', () => {
     expect(mascotMood({ ...base, dueTimes: [now] }).state).toBe('idle');
     expect(mascotMood({ ...base, dueTimes: [now + 7 * 24 * h - 1] }).state).toBe('idle');

@@ -12,15 +12,14 @@
 
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MASCOT_EXPRESSIONS, type MascotExpression, type MascotExpressionSpec } from '@sulo/core/dashboard/mascot-mood';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import type { ReactionName } from '@sulo/ui/mascot/motion';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { dur } from '../perf';
 import { EASE_OUT, flip, MS, reducedMotion, type Box } from './motion';
 
 /** The mascot is drawn at this size and scaled to each spot. */
 export const MASCOT_BASE = 176;
 const POKE_EVERY_MS = 1200;
-/** No variant still asks the component for the onboarding's extras (it blinks under reduced motion). */
-const ONBOARDING_VARIANT = undefined;
 
 export interface MascotDirector {
   /** The screen's resting expression. */
@@ -80,8 +79,8 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
   const [base, setBase] = useState<MascotExpression>('neutral');
   const [flashed, setFlashed] = useState<MascotExpression | null>(null);
   const [gaze, setGaze] = useState<{ x: number; y: number } | null>(null);
-  const [poke, setPoke] = useState(0);
-  const [party, setParty] = useState(0);
+  const [reaction, setReaction] = useState<{ name: ReactionName; key: number } | null>(null);
+  const play = useCallback((name: ReactionName) => setReaction((r) => ({ name, key: (r?.key ?? 0) + 1 })), []);
   const el = useRef<HTMLDivElement | null>(null);
   const at = useRef<Box | null>(null);
   const arrived = useRef(onArrived);
@@ -115,10 +114,10 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
         setGaze({ x: (dx / d) * k, y: (dy / d) * k });
         if (ms > 0) timers.current.gaze = window.setTimeout(() => setGaze(null), ms);
       },
-      hop: () => setPoke((n) => n + 1),
-      celebrate: () => setParty((n) => n + 1),
+      hop: () => play('tap'),
+      celebrate: () => play('celebrate'),
     }),
-    [],
+    [play],
   );
   // pnpm mobile:web only: the layout check drives every expression through this.
   useEffect(() => {
@@ -254,10 +253,10 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
           // A tap: a small hop and a blink.
           if (Date.now() - lastPoke.current < POKE_EVERY_MS) return;
           lastPoke.current = Date.now();
-          setPoke((n) => n + 1);
+          play('tap');
         }}
       >
-        <Mascot state={spec.state} variant={spec.variant ?? ONBOARDING_VARIANT} boldHappy look={look} size={MASCOT_BASE} poke={poke} celebrate={party} effects={false} />
+        <SuloMascot mood={spec.mood} lookX={look?.x} lookY={look?.y} size={MASCOT_BASE} reaction={reaction} effects={false} />
       </div>
     </DirectorContext.Provider>
   );

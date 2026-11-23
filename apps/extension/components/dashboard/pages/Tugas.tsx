@@ -13,7 +13,7 @@ import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } fro
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { TaskDetails } from '@sulo/ui/dashboard/TaskDetails';
 import { Chip } from '@sulo/ui/mobile/cards';
 import { courseTint } from '@sulo/ui/mobile/tint';
@@ -98,7 +98,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
         allClear ? (
           // The list just emptied: celebrate once, then the happy idle mascot (the only one on this page).
           <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-5 py-8 text-center">
-            <Mascot state={done.justCleared ? 'celebrate' : 'all-done'} size={56} />
+            <SuloMascot mood="happy" size={56} reaction={done.justCleared ? { name: 'allClear', key: 1 } : null} />
             <p className="text-[14px] text-muted-foreground">{t.allClear}</p>
           </div>
         ) : (

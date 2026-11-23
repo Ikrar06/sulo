@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { BellIcon } from '@sulo/ui/icons';
-import { Mascot } from '@sulo/ui/mascot/Mascot';
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Popover, PopoverContent, PopoverTrigger } from '@sulo/ui/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { UpdateSettingsChecks, UpdatesPanel } from '@sulo/ui/updates/UpdatesPanel';
@@ -85,7 +85,7 @@ export function KabarPage({ d, data, actions, route }: PageProps) {
           showSettings={false}
           empty={
             <div className="flex flex-col items-center gap-3 px-5 py-8 text-center">
-              <Mascot state="all-done" size={40} />
+              <SuloMascot mood="happy" size={40} />
               <p className="text-[14px] text-muted-foreground">{m.popup.updates.empty}</p>
             </div>
           }

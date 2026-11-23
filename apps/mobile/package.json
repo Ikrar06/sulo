@@ -13,6 +13,7 @@
   "type": "module",
   "scripts": {
     "web": "vite --mode web",
+    "maskot:lab": "vite --mode web --port 5199 --strictPort --open /lab/",
     "build:web": "vite build",
     "doctor": "node scripts/doctor.mjs",
     "apk:debug": "node scripts/apk-debug.mjs",

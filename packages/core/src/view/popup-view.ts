@@ -298,7 +298,8 @@ function mismatchView(input: PopupInput, deferred: boolean): PopupView {
     mismatchDeferred: deferred,
     onboarded: false,
     banner: null,
-    mascot: 'sleepy',
+    // Not asleep: sleepy is only for an ended session (owner's decision, 23 Nov 2026). The data is set aside, so stale.
+    mascot: 'stale',
     syncing: input.syncing ?? false,
     lastSyncAt: null,
     groups: [],

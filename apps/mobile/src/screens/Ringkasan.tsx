@@ -28,7 +28,6 @@ import { CheckCircle } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Private } from '@sulo/ui/private';
-import { REFRESHED_EVENT } from '../events';
 import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
 import { useTaskDate } from '../shell/task-date';
@@ -90,7 +89,8 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   // "2 hari lagi" / "2 days left", "terlambat 1 hari".
   const left = (i: TaskItem) => (i.task.dueAt === null ? d.tugas.noDue : countdown ? countdownOrLate(i.task.dueAt, now, timeZone, m) : formatLeft(i.task.dueAt, now, timeZone, m));
   const banner = data!.view.banner?.kind;
-  const syncing = useSyncUi().phase === 'running';
+  const sync = useSyncUi().phase;
+  const syncing = sync === 'running';
   const mood = mascotMood({ now, dueTimes: pendingOnly.flatMap((i) => (i.task.dueAt === null ? [] : [i.task.dueAt])), sessionExpired: banner === 'session_expired', offline: banner === 'offline' || !navigator.onLine, syncing });
   const dueToday = groups.find((g) => g.key === 'today')?.rows.length ?? 0;
   const dueTomorrow = groups.find((g) => g.key === 'tomorrow')?.rows.length ?? 0;
@@ -103,17 +103,10 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
     if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') (window as unknown as { __suloCourseNames?: string[] }).__suloCourseNames = user.courses.map(courseAlias);
   }, [user.courses]);
 
-  // Perbarui with new data: a short cheer.
-  useEffect(() => {
-    const on = (e: Event) => (e as CustomEvent<{ fresh: boolean }>).detail.fresh && setCheer((n) => n + 1);
-    window.addEventListener(REFRESHED_EVENT, on);
-    return () => window.removeEventListener(REFRESHED_EVENT, on);
-  }, []);
-
   const markDone = (i: TaskItem) => {
     const last = pendingOnly.length === 1 && pendingOnly[0] === i;
     done.mark(i.task.eventId, last);
-    // The last pending task: celebrate once; any other: a short cheer.
+    // The last pending task: the celebration, once; any other: a glad hop.
     if (last) setCelebrate((n) => n + 1);
     else setCheer((n) => n + 1);
   };
@@ -136,7 +129,7 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
           {/* Sits on the hero card's top edge (12 px over it). */}
           {/* 12 px into the side margin: the flame's own whitespace takes it. */}
           <div className="relative z-10 -mr-3 -mb-3 shrink-0">
-            <HeroMascot mood={mood} cheer={cheer} celebrate={celebrate} label={line} />
+            <HeroMascot mood={mood} cheer={cheer} celebrate={celebrate} label={line} sync={sync} pending={pendingOnly.length} />
           </div>
         </div>
 
