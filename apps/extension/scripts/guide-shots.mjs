@@ -129,6 +129,21 @@ async function type(page, text) {
 
 const re = (id, en) => new RegExp(`^(${id}|${en})`);
 
+/** Scrolls an element into view smoothly (a wheel or a click on an element below the fold jumps), then waits for it to settle. */
+async function scrollTo(page, target, block = 'center') {
+  await target.evaluate((el, b) => el.scrollIntoView({ behavior: 'smooth', block: b }), block);
+  await page.waitForTimeout(900);
+}
+
+/** Opens a page once and comes back, so its code is loaded before recording and no "Memuat..." frame shows. */
+async function warm(page, hash, back) {
+  await page.evaluate((h) => (location.hash = h), hash);
+  await page.waitForTimeout(900);
+  await page.evaluate((h) => (location.hash = h), back);
+  await page.waitForTimeout(900);
+  await page.evaluate(() => window.scrollTo({ top: 0 }));
+}
+
 /** An element's box in CSS px, cut at `maxBottom` from the top of the window. */
 async function box(locator, maxBottom) {
   const b = await locator.boundingBox();
@@ -191,17 +206,30 @@ const STEPS = [
   },
   {
     id: 'kalender',
+    // A smooth scroll moves every pixel, which costs the encoder: a little more compression keeps the clip at its old size.
+    crf: 44,
     url: '/dashboard.html#kalender',
     viewport: { width: 1280, height: 900 },
     area: async (p) => box(p.locator('.db-content'), 900),
     play: async (p) => {
       await click(p, p.getByRole('button', { name: re('Tugas', 'Tasks') }).last(), 900);
       await click(p, p.getByRole('button', { name: re('Tugas', 'Tasks') }).last(), 700);
+      // A day other than today that has the most events, so the side panel has something to show
+      // (the date the clip is recorded on decides the month, so no fixed position works).
+      const day = await p.evaluate(() => {
+        let best = null;
+        for (const el of document.querySelectorAll('[data-day]')) {
+          if (el.getAttribute('aria-current') === 'date') continue;
+          const n = Number(/, (\d+) (acara|events?)$/.exec(el.getAttribute('aria-label') ?? '')?.[1] ?? 0);
+          if (n > (best?.n ?? 0)) best = { day: el.dataset.day, n };
+        }
+        return best?.day ?? null;
+      });
       const days = p.locator('[data-day]');
-      await click(p, days.nth(Math.min(24, (await days.count()) - 1)), 1000);
-      await p.mouse.wheel(0, 1400);
-      await p.waitForTimeout(700);
-      await moveTo(p, p.getByRole('link', { name: re('Google Kalender', 'Google Calendar') }).first());
+      await click(p, day ? p.locator(`[data-day="${day}"]`) : days.nth(Math.min(24, (await days.count()) - 1)), 1000);
+      const google = p.getByRole('link', { name: re('Google Kalender', 'Google Calendar') }).first();
+      await scrollTo(p, google);
+      await moveTo(p, google);
       await p.waitForTimeout(500);
       await click(p, p.getByRole('button', { name: /^(Pilihan lain untuk|More options for)/ }).first(), 1200);
     },
@@ -235,15 +263,20 @@ const STEPS = [
   {
     // With the synthetic NEOSIA demo data: the overview, then the Schedule page.
     id: 'jadwal',
+    crf: 44,
     url: '/dashboard.html#ringkasan',
     neosia: true,
     viewport: { width: 1280, height: 860 },
     area: async () => ({ x: 232, y: 64, width: 1048, height: 796 }),
+    prepare: (p) => warm(p, '#jadwal', '#ringkasan'),
     play: async (p) => {
       await moveTo(p, p.getByRole('region', { name: re('Kuliah hari ini', 'Classes today') }), 900);
       await p.waitForTimeout(700);
+      // Points at Show without pressing it: the clips never show a grade or GPA, synthetic or not.
       const studi = p.getByRole('button', { name: re('Tampilkan', 'Show') }).first();
-      await click(p, studi, 900);
+      await scrollTo(p, studi);
+      await moveTo(p, studi, 800);
+      await p.waitForTimeout(900);
       await p.evaluate(() => (location.hash = '#jadwal'));
       await p.waitForTimeout(1200);
       await click(p, p.locator('[data-slot="popover-trigger"]').filter({ hasText: /Mekanika|Etika/ }).first(), 1500);
@@ -258,13 +291,16 @@ const STEPS = [
     viewport: { width: 1280, height: 720 },
     // The main column under the header (sidebar 232 px, header 64 px).
     area: async () => ({ x: 232, y: 64, width: 1048, height: 656 }),
-    play: async (p) => {
-      // The NEOSIA card's title just under the sticky header.
-      const toCard = () => p.evaluate(() => {
+    // Before recording: the overview's code loaded, and the NEOSIA card's title just under the sticky header.
+    prepare: async (p) => {
+      await warm(p, '#ringkasan', '#pengaturan/neosia');
+      await p.evaluate(() => {
         const card = document.getElementById('set-neosia')?.closest('section');
         if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 88 });
       });
-      await toCard();
+      await p.waitForTimeout(600);
+    },
+    play: async (p) => {
       await p.waitForTimeout(500);
       await click(p, p.getByRole('switch', { name: re('Hubungkan NEOSIA', 'Connect NEOSIA') }), 900);
       const dialog = p.getByRole('alertdialog');
@@ -315,7 +351,7 @@ async function record(page, play) {
  * JPEGs from a pipe only, at a constant rate, so each frame is repeated for
  * as long as it was on screen (the screencast only sends changed frames).
  */
-function encode(frames, area, viewport, file) {
+function encode(frames, area, viewport, file, crf = CRF) {
   const step = 1 / FPS;
   const end = frames[frames.length - 1].t + 1.2;
   const sequence = [];
@@ -329,15 +365,28 @@ function encode(frames, area, viewport, file) {
   const vf = `${crop},scale=${WIDTH}:-2:flags=lanczos`;
   execFileSync(
     ffmpeg,
-    ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', 'pipe:0', '-vf', vf, '-c:v', 'libvpx-vp9', '-crf', String(CRF), '-b:v', '0', '-pix_fmt', 'yuv420p', '-an', file],
+    ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', 'pipe:0', '-vf', vf, '-c:v', 'libvpx-vp9', '-crf', String(crf), '-b:v', '0', '-pix_fmt', 'yuv420p', '-an', file],
     { input: Buffer.concat(sequence), maxBuffer: 1 << 30 },
   );
 }
 
+/** Width and height of an encoded clip, read from ffmpeg's description of it. */
+function videoSize(file) {
+  let text = '';
+  try {
+    execFileSync(ffmpeg, ['-hide_banner', '-i', file], { stdio: ['ignore', 'ignore', 'pipe'] });
+  } catch (e) {
+    text = String(e.stderr ?? '');
+  }
+  const m = /, (\d+)x(\d+)/.exec(text);
+  if (!m) throw new Error(`guide-shots: no size for ${file}`);
+  return { width: Number(m[1]), height: Number(m[2]) };
+}
+
 /** The poster: the last frame, cropped and scaled to WIDTH, encoded as WebP (quality 80) by Chromium. */
-async function poster(page, frame, area, viewport) {
+async function poster(page, frame, area, viewport, size) {
   const data = await page.evaluate(
-    async ({ b64, area, viewport, width }) => {
+    async ({ b64, area, viewport, width, height }) => {
       const img = new Image();
       img.src = `data:image/jpeg;base64,${b64}`;
       await img.decode();
@@ -345,13 +394,14 @@ async function poster(page, frame, area, viewport) {
       const sy = img.height / viewport.height;
       const c = document.createElement('canvas');
       c.width = width;
-      c.height = Math.round(((area.height / area.width) * width) / 2) * 2;
+      // The clip's own height, so the poster and the video fill the same frame.
+      c.height = height;
       const ctx = c.getContext('2d');
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, area.x * sx, area.y * sy, area.width * sx, area.height * sy, 0, 0, c.width, c.height);
       return c.toDataURL('image/webp', 0.8).split(',')[1];
     },
-    { b64: frame.data, area, viewport, width: WIDTH },
+    { b64: frame.data, area, viewport, width: WIDTH, height: size.height },
   );
   return Buffer.from(data, 'base64');
 }
@@ -378,15 +428,18 @@ async function run() {
         if (step.neosia) await page.clock.setFixedTime(classMorning());
         await page.goto(`chrome-extension://${extId}${step.url}`);
         await page.waitForTimeout(900);
+        if (step.prepare) await step.prepare(page);
         await page.evaluate(OVERLAY);
         const area = await step.area(page);
         const frames = await record(page, () => step.play(page, locale));
         const stem = `${step.id}-${theme}-${locale}`;
         const tester = await page.evaluate((src) => document.body.innerText.match(new RegExp(src, 'i'))?.[0] ?? null, TESTER_TEXT.source);
         if (tester) throw new Error(`guide-shots: ${stem} shows tester-build text "${tester}"`);
-        encode(frames, area, step.viewport, join(outDir, `${stem}.webm`));
-        writeFileSync(join(outDir, `${stem}.webp`), await poster(page, frames[frames.length - 1], area, step.viewport));
-        sizes[step.id] ??= { width: WIDTH, height: Math.round(((area.height / area.width) * WIDTH) / 2) * 2 };
+        encode(frames, area, step.viewport, join(outDir, `${stem}.webm`), step.crf);
+        // The size the encoder wrote (scale=-2 rounds on its own), which packages/core/src/help/guide.ts must state.
+        const size = videoSize(join(outDir, `${stem}.webm`));
+        sizes[step.id] ??= size;
+        writeFileSync(join(outDir, `${stem}.webp`), await poster(page, frames[frames.length - 1], area, step.viewport, size));
         const kb = (f) => (statSync(join(outDir, f)).size / 1024).toFixed(0);
         console.log(`${stem}: ${frames.length} frames, video ${kb(`${stem}.webm`)} KB, poster ${kb(`${stem}.webp`)} KB`);
         await ctx.close();

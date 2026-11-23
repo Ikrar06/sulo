@@ -4,7 +4,9 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
-Planned as 0.2.0. Tester builds only; not submitted to any store, and no public Android release yet.
+## [0.9.0] - 2026-11-23
+
+For testers. Not submitted to any store yet, and the Android app is shared with testers directly.
 
 ### Added
 
@@ -18,10 +20,14 @@ Planned as 0.2.0. Tester builds only; not submitted to any store, and no public 
 - **Schedule** page: your weekly classes from Monday to Saturday, holidays marked, and a calendar file for Google Calendar. Classes can also show in the calendar.
 - A short profile on the overview (semester, credits, GPA behind Show) and a note when a new grade is out, naming the course only.
 - Privacy mode: the eye in the dashboard header masks names, grades, GPA and credits.
+- **A choice of notification sound** on the phone (Settings, Notifications): Sound 1 to 4, the phone's own sound, or silent. A tap plays it once. Deadline reminders and news use it; the morning summary and other notices stay silent.
+- The mascot reacts to what happens: a small hop when you tick a task (stars on the first of a run), a celebration when the last one is done, a nod after an update and a shake of the head when it fails.
 
 ### Changed
 
 - One look for the extension and the phone: cards, course chips, round check marks and one set of icons.
+- A new mascot: the flame bends as one body, its eyes change shape instead of jumping, and every expression has its own outline. It uses less battery than before, and keeps still (only blinking) with reduced motion or on the phone's lighter mode. Its eyes follow the pointer on the dashboard.
+- Without a connection the mascot looks tired instead of asleep; it only sleeps when SIKOLA asks you to sign in again.
 - Settings has one icon everywhere (a gear), and small icons share one size.
 - New interface icons (Phosphor Icons): a heavier, rounder line. The selected tab on the phone and the current page in the dashboard's sidebar show the same drawing, filled.
 - The overdue count on the phone's Tugas tab sits beside the icon and no longer covers it.
@@ -31,6 +37,7 @@ Planned as 0.2.0. Tester builds only; not submitted to any store, and no public 
 ### Fixed
 
 - Help answers that pointed to buttons and places that had moved: "Delete all data" is in Settings under "Delete data", and the calendar feeds are added with the "Google Calendar" button on each calendar.
+- The lock in the first-run guide no longer has the top of its shackle cut off.
 - The same thing is called the same everywhere (reload the list, copied, connected, Google Kalender in Indonesian), and English texts that read like a word-for-word translation were rewritten.
 
 ### Privacy

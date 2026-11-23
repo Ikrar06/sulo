@@ -31,7 +31,7 @@ android {
         }
     }
     buildFeatures {
-        // BuildConfig.VERSION_NAME goes into the User-Agent ("Sulo/0.2.0 (Android)").
+        // BuildConfig.VERSION_NAME goes into the User-Agent ("Sulo/0.9.0 (Android)").
         buildConfig = true
     }
     compileOptions {
