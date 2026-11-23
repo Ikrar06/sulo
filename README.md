@@ -22,11 +22,11 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
     <source type="image/webp" media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.webp">
     <source type="image/webp" media="(prefers-color-scheme: light)" srcset="docs-publik/hero-light.webp">
     <source media="(prefers-color-scheme: dark)" srcset="docs-publik/hero-dark.png">
-    <img alt="Sulo's dashboard on a laptop, showing today's tasks, the academic calendar and a 14-day workload strip, next to Sulo's phone app showing the nearest deadline, 3 hours left. Sample data." src="docs-publik/hero-light.png" width="860">
+    <img alt="Sulo's dashboard on a laptop, showing today's tasks, the academic calendar and a 14-day workload strip, next to Sulo's phone app showing the nearest deadline, 3 hours left. Sample data." src="docs-publik/hero-light.png" width="88%">
   </picture>
+  <br>
+  <sub>Extension dashboard and Android app, with sample data. Phone frame is illustrative: the mobile app is Android only.</sub>
 </p>
-
-<p align="center"><sub>The extension's dashboard and the Android app, with sample data. The phone frame is only for the picture: Sulo's phone app is for Android.</sub></p>
 
 ## Contents
 
