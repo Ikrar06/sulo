@@ -24,7 +24,7 @@
     "web:shots": "node scripts/web-shots.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "node scripts/check-native-logs.mjs && node scripts/check-type-tokens.mjs && node scripts/check-card-layout.mjs",
+    "lint": "node scripts/check-native-logs.mjs && node scripts/check-type-tokens.mjs && node scripts/check-card-layout.mjs && node scripts/tuck-brand-flame.mjs --check",
     "check:fit": "node scripts/check-countdown-fit.mjs && node scripts/check-onboarding-fit.mjs && node scripts/check-status-fit.mjs",
     "check:onboarding-layout": "node scripts/check-onboarding-layout.mjs",
     "emu": "node scripts/emu.mjs",
