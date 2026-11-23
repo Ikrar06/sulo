@@ -98,9 +98,10 @@ object NotifyChannels {
             sound.isNullOrEmpty() -> channel.setSound(null, null)
             // The phone's own notification sound: what a new channel has by itself.
             sound == "default" -> Unit
-            else -> rawSound(sound)?.let { id ->
+            // By name, not by number: a channel keeps its sound for good, and a resource's number may differ in the next build.
+            else -> if (rawSound(sound) != null) {
                 val attributes = AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).setUsage(AudioAttributes.USAGE_NOTIFICATION).build()
-                channel.setSound(Uri.parse("${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/$id"), attributes)
+                channel.setSound(Uri.parse("${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/raw/$sound"), attributes)
             }
         }
         return channel
@@ -108,8 +109,8 @@ object NotifyChannels {
 
     /**
      * The sounds in res/raw (apps/mobile/scripts/build-sounds.mjs), by name.
-     * Named through R so the release build's resource shrinker keeps them.
-     * An unknown name falls back to the phone's own sound.
+     * Named through R (and res/raw/keep.xml) so the release build's resource
+     * shrinker keeps them. An unknown name falls back to the phone's own sound.
      */
     private fun rawSound(name: String): Int? = when (name) {
         "sulo_notif_1" -> R.raw.sulo_notif_1
