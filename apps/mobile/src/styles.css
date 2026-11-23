@@ -282,3 +282,16 @@ body {
 :root[data-perf="lite"] .m-onb-leave { animation-duration: 144ms; }
 :root[data-perf="lite"] .m-landing main .space-y-6 > * { animation-duration: 256ms; }
 :root[data-perf="lite"] .m-landing nav[aria-label] { animation-duration: 224ms; animation-delay: 240ms; }
+
+/* A word longer than its line (an address, a long course word at a large text size) breaks inside rather than
+   sticking out of its box. Only when it has to: normal words still wrap between them. */
+body { overflow-wrap: break-word; }
+
+/* A scene's canvas and pieces never transition (their motion is the Web Animations API's, scenes-intro.tsx). The
+   reduced-motion rule (extension tokens.css) sets a 0.01 ms transition-duration on every element, and with the
+   initial transition-property (all) that made a rescaled canvas transition for one frame: the flying mascot,
+   measuring in that frame, landed where the canvas had been. */
+[data-onb-scene],
+[data-onb-scene] * {
+  transition-property: none;
+}

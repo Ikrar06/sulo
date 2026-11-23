@@ -107,7 +107,7 @@ export function TaskScreen({ eventId }: { eventId: number }) {
           }}
         >
           <Input className="rounded-full" aria-label={t.addStep} placeholder={t.stepPlaceholder} maxLength={STEP_MAX} value={step} onChange={(e) => setStep(e.target.value)} />
-          <button type="submit" disabled={!step.trim()} aria-label={t.addStep} className="m-hit m-press inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-m-inset outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
+          <button type="submit" disabled={!step.trim()} aria-label={t.addStep} className="m-hit m-hit-x m-press inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-m-inset outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
             <PlusIcon className="size-5" />
           </button>
         </form>

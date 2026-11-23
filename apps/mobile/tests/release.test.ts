@@ -27,8 +27,8 @@ describe('release on the phone', () => {
     expect(showChecksum(10003, false)).toBe(false);
     expect(showChecksum(10000, true)).toBe(true);
   });
-  it('this build reads its own versionCode (0.9.0 = 900)', () => {
-    expect(INSTALLED_CODE).toBe(900);
+  it('this build reads its own versionCode (0.9.1 = 901)', () => {
+    expect(INSTALLED_CODE).toBe(901);
   });
   it('available, then closed for 3 days by Nanti; Tentang still knows', async () => {
     const store = memory(config(REL));

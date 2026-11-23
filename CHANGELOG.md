@@ -4,6 +4,19 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-24
+
+For testers.
+
+### Fixed
+
+- **Large text on the phone.** Sulo now follows the phone's font size all the way, also past 130%, and every screen makes room for it instead of letting text run out of its card or over other text:
+  - the first welcome screen shows fewer sample tasks when they do not fit, and the cards no longer lie over each other;
+  - on the overview, the attendance average sits on its own line, and the calendar and attendance cards stack one above the other when they are too narrow side by side;
+  - task, calendar, attendance and settings cards, chips, buttons and screen titles grow with the text;
+  - long words and web addresses break instead of running out of the screen.
+- Small buttons (back, skip, page dots, "See all", search clear, add step) and the days of the month view and of the next 7 days are easier to tap; on a very narrow screen these rows scroll sideways.
+
 ## [0.9.0] - 2026-11-23
 
 For testers. Not submitted to any store yet, and the Android app is shared with testers directly.

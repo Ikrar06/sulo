@@ -1,6 +1,6 @@
 {
   "name": "@sulo/mobile",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "description": "Sulo for Android (Capacitor). Unofficial, not affiliated with Universitas Hasanuddin.",
   "license": "MIT",
@@ -27,6 +27,8 @@
     "lint": "node scripts/check-native-logs.mjs && node scripts/check-type-tokens.mjs && node scripts/check-card-layout.mjs && node scripts/tuck-brand-flame.mjs --check",
     "check:fit": "node scripts/check-countdown-fit.mjs && node scripts/check-onboarding-fit.mjs && node scripts/check-status-fit.mjs",
     "check:onboarding-layout": "node scripts/check-onboarding-layout.mjs",
+    "check:mobile-layout": "node scripts/check-mobile-layout.mjs",
+    "check:mobile-layout:ci": "node scripts/check-mobile-layout.mjs --ci --out=../../.output/layout-gagal",
     "emu": "node scripts/emu.mjs",
     "emu:stop": "node scripts/emu.mjs --stop",
     "shots:device": "node scripts/device-shots.mjs",

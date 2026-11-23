@@ -29,7 +29,9 @@ export function WeekCard({ bars, intl, words, onOpen }: { bars: readonly WeekBar
         {allZero ? (
           <p className="text-m13 text-muted-foreground">{words.empty}</p>
         ) : (
-        <ol className="grid grid-cols-7">
+          // Seven columns of at least 44 (a touch target each), reaching into the card's padding; on a screen too narrow
+          // for that (a folded phone's outer screen, large text) the row scrolls sideways instead of narrowing them.
+        <ol className="m-carousel -mx-2 grid grid-cols-[repeat(7,minmax(44px,1fr))] overflow-x-auto">
           {bars.map((b, i) => {
             // "Jumat 20 November, 3 tenggat": the weekday and the date without Intl's comma between them.
             const label = words.day(`${formatDateKey(b.dateKey, intl, { weekday: 'long' })} ${formatDateKey(b.dateKey, intl, { day: 'numeric', month: 'long' })}`, b.count);

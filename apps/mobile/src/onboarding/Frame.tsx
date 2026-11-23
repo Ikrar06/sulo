@@ -38,7 +38,7 @@ export interface FrameAction {
 
 export function BackButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <button type="button" aria-label={label} onClick={onPress} className="m-hit onb-press inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-m-inset outline-none focus-ring:ring-2 focus-ring:ring-focus">
+    <button type="button" aria-label={label} onClick={onPress} className="m-hit m-hit-x onb-press inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-m-inset outline-none focus-ring:ring-2 focus-ring:ring-focus">
       <ChevronLeftIcon aria-hidden="true" className="size-5" />
     </button>
   );
@@ -86,7 +86,9 @@ export function Frame({ topLeft, topRight, children, hint, primary, primarySlot,
         <div className="flex min-w-0 flex-1 items-center gap-3">{topLeft}</div>
         {topRight}
       </div>
-      <div data-onb-content="" className="flex min-h-0 flex-1 flex-col">
+      {/* Scrolls only when the text is too large for the screen (a narrow phone at a large font size): the scene has a
+          floor (Scene.tsx), the text never gives way to it. */}
+      <div data-onb-content="" className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
         {children}
       </div>
       <div data-onb-chrome="" className="shrink-0 pb-[calc(16px+env(safe-area-inset-bottom))]">
@@ -104,7 +106,7 @@ export function Frame({ topLeft, topRight, children, hint, primary, primarySlot,
         ) : (
           <div className="flex h-13 items-center">{primarySlot}</div>
         )}
-        <div className="flex h-11 flex-col items-center justify-center text-center">{secondary}</div>
+        <div className="flex min-h-11 flex-col items-center justify-center text-center">{secondary}</div>
       </div>
     </div>
   );

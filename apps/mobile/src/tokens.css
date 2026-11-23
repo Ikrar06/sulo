@@ -35,8 +35,39 @@
 
 :root {
   --m-tz: 1;
+  /* The factor the layout's thresholds grow by with the phone's text size: the WebView's measured text zoom on the
+     phone (src/text-zoom.ts sets it), --m-tz in the web preview. Never used for a text size: the WebView already
+     enlarges text; this only widens what must hold it (columns, card widths). */
+  --m-zoom: var(--m-tz);
   --m-bar: 52px;
   --m-tabs: 60px;
+}
+
+/* Two columns while each column is at least --m-col wide (times the text size), else one: the cards stack instead
+   of squeezing their text. Never more than two. --m-col comes from measuring the narrowest card that still holds
+   its content without wrapping a word or pushing it out (check-mobile-layout.mjs), here 150 px at 100%. */
+.m-cols-2 {
+  --m-col: 150px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(min(100%, calc(var(--m-col) * var(--m-zoom))), calc((100% - var(--m-gap, 12px)) / 2)), 1fr));
+  gap: var(--m-gap, 12px);
+}
+
+/* A big number in a card that may be narrow (attendance, a countdown): 22 at most, 16 at least, and in between as
+   much as the card's width holds (5 characters at about 0.6 em each). Needs a container (.m-cq) around it. The
+   middle term is divided by --m-zoom and multiplied by --m-tz, so the WebView's zoom (phone) and --m-tz (preview)
+   land on the same size. */
+.m-cq { container-type: inline-size; }
+/* The same for an 8-character number (a 00:00:00 countdown): 14 at least, 22 at most. */
+.m-num-fit-8 {
+  font-size: clamp(calc(14px * var(--m-tz)), calc(19cqi / var(--m-zoom) * var(--m-tz)), calc(22px * var(--m-tz)));
+  line-height: 1.2;
+}
+/* FitLine's last step: the line wraps between words (whitespace and overflow back to normal). */
+.m-fit-wrap { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; overflow-wrap: anywhere; }
+.m-num-fit {
+  font-size: clamp(calc(16px * var(--m-tz)), calc(30cqi / var(--m-zoom) * var(--m-tz)), calc(22px * var(--m-tz)));
+  line-height: 1.2;
 }
 
 @theme {
@@ -110,9 +141,9 @@
 .-mx-5 { margin-inline: -16px; }
 
 /* Shared controls at the phone's sizes. */
-[data-slot="input"] { height: 40px; border-radius: var(--radius-ctl); background: var(--m-inset); border-color: transparent; }
-/* The search field is the one 40 px input. */
-.m-search[data-slot="input"] { height: 40px; }
+/* 44: an input is its own touch target (no hit area can be added around it). */
+[data-slot="input"] { height: 44px; border-radius: var(--radius-ctl); background: var(--m-inset); border-color: transparent; }
+.m-search[data-slot="input"] { height: 44px; }
 [data-slot="button"], [data-slot="select-trigger"], [data-slot="task-action"] { height: 40px; border-radius: 9999px; }
 [data-slot="checkbox"] { width: 20px; height: 20px; }
 [data-slot="select-item"] { min-height: 44px; }

@@ -224,14 +224,14 @@ export function Intro({ w, index, played, onIndex, onStart, onSkip }: IntroProps
       <Frame
         topLeft={index > 0 ? <BackButton label={w.back} onPress={() => onIndex(index - 1)} /> : null}
         topRight={
-          <button type="button" onClick={onSkip} className="m-hit rounded-full px-2 text-m13 text-muted-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
+          <button type="button" onClick={onSkip} className="m-hit m-hit-x rounded-full px-2 text-m13 text-muted-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
             {w.skip}
           </button>
         }
         hint={
-          <div role="tablist" aria-label={w.pageOf(index + 1, PAGES)} className="box-content flex h-[6px] items-center gap-1 py-[20px]">
+          <div role="tablist" aria-label={w.pageOf(index + 1, PAGES)} className="box-content flex h-[6px] items-center py-[20px]">
             {pages.map((page, i) => (
-              <button key={page.title} type="button" role="tab" aria-selected={i === index} aria-label={w.pageOf(i + 1, PAGES)} onClick={() => onIndex(i)} className="m-hit flex h-1.5 w-5 items-center justify-center outline-none focus-ring:ring-2 focus-ring:ring-focus">
+              <button key={page.title} type="button" role="tab" aria-selected={i === index} aria-label={w.pageOf(i + 1, PAGES)} onClick={() => onIndex(i)} className="m-hit flex h-1.5 w-11 items-center justify-center outline-none focus-ring:ring-2 focus-ring:ring-focus">
                 <span data-pg="dot" data-pg-i={i} className="block h-1.5 w-4 rounded-full bg-foreground" />
               </button>
             ))}

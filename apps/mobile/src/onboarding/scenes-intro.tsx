@@ -49,24 +49,76 @@ export function Layer({ depth = 0, children }: { depth?: number; children: React
 
 const TONE: Record<string, string> = { overdue: 'text-urgency-overdue', soon: 'text-urgency-soon', later: 'text-muted-foreground' };
 const COLORS = [1, 4, 6, 3];
-/** A dense task card with a one-line title, and the stack's pitch. */
-const CARD_H = 76;
-const PITCH = 84;
+/** The gap between stacked cards: the card list's on Ringkasan (gap-3). */
+export const STACK_GAP = 12;
+/**
+ * Free room kept above the stack, inside the canvas. None: with the 12 px gap, three cards at 100% (76 px each)
+ * fill the 252 px above the mascot exactly (they used the canvas's top 8 px when the gap was 8).
+ */
+const STACK_TOP = 0;
 const T = (x: number, y: number, r = 0) => `translate(${x}px, ${y}px) rotate(${r}deg)`;
-/** Where each card comes from, and how it lies before the stack tidies itself. */
-const FROM = [T(-340, 0, -14), T(360, PITCH, 12), T(-12, PITCH + 220, -8)];
-const MESSY = [T(-14, 8, -6), T(18, PITCH + 4, 5), T(-8, PITCH + 10, -3)];
+/** Where each card comes from, and how it lies before the stack tidies itself (`p`: one slot down). */
+const FROM = (p: number) => [T(-340, 0, -14), T(360, p, 12), T(-12, p + 220, -8)];
+const MESSY = (p: number) => [T(-14, 8, -6), T(18, p + 4, 5), T(-8, p + 10, -3)];
+
+/**
+ * How many sample cards the stack shows, and its pitch, from the cards' own heights (they follow the phone's text
+ * size, so they are measured, never assumed). As many as fit between the canvas top and the mascot, at most `max`,
+ * at least one; every slot is as tall as the tallest card, so nothing ever lies over anything.
+ */
+export function stackFit(heights: readonly number[], room: number, max: number): { n: number; pitch: number } {
+  for (let n = max; n >= 1; n--) {
+    const tallest = Math.max(...heights.slice(0, n + 1));
+    if (n * tallest + (n - 1) * STACK_GAP <= room || n === 1) return { n, pitch: tallest + STACK_GAP };
+  }
+  return { n: 1, pitch: Math.max(...heights.slice(0, 2)) + STACK_GAP };
+}
+
+/**
+ * Each element's own box (offset sizes: the animations' transforms do not count), measured before the first paint
+ * and again whenever one changes size. Pieces holding text follow the phone's text size, so a scene measures them
+ * instead of assuming their size. null until every element has a size.
+ */
+function useSizes(refs: { current: (HTMLElement | null)[] }, count: number, deps: unknown[]): { w: number; h: number }[] | null {
+  const [sizes, setSizes] = useState<{ w: number; h: number }[] | null>(null);
+  useLayoutEffect(() => {
+    const read = () => {
+      const v = Array.from({ length: count }, (_, k) => ({ w: refs.current[k]?.offsetWidth ?? 0, h: refs.current[k]?.offsetHeight ?? 0 }));
+      if (v.every((x) => x.h > 0)) setSizes((p) => (p && p.length === v.length && p.every((x, i) => Math.abs(x.h - v[i]!.h) < 0.5 && Math.abs(x.w - v[i]!.w) < 0.5) ? p : v));
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    refs.current.slice(0, count).forEach((el) => el && ro.observe(el));
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+  return sizes;
+}
 
 /** Screen 1: real task cards arrive untidy from three sides, straighten into a stack, the top one is ticked and leaves, the next ones move up. */
 export function SceneTasks({ w, compact, width, play, lead }: SceneProps) {
   const mascot = useMascot();
-  // The stack ends 24 px above the mascot; each card is CARD_H tall.
-  const base = mascotAt(compact, width).y - MASCOT_GAP - CARD_H;
-  const slots = (compact ? [1, 0] : [2, 1, 0]).map((k) => base - k * PITCH);
-  const n = slots.length;
-  const cards = w.intro1.cards.slice(0, n + 1);
+  const all = w.intro1.cards;
   const refs = useRef<(HTMLDivElement | null)[]>([]);
   const [done, setDone] = useState(false);
+  // The cards' heights at this width and text size, measured before the first paint (and again when either changes).
+  const [heights, setHeights] = useState<number[] | null>(null);
+  useLayoutEffect(() => {
+    const read = () => {
+      const hs = all.map((_, k) => refs.current[k]?.offsetHeight ?? 0);
+      if (hs.every((h) => h > 0)) setHeights((p) => (p && p.length === hs.length && p.every((v, i) => Math.abs(v - hs[i]!) < 0.5) ? p : hs));
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    refs.current.forEach((el) => el && ro.observe(el));
+    return () => ro.disconnect();
+  }, [all, width]);
+  // The stack ends 24 px above the mascot; the cards above it, as many as fit.
+  const floor = mascotAt(compact, width).y - MASCOT_GAP;
+  const { n, pitch } = stackFit(heights ?? all.map(() => 76), floor - STACK_TOP, compact ? 2 : 3);
+  const slots = Array.from({ length: n }, (_, i) => floor - (n - i) * pitch + STACK_GAP);
+  const from = FROM(pitch);
+  const messy = MESSY(pitch);
 
   // Before the first paint: the pieces are at their starting places in the very first frame.
   useLayoutEffect(() => {
@@ -76,14 +128,15 @@ export function SceneTasks({ w, compact, width, play, lead }: SceneProps) {
     // arrive untidy, hold, tidy (to 1140), rest 250, tick (1390), rest 180
     // after the tick lands, the top card leaves (1720), the others move up,
     // the next task rises. About 3.4 s at tempo 1.4.
+    if (!heights) return;
     const total = 2450;
     const el = (i: number) => refs.current[i] ?? null;
     const anims: (Animation | null)[] = [];
     anims.push(
       act(el(0), total, [
-        { at: 0, opacity: 0, transform: FROM[0]!, easing: EASE_STORY },
-        { at: 420, opacity: 1, transform: MESSY[0]! },
-        { at: 700, opacity: 1, transform: MESSY[0]!, easing: EASE_STORY },
+        { at: 0, opacity: 0, transform: from[0]!, easing: EASE_STORY },
+        { at: 420, opacity: 1, transform: messy[0]! },
+        { at: 700, opacity: 1, transform: messy[0]!, easing: EASE_STORY },
         { at: 1060, opacity: 1, transform: T(0, 0) },
         { at: 1720, opacity: 1, transform: T(0, 0), easing: EASE_IN },
         { at: 1940, opacity: 0, transform: T(340, 0) },
@@ -94,12 +147,12 @@ export function SceneTasks({ w, compact, width, play, lead }: SceneProps) {
       const d = 100 * k;
       anims.push(
         act(el(k), total, [
-          { at: 0, opacity: 0, transform: FROM[k]! },
-          { at: d, opacity: 0, transform: FROM[k]!, easing: EASE_STORY },
-          { at: d + 420, opacity: 1, transform: MESSY[k]! },
-          { at: 700 + k * 40, opacity: 1, transform: MESSY[k]!, easing: EASE_STORY },
-          { at: 1060 + k * 40, opacity: 1, transform: T(0, PITCH) },
-          { at: 1800 + k * 50, opacity: 1, transform: T(0, PITCH), easing: EASE_STORY },
+          { at: 0, opacity: 0, transform: from[k]! },
+          { at: d, opacity: 0, transform: from[k]!, easing: EASE_STORY },
+          { at: d + 420, opacity: 1, transform: messy[k]! },
+          { at: 700 + k * 40, opacity: 1, transform: messy[k]!, easing: EASE_STORY },
+          { at: 1060 + k * 40, opacity: 1, transform: T(0, pitch) },
+          { at: 1800 + k * 50, opacity: 1, transform: T(0, pitch), easing: EASE_STORY },
           { at: 2160 + k * 50, opacity: 1, transform: T(0, 0) },
           { at: total, opacity: 1, transform: T(0, 0) },
         ], true, lead),
@@ -125,15 +178,15 @@ export function SceneTasks({ w, compact, width, play, lead }: SceneProps) {
       stop();
       anims.forEach((a) => a?.cancel());
     };
-    // Plays once per showing.
+    // Plays once per showing, once the cards are measured.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [play]);
+  }, [play, heights === null]);
 
   return (
     <Layer>
-      {cards.map((c, k) => (
-        // Card 0 has left by the end; the others rest one slot up.
-        <At key={c.title} x={0} y={slots[Math.max(0, k - 1)]!} w={width} h={CARD_H} z={n + 1 - k} pieceRef={(node) => void (refs.current[k] = node)} className={k === 0 ? 'opacity-0' : ''}>
+      {all.map((c, k) => (
+        // Card 0 has left by the end; the others rest one slot up. Cards past the stack stay off the picture (measured only).
+        <At key={c.title} x={0} y={k <= n ? slots[Math.max(0, k - 1)]! : 0} w={width} z={n + 1 - k} pieceRef={(node) => void (refs.current[k] = node)} className={k === 0 || k > n || !heights ? 'opacity-0' : ''} hidden={k > n}>
           <TaskCardView course={c.course} color={courseTint(COLORS[k])} title={c.title} relative={c.due} tone={k === 0 && done ? 'text-muted-foreground' : (TONE[c.tone] ?? '')} done={k === 0 && done} doneLabel={c.title} onDone={() => undefined} />
         </At>
       ))}
@@ -200,32 +253,68 @@ export function SceneRemind({ w, compact, width, play, lead }: SceneProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [play]);
 
-  const tileH = compact ? 84 : 136;
-  const tileW = (width - 12) / 2;
-  // Two tiles 24 px above the mascot, the banner 12 px above them.
-  const tileY = mascotAt(compact, width).y - MASCOT_GAP - tileH;
+  // The banner's and the tiles' contents, measured: the tiles are as tall as the taller one's content (at least their
+  // drawn size), the banner as tall as its own.
+  const parts = useRef<(HTMLDivElement | null)[]>([]);
+  const count = useRef<HTMLParagraphElement | null>(null);
+  const sizes = useSizes(parts, 3, [width, compact]);
+  // Side by side while the countdown fits half the canvas, one above the other when it does not (large text on a
+  // narrow phone): its own width is measured from its text (in canvas px), never assumed.
+  // Once stacked it stays stacked for this canvas width: the countdown's size follows its tile's width, so measuring
+  // it again in a wider tile could flip the choice back and forth.
+  const [stack, setStack] = useState<{ width: number; on: boolean }>({ width, on: false });
+  useLayoutEffect(() => {
+    const el = count.current;
+    const text = el?.firstChild;
+    if (!el || !text || el.offsetWidth === 0) return;
+    if (stack.width === width && stack.on) return;
+    const r = document.createRange();
+    r.selectNodeContents(text);
+    const scale = el.getBoundingClientRect().width / el.offsetWidth;
+    const on = r.getBoundingClientRect().width / scale + 28 > (width - 12) / 2 + 0.5;
+    if (stack.width !== width || stack.on !== on) setStack({ width, on });
+  }, [width, compact, sizes, stack]);
+  const stacked = stack.width === width && stack.on;
+  const minTile = compact ? 84 : 136;
+  const tileH = stacked ? 0 : Math.max(minTile, sizes ? Math.max(sizes[1]?.h ?? 0, sizes[2]?.h ?? 0) + 28 : 0);
+  const ownH = (i: 1 | 2) => (sizes?.[i]?.h ?? 56) + 28;
+  const bannerH = sizes?.[0]?.h ?? 68;
+  const tileW = stacked ? width : (width - 12) / 2;
+  // Two tiles 24 px above the mascot (side by side, or the attendance under the countdown), the banner 16 px above
+  // them (above the canvas, if large text needs it: the stage then fits the scene's whole height, Scene.tsx).
+  const floor = mascotAt(compact, width).y - MASCOT_GAP;
+  const rightY = stacked ? floor - ownH(2) : floor - tileH;
+  const leftY = stacked ? rightY - 12 - ownH(1) : rightY;
+  const tileY = leftY;
   return (
     <>
       <Layer depth={70}>
-        <At x={0} y={tileY - 16 - 68} w={width} h={68} pieceRef={banner} z={3}>
-          <NotifyBanner title={t.notifyTitle} body={t.notifyCourse} bellRef={bell} />
+        <At x={0} y={tileY - 16 - bannerH} w={width} pieceRef={banner} z={3}>
+          <div ref={(n) => void (parts.current[0] = n)}>
+            <NotifyBanner title={t.notifyTitle} body={t.notifyCourse} bellRef={bell} />
+          </div>
         </At>
       </Layer>
       <Layer depth={-40}>
-        <At x={0} y={tileY} w={tileW} h={tileH} pieceRef={left}>
+        <At x={0} y={leftY} w={tileW} h={stacked ? ownH(1) : tileH} pieceRef={left}>
           <Card dense className="flex h-full flex-col justify-center">
-            <p className="text-m12 text-muted-foreground">{t.countdownLabel}</p>
-            {/* The app's own countdown format, fixed-width digits, a real second every second. */}
-            <p className="mt-1 text-m22 whitespace-nowrap text-primary tabular-nums">{formatCountdown(secs * 1000, 'id')}</p>
-            {!compact && <p className="mt-1 text-m12 text-muted-foreground">{t.notifyTitle}</p>}
+            <div ref={(n) => void (parts.current[1] = n)} className="m-cq min-w-0">
+              <p className="text-m12 text-muted-foreground">{t.countdownLabel}</p>
+              {/* The app's own countdown format, fixed-width digits, a real second every second; as large as the tile holds. */}
+              <p ref={count} className="mt-1 text-m22 m-num-fit-8 whitespace-nowrap text-primary tabular-nums">{formatCountdown(secs * 1000, 'id')}</p>
+              {!compact && <p className="mt-1 line-clamp-2 text-m12 text-muted-foreground">{t.notifyTitle}</p>}
+            </div>
           </Card>
         </At>
-        <At x={tileW + 12} y={tileY} w={tileW} h={tileH} pieceRef={right}>
+        <At x={stacked ? 0 : tileW + 12} y={rightY} w={tileW} h={stacked ? ownH(2) : tileH} pieceRef={right}>
           <Card dense className="flex h-full flex-col justify-center">
-            <p className="text-m12 text-muted-foreground">{t.attendanceLabel}</p>
-            <div className="mt-1 flex items-center gap-3">
-              <ProgressRing value={ring} size={compact ? 48 : 64} stroke={compact ? 6 : 7} label={`${ring}%`} />
-              <span className="text-m22 tabular-nums">{ring}%</span>
+            <div ref={(n) => void (parts.current[2] = n)} className="min-w-0">
+              <p className="text-m12 text-muted-foreground">{t.attendanceLabel}</p>
+              {/* The ring and its number side by side while they fit, the number under the ring when they do not. */}
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <ProgressRing value={ring} size={compact ? 48 : 64} stroke={compact ? 6 : 7} label={`${ring}%`} />
+                <span className="text-m22 tabular-nums">{ring}%</span>
+              </div>
             </div>
           </Card>
         </At>
@@ -245,17 +334,27 @@ export function ScenePrivate({ w, compact, width, play, lead }: SceneProps) {
   const shackle = useRef<SVGPathElement | null>(null);
   const data = useRef<(HTMLDivElement | null)[]>([]);
   const badges = useRef<(HTMLDivElement | null)[]>([]);
-  const rows = compact ? t.data.slice(0, 2) : t.data;
-  const dataY = (i: number) => phone.y + 40 + i * 40;
-  // The badges: one fixed width, each lying across the phone's outline by the
-  // same amount (left ones over the left edge, the right one over the right
-  // edge), evenly spaced, ending above the mascot.
-  const BADGE_W = 126;
-  const BADGE_H = 26;
-  // Flush with the canvas edges (16 px from the screen), so all three overlap the outline by the same amount.
-  const badgeX = (i: number) => (i % 2 ? width - BADGE_W : 0);
-  const zone = mascotAt(compact, width).y - 6 - (compact ? 2 : 3) * (BADGE_H + 2);
+  // The data rows and the badges, measured (they hold text, which follows the phone's text size).
+  const allRows = compact ? t.data.slice(0, 2) : t.data;
   const tags = compact ? t.badges.slice(0, 2) : t.badges;
+  const sizes = useSizes(data as { current: (HTMLElement | null)[] }, allRows.length, [width, compact]);
+  const tagSizes = useSizes(badges as { current: (HTMLElement | null)[] }, tags.length, [width, compact]);
+  // The badges: each lying across the phone's outline (left ones over the left edge, the right one over the right
+  // edge), 2 px apart, ending 6 px above the mascot; at least 126 wide, wider for longer text.
+  const BADGE_W = 126;
+  const tagH = (i: number) => tagSizes?.[i]?.h ?? 26;
+  const tagW = (i: number) => Math.max(BADGE_W, tagSizes?.[i]?.w ?? BADGE_W);
+  // Flush with the canvas edges (16 px from the screen), so all of them overlap the outline by the same amount.
+  const badgeX = (i: number) => (i % 2 ? width - tagW(i) : 0);
+  const tagsH = tags.reduce((sum, _, i) => sum + tagH(i) + 2, 0);
+  const zone = mascotAt(compact, width).y - 6 - tagsH;
+  const tagY = (i: number) => zone + tags.slice(0, i).reduce((sum, _, k) => sum + tagH(k) + 2, 0);
+  // The rows from the top of the phone, 8 px apart: as many as stay clear of the badges (at least one).
+  const rowH = (i: number) => sizes?.[i]?.h ?? 32;
+  const dataY = (i: number) => phone.y + 40 + allRows.slice(0, i).reduce((sum, _, k) => sum + rowH(k) + 8, 0);
+  let shown = allRows.length;
+  while (shown > 1 && dataY(shown - 1) + rowH(shown - 1) > zone - 8) shown -= 1;
+  const rows = allRows.slice(0, shown);
 
   // Before the first paint: the pieces are at their starting places in the very first frame.
   useLayoutEffect(() => {
@@ -269,6 +368,7 @@ export function ScenePrivate({ w, compact, width, play, lead }: SceneProps) {
         { at: 640, strokeDashoffset: 0 },
       ], true, lead),
     );
+    if (!sizes || !tagSizes) return;
     rows.forEach((_, i) => {
       const d = 780 + i * 100;
       const from = T(i % 2 ? 190 : -190, 0);
@@ -313,8 +413,9 @@ export function ScenePrivate({ w, compact, width, play, lead }: SceneProps) {
       stop();
       anims.forEach((a) => a?.cancel());
     };
+    // Plays once per showing, once the pieces are measured.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [play]);
+  }, [play, sizes === null || tagSizes === null]);
 
   return (
     <>
@@ -336,19 +437,20 @@ export function ScenePrivate({ w, compact, width, play, lead }: SceneProps) {
         </At>
       </Layer>
       <Layer depth={-36}>
-        {rows.map((label, i) => (
-          <At key={label} x={phone.x + 28} y={dataY(i)} w={phone.w - 56} h={32} pieceRef={(n) => void (data.current[i] = n)}>
-            <span className="m-card flex h-full items-center gap-2 rounded-ctl px-3 text-m13">
-              <span aria-hidden="true" className="size-2 rounded-full" style={{ background: `var(--course-${[1, 4, 6][i]})` }} />
-              {label}
+        {allRows.map((label, i) => (
+          // Rows past those that fit stay laid out (measured) but off the picture.
+          <At key={label} x={phone.x + 28} y={dataY(i)} w={phone.w - 56} pieceRef={(n) => void (data.current[i] = n)} hidden={i >= shown}>
+            <span className="m-card flex min-h-8 items-center gap-2 rounded-ctl px-3 py-1 text-m13">
+              <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: `var(--course-${[1, 4, 6][i]})` }} />
+              <span className="min-w-0 break-words">{label}</span>
             </span>
           </At>
         ))}
       </Layer>
       <Layer depth={64}>
         {tags.map((label, i) => (
-          <At key={label} x={badgeX(i)} y={zone + i * (BADGE_H + 2)} w={BADGE_W} h={BADGE_H} pieceRef={(n) => void (badges.current[i] = n)} z={2}>
-            <span className="flex h-full w-full items-center justify-center gap-1.5 rounded-full bg-m-inset text-m12 font-medium whitespace-nowrap">
+          <At key={label} x={badgeX(i)} y={tagY(i)} pieceRef={(n) => void (badges.current[i] = n)} z={2}>
+            <span className="flex min-h-[26px] items-center justify-center gap-1.5 rounded-full bg-m-inset px-3 text-m12 font-medium whitespace-nowrap" style={{ minWidth: BADGE_W }}>
               <CheckIcon aria-hidden="true" className="size-4" />
               {label}
             </span>

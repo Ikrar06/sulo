@@ -300,7 +300,7 @@ export function AppShell(props: ShellProps) {
     <div ref={root} className={`db-layout m-root bg-m-screen text-foreground ${cssTimeline ? 'm-sdt' : ''}`}>
       {/* The bar is a sticky layer inside what scrolls: 56 px at rest, rising 8 px to 48 (layout-free, by the compositor). */}
       <main ref={scroller} className="m-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
-      <header ref={head} className={`m-head sticky z-30 flex h-14 shrink-0 items-center gap-2 bg-m-screen px-4 ${detail ? 'top-0' : 'm-head-shrink'}`}>
+      <header ref={head} className={`m-head sticky z-30 flex min-h-14 shrink-0 items-center gap-2 bg-m-screen px-4 ${detail ? 'top-0' : 'm-head-shrink'}`}>
           {detail ? (
             // Three columns so the title stays centered whatever sits on the right (a screen's tools, Perbarui).
             <div className="grid w-full grid-cols-[minmax(40px,1fr)_minmax(0,auto)_minmax(40px,1fr)] items-center gap-2">
@@ -326,9 +326,9 @@ export function AppShell(props: ShellProps) {
             <>
               <div className="relative flex min-w-0 flex-1 items-center self-stretch">
                 {/* 26 px on the buttons' line, shrinking in place toward 18 as the finger moves (transform only). */}
-                {bigTitle && <h1 className="m-title-big text-m26 whitespace-nowrap">{title}</h1>}
+                {bigTitle && <h1 className="m-title-big min-w-0 truncate text-m26 whitespace-nowrap">{title}</h1>}
                 {/* The bar's own 18 px name: Ringkasan's, fading in near the end of its greeting; others' under reduced motion. */}
-                <p aria-hidden="true" className={`m-title-small absolute top-1/2 left-0 text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
+                <p aria-hidden="true" className={`m-title-small absolute top-1/2 left-0 max-w-full truncate text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
                   {title}
                 </p>
                 {ringkasan && <h1 className="sr-only">{title}</h1>}
@@ -350,8 +350,9 @@ export function AppShell(props: ShellProps) {
             {syncUi.phase !== 'idle' ? (
               <SyncStatusLine ui={syncUi} w={w} onRetry={props.onRetry ?? (() => void refresh())} />
             ) : notice === 'expired' ? (
-              <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-press mb-3 flex min-h-9 items-center rounded-full bg-m-inset px-4 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
-                <span role="status" className="min-w-0 truncate">
+              <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-hit m-press mb-3 flex min-h-9 items-center rounded-2xl bg-m-inset px-4 py-2 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
+                {/* Wraps to two lines with large text rather than cutting off the action. */}
+                <span role="status" className="min-w-0">
                   {splitAction(w.connected.expiredLine, w.connected.signInAgain)}
                 </span>
               </button>

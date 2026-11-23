@@ -143,7 +143,7 @@ function Hero({ calendar, today, d, w }: { calendar: Parameters<typeof useWeekTe
         <>
           {/* The event's name, how far off it is, then its dates: no label repeating the name. */}
           <p className="text-m15">{next.kegiatan.judul}</p>
-          <p className="mt-1 text-m26 whitespace-nowrap">
+          <p className="mt-1 text-m26 text-balance">
             {days ? (
               <>
                 <span className="db-accent-text tabular-nums">{days[0]}</span>
@@ -163,8 +163,8 @@ function Hero({ calendar, today, d, w }: { calendar: Parameters<typeof useWeekTe
         <p className="text-m15">{k.nothing}</p>
       )}
       {info.kind === 'week' && (
-        <div className="mt-4 flex items-center gap-3">
-          <WeekBar nomor={info.nomor} total={info.total} label={w.app.weekOf(info.nomor, info.total)} className="flex-1" />
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <WeekBar nomor={info.nomor} total={info.total} label={w.app.weekOf(info.nomor, info.total)} className="min-w-[calc(96px*var(--m-zoom))] flex-1" />
           <span className="shrink-0 text-m13 text-muted-foreground tabular-nums">{w.app.weekOf(info.nomor, info.total)}</span>
         </div>
       )}
@@ -207,13 +207,14 @@ function EventList({ events, today, d }: { events: readonly CalEvent[]; today: s
                           kind and, for an estimate, a neutral "Perkiraan" chip on the right (never cut). */}
                       <Card dense className="flex items-start gap-3">
                         <Tile color={e.source.type === 'tugas' ? courseTint(e.source.courseColor) : catTint(e.group)} size={44}>
-                          <span className="text-m18 leading-none tabular-nums">{Number(e.start.slice(8))}</span>
+                          <span className="text-m18 leading-tight tabular-nums">{Number(e.start.slice(8))}</span>
                           <span className="text-m11 text-muted-foreground">{formatDateKey(e.start, m.intl, { month: 'short' })}</span>
                         </Tile>
                         <div className="min-w-0 flex-1">
                           <p data-fit-event className="line-clamp-2 text-m15">{e.title}</p>
-                          <div className="mt-1 flex items-center gap-2">
-                            <p className="min-w-0 flex-1 truncate text-m13 text-muted-foreground tabular-nums">{formatRange({ mulai: e.start, selesai: k2 ? k2.selesai : e.end }, m.intl, k.to, k.badge.ujungTerbuka.toLowerCase())}</p>
+                          {/* The dates, then the kind (and "Perkiraan"): the chips drop under the dates when the row gets too narrow. */}
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <p className="min-w-[min(100%,calc(96px*var(--m-zoom)))] flex-1 truncate text-m13 text-muted-foreground tabular-nums">{formatRange({ mulai: e.start, selesai: k2 ? k2.selesai : e.end }, m.intl, k.to, k.badge.ujungTerbuka.toLowerCase())}</p>
                             {k2?.perkiraan && <span className="shrink-0 rounded-full bg-m-inset px-2 text-m11 leading-5 text-muted-foreground">{k.badge.perkiraan}</span>}
                             <span className="shrink-0 rounded-full px-2 text-m11 leading-5" style={{ background: tintBg(e.source.type === 'tugas' ? courseTint(e.source.courseColor) : catTint(e.group), 16, 'var(--m-card)') }}>
                               {k.groups[e.group]}
@@ -237,8 +238,10 @@ function MonthGrid({ month, today, selected, onSelect, events, holidays, intl }:
   const weeks = monthGrid(month);
   const heads = weeks[0]!.map((day) => formatDateKey(day, intl, { weekday: 'narrow' }));
   return (
-    <div role="grid" aria-label={formatDateKey(`${month}-01`, intl, { month: 'long', year: 'numeric' })}>
-      <div role="row" className="grid grid-cols-7">
+    // Seven columns of at least 44 (each day is a touch target), reaching 12 px into the card's padding; on a screen
+    // too narrow for that (a folded phone's outer screen, large text) the month scrolls sideways.
+    <div role="grid" aria-label={formatDateKey(`${month}-01`, intl, { month: 'long', year: 'numeric' })} className="m-carousel -mx-3 overflow-x-auto">
+      <div role="row" className="grid grid-cols-[repeat(7,minmax(44px,1fr))]">
         {heads.map((h, i) => (
           <span key={i} role="columnheader" className="py-1 text-center text-m12 text-muted-foreground">
             {h}
@@ -246,7 +249,7 @@ function MonthGrid({ month, today, selected, onSelect, events, holidays, intl }:
         ))}
       </div>
       {weeks.map((week) => (
-        <div key={week[0]} role="row" className="grid grid-cols-7">
+        <div key={week[0]} role="row" className="grid grid-cols-[repeat(7,minmax(44px,1fr))]">
           {week.map((day) => {
             const dayEvents = eventsOnDay(events, day);
             const kinds = [...new Set(dayEvents.map((e) => e.group))].slice(0, 3);

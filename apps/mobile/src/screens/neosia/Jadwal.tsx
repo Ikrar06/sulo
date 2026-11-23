@@ -54,7 +54,7 @@ export function JadwalScreen() {
         const isToday = day === today;
         return (
           <Card key={day} inner="space-y-3">
-            <p className="flex items-center gap-2 text-m15 font-semibold">
+            <p className="flex flex-wrap items-center gap-x-2 text-m15 font-semibold">
               {isToday && <span aria-hidden="true" className="size-2 rounded-full" style={{ background: "var(--brand-orange)" }} />}
               {n.jadwal.days[wd]}
               <span className="text-m12 font-normal text-muted-foreground">{day.slice(8, 10)}/{day.slice(5, 7)}</span>

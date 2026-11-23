@@ -98,9 +98,10 @@ export function PresensiScreen({ courseId, go }: { courseId: number | null; go: 
     <div className="space-y-3">
       {summary ? (
         <Card hero>
-          <div className="flex items-center gap-4">
+          {/* The ring and the numbers side by side while the numbers have room, the numbers under the ring when not. */}
+          <div className="flex flex-wrap items-center gap-4">
             <ProgressRing value={summary.average} masked={masked} label={masked ? w.app.attendance : `${w.app.attendance} ${pct(summary.average, locale)}%`} />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-[min(100%,calc(140px*var(--m-zoom)))] flex-1">
               <p className="text-m12 text-muted-foreground">
                 {w.app.attendance} {w.app.average}
               </p>
@@ -268,15 +269,16 @@ export function Sessions({ sessions, loading, d, locale }: { sessions: SessionRo
               .map((s, i) => {
                 const day = s.at !== null ? localParts(s.at, timeZone).dateKey : null;
                 return (
-                  <div key={`${s.dateText}-${i}`} className="flex items-start gap-3 py-3 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
+                  <div key={`${s.dateText}-${i}`} className="flex flex-wrap items-start gap-3 py-3 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
                     <Tile color="neutral" size={36}>
                       {day ? <span className="text-m13 leading-none tabular-nums">{Number(day.slice(8))}</span> : '–'}
                     </Tile>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-m15">{s.description}</p>
+                    {/* The status drops under the text when the text column would get too narrow for the date. */}
+                    <div className="min-w-[min(100%,calc(150px*var(--m-zoom)))] flex-1">
+                      <p className="text-m15 break-words">{s.description}</p>
                       <p className="text-m13 text-muted-foreground tabular-nums">
                         {/* The date and the time range each stay whole; the line may only break between them. */}
-                        <span className="whitespace-nowrap">{s.dateText}</span> · <span className="whitespace-nowrap">{sessionTimeText(s.timeText, locale)}</span>
+                        <span className="inline-block max-w-full">{s.dateText}</span> · <span className="inline-block max-w-full">{sessionTimeText(s.timeText, locale)}</span>
                       </p>
                       {s.remarks && !masked && (
                         <p className="text-m13 text-muted-foreground">
@@ -284,7 +286,7 @@ export function Sessions({ sessions, loading, d, locale }: { sessions: SessionRo
                         </p>
                       )}
                     </div>
-                    <span className="flex shrink-0 flex-col items-end gap-1">
+                    <span className="ml-auto flex shrink-0 flex-col items-end gap-1">
                       <span className={s.status === 'absent' ? 'text-urgency-soon' : ''}>
                         <Chip small color={STATUS_TINT[s.status]}>
                           {s.status === 'unknown' ? s.statusText || '-' : pw.status[s.status]}
