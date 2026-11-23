@@ -85,7 +85,7 @@ jobs:
           cat ".output/sulo-$VERSION-android.apk.sha256"
           node apps/extension/scripts/check-leaks.mjs --zip "$OUT"
           AAPT="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt"
-          (cd apps/mobile && node scripts/check-version-code.mjs --apk="../../$OUT" --aapt="$AAPT" && node scripts/check-permissions.mjs "../../$OUT" --aapt="$AAPT")
+          (cd apps/mobile && node scripts/check-version-code.mjs ${{ github.ref_type == 'tag' && format('--tag={0}', github.ref_name) || '' }} --apk="../../$OUT" --aapt="$AAPT" && node scripts/check-permissions.mjs "../../$OUT" --aapt="$AAPT")
 
       - name: Hapus kunci dari runner
         if: always()

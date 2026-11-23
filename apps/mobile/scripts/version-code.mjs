@@ -13,11 +13,15 @@ export function versionCode(version) {
   return major * 10000 + minor * 100 + patch;
 }
 
-/** The highest versionCode among release tags ("v0.9.1"), leaving out `except` (the tag being released). */
+/**
+ * The highest versionCode among release tags ("v0.9.1"), leaving out `except`: the tag being released, or every tag
+ * on the commit being built (one tag or a list), so a release is never compared with itself.
+ */
 export function highestReleased(tags, except = null) {
+  const skip = new Set([except ?? []].flat().map((t) => t.trim()));
   let best = null;
   for (const tag of tags) {
-    if (tag === except) continue;
+    if (skip.has(tag.trim())) continue;
     const m = /^v(\d+\.\d+\.\d+)$/.exec(tag.trim());
     if (!m) continue;
     const code = versionCode(m[1]);
