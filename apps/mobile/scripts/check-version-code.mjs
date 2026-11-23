@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 // A release must raise versionCode (M8e E2): Android refuses to install an
 // update whose code is not higher than the installed one. Compares
-// apps/mobile/package.json's version with the highest "vX.Y.Z" tag (the tag
-// being released excluded) and, with --apk, checks the built APK carries
-// exactly the expected code and name. Run by android-release.yml.
+// apps/mobile/package.json's version with the highest "vX.Y.Z" tag that is
+// not the release itself: --tag, and every tag on the commit being built
+// (HEAD), are left out, so a run started by a tag never compares the build
+// with its own tag. With --apk, also checks the built APK carries exactly the
+// expected code and name. Run by android-release.yml (twice: before the
+// build, and on the signed APK).
 // Usage: node scripts/check-version-code.mjs [--tag=v0.9.1] [--apk=path] [--aapt=path]
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -24,8 +27,11 @@ try {
 }
 const tag = arg('tag');
 if (tag !== null && tag !== `v${version}`) fail(`tag ${tag} tidak sama dengan versi package.json (v${version}).`);
-const tags = execFileSync('git', ['tag', '--list', 'v*'], { encoding: 'utf8' }).split('\n').filter(Boolean);
-const previous = highestReleased(tags, tag);
+const lines = (args) => execFileSync('git', args, { encoding: 'utf8' }).split('\n').filter(Boolean);
+const tags = lines(['tag', '--list', 'v*']);
+// The release's own tags: the one named, and any tag on the commit being built.
+const own = [...(tag ? [tag] : []), ...lines(['tag', '--points-at', 'HEAD'])];
+const previous = highestReleased(tags, own);
 if (previous && code <= previous.code) fail(`versionCode ${code} (${version}) tidak lebih besar dari ${previous.code} (${previous.tag}).`);
 
 const apk = arg('apk');
