@@ -22,6 +22,7 @@ import { buildWatchPlan } from '@sulo/core/watch/plan';
 import { applyWatchAnswers, markChangesHandled, type WatchAnswer } from '@sulo/core/watch/queue';
 import { SuloSession } from './session';
 import { readWatch } from './watch';
+import { readChannelPlan } from './notify-sound';
 
 /** Where the worker reads the config: the official file, or in a debug build the dev screen's test config (the worker re-checks both). */
 async function workerConfigUrl(platform: Platform): Promise<string> {
@@ -37,7 +38,9 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
   const userId = await currentUser(store);
   // No account, or another account waiting for the user's answer: no plan in force (never the previous account's for the new session).
   if (userId === null || (await readPending(store)) !== null) return void (await SuloSession.watchApply({ plan: JSON.stringify({ enabled: false }) }).catch(() => undefined));
-  const [watch, config, prefs, session, tasks, courses, snapshots, radar, changes] = await Promise.all([
+  const [channels, watch, config, prefs, session, tasks, courses, snapshots, radar, changes] = await Promise.all([
+    // The same channel plan the app's own notifications use: the worker reads the chosen sound from here.
+    readChannelPlan(store),
     readWatch(platform),
     readRemoteConfig(store),
     readPrefs(store),
@@ -72,6 +75,7 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
     quiet: prefs.reminders.quiet,
     courseNames: Object.fromEntries(courses.map((c) => [String(c.id), courseAlias(c)])),
     templates: w.watch.templates,
+    channels,
   });
   await SuloSession.watchApply({ plan: JSON.stringify(plan) }).catch(() => undefined);
 }

@@ -230,15 +230,14 @@ class WatchRun(private val context: Context) {
         }
         store.setPausedSent()
         val id = "watch|paused:$now"
-        WatchNotifier.show(context, t.getString("channel"), WatchCheck.Notice(id, WatchCheck.numericId(id), p.getString("title"), p.getString("body")))
+        WatchNotifier.show(context, plan, WatchCheck.Notice(id, WatchCheck.numericId(id), p.getString("title"), p.getString("body")))
     }
 
     @SuppressLint("MissingPermission")
     private fun announce(plan: JSONObject, changes: List<JSONObject>, now: Long, gen: Long) {
         val result = WatchCheck.notices(plan, changes, store.held(), now, minuteOfDay())
         store.setHeld(result.hold, gen)
-        val channel = plan.getJSONObject("templates").getString("channel")
-        result.send.forEach { WatchNotifier.show(context, channel, it) }
+        result.send.forEach { WatchNotifier.show(context, plan, it) }
     }
 
     /** Today's shared budget as the interval sees it (another day counts as zero). */
@@ -298,7 +297,7 @@ class WatchRun(private val context: Context) {
         val t = plan.getJSONObject("templates")
         val e = t.getJSONObject("expired")
         val id = "session|watch:$now"
-        WatchNotifier.show(context, t.getString("channel"), WatchCheck.Notice(id, WatchCheck.numericId(id), e.getString("title"), e.getString("body")))
+        WatchNotifier.show(context, plan, WatchCheck.Notice(id, WatchCheck.numericId(id), e.getString("title"), e.getString("body")))
     }
 
     /** Times, duration, size and an outcome code only (the dev screen and the battery numbers). */

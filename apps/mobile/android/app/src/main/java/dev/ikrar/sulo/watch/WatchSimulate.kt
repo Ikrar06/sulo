@@ -65,8 +65,7 @@ class WatchSimulate(private val context: Context) {
         }
         val open = JSONObject(copy.toString()).put("quiet", JSONObject().put("enabled", false).put("startMin", 0).put("endMin", 0))
         val notices = WatchCheck.notices(open, outcome.changes, emptyList(), now, minuteOfDay())
-        val channel = plan.getJSONObject("templates").getString("channel")
-        notices.send.forEach { WatchNotifier.show(context, channel, it.copy(title = prefix + it.title)) }
+        notices.send.forEach { WatchNotifier.show(context, plan, it.copy(title = prefix + it.title)) }
         return Result("sent", outcome.changes.size, notices.send.size)
     }
 
@@ -78,8 +77,7 @@ class WatchSimulate(private val context: Context) {
         if (held.isEmpty()) return
         val open = JSONObject(plan.toString()).put("quiet", JSONObject().put("enabled", false).put("startMin", 0).put("endMin", 0))
         val notices = WatchCheck.notices(open, emptyList(), held, nowSec(), minuteOfDay())
-        val channel = plan.getJSONObject("templates").getString("channel")
-        notices.send.forEach { WatchNotifier.show(context, channel, it.copy(title = prefix + it.title)) }
+        notices.send.forEach { WatchNotifier.show(context, plan, it.copy(title = prefix + it.title)) }
     }
 
     /** The session marked ended (its blob deleted, Sulo's data kept) and the calm notice, now. */
@@ -89,7 +87,7 @@ class WatchSimulate(private val context: Context) {
         val t = plan.getJSONObject("templates")
         val e = t.getJSONObject("expired")
         val id = "session|sim:${nowSec()}"
-        WatchNotifier.show(context, t.getString("channel"), WatchCheck.Notice(id, WatchCheck.numericId(id), prefix + e.getString("title"), e.getString("body")))
+        WatchNotifier.show(context, plan, WatchCheck.Notice(id, WatchCheck.numericId(id), prefix + e.getString("title"), e.getString("body")))
         return Result("expired", 0, 1)
     }
 }

@@ -233,6 +233,13 @@ const DETAIL = [
     await shot('18-pengaturan--sheet-nama-panggilan');
     await closeSheet();
   }],
+  ['suara notifikasi', async ({ page, go, t, starts, shot, closeSheet }) => {
+    await go('#pengaturan');
+    await page.getByRole('button', { name: starts(t.mobile.notifySound.label) }).click();
+    await page.waitForTimeout(450);
+    await shot('18-pengaturan--sheet-suara');
+    await closeSheet();
+  }],
   ['laporan masalah', async ({ page, t, starts, shot, closeSheet }) => {
     await page.getByRole('button', { name: starts(t.dash.pengaturan.bugReport.button) }).click();
     await page.waitForTimeout(450);

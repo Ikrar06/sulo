@@ -14,6 +14,7 @@ import { NOTIFICATION_RULES } from '../radar/notification-kinds';
 import { MAX_COURSE_NOTICES } from '../reminders/plan';
 import { FAR_TASK_DAYS } from '../radar/log';
 import { TASK_MODULES } from '../radar/task-modules';
+import type { ChannelPlan } from '../notify/channels';
 import type { KeepAliveConfig } from '../remote/keep-alive';
 import type { WorkerConfig } from './remote';
 import type { UpdateSettings } from '../radar/settings';
@@ -122,6 +123,12 @@ export interface WatchPlan {
   /** A new activity of one of these modules counts as a task, not material. */
   taskModules: string[];
   templates: WatchTemplates;
+  /**
+   * The notification channels and which one each kind of notice goes to
+   * (notify/channels.ts): the same plan the app's own notifications follow,
+   * so the chosen sound has one source. Absent in plans written before it existed.
+   */
+  channels?: ChannelPlan;
 }
 
 export interface WatchPlanInput {
@@ -146,6 +153,7 @@ export interface WatchPlanInput {
   quiet: { enabled: boolean; startMin: number; endMin: number };
   courseNames: Readonly<Record<string, string>>;
   templates: WatchTemplates;
+  channels?: ChannelPlan;
 }
 
 export function buildWatchPlan(input: WatchPlanInput): WatchPlan {
@@ -192,5 +200,6 @@ export function buildWatchPlan(input: WatchPlanInput): WatchPlan {
     notificationRules: NOTIFICATION_RULES.map((r) => ({ ...r })),
     taskModules: [...TASK_MODULES],
     templates: input.templates,
+    ...(input.channels ? { channels: input.channels } : {}),
   };
 }

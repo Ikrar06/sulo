@@ -24,7 +24,8 @@ import { currentUser, readUser } from '@sulo/core/storage';
 import type { Task } from '@sulo/core/types';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
-import { numericId } from '../platform/notifications';
+import { numericId, scheduleOnChannels } from '../platform/notifications';
+import { createPreferencesStore } from '../platform/store';
 import { scheduleReminders, SCHEDULED_KEY } from '../reminders';
 import { SuloSession } from '../session';
 import { readWatch } from '../watch';
@@ -36,7 +37,7 @@ const time = (at: number) => new Date(at * 1000).toLocaleString('id-ID', { dateS
 
 /** One local notification through the same scheduling path as the real reminders (reminders.ts). */
 async function schedule(id: string, title: string, body: string, inSec: number) {
-  await LocalNotifications.schedule({ notifications: [{ id: numericId(id), title: PREFIX + title, body, extra: { suloId: id }, schedule: { at: new Date(Date.now() + inSec * 1000), allowWhileIdle: true }, isExactNotification: false }] });
+  await scheduleOnChannels(createPreferencesStore(), [{ id: numericId(id), title: PREFIX + title, body, extra: { suloId: id }, schedule: { at: new Date(Date.now() + inSec * 1000), allowWhileIdle: true }, isExactNotification: false }]);
 }
 
 const KIND_NAME: Record<string, string> = { task: 'pengingat tenggat', calendar: 'kalender', morning: 'ringkasan pagi', krs: 'KRS', nudge: 'NEOSIA', summary: 'ringkasan tugas' };

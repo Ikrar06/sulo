@@ -11,7 +11,8 @@ import { readPending } from '@sulo/core/account/pending';
 import type { Platform } from '@sulo/core/platform';
 import type { KeyValueStore, UnixSeconds } from '@sulo/core/types';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { notificationsAllowed, numericId } from './platform/notifications';
+import { notificationsAllowed, numericId, scheduleOnChannels } from './platform/notifications';
+import { applyNotifyChannels } from './notify-sound';
 import { currentUser, readUser } from '@sulo/core/storage';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { keepAliveFrom } from '@sulo/core/remote/keep-alive';
@@ -118,6 +119,8 @@ export async function scheduleReminders(platform: Platform): Promise<number> {
   const planned = pending ? [] : await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language, neosia);
   const previous = (await platform.store.get<number[]>(SCHEDULED_KEY)) ?? [];
   if (previous.length > 0) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
+  // The channels follow the chosen sound whether or not notifications are allowed yet: making a channel asks nothing.
+  await applyNotifyChannels(platform.store);
   if (planned.length > 0 && !(await notificationsAllowed())) {
     if (previous.length > 0) await platform.store.set(SCHEDULED_KEY, []);
     return 0;
@@ -131,7 +134,8 @@ export async function scheduleReminders(platform: Platform): Promise<number> {
     schedule: { at: new Date(Math.max(p.at * 1000, Date.now() + 5_000)), allowWhileIdle: true },
     isExactNotification: false,
   }));
-  if (notifications.length > 0) await LocalNotifications.schedule({ notifications });
+  // Each on the channel of its kind: reminders and news with the chosen sound, the morning summary and the sign-in notice silent.
+  await scheduleOnChannels(platform.store, notifications);
   await platform.store.set(SCHEDULED_KEY, notifications.map((n) => n.id));
   return notifications.length;
 }

@@ -29,6 +29,8 @@ public class MainActivity extends BridgeActivity {
         // The app's own native plugin (login, session, SIKOLA requests).
         registerPlugin(SuloSessionPlugin.class);
         registerPlugin(dev.ikrar.sulo.store.SuloStorePlugin.class);
+        // The notification channels (the chosen sound): made and removed in one place.
+        registerPlugin(dev.ikrar.sulo.notify.SuloNotifyPlugin.class);
         // M8d: the NEOSIA screen (debug builds only in B0).
         registerPlugin(SuloNeosiaPlugin.class);
         // The launch screen (res/values/styles.xml): kept until the first frame, then gone without a flash.
