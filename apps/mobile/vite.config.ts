@@ -75,11 +75,25 @@ function buildInfo(mode: string, info: ReturnType<typeof buildCommit>): Plugin {
 
 const commit = buildCommit();
 
+/**
+ * The version the screens show. The release's own (package.json) in every
+ * build, with one exception: the web mode (pnpm mobile:web, the mockup and
+ * audit screenshots; never a release, check-no-dev-code refuses its fakes)
+ * may be told to show another with SULO_SHOT_VERSION, which only the mockup
+ * script sets: mockups picture the version that will be public.
+ */
+const shownVersion = (mode: string): string => {
+  const asked = process.env.SULO_SHOT_VERSION;
+  if (mode !== 'web' || !asked) return pkg.version;
+  if (!/^\d+\.\d+\.\d+$/.test(asked)) throw new Error(`SULO_SHOT_VERSION harus x.y.z: ${asked}`);
+  return asked;
+};
+
 export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss(), ...(mode === 'web' ? [] : [neosiaPageScript(), buildInfo(mode, commit)])],
   resolve: { alias },
   // __SULO_DEV__: the hidden session-age screen, in mobile:web and the debug APK (mode "debug") only.
-  define: { __SULO_VERSION__: JSON.stringify(pkg.version), __SULO_COMMIT__: JSON.stringify(commit.short), __SULO_WEB_FAKE__: JSON.stringify(mode === 'web'), __SULO_DEV__: JSON.stringify(mode === 'web' || mode === 'debug') },
+  define: { __SULO_VERSION__: JSON.stringify(shownVersion(mode)), __SULO_COMMIT__: JSON.stringify(commit.short), __SULO_WEB_FAKE__: JSON.stringify(mode === 'web'), __SULO_DEV__: JSON.stringify(mode === 'web' || mode === 'debug') },
   server: { port: 5174, strictPort: true },
   // SULO_LAB=1 with the measuring build (mode "web") also packs the mascot lab (lab/index.html), so one
   // expression can be measured by itself in a device's WebView. Never in a release: check-no-dev-code refuses its marks.
