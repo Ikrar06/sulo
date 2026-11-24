@@ -19,7 +19,8 @@
     "check:teks": "node scripts/check-teks.mjs",
     "check:keamanan": "node scripts/check-keamanan.mjs",
     "check:aset": "node scripts/check-aset.mjs",
-    "check:landing-layout": "node scripts/check-tata-letak.mjs"
+    "check:landing-layout": "node scripts/check-tata-letak.mjs",
+    "check:landing-layout:ci": "node scripts/check-tata-letak.mjs --ci --out=../../.output/landing-layout-gagal"
   },
   "dependencies": {
     "@sulo/core": "workspace:*",
