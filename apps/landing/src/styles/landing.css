@@ -3,6 +3,7 @@
    page's own styles. Colours are the apps' tokens; the only new colours are
    the sky's (hero, "Sehari bareng Sulo", the closing block). */
 @import "../../../mobile/src/styles.css";
+@import "./gerak.css";
 @source "../";
 
 /* ---------- The page's base (the app's html and body rules are an app shell's) ---------- */

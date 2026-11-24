@@ -6,8 +6,13 @@
 // alone (nothing is sent anywhere): which download to put first (Android,
 // Chrome, Edge, iPhone or another browser; without it both downloads show
 // side by side), whether this is an app's built-in browser (Instagram,
-// Facebook, Line, TikTok, where a download may not start), and the theme
-// chosen here before, if any.
+// Facebook, Line, TikTok, where a download may not start), the theme
+// chosen here before, if any, and how much the page moves (data-gerak):
+// "diam" under reduced motion, "ringan" on a weak device by the phone app's
+// own rule (core perf/tier.ts: 3 GB of memory or less, or 4 cores or fewer;
+// tests/gerak.test.ts keeps the numbers the same), "penuh" otherwise. Set
+// before the first paint so no entrance flashes; without script, nothing
+// moves and everything is in its final place.
 //
 // Absolute addresses need SITE_URL: without it (a local build) none is
 // written. A preview build is never indexed.
@@ -78,6 +83,10 @@ const tanpaIndeks = noindex || PRATINJAU;
         else if (/Edg\//.test(u)) p = 'edge';
         else if (/Chrome\//.test(u) && !/OPR\//.test(u)) p = 'chrome';
         d.setAttribute('data-perangkat', p);
+        var mem = navigator.deviceMemory, inti = navigator.hardwareConcurrency;
+        var ringan = (mem > 0 && mem * 1024 <= 3072) || (inti > 0 && inti <= 4);
+        var diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        d.setAttribute('data-gerak', diam ? 'diam' : ringan ? 'ringan' : 'penuh');
         if (/Instagram|FBAN|FBAV|FB_IAB|Line\/|musical_ly|BytedanceWebview/.test(u)) d.setAttribute('data-dalam-aplikasi', '');
         try {
           var t = localStorage.getItem('sulo-landing:tema');

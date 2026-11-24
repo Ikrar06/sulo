@@ -3,7 +3,8 @@
 // (localStorage, wrapped: a private window may refuse it) and read again
 // before the first paint (tata/Dasar.astro). The device screens that follow
 // the page ("auto") follow the choice too: same-origin iframes, told directly.
-// Nothing is sent anywhere.
+// The change itself is the browser's own View Transition (a short cross-fade),
+// except under reduced motion. Nothing is sent anywhere.
 export const KUNCI_TEMA = 'sulo-landing:tema';
 
 type Tema = 'light' | 'dark';
@@ -57,7 +58,8 @@ for (const b of document.querySelectorAll<HTMLElement>('[data-tema-tombol]')) {
     pramuat();
     const tema: Tema = sekarang() === 'dark' ? 'light' : 'dark';
     simpan(tema);
-    pakai(tema);
+    if (document.documentElement.dataset.gerak !== 'diam' && 'startViewTransition' in document) document.startViewTransition(() => pakai(tema));
+    else pakai(tema);
   });
 }
 labeli(sekarang());

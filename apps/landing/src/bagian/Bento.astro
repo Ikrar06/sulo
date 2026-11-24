@@ -84,7 +84,7 @@ const data = await dataContoh(bahasa);
       </article>
 
       <article class="ubin ubin--kalimat">
-        <p>{t.kalimat}</p>
+        <p style={`--n: ${t.kalimat.split(' ').length}`}>{t.kalimat.split(' ').map((kata, i) => <Fragment><span class="kata" style={`--i: ${i}`}>{kata}</span>{' '}</Fragment>)}</p>
       </article>
     </div>
   </div>
