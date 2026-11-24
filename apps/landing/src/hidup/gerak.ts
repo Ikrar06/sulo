@@ -109,7 +109,12 @@ function siapkanSekali(): void {
   const garis = document.querySelector('.sumber-garis');
   if (garis) {
     // Watched through its parent: held at its first frame, the drawing is clipped to nothing and never "seen" itself.
-    sekaliSaatTerlihat(garis.parentElement ?? garis, () => [garis.animate([{ clipPath: 'inset(-4px 100% -4px -4px)' }, { clipPath: 'inset(-4px)' }], { duration: 700, easing: MASUK, fill: 'backwards' })]);
+    // Sulo's card lights as the lines reach it.
+    const nyala = document.querySelector('.sumber-nyala');
+    sekaliSaatTerlihat(garis.parentElement ?? garis, () => [
+      garis.animate([{ clipPath: 'inset(-4px 100% -4px -4px)' }, { clipPath: 'inset(-4px)' }], { duration: 700, easing: MASUK, fill: 'backwards' }),
+      ...(nyala ? [nyala.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 800, delay: 480, easing: MASUK, fill: 'backwards' })] : []),
+    ]);
   }
   // Kabar terbaru: the updates arrive one by one, from pale to full.
   const kabar = document.querySelector('.ubin--kabar');
