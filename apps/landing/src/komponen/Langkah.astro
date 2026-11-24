@@ -1,7 +1,8 @@
 ---
-// One numbered step of a guide: a large number, the title, one or two
-// sentences, an optional button (slot "tombol"), and its drawn illustration
-// beside it on a wide screen (slot "gambar", described in words by `alt`).
+// One numbered step of a guide: its number, the title, one or two sentences,
+// an optional button (slot "tombol"), and its drawn illustration beside it
+// on a wide screen (slot "gambar", described in words by `alt`). On a wide
+// screen the numbers hang on a rail (langkah-rel) down to the next step.
 interface Props {
   nomor: number;
   judul: string;
@@ -14,6 +15,7 @@ const { nomor, judul, isi, alt, label } = Astro.props;
 ---
 <li class="langkah">
   <div class="langkah-teks">
+    <span class="langkah-rel" aria-hidden="true"><span class="langkah-rel-isi"></span></span>
     <p class="langkah-nomor" aria-hidden="true">{nomor}</p>
     <h2><span class="sr-only">{label} {nomor}: </span>{judul}</h2>
     <p>{isi}</p>

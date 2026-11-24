@@ -171,6 +171,91 @@
   }
 }
 
+/* ---------- The guides, the device list and the not-found page ---------- */
+
+/* The top of the page arrives on load (about half a second in all): the title and its sentence only rise, as the
+   largest words there they stay painted from the first frame. The steps and what follows rise as they are reached
+   (hidup/panduan.ts). */
+:root:is([data-gerak="penuh"], [data-gerak="ringan"]) {
+  .remah {
+    animation: naik-muncul 320ms var(--kurva-masuk) backwards;
+  }
+  .panduan-kepala h1,
+  .galat h1 {
+    animation: naik 460ms var(--kurva-cerita) 40ms backwards;
+  }
+  .panduan-kepala p {
+    animation: naik 420ms var(--kurva-cerita) 100ms backwards;
+  }
+  .panduan-miring {
+    animation: naik-muncul 520ms var(--kurva-cerita) 160ms backwards;
+  }
+  .panduan-ringkas,
+  .panduan-dihp {
+    animation: naik-muncul 360ms var(--kurva-masuk) 180ms backwards;
+  }
+  .pilih-perangkat > li {
+    animation: naik-muncul 360ms var(--kurva-masuk) calc(160ms + var(--urut, 0) * var(--jarak)) backwards;
+  }
+  .pilih-perangkat > li:nth-child(2) { --urut: 1; }
+  .pilih-perangkat > li:nth-child(3) { --urut: 2; }
+  .pilih-perangkat > li:nth-child(4) { --urut: 3; }
+  .galat-maskot {
+    animation: muncul-kecil 420ms var(--kurva-cerita) backwards;
+  }
+  .galat > p,
+  .galat-en {
+    animation: naik-muncul 360ms var(--kurva-masuk) 140ms backwards;
+  }
+}
+/* The steps' rail follows the reading (full motion, a wide screen, where the browser can): its line fills down
+   to a reading line at 60 % of the screen's height, and each ring turns solid as it crosses that line. The
+   timelines' insets shrink the screen to that one line, so the fill is exactly the part of the rail above it. */
+@keyframes rel-isi {
+  from {
+    scale: 1 0;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+@keyframes nomor-lewat {
+  to {
+    background-color: var(--tinta);
+    border-color: var(--tinta);
+    color: var(--bg);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (min-width: 48em) {
+    :root[data-gerak="penuh"] .langkah {
+      view-timeline-name: --langkah;
+      view-timeline-axis: block;
+      view-timeline-inset: 60% 40%;
+    }
+    :root[data-gerak="penuh"] .langkah-nomor {
+      animation-name: nomor-lewat;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --langkah;
+      animation-range: cover 0% cover 24px;
+    }
+    :root[data-gerak="penuh"] .langkah-rel {
+      view-timeline-name: --rel;
+      view-timeline-axis: block;
+      view-timeline-inset: 60% 40%;
+    }
+    :root[data-gerak="penuh"] .langkah-rel-isi {
+      opacity: 1;
+      animation-name: rel-isi;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --rel;
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
 /* ---------- Three more moments tied to the scroll itself (full motion, where the browser can) ---------- */
 
 /* A day with Sulo: each phone travels up its tile as its row crosses the screen, showing more of its screen.

@@ -6,11 +6,11 @@
 // stays in its final place. Transform and opacity only (and one clip-path
 // sweep), the apps' curves. Each one-shot fills backwards only: done, it lets
 // go of its layer and the element is simply in its own style.
+import { JARAK, MASUK, siapkanNaik, type DaftarNaik } from './naik';
+
 const html = document.documentElement;
 const gerak = html.dataset.gerak ?? 'diam';
-const MASUK = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const CERITA = 'cubic-bezier(0.16, 1, 0.3, 1)';
-const JARAK = 70;
 
 /** Holds the animations at their first frame, and plays them once the element is a fifth in view. */
 function sekaliSaatTerlihat(el: Element, buat: () => Animation[]): void {
@@ -27,13 +27,8 @@ function sekaliSaatTerlihat(el: Element, buat: () => Animation[]): void {
   io.observe(el);
 }
 
-/**
- * Things that rise into place once, as they are reached. Until then they are held by a plain inline style (no
- * animation, so no layer is kept waiting); the animation takes over the moment they are seen and leaves nothing
- * behind. `anak`: the element's children one after another. `masing`: each child on its own, when it is reached
- * itself, a little later the further right it sits.
- */
-const NAIK: [selector: string, cara: 'satu' | 'anak' | 'masing'][] = [
+/** What rises into place once as it is reached (hidup/naik.ts). */
+const NAIK: DaftarNaik = [
   ['.bagian-kepala', 'anak'],
   ['.fakta-daftar', 'anak'],
   ['.sumber-daftar', 'anak'],
@@ -48,38 +43,6 @@ const NAIK: [selector: string, cara: 'satu' | 'anak' | 'masing'][] = [
   ['.tanya-daftar', 'anak'],
   ['.penutup-isi', 'anak'],
 ];
-
-function naikkan(pengamat: Element, target: HTMLElement[], tunda: (i: number, el: HTMLElement) => number): void {
-  if (!target.length) return;
-  for (const el of target) {
-    el.style.opacity = '0';
-    el.style.translate = '0 18px';
-  }
-  const io = new IntersectionObserver(
-    (entri) => {
-      if (!entri.some((e) => e.isIntersecting)) return;
-      io.disconnect();
-      target.forEach((el, i) => {
-        el.style.opacity = '';
-        el.style.translate = '';
-        el.animate([{ opacity: 0, translate: '0 18px' }, { opacity: 1, translate: '0 0' }], { duration: 560, delay: tunda(i, el), easing: MASUK, fill: 'backwards' });
-      });
-    },
-    { threshold: 0.12 },
-  );
-  io.observe(pengamat);
-}
-
-function siapkanNaik(): void {
-  for (const [selector, cara] of NAIK) {
-    for (const wadah of document.querySelectorAll<HTMLElement>(selector)) {
-      const anak = [...wadah.children].filter((c): c is HTMLElement => c instanceof HTMLElement);
-      if (cara === 'satu') naikkan(wadah, [wadah], () => 0);
-      else if (cara === 'anak') naikkan(wadah, anak, (i) => Math.min(i, 8) * JARAK);
-      else for (const el of anak) naikkan(el, [el], (_, e) => Math.round((e.getBoundingClientRect().left / Math.max(1, innerWidth)) * 180));
-    }
-  }
-}
 
 /** The pieces' targets: for each, the row or card in the laptop's screen that shows the same words. */
 function ukurTujuan(): void {
@@ -225,10 +188,9 @@ function siapkanArus(): void {
 }
 
 if (gerak !== 'diam') {
-  siapkanNaik();
+  siapkanNaik(NAIK);
   siapkanSekali();
   if (gerak === 'penuh') siapkanArus();
   if (gerak === 'penuh' && CSS.supports('animation-timeline: scroll()')) siapkanPotongan();
 }
 
-export {};

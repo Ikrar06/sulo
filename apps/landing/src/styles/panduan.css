@@ -123,7 +123,9 @@
   margin: 20px 0 0;
   padding: 14px 16px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--course-2) 14%, var(--kartu));
+  /* The palette's own inset, not a course colour's wash: those are for dots and chips. */
+  background: var(--layer-screen);
+  color: var(--tinta);
   line-height: 1.5;
   text-wrap: pretty;
 }
@@ -205,6 +207,66 @@
   display: flex;
   justify-content: center;
   min-width: 0;
+}
+/* On a wide screen the steps hang on a rail: each number in a ring at the head of its step, a thin line down to
+   the next. The words start level with the top of their drawing, and the rail carries the eye through the space
+   a tall drawing leaves beside short words. Where the browser can, the rail fills and the rings turn solid as
+   the page is read (styles/gerak.css). A phone keeps the large quiet number: the rail would cost the drawings
+   their width. */
+.langkah-rel {
+  display: none;
+}
+@media (min-width: 48em) {
+  .langkah {
+    align-items: start;
+  }
+  .langkah-teks {
+    position: relative;
+    align-self: stretch;
+    padding-left: 3.75rem;
+  }
+  .langkah-nomor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--garis);
+    background: var(--bg);
+    color: var(--tinta);
+    font-size: 1.0625rem;
+  }
+  /* The title's first line sits on the ring's middle. */
+  .langkah h2 {
+    margin-top: 0;
+    padding-top: calc((2.5rem - 1.375rem * 1.25) / 2);
+  }
+  .langkah-rel {
+    display: block;
+    position: absolute;
+    left: calc(1.25rem - 1px);
+    top: calc(2.5rem + 8px);
+    /* To 8 px above the next ring: the list's 56 px gap, less 8. */
+    bottom: -48px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--garis);
+  }
+  .langkah:last-child .langkah-rel {
+    display: none;
+  }
+  .langkah-rel-isi {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--tinta);
+    transform-origin: top;
+    opacity: 0;
+  }
 }
 .panduan-catatan {
   margin: 28px 0 0;
