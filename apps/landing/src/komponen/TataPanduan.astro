@@ -1,0 +1,81 @@
+---
+// The frame of every install guide (brief 6.13, after Edunex's structure in
+// 3.2): breadcrumb, title, one paragraph on why it works this way, a short
+// box (time, what you need, the one note that matters), then the page's own
+// steps and sections (slot), then the other devices. Plain background, no
+// gradient; the page ends where its content ends.
+import { pathPasang, pathRumah, type Perangkat } from '../data/alamat';
+import { panduan } from '../teks/panduan';
+import type { Bahasa } from '../teks';
+import Dasar from '../tata/Dasar.astro';
+import Kaki from '../bagian/Kaki.astro';
+import Nav from './Nav.astro';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import '../styles/bagian/umum.css';
+import '../styles/panduan.css';
+
+interface Props {
+  bahasa: Bahasa;
+  perangkat: Perangkat | null;
+  judul: string;
+  kenapa: string;
+  deskripsi: string;
+  ringkas?: { waktu: string; butuh: readonly string[]; penting?: string };
+}
+const { bahasa, perangkat, judul, kenapa, deskripsi, ringkas } = Astro.props;
+const t = panduan[bahasa];
+const path = pathPasang(bahasa, perangkat ?? undefined);
+const lain = (['android', 'chrome', 'edge', 'iphone'] as const).filter((p) => p !== perangkat);
+const nama: Record<Perangkat, string> = { android: t.daftar.android.nama, chrome: t.daftar.chrome.nama, edge: t.daftar.edge.nama, iphone: t.daftar.iphone.nama };
+---
+<Dasar bahasa={bahasa} judul={`${judul.replace(/\.$/, '')}, Sulo`} deskripsi={deskripsi} noindex>
+  <Nav bahasa={bahasa} path={path} />
+  <main class="panduan" id="isi">
+    <div class="isi panduan-isi">
+      <nav class="remah" aria-label={t.remah}>
+        <ol role="list">
+          <li><a href={pathRumah(bahasa)}>{t.beranda}</a><ChevronRightIcon className="remah-panah" /></li>
+          {perangkat ? (
+            <Fragment>
+              <li><a href={pathPasang(bahasa)}>{t.caraPasang}</a><ChevronRightIcon className="remah-panah" /></li>
+              <li aria-current="page">{nama[perangkat]}</li>
+            </Fragment>
+          ) : (
+            <li aria-current="page">{t.caraPasang}</li>
+          )}
+        </ol>
+      </nav>
+      <header class="panduan-kepala">
+        <h1>{judul}</h1>
+        <p>{kenapa}</p>
+      </header>
+      {ringkas && (
+        <section class="panduan-ringkas" aria-label={t.umum.ringkasan}>
+          <dl>
+            <div>
+              <dt>{t.umum.waktu}</dt>
+              <dd>{ringkas.waktu}</dd>
+            </div>
+            <div>
+              <dt>{t.umum.butuh}</dt>
+              <dd>
+                <ul role="list">{ringkas.butuh.map((b) => <li>{b}</li>)}</ul>
+              </dd>
+            </div>
+          </dl>
+          {ringkas.penting && <p class="panduan-penting">{ringkas.penting}</p>}
+        </section>
+      )}
+      <slot />
+      {perangkat && (
+        <section class="panduan-lain" aria-labelledby="judul-lain">
+          <h2 id="judul-lain">{t.umum.lain}</h2>
+          <ul role="list">
+            {lain.map((p) => <li><a class="tautan" href={pathPasang(bahasa, p)}>{nama[p]}</a></li>)}
+          </ul>
+        </section>
+      )}
+    </div>
+  </main>
+  <Kaki bahasa={bahasa} path={path} />
+</Dasar>

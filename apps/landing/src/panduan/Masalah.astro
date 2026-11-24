@@ -1,0 +1,26 @@
+---
+// "If something goes wrong": the most common problems, each folded (the
+// browser's own <details>, opened by keyboard as well as by touch).
+import { ChevronDownIcon } from '@sulo/ui/icons';
+import '../styles/bagian/tanya.css';
+
+interface Props {
+  judul: string;
+  daftar: readonly { t: string; j: string }[];
+}
+const { judul, daftar } = Astro.props;
+---
+<section class="panduan-bagian">
+  <h2>{judul}</h2>
+  <div class="tanya-daftar">
+    {daftar.map((m) => (
+      <details class="tanya-item">
+        <summary>
+          <span>{m.t}</span>
+          <ChevronDownIcon className="tanya-panah" />
+        </summary>
+        <div class="tanya-jawab"><p>{m.j}</p></div>
+      </details>
+    ))}
+  </div>
+</section>

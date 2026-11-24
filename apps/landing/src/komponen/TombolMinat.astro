@@ -1,0 +1,20 @@
+---
+// "Want Sulo on iPhone? Press this." (brief 6.14): only rendered while the
+// counter is switched on (rilis.json minatIos.aktif), so its script is never
+// loaded otherwise. One vote per browser, remembered here (localStorage); the
+// one request goes to this site itself (POST /api/minat-ios). After it:
+// "Noted. Thank you." No number, no date, no promise.
+interface Props {
+  minat: string;
+  tercatat: string;
+  gagal: string;
+}
+const { minat, tercatat, gagal } = Astro.props;
+---
+<section class="panduan-bagian panduan-minat" data-minat>
+  <button class="tombol tombol--kedua" type="button" data-minat-tombol data-tercatat={tercatat} data-gagal={gagal}>{minat}</button>
+  <p class="panduan-minat-hasil" aria-live="polite"></p>
+</section>
+<script>
+  import '../hidup/minat';
+</script>

@@ -1,0 +1,40 @@
+---
+// /pasang/ (brief 6.12, after Edunex's device rows): one row per device with
+// its steps in short and the time it takes, each leading to its guide. The
+// visitor's own device is marked and comes first (from the browser alone).
+import { pathPasang, type Perangkat } from '../data/alamat';
+import { panduan } from '../teks/panduan';
+import type { Bahasa } from '../teks';
+import TataPanduan from '../komponen/TataPanduan.astro';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import { LaptopIkon, PerangkatIkon } from '../komponen/ikon';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = panduan[bahasa].daftar;
+const baris: { id: Perangkat; teks: { nama: string; ringkas: string; waktu: string } }[] = [
+  { id: 'android', teks: t.android },
+  { id: 'chrome', teks: t.chrome },
+  { id: 'edge', teks: t.edge },
+  { id: 'iphone', teks: t.iphone },
+];
+---
+<TataPanduan bahasa={bahasa} perangkat={null} judul={t.judul} kenapa={t.intro} deskripsi={t.intro}>
+  <ul class="pilih-perangkat" role="list">
+    {baris.map((b) => (
+      <li data-pilih={b.id}>
+        <a href={pathPasang(bahasa, b.id)}>
+          <span class="pilih-ikon" aria-hidden="true">{b.id === 'android' || b.id === 'iphone' ? <PerangkatIkon /> : <LaptopIkon />}</span>
+          <span class="pilih-teks">
+            <span class="pilih-nama">{b.teks.nama}<span class="pilih-milikmu">{t.perangkatmu}</span></span>
+            <span class="pilih-ringkas">{b.teks.ringkas}</span>
+          </span>
+          <span class="pilih-waktu">{b.teks.waktu}</span>
+          <ChevronRightIcon className="pilih-panah" />
+        </a>
+      </li>
+    ))}
+  </ul>
+</TataPanduan>

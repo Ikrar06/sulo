@@ -1,0 +1,33 @@
+---
+// Not found (brief 6.12): the mascot dizzy, both languages (the host serves
+// this one page for any address that does not exist), a way home and to the
+// guides.
+import { panduan } from '../teks/panduan';
+import Dasar from '../tata/Dasar.astro';
+import Nav from '../komponen/Nav.astro';
+import Maskot from '../komponen/Maskot.astro';
+import '../styles/bagian/umum.css';
+import '../styles/panduan.css';
+const id = panduan.id.galat;
+const en = panduan.en.galat;
+---
+<Dasar bahasa="id" judul="Halaman tidak ada, Sulo" noindex>
+  <Nav bahasa="id" path="/" />
+  <main class="galat" id="isi">
+    <Maskot mood="dizzy" class="galat-maskot" />
+    <h1>{id.judul}</h1>
+    <p>{id.isi}</p>
+    <p class="galat-tombol">
+      <a class="tombol tombol--utama" href="/">{id.rumah}</a>
+      <a class="tombol tombol--kedua" href="/pasang/">{id.pasang}</a>
+    </p>
+    <div class="galat-en" lang="en">
+      <p class="galat-en-judul">{en.judul}</p>
+      <p>{en.isi}</p>
+      <p class="galat-tombol">
+        <a class="tautan" href="/en/">{en.rumah}</a>
+        <a class="tautan" href="/en/pasang/">{en.pasang}</a>
+      </p>
+    </div>
+  </main>
+</Dasar>

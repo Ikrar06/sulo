@@ -1,0 +1,821 @@
+/* The install guides and the not-found page: plain and calm (no gradient, brief 4.1). On a wide screen each
+   step's drawing sits beside its words, so the page has no long empty stretches and ends where it ends. */
+.panduan {
+  padding: 96px var(--pinggir) 72px;
+}
+.panduan-isi {
+  max-width: 1000px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Breadcrumb: a list, the pages joined by a chevron icon (never a separator character). */
+.remah ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  color: var(--abu);
+  font-size: 0.9375rem;
+}
+.remah li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.remah a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.remah a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.remah-panah {
+  width: 14px;
+  height: 14px;
+}
+.panduan-kepala h1 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.panduan-kepala p {
+  margin: 14px 0 0;
+  max-width: 44rem;
+  color: var(--abu);
+  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* The short box: time and what you need, then the one note that matters (a tinted box, no accent edge). */
+.panduan-ringkas {
+  margin-top: 32px;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.panduan-ringkas dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 16px 32px;
+  margin: 0;
+}
+.panduan-ringkas dt {
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.panduan-ringkas dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+.panduan-ringkas ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.panduan-penting {
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--course-2) 14%, var(--kartu));
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* The steps: a large quiet number, the words and the button; the drawing beside them. */
+.langkah-daftar {
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 56px;
+}
+.langkah {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  align-items: center;
+  gap: 24px 48px;
+}
+.langkah-teks {
+  min-width: 0;
+}
+.langkah-nomor {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 2.75rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--tinta) 22%, transparent);
+}
+.langkah h3 {
+  margin: 8px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.langkah-teks > p {
+  margin: 8px 0 0;
+  max-width: 34rem;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.langkah-tombol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 18px;
+}
+.langkah-meta {
+  margin: 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.salin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0;
+}
+.salin code {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--m-inset);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9375rem;
+}
+.langkah-gambar {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.panduan-catatan {
+  margin: 28px 0 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.panduan-bagian {
+  margin-top: 64px;
+}
+.panduan-bagian h2,
+.panduan-dua h2,
+.panduan-lain h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+.panduan-jujur {
+  border-top: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 40px;
+}
+.panduan-jujur-item h3 {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+.panduan-jujur-item p {
+  margin: 6px 0 0;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.panduan-dua {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 48px;
+  margin-top: 64px;
+}
+.panduan-dua p {
+  margin: 0;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.panduan-periksa {
+  margin-top: 48px;
+  border-radius: 20px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.panduan-periksa summary {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.panduan-periksa summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 20px;
+}
+.panduan-periksa dl {
+  margin: 0;
+  padding: 0 20px;
+  display: grid;
+  gap: 12px;
+}
+.panduan-periksa dt {
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.panduan-periksa dd {
+  margin: 2px 0 0;
+}
+.panduan-periksa code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.panduan-periksa > p {
+  margin: 14px 0 0;
+  padding: 0 20px 18px;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.panduan-lain {
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--garis);
+}
+.panduan-lain ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.panduan-lain .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.panduan-iphone {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.panduan-iphone h2 {
+  margin-top: 4px;
+}
+.panduan-iphone p {
+  margin: 0 0 16px;
+  color: var(--abu);
+  line-height: 1.6;
+}
+.panduan-maskot {
+  flex: none;
+  width: 96px;
+  height: 96px;
+}
+.panduan-minat-hasil {
+  margin: 12px 0 0;
+  color: var(--abu);
+}
+
+/* /pasang/: one row per device; the visitor's own is marked and first. */
+.pilih-perangkat {
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.pilih-perangkat a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 80px;
+  padding: 16px 20px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  text-decoration: none;
+  transition: border-color 150ms ease-out;
+}
+.pilih-perangkat a:hover {
+  border-color: color-mix(in oklch, var(--tinta) 30%, var(--garis));
+}
+.pilih-ikon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--m-inset);
+}
+.pilih-ikon svg {
+  width: 24px;
+  height: 24px;
+}
+.pilih-teks {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.pilih-nama {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+.pilih-milikmu {
+  display: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--tinta);
+  color: var(--bg);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.pilih-ringkas {
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.pilih-waktu {
+  color: var(--abu);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+.pilih-panah {
+  width: 20px;
+  height: 20px;
+  color: var(--abu);
+}
+html[data-perangkat="android"] [data-pilih="android"],
+html[data-perangkat="chrome"] [data-pilih="chrome"],
+html[data-perangkat="edge"] [data-pilih="edge"],
+html[data-perangkat="ios"] [data-pilih="iphone"] {
+  order: -1;
+}
+html[data-perangkat="android"] [data-pilih="android"] .pilih-milikmu,
+html[data-perangkat="chrome"] [data-pilih="chrome"] .pilih-milikmu,
+html[data-perangkat="edge"] [data-pilih="edge"] .pilih-milikmu,
+html[data-perangkat="ios"] [data-pilih="iphone"] .pilih-milikmu {
+  display: inline-flex;
+}
+
+/* Not found. */
+.galat {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 128px var(--pinggir) 96px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.galat-maskot {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 16px;
+}
+.galat h1 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+  line-height: 1.15;
+}
+.galat p {
+  margin: 10px 0 0;
+  color: var(--abu);
+  line-height: 1.6;
+}
+.galat-tombol {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px !important;
+}
+.galat-en {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--garis);
+}
+.galat-en-judul {
+  color: var(--tinta) !important;
+  font-weight: 600;
+}
+
+/* ---------- The drawings ---------- */
+
+.il-hp {
+  width: 220px;
+  aspect-ratio: 9 / 19;
+  padding: 7px;
+  border-radius: 32px;
+  background: #1b1b1f;
+  box-shadow: 0 24px 40px -24px rgb(0 0 0 / 0.45);
+  flex: none;
+}
+.il-hp--kecil {
+  width: 168px;
+  padding: 6px;
+  border-radius: 26px;
+}
+.il-hp-layar {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px 12px 18px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #f4f4f6;
+  color: #16161a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.il-hp--kecil .il-hp-layar {
+  border-radius: 20px;
+  font-size: 10.5px;
+}
+.il-hp-layar--redup {
+  background: #7c7c85;
+}
+.il-hp-kamera {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #1b1b1f;
+  translate: -50% 0;
+}
+.il-kartu {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+}
+.il-kartu--jendela {
+  border: 1px solid #e4e4e9;
+}
+.il-judul {
+  margin: 0;
+  font-weight: 600;
+}
+.il-redup {
+  margin: 0;
+  color: #6b6b76;
+}
+.il-teks {
+  margin: 0;
+}
+.il-judul-besar {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.15em;
+}
+.il-tombol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.il-tombol--oranye {
+  background: #ff5a2a;
+  color: #16161a;
+}
+.il-tombol--garis {
+  border: 1px solid #c9c9d1;
+  background: #fff;
+  color: #1b1b1f;
+}
+.il-pudar {
+  opacity: 0.55;
+}
+.il-dialog {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff;
+  color: #16161a;
+}
+.il-aksi {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  font-weight: 600;
+}
+.il-aksi--bawah {
+  justify-content: center;
+}
+.il-aksi-utama {
+  padding: 4px 8px;
+  font-weight: 700;
+}
+.il-aplikasi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+}
+.il-setelan {
+  align-self: stretch;
+  display: grid;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff;
+}
+.il-baris {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+}
+.il-sakelar {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 18px;
+  border-radius: 999px;
+  background: #1b1b1f;
+  flex: none;
+}
+.il-sakelar::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+}
+.il-tirai {
+  align-self: stretch;
+}
+.il-notifikasi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #fff;
+}
+.il-notifikasi > span {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.il-ikon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+.il-selesai {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.il-selesai .il-aplikasi {
+  flex-direction: column;
+  font-size: 1.1em;
+}
+.il-dua {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+/* What to press: an orange ring and a small dot (brief 6.13). */
+.il-lingkar {
+  position: relative;
+  display: inline-flex;
+  border-radius: 999px;
+  outline: 2.5px solid #ff5a2a;
+  outline-offset: 4px;
+}
+.il-lingkar::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff5a2a;
+}
+.il-lebar {
+  display: flex;
+  width: 100%;
+  border-radius: 16px;
+}
+
+/* A plain browser window, in the page's own colours. */
+.il-jendela {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 16px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  box-shadow: 0 24px 40px -28px rgb(0 0 0 / 0.4);
+  font-size: 12.5px;
+}
+.il-jendela-atas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--garis);
+}
+.il-jendela-titik {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 24px;
+  border-radius: 50%;
+  background: var(--garis);
+  box-shadow: 12px 0 0 var(--garis), 24px 0 0 var(--garis);
+}
+.il-jendela-alamat {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--m-inset);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.il-jendela-isi {
+  position: relative;
+  padding: 16px;
+  min-height: 120px;
+}
+.il-halaman-kosong {
+  height: 84px;
+  border-radius: 10px;
+  background: var(--m-inset);
+}
+.il-ekstensi-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.il-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+}
+.il-ekstensi-alat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.il-ikon--alat {
+  width: 18px;
+  height: 18px;
+}
+.il-menu {
+  margin-left: auto;
+  width: min(220px, 100%);
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  box-shadow: 0 16px 30px -20px rgb(0 0 0 / 0.4);
+}
+.il-menu-baris {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.il-berkas {
+  width: 100%;
+  max-width: 380px;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  border-radius: 16px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  font-size: 12.5px;
+  box-shadow: 0 24px 40px -28px rgb(0 0 0 / 0.4);
+}
+.il-berkas-samping {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 14px;
+  border-right: 1px solid var(--garis);
+  font-weight: 600;
+}
+.il-berkas-isi {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+.il-folder,
+.il-berkas-baris {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.il-berkas-baris {
+  color: var(--abu);
+}
+
+@media (max-width: 767px) {
+  .langkah {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* A shorter phone on a phone: the drawing's content is small, the page should not be twice as long for it. */
+  .il-hp {
+    width: 200px;
+    aspect-ratio: 9 / 16;
+  }
+  .il-hp--kecil {
+    width: 150px;
+  }
+  .panduan-ringkas dl,
+  .panduan-jujur,
+  .panduan-dua {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pilih-perangkat a {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .pilih-waktu {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .pilih-panah {
+    grid-row: 1 / span 2;
+    grid-column: 3;
+  }
+  .panduan-iphone {
+    flex-direction: column;
+  }
+}

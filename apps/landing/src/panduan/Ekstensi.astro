@@ -1,0 +1,156 @@
+---
+// /pasang/chrome and /pasang/edge (brief 6.13): one component, two pages, so
+// the device check can send an Edge visitor straight to Edge's own names and
+// address. Installed by hand while the stores wait (rilis.json toko); once a
+// store has Sulo, the page leads there instead. Six drawn steps, the honest
+// explanations, problems, updating (same folder: the extension's id comes
+// from its folder's path, the manifest has no "key", so the data stays),
+// removing, and the zip's SHA-256.
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import rilis from '../data/rilis.json';
+import { berkas } from '../data/unduhan';
+import { panduan, layarOs } from '../teks/panduan';
+import { rumah2 } from '../teks/rumah-2';
+import { teks, type Bahasa } from '../teks';
+import Jendela from '../ilustrasi/Jendela.astro';
+import Lingkar from '../ilustrasi/Lingkar.astro';
+import Langkah from '../komponen/Langkah.astro';
+import TataPanduan from '../komponen/TataPanduan.astro';
+import Masalah from './Masalah.astro';
+import Periksa from './Periksa.astro';
+import { BerkasIkon, FolderIkon, PinIkon, PuzzleIkon } from '../komponen/ikon';
+
+interface Props {
+  bahasa: Bahasa;
+  browser: 'chrome' | 'edge';
+}
+const { bahasa, browser } = Astro.props;
+const t = panduan[bahasa];
+const e = t.ekstensi;
+const B = browser === 'edge' ? 'Edge' : 'Chrome';
+const os = layarOs[bahasa][browser];
+const dok = layarOs[bahasa].berkas.dokumen;
+const zip = berkas('ekstensi', bahasa);
+const p = rumah2[bahasa].pasang;
+const alamat = `${browser}://extensions`;
+const langkah = e.langkah(B);
+const toko = rilis.toko[browser];
+const diToko = toko.status === 'terbit' && toko.url;
+const kenapa = e.kenapa(B, toko.status === 'menunggu');
+---
+<TataPanduan bahasa={bahasa} perangkat={browser} judul={e.judul(B)} kenapa={kenapa} deskripsi={kenapa} ringkas={{ waktu: e.waktu, butuh: e.butuh(B), penting: e.penting }}>
+  {diToko ? (
+    <p class="langkah-tombol"><a class="tombol tombol--utama" href={toko.url}>{browser === 'edge' ? teks[bahasa].pasangEdge : teks[bahasa].pasangChrome}</a></p>
+  ) : (
+    <Fragment>
+      <ol class="langkah-daftar" role="list">
+        <Langkah nomor={1} judul={langkah[0].judul} isi={langkah[0].isi} alt={e.ilustrasi.unduh} label={t.umum.langkah}>
+          <Fragment slot="tombol">
+            {zip.aktif ? (
+              <a class="tombol tombol--utama" href={zip.href} download={zip.unduhan ? '' : undefined}><span>{p.unduhZip}</span><span class="tombol-ukuran">{zip.ukuran}</span></a>
+            ) : (
+              <span class="tombol tombol--utama" aria-disabled="true">{zip.ukuran}</span>
+            )}
+            {zip.versi && <p class="langkah-meta">{p.versi(zip.versi)}</p>}
+          </Fragment>
+          <Jendela slot="gambar" alamat="sulo">
+            <div class="il-kartu il-kartu--jendela">
+              <p class="il-judul">{p.ekstensi.judul}</p>
+              <p class="il-redup">{e.waktu}</p>
+              <Lingkar><span class="il-tombol il-tombol--oranye">{p.unduhZip}</span></Lingkar>
+            </div>
+          </Jendela>
+        </Langkah>
+
+        <Langkah nomor={2} judul={langkah[1].judul} isi={langkah[1].isi} alt={e.ilustrasi.ekstrak} label={t.umum.langkah}>
+          <div slot="gambar" class="il-berkas">
+            <p class="il-berkas-samping"><FolderIkon className="il-ikon" />{dok}</p>
+            <div class="il-berkas-isi">
+              <Lingkar class="il-lebar"><span class="il-folder"><FolderIkon className="il-ikon" />Sulo</span></Lingkar>
+              <span class="il-berkas-baris"><BerkasIkon className="il-ikon" />manifest.json</span>
+              <span class="il-berkas-baris"><BerkasIkon className="il-ikon" />popup.html</span>
+            </div>
+          </div>
+        </Langkah>
+
+        <Langkah nomor={3} judul={langkah[2].judul} isi={langkah[2].isi} alt={e.ilustrasi.buka} label={t.umum.langkah}>
+          <Fragment slot="tombol">
+            <p class="salin">
+              <code>{alamat}</code>
+              <button class="tombol tombol--kedua tombol--kecil" type="button" data-salin={alamat} data-salin-berhasil={t.umum.disalin}>{t.umum.salin}</button>
+            </p>
+          </Fragment>
+          <Jendela slot="gambar" alamat={alamat} sorotAlamat>
+            <div class="il-halaman-kosong" aria-hidden="true"></div>
+          </Jendela>
+        </Langkah>
+
+        <Langkah nomor={4} judul={langkah[3].judul} isi={langkah[3].isi} alt={e.ilustrasi.mode} label={t.umum.langkah}>
+          <Jendela slot="gambar" alamat={alamat}>
+            <div class="il-ekstensi-kepala">
+              <p class="il-judul-besar">{os.halaman}</p>
+              <Lingkar><span class="il-mode">{os.mode}<span class="il-sakelar" aria-hidden="true"></span></span></Lingkar>
+            </div>
+          </Jendela>
+        </Langkah>
+
+        <Langkah nomor={5} judul={langkah[4].judul} isi={langkah[4].isi} alt={e.ilustrasi.muat} label={t.umum.langkah}>
+          <Jendela slot="gambar" alamat={alamat}>
+            <div class="il-ekstensi-kepala">
+              <p class="il-judul-besar">{os.halaman}</p>
+              <span class="il-mode">{os.mode}<span class="il-sakelar" aria-hidden="true"></span></span>
+            </div>
+            <div class="il-ekstensi-alat">
+              <Lingkar><span class="il-tombol il-tombol--garis">{os.muat}</span></Lingkar>
+              {os.kemas && <span class="il-tombol il-tombol--garis il-pudar">{os.kemas}</span>}
+              {os.perbarui && <span class="il-tombol il-tombol--garis il-pudar">{os.perbarui}</span>}
+            </div>
+          </Jendela>
+        </Langkah>
+
+        <Langkah nomor={6} judul={langkah[5].judul} isi={langkah[5].isi} alt={e.ilustrasi.sematkan} label={t.umum.langkah}>
+          <Jendela slot="gambar" alamat="sikola-v2.unhas.ac.id">
+            <PuzzleIkon slot="alat" className="il-ikon il-ikon--alat" />
+            <div class="il-menu">
+              <p class="il-redup">{os.ekstensi}</p>
+              <p class="il-menu-baris">
+                <span class="il-aplikasi"><img src={flame} alt="" width="20" height="20" />Sulo</span>
+                <Lingkar><PinIkon className="il-ikon" /></Lingkar>
+              </p>
+            </div>
+          </Jendela>
+        </Langkah>
+      </ol>
+      <p class="panduan-catatan">{t.umum.ilustrasi}</p>
+
+      <section class="panduan-bagian">
+        <div class="tanya-daftar panduan-jujur">
+          {e.jujur.map((j) => (
+            <div class="panduan-jujur-item">
+              <h3>{j.t}</h3>
+              <p>{j.j}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Masalah judul={t.umum.masalah} daftar={e.masalah} />
+
+      <section class="panduan-dua">
+        <div>
+          <h2>{t.umum.perbarui}</h2>
+          <p>{e.perbarui}</p>
+        </div>
+        <div>
+          <h2>{t.umum.hapus}</h2>
+          <p>{e.hapus}</p>
+        </div>
+      </section>
+
+      <Periksa bahasa={bahasa} baris={[{ label: t.umum.sha, nilai: zip.sha256 }]} />
+    </Fragment>
+  )}
+</TataPanduan>
+<script>
+  import '../hidup/salin';
+</script>

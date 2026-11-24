@@ -1,0 +1,26 @@
+---
+// "For those who want to check" (folded): the file's SHA-256, and for the APK
+// the signing certificate, from src/data/rilis.json, with one line on how to
+// check. Before 1.0.0 is out there is nothing to show yet, and it says so.
+import { panduan } from '../teks/panduan';
+import type { Bahasa } from '../teks';
+
+interface Props {
+  bahasa: Bahasa;
+  baris: readonly { label: string; nilai: string }[];
+}
+const { bahasa, baris } = Astro.props;
+const t = panduan[bahasa].umum;
+---
+<details class="panduan-periksa">
+  <summary>{t.periksa}</summary>
+  <dl>
+    {baris.map((b) => (
+      <div>
+        <dt>{b.label}</dt>
+        <dd>{b.nilai ? <code>{b.nilai}</code> : t.belumAda}</dd>
+      </div>
+    ))}
+  </dl>
+  <p>{t.caraCek}</p>
+</details>

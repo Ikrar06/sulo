@@ -1,0 +1,122 @@
+---
+// /pasang/android (brief 6.13): five drawn steps, the warnings explained as
+// they are, what to do if something goes wrong, updating, removing, and the
+// SHA-256 and signing certificate for those who want to check.
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import rilis from '../data/rilis.json';
+import { berkas } from '../data/unduhan';
+import { panduan, layarOs } from '../teks/panduan';
+import { rumah2 } from '../teks/rumah-2';
+import type { Bahasa } from '../teks';
+import Hp from '../ilustrasi/Hp.astro';
+import Lingkar from '../ilustrasi/Lingkar.astro';
+import Langkah from '../komponen/Langkah.astro';
+import TataPanduan from '../komponen/TataPanduan.astro';
+import Periksa from './Periksa.astro';
+import Masalah from './Masalah.astro';
+import { BerkasIkon } from '../komponen/ikon';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = panduan[bahasa];
+const a = t.android;
+const os = layarOs[bahasa].android;
+const apk = berkas('android', bahasa);
+const unduhApk = rumah2[bahasa].pasang.unduhApk;
+const nama = apk.versi ? `sulo-${apk.versi}-android.apk` : 'sulo-android.apk';
+---
+<TataPanduan bahasa={bahasa} perangkat="android" judul={a.judul} kenapa={a.kenapa} deskripsi={a.kenapa} ringkas={{ waktu: a.waktu, butuh: a.butuh, penting: a.penting }}>
+  <ol class="langkah-daftar" role="list">
+    <Langkah nomor={1} judul={a.langkah[0].judul} isi={a.langkah[0].isi} alt={a.ilustrasi.unduh} label={t.umum.langkah}>
+      <Fragment slot="tombol">
+        {apk.aktif ? (
+          <a class="tombol tombol--utama" href={apk.href} download={apk.unduhan ? '' : undefined}><span>{unduhApk}</span><span class="tombol-ukuran">{apk.ukuran}</span></a>
+        ) : (
+          <span class="tombol tombol--utama" aria-disabled="true">{apk.ukuran}</span>
+        )}
+        {apk.versi && <p class="langkah-meta">{rumah2[bahasa].pasang.versi(apk.versi)}</p>}
+      </Fragment>
+      <Hp slot="gambar">
+        <div class="il-kartu">
+          <p class="il-judul">{t.daftar.android.nama}</p>
+          <p class="il-redup">{a.waktu}</p>
+          <Lingkar><span class="il-tombol il-tombol--oranye">{unduhApk}</span></Lingkar>
+        </div>
+      </Hp>
+    </Langkah>
+
+    <Langkah nomor={2} judul={a.langkah[1].judul} isi={a.langkah[1].isi} alt={a.ilustrasi.notifikasi} label={t.umum.langkah}>
+      <Hp slot="gambar">
+        <div class="il-tirai">
+          <Lingkar class="il-lebar">
+            <span class="il-notifikasi">
+              <BerkasIkon className="il-ikon" />
+              <span>
+                <span class="il-judul">{nama}</span>
+                <span class="il-redup">{os.ketukBuka}</span>
+              </span>
+            </span>
+          </Lingkar>
+        </div>
+      </Hp>
+    </Langkah>
+
+    <Langkah nomor={3} judul={a.langkah[2].judul} isi={a.langkah[2].isi} alt={a.ilustrasi.izin} label={t.umum.langkah}>
+      <div slot="gambar" class="il-dua">
+        <Hp layar="redup" kecil>
+          <div class="il-dialog">
+            <p class="il-teks">{os.peringatan}</p>
+            <p class="il-aksi"><span>{os.batal}</span><Lingkar><span class="il-aksi-utama">{os.setelan}</span></Lingkar></p>
+          </div>
+        </Hp>
+        <Hp kecil>
+          <div class="il-setelan">
+            <p class="il-judul-besar">{os.instalTidakDikenal}</p>
+            <p class="il-baris">
+              <span>{os.izinkan}</span>
+              <Lingkar><span class="il-sakelar" aria-hidden="true"></span></Lingkar>
+            </p>
+          </div>
+        </Hp>
+      </div>
+    </Langkah>
+
+    <Langkah nomor={4} judul={a.langkah[3].judul} isi={a.langkah[3].isi} alt={a.ilustrasi.pasang} label={t.umum.langkah}>
+      <Hp slot="gambar" layar="redup">
+        <div class="il-dialog">
+          <p class="il-aplikasi"><img src={flame} alt="" width="28" height="28" />Sulo</p>
+          <p class="il-teks">{os.tanya}</p>
+          <p class="il-aksi"><span>{os.batal}</span><Lingkar><span class="il-aksi-utama">{os.instal}</span></Lingkar></p>
+        </div>
+      </Hp>
+    </Langkah>
+
+    <Langkah nomor={5} judul={a.langkah[4].judul} isi={a.langkah[4].isi} alt={a.ilustrasi.buka} label={t.umum.langkah}>
+      <Hp slot="gambar">
+        <div class="il-selesai">
+          <p class="il-aplikasi"><img src={flame} alt="" width="40" height="40" />Sulo</p>
+          <p class="il-teks">{os.terinstal}</p>
+          <p class="il-aksi il-aksi--bawah"><span>{os.selesai}</span><Lingkar><span class="il-aksi-utama">{os.buka}</span></Lingkar></p>
+        </div>
+      </Hp>
+    </Langkah>
+  </ol>
+  <p class="panduan-catatan">{t.umum.ilustrasi}</p>
+
+  <Masalah judul={t.umum.masalah} daftar={a.masalah} />
+
+  <section class="panduan-dua">
+    <div>
+      <h2>{t.umum.perbarui}</h2>
+      <p>{a.perbarui}</p>
+    </div>
+    <div>
+      <h2>{t.umum.hapus}</h2>
+      <p>{a.hapus}</p>
+    </div>
+  </section>
+
+  <Periksa bahasa={bahasa} baris={[{ label: t.umum.sha, nilai: apk.sha256 }, { label: t.umum.sertifikat, nilai: rilis.android.tersedia ? rilis.android.sidikSertifikat : '' }]} />
+</TataPanduan>
