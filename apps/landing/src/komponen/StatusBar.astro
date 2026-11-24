@@ -8,11 +8,9 @@
 // screen, white on a dark one (the colour of the text it sits in).
 interface Props {
   jam?: string;
-  /** Leave the time out (a lock screen shows it large below). */
-  tanpaJam?: boolean;
   class?: string;
 }
-const { jam = '9:41', tanpaJam = false, class: kelas } = Astro.props;
+const { jam = '9:41', class: kelas } = Astro.props;
 // Bottom of the digits and the icons (pt), and the four signal bars: left edge and height.
 const DASAR = 34.04;
 const SINYAL = [
@@ -23,7 +21,7 @@ const SINYAL = [
 ] as const;
 ---
 <svg class:list={['status-bar', kelas]} viewBox="0 0 402 63.2" fill="currentColor" aria-hidden="true" focusable="false">
-  {!tanpaJam && <text class="status-bar-jam" x="62" y={DASAR}>{jam}</text>}
+  <text class="status-bar-jam" x="62" y={DASAR}>{jam}</text>
   {SINYAL.map(([x, h]) => <rect x={x} y={DASAR - h} width="2.84" height={h} rx="0.85" />)}
   <!-- Wifi: a fan from (316.29, 34.3); two round-capped bands (radius 8.97 at 39.1 degrees each side,
        5.72 at 34.4) and a sector (3.1 at 36.2), fitted to the measured boxes. -->

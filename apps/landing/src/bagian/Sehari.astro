@@ -3,12 +3,12 @@
 // rows that take turns left and right (the owner's reference, 02-tiket-3c):
 // a square tile holding the top of the phone at that hour, and beside it the
 // hour, a title and one line. A whole phone per moment made the section four
-// screens long. No sky: the page's own plain background. On the light page the
-// day goes from light tiles to ink ones as evening comes, and the phones from
-// the light theme to the dark. On the dark page every tile is already night,
-// so nothing would say why three phones were white: there the daytime phones
-// follow the page ("auto") and all five are dark. Each tile's phone rises into
-// it as the row is reached (hidup/gerak.ts).
+// screens long. No sky: the page's own plain background, one tile for all five
+// and every phone in the page's theme. The day is told by the hours and the
+// lock screens. (Phones that went from the light theme to the dark as evening
+// came, on ink tiles, read as a mistake to the owner on both pages, 25 Nov
+// 2026.) Each tile's phone rises into it as the row is reached
+// (hidup/gerak.ts).
 //
 // The lock screens' words are the app's own notifications, from the sample
 // data (layar/sehari.ts); the app screens are the app's own (iframes).
@@ -36,13 +36,12 @@ const g = bingkai.bingkai['iphone-terang'];
 const atas = g.safeArea.top;
 const bawah = g.safeArea.bottom;
 // What each moment's phone shows: a lock screen, or one of the app's screens.
-// "auto" is daytime (the page's theme), "gelap" the evening (dark on either page).
 const layar = [
-  { jenis: 'kunci', tema: 'auto', notifikasi: pagi },
-  { jenis: 'presensi', tema: 'auto' },
-  { jenis: 'kabar', tema: 'auto' },
-  { jenis: 'tugas', tema: 'gelap' },
-  { jenis: 'kunci', tema: 'gelap', notifikasi: malam },
+  { jenis: 'kunci', notifikasi: pagi },
+  { jenis: 'presensi' },
+  { jenis: 'kabar' },
+  { jenis: 'tugas' },
+  { jenis: 'kunci', notifikasi: malam },
 ] as const;
 ---
 <section class="bagian sehari" aria-labelledby="judul-sehari">
@@ -56,20 +55,20 @@ const layar = [
         const l = layar[i]!;
         const jam = jamHp(m.jam, bahasa);
         return (
-          <li class:list={['momen', { 'momen--malam': l.tema === 'gelap' }]}>
+          <li class="momen">
             <div class="momen-teks">
               <p class="momen-jam"><time datetime={`2026-11-25T${m.jam.replace('.', ':')}:00+08:00`}>{jam}</time></p>
               <h3>{m.judul}</h3>
               <p>{m.isi}</p>
             </div>
             <div class="momen-ubin">
-            <Perangkat jenis="hp" bahasa={bahasa} tema={l.tema} tanpaStatus sizes="220px" muat="lazy" class="momen-hp">
+            <Perangkat jenis="hp" bahasa={bahasa} tema="auto" tanpaStatus sizes="220px" muat="lazy" class="momen-hp">
               {l.jenis === 'kunci' ? (
-                <LayarKunci jam={jam} tanggal={tanggal} judul={l.notifikasi.judul} isi={l.notifikasi.isi} baru={baru} tema={l.tema} />
+                <LayarKunci jam={jam} tanggal={tanggal} judul={l.notifikasi.judul} isi={l.notifikasi.isi} baru={baru} />
               ) : (
                 <Fragment>
                   <StatusBar jam={jam} class="momen-status" />
-                  <iframe src={`/layar/${bahasa}/hp/${l.jenis}/${l.tema}/`} title={teks[bahasa].layarHp} loading="lazy" tabindex="-1" inert style={`top: ${atas}px; height: ${874 - atas - bawah}px`}></iframe>
+                  <iframe src={`/layar/${bahasa}/hp/${l.jenis}/auto/`} title={teks[bahasa].layarHp} loading="lazy" tabindex="-1" inert style={`top: ${atas}px; height: ${874 - atas - bawah}px`}></iframe>
                 </Fragment>
               )}
             </Perangkat>

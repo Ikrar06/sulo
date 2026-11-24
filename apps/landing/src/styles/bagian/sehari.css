@@ -25,21 +25,6 @@
   /* The app's own screen colour: its cards and screens are made to sit on it. */
   background: var(--layer-screen);
 }
-/* Evening: the tile turns to ink. On the dark page every tile is already night, so all five are one tile. */
-.momen--malam .momen-ubin {
-  border-color: transparent;
-  background: var(--tinta);
-}
-[data-theme="dark"] .momen--malam .momen-ubin {
-  border-color: var(--garis);
-  background: var(--layer-screen);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .momen--malam .momen-ubin {
-    border-color: var(--garis);
-    background: var(--layer-screen);
-  }
-}
 .momen-teks {
   grid-column: 2;
   grid-row: 1;
@@ -118,7 +103,7 @@
 
 /* A lock screen, in the screen's points (402 x 874): plain wallpaper, the time, one notification. */
 .kunci {
-  /* The light lock screen; the dark one below ("gelap", or "auto" on the dark page). */
+  /* The light lock screen; the dark one below, by the theme of the device it sits in. */
   --kunci-latar: #efe6dc;
   --kunci-teks: #1a1a1f;
   --kunci-kartu: rgb(255 255 255 / 0.72);
@@ -134,8 +119,8 @@
   color: var(--kunci-teks);
   font-family: var(--font-sans);
 }
-.kunci--gelap,
-:root[data-theme="dark"] .kunci--auto {
+.perangkat-layar[data-theme="dark"] .kunci,
+:root[data-theme="dark"] .perangkat-layar:not([data-theme]) .kunci {
   --kunci-latar: #10121c;
   --kunci-teks: #f4f4f7;
   --kunci-kartu: rgb(255 255 255 / 0.12);
@@ -143,7 +128,7 @@
   --kunci-status: #fff;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .kunci--auto {
+  :root:not([data-theme="light"]) .perangkat-layar:not([data-theme]) .kunci {
     --kunci-latar: #10121c;
     --kunci-teks: #f4f4f7;
     --kunci-kartu: rgb(255 255 255 / 0.12);
