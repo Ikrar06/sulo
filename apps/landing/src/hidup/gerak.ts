@@ -3,7 +3,9 @@
 // come into view. Nothing here hides anything: each one-shot animation is
 // made and held at its first frame here, then played when seen, so without
 // this script (or under reduced motion, data-gerak="diam") everything simply
-// stays in its final place. Transform and opacity only, the apps' curves.
+// stays in its final place. Transform and opacity only (and one clip-path
+// sweep), the apps' curves. Each one-shot fills backwards only: done, it lets
+// go of its layer and the element is simply in its own style.
 const html = document.documentElement;
 const gerak = html.dataset.gerak ?? 'diam';
 const MASUK = 'cubic-bezier(0.22, 1, 0.36, 1)';
@@ -36,36 +38,47 @@ function ukurTujuan(): void {
   const asal = pembuka.getBoundingClientRect();
   for (const potongan of document.querySelectorAll<HTMLElement>('.pembuka > .potongan')) {
     if (potongan.offsetWidth === 0) continue;
-    const tujuan = cariPasangan(potongan, dok);
-    if (!tujuan) continue;
-    const t = tujuan.getBoundingClientRect();
+    const pasangan = cariPasangan(potongan, dok);
+    if (!pasangan) continue;
+    const t = pasangan.tujuan.getBoundingClientRect();
     // Both scroll with the page, so their distance is the same at any scroll. The piece's centre is read from its
     // layout box (its offset in the hero), never from where its own animation has it now.
     const pusatX = asal.left + potongan.offsetLeft + potongan.offsetWidth / 2;
     const pusatY = asal.top + potongan.offsetTop + potongan.offsetHeight / 2;
     const tujuanX = fr.left + (t.left + t.width / 2) * k;
     const tujuanY = fr.top + (t.top + t.height / 2) * k;
-    const skala = Math.min(1.4, Math.max(0.35, (t.width * k) / potongan.offsetWidth));
+    // The piece shrinks to the size its words have on the screen (their font size there, scaled with the screen),
+    // so it lands as that row, never larger than itself.
+    const ukuran = (el: Element) => parseFloat(getComputedStyle(el).fontSize) || 1;
+    const skala = Math.min(1, Math.max(0.5, (ukuran(pasangan.teksTujuan) * k) / ukuran(pasangan.teksPotongan)));
     potongan.style.setProperty('--tuju-x', `${Math.round(tujuanX - pusatX)}px`);
     potongan.style.setProperty('--tuju-y', `${Math.round(tujuanY - pusatY)}px`);
     potongan.style.setProperty('--tuju-skala', skala.toFixed(3));
   }
 }
 
+interface Pasangan {
+  /** The row or card in the screen. */
+  tujuan: Element;
+  /** The words there, and the same words in the piece. */
+  teksTujuan: Element;
+  teksPotongan: Element;
+}
+
 /** The piece's longest words that the laptop's screen also shows, and the row or card round them there. */
-function cariPasangan(potongan: HTMLElement, dok: Document): Element | null {
+function cariPasangan(potongan: HTMLElement, dok: Document): Pasangan | null {
   const kalimat = [...potongan.querySelectorAll('*')]
-    .flatMap((el) => [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent?.trim() ?? ''))
-    .filter((t) => t.length >= 4)
-    .sort((a, b) => b.length - a.length);
+    .flatMap((el) => [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => ({ teks: n.textContent?.trim() ?? '', el })))
+    .filter((k) => k.teks.length >= 4)
+    .sort((a, b) => b.teks.length - a.teks.length);
   const jalan = (t: string): Element | null => {
     const w = dok.createTreeWalker(dok.body, NodeFilter.SHOW_TEXT);
     for (let n = w.nextNode(); n; n = w.nextNode()) if (n.textContent?.trim() === t) return n.parentElement;
     return null;
   };
-  for (const t of kalimat) {
-    const el = jalan(t);
-    if (el) return el.closest('li, section, article, a') ?? el;
+  for (const k of kalimat) {
+    const el = jalan(k.teks);
+    if (el) return { tujuan: el.closest('li, section, article, a') ?? el, teksTujuan: el, teksPotongan: k.el };
   }
   return null;
 }
@@ -89,22 +102,18 @@ function siapkanPotongan(): void {
 
 /** One-shot motion as sections come into view (brief 7.1: one per bento tile, simple entrances elsewhere). */
 function siapkanSekali(): void {
-  // Where the data comes from: the three lines draw themselves into Sulo once.
+  // Where the data comes from: the three lines draw themselves into Sulo once, a sweep from the sources to Sulo
+  // (a clip on the drawing: its end is exactly the still drawing; a dash would stop short of the lines' real length).
   const garis = document.querySelector('.sumber-garis');
   if (garis) {
-    sekaliSaatTerlihat(garis, () =>
-      [...garis.querySelectorAll<SVGPathElement>('path')].map((path, i) => {
-        path.setAttribute('pathLength', '1');
-        path.style.strokeDasharray = '1';
-        return path.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 700, delay: i * JARAK * 2, easing: MASUK, fill: 'both' });
-      }),
-    );
+    // Watched through its parent: held at its first frame, the drawing is clipped to nothing and never "seen" itself.
+    sekaliSaatTerlihat(garis.parentElement ?? garis, () => [garis.animate([{ clipPath: 'inset(-4px 100% -4px -4px)' }, { clipPath: 'inset(-4px)' }], { duration: 700, easing: MASUK, fill: 'backwards' })]);
   }
   // Kabar terbaru: the updates arrive one by one, from pale to full.
   const kabar = document.querySelector('.ubin--kabar');
   if (kabar) {
     sekaliSaatTerlihat(kabar, () =>
-      [...kabar.querySelectorAll('li')].slice(0, 6).map((li, i) => li.animate([{ opacity: 0.35, translate: '0 6px' }, { opacity: 1, translate: '0 0' }], { duration: 360, delay: 120 + i * JARAK, easing: MASUK, fill: 'both' })),
+      [...kabar.querySelectorAll('li')].slice(0, 6).map((li, i) => li.animate([{ opacity: 0.35, translate: '0 6px' }, { opacity: 1, translate: '0 0' }], { duration: 360, delay: 120 + i * JARAK, easing: MASUK, fill: 'backwards' })),
     );
   }
   // The 7 days ahead: the app's own bars grow again when the tile is seen (they first grew while out of sight).
@@ -113,20 +122,27 @@ function siapkanSekali(): void {
     sekaliSaatTerlihat(beban, () =>
       [...beban.querySelectorAll<HTMLElement>('.m-bar-grow')].map((bar, i) => {
         bar.style.animation = 'none';
-        return bar.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 300, delay: 100 + i * 40, easing: MASUK, fill: 'both' });
+        return bar.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 300, delay: 100 + i * 40, easing: MASUK, fill: 'backwards' });
       }),
     );
   }
-  // A day with Sulo: each moment rises into place as it is reached.
-  for (const momen of document.querySelectorAll('.momen')) {
-    sekaliSaatTerlihat(momen, () => {
-      const teks = momen.querySelector('.momen-teks');
-      const hp = momen.querySelector('.momen-hp');
-      return [
-        ...(teks ? [teks.animate([{ opacity: 0, translate: '0 16px' }, { opacity: 1, translate: '0 0' }], { duration: 420, easing: MASUK, fill: 'both' })] : []),
-        ...(hp ? [hp.animate([{ opacity: 0, translate: '0 24px' }, { opacity: 1, translate: '0 0' }], { duration: 480, delay: JARAK, easing: MASUK, fill: 'both' })] : []),
-      ];
-    });
+  // The academic calendar: the teaching weeks' bar fills again when the tile is seen (the app's own fill ran out of sight).
+  const kalender = document.querySelector('.ubin--kalender');
+  if (kalender) {
+    sekaliSaatTerlihat(kalender, () =>
+      [...kalender.querySelectorAll<HTMLElement>('.db-week-fill')].map((bar) => {
+        bar.style.animation = 'none';
+        return bar.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 600, delay: 120, easing: MASUK, fill: 'backwards' });
+      }),
+    );
+  }
+  // A day with Sulo: each moment's words, then its phone, rise into place as each is reached (a moment is taller
+  // than a phone's screen: its words would wait for its phone).
+  for (const teks of document.querySelectorAll('.momen-teks')) {
+    sekaliSaatTerlihat(teks, () => [teks.animate([{ opacity: 0, translate: '0 16px' }, { opacity: 1, translate: '0 0' }], { duration: 420, easing: MASUK, fill: 'backwards' })]);
+  }
+  for (const hp of document.querySelectorAll('.momen-hp')) {
+    sekaliSaatTerlihat(hp, () => [hp.animate([{ opacity: 0, translate: '0 24px' }, { opacity: 1, translate: '0 0' }], { duration: 480, delay: JARAK, easing: MASUK, fill: 'backwards' })]);
   }
 }
 

@@ -230,32 +230,32 @@ html[data-tombol-lewat] .nav-pasang {
   position: absolute;
   inset: 0;
   margin: auto;
-  transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1), scale 200ms cubic-bezier(0.2, 0, 0, 1), filter 200ms cubic-bezier(0.2, 0, 0, 1);
+  transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1), transform 200ms cubic-bezier(0.2, 0, 0, 1), filter 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 .ikon-tema--terang {
   opacity: 0;
-  scale: 0.25;
+  transform: scale(0.25);
   filter: blur(4px);
 }
 :root[data-theme="dark"] .ikon-tema--terang {
   opacity: 1;
-  scale: 1;
+  transform: none;
   filter: none;
 }
 :root[data-theme="dark"] .ikon-tema--gelap {
   opacity: 0;
-  scale: 0.25;
+  transform: scale(0.25);
   filter: blur(4px);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .ikon-tema--terang {
     opacity: 1;
-    scale: 1;
+    transform: none;
     filter: none;
   }
   :root:not([data-theme="light"]) .ikon-tema--gelap {
     opacity: 0;
-    scale: 0.25;
+    transform: scale(0.25);
     filter: blur(4px);
   }
 }
@@ -671,7 +671,10 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   bottom: 56px;
   width: 25%;
   z-index: 3;
-  filter: drop-shadow(0 24px 30px rgb(16 16 24 / 0.22));
+  /* A box-shadow round the phone's own corners (its frame is 20% by 9.8% round), drawn once; a drop-shadow filter
+     is applied again on every scrolled frame. */
+  border-radius: 20% / 9.8%;
+  box-shadow: 0 24px 30px rgb(16 16 24 / 0.22);
 }
 .keterangan-data {
   position: absolute;
@@ -690,7 +693,10 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   position: absolute;
   width: 280px;
   z-index: 1;
-  filter: drop-shadow(0 14px 22px rgb(16 16 24 / 0.1));
+}
+/* The shadow on the app's card itself (round, like the card), not a filter on the piece. */
+.potongan > * {
+  box-shadow: 0 14px 22px rgb(16 16 24 / 0.1);
 }
 .potongan--tugas-1 { left: max(var(--pinggir), calc(50% - 650px)); top: 150px; }
 .potongan--presensi { left: max(var(--pinggir), calc(var(--potongan-tepi) - 220px)); top: var(--potongan-bawah); width: 220px; }
@@ -775,7 +781,9 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
     margin-bottom: 8%;
     z-index: 4;
     container-type: inline-size;
-    filter: drop-shadow(0 12px 18px rgb(16 16 24 / 0.14));
+  }
+  .potongan-skala > * {
+    box-shadow: 0 12px 18px rgb(16 16 24 / 0.14);
   }
   .potongan-skala {
     width: 210px;

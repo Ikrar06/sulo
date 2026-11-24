@@ -13,3 +13,11 @@ body {
 html {
   font-size: 16px;
 }
+/* Reduced motion: the apps' shared rule shortens every transition but leaves them running; none start here. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-property: none !important;
+  }
+}

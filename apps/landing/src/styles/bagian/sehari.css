@@ -82,7 +82,9 @@
 }
 .momen-hp {
   width: 100%;
-  filter: drop-shadow(0 24px 30px rgb(16 16 24 / 0.2));
+  /* Drawn once round the phone's corners, not filtered again on every scrolled frame (five phones in a row). */
+  border-radius: 20% / 9.8%;
+  box-shadow: 0 24px 30px rgb(16 16 24 / 0.2);
 }
 /* The drawn status bar over an app screen: black on light, white on dark (the screen's own theme). */
 .momen-status {

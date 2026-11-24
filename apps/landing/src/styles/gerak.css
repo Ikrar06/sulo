@@ -3,7 +3,7 @@
    nothing from below 0.92). The final state is the default everywhere: every rule here sits under
    html[data-gerak], set before the first paint (tata/Dasar.astro), so a page without script, or under reduced
    motion ("diam"), simply shows everything in place. A weak device ("ringan") gets the simple entrances and
-   none of the large moments. */
+   none of the large moments. Entrances fill backwards only: done, they let go of their layers. */
 :root {
   --kurva-masuk: cubic-bezier(0.22, 1, 0.36, 1);
   --kurva-cerita: cubic-bezier(0.16, 1, 0.3, 1);
@@ -32,35 +32,54 @@
 }
 :root:is([data-gerak="penuh"], [data-gerak="ringan"]) {
   .pembuka-maskot {
-    animation: muncul-kecil 420ms var(--kurva-cerita) both;
+    animation: muncul-kecil 420ms var(--kurva-cerita) backwards;
   }
   .pembuka-cip {
-    animation: naik-muncul 360ms var(--kurva-masuk) 80ms both;
+    animation: naik-muncul 360ms var(--kurva-masuk) 80ms backwards;
   }
   .pembuka-judul {
-    animation: naik 480ms var(--kurva-cerita) 120ms both;
+    animation: naik 480ms var(--kurva-cerita) 120ms backwards;
   }
   .pembuka-pendukung {
-    animation: naik-muncul 360ms var(--kurva-masuk) 200ms both;
+    animation: naik-muncul 360ms var(--kurva-masuk) 200ms backwards;
   }
   .pembuka-tombol,
   .pembuka-catatan:not(:empty),
   .pratinjau {
-    animation: naik-muncul 360ms var(--kurva-masuk) 260ms both;
+    animation: naik-muncul 360ms var(--kurva-masuk) 260ms backwards;
   }
   .panggung {
-    animation: naik-muncul 420ms var(--kurva-masuk) 340ms both;
+    animation: naik-muncul 420ms var(--kurva-masuk) 340ms backwards;
   }
   /* The pieces arrive one after another, around the title on a laptop, by the phone on a phone. */
+  /* The delay rides in the shorthand: a separate animation-delay lost to the shorthand's own reset on a laptop
+     (all four pieces came at once). */
   .pembuka > .potongan > *,
   .potongan-hp .potongan-skala > * {
-    animation: muncul-kecil 380ms var(--kurva-masuk) both;
+    animation: muncul-kecil 380ms var(--kurva-masuk) var(--tunda, 0ms) backwards;
   }
-  .potongan--tugas-1 > * { animation-delay: 420ms; }
-  .potongan--kalender > * { animation-delay: calc(420ms + var(--jarak)); }
-  .potongan--presensi > * { animation-delay: calc(420ms + 2 * var(--jarak)); }
-  .potongan--tugas-2 > * { animation-delay: calc(420ms + 3 * var(--jarak)); }
-  .potongan-hp .potongan-skala > * { animation-delay: 620ms; }
+  .potongan--tugas-1 { --tunda: 420ms; }
+  .potongan--kalender { --tunda: calc(420ms + var(--jarak)); }
+  .potongan--presensi { --tunda: calc(420ms + 2 * var(--jarak)); }
+  .potongan--tugas-2 { --tunda: calc(420ms + 3 * var(--jarak)); }
+  .potongan-hp { --tunda: 620ms; }
+  /* After a download starts, its line arrives rather than appears: the press worked. */
+  [data-unduh-baris]:not(:empty) {
+    animation: naik-muncul 220ms var(--kurva-masuk) backwards;
+  }
+}
+/* The mascot's own frames (its engine draws at 30 per second) stay on its layer, not the page's. */
+:root[data-gerak="penuh"] .maskot > svg {
+  will-change: transform;
+}
+/* Reduced motion: the apps' shared rule shortens every transition to nothing but leaves them all running (a
+   theme change started about twelve thousand). None start. The device screens' own pages do the same. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-property: none !important;
+  }
 }
 
 /* ---------- Scrolling on a laptop: the pieces go into the screen and become its rows (brief 5, A to D) ---------- */
@@ -80,7 +99,8 @@
   45% {
     translate: calc(var(--tuju-x, 0px) * 0.15) calc(var(--tuju-y, 45vh) * 0.6);
   }
-  70% {
+  /* From halfway the piece fades into the screen's own row, so its words never lie over the screen's. */
+  50% {
     opacity: 1;
   }
   to {
@@ -126,9 +146,11 @@
 
 /* ---------- The one statement on the page: its words go from grey to full ink as it scrolls by (brief 7.5) ---------- */
 
+/* From 0.55, not lower: a word not yet lit still reads at 3:1 or more on the tile's blue (large bold text), so a
+   reader who stops scrolling halfway is never left with words too faint to read. */
 @keyframes kata-tinta {
   from {
-    opacity: 0.28;
+    opacity: 0.55;
   }
 }
 @supports (animation-timeline: view()) {
