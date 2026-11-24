@@ -1,0 +1,711 @@
+{
+  "sumber": "Figma pemilik (docs/landing/bingkai), layar hijau",
+  "dibuat": "apps/landing/scripts/olah-bingkai.mjs",
+  "bingkai": {
+    "macbook": {
+      "pt": {
+        "width": 1512,
+        "height": 982
+      },
+      "warnaKunci": [
+        0,
+        255,
+        0
+      ],
+      "gambar": {
+        "width": 4096,
+        "height": 2473
+      },
+      "sudutLayar": {
+        "px": {
+          "kiriAtas": [
+            419.5,
+            61
+          ],
+          "kananAtas": [
+            3676.5,
+            61
+          ],
+          "kananBawah": [
+            3676.5,
+            2173.5
+          ],
+          "kiriBawah": [
+            419.5,
+            2173.5
+          ]
+        },
+        "persen": {
+          "kiriAtas": [
+            10.2417,
+            2.4666
+          ],
+          "kananAtas": [
+            89.7583,
+            2.4666
+          ],
+          "kananBawah": [
+            89.7583,
+            87.8892
+          ],
+          "kiriBawah": [
+            10.2417,
+            87.8892
+          ]
+        }
+      },
+      "berkas": {
+        "utuh": [
+          {
+            "width": 2400,
+            "height": 1449,
+            "png": "macbook-2400.png",
+            "webp": "macbook-2400.webp",
+            "bytes": {
+              "png": 307830,
+              "webp": 21600
+            }
+          },
+          {
+            "width": 1200,
+            "height": 725,
+            "png": "macbook-1200.png",
+            "webp": "macbook-1200.webp",
+            "bytes": {
+              "png": 75709,
+              "webp": 6472
+            }
+          }
+        ]
+      },
+      "pxPerPt": 2.1534,
+      "layar": {
+        "x": 420,
+        "y": 61,
+        "width": 3256,
+        "height": 2112,
+        "persen": {
+          "left": 10.2539,
+          "top": 2.4666,
+          "width": 79.4922,
+          "height": 85.4023
+        }
+      },
+      "sudutLengkung": {
+        "radiusPt": 18.8,
+        "panjangPt": 15.8
+      },
+      "notch": {
+        "x": 664.05,
+        "y": 0,
+        "width": 183.89,
+        "height": 29.72
+      },
+      "safeArea": {
+        "top": 29.7
+      }
+    },
+    "iphone-terang": {
+      "pt": {
+        "width": 402,
+        "height": 874
+      },
+      "warnaKunci": [
+        0,
+        255,
+        0
+      ],
+      "gambar": {
+        "width": 1088,
+        "height": 2234
+      },
+      "sudutLayar": {
+        "px": {
+          "kiriAtas": [
+            47.78,
+            39.95
+          ],
+          "kananAtas": [
+            1040.17,
+            39.95
+          ],
+          "kananBawah": [
+            1040.17,
+            2194.05
+          ],
+          "kiriBawah": [
+            47.78,
+            2194.05
+          ]
+        },
+        "persen": {
+          "kiriAtas": [
+            4.3915,
+            1.7883
+          ],
+          "kananAtas": [
+            95.6039,
+            1.7883
+          ],
+          "kananBawah": [
+            95.6039,
+            98.2117
+          ],
+          "kiriBawah": [
+            4.3915,
+            98.2117
+          ]
+        }
+      },
+      "berkas": {
+        "utuh": [
+          {
+            "width": 1088,
+            "height": 2234,
+            "png": "iphone-terang-1088.png",
+            "webp": "iphone-terang-1088.webp",
+            "bytes": {
+              "png": 139981,
+              "webp": 24782
+            }
+          },
+          {
+            "width": 600,
+            "height": 1232,
+            "png": "iphone-terang-600.png",
+            "webp": "iphone-terang-600.webp",
+            "bytes": {
+              "png": 68616,
+              "webp": 14338
+            }
+          }
+        ],
+        "tanpa-status": [
+          {
+            "width": 1088,
+            "height": 2234,
+            "png": "iphone-terang-tanpa-status-1088.png",
+            "webp": "iphone-terang-tanpa-status-1088.webp",
+            "bytes": {
+              "png": 137824,
+              "webp": 23784
+            }
+          },
+          {
+            "width": 600,
+            "height": 1232,
+            "png": "iphone-terang-tanpa-status-600.png",
+            "webp": "iphone-terang-tanpa-status-600.webp",
+            "bytes": {
+              "png": 66346,
+              "webp": 13262
+            }
+          }
+        ]
+      },
+      "pxPerPt": 2.4677,
+      "layar": {
+        "x": 48,
+        "y": 42,
+        "width": 992,
+        "height": 2150,
+        "persen": {
+          "left": 4.4118,
+          "top": 1.88,
+          "width": 91.1765,
+          "height": 96.2399
+        }
+      },
+      "sudutLengkung": {
+        "radiusPt": 62.5,
+        "panjangPt": 152.8
+      },
+      "dynamicIsland": {
+        "x": 153.99,
+        "y": 13.78,
+        "width": 93.61,
+        "height": 35.66
+      },
+      "statusBar": {
+        "height": 63.2,
+        "jam": {
+          "x": 62,
+          "y": 24.31,
+          "width": 26.75,
+          "height": 10.13
+        },
+        "ikon": {
+          "x": 288.13,
+          "y": 23.91,
+          "width": 62.81,
+          "height": 10.54
+        }
+      },
+      "indikatorBeranda": {
+        "x": 142.65,
+        "y": 863.17,
+        "width": 116.3,
+        "height": 3.65
+      },
+      "safeArea": {
+        "top": 63.2,
+        "bottom": 18
+      }
+    },
+    "iphone-gelap": {
+      "pt": {
+        "width": 402,
+        "height": 874
+      },
+      "warnaKunci": [
+        0,
+        255,
+        0
+      ],
+      "gambar": {
+        "width": 1088,
+        "height": 2234
+      },
+      "sudutLayar": {
+        "px": {
+          "kiriAtas": [
+            47.78,
+            39.95
+          ],
+          "kananAtas": [
+            1040.17,
+            39.95
+          ],
+          "kananBawah": [
+            1040.17,
+            2194.05
+          ],
+          "kiriBawah": [
+            47.78,
+            2194.05
+          ]
+        },
+        "persen": {
+          "kiriAtas": [
+            4.3915,
+            1.7883
+          ],
+          "kananAtas": [
+            95.6039,
+            1.7883
+          ],
+          "kananBawah": [
+            95.6039,
+            98.2117
+          ],
+          "kiriBawah": [
+            4.3915,
+            98.2117
+          ]
+        }
+      },
+      "berkas": {
+        "utuh": [
+          {
+            "width": 1088,
+            "height": 2234,
+            "png": "iphone-gelap-1088.png",
+            "webp": "iphone-gelap-1088.webp",
+            "bytes": {
+              "png": 140224,
+              "webp": 24924
+            }
+          },
+          {
+            "width": 600,
+            "height": 1232,
+            "png": "iphone-gelap-600.png",
+            "webp": "iphone-gelap-600.webp",
+            "bytes": {
+              "png": 68891,
+              "webp": 14476
+            }
+          }
+        ],
+        "tanpa-status": [
+          {
+            "width": 1088,
+            "height": 2234,
+            "png": "iphone-gelap-tanpa-status-1088.png",
+            "webp": "iphone-gelap-tanpa-status-1088.webp",
+            "bytes": {
+              "png": 137832,
+              "webp": 23818
+            }
+          },
+          {
+            "width": 600,
+            "height": 1232,
+            "png": "iphone-gelap-tanpa-status-600.png",
+            "webp": "iphone-gelap-tanpa-status-600.webp",
+            "bytes": {
+              "png": 66373,
+              "webp": 13382
+            }
+          }
+        ]
+      },
+      "pxPerPt": 2.4677,
+      "layar": {
+        "x": 48,
+        "y": 42,
+        "width": 992,
+        "height": 2150,
+        "persen": {
+          "left": 4.4118,
+          "top": 1.88,
+          "width": 91.1765,
+          "height": 96.2399
+        }
+      },
+      "sudutLengkung": {
+        "radiusPt": 62.5,
+        "panjangPt": 152.8
+      },
+      "dynamicIsland": {
+        "x": 153.99,
+        "y": 13.78,
+        "width": 93.61,
+        "height": 35.66
+      },
+      "statusBar": {
+        "height": 63.2,
+        "jam": {
+          "x": 62,
+          "y": 23.91,
+          "width": 27.15,
+          "height": 10.54
+        },
+        "ikon": {
+          "x": 288.13,
+          "y": 23.91,
+          "width": 62.81,
+          "height": 10.54
+        }
+      },
+      "indikatorBeranda": {
+        "x": 142.65,
+        "y": 863.17,
+        "width": 116.3,
+        "height": 3.65
+      },
+      "safeArea": {
+        "top": 63.2,
+        "bottom": 18
+      }
+    },
+    "iphone-kiri-terang": {
+      "pt": {
+        "width": 402,
+        "height": 874
+      },
+      "warnaKunci": [
+        0,
+        255,
+        0
+      ],
+      "gambar": {
+        "width": 803,
+        "height": 2231
+      },
+      "sudutLayar": {
+        "px": {
+          "kiriAtas": [
+            119.33,
+            3.47
+          ],
+          "kananAtas": [
+            775.84,
+            187.09
+          ],
+          "kananBawah": [
+            788.13,
+            2188.03
+          ],
+          "kiriBawah": [
+            110.33,
+            2190.83
+          ]
+        },
+        "persen": {
+          "kiriAtas": [
+            14.8605,
+            0.1555
+          ],
+          "kananAtas": [
+            96.6177,
+            8.3859
+          ],
+          "kananBawah": [
+            98.1482,
+            98.074
+          ],
+          "kiriBawah": [
+            13.7397,
+            98.1995
+          ]
+        }
+      },
+      "berkas": {
+        "utuh": [
+          {
+            "width": 803,
+            "height": 2231,
+            "png": "iphone-kiri-terang-803.png",
+            "webp": "iphone-kiri-terang-803.webp",
+            "bytes": {
+              "png": 173966,
+              "webp": 36680
+            }
+          }
+        ],
+        "mask": {
+          "width": 803,
+          "height": 2231,
+          "png": "iphone-kiri-terang-mask.png",
+          "webp": "iphone-kiri-terang-mask.webp",
+          "bytes": {
+            "png": 35727,
+            "webp": 12832
+          }
+        }
+      }
+    },
+    "iphone-kiri-gelap": {
+      "pt": {
+        "width": 402,
+        "height": 874
+      },
+      "warnaKunci": [
+        0,
+        255,
+        0
+      ],
+      "gambar": {
+        "width": 803,
+        "height": 2231
+      },
+      "sudutLayar": {
+        "px": {
+          "kiriAtas": [
+            119.33,
+            3.47
+          ],
+          "kananAtas": [
+            775.84,
+            187.09
+          ],
+          "kananBawah": [
+            788.13,
+            2188.03
+          ],
+          "kiriBawah": [
+            110.33,
+            2190.83
+          ]
+        },
+        "persen": {
+          "kiriAtas": [
+            14.8605,
+            0.1555
+          ],
+          "kananAtas": [
+            96.6177,
+            8.3859
+          ],
+          "kananBawah": [
+            98.1482,
+            98.074
+          ],
+          "kiriBawah": [
+            13.7397,
+            98.1995
+          ]
+        }
+      },
+      "berkas": {
+        "utuh": [
+          {
+            "width": 803,
+            "height": 2231,
+            "png": "iphone-kiri-gelap-803.png",
+            "webp": "iphone-kiri-gelap-803.webp",
+            "bytes": {
+              "png": 174246,
+              "webp": 36910
+            }
+          }
+        ],
+        "mask": {
+          "width": 803,
+          "height": 2231,
+          "png": "iphone-kiri-gelap-mask.png",
+          "webp": "iphone-kiri-gelap-mask.webp",
+          "bytes": {
+            "png": 35776,
+            "webp": 12926
+          }
+        }
+      }
+    },
+    "iphone-kanan-terang": {
+      "pt": {
+        "width": 402,
+        "height": 874
+      },
+      "warnaKunci": [
+        0,
+        255,
+        0
+      ],
+      "gambar": {
+        "width": 803,
+        "height": 2231
+      },
+      "sudutLayar": {
+        "px": {
+          "kiriAtas": [
+            27.69,
+            186.56
+          ],
+          "kananAtas": [
+            683.18,
+            3.35
+          ],
+          "kananBawah": [
+            694.89,
+            2190.69
+          ],
+          "kiriBawah": [
+            14.11,
+            2188.07
+          ]
+        },
+        "persen": {
+          "kiriAtas": [
+            3.4483,
+            8.3622
+          ],
+          "kananAtas": [
+            85.0785,
+            0.1502
+          ],
+          "kananBawah": [
+            86.5367,
+            98.1932
+          ],
+          "kiriBawah": [
+            1.7572,
+            98.0758
+          ]
+        }
+      },
+      "berkas": {
+        "utuh": [
+          {
+            "width": 803,
+            "height": 2231,
+            "png": "iphone-kanan-terang-803.png",
+            "webp": "iphone-kanan-terang-803.webp",
+            "bytes": {
+              "png": 179111,
+              "webp": 37318
+            }
+          }
+        ],
+        "mask": {
+          "width": 803,
+          "height": 2231,
+          "png": "iphone-kanan-terang-mask.png",
+          "webp": "iphone-kanan-terang-mask.webp",
+          "bytes": {
+            "png": 36583,
+            "webp": 13264
+          }
+        }
+      }
+    },
+    "iphone-kanan-gelap": {
+      "pt": {
+        "width": 402,
+        "height": 874
+      },
+      "warnaKunci": [
+        0,
+        255,
+        0
+      ],
+      "gambar": {
+        "width": 803,
+        "height": 2231
+      },
+      "sudutLayar": {
+        "px": {
+          "kiriAtas": [
+            27.69,
+            186.56
+          ],
+          "kananAtas": [
+            683.18,
+            3.35
+          ],
+          "kananBawah": [
+            694.89,
+            2190.69
+          ],
+          "kiriBawah": [
+            14.11,
+            2188.07
+          ]
+        },
+        "persen": {
+          "kiriAtas": [
+            3.4483,
+            8.3622
+          ],
+          "kananAtas": [
+            85.0785,
+            0.1502
+          ],
+          "kananBawah": [
+            86.5367,
+            98.1932
+          ],
+          "kiriBawah": [
+            1.7572,
+            98.0758
+          ]
+        }
+      },
+      "berkas": {
+        "utuh": [
+          {
+            "width": 803,
+            "height": 2231,
+            "png": "iphone-kanan-gelap-803.png",
+            "webp": "iphone-kanan-gelap-803.webp",
+            "bytes": {
+              "png": 179255,
+              "webp": 37360
+            }
+          }
+        ],
+        "mask": {
+          "width": 803,
+          "height": 2231,
+          "png": "iphone-kanan-gelap-mask.png",
+          "webp": "iphone-kanan-gelap-mask.webp",
+          "bytes": {
+            "png": 36651,
+            "webp": 13254
+          }
+        }
+      }
+    }
+  }
+}

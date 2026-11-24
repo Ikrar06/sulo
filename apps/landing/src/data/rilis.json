@@ -1,0 +1,9 @@
+{
+  "android": { "tersedia": false, "versi": "", "url": "", "ukuranByte": 0, "sha256": "", "sidikSertifikat": "", "androidMin": "8.0" },
+  "ekstensi": { "tersedia": false, "versi": "", "url": "", "ukuranByte": 0, "sha256": "" },
+  "toko": {
+    "chrome": { "status": "belum", "url": "" },
+    "edge": { "status": "belum", "url": "" }
+  },
+  "minatIos": { "aktif": false }
+}

@@ -1,0 +1,41 @@
+---
+// Every landing page's document: language, title, the stylesheet, and one
+// line of script that tells the page which download to put first (Android,
+// Chrome, Edge, iPhone or another browser), from the browser alone. Nothing
+// is sent anywhere; without it both downloads show side by side.
+import '../styles/landing.css';
+import { teks, type Bahasa } from '../teks';
+
+interface Props {
+  bahasa: Bahasa;
+  judul: string;
+  deskripsi?: string;
+  noindex?: boolean;
+}
+const { bahasa, judul, deskripsi, noindex = false } = Astro.props;
+---
+<!doctype html>
+<html lang={bahasa}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{judul}</title>
+    {deskripsi && <meta name="description" content={deskripsi} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>
+      (function () {
+        var u = navigator.userAgent, p = 'lain';
+        if (/Android/i.test(u)) p = 'android';
+        else if (/iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1)) p = 'ios';
+        else if (/Edg\//.test(u)) p = 'edge';
+        else if (/Chrome\//.test(u) && !/OPR\//.test(u)) p = 'chrome';
+        document.documentElement.setAttribute('data-perangkat', p);
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="lewati" href="#isi">{teks[bahasa].lewati}</a>
+    <slot />
+  </body>
+</html>

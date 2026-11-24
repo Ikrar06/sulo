@@ -1,0 +1,11 @@
+/* The extension's dashboard inside the landing page's MacBook frame: the
+   extension's own stylesheet, with its components as sources (the extension
+   finds them itself when it builds). No scrolling inside the device. */
+@import "../../../extension/assets/tailwind.css";
+@source "../../../extension/components";
+@source "../../../extension/lib";
+
+html,
+body {
+  overflow: hidden;
+}

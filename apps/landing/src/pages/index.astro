@@ -1,0 +1,11 @@
+---
+// The home page. Phase 1: the hero alone (the rest of the page comes in phase 2).
+import Nav from '../komponen/Nav.astro';
+import Pembuka from '../komponen/Pembuka.astro';
+import Dasar from '../tata/Dasar.astro';
+import { teks } from '../teks';
+---
+<Dasar bahasa="id" judul={`Sulo, ${teks.id.judul.replace(/\.$/, '')}`} noindex>
+  <Nav bahasa="id" />
+  <main><Pembuka bahasa="id" pratinjau /></main>
+</Dasar>

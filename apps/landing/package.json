@@ -1,0 +1,34 @@
+{
+  "name": "@sulo/landing",
+  "version": "0.9.1",
+  "private": true,
+  "description": "Sulo's landing page: static pages, the apps' own UI rendered from their code with sample data.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
+    "typecheck": "tsc --noEmit -p .",
+    "bingkai": "node scripts/olah-bingkai.mjs",
+    "check:bingkai": "node scripts/check-bingkai.mjs",
+    "miring": "node scripts/layar-miring.mjs",
+    "potret": "node scripts/potret.mjs"
+  },
+  "dependencies": {
+    "@sulo/core": "workspace:*",
+    "@sulo/ui": "workspace:*",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@astrojs/react": "7.1.9",
+    "@tailwindcss/vite": "4.3.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "astro": "7.4.13",
+    "playwright": "1.62.1",
+    "tailwindcss": "4.3.5",
+    "typescript": "5.9.3"
+  }
+}

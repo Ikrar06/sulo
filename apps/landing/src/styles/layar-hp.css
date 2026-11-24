@@ -1,0 +1,9 @@
+/* A phone screen inside the landing page's iPhone frame: the Android app's own
+   stylesheet, as it is. The page never scrolls inside the device (scrolling
+   over it moves the landing page), and the frame draws the status bar. */
+@import "../../../mobile/src/styles.css";
+
+html,
+body {
+  overflow: hidden;
+}

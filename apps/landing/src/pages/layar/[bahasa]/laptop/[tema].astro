@@ -1,0 +1,27 @@
+---
+// The extension's dashboard (Ringkasan), for the landing page's MacBook frame
+// (an iframe 1512 pt wide). "auto" follows the visitor's light or dark setting.
+import { LayarLaptop } from '../../../../layar/LayarLaptop';
+import { dataContoh } from '../../../../layar/contoh';
+import { BAHASA, teks, type Bahasa } from '../../../../teks';
+import '../../../../styles/layar-laptop.css';
+
+export function getStaticPaths() {
+  return BAHASA.flatMap((bahasa) => ['auto', 'terang', 'gelap'].map((tema) => ({ params: { bahasa, tema } })));
+}
+const { bahasa, tema } = Astro.params as { bahasa: Bahasa; tema: 'auto' | 'terang' | 'gelap' };
+const data = await dataContoh(bahasa);
+const theme = tema === 'auto' ? undefined : tema === 'gelap' ? 'dark' : 'light';
+---
+<html lang={bahasa} data-theme={theme}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content={theme ?? 'light dark'} />
+    <title>{teks[bahasa].layarLaptop}</title>
+  </head>
+  <body>
+    <div id="root"><LayarLaptop data={data} bahasa={bahasa} /></div>
+  </body>
+</html>

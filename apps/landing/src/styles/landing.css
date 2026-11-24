@@ -1,0 +1,644 @@
+/* Sulo's landing page. The apps' own stylesheet first (tokens, fonts, the
+   phone's classes, for the UI pieces drawn from the app's parts), then the
+   page's own styles. Colours are the apps' tokens; the only new colours are
+   the sky's (hero, "Sehari bareng Sulo", the closing block). */
+@import "../../../mobile/src/styles.css";
+@source "../";
+
+/* ---------- The page's base (the app's html and body rules are an app shell's) ---------- */
+
+:root {
+  --isi: 1180px;
+  --pinggir: 16px;
+  --tinta: var(--text);
+  --abu: var(--muted);
+  --garis: var(--border);
+  --kartu: var(--surface);
+  /* The sky: a and b are a gentle morning, c the plain page with a dot grid. Kept close in light and darkness. */
+  --langit-a-1: #fff1e3;
+  --langit-a-2: #fff8f1;
+  --langit-b-1: #e3eefa;
+  --langit-b-2: #f2f7fd;
+  --titik: rgb(17 17 20 / 0.09);
+  --awan: rgb(255 255 255 / 0.75);
+  --cahaya: rgb(255 158 64 / 0.22);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --langit-a-1: #1d130d;
+    --langit-a-2: #130e0c;
+    --langit-b-1: #0e1522;
+    --langit-b-2: #0c1018;
+    --titik: rgb(255 255 255 / 0.07);
+    --awan: rgb(255 255 255 / 0.035);
+    --cahaya: rgb(255 140 50 / 0.13);
+  }
+}
+:root[data-theme="dark"] {
+  --langit-a-1: #1d130d;
+  --langit-a-2: #130e0c;
+  --langit-b-1: #0e1522;
+  --langit-b-2: #0c1018;
+  --titik: rgb(255 255 255 / 0.07);
+  --awan: rgb(255 255 255 / 0.035);
+  --cahaya: rgb(255 140 50 / 0.13);
+}
+@media (min-width: 640px) {
+  :root { --pinggir: 24px; }
+}
+@media (min-width: 1024px) {
+  :root { --pinggir: 32px; }
+}
+
+html,
+body,
+#root {
+  height: auto;
+}
+body {
+  padding: 0;
+  background: var(--bg);
+  color: var(--tinta);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+.lewati {
+  position: absolute;
+  left: var(--pinggir);
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--kartu);
+  color: var(--tinta);
+}
+.lewati:focus-visible {
+  top: 12px;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+:where(a, button):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Nav ---------- */
+
+.nav {
+  position: absolute;
+  inset: 12px 0 auto;
+  z-index: 50;
+  padding-inline: var(--pinggir);
+}
+.nav-pil {
+  margin-inline: auto;
+  max-width: var(--isi);
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--garis);
+  background: color-mix(in oklch, var(--kartu) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.nav-merek {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.nav-merek img {
+  width: 28px;
+  height: 28px;
+}
+.nav-tautan {
+  display: none;
+  margin-inline: auto;
+  gap: 4px;
+}
+.nav-tautan a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 12px;
+  border-radius: 999px;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+.nav-tautan a:hover {
+  background: var(--m-inset);
+}
+.nav-ujung {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-kecil {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 10px;
+  border-radius: 999px;
+  color: var(--tinta);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: none;
+  border: 0;
+}
+.nav-kecil:hover {
+  background: var(--m-inset);
+}
+.nav-kecil svg {
+  width: 20px;
+  height: 20px;
+}
+.nav-menu {
+  display: inline-flex;
+}
+@media (min-width: 900px) {
+  .nav-tautan,
+  .nav-kecil {
+    display: inline-flex;
+  }
+  .nav-menu {
+    display: none;
+  }
+  .nav-ujung {
+    margin-left: 0;
+  }
+}
+
+/* ---------- Buttons ---------- */
+
+.tombol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 120ms ease-out;
+}
+.tombol:active {
+  transform: scale(0.96);
+}
+.tombol--utama {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.tombol--kedua {
+  background: var(--m-inset);
+  color: var(--tinta);
+}
+.tombol--tinta {
+  background: var(--tinta);
+  color: var(--bg);
+}
+.tombol--kecil {
+  min-height: 44px;
+  padding: 8px 16px;
+  font-size: 0.9375rem;
+}
+.tombol-ukuran {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.72;
+}
+.tombol[aria-disabled="true"] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Which download button leads: set by one line of script from the browser alone (nothing is sent).
+   Without it both downloads show, side by side. */
+[data-untuk] {
+  display: none;
+}
+html:not([data-perangkat]) [data-untuk~="tanpa-js"],
+html[data-perangkat="android"] [data-untuk~="android"],
+html[data-perangkat="chrome"] [data-untuk~="desktop"],
+html[data-perangkat="edge"] [data-untuk~="desktop"],
+html[data-perangkat="lain"] [data-untuk~="desktop-lain"],
+html[data-perangkat="ios"] [data-untuk~="ios"] {
+  display: inline-flex;
+}
+p[data-untuk] {
+  display: none;
+}
+html:not([data-perangkat]) p[data-untuk~="tanpa-js"],
+html[data-perangkat="chrome"] p[data-untuk~="desktop"],
+html[data-perangkat="edge"] p[data-untuk~="desktop"],
+html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
+  display: block;
+}
+
+/* ---------- Hero ---------- */
+
+.pembuka {
+  position: relative;
+  isolation: isolate;
+  padding: 104px var(--pinggir) 0;
+  overflow: clip;
+}
+.pembuka-langit {
+  position: absolute;
+  inset: 0 0 auto;
+  height: min(100%, 980px);
+  z-index: -1;
+  pointer-events: none;
+}
+.pembuka[data-latar="a"] .pembuka-langit {
+  background: linear-gradient(180deg, var(--langit-a-1) 0%, var(--langit-a-2) 58%, var(--bg) 100%);
+}
+.pembuka[data-latar="b"] .pembuka-langit {
+  background: linear-gradient(180deg, var(--langit-b-1) 0%, var(--langit-b-2) 58%, var(--bg) 100%);
+}
+.pembuka[data-latar="c"] .pembuka-langit {
+  background-image: radial-gradient(circle at 1px 1px, var(--titik) 1px, transparent 1.6px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+}
+.pembuka-awan {
+  position: absolute;
+  color: var(--awan);
+}
+/* At night the clouds would read as grey blobs: the dark sky has none. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .pembuka-awan { display: none; }
+}
+:root[data-theme="dark"] .pembuka-awan { display: none; }
+.pembuka-awan--1 {
+  top: 140px;
+  left: max(-60px, calc(50% - 720px));
+  width: 260px;
+}
+.pembuka-awan--2 {
+  top: 300px;
+  right: max(-80px, calc(50% - 700px));
+  width: 320px;
+}
+.pembuka-teks {
+  position: relative;
+  max-width: 980px;
+  margin-inline: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pembuka-maskot {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 12px;
+}
+.cahaya {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 280px;
+  height: 280px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--cahaya), transparent);
+  z-index: -1;
+  pointer-events: none;
+}
+.pembuka-cip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+.cip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--garis);
+  background: color-mix(in oklch, var(--kartu) 70%, transparent);
+  color: var(--tinta);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.pembuka-judul {
+  margin: 0;
+  max-width: 20ch;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(2rem, 1.15rem + 3.4vw, 3.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+.judul-abu {
+  color: var(--abu);
+}
+.judul-sorot {
+  background: linear-gradient(transparent 58%, color-mix(in oklch, var(--brand-orange) 30%, transparent) 58%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-inline: 2px;
+}
+.pembuka-pendukung {
+  margin: 20px 0 0;
+  max-width: 34em;
+  color: var(--abu);
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.1875rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.pembuka-tombol {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+.pembuka-catatan {
+  margin: 12px 0 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.pembuka-catatan a {
+  color: inherit;
+}
+.pembuka-dukungan {
+  margin: 10px 0 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.pratinjau {
+  margin: 14px 0 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--status-estimate, var(--muted)) 50%, transparent);
+  color: var(--abu);
+  font-size: 0.8125rem;
+}
+
+/* The devices: the MacBook with the iPhone over its lower right corner (the README hero's arrangement). */
+.panggung {
+  position: relative;
+  max-width: 1040px;
+  margin: 56px auto 0;
+  padding-bottom: 96px;
+}
+.perangkat {
+  position: relative;
+  margin: 0;
+  aspect-ratio: var(--rasio);
+}
+.perangkat-bingkai,
+.perangkat-bingkai img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.perangkat-layar {
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+  container-type: size;
+  background: var(--layer-screen);
+  /* A hair of the screen's colour under the bezel, so rounding never leaves a gap at the edge. */
+  box-shadow: 0 0 0 1px var(--layer-screen);
+}
+.perangkat-isi {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--pt-w);
+  height: var(--pt-h);
+  transform-origin: 0 0;
+  transform: scale(tan(atan2(100cqw, var(--pt-w))), tan(atan2(100cqh, var(--pt-h))));
+}
+.perangkat-isi iframe {
+  position: absolute;
+  left: 0;
+  width: var(--pt-w);
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+.panggung .perangkat--laptop {
+  width: 100%;
+  filter: drop-shadow(0 30px 40px rgb(16 16 24 / 0.16));
+}
+.panggung .perangkat--hp {
+  position: absolute;
+  right: -3%;
+  bottom: 56px;
+  width: 25%;
+  z-index: 3;
+  filter: drop-shadow(0 24px 30px rgb(16 16 24 / 0.22));
+}
+.keterangan-data {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  margin: 0;
+  color: var(--abu);
+  font-size: 0.7812rem;
+  line-height: 1.4;
+  text-align: center;
+}
+.maskot-samping {
+  position: absolute;
+  left: -2%;
+  bottom: 64px;
+  width: 112px;
+  height: 112px;
+  z-index: 4;
+}
+
+/* The UI pieces: around the title on a wide screen, stacked by the phone on a narrow one. */
+.potongan {
+  position: absolute;
+  width: 280px;
+  z-index: 1;
+  filter: drop-shadow(0 14px 22px rgb(16 16 24 / 0.1));
+}
+.potongan--tugas-1 { left: max(0px, calc(50% - 650px)); top: 150px; rotate: -1.2deg; }
+.potongan--presensi { left: max(24px, calc(50% - 610px)); top: 372px; width: 220px; rotate: 0.8deg; }
+.potongan--kalender { right: max(0px, calc(50% - 640px)); top: 170px; width: 240px; rotate: 1deg; }
+.potongan--tugas-2 { right: max(24px, calc(50% - 660px)); top: 372px; rotate: -0.8deg; }
+.potongan-hp {
+  display: none;
+}
+@media (max-width: 1199px) {
+  .pembuka > .potongan {
+    display: none;
+  }
+}
+
+/* Narrow screens: the phone alone, a little left of centre, with two pieces over its right edge. */
+@media (max-width: 767px) {
+  .pembuka {
+    padding-top: 92px;
+  }
+  .pembuka-maskot {
+    width: 72px;
+    height: 72px;
+  }
+  .pembuka-cip {
+    margin-bottom: 16px;
+  }
+  .cip {
+    font-size: 0.8125rem;
+    min-height: 30px;
+    padding: 4px 12px;
+  }
+  .pembuka-pendukung {
+    margin-top: 14px;
+  }
+  .pembuka-tombol {
+    margin-top: 22px;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 360px;
+  }
+  .panggung {
+    max-width: 360px;
+    margin-top: 40px;
+    padding-bottom: 24px;
+  }
+  .panggung .perangkat--laptop {
+    display: none;
+  }
+  .panggung .perangkat--hp {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 60%;
+    margin-left: 4%;
+  }
+  .keterangan-data {
+    position: static;
+    margin-top: 14px;
+  }
+  .potongan-hp {
+    display: block;
+    position: absolute;
+    right: 0;
+    width: 54%;
+    z-index: 4;
+    filter: drop-shadow(0 12px 18px rgb(16 16 24 / 0.14));
+  }
+  .potongan-hp--tugas-3 { top: 20%; }
+  .potongan-hp--presensi { top: 50%; width: 48%; }
+  .maskot-samping {
+    left: auto;
+    right: 4%;
+    bottom: auto;
+    top: -24px;
+    width: 84px;
+    height: 84px;
+  }
+}
+
+/* ---------- Tilted iPhones (phase 1 comparison: the finished picture, or the live screen in CSS) ---------- */
+
+.miring {
+  display: block;
+  position: relative;
+  margin: 0;
+  aspect-ratio: var(--rasio);
+}
+.miring img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.miring--css {
+  container-type: inline-size;
+}
+.miring-ruang {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--bw);
+  height: var(--bh);
+  transform-origin: 0 0;
+  transform: scale(tan(atan2(100cqw, var(--bw))));
+}
+.miring-layar {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+.miring-ui {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 402px;
+  height: 874px;
+  transform-origin: 0 0;
+  background: var(--layer-screen);
+}
+.miring-ui iframe {
+  position: absolute;
+  left: 0;
+  width: 402px;
+  border: 0;
+  pointer-events: none;
+}
+.miring-bingkai {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+}
+.banding-miring {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  justify-content: center;
+  padding: 48px var(--pinggir);
+}
+.banding-miring figure,
+.banding-miring picture {
+  width: 300px;
+}
+.banding-miring h2 {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+}

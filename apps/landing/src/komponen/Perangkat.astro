@@ -1,0 +1,56 @@
+---
+// A device frame with the app's own screen in it (an iframe of /layar/...).
+// The frame is the owner's Figma frame with its screen made transparent
+// (scripts/olah-bingkai.mjs); everything is placed from the measurements in
+// src/data/bingkai.json, so nothing moves when it loads or changes theme.
+//
+// The screen inside is 402 x 874 pt (iPhone) or 1512 x 982 pt (MacBook),
+// scaled to the frame with CSS alone: tan(atan2(a, b)) is a / b as a plain
+// number. The phone's screen sits between the frame's status bar and home
+// indicator (their measured safe areas), on the UI's own background colour.
+//
+// The iPhone frame follows the theme of the UI in it, not the page's: "auto"
+// follows the visitor's setting for both (the picture by media query, the
+// screen by its own), "terang" and "gelap" fix both.
+import bingkai from '../data/bingkai.json';
+import { teks, type Bahasa } from '../teks';
+
+type Tema = 'auto' | 'terang' | 'gelap';
+interface Props {
+  jenis: 'laptop' | 'hp';
+  bahasa: Bahasa;
+  tema?: Tema;
+  class?: string;
+  /** The widths the frame shows at, for the picture's `sizes`. */
+  sizes?: string;
+  muat?: 'eager' | 'lazy';
+}
+const { jenis, bahasa, tema = 'auto', class: kelas = '', sizes = '100vw', muat = 'eager' } = Astro.props;
+const files = import.meta.glob<string>('../assets/bingkai/*.{webp,png}', { eager: true, query: '?url', import: 'default' });
+const url = (name: string) => files[`../assets/bingkai/${name}`]!;
+type Berkas = { width: number; height: number; webp: string; png: string };
+const b = bingkai.bingkai;
+const geo = jenis === 'laptop' ? b.macbook : b['iphone-terang'];
+const varian = (id: 'macbook' | 'iphone-terang' | 'iphone-gelap') => (b[id].berkas.utuh as Berkas[]);
+const srcset = (list: Berkas[]) => list.map((f) => `${url(f.webp)} ${f.width}w`).join(', ');
+const terang = jenis === 'laptop' ? varian('macbook') : varian('iphone-terang');
+const gelap = jenis === 'laptop' ? null : varian('iphone-gelap');
+const terbesar = terang[0]!;
+const L = geo.layar.persen;
+const atas = jenis === 'hp' ? (geo as typeof b['iphone-terang']).safeArea.top : 0;
+const bawah = jenis === 'hp' ? (geo as typeof b['iphone-terang']).safeArea.bottom : 0;
+const theme = tema === 'auto' ? undefined : tema === 'gelap' ? 'dark' : 'light';
+const judul = jenis === 'laptop' ? teks[bahasa].layarLaptop : teks[bahasa].layarHp;
+---
+<figure class:list={['perangkat', `perangkat--${jenis}`, kelas]} style={`--rasio: ${terbesar.width} / ${terbesar.height}`}>
+  <div class="perangkat-layar" data-theme={theme} style={`left: ${L.left}%; top: ${L.top}%; width: ${L.width}%; height: ${L.height}%`}>
+    <div class="perangkat-isi" style={`--pt-w: ${geo.pt.width}px; --pt-h: ${geo.pt.height}px`}>
+      <iframe src={`/layar/${bahasa}/${jenis}/${tema}/`} title={judul} loading={muat} tabindex="-1" style={`top: ${atas}px; height: ${geo.pt.height - atas - bawah}px`}></iframe>
+    </div>
+  </div>
+  <picture class="perangkat-bingkai">
+    {gelap && tema === 'auto' && <source type="image/webp" media="(prefers-color-scheme: dark)" srcset={srcset(gelap)} sizes={sizes} />}
+    <source type="image/webp" srcset={srcset(tema === 'gelap' && gelap ? gelap : terang)} sizes={sizes} />
+    <img src={url((tema === 'gelap' && gelap ? gelap : terang)[0]!.png)} width={terbesar.width} height={terbesar.height} alt="" decoding="async" loading={muat} />
+  </picture>
+</figure>

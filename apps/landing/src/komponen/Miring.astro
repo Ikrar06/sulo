@@ -1,0 +1,47 @@
+---
+// A tilted iPhone (turned left or right). "gambar": the finished picture made
+// at build (scripts/layar-miring.mjs), the recommended way. "css": the live
+// screen bent with matrix3d and cut with the frame's mask, for comparison in
+// phase 1 only.
+import bingkai from '../data/bingkai.json';
+import { teks, type Bahasa } from '../teks';
+import { homografi, matrix3d } from './homografi';
+
+interface Props {
+  arah: 'kiri' | 'kanan';
+  tema: 'terang' | 'gelap';
+  bahasa: Bahasa;
+  cara: 'gambar' | 'css';
+  class?: string;
+}
+const { arah, tema, bahasa, cara, class: kelas = '' } = Astro.props;
+const id = `iphone-${arah}-${tema}` as const;
+const g = bingkai.bingkai[id];
+const W = g.gambar.width;
+const H = g.gambar.height;
+const files = import.meta.glob<string>('../assets/bingkai/*.{webp,png}', { eager: true, query: '?url', import: 'default' });
+const url = (name: string) => files[`../assets/bingkai/${name}`]!;
+const c = g.sudutLayar.px;
+const h = homografi([[0, 0], [402, 0], [402, 874], [0, 874]], [c.kiriAtas as [number, number], c.kananAtas as [number, number], c.kananBawah as [number, number], c.kiriBawah as [number, number]]);
+const atas = bingkai.bingkai['iphone-terang'].safeArea.top;
+const bawah = bingkai.bingkai['iphone-terang'].safeArea.bottom;
+const theme = tema === 'gelap' ? 'dark' : 'light';
+const alt = teks[bahasa].layarHp;
+---
+{cara === 'gambar' ? (
+  <picture class:list={['miring', kelas]} style={`--rasio: ${W} / ${H}`}>
+    <source type="image/webp" srcset={`/miring/${id}-${bahasa}-400.webp 400w, /miring/${id}-${bahasa}-${W}.webp ${W}w`} sizes="300px" />
+    <img src={`/miring/${id}-${bahasa}-${W}.png`} width={W} height={H} alt={alt} decoding="async" />
+  </picture>
+) : (
+  <figure class:list={['miring', 'miring--css', kelas]} style={`--rasio: ${W} / ${H}`}>
+    <div class="miring-ruang" style={`--bw: ${W}px; --bh: ${H}px`}>
+      <div class="miring-layar" style={`-webkit-mask-image: url(${url(`${id}-mask.webp`)}); mask-image: url(${url(`${id}-mask.webp`)})`}>
+        <div class="miring-ui" data-theme={theme} style={`transform: ${matrix3d(h)}`}>
+          <iframe src={`/layar/${bahasa}/hp/${tema}/`} title={alt} tabindex="-1" style={`top: ${atas}px; height: ${874 - atas - bawah}px`}></iframe>
+        </div>
+      </div>
+      <img class="miring-bingkai" src={url(`${id}-${W}.webp`)} width={W} height={H} alt="" />
+    </div>
+  </figure>
+)}

@@ -1,0 +1,33 @@
+---
+// The navigation: a floating pill on a wide screen (logo, links, language,
+// theme, Install), a bar with the logo, Install and a menu on a phone.
+// "Install" goes to the install section, never straight to a download.
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import { teks, type Bahasa } from '../teks';
+import { MatahariIkon, MenuIkon } from './ikon';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = teks[bahasa].nav;
+const rumah = bahasa === 'en' ? '/en/' : '/';
+const lain = bahasa === 'en' ? '/' : '/en/';
+---
+<header class="nav">
+  <nav class="nav-pil" aria-label="Sulo">
+    <a class="nav-merek" href={rumah}><img src={flame} alt="" width="28" height="28" />Sulo</a>
+    <div class="nav-tautan">
+      <a href="#fitur">{t.fitur}</a>
+      <a href="#privasi">{t.privasi}</a>
+      <a href="#pasang">{t.pasang}</a>
+      <a href="#tanya">{t.tanya}</a>
+    </div>
+    <div class="nav-ujung">
+      <a class="nav-kecil" href={lain} hreflang={bahasa === 'en' ? 'id' : 'en'} aria-label={t.bahasaLain}>{bahasa === 'en' ? 'ID' : 'EN'}</a>
+      <button class="nav-kecil" type="button" aria-label={t.tema}><MatahariIkon /></button>
+      <a class="tombol tombol--tinta tombol--kecil" href="#pasang">{t.tombolPasang}</a>
+      <button class="nav-kecil nav-menu" type="button" aria-label="Menu"><MenuIkon /></button>
+    </div>
+  </nav>
+</header>
