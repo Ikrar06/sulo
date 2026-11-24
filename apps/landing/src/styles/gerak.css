@@ -171,6 +171,68 @@
   }
 }
 
+/* ---------- Three more moments tied to the scroll itself (full motion, where the browser can) ---------- */
+
+/* A day with Sulo: each phone travels up its tile as its row crosses the screen, showing more of its screen.
+   The closing block: the torch's light opens as the block arrives. The bento's tilted phone drifts up a little.
+   Transform and opacity only, on the compositor; nothing is hijacked, and without support all of it stands still. */
+@keyframes hp-lewat {
+  from {
+    translate: -50% 16%;
+  }
+  to {
+    translate: -50% -9%;
+  }
+}
+@keyframes cahaya-buka {
+  from {
+    opacity: 0.35;
+    scale: 0.72;
+  }
+}
+@keyframes miring-lewat {
+  from {
+    translate: 0 9%;
+  }
+  to {
+    translate: 0 -5%;
+  }
+}
+@supports (animation-timeline: view()) {
+  /* Named timelines on the tiles: a tile clips its phone (overflow: hidden), which makes it the phone's nearest
+     scroll container, and a bare view() would watch the tile, which never scrolls. */
+  :root[data-gerak="penuh"] .momen-ubin {
+    view-timeline: --momen block;
+  }
+  :root[data-gerak="penuh"] .momen-hp {
+    animation-name: hp-lewat;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --momen;
+    animation-range: entry 0% exit 100%;
+  }
+  :root[data-gerak="penuh"] .penutup {
+    view-timeline: --penutup block;
+  }
+  :root[data-gerak="penuh"] .penutup-cahaya {
+    animation-name: cahaya-buka;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --penutup;
+    animation-range: entry 0% cover 45%;
+  }
+  :root[data-gerak="penuh"] .ubin--perangkat {
+    view-timeline: --perangkat block;
+  }
+  :root[data-gerak="penuh"] .ubin-miring {
+    animation-name: miring-lewat;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --perangkat;
+    animation-range: entry 0% exit 100%;
+  }
+}
+
 /* The stage itself: a little smaller at the top of the page, full size as the pieces land in it. On a laptop,
    in place of its entrance (it is in view from the start); its top centre holds still. */
 @keyframes panggung-tumbuh {

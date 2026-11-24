@@ -4,10 +4,13 @@
   --malam-2: #0b0b10;
   --malam-teks: #f3f3f6;
   --malam-abu: #a6a8b8;
+  /* The room above the mascot and the mascot's size: the light is measured from both (below). */
+  --penutup-atas: clamp(96px, 12vw, 160px);
+  --penutup-maskot: clamp(128px, 18vw, 200px);
   position: relative;
   isolation: isolate;
   overflow: clip;
-  padding: clamp(96px, 12vw, 160px) var(--pinggir);
+  padding: var(--penutup-atas) var(--pinggir);
   background: var(--malam-1);
   color: var(--malam-teks);
   text-align: center;
@@ -21,17 +24,19 @@
   align-items: center;
 }
 .penutup-maskot {
-  width: clamp(128px, 18vw, 200px);
-  height: clamp(128px, 18vw, 200px);
+  width: var(--penutup-maskot);
+  height: var(--penutup-maskot);
   margin-bottom: 28px;
 }
-/* The torch's light: wide and faint, no edge, the only warm thing in the block. */
+/* The torch's light: wide and faint, the only warm thing in the block. A flat ellipse centred on the mascot whose
+   height is twice the way from the mascot's middle to the block's top edge, so the light is spent exactly where
+   the block begins and its edge can never be cut into a line (owner, 24 Nov 2026). */
 .penutup-cahaya {
   position: absolute;
   left: 50%;
-  top: 56%;
-  width: 380%;
-  aspect-ratio: 1;
+  top: 50%;
+  width: calc(var(--penutup-maskot) * 5.6);
+  height: calc(var(--penutup-atas) * 2 + var(--penutup-maskot));
   translate: -50% -50%;
   background: radial-gradient(closest-side, rgb(255 136 48 / 0.26), rgb(255 136 48 / 0.13) 30%, rgb(255 136 48 / 0.05) 60%, rgb(255 136 48 / 0.015) 82%, transparent);
   z-index: -1;

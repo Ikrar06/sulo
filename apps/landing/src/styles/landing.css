@@ -422,8 +422,9 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
      the buttons stay on the first screen. */
   --maskot: clamp(118px, 16svh, 143px);
   /* The lower pieces start under the title's two lines (top padding, mascot, chips, title at its largest), beside
-     the sentence and the buttons, 24 px off the sentence's edge (its 34em at 1.1875rem): a longer title (English)
-     or larger text moves them with it. */
+     the sentence and the buttons: a longer title (English) or larger text moves them with it. They keep their
+     place from when the sentence was 34em wide; the sentence is narrower now (28em, two even lines), which is the
+     air between them (owner's question on the first screen's density, 24 Nov 2026). */
   --potongan-bawah: calc(var(--nav-bawah) + 36px + var(--maskot) + 14px + 2rem + 20px + 2.16 * (48px + 0.75rem) + 16px);
   --potongan-tepi: calc(50% - 20.1875rem - 24px);
   position: relative;
@@ -583,11 +584,11 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
 }
 .pembuka-pendukung {
   margin: 20px 0 0;
-  max-width: 34em;
+  max-width: 28em;
   color: var(--abu);
   font-size: clamp(1rem, 0.9rem + 0.35vw, 1.1875rem);
   line-height: 1.55;
-  text-wrap: pretty;
+  text-wrap: balance;
 }
 .pembuka-aman {
   color: var(--tinta);

@@ -1,20 +1,22 @@
-/* Privacy: the plain page, no tinted panel. On a wide screen the title stays on the left while the facts go by on
-   the right, each group under a hairline. Serious and calm (brief 4.1): no gradient, no colour but the ink. */
+/* Privacy: the plain page, no tinted panel. On a wide screen the claim and its proof (the title, then the map of
+   what your device talks to) stay on the left while the details go by on the right, each group under a hairline.
+   Serious and calm (brief 4.1): no gradient, no colour but the ink. */
 .privasi-panel {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  column-gap: clamp(40px, 7vw, 104px);
+  grid-template-columns: minmax(0, 6fr) minmax(0, 7fr);
+  column-gap: clamp(40px, 6vw, 88px);
+  align-items: start;
 }
-.privasi-panel > * {
-  grid-column: 2;
-}
-.privasi-panel > .bagian-kepala {
-  grid-column: 1;
-  grid-row: 1 / span 12;
-  align-self: start;
+.privasi-kiri {
   position: sticky;
   top: calc(var(--nav-bawah) + 32px);
-  margin-bottom: 0;
+  min-width: 0;
+}
+.privasi-kiri .bagian-kepala {
+  margin-bottom: 28px;
+}
+.privasi-kanan {
+  min-width: 0;
 }
 .privasi h3 {
   margin: 0 0 12px;
@@ -116,9 +118,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px 40px;
-  margin-top: 36px;
-  padding-top: 32px;
-  border-top: 1px solid var(--garis);
 }
 .privasi-daftar {
   margin: 0;
@@ -248,18 +247,13 @@
   font-size: 0.875rem;
   line-height: 1.55;
 }
-@media (max-width: 56.1875em) {
+@media (max-width: 63.9375em) {
   .privasi-panel {
     grid-template-columns: minmax(0, 1fr);
+    row-gap: 36px;
   }
-  .privasi-panel > *,
-  .privasi-panel > .bagian-kepala {
-    grid-column: 1;
-    grid-row: auto;
-  }
-  .privasi-panel > .bagian-kepala {
+  .privasi-kiri {
     position: static;
-    margin-bottom: clamp(28px, 4vw, 40px);
   }
 }
 @media (max-width: 47.9375em) {

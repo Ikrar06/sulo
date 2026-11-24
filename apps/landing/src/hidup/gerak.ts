@@ -27,6 +27,60 @@ function sekaliSaatTerlihat(el: Element, buat: () => Animation[]): void {
   io.observe(el);
 }
 
+/**
+ * Things that rise into place once, as they are reached. Until then they are held by a plain inline style (no
+ * animation, so no layer is kept waiting); the animation takes over the moment they are seen and leaves nothing
+ * behind. `anak`: the element's children one after another. `masing`: each child on its own, when it is reached
+ * itself, a little later the further right it sits.
+ */
+const NAIK: [selector: string, cara: 'satu' | 'anak' | 'masing'][] = [
+  ['.bagian-kepala', 'anak'],
+  ['.fakta-daftar', 'anak'],
+  ['.sumber-daftar', 'anak'],
+  ['.bento-grid', 'masing'],
+  ['.privasi-peta', 'satu'],
+  ['.privasi-alamat', 'anak'],
+  ['.privasi-daftar', 'anak'],
+  ['.privasi-izin', 'anak'],
+  ['.privasi-bawah', 'satu'],
+  ['.pasang-grid', 'masing'],
+  ['.tanya-gambar', 'satu'],
+  ['.tanya-daftar', 'anak'],
+  ['.penutup-isi', 'anak'],
+];
+
+function naikkan(pengamat: Element, target: HTMLElement[], tunda: (i: number, el: HTMLElement) => number): void {
+  if (!target.length) return;
+  for (const el of target) {
+    el.style.opacity = '0';
+    el.style.translate = '0 18px';
+  }
+  const io = new IntersectionObserver(
+    (entri) => {
+      if (!entri.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      target.forEach((el, i) => {
+        el.style.opacity = '';
+        el.style.translate = '';
+        el.animate([{ opacity: 0, translate: '0 18px' }, { opacity: 1, translate: '0 0' }], { duration: 560, delay: tunda(i, el), easing: MASUK, fill: 'backwards' });
+      });
+    },
+    { threshold: 0.12 },
+  );
+  io.observe(pengamat);
+}
+
+function siapkanNaik(): void {
+  for (const [selector, cara] of NAIK) {
+    for (const wadah of document.querySelectorAll<HTMLElement>(selector)) {
+      const anak = [...wadah.children].filter((c): c is HTMLElement => c instanceof HTMLElement);
+      if (cara === 'satu') naikkan(wadah, [wadah], () => 0);
+      else if (cara === 'anak') naikkan(wadah, anak, (i) => Math.min(i, 8) * JARAK);
+      else for (const el of anak) naikkan(el, [el], (_, e) => Math.round((e.getBoundingClientRect().left / Math.max(1, innerWidth)) * 180));
+    }
+  }
+}
+
 /** The pieces' targets: for each, the row or card in the laptop's screen that shows the same words. */
 function ukurTujuan(): void {
   const iframe = document.querySelector<HTMLIFrameElement>('.pembuka .perangkat--laptop iframe');
@@ -150,9 +204,12 @@ function siapkanSekali(): void {
     const hp = momen.querySelector('.momen-hp');
     const teks = momen.querySelector('.momen-teks');
     if (!ubin || !hp || !teks) continue;
+    // Where the browser can tie the phone to the scroll (gerak.css), it travels up its tile as the row passes, and
+    // needs no entrance of its own here.
+    const terikatGulir = gerak === 'penuh' && CSS.supports('animation-timeline: view()');
     sekaliSaatTerlihat(ubin, () => [
       ubin.animate([{ opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1 }], { duration: 520, easing: CERITA, fill: 'backwards' }),
-      hp.animate([{ translate: '-50% 72px' }, { translate: '-50% 0' }], { duration: 820, delay: 60, easing: CERITA, fill: 'backwards' }),
+      ...(terikatGulir ? [] : [hp.animate([{ translate: '-50% 72px' }, { translate: '-50% 0' }], { duration: 820, delay: 60, easing: CERITA, fill: 'backwards' })]),
       teks.animate([{ opacity: 0, translate: '0 14px' }, { opacity: 1, translate: '0 0' }], { duration: 460, delay: 140, easing: MASUK, fill: 'backwards' }),
     ]);
   }
@@ -168,6 +225,7 @@ function siapkanArus(): void {
 }
 
 if (gerak !== 'diam') {
+  siapkanNaik();
   siapkanSekali();
   if (gerak === 'penuh') siapkanArus();
   if (gerak === 'penuh' && CSS.supports('animation-timeline: scroll()')) siapkanPotongan();
