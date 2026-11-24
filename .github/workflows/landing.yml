@@ -31,9 +31,12 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
-      # The build photographs the app's screens for the tilted iPhones, and the layout check measures every page.
+      # The build photographs the app's screens for the tilted iPhones (and encodes them with cwebp), and the layout
+      # check measures every page.
       - name: Chromium untuk Playwright
         run: pnpm --filter @sulo/landing exec playwright install --with-deps chromium
+      - name: cwebp untuk gambar iPhone miring
+        run: sudo apt-get install -y --no-install-recommends webp
       - name: Typecheck
         run: pnpm --filter @sulo/landing typecheck
       - name: Test (penghitung minat, aturan teks, CSP, tingkat gerak)
