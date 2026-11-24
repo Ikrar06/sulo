@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 // CI check of the security headers (brief 9.4) on the built site: every page
 // has its CSP meta tag first after the charset, every inline script that runs
-// is hashed in it, no policy allows eval, and dist/_headers carries the full
-// set (the device screens framed by this site only, every other page by no
-// one; no referrer; no sniffing; unused features off).
+// and every inline style is hashed in it, no policy allows eval or inline
+// code without a hash, and dist/_headers carries the rest (the device screens
+// framed by this site only, every other page by no one; no referrer; no
+// sniffing; unused features off).
 //
 //   node apps/landing/scripts/check-keamanan.mjs [--dist=<folder>]
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { BATAS_BARIS_HEADERS, hashSkripSebaris } from './lib/aturan-keamanan.mjs';
+import { BATAS_BARIS_HEADERS, hashGayaSebaris, hashSkripSebaris } from './lib/aturan-keamanan.mjs';
 
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const DIST = resolve(arg('dist', new URL('../dist', import.meta.url).pathname));
@@ -26,11 +27,17 @@ for (const file of semuaHtml(DIST)) {
   }
   const csp = m[1];
   if (/unsafe-eval/.test(csp)) masalah.push(`${nama}: CSP mengizinkan unsafe-eval`);
-  // style-src-elem 'self': a <style> element in the page (in an SVG too) would be blocked.
-  if (/<style[\s>]/i.test(html)) masalah.push(`${nama}: ada elemen <style> sebaris (diblokir style-src-elem 'self')`);
   if (!csp.startsWith("default-src 'self'")) masalah.push(`${nama}: CSP tidak diawali default-src 'self'`);
-  for (const h of hashSkripSebaris(html, (isi) => createHash('sha256').update(isi).digest('base64'))) {
-    if (!csp.includes(`'sha256-${h}'`)) masalah.push(`${nama}: skrip sebaris tanpa hash di CSP (sha256-${h})`);
+  const sha = (isi) => createHash('sha256').update(isi).digest('base64');
+  const sumberSkrip = /script-src ([^;]+)/.exec(csp)?.[1] ?? '';
+  const elemGaya = /style-src-elem ([^;]+)/.exec(csp)?.[1] ?? '';
+  if (/'unsafe-inline'/.test(sumberSkrip) || /'unsafe-inline'/.test(elemGaya)) masalah.push(`${nama}: unsafe-inline untuk skrip atau elemen gaya`);
+  for (const h of hashSkripSebaris(html, sha)) {
+    if (!sumberSkrip.includes(`'sha256-${h}'`)) masalah.push(`${nama}: skrip sebaris tanpa hash di CSP (sha256-${h})`);
+  }
+  // A <style> element (in an SVG too) applies only with its hash in style-src-elem.
+  for (const h of hashGayaSebaris(html, sha)) {
+    if (!elemGaya.includes(`'sha256-${h}'`)) masalah.push(`${nama}: gaya sebaris tanpa hash di CSP (sha256-${h})`);
   }
 }
 const pathHeaders = join(DIST, '_headers');

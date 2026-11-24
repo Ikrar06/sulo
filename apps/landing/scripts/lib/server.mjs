@@ -1,6 +1,9 @@
 // A small static server for the built site (dist/), for the screenshot and
 // check scripts: no dependency, nothing but files, never on a public address.
+// Text is gzipped when the browser asks, as any real host does, so a local
+// Lighthouse run weighs the page as visitors will receive it.
 import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createGzip } from 'node:zlib';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 
@@ -38,7 +41,14 @@ export function serve(root) {
       else res.end('404');
       return;
     }
-    res.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' });
+    const type = TYPES[extname(file)] ?? 'application/octet-stream';
+    const teks = /^(text\/|application\/(json|xml)|image\/svg)/.test(type);
+    if (teks && /\bgzip\b/.test(req.headers['accept-encoding'] ?? '')) {
+      res.writeHead(200, { 'content-type': type, 'content-encoding': 'gzip', vary: 'accept-encoding' });
+      createReadStream(file).pipe(createGzip()).pipe(res);
+      return;
+    }
+    res.writeHead(200, { 'content-type': type });
     createReadStream(file).pipe(res);
   });
   return new Promise((ok) => {

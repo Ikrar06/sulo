@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
-    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build && node scripts/layar-miring.mjs && node scripts/keamanan.mjs",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build && node scripts/layar-miring.mjs && node scripts/sebaris.mjs && node scripts/keamanan.mjs",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "typecheck": "tsc --noEmit -p .",
     "bingkai": "node scripts/olah-bingkai.mjs",

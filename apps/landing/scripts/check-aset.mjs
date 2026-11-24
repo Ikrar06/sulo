@@ -38,6 +38,11 @@ for (const file of halaman) {
     }
   }
   for (const m of html.matchAll(/style="[^"]*url\(\s*['"]?((?:https?:)?\/\/[^'")]+)/gi)) masalah.push(`${nama}: url() dari luar di atribut style: ${m[1]}`);
+  // The pages' stylesheets are inlined (scripts/sebaris.mjs): their contents are checked here as the files are below.
+  for (const gaya of html.matchAll(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/gi)) {
+    for (const m of gaya[1].matchAll(/url\(\s*['"]?((?:https?:)?\/\/[^'")]+)/gi)) masalah.push(`${nama}: url() dari luar di <style>: ${m[1]}`);
+    for (const m of gaya[1].matchAll(/@import\s+(?:url\()?['"]?((?:https?:)?\/\/[^'")\s]+)/gi)) masalah.push(`${nama}: @import dari luar di <style>: ${m[1]}`);
+  }
   id.set(file, new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1])));
 }
 // Outside assets in stylesheets and scripts.

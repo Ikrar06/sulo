@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // The security headers (brief 9.4), written after the build: every inline
-// script's SHA-256 is counted per page; each page gets a CSP meta tag first
-// in its head (the fallback for a host without headers, such as GitHub Pages),
-// and dist/_headers (Cloudflare Pages) carries the full set.
+// script's and style's SHA-256 is counted per page, and each page gets its
+// full CSP in a meta tag first in its head (it works on any host). The host's
+// dist/_headers (Cloudflare Pages) adds what a meta tag cannot say: who may
+// frame the page, and the other headers.
 //
 // default-src 'self', scripts from this site plus the hashed inline ones and
 // never 'unsafe-eval'; <style> elements from this site only (style-src-elem),
@@ -17,7 +18,7 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { CSP_DASAR, cspDengan, hashSkripSebaris } from './lib/aturan-keamanan.mjs';
+import { CSP_DASAR, cspDengan, cspHeader, hashGayaSebaris, hashSkripSebaris } from './lib/aturan-keamanan.mjs';
 
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const DIST = resolve(arg('dist', new URL('../dist', import.meta.url).pathname));
@@ -29,20 +30,23 @@ function semuaHtml(dir) {
   });
 }
 
-const semua = new Set();
+const sha = (isi) => createHash('sha256').update(isi).digest('base64');
+let hashSkrip = 0;
+let hashGaya = 0;
 for (const file of semuaHtml(DIST)) {
   let html = readFileSync(file, 'utf8');
-  const hash = hashSkripSebaris(html, (isi) => createHash('sha256').update(isi).digest('base64'));
-  for (const h of hash) semua.add(h);
-  const meta = `<meta http-equiv="Content-Security-Policy" content="${cspDengan(hash)}">`;
   html = html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, '');
+  const skrip = hashSkripSebaris(html, sha);
+  const gaya = hashGayaSebaris(html, sha);
+  hashSkrip += skrip.length;
+  hashGaya += gaya.length;
+  const meta = `<meta http-equiv="Content-Security-Policy" content="${cspDengan(skrip, gaya)}">`;
   // First thing after the charset: it must come before any script it governs.
   html = html.replace(/(<meta charset="utf-8"\s*\/?>)/i, `$1${meta}`);
   if (!html.includes(meta)) throw new Error(`keamanan: tidak ada <meta charset> di ${relative(DIST, file)}`);
   writeFileSync(file, html);
 }
 
-const hashSemua = [...semua].sort();
 const UMUM = [
   'Referrer-Policy: no-referrer',
   'X-Content-Type-Options: nosniff',
@@ -52,7 +56,7 @@ const UMUM = [
 const headers = [
   '# Written by apps/landing/scripts/keamanan.mjs after the build. Cloudflare Pages reads it; brief 9.4.',
   '/*',
-  `  Content-Security-Policy: ${cspDengan(hashSemua)}; frame-ancestors 'none'`,
+  `  Content-Security-Policy: ${cspHeader("'none'")}`,
   '  X-Frame-Options: DENY',
   ...UMUM.map((h) => `  ${h}`),
   '',
@@ -60,7 +64,7 @@ const headers = [
   '/layar/*',
   '  ! Content-Security-Policy',
   '  ! X-Frame-Options',
-  `  Content-Security-Policy: ${cspDengan(hashSemua)}; frame-ancestors 'self'`,
+  `  Content-Security-Policy: ${cspHeader("'self'")}`,
   '  X-Frame-Options: SAMEORIGIN',
   '',
   '/_astro/*',
@@ -68,4 +72,4 @@ const headers = [
   '',
 ];
 writeFileSync(join(DIST, '_headers'), headers.join('\n'));
-console.log(`keamanan: CSP di ${semuaHtml(DIST).length} halaman, ${hashSemua.length} hash skrip sebaris, _headers ditulis. ${CSP_DASAR.length} aturan dasar.`);
+console.log(`keamanan: CSP di ${semuaHtml(DIST).length} halaman (${hashSkrip} hash skrip, ${hashGaya} hash gaya), _headers ditulis. ${CSP_DASAR.length} aturan dasar.`);
