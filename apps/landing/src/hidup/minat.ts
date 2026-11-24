@@ -30,6 +30,8 @@ function selesai() {
 if (tombol && hasil) {
   if (sudah()) selesai();
   tombol.addEventListener('click', async () => {
+    // A preview or dev build with the counter off: the answer shows, nothing is sent or remembered.
+    if (tombol.dataset.minatPratinjau !== undefined) return selesai();
     tombol.disabled = true;
     try {
       const r = await fetch('/api/minat-ios', { method: 'POST', credentials: 'omit', cache: 'no-store' });

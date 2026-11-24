@@ -1,23 +1,44 @@
-/* Install: three cards on a plain page (no gradient here, brief 4.1). The visitor's own device comes first. */
+/* Install: two cards of one build and a slim row for iPhone, on the plain page (no gradient here, brief 4.1).
+   The visitor's own device comes first. */
 .pasang-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.7fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  /* Even heights: every card's links sit on one line at its bottom. */
-  align-items: stretch;
+  max-width: 60rem;
+  margin-inline: auto;
 }
 .pasang-kartu {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
   min-width: 0;
-  padding: 28px;
+  padding: 12px;
   border-radius: 28px;
   border: 1px solid var(--garis);
   background: var(--kartu);
 }
-.pasang-kartu h3 {
+/* The moment the card leads to, drawn as in the guides, cropped to its top, on the apps' own screen colour.
+   12 px in from the card's edge, so its corners are concentric with the card's: 28 - 12 = 16. */
+.pasang-gambar {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  height: 208px;
+  padding: 22px 20px 0;
+  border-radius: 16px;
+  background: var(--layer-screen);
+  overflow: hidden;
+}
+.pasang-gambar-hp {
+  flex: none;
+}
+.pasang-isi {
+  display: grid;
+  gap: 12px;
+  padding: 20px 12px 0;
+}
+.pasang-kartu h3,
+.pasang-iphone h3 {
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -25,32 +46,23 @@
   line-height: 1.25;
   text-wrap: balance;
 }
-/* The moment the card leads to, drawn as in the guides, cropped to its top. 12 px in from the card's edge, so its
-   corners are concentric with the card's: 28 - 12 = 16. */
-.pasang-gambar {
-  align-self: stretch;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  height: 200px;
-  margin: -16px -16px 4px;
-  padding: 20px 16px 0;
-  border-radius: 16px;
-  background: var(--m-inset);
-  overflow: hidden;
-}
-/* Version, size, time and requirement as separate pieces with space between, never a separator character. */
+/* Version, size, time and requirement as quiet chips, never joined by a separator character. */
 .pasang-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
+  gap: 6px;
   margin: 0;
-  color: var(--abu);
-  font-size: 0.9375rem;
-  font-variant-numeric: tabular-nums;
+  padding: 0;
+  list-style: none;
 }
-.pasang-kartu .tombol {
-  margin-top: 4px;
+.pasang-meta li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--abu);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 .pasang-catatan {
   margin: 0;
@@ -58,6 +70,13 @@
   font-size: 0.9375rem;
   line-height: 1.55;
   text-wrap: pretty;
+}
+/* The button and its links sit at the card's foot, level across the two cards. */
+.pasang-aksi {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+  padding: 20px 12px 4px;
 }
 .pasang-unduh {
   margin: 0;
@@ -69,37 +88,64 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0 20px;
-  margin: auto 0 -6px;
+  margin: 0;
+  font-size: 0.9375rem;
 }
 .pasang-tautan .tautan {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
 }
+/* The QR code stands beside the drawn phone: scan it with the phone to open the Android guide there. */
 .pasang-qr {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 4px;
+  align-self: center;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: 9.5rem;
+  padding-bottom: 20px;
+  text-align: center;
 }
 .pasang-qr svg {
-  flex: none;
-  width: 104px;
-  height: 104px;
-  border-radius: 12px;
+  width: 96px;
+  height: 96px;
+  border-radius: 10px;
   background: #fff;
   fill: #111114;
 }
 .pasang-qr p {
   margin: 0;
   color: var(--abu);
-  font-size: 0.875rem;
-  line-height: 1.45;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-wrap: balance;
 }
-.pasang-kartu--kecil {
-  /* The smaller card stays its own height, not stretched to the others'. */
-  align-self: start;
-  background: transparent;
+/* iPhone: one slim row, honest and short. */
+.pasang-iphone {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  min-width: 0;
+  padding: 20px 24px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+}
+.pasang-iphone > div {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.pasang-iphone h3 {
+  font-size: 1.0625rem;
+}
+.pasang-iphone p {
+  margin: 4px 0 0;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
 }
 
 /* The visitor's device first (one line of script sets data-perangkat; nothing is sent). */
@@ -119,25 +165,15 @@ html[data-perangkat="ios"] .pasang-qr {
   display: none;
 }
 @media (max-width: 63.9375em) {
-  .pasang-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .pasang-kartu--kecil {
-    grid-column: 1 / -1;
+  .pasang-qr {
+    display: none;
   }
 }
-@media (max-width: 42.4375em) {
+@media (max-width: 47.9375em) {
   .pasang-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .pasang-kartu {
-    padding: 22px;
-  }
-  .pasang-gambar {
-    margin: -10px -10px 4px;
-    border-radius: 18px;
-  }
-  .pasang-qr {
-    display: none;
+  .pasang-iphone {
+    padding: 18px 20px;
   }
 }

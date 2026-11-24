@@ -1,19 +1,32 @@
 ---
-// "Want Sulo on iPhone? Press this." (brief 6.14): only rendered while the
-// counter is switched on (rilis.json minatIos.aktif), so its script is never
-// loaded otherwise. One vote per browser, remembered here (localStorage); the
+// "Want Sulo on iPhone? Press this." (brief 6.14): rendered while the counter
+// is switched on (rilis.json minatIos.aktif), so its script is never loaded
+// otherwise; and in a preview or dev build, to be judged, where it sends
+// nothing and says so (`pratinjau`). One vote per browser, remembered here (localStorage); the
 // one request goes to this site itself (POST /api/minat-ios). After it:
 // "Noted. Thank you." No number, no date, no promise.
 interface Props {
+  /** The question, one line under it, and the button's own words. */
   minat: string;
+  isi: string;
+  tombol: string;
   tercatat: string;
   gagal: string;
+  /** The counter is off: the button only shows its answer, nothing is sent. */
+  pratinjau?: string;
 }
-const { minat, tercatat, gagal } = Astro.props;
+const { minat, isi, tombol, tercatat, gagal, pratinjau } = Astro.props;
 ---
 <section class="panduan-bagian panduan-minat" data-minat>
-  <button class="tombol tombol--kedua" type="button" data-minat-tombol data-tercatat={tercatat} data-gagal={gagal}>{minat}</button>
-  <p class="panduan-minat-hasil" aria-live="polite"></p>
+  <div class="panduan-minat-teks">
+    <h2>{minat}</h2>
+    <p>{isi}</p>
+  </div>
+  <div class="panduan-minat-aksi">
+    <button class="tombol tombol--tinta" type="button" data-minat-tombol data-tercatat={tercatat} data-gagal={gagal} data-minat-pratinjau={pratinjau}>{tombol}</button>
+    <p class="panduan-minat-hasil" aria-live="polite"></p>
+  </div>
+  {pratinjau && <p class="pratinjau">{pratinjau}</p>}
 </section>
 <script>
   import '../hidup/minat';

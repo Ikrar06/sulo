@@ -45,7 +45,7 @@
   }
   .pembuka-tombol,
   .pembuka-catatan:not(:empty),
-  .pratinjau {
+  .pembuka .pratinjau {
     animation: naik-muncul 360ms var(--kurva-masuk) 260ms backwards;
   }
   /* The devices only rise, like the title: the phone's frame is the first screen's largest picture (its LCP on a

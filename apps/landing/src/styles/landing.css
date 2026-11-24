@@ -501,6 +501,11 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
 .maskot > svg {
   display: block;
 }
+/* A mascot that answers a click says so to a pointer. */
+.maskot[data-sentuh] > svg {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
 /* The warm light: wide and faint, falling off smoothly so it never shows an edge (no circle, no blob). */
 .cahaya {
   position: absolute;
@@ -664,6 +669,10 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   /* A hair of the screen's colour under the bezel, so rounding never leaves a gap at the edge. */
   box-shadow: 0 0 0 1px var(--layer-screen);
 }
+/* An iPhone's screen is round at the corners (62.5 pt of 402 by 874): square, it showed past the frame's bezel. */
+.perangkat--hp .perangkat-layar {
+  border-radius: 15.55% / 7.15%;
+}
 .perangkat-isi {
   position: absolute;
   left: 0;
@@ -721,7 +730,7 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
 .potongan--tugas-1 { left: max(var(--pinggir), calc(50% - 650px)); top: 150px; }
 .potongan--presensi { left: max(var(--pinggir), calc(var(--potongan-tepi) - 220px)); top: var(--potongan-bawah); width: 220px; }
 .potongan--kalender { right: max(var(--pinggir), calc(50% - 640px)); top: 170px; width: 240px; }
-.potongan--tugas-2 { right: max(var(--pinggir), calc(var(--potongan-tepi) - 280px)); top: var(--potongan-bawah); }
+.potongan--tugas-2 { right: max(var(--pinggir), calc(var(--potongan-tepi) - 320px)); top: var(--potongan-bawah); width: 320px; }
 .potongan-hp {
   display: none;
 }

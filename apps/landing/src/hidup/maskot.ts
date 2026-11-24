@@ -104,16 +104,14 @@ function hidupkan(wadah: HTMLElement) {
     rig.setTier(tier, efek());
   });
 
-  // Touched: a small reaction; on the name tile, another of its own expressions each time.
+  // Clicked or tapped: it jumps, happy, then settles back to how it was (owner, 24 Nov 2026: neutral at rest).
   if (wadah.dataset.sentuh !== undefined) {
-    const giliran: Mood[] = ['happy', 'surprised', 'wink', 'proud', 'keen', 'celebrate'];
-    let ke = 0;
+    let kembali = 0;
     svg.addEventListener('click', () => {
-      if (wadah.dataset.ganti !== undefined) {
-        ke = (ke + 1) % giliran.length;
-        rig.setMood(giliran[ke]!);
-      }
-      rig.react('tap');
+      rig.setMood('happy');
+      rig.react('jump');
+      clearTimeout(kembali);
+      kembali = window.setTimeout(() => rig.setMood(mood), 1800);
     });
   }
 
