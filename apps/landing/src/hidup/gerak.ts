@@ -158,8 +158,18 @@ function siapkanSekali(): void {
   }
 }
 
+/** The source diagram keeps flowing only while it is in view (styles/gerak.css runs it under data-hidup). */
+function siapkanArus(): void {
+  const diagram = document.querySelector<HTMLElement>('.sumber-diagram');
+  if (!diagram) return;
+  new IntersectionObserver(([e]) => {
+    if (e) diagram.toggleAttribute('data-hidup', e.isIntersecting);
+  }).observe(diagram);
+}
+
 if (gerak !== 'diam') {
   siapkanSekali();
+  if (gerak === 'penuh') siapkanArus();
   if (gerak === 'penuh' && CSS.supports('animation-timeline: scroll()')) siapkanPotongan();
 }
 

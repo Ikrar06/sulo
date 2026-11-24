@@ -127,6 +127,50 @@
   }
 }
 
+/* ---------- Where the data comes from: it keeps flowing into Sulo (owner, 24 Nov 2026) ---------- */
+
+/* While the diagram is in view (data-hidup, set by hidup/gerak.ts) on a full-motion page: a short stroke runs
+   each line into Sulo, one after another; a light goes slowly round the card's hairline; its warmth breathes with
+   the strokes arriving. Nothing runs off screen, under reduced motion or on a weak device. */
+@keyframes arus {
+  to {
+    stroke-dashoffset: -280px;
+  }
+}
+@keyframes sorot-keliling {
+  to {
+    rotate: 1turn;
+  }
+}
+@keyframes nyala-napas {
+  from {
+    opacity: 0.55;
+  }
+}
+:root[data-gerak="penuh"] .sumber-diagram[data-hidup] {
+  .sumber-arus {
+    opacity: 1;
+    transition: opacity 600ms ease-out;
+  }
+  .sumber-arus path {
+    animation: arus 2.6s linear infinite;
+  }
+  .sumber-arus path:nth-child(2) {
+    animation-delay: -0.9s;
+  }
+  .sumber-arus path:nth-child(3) {
+    animation-delay: -1.75s;
+  }
+  .sumber-sorot {
+    opacity: 1;
+    transition: opacity 600ms ease-out;
+    animation: sorot-keliling 9s linear infinite;
+  }
+  .sumber-nyala::after {
+    animation: nyala-napas 2.6s ease-in-out infinite alternate;
+  }
+}
+
 /* The stage itself: a little smaller at the top of the page, full size as the pieces land in it. On a laptop,
    in place of its entrance (it is in view from the start); its top centre holds still. */
 @keyframes panggung-tumbuh {
