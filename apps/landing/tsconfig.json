@@ -1,6 +1,6 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": ["src/**/*.ts", "src/**/*.tsx", "functions/**/*.ts", "../mobile/src/vite-env.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../mobile/src/vite-env.d.ts"],
   "exclude": ["dist"],
   "compilerOptions": {
     "jsx": "react-jsx",

@@ -1,0 +1,19 @@
+{
+  // The hosts' functions and the rules they share: api/ (Vercel) and functions/lib/ are plain JavaScript with
+  // their types in JSDoc, functions/api/ (Cloudflare) is TypeScript. Checked apart from the page's own
+  // tsconfig.json, which keeps allowJs off: the apps' JavaScript is not the page's to check.
+  "include": ["api/**/*.js", "functions/**/*.js", "functions/**/*.ts"],
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": []
+  }
+}
