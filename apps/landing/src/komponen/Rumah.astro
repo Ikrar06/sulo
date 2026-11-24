@@ -2,7 +2,9 @@
 // The home page in one language (brief 6, the owner's order): the hero, the
 // fact row, where the data comes from, a day with Sulo, what it helps with,
 // privacy, install, questions, the closing block, the footer.
-import { pathRumah } from '../data/alamat';
+import { PEMBUAT, PROFIL, pathRumah } from '../data/alamat';
+import rilis from '../data/rilis.json';
+import { alamatHalaman } from '../data/situs';
 import { teks, type Bahasa } from '../teks';
 import Dasar from '../tata/Dasar.astro';
 import Nav from './Nav.astro';
@@ -24,8 +26,24 @@ interface Props {
 const { bahasa } = Astro.props;
 const t = teks[bahasa];
 const path = pathRumah(bahasa);
+const alamat = alamatHalaman(Astro.site, path, bahasa);
+// What search engines may read about the app (no address while SITE_URL is unset).
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Sulo',
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'Android 8, Chrome, Microsoft Edge',
+  description: t.deskripsi,
+  inLanguage: bahasa,
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'IDR' },
+  author: { '@type': 'Person', name: PEMBUAT, url: PROFIL },
+  ...(rilis.android.tersedia ? { softwareVersion: rilis.android.versi } : {}),
+  ...(alamat ? { url: alamat.kanonik } : {}),
+};
 ---
-<Dasar bahasa={bahasa} judul={t.judulHalaman} deskripsi={t.deskripsi} noindex>
+<Dasar bahasa={bahasa} judul={t.judulHalaman} deskripsi={t.deskripsi} path={path} jsonLd={jsonLd}>
   <Nav bahasa={bahasa} path={path} />
   <main>
     <Pembuka bahasa={bahasa} />

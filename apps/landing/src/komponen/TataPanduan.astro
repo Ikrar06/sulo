@@ -28,7 +28,7 @@ const path = pathPasang(bahasa, perangkat ?? undefined);
 const lain = (['android', 'chrome', 'edge', 'iphone'] as const).filter((p) => p !== perangkat);
 const nama: Record<Perangkat, string> = { android: t.daftar.android.nama, chrome: t.daftar.chrome.nama, edge: t.daftar.edge.nama, iphone: t.daftar.iphone.nama };
 ---
-<Dasar bahasa={bahasa} judul={`${judul.replace(/\.$/, '')}, Sulo`} deskripsi={deskripsi} noindex>
+<Dasar bahasa={bahasa} judul={`${judul.replace(/\.$/, '')}, Sulo`} deskripsi={deskripsi} path={path}>
   <Nav bahasa={bahasa} path={path} />
   <main class="panduan" id="isi">
     <div class="isi panduan-isi">

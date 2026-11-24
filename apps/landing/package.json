@@ -7,13 +7,19 @@
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
-    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build && node scripts/layar-miring.mjs && node scripts/keamanan.mjs",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "typecheck": "tsc --noEmit -p .",
     "bingkai": "node scripts/olah-bingkai.mjs",
     "check:bingkai": "node scripts/check-bingkai.mjs",
     "miring": "node scripts/layar-miring.mjs",
-    "potret": "node scripts/potret.mjs"
+    "potret": "node scripts/potret.mjs",
+    "test": "vitest run",
+    "check:rilis": "node scripts/check-rilis.mjs",
+    "check:teks": "node scripts/check-teks.mjs",
+    "check:keamanan": "node scripts/check-keamanan.mjs",
+    "check:aset": "node scripts/check-aset.mjs",
+    "check:landing-layout": "node scripts/check-tata-letak.mjs"
   },
   "dependencies": {
     "@sulo/core": "workspace:*",
@@ -30,6 +36,7 @@
     "playwright": "1.62.1",
     "qrcode-generator": "1.4.4",
     "tailwindcss": "4.3.5",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
   }
 }
