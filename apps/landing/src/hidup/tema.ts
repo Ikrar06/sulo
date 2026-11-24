@@ -19,16 +19,20 @@ function simpan(tema: Tema) {
   }
 }
 
+const LAYAR_AUTO = 'iframe[src*="/auto/"]';
+
+function kabari(layar: HTMLIFrameElement, tema: Tema) {
+  try {
+    const html = layar.contentDocument?.documentElement;
+    if (html) html.dataset.theme = tema;
+  } catch {
+    // Not loaded yet: the screen reads the same choice itself when it loads.
+  }
+}
+
 /** Tells every device screen that follows the page ("auto") which theme is in force. */
 function kabariLayar(tema: Tema) {
-  for (const f of document.querySelectorAll<HTMLIFrameElement>('iframe[src*="/auto/"]')) {
-    try {
-      const html = f.contentDocument?.documentElement;
-      if (html) html.dataset.theme = tema;
-    } catch {
-      // Not loaded yet: the screen reads the same choice itself when it loads.
-    }
-  }
+  for (const f of document.querySelectorAll<HTMLIFrameElement>(LAYAR_AUTO)) kabari(f, tema);
 }
 
 function labeli(tema: Tema) {
@@ -63,6 +67,14 @@ for (const b of document.querySelectorAll<HTMLElement>('[data-tema-tombol]')) {
   });
 }
 labeli(sekarang());
+// A screen further down the page loads when it is reached (lazy). It takes the choice made on
+// this page then, also where storage refused to keep it for the screen to read itself.
+for (const f of document.querySelectorAll<HTMLIFrameElement>(LAYAR_AUTO)) {
+  f.addEventListener('load', () => {
+    const tema = document.documentElement.dataset.theme;
+    if (tema === 'light' || tema === 'dark') kabari(f, tema);
+  });
+}
 // While no choice is made, the system's own change is followed (CSS does the page; the labels follow here).
 gelapSistem.addEventListener('change', () => {
   if (!document.documentElement.dataset.theme) labeli(sekarang());

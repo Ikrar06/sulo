@@ -3,10 +3,12 @@
 // rows that take turns left and right (the owner's reference, 02-tiket-3c):
 // a square tile holding the top of the phone at that hour, and beside it the
 // hour, a title and one line. A whole phone per moment made the section four
-// screens long. No sky: the page's own plain background; the day goes from
-// light tiles to ink ones as evening comes, and the phones from the light
-// theme to the dark. Each tile's phone rises into it as the row is reached
-// (hidup/gerak.ts).
+// screens long. No sky: the page's own plain background. On the light page the
+// day goes from light tiles to ink ones as evening comes, and the phones from
+// the light theme to the dark. On the dark page every tile is already night,
+// so nothing would say why three phones were white: there the daytime phones
+// follow the page ("auto") and all five are dark. Each tile's phone rises into
+// it as the row is reached (hidup/gerak.ts).
 //
 // The lock screens' words are the app's own notifications, from the sample
 // data (layar/sehari.ts); the app screens are the app's own (iframes).
@@ -34,10 +36,11 @@ const g = bingkai.bingkai['iphone-terang'];
 const atas = g.safeArea.top;
 const bawah = g.safeArea.bottom;
 // What each moment's phone shows: a lock screen, or one of the app's screens.
+// "auto" is daytime (the page's theme), "gelap" the evening (dark on either page).
 const layar = [
-  { jenis: 'kunci', tema: 'terang', notifikasi: pagi },
-  { jenis: 'presensi', tema: 'terang' },
-  { jenis: 'kabar', tema: 'terang' },
+  { jenis: 'kunci', tema: 'auto', notifikasi: pagi },
+  { jenis: 'presensi', tema: 'auto' },
+  { jenis: 'kabar', tema: 'auto' },
   { jenis: 'tugas', tema: 'gelap' },
   { jenis: 'kunci', tema: 'gelap', notifikasi: malam },
 ] as const;

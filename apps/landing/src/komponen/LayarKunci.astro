@@ -13,7 +13,8 @@ interface Props {
   isi: string;
   /** "now" in the page's language. */
   baru: string;
-  tema: 'terang' | 'gelap';
+  /** "auto" follows the page's theme, like the device it sits in. */
+  tema: 'auto' | 'terang' | 'gelap';
 }
 const { jam, tanggal, judul, isi, baru, tema } = Astro.props;
 ---

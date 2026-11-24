@@ -25,19 +25,19 @@
   /* The app's own screen colour: its cards and screens are made to sit on it. */
   background: var(--layer-screen);
 }
-/* Evening: the tile turns to ink (in light; in dark every tile is already night). */
+/* Evening: the tile turns to ink. On the dark page every tile is already night, so all five are one tile. */
 .momen--malam .momen-ubin {
   border-color: transparent;
   background: var(--tinta);
 }
 [data-theme="dark"] .momen--malam .momen-ubin {
   border-color: var(--garis);
-  background: var(--surface);
+  background: var(--layer-screen);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .momen--malam .momen-ubin {
     border-color: var(--garis);
-    background: var(--surface);
+    background: var(--layer-screen);
   }
 }
 .momen-teks {
@@ -91,7 +91,8 @@
   border-radius: 20% / 9.8%;
   box-shadow: 0 18px 30px rgb(16 16 24 / 0.18);
 }
-/* The drawn status bar over an app screen: black on light, white on dark (the screen's own theme). */
+/* The drawn status bar over an app screen: black on light, white on dark. The screen's own theme
+   decides (a fixed one is on .perangkat-layar); the page's only where the screen follows it. */
 .momen-status {
   position: absolute;
   left: 0;
@@ -100,9 +101,14 @@
   height: 63.2px;
   color: #000;
 }
-[data-theme="dark"] .momen-status,
-[data-theme="dark"] .kunci-status {
+.perangkat-layar[data-theme="dark"] .momen-status,
+:root[data-theme="dark"] .perangkat-layar:not([data-theme]) .momen-status {
   color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .perangkat-layar:not([data-theme]) .momen-status {
+    color: #fff;
+  }
 }
 .status-bar-jam {
   font-family: var(--font-sans);
@@ -112,21 +118,38 @@
 
 /* A lock screen, in the screen's points (402 x 874): plain wallpaper, the time, one notification. */
 .kunci {
+  /* The light lock screen; the dark one below ("gelap", or "auto" on the dark page). */
+  --kunci-latar: #efe6dc;
+  --kunci-teks: #1a1a1f;
+  --kunci-kartu: rgb(255 255 255 / 0.72);
+  --kunci-kartu-teks: #16161a;
+  --kunci-status: #000;
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0 16px;
+  background: var(--kunci-latar);
+  color: var(--kunci-teks);
   font-family: var(--font-sans);
 }
-.kunci--terang {
-  background: #efe6dc;
-  color: #1a1a1f;
+.kunci--gelap,
+:root[data-theme="dark"] .kunci--auto {
+  --kunci-latar: #10121c;
+  --kunci-teks: #f4f4f7;
+  --kunci-kartu: rgb(255 255 255 / 0.12);
+  --kunci-kartu-teks: #f4f4f7;
+  --kunci-status: #fff;
 }
-.kunci--gelap {
-  background: #10121c;
-  color: #f4f4f7;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .kunci--auto {
+    --kunci-latar: #10121c;
+    --kunci-teks: #f4f4f7;
+    --kunci-kartu: rgb(255 255 255 / 0.12);
+    --kunci-kartu-teks: #f4f4f7;
+    --kunci-status: #fff;
+  }
 }
 .kunci-status {
   position: absolute;
@@ -134,7 +157,7 @@
   top: 0;
   width: 402px;
   height: 63.2px;
-  color: #000;
+  color: var(--kunci-status);
 }
 .kunci-tanggal {
   margin: 104px 0 0;
@@ -156,13 +179,9 @@
   margin-top: 56px;
   padding: 18px 20px 20px;
   border-radius: 26px;
-  background: rgb(255 255 255 / 0.72);
-  color: #16161a;
+  background: var(--kunci-kartu);
+  color: var(--kunci-kartu-teks);
   text-align: left;
-}
-.kunci--gelap .kunci-notifikasi {
-  background: rgb(255 255 255 / 0.12);
-  color: #f4f4f7;
 }
 .kunci-aplikasi {
   display: flex;

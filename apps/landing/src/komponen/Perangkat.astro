@@ -12,7 +12,9 @@
 // The iPhone frame follows the theme of the UI in it, not the page's: "auto"
 // follows the page's theme for both (the visitor's setting, or the theme
 // button), "terang" and "gelap" fix both. With "auto" both frames are in the
-// page (14 KB each), so changing the theme never waits for a picture.
+// page (14 KB each), so changing the theme never waits for a picture: a lazy
+// device's hidden frame starts loading as the theme button is reached for
+// (data-pramuat, hidup/tema.ts).
 //
 // The screen is a picture of the app, not something to use yet: the iframe is
 // inert (no focus, out of the accessibility tree) and the figure is one image
@@ -71,7 +73,7 @@ const terbesar = lapis[0]!.berkas[0]!;
   {lapis.map((l) => (
     <picture class:list={['perangkat-bingkai', l.kelas]}>
       <source type="image/webp" srcset={srcset(l.berkas)} sizes={sizes} />
-      <img src={url(l.berkas[0]!.png)} width={terbesar.width} height={terbesar.height} alt="" decoding="async" loading={muat} />
+      <img src={url(l.berkas[0]!.png)} width={terbesar.width} height={terbesar.height} alt="" decoding="async" loading={muat} data-pramuat={tema === 'auto' && muat === 'lazy' ? '' : undefined} />
     </picture>
   ))}
 </figure>
