@@ -218,7 +218,7 @@ export const rumah2 = {
     },
     penutup: {
       judul: 'Let Sulo remember the deadlines.',
-      isi: 'Like a torch, Sulo burns steadily and tells you when something needs doing.',
+      isi: 'Like a torch, Sulo glows quietly and tells you when there is something you need to do.',
     },
     kaki: {
       tautan: { pasang: 'How to install', privasi: 'Privacy', kode: 'Source code', lapor: 'Report a problem', rilis: 'Release notes', lisensi: 'License', traktir: 'Buy me a coffee' },

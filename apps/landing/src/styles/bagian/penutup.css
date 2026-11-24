@@ -1,9 +1,11 @@
-/* The closing block: night in both themes (the brand's ink, flat), one warm light behind the mascot. */
+/* The closing block: the page's own ground and ink in either theme, one warm light behind the mascot. (It was
+   night in both themes; on the light page the owner read the black band as a mistake, 25 Nov 2026.) */
 .penutup {
-  --malam-1: #0b0b10;
-  --malam-2: #0b0b10;
-  --malam-teks: #f3f3f6;
-  --malam-abu: #a6a8b8;
+  /* The torch's light on the light page: fainter, and a closer halo that ends inside the screen. Spread as wide
+     as on the dark page, its long faint tail showed as rings on a laptop and as a stripe across a phone. */
+  --cahaya: 0.7;
+  --cahaya-luas: 0.66;
+  --cahaya-lebar-maks: 100vw;
   /* The room above the mascot and the mascot's size: the light is measured from both (below). */
   --penutup-atas: clamp(96px, 12vw, 160px);
   --penutup-maskot: clamp(128px, 18vw, 200px);
@@ -11,10 +13,20 @@
   isolation: isolate;
   overflow: clip;
   padding: var(--penutup-atas) var(--pinggir);
-  background: var(--malam-1);
-  color: var(--malam-teks);
   text-align: center;
-  color-scheme: dark;
+}
+/* On the dark page: the whole light, as wide as the block allows. */
+:root[data-theme="dark"] .penutup {
+  --cahaya: 1;
+  --cahaya-luas: 1;
+  --cahaya-lebar-maks: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .penutup {
+    --cahaya: 1;
+    --cahaya-luas: 1;
+    --cahaya-lebar-maks: none;
+  }
 }
 .penutup-isi {
   max-width: 40rem;
@@ -35,10 +47,24 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: calc(var(--penutup-maskot) * 5.6);
-  height: calc(var(--penutup-atas) * 2 + var(--penutup-maskot));
+  width: calc(var(--penutup-maskot) * 5.6 * var(--cahaya-luas));
+  max-width: var(--cahaya-lebar-maks);
+  height: calc((var(--penutup-atas) * 2 + var(--penutup-maskot)) * var(--cahaya-luas));
   translate: -50% -50%;
-  background: radial-gradient(closest-side, rgb(255 136 48 / 0.26), rgb(255 136 48 / 0.13) 30%, rgb(255 136 48 / 0.05) 60%, rgb(255 136 48 / 0.015) 82%, transparent);
+  /* A bell curve in nine stops: with four, each stop showed as a faint ring on the light page. */
+  --nyala: calc(0.26 * var(--cahaya));
+  background: radial-gradient(
+    closest-side,
+    rgb(255 136 48 / var(--nyala)),
+    rgb(255 136 48 / calc(var(--nyala) * 0.9)) 12.5%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.69)) 25%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.44)) 37.5%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.25)) 50%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.12)) 62.5%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.05)) 75%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.015)) 87.5%,
+    transparent
+  );
   z-index: -1;
   pointer-events: none;
 }
@@ -55,7 +81,7 @@
 .penutup p {
   margin: 16px 0 0;
   max-width: 32rem;
-  color: var(--malam-abu);
+  color: var(--abu);
   font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
   line-height: 1.55;
   text-wrap: pretty;
@@ -67,16 +93,8 @@
   gap: 12px;
   margin-top: 32px;
 }
-/* The light button (iPhone's honest "not yet") on the night, not the page's grey. */
-.penutup .tombol--kedua {
-  background: rgb(255 255 255 / 0.12);
-  color: var(--malam-teks);
-}
 .penutup-unduh {
   margin: 16px 0 0;
-  color: var(--malam-teks);
+  color: var(--tinta);
   font-size: 0.9375rem;
-}
-.penutup :where(a, button):focus-visible {
-  outline-color: #fff;
 }
