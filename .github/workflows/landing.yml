@@ -2,8 +2,10 @@ name: Landing page
 
 # Sulo's landing page (apps/landing) alone, with every check of its brief (9.7):
 # build, outside assets and internal links, CSP and headers, rilis.json, text
-# budgets and separators, layout, the interest counter's tests. It runs only
-# when the landing page changes (or by hand) and never deploys anything.
+# budgets and separators, layout, the interest counter's tests. A second job
+# runs the install and build commands Vercel runs, on the system Vercel builds
+# on. It runs only when the landing page changes (or by hand) and never
+# deploys anything: Vercel builds from the repository itself.
 on:
   push:
     paths:
@@ -64,4 +66,39 @@ jobs:
           name: landing-layout-gagal
           path: .output/landing-layout-gagal
           if-no-files-found: ignore
+          retention-days: 7
+
+  # The site is deployed on Vercel, which builds on Amazon Linux 2023 with the two commands in
+  # apps/landing/vercel.json. The same two commands run here on that system, so a change that would break the
+  # deployed build (Chromium for the tilted iPhones, cwebp, a package) fails here first. Nothing is deployed.
+  vercel:
+    runs-on: ubuntu-latest
+    container: public.ecr.aws/amazonlinux/amazonlinux:2023
+    steps:
+      - name: Alat untuk checkout dan Node
+        run: dnf install -y -q git tar gzip xz findutils
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install (installCommand di vercel.json)
+        working-directory: apps/landing
+        run: node -p "require('./vercel.json').installCommand" | sh -e
+      - name: Build (buildCommand di vercel.json)
+        working-directory: apps/landing
+        run: node -p "require('./vercel.json').buildCommand" | sh -e
+        env:
+          SITE_URL: https://sulo.example
+      - name: Aset dari luar dan tautan internal
+        run: pnpm --filter @sulo/landing check:aset
+      - name: CSP dan header
+        run: pnpm --filter @sulo/landing check:keamanan
+      # Two of the pictures this system made, to look at (its fonts are not a GitHub runner's).
+      - name: Simpan dua gambar iPhone miring
+        uses: actions/upload-artifact@v7
+        with:
+          name: miring-amazon-linux
+          path: apps/landing/dist/miring/*-id-803.png
+          if-no-files-found: error
           retention-days: 7

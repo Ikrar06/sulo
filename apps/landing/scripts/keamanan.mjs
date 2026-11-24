@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // The security headers (brief 9.4), written after the build: every inline
 // script's and style's SHA-256 is counted per page, and each page gets its
-// full CSP in a meta tag first in its head (it works on any host). The host's
-// dist/_headers (Cloudflare Pages) adds what a meta tag cannot say: who may
-// frame the page, and the other headers.
+// full CSP in a meta tag first in its head (it works on any host). The host
+// adds what a meta tag cannot say: who may frame the page, and the other
+// headers. Vercel, where the site is deployed, reads them from
+// apps/landing/vercel.json; dist/_headers says the same for Cloudflare Pages.
+// Both come from one table (lib/aturan-keamanan.mjs).
 //
 // default-src 'self', scripts from this site plus the hashed inline ones and
 // never 'unsafe-eval'; <style> elements from this site only (style-src-elem),
@@ -18,7 +20,7 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { CSP_DASAR, cspDengan, cspHeader, hashGayaSebaris, hashSkripSebaris } from './lib/aturan-keamanan.mjs';
+import { CACHE_ASET, CSP_DASAR, HEADER_UMUM, cspDengan, hashGayaSebaris, hashSkripSebaris, headerBingkai } from './lib/aturan-keamanan.mjs';
 
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const DIST = resolve(arg('dist', new URL('../dist', import.meta.url).pathname));
@@ -47,28 +49,21 @@ for (const file of semuaHtml(DIST)) {
   writeFileSync(file, html);
 }
 
-const UMUM = [
-  'Referrer-Policy: no-referrer',
-  'X-Content-Type-Options: nosniff',
-  'Cross-Origin-Opener-Policy: same-origin',
-  'Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), hid=(), magnetometer=(), microphone=(), midi=(), payment=(), serial=(), usb=(), browsing-topics=()',
-];
+const baris = (pasangan) => pasangan.map(([kunci, nilai]) => `  ${kunci}: ${nilai}`);
 const headers = [
   '# Written by apps/landing/scripts/keamanan.mjs after the build. Cloudflare Pages reads it; brief 9.4.',
+  '# (Vercel reads apps/landing/vercel.json instead: the same rules, held to them by a test.)',
   '/*',
-  `  Content-Security-Policy: ${cspHeader("'none'")}`,
-  '  X-Frame-Options: DENY',
-  ...UMUM.map((h) => `  ${h}`),
+  ...baris(headerBingkai(false)),
+  ...baris(HEADER_UMUM),
   '',
   '# The device screens are framed by this site\'s own pages, and by no one else.',
   '/layar/*',
-  '  ! Content-Security-Policy',
-  '  ! X-Frame-Options',
-  `  Content-Security-Policy: ${cspHeader("'self'")}`,
-  '  X-Frame-Options: SAMEORIGIN',
+  ...headerBingkai(true).map(([kunci]) => `  ! ${kunci}`),
+  ...baris(headerBingkai(true)),
   '',
   '/_astro/*',
-  '  Cache-Control: public, max-age=31536000, immutable',
+  ...baris([['Cache-Control', CACHE_ASET]]),
   '',
 ];
 writeFileSync(join(DIST, '_headers'), headers.join('\n'));

@@ -1,9 +1,52 @@
-// The Content Security Policy's rules: what is hashed, and what the policy never allows.
+// The Content Security Policy's rules: what is hashed, and what the policy never allows; and the host's
+// headers as Vercel reads them (vercel.json), held to the same rules.
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { cspDengan, cspHeader, hashGayaSebaris, hashSkripSebaris } from '../scripts/lib/aturan-keamanan.mjs';
+import { cspDengan, cspHeader, hashGayaSebaris, hashSkripSebaris, headersVercel } from '../scripts/lib/aturan-keamanan.mjs';
 
 const sha = (isi: string) => createHash('sha256').update(isi).digest('base64');
+
+describe('header di Vercel (vercel.json)', () => {
+  const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+  // A "source" as a pattern, for the three shapes used here: a wildcard, a folder, everything but a folder.
+  const cocok = (source: string, path: string) => new RegExp(`^${source.replace('/:path(', '/(')}$`).test(path);
+  const nilai = (path: string, kunci: string) =>
+    headersVercel()
+      .filter((aturan) => cocok(aturan.source, path))
+      .flatMap((aturan) => aturan.headers.filter((h) => h.key === kunci).map((h) => h.value));
+
+  it('berkasnya memuat persis aturan yang sama', () => {
+    expect(vercel.headers).toEqual(headersVercel());
+  });
+  it('alamat berakhiran garis miring seperti halaman Astro, dan hasil build di dist', () => {
+    expect(vercel.trailingSlash).toBe(true);
+    expect(vercel.outputDirectory).toBe('dist');
+  });
+  it('perintah install dan build muat di batas 256 karakter Vercel', () => {
+    for (const perintah of [vercel.installCommand, vercel.buildCommand]) expect(perintah.length).toBeLessThanOrEqual(256);
+  });
+  it('halaman biasa tidak boleh dibingkai siapa pun', () => {
+    for (const path of ['/', '/en/', '/pasang/android/', '/404.html', '/layarku/']) {
+      expect(nilai(path, 'X-Frame-Options')).toEqual(['DENY']);
+      expect(nilai(path, 'Content-Security-Policy')).toEqual([cspHeader("'none'")]);
+    }
+  });
+  it('layar perangkat hanya boleh dibingkai situs ini', () => {
+    for (const path of ['/layar/id/hp/auto/', '/layar/en/laptop/gelap/']) {
+      expect(nilai(path, 'X-Frame-Options')).toEqual(['SAMEORIGIN']);
+      expect(nilai(path, 'Content-Security-Policy')).toEqual([cspHeader("'self'")]);
+    }
+  });
+  it('setiap jawaban tanpa referrer dan tanpa sniffing; berkas ber-hash disimpan lama', () => {
+    for (const path of ['/', '/layar/id/hp/auto/', '/_astro/a.css']) {
+      expect(nilai(path, 'Referrer-Policy')).toEqual(['no-referrer']);
+      expect(nilai(path, 'X-Content-Type-Options')).toEqual(['nosniff']);
+    }
+    expect(nilai('/_astro/a.css', 'Cache-Control')).toEqual(['public, max-age=31536000, immutable']);
+    expect(nilai('/', 'Cache-Control')).toEqual([]);
+  });
+});
 
 describe('CSP halaman', () => {
   it('mulai dari default-src self dan tidak pernah mengizinkan eval', () => {

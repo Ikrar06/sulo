@@ -24,6 +24,38 @@ export const BATAS_BARIS_HEADERS = 2000;
 /** The header's policy: who may frame the page, and the rules that need no hashes. */
 export const cspHeader = (bingkai) => `frame-ancestors ${bingkai}; base-uri 'self'; object-src 'none'; form-action 'self'`;
 
+/** What the host sends with every answer: no referrer, no sniffing, every unused browser feature off. */
+export const HEADER_UMUM = [
+  ['Referrer-Policy', 'no-referrer'],
+  ['X-Content-Type-Options', 'nosniff'],
+  ['Cross-Origin-Opener-Policy', 'same-origin'],
+  ['Permissions-Policy', 'accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), hid=(), magnetometer=(), microphone=(), midi=(), payment=(), serial=(), usb=(), browsing-topics=()'],
+];
+
+/** Who may frame a page: no one, except the device screens (/layar/), which this site's own pages frame. */
+export const headerBingkai = (olehSitusIni) => [
+  ['Content-Security-Policy', cspHeader(olehSitusIni ? "'self'" : "'none'")],
+  ['X-Frame-Options', olehSitusIni ? 'SAMEORIGIN' : 'DENY'],
+];
+
+/** Astro's files carry a hash of their content in their name: one name never changes. */
+export const CACHE_ASET = 'public, max-age=31536000, immutable';
+
+/**
+ * The same headers as Vercel reads them: the "headers" of apps/landing/vercel.json, which a test holds to
+ * this (Vercel reads no _headers file). The two framing rules never match one path together (every path but
+ * /layar/, then /layar/ alone), so no header is ever sent with two values.
+ */
+export function headersVercel() {
+  const daftar = (pasangan) => pasangan.map(([key, value]) => ({ key, value }));
+  return [
+    { source: '/(.*)', headers: daftar(HEADER_UMUM) },
+    { source: '/:path((?!layar/).*)', headers: daftar(headerBingkai(false)) },
+    { source: '/layar/(.*)', headers: daftar(headerBingkai(true)) },
+    { source: '/_astro/(.*)', headers: daftar([['Cache-Control', CACHE_ASET]]) },
+  ];
+}
+
 /**
  * A page's policy for its inline scripts and styles (base64 SHA-256 each). Style attributes stay allowed
  * (style-src, which style-src-attr falls back to: the apps' components set sizes in them); style elements
