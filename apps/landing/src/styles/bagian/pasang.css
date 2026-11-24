@@ -1,0 +1,118 @@
+/* Install: three cards on a plain page (no gradient here, brief 4.1). The visitor's own device comes first. */
+.pasang-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.7fr);
+  gap: 16px;
+  align-items: start;
+}
+.pasang-kartu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.pasang-kartu h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.pasang-ikon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  /* A circle, like the fact row's: a rounded square in the card's corner would not be concentric with it. */
+  border-radius: 50%;
+  background: var(--m-inset);
+}
+.pasang-ikon svg {
+  width: 24px;
+  height: 24px;
+}
+/* Version, size, time and requirement as separate pieces with space between, never a separator character. */
+.pasang-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+.pasang-kartu .tombol {
+  margin-top: 4px;
+}
+.pasang-catatan {
+  margin: 0;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.pasang-panduan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: -4px;
+}
+.pasang-qr {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+.pasang-qr svg {
+  flex: none;
+  width: 104px;
+  height: 104px;
+  border-radius: 12px;
+  background: #fff;
+  fill: #111114;
+}
+.pasang-qr p {
+  margin: 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.pasang-kartu--kecil {
+  background: transparent;
+}
+
+/* The visitor's device first (one line of script sets data-perangkat; nothing is sent). */
+html[data-perangkat="android"] [data-pasang="android"],
+html[data-perangkat="ios"] [data-pasang="iphone"] {
+  order: -1;
+}
+/* A QR code is for a wide screen: on a phone, the page is already on the phone. */
+html[data-perangkat="android"] .pasang-qr,
+html[data-perangkat="ios"] .pasang-qr {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .pasang-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .pasang-kartu--kecil {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 679px) {
+  .pasang-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pasang-kartu {
+    padding: 22px;
+  }
+  .pasang-qr {
+    display: none;
+  }
+}

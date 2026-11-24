@@ -1,0 +1,68 @@
+---
+// Install (brief 6.8): three cards, plain background, the download right on
+// the card (from src/data/rilis.json, like every button). The visitor's own
+// device comes first. On a wide screen the Android card carries a QR code to
+// the Android guide. SHA-256 lives on the guide pages, not here.
+import { berkas } from '../data/unduhan';
+import { pathPasang } from '../data/alamat';
+import { alamatSitus, buatQr } from '../data/qr';
+import { rumah2 } from '../teks/rumah-2';
+import type { Bahasa } from '../teks';
+import { LaptopIkon, PerangkatIkon } from '../komponen/ikon';
+import '../styles/bagian/pasang.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah2[bahasa].pasang;
+const zip = berkas('ekstensi', bahasa);
+const apk = berkas('android', bahasa);
+const situs = alamatSitus(Astro.site);
+const qr = situs ? buatQr(`${situs}${pathPasang(bahasa, 'android')}`) : null;
+const meta = (b: typeof zip, waktu: string) => [b.versi ? t.versi(b.versi) : '', b.aktif ? b.ukuran : '', waktu].filter(Boolean);
+---
+<section class="bagian pasang" id="pasang" aria-labelledby="judul-pasang">
+  <div class="isi">
+    <header class="bagian-kepala bagian-kepala--tengah">
+      <h2 id="judul-pasang">{t.judul}</h2>
+      <p>{t.intro}</p>
+    </header>
+    <div class="pasang-grid">
+      <article class="pasang-kartu" data-pasang="ekstensi">
+        <span class="pasang-ikon" aria-hidden="true"><LaptopIkon /></span>
+        <h3>{t.ekstensi.judul}</h3>
+        <p class="pasang-meta">{meta(zip, t.ekstensi.waktu).map((m) => <span>{m}</span>)}</p>
+        {zip.aktif ? (
+          <a class="tombol tombol--utama tombol--penuh" href={zip.href} download={zip.unduhan ? '' : undefined} data-tombol-utama>{t.unduhZip}</a>
+        ) : (
+          <span class="tombol tombol--utama tombol--penuh" aria-disabled="true">{zip.ukuran}</span>
+        )}
+        <p class="pasang-catatan">{t.ekstensi.manual}</p>
+        <a class="tautan pasang-panduan" href={pathPasang(bahasa, 'chrome')}>{t.panduanEkstensi}</a>
+      </article>
+      <article class="pasang-kartu" data-pasang="android">
+        <span class="pasang-ikon" aria-hidden="true"><PerangkatIkon /></span>
+        <h3>{t.android.judul}</h3>
+        <p class="pasang-meta">{meta(apk, t.android.waktu).map((m) => <span>{m}</span>)}<span>{t.android.syarat}</span></p>
+        {apk.aktif ? (
+          <a class="tombol tombol--utama tombol--penuh" href={apk.href} download={apk.unduhan ? '' : undefined} data-tombol-utama>{t.unduhApk}</a>
+        ) : (
+          <span class="tombol tombol--utama tombol--penuh" aria-disabled="true">{apk.ukuran}</span>
+        )}
+        {qr && (
+          <div class="pasang-qr">
+            <svg viewBox={`0 0 ${qr.ukuran} ${qr.ukuran}`} role="img" aria-label={t.android.qr} shape-rendering="crispEdges"><path d={qr.path} /></svg>
+            <p>{t.android.qr}</p>
+          </div>
+        )}
+        <a class="tautan pasang-panduan" href={pathPasang(bahasa, 'android')}>{t.panduanAndroid}</a>
+      </article>
+      <article class="pasang-kartu pasang-kartu--kecil" data-pasang="iphone">
+        <h3>{t.iphone.judul}</h3>
+        <p class="pasang-catatan">{t.iphone.isi}</p>
+        <a class="tautan pasang-panduan" href={pathPasang(bahasa, 'iphone')}>{t.iphone.tautan}</a>
+      </article>
+    </div>
+  </div>
+</section>

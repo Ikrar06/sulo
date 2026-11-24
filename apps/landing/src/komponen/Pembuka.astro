@@ -1,90 +1,64 @@
 ---
 // The hero: what Sulo is, for whom, whether it is safe, and the button.
-// Phase 1 compares the sky (a, b, c), where the mascot stands, the chips over
-// the title (three chips, or one short sentence) and the title's two tones.
-import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
+// The owner's choices (24 Nov 2026): the warm dawn sky in light, a neutral
+// night with the warmth only round the mascot in dark; the mascot over the
+// title, the biggest flame on the first screen; three chips on a wide screen,
+// two on a phone (three never fit one line at 360 or 390); the title in ink,
+// then grey; one line under the buttons, which follows the visitor's device.
 import { dataContoh } from '../layar/contoh';
-import { unduhan } from '../data/unduhan';
+import { PRATINJAU } from '../data/mode';
+import { tombolPanduan, tombolUnduh } from '../data/unduhan';
 import { teks, type Bahasa } from '../teks';
+import Maskot from './Maskot.astro';
 import Perangkat from './Perangkat.astro';
 import { Potongan } from './Potongan';
+import TombolUnduh from './TombolUnduh.astro';
+import { pecah } from './utuh';
 
 interface Props {
   bahasa: Bahasa;
-  latar?: 'a' | 'b' | 'c';
-  maskot?: 'atas' | 'samping';
-  cip?: 'pisah' | 'kalimat';
-  judul?: 'akhir' | 'awal' | 'sorot';
-  /** Show sample sizes on the download buttons, and say so (before 1.0.0). */
-  pratinjau?: boolean;
 }
-const { bahasa, latar = 'a', maskot = 'atas', cip = 'pisah', judul = 'akhir', pratinjau = false } = Astro.props;
+const { bahasa } = Astro.props;
 const t = teks[bahasa];
 const data = await dataContoh(bahasa);
-const apk = unduhan('android', bahasa, pratinjau);
-const zip = unduhan('ekstensi', bahasa, pratinjau);
-const [tinta, kedua] = t.judulBagian[judul];
-const pasang = bahasa === 'en' ? '/en/pasang/' : '/pasang/';
-const toko = bahasa === 'en' ? 'Not on the Chrome Web Store yet. Install it by hand, about 3 minutes.' : 'Belum di Chrome Web Store. Pasang manual, sekitar 3 menit.';
-const lainBrowser = bahasa === 'en' ? 'Sulo runs in Chrome and Edge.' : 'Sulo berjalan di Chrome dan Edge.';
-const iphone = bahasa === 'en' ? 'Not on iPhone yet' : 'Belum ada untuk iPhone';
+const unduh = tombolUnduh(bahasa);
 ---
-<section class="pembuka" data-latar={latar} data-maskot={maskot} aria-labelledby="judul-pembuka">
-  <div class="pembuka-langit" aria-hidden="true">
-    {latar === 'b' && (
-      <>
-        <svg class="pembuka-awan pembuka-awan--1" viewBox="0 0 260 70" fill="currentColor"><path d="M20 70h220a20 20 0 0 0 0-40h-6a34 34 0 0 0-62-18 42 42 0 0 0-74 6 28 28 0 0 0-46 12A20 20 0 0 0 20 70Z" /></svg>
-        <svg class="pembuka-awan pembuka-awan--2" viewBox="0 0 320 80" fill="currentColor"><path d="M24 80h272a24 24 0 0 0 0-48h-8a40 40 0 0 0-72-22 50 50 0 0 0-90 8 34 34 0 0 0-56 14A24 24 0 0 0 24 80Z" /></svg>
-      </>
-    )}
-  </div>
+<section class="pembuka" aria-labelledby="judul-pembuka">
+  <div class="pembuka-langit" aria-hidden="true"></div>
 
   <div class="pembuka-teks" id="isi">
-    {maskot === 'atas' && (
-      <div class="pembuka-maskot">
-        <span class="cahaya" aria-hidden="true"></span>
-        <SuloMascot mood="happy" size={maskot === 'atas' ? 84 : 112} />
-      </div>
-    )}
-    {cip === 'pisah' ? (
-      <ul class="pembuka-cip">{t.cip.map((c) => <li class="cip">{c}</li>)}</ul>
-    ) : (
-      <p class="pembuka-cip"><span class="cip">{t.cipKalimat}</span></p>
-    )}
+    <Maskot mood="happy" class="pembuka-maskot" lihat=".pembuka [data-tombol-utama]" sorot=".pembuka [data-tombol-utama]">
+      <span class="cahaya" aria-hidden="true"></span>
+    </Maskot>
+    <ul class="pembuka-cip" role="list">
+      {t.cip.map((c, i) => <li class:list={['cip', { 'cip--lebar': i === 2 }]}>{c}</li>)}
+    </ul>
     <h1 class="pembuka-judul" id="judul-pembuka">
-      {judul === 'akhir' && <><span>{tinta}</span> <span class="judul-abu">{kedua}</span></>}
-      {judul === 'awal' && <><span class="judul-abu">{tinta}</span> <span>{kedua}</span></>}
-      {judul === 'sorot' && <><span>{tinta}</span> <span class="judul-sorot">{kedua}</span></>}
+      <span>{t.judulBagian[0]}</span> <span class="judul-abu">{t.judulBagian[1]}</span>
     </h1>
-    <p class="pembuka-pendukung">{t.pendukung}</p>
+    <p class="pembuka-pendukung">{pecah(t.pendukung).map((p) => (p.utuh ? <span class="utuh">{p.teks}</span> : p.teks))}</p>
     <div class="pembuka-tombol">
-      <a class="tombol tombol--utama" data-untuk="tanpa-js android" href={apk.url || pasang} aria-disabled={apk.tersedia || pratinjau ? undefined : 'true'}>{t.unduhAndroid}{apk.ukuran && <span class="tombol-ukuran">{apk.ukuran}</span>}</a>
-      <a class="tombol tombol--utama" data-untuk="tanpa-js desktop desktop-lain" href={zip.url || pasang} aria-disabled={zip.tersedia || pratinjau ? undefined : 'true'}>{t.unduhEkstensi}{zip.ukuran && <span class="tombol-ukuran">{zip.ukuran}</span>}</a>
-      <a class="tombol tombol--kedua" data-untuk="ios" href={`${pasang}iphone/`}>{iphone}</a>
-      <a class="tombol tombol--kedua" href={pasang}>{t.caraPasang}</a>
+      <TombolUnduh bahasa={bahasa} unduh={unduh} />
+      {tombolPanduan(bahasa).map((p) => <a class="tombol tombol--kedua" data-untuk={p.untuk} href={p.href}>{t.caraPasang}</a>)}
     </div>
-    <p class="pembuka-catatan" data-untuk="tanpa-js desktop"><a href={`${pasang}chrome/`}>{toko}</a></p>
-    <p class="pembuka-catatan" data-untuk="desktop-lain">{lainBrowser}</p>
-    <p class="pembuka-dukungan">{t.perangkat}</p>
-    {pratinjau && <p class="pratinjau">{t.pratinjau}</p>}
+    {unduh.catatan.map((c) => <p class="pembuka-catatan" data-untuk={c.untuk}>{c.teks}</p>)}
+    <p class="pembuka-catatan pembuka-unduh" aria-live="polite" data-teks-2={t.unduhMulai(2)} data-teks-3={t.unduhMulai(3)}></p>
+    {PRATINJAU && <p class="pratinjau">{t.pratinjau}</p>}
   </div>
 
-  <div class="potongan potongan--tugas-1" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="tugas-1" /></div>
-  <div class="potongan potongan--presensi" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div>
-  <div class="potongan potongan--kalender" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="kalender" /></div>
-  <div class="potongan potongan--tugas-2" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="tugas-2" /></div>
+  <div data-ui-aplikasi class="potongan potongan--tugas-1" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="tugas-1" /></div>
+  <div data-ui-aplikasi class="potongan potongan--presensi" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div>
+  <div data-ui-aplikasi class="potongan potongan--kalender" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="kalender" /></div>
+  <div data-ui-aplikasi class="potongan potongan--tugas-2" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="tugas-2" /></div>
 
   <div class="panggung">
-    <Perangkat jenis="laptop" bahasa={bahasa} sizes="(max-width: 767px) 1px, min(1040px, 92vw)" />
+    <Perangkat jenis="laptop" bahasa={bahasa} sizes="(max-width: 767px) 1px, min(1040px, 92vw)" muat="lazy" />
     <Perangkat jenis="hp" bahasa={bahasa} sizes="(max-width: 767px) 216px, 260px" />
-    <div class="potongan-hp potongan-hp--tugas-3" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="tugas-3" /></div>
-    <div class="potongan-hp potongan-hp--presensi" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div>
-    {maskot === 'samping' && (
-      <div class="maskot-samping">
-        <span class="cahaya" aria-hidden="true"></span>
-        <SuloMascot mood="happy" size={112} />
-      </div>
-    )}
+    <div data-ui-aplikasi class="potongan-hp potongan-hp--tugas-3" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="tugas-3" /></div>
+    <div data-ui-aplikasi class="potongan-hp potongan-hp--presensi" aria-hidden="true"><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div>
     <p class="keterangan-data">{t.dataContoh}</p>
   </div>
 </section>
+<script>
+  import '../hidup/unduh';
+</script>

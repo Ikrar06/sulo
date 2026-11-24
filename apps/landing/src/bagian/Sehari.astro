@@ -1,0 +1,80 @@
+---
+// "Sehari bareng Sulo" (brief 6.5), still: five moments of one sample day,
+// each with its phone, stacked (the brief's fallback, and the phone layout).
+// The morning's screens are light and the night's dark: the day shows both
+// themes. The sky moves only in hue, warm dawn to cool evening, with little
+// change in lightness (brief 4.1, TETAP, over 4.3's day-to-night idea). One
+// mascot for the section (one per screen); the moving, sticky version for
+// wide screens comes with the motion (phase 4).
+//
+// The lock screens' words are the app's own notifications, from the sample
+// data (layar/sehari.ts); the app screens are the app's own (iframes).
+import { dataContoh } from '../layar/contoh';
+import { jamHp, pengingatMalam, ringkasanPagi, tanggalKunci } from '../layar/sehari';
+import { rumah } from '../teks/rumah';
+import { teks, type Bahasa } from '../teks';
+import LayarKunci from '../komponen/LayarKunci.astro';
+import Maskot from '../komponen/Maskot.astro';
+import Perangkat from '../komponen/Perangkat.astro';
+import StatusBar from '../komponen/StatusBar.astro';
+import bingkai from '../data/bingkai.json';
+import '../styles/bagian/sehari.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah[bahasa].sehari;
+const data = await dataContoh(bahasa);
+const pagi = ringkasanPagi(data, bahasa);
+const malam = pengingatMalam(data, bahasa);
+const tanggal = tanggalKunci(data, bahasa);
+const baru = t.baru;
+const g = bingkai.bingkai['iphone-terang'];
+const atas = g.safeArea.top;
+const bawah = g.safeArea.bottom;
+// What each moment's phone shows: a lock screen, or one of the app's screens.
+const layar = [
+  { jenis: 'kunci', tema: 'terang', notifikasi: pagi },
+  { jenis: 'presensi', tema: 'terang' },
+  { jenis: 'kabar', tema: 'terang' },
+  { jenis: 'tugas', tema: 'gelap' },
+  { jenis: 'kunci', tema: 'gelap', notifikasi: malam },
+] as const;
+---
+<section class="bagian sehari" aria-labelledby="judul-sehari">
+  <div class="isi">
+    <header class="bagian-kepala sehari-kepala">
+      <Maskot mood="happy" class="sehari-maskot" />
+      <div>
+        <h2 id="judul-sehari">{t.judul}</h2>
+        <p>{t.intro}</p>
+      </div>
+    </header>
+    <ol class="sehari-daftar" role="list">
+      {t.momen.map((m, i) => {
+        const l = layar[i]!;
+        const jam = jamHp(m.jam, bahasa);
+        return (
+          <li class="momen">
+            <div class="momen-teks">
+              <p class="momen-jam"><time datetime={`2026-11-25T${m.jam.replace('.', ':')}:00+08:00`}>{jam}</time></p>
+              <h3>{m.judul}</h3>
+              <p>{m.isi}</p>
+            </div>
+            <Perangkat jenis="hp" bahasa={bahasa} tema={l.tema} tanpaStatus sizes="(max-width: 767px) 216px, 280px" muat="lazy" class="momen-hp">
+              {l.jenis === 'kunci' ? (
+                <LayarKunci jam={jam} tanggal={tanggal} judul={l.notifikasi.judul} isi={l.notifikasi.isi} baru={baru} tema={l.tema} />
+              ) : (
+                <Fragment>
+                  <StatusBar jam={jam} class="momen-status" />
+                  <iframe src={`/layar/${bahasa}/hp/${l.jenis}/${l.tema}/`} title={teks[bahasa].layarHp} loading="lazy" tabindex="-1" inert style={`top: ${atas}px; height: ${874 - atas - bawah}px`}></iframe>
+                </Fragment>
+              )}
+            </Perangkat>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+</section>

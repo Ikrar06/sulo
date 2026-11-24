@@ -1,0 +1,37 @@
+---
+// The phone's status bar, drawn: the time, then the signal, wifi and battery
+// icons, placed and sized as the straight iPhone frame's own (measured from it
+// in points, relative to the screen; src/data/bingkai.json statusBar). For the
+// screens that draw their own: under the tilted frames (whose blurred status
+// bar was taken out) and in "Sehari bareng Sulo". In points: 402 wide, 63.2
+// high (the strip the Dynamic Island sits centred in). Black on a light
+// screen, white on a dark one (the colour of the text it sits in).
+interface Props {
+  jam?: string;
+  /** Leave the time out (a lock screen shows it large below). */
+  tanpaJam?: boolean;
+  class?: string;
+}
+const { jam = '9:41', tanpaJam = false, class: kelas } = Astro.props;
+// Bottom of the digits and the icons (pt), and the four signal bars: left edge and height.
+const DASAR = 34.04;
+const SINYAL = [
+  [288.12, 3.65],
+  [292.45, 5.67],
+  [296.78, 7.7],
+  [301.11, 9.73],
+] as const;
+---
+<svg class:list={['status-bar', kelas]} viewBox="0 0 402 63.2" fill="currentColor" aria-hidden="true" focusable="false">
+  {!tanpaJam && <text class="status-bar-jam" x="62" y={DASAR}>{jam}</text>}
+  {SINYAL.map(([x, h]) => <rect x={x} y={DASAR - h} width="2.84" height={h} rx="0.85" />)}
+  <!-- Wifi: a fan from (316.29, 34.3); two round-capped bands (radius 8.97 at 39.1 degrees each side,
+       5.72 at 34.4) and a sector (3.1 at 36.2), fitted to the measured boxes. -->
+  <g>
+    <path d="M310.64 27.34A8.97 8.97 0 0 1 321.94 27.34" fill="none" stroke="currentColor" stroke-width="2.05" stroke-linecap="round" />
+    <path d="M313.07 29.58A5.72 5.72 0 0 1 319.51 29.58" fill="none" stroke="currentColor" stroke-width="2.05" stroke-linecap="round" />
+    <path d="M316.29 34.3 314.46 31.8A3.1 3.1 0 0 1 318.12 31.8Z" />
+  </g>
+  <rect x="328.65" y="23.91" width="20.26" height="10.54" rx="3.1" />
+  <rect x="349.72" y="27.56" width="1.21" height="2.83" rx="0.6" />
+</svg>

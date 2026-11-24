@@ -1,0 +1,29 @@
+---
+// A phone's lock screen for "Sehari bareng Sulo", drawn in points (402 x 874,
+// the same box as the app's screens): the drawn status bar, the large time,
+// the date, and Sulo's notification. Not Sulo's UI and not a copy of any
+// phone maker's: a plain wallpaper, the clock and one notification card.
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import StatusBar from './StatusBar.astro';
+
+interface Props {
+  jam: string;
+  tanggal: string;
+  judul: string;
+  isi: string;
+  /** "now" in the page's language. */
+  baru: string;
+  tema: 'terang' | 'gelap';
+}
+const { jam, tanggal, judul, isi, baru, tema } = Astro.props;
+---
+<div class:list={['kunci', `kunci--${tema}`]}>
+  <StatusBar tanpaJam class="kunci-status" />
+  <p class="kunci-tanggal">{tanggal}</p>
+  <p class="kunci-jam">{jam}</p>
+  <div class="kunci-notifikasi">
+    <p class="kunci-aplikasi"><img src={flame} alt="" width="20" height="20" /><span>Sulo</span><span class="kunci-baru">{baru}</span></p>
+    <p class="kunci-judul">{judul}</p>
+    <p class="kunci-isi">{isi}</p>
+  </div>
+</div>

@@ -33,7 +33,11 @@
 //   each pixel.
 //
 // Also: the straight iPhone frames without the status bar (the Dynamic Island
-// stays) for "Sehari bareng Sulo", which draws its own; every frame cropped to
+// stays) for "Sehari bareng Sulo", which draws its own. The tilted frames carry
+// no status bar at all (owner, 24 Nov 2026): Figma's export blurred it, so the
+// screen under them draws a sharp one, the same as the straight frame's
+// (scripts/layar-miring.mjs); where it was is see-through and part of the
+// screen's mask. Every frame cropped to
 // the device and resized on premultiplied colours; WebP (cwebp) with a PNG
 // fallback; one data file with the measurements; and, with --periksa, check
 // sheets at 4x of the corners, edges, Dynamic Island, status bar and notch on
@@ -456,7 +460,7 @@ function processFrame(src) {
     depth = island ? Math.max(...island.pixels.map((i) => Math.floor(i / width) - topAt(i % width))) + 3 : 0;
   }
   // Zones, the version without the status bar, and the errors (every pixel that is not pure key).
-  const bare = src.kind === 'phone' && !src.tilt ? { width, height, data: new Uint8Array(plain.data) } : null;
+  const bare = src.kind === 'phone' ? { width, height, data: new Uint8Array(plain.data) } : null;
   const zones = { tepi: [], status: [], indikator: [], lain: [] };
   let notNeutral = 0;
   const statusBox = { kiri: { x0: Infinity, y0: Infinity, x1: -1, y1: -1 }, kanan: { x0: Infinity, y0: Infinity, x1: -1, y1: -1 } };
@@ -473,7 +477,11 @@ function processFrame(src) {
       side.y0 = Math.min(side.y0, y);
       side.y1 = Math.max(side.y1, y);
     }
-    if (bare && inStatus) bare.data.fill(0, p, p + 4);
+    if (bare && inStatus) {
+      bare.data.fill(0, p, p + 4);
+      // A tilted frame is used without its status bar: the UI under it shows there in full.
+      if (src.tilt) shows[i] = 255;
+    }
     if (!carries[i] || isKey(data, p, key)) continue;
     const a = alphaOf[i];
     let err = 0;
@@ -612,7 +620,8 @@ for (const src of SOURCES) {
   const r = results[src.id];
   const k = r.screen.width / src.pt.width;
   const box = opaqueBox(r.plain);
-  const variants = r.bare ? [['utuh', r.plain], ['tanpa-status', r.bare]] : [['utuh', r.plain]];
+  // A tilted frame is written without its status bar only; a straight one both ways.
+  const variants = src.tilt ? [['utuh', r.bare]] : r.bare ? [['utuh', r.plain], ['tanpa-status', r.bare]] : [['utuh', r.plain]];
   const files = {};
   for (const [name, frame] of variants) {
     const cropped = crop(frame, box);

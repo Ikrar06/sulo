@@ -1,0 +1,86 @@
+/* Questions: the title and a mascot on the left, the list on the right; one column on a phone. */
+.tanya-isi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+.tanya-maskot {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 20px;
+}
+.tanya-daftar {
+  border-top: 1px solid var(--garis);
+}
+.tanya-item {
+  border-bottom: 1px solid var(--garis);
+}
+.tanya-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 16px 4px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.tanya-item summary::-webkit-details-marker {
+  display: none;
+}
+.tanya-item summary > span {
+  min-width: 0;
+  text-wrap: pretty;
+}
+.tanya-panah {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--abu);
+  transition: rotate 200ms ease-out;
+}
+.tanya-item[open] .tanya-panah {
+  rotate: 180deg;
+}
+.tanya-item summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.tanya-jawab {
+  padding: 0 4px 20px;
+  color: var(--abu);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.tanya-jawab p {
+  margin: 0;
+  max-width: 40rem;
+  text-wrap: pretty;
+}
+.tanya-tautan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 10px !important;
+}
+.tanya-tautan .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+@media (max-width: 767px) {
+  .tanya-isi {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .tanya-maskot {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 12px;
+  }
+}

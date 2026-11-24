@@ -108,6 +108,9 @@ importers:
       playwright:
         specifier: 1.62.1
         version: 1.62.1
+      qrcode-generator:
+        specifier: 1.4.4
+        version: 1.4.4
       tailwindcss:
         specifier: 4.3.5
         version: 4.3.5
@@ -3883,6 +3886,9 @@ packages:
   pupa@3.3.0:
     resolution: {integrity: sha512-LjgDO2zPtoXP2wJpDjZrGdojii1uqO0cnwKoIoUzkfS98HDmbeiGmYiXo3lXeFlq2xvne1QFQhwYXSUCLKtEuA==}
     engines: {node: '>=12.20'}
+
+  qrcode-generator@1.4.4:
+    resolution: {integrity: sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw==}
 
   quansync@0.2.11:
     resolution: {integrity: sha512-AifT7QEbW9Nri4tAwR5M/uzpBuqfZf+zwaEM/QkzEjj7NBuFD2rBuy0K3dE+8wltbezDV7JMA0WfnCPYRSYbXA==}
@@ -8605,6 +8611,8 @@ snapshots:
   pupa@3.3.0:
     dependencies:
       escape-goat: 4.0.0
+
+  qrcode-generator@1.4.4: {}
 
   quansync@0.2.11: {}
 

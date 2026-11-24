@@ -1,0 +1,30 @@
+---
+// The download buttons for the visitor's device (data/unduhan.ts): one shows
+// at a time, picked by html[data-perangkat]; without script, the Android and
+// extension downloads show side by side. A button whose file is not out yet
+// is a plain element that cannot be pressed, never a link to nowhere.
+import type { Bahasa } from '../teks';
+import type { tombolUnduh } from '../data/unduhan';
+
+interface Props {
+  bahasa: Bahasa;
+  unduh: ReturnType<typeof tombolUnduh>;
+  /** Wider buttons in a card (the install section). */
+  penuh?: boolean;
+}
+const { unduh, penuh = false } = Astro.props;
+---
+{unduh.tombol.map((b) => {
+  const kelas = ['tombol', b.ringan ? 'tombol--kedua' : 'tombol--utama', { 'tombol--penuh': penuh }];
+  const isi = (
+    <>
+      <span>{b.label}</span>
+      {b.ukuran && <span class="tombol-ukuran">{b.ukuran}</span>}
+    </>
+  );
+  return b.aktif ? (
+    <a class:list={kelas} data-untuk={b.untuk} href={b.href} download={b.unduhan ? '' : undefined} data-tombol-utama data-menit={b.unduhan ? (b.untuk.includes('android') ? 2 : 3) : undefined}>{isi}</a>
+  ) : (
+    <span class:list={kelas} data-untuk={b.untuk} aria-disabled="true">{isi}</span>
+  );
+})}

@@ -459,8 +459,8 @@
             "png": "iphone-kiri-terang-803.png",
             "webp": "iphone-kiri-terang-803.webp",
             "bytes": {
-              "png": 173966,
-              "webp": 36680
+              "png": 169540,
+              "webp": 34460
             }
           }
         ],
@@ -470,8 +470,8 @@
           "png": "iphone-kiri-terang-mask.png",
           "webp": "iphone-kiri-terang-mask.webp",
           "bytes": {
-            "png": 35727,
-            "webp": 12832
+            "png": 30778,
+            "webp": 10632
           }
         }
       }
@@ -536,8 +536,8 @@
             "png": "iphone-kiri-gelap-803.png",
             "webp": "iphone-kiri-gelap-803.webp",
             "bytes": {
-              "png": 174246,
-              "webp": 36910
+              "png": 169616,
+              "webp": 34548
             }
           }
         ],
@@ -547,8 +547,8 @@
           "png": "iphone-kiri-gelap-mask.png",
           "webp": "iphone-kiri-gelap-mask.webp",
           "bytes": {
-            "png": 35776,
-            "webp": 12926
+            "png": 30792,
+            "webp": 10642
           }
         }
       }
@@ -613,8 +613,8 @@
             "png": "iphone-kanan-terang-803.png",
             "webp": "iphone-kanan-terang-803.webp",
             "bytes": {
-              "png": 179111,
-              "webp": 37318
+              "png": 175461,
+              "webp": 35298
             }
           }
         ],
@@ -624,8 +624,8 @@
           "png": "iphone-kanan-terang-mask.png",
           "webp": "iphone-kanan-terang-mask.webp",
           "bytes": {
-            "png": 36583,
-            "webp": 13264
+            "png": 32375,
+            "webp": 11138
           }
         }
       }
@@ -690,8 +690,8 @@
             "png": "iphone-kanan-gelap-803.png",
             "webp": "iphone-kanan-gelap-803.webp",
             "bytes": {
-              "png": 179255,
-              "webp": 37360
+              "png": 175415,
+              "webp": 35272
             }
           }
         ],
@@ -701,8 +701,8 @@
           "png": "iphone-kanan-gelap-mask.png",
           "webp": "iphone-kanan-gelap-mask.webp",
           "bytes": {
-            "png": 36651,
-            "webp": 13254
+            "png": 32424,
+            "webp": 11142
           }
         }
       }

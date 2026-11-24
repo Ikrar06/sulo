@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// The tilted iPhones (turned left and right) as finished pictures: the
-// Android app's screen rendered from the built page at 402 x 874 pt (3 px a
-// point), bent onto the frame's screen by the homography of its four measured
+// The tilted iPhones (turned left and right) as finished pictures: the phone's
+// whole screen rendered from the built page at 402 x 874 pt (3 px a point):
+// a drawn status bar (the frames' own was blurred and is taken out, owner 24
+// Nov 2026), then the Android app; bent onto the frame's screen by the
+// homography of its four measured
 // corners (src/data/bingkai.json), cut to the screen's exact shape (the
 // frame's mask), and laid under the frame. One picture per tilt, theme and
 // language, light UI in the light frame and dark in the dark one. Sharp, light,
@@ -109,24 +111,15 @@ function compose(ui, frame, mask, corners) {
   return out;
 }
 
-/** The phone's whole screen at K px a point: the status bar's strip, the app, the home indicator's strip. */
+/** The phone's whole screen at K px a point (pages/layar/<bahasa>/hp-penuh/<tema>): the drawn status bar, the app. */
 async function screen(browser, base, bahasa, tema) {
-  const g = data['iphone-terang'];
-  const top = g.safeArea.top;
-  const bottom = g.safeArea.bottom;
-  const page = await browser.newPage({ viewport: { width: 402, height: Math.round(874 - top - bottom) }, deviceScaleFactor: K, reducedMotion: 'reduce' });
-  await page.goto(`${base}/layar/${bahasa}/hp/${tema}/`, { waitUntil: 'networkidle' });
+  const page = await browser.newPage({ viewport: { width: 402, height: 874 }, deviceScaleFactor: K, reducedMotion: 'reduce' });
+  await page.goto(`${base}/layar/${bahasa}/hp-penuh/${tema}/`, { waitUntil: 'networkidle' });
+  for (const frame of page.frames()) await frame.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(300);
-  const app = readPng(await page.screenshot());
-  const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor.match(/\d+/g).map(Number));
+  const shot = readPng(await page.screenshot());
   await page.close();
-  const W = 402 * K;
-  const H = 874 * K;
-  const out = { width: W, height: H, data: new Uint8Array(W * H * 4) };
-  for (let i = 0; i < W * H; i++) out.data.set([bg[0], bg[1], bg[2], 255], i * 4);
-  const y0 = Math.round(top * K);
-  for (let y = 0; y < app.height && y0 + y < H; y++) out.data.set(app.data.subarray(y * app.width * 4, (y + 1) * app.width * 4), (y0 + y) * W * 4);
-  return out;
+  return shot;
 }
 
 mkdirSync(OUT, { recursive: true });

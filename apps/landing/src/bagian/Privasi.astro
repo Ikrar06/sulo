@@ -1,0 +1,96 @@
+---
+// Privacy (brief 6.7): a flat panel, no gradient. What Sulo does and never
+// does; the addresses it contacts, as they are (from the apps' code and
+// docs/ATURAN-REQUEST.md); every permission in one line (folded, one list
+// per app); how to delete everything; the full policy and the code; and a
+// note on this page itself. Its visual: the map of where data goes.
+import { CheckIcon } from '@sulo/ui/icons';
+import { PRIVASI_APLIKASI, REPO } from '../data/alamat';
+import rilis from '../data/rilis.json';
+import { rumah2 } from '../teks/rumah-2';
+import type { Bahasa } from '../teks';
+import { LaptopIkon, PerangkatIkon, SilangBulatIkon, TutupIkon } from '../komponen/ikon';
+import '../styles/bagian/privasi.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah2[bahasa].privasi;
+const minat = rilis.minatIos.aktif;
+---
+<section class="bagian privasi" id="privasi" aria-labelledby="judul-privasi">
+  <div class="isi privasi-panel">
+    <header class="bagian-kepala">
+      <h2 id="judul-privasi">{t.judul}</h2>
+      <p>{t.intro}</p>
+    </header>
+
+    <div class="privasi-peta" aria-label={t.alamat.judul} role="group">
+      <div class="privasi-simpul privasi-simpul--kamu">
+        <span class="privasi-ikon" aria-hidden="true"><LaptopIkon /><PerangkatIkon /></span>
+        <span>{t.perangkat}</span>
+      </div>
+      <ul class="privasi-alamat" role="list">
+        {t.alamat.isi.map((a) => (
+          <li>
+            <code>{a.host}</code>
+            <span>{a.ket}</span>
+          </li>
+        ))}
+        <li class="privasi-alamat--tidak">
+          <span class="privasi-tidak" aria-hidden="true"><TutupIkon /></span>
+          <span>{t.tanpaServer}</span>
+        </li>
+      </ul>
+    </div>
+    <p class="privasi-neosia">{t.alamat.neosia}</p>
+
+    <div class="privasi-kolom">
+      <div>
+        <h3>{t.lakukan.judul}</h3>
+        <ul class="privasi-daftar" role="list">
+          {t.lakukan.isi.map((x) => <li><CheckIcon className="privasi-tanda privasi-tanda--ya" />{x}</li>)}
+        </ul>
+      </div>
+      <div>
+        <h3>{t.tidak.judul}</h3>
+        <ul class="privasi-daftar" role="list">
+          {t.tidak.isi.map((x) => <li><SilangBulatIkon className="privasi-tanda privasi-tanda--tidak" />{x}</li>)}
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="privasi-subjudul">{t.izin.judul}</h3>
+    <div class="privasi-izin">
+      {[
+        { judul: t.izin.ekstensi, daftar: t.izin.daftarEkstensi },
+        { judul: t.izin.android, daftar: t.izin.daftarAndroid },
+      ].map((g) => (
+        <details class="privasi-lipat">
+          <summary>{g.judul}</summary>
+          <dl>
+            {g.daftar.map((i) => (
+              <div>
+                <dt>{i.nama}</dt>
+                <dd>{i.ket}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      ))}
+    </div>
+
+    <div class="privasi-bawah">
+      <div>
+        <h3>{t.hapus.judul}</h3>
+        <p>{t.hapus.isi}</p>
+      </div>
+      <p class="privasi-tautan">
+        <a class="tautan" href={PRIVASI_APLIKASI[bahasa]}>{t.tautan.privasi}</a>
+        <a class="tautan" href={REPO}>{t.tautan.kode}</a>
+      </p>
+    </div>
+    <p class="privasi-halaman">{t.halaman}{minat && <> {t.minat}</>}</p>
+  </div>
+</section>

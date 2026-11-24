@@ -1,0 +1,71 @@
+/* The fact row under the hero: four in a row on a wide screen, two by two on a phone. */
+.fakta {
+  padding: 8px var(--pinggir) 0;
+}
+.fakta-daftar {
+  margin: 0 auto;
+  padding: 0;
+  max-width: var(--isi);
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.fakta-daftar a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  height: 100%;
+  padding: 12px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: border-color 150ms ease-out;
+}
+.fakta-daftar a:hover {
+  border-color: color-mix(in oklch, var(--tinta) 28%, var(--garis));
+}
+.fakta-daftar a > span:last-child {
+  min-width: 0;
+}
+/* Concentric with the cell: 20 radius - 12 padding = 8, the icon's well is a circle anyway. */
+.fakta-ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--m-inset);
+}
+.fakta-ikon svg {
+  width: 20px;
+  height: 20px;
+}
+/* Two by two on a narrow screen: the icon above the words, so the words get the cell's whole width. */
+@media (max-width: 899px) {
+  .fakta-daftar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fakta-daftar a {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+  }
+}
+@media (max-width: 359px) {
+  .fakta-daftar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fakta-daftar a {
+    flex-direction: row;
+    align-items: center;
+  }
+}

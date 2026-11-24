@@ -1,0 +1,71 @@
+/* The closing block: night in both themes (its own colours, not the page's), one warm light behind the mascot. */
+.penutup {
+  --malam-1: #11162a;
+  --malam-2: #07080f;
+  --malam-teks: #f3f3f6;
+  --malam-abu: #a6a8b8;
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding: clamp(96px, 12vw, 160px) var(--pinggir);
+  background: linear-gradient(180deg, var(--malam-1) 0%, var(--malam-2) 100%);
+  color: var(--malam-teks);
+  text-align: center;
+  color-scheme: dark;
+}
+.penutup-isi {
+  max-width: 40rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.penutup-maskot {
+  width: clamp(128px, 18vw, 200px);
+  height: clamp(128px, 18vw, 200px);
+  margin-bottom: 28px;
+}
+/* The torch's light: wide and faint, no edge, the only warm thing in the block. */
+.penutup-cahaya {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  width: 380%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, rgb(255 136 48 / 0.26), rgb(255 136 48 / 0.13) 30%, rgb(255 136 48 / 0.05) 60%, rgb(255 136 48 / 0.015) 82%, transparent);
+  z-index: -1;
+  pointer-events: none;
+}
+.penutup h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.875rem, 1.3rem + 2.2vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.penutup p {
+  margin: 16px 0 0;
+  max-width: 32rem;
+  color: var(--malam-abu);
+  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.penutup-tombol {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+/* The light button (iPhone's honest "not yet") on the night, not the page's grey. */
+.penutup .tombol--kedua {
+  background: rgb(255 255 255 / 0.12);
+  color: var(--malam-teks);
+}
+.penutup :where(a, button):focus-visible {
+  outline-color: #fff;
+}

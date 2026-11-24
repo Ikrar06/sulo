@@ -1,0 +1,44 @@
+---
+// Questions (brief 6.9): the browser's own <details>, opened by keyboard as
+// well as by touch. Each answer has an id, so the guides can link straight
+// to one ("Why does my phone warn me?").
+import { ChevronDownIcon } from '@sulo/ui/icons';
+import { ISU, MASUKAN } from '../data/alamat';
+import { rumah2 } from '../teks/rumah-2';
+import type { Bahasa } from '../teks';
+import Maskot from '../komponen/Maskot.astro';
+import '../styles/bagian/tanya.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah2[bahasa].tanya;
+---
+<section class="bagian tanya" id="tanya" aria-labelledby="judul-tanya">
+  <div class="isi tanya-isi">
+    <div class="tanya-samping">
+      <Maskot mood="keen" class="tanya-maskot" />
+      <h2 class="judul-bagian" id="judul-tanya">{t.judul}</h2>
+    </div>
+    <div class="tanya-daftar">
+      {t.daftar.map((q) => (
+        <details class="tanya-item" id={`tanya-${q.id}`}>
+          <summary>
+            <span>{q.t}</span>
+            <ChevronDownIcon className="tanya-panah" aria-hidden="true" />
+          </summary>
+          <div class="tanya-jawab">
+            <p>{q.j}</p>
+            {q.id === 'lapor' && (
+              <p class="tanya-tautan">
+                <a class="tautan" href={MASUKAN}>{t.formulir}</a>
+                <a class="tautan" href={ISU}>{t.isu}</a>
+              </p>
+            )}
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

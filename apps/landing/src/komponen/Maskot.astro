@@ -1,0 +1,28 @@
+---
+// A mascot on the page: the apps' own component rendered at build, brought to
+// life in the browser by hidup/maskot.ts with the apps' own engine. Sized by
+// its box (CSS), so it never moves the layout. `lihat`: what the eyes look at
+// on a touch screen; `sorot`: buttons that make it keen and jump; `sentuh`:
+// it reacts when touched; `ganti`: each touch shows another of its
+// expressions (only the existing ones).
+import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
+import type { Mood } from '@sulo/ui/mascot/moods';
+
+interface Props {
+  mood: Mood;
+  class?: string;
+  label?: string;
+  lihat?: string;
+  sorot?: string;
+  sentuh?: boolean;
+  ganti?: boolean;
+}
+const { mood, class: kelas, label, lihat, sorot, sentuh = false, ganti = false } = Astro.props;
+---
+<div class:list={['maskot', kelas]} data-maskot data-lihat={lihat} data-sorot={sorot} data-sentuh={sentuh || ganti ? '' : undefined} data-ganti={ganti ? '' : undefined}>
+  <slot />
+  <SuloMascot mood={mood} size="100%" label={label} />
+</div>
+<script>
+  import '../hidup/maskot';
+</script>

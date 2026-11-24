@@ -1,8 +1,10 @@
 ---
-// Every landing page's document: language, title, the stylesheet, and one
-// line of script that tells the page which download to put first (Android,
-// Chrome, Edge, iPhone or another browser), from the browser alone. Nothing
-// is sent anywhere; without it both downloads show side by side.
+// Every landing page's document: language, title, the stylesheet, and a few
+// lines of script before the first paint, from the browser alone (nothing is
+// sent anywhere): which download to put first (Android, Chrome, Edge, iPhone
+// or another browser; without it both downloads show side by side), whether
+// this is an app's built-in browser (Instagram, Facebook, Line, TikTok, where
+// a download may not start), and the theme chosen here before, if any.
 import '../styles/landing.css';
 import { teks, type Bahasa } from '../teks';
 
@@ -25,12 +27,17 @@ const { bahasa, judul, deskripsi, noindex = false } = Astro.props;
     <meta name="color-scheme" content="light dark" />
     <script is:inline>
       (function () {
-        var u = navigator.userAgent, p = 'lain';
+        var d = document.documentElement, u = navigator.userAgent, p = 'lain';
         if (/Android/i.test(u)) p = 'android';
         else if (/iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1)) p = 'ios';
         else if (/Edg\//.test(u)) p = 'edge';
         else if (/Chrome\//.test(u) && !/OPR\//.test(u)) p = 'chrome';
-        document.documentElement.setAttribute('data-perangkat', p);
+        d.setAttribute('data-perangkat', p);
+        if (/Instagram|FBAN|FBAV|FB_IAB|Line\/|musical_ly|BytedanceWebview/.test(u)) d.setAttribute('data-dalam-aplikasi', '');
+        try {
+          var t = localStorage.getItem('sulo-landing:tema');
+          if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+        } catch (e) {}
       })();
     </script>
   </head>

@@ -1,0 +1,42 @@
+---
+// The home page in one language (brief 6, the owner's order): the hero, the
+// fact row, where the data comes from, a day with Sulo, what it helps with,
+// privacy, install, questions, the closing block, the footer.
+import { pathRumah } from '../data/alamat';
+import { teks, type Bahasa } from '../teks';
+import Dasar from '../tata/Dasar.astro';
+import Nav from './Nav.astro';
+import Pembuka from './Pembuka.astro';
+import Fakta from '../bagian/Fakta.astro';
+import Sumber from '../bagian/Sumber.astro';
+import Sehari from '../bagian/Sehari.astro';
+import Bento from '../bagian/Bento.astro';
+import Privasi from '../bagian/Privasi.astro';
+import Pasang from '../bagian/Pasang.astro';
+import Tanya from '../bagian/Tanya.astro';
+import Penutup from '../bagian/Penutup.astro';
+import Kaki from '../bagian/Kaki.astro';
+import '../styles/bagian/umum.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = teks[bahasa];
+const path = pathRumah(bahasa);
+---
+<Dasar bahasa={bahasa} judul={t.judulHalaman} deskripsi={t.deskripsi} noindex>
+  <Nav bahasa={bahasa} path={path} />
+  <main>
+    <Pembuka bahasa={bahasa} />
+    <Fakta bahasa={bahasa} />
+    <Sumber bahasa={bahasa} />
+    <Sehari bahasa={bahasa} />
+    <Bento bahasa={bahasa} />
+    <Privasi bahasa={bahasa} />
+    <Pasang bahasa={bahasa} />
+    <Tanya bahasa={bahasa} />
+    <Penutup bahasa={bahasa} />
+  </main>
+  <Kaki bahasa={bahasa} path={path} />
+</Dasar>

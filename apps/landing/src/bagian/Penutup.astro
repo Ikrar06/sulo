@@ -1,0 +1,30 @@
+---
+// The closing block (brief 6.10): night in both themes, the mascot large
+// with one warm light, the only light there (Sulo means torch: this is where
+// the name lands). One sentence, one button that follows the device (the
+// hero's logic). The eyes follow the pointer; touched, it reacts.
+import { tombolUnduh } from '../data/unduhan';
+import { rumah2 } from '../teks/rumah-2';
+import type { Bahasa } from '../teks';
+import Maskot from '../komponen/Maskot.astro';
+import TombolUnduh from '../komponen/TombolUnduh.astro';
+import '../styles/bagian/penutup.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah2[bahasa].penutup;
+---
+<section class="penutup" aria-labelledby="judul-penutup">
+  <div class="penutup-isi">
+    <Maskot mood="happy" class="penutup-maskot" lihat=".penutup [data-tombol-utama]" sorot=".penutup [data-tombol-utama]" sentuh>
+      <span class="penutup-cahaya" aria-hidden="true"></span>
+    </Maskot>
+    <h2 id="judul-penutup">{t.judul}</h2>
+    <p>{t.isi}</p>
+    <div class="penutup-tombol">
+      <TombolUnduh bahasa={bahasa} unduh={tombolUnduh(bahasa)} />
+    </div>
+  </div>
+</section>

@@ -1,0 +1,209 @@
+/* "Sehari bareng Sulo": five moments on one soft sky. The sky moves in hue only (warm dawn to cool evening),
+   with little change in lightness (brief 4.1); the phones carry the day from light to dark. */
+.sehari {
+  background: linear-gradient(180deg, #fff3e8 0%, #fdf7f1 32%, #f4f6fa 72%, #eceff8 100%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sehari {
+    background: linear-gradient(180deg, #15110e 0%, #111015 45%, #0d0e17 100%);
+  }
+}
+:root[data-theme="dark"] .sehari {
+  background: linear-gradient(180deg, #15110e 0%, #111015 45%, #0d0e17 100%);
+}
+.sehari-kepala {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-inline: auto;
+  text-align: center;
+}
+.sehari-maskot {
+  flex: none;
+  width: 88px;
+  height: 88px;
+}
+.sehari-daftar {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: clamp(48px, 7vw, 96px);
+}
+/* The phones run down the middle like a spine; the words take turns on either side of them, close to them. */
+.momen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+.momen-hp {
+  grid-column: 2;
+  grid-row: 1;
+}
+.momen-teks {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: end;
+  min-width: 0;
+  max-width: 24rem;
+}
+.momen:nth-child(even) .momen-teks {
+  grid-column: 3;
+  justify-self: start;
+}
+.momen-jam {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 1.8rem + 2.6vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--tinta) 22%, transparent);
+}
+.momen-teks h3 {
+  margin: 12px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.375rem, 1.15rem + 0.8vw, 1.75rem);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.momen-teks p:last-child {
+  margin: 10px 0 0;
+  max-width: 28rem;
+  color: var(--abu);
+  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.momen-hp {
+  width: 100%;
+  filter: drop-shadow(0 24px 30px rgb(16 16 24 / 0.2));
+}
+/* The drawn status bar over an app screen: black on light, white on dark (the screen's own theme). */
+.momen-status {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 402px;
+  height: 63.2px;
+  color: #000;
+}
+[data-theme="dark"] .momen-status,
+[data-theme="dark"] .kunci-status {
+  color: #fff;
+}
+.status-bar-jam {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13.38px;
+}
+
+/* A lock screen, in the screen's points (402 x 874): plain wallpaper, the time, one notification. */
+.kunci {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+  font-family: var(--font-sans);
+}
+.kunci--terang {
+  background: #efe6dc;
+  color: #1a1a1f;
+}
+.kunci--gelap {
+  background: #10121c;
+  color: #f4f4f7;
+}
+.kunci-status {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 402px;
+  height: 63.2px;
+  color: #000;
+}
+.kunci-tanggal {
+  margin: 104px 0 0;
+  font-size: 19px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.kunci-jam {
+  margin: 2px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 92px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.kunci-notifikasi {
+  width: 100%;
+  margin-top: 56px;
+  padding: 18px 20px 20px;
+  border-radius: 26px;
+  background: rgb(255 255 255 / 0.72);
+  color: #16161a;
+  text-align: left;
+}
+.kunci--gelap .kunci-notifikasi {
+  background: rgb(255 255 255 / 0.12);
+  color: #f4f4f7;
+}
+.kunci-aplikasi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.kunci-baru {
+  margin-left: auto;
+  font-weight: 400;
+  opacity: 0.7;
+}
+.kunci-judul {
+  margin: 10px 0 0;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.kunci-isi {
+  margin: 6px 0 0;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .sehari-maskot {
+    width: 64px;
+    height: 64px;
+  }
+  .momen {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .momen-teks,
+  .momen:nth-child(even) .momen-teks {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: stretch;
+    max-width: none;
+  }
+  .momen-hp {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .momen-hp {
+    width: 64%;
+    max-width: 260px;
+    margin-inline: auto;
+  }
+}

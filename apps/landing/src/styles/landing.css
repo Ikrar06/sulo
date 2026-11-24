@@ -14,34 +14,27 @@
   --abu: var(--muted);
   --garis: var(--border);
   --kartu: var(--surface);
-  /* The sky: a and b are a gentle morning, c the plain page with a dot grid. Kept close in light and darkness. */
-  --langit-a-1: #fff1e3;
-  --langit-a-2: #fff8f1;
-  --langit-b-1: #e3eefa;
-  --langit-b-2: #f2f7fd;
-  --titik: rgb(17 17 20 / 0.09);
-  --awan: rgb(255 255 255 / 0.75);
-  --cahaya: rgb(255 158 64 / 0.22);
+  /* The hero's sky (owner, 24 Nov 2026): a warm dawn in light, cream into the palest orange. */
+  --langit: linear-gradient(180deg, #fff1e3 0%, #fff8f1 58%, var(--bg) 100%);
+  --langit-ukuran: auto;
+  --langit-topeng: none;
+  /* The one warm light behind the mascot (brief 4.1), as r g b. In light the dawn is warm enough without it (hidden below). */
+  --cahaya: 255 158 64;
 }
+/* Dark: a neutral night (the plain page's fine dot grid, fading out), the warmth only round the mascot. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --langit-a-1: #1d130d;
-    --langit-a-2: #130e0c;
-    --langit-b-1: #0e1522;
-    --langit-b-2: #0c1018;
-    --titik: rgb(255 255 255 / 0.07);
-    --awan: rgb(255 255 255 / 0.035);
-    --cahaya: rgb(255 140 50 / 0.13);
+    --langit: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.06) 1px, transparent 1.6px);
+    --langit-ukuran: 22px 22px;
+    --langit-topeng: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+    --cahaya: 255 136 48;
   }
 }
 :root[data-theme="dark"] {
-  --langit-a-1: #1d130d;
-  --langit-a-2: #130e0c;
-  --langit-b-1: #0e1522;
-  --langit-b-2: #0c1018;
-  --titik: rgb(255 255 255 / 0.07);
-  --awan: rgb(255 255 255 / 0.035);
-  --cahaya: rgb(255 140 50 / 0.13);
+  --langit: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.06) 1px, transparent 1.6px);
+  --langit-ukuran: 22px 22px;
+  --langit-topeng: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+  --cahaya: 255 136 48;
 }
 @media (min-width: 640px) {
   :root { --pinggir: 24px; }
@@ -64,6 +57,8 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
+  /* A word longer than its line (large text on a small phone) breaks rather than pushing the page sideways. */
+  overflow-wrap: break-word;
 }
 .lewati {
   position: absolute;
@@ -88,24 +83,41 @@ body {
 /* ---------- Nav ---------- */
 
 .nav {
-  position: absolute;
+  position: fixed;
   inset: 12px 0 auto;
   z-index: 50;
   padding-inline: var(--pinggir);
+  pointer-events: none;
+  transition: translate 200ms ease-out;
+}
+.nav > * {
+  pointer-events: auto;
+}
+/* Once the page has scrolled: the pill tightens a little and stands off the page behind it. */
+html[data-gulir] .nav {
+  translate: 0 -4px;
+}
+html[data-gulir] .nav-pil {
+  background: color-mix(in srgb, var(--kartu) 90%, transparent);
+  box-shadow: 0 10px 30px -18px rgb(16 16 24 / 0.35);
 }
 .nav-pil {
   margin-inline: auto;
   max-width: var(--isi);
   min-height: 56px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 8px 8px 8px 16px;
-  border-radius: 999px;
+  /* Concentric with the 44 px pills inside (22 + 8 padding + 1 border): fully round on one row, a rounded box
+     rather than a stretched pill if very large text makes it wrap. */
+  border-radius: 31px;
   border: 1px solid var(--garis);
-  background: color-mix(in oklch, var(--kartu) 78%, transparent);
+  background: color-mix(in srgb, var(--kartu) 78%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  transition: background-color 200ms ease-out, box-shadow 200ms ease-out;
 }
 .nav-merek {
   display: inline-flex;
@@ -147,7 +159,8 @@ body {
   gap: 4px;
 }
 .nav-kecil {
-  display: none;
+  display: inline-flex;
+  position: relative;
   align-items: center;
   justify-content: center;
   min-width: 44px;
@@ -168,12 +181,12 @@ body {
   width: 20px;
   height: 20px;
 }
-.nav-menu {
-  display: inline-flex;
+.nav-lebar {
+  display: none;
 }
 @media (min-width: 900px) {
   .nav-tautan,
-  .nav-kecil {
+  .nav-lebar {
     display: inline-flex;
   }
   .nav-menu {
@@ -183,14 +196,109 @@ body {
     margin-left: 0;
   }
 }
+/* Install: quiet while the hero's own button is on screen, filled once it has scrolled away. */
+.nav-pasang {
+  transition: background-color 200ms ease-out, color 200ms ease-out, transform 120ms ease-out;
+}
+html[data-tombol-lewat] .nav-pasang {
+  background: var(--tinta);
+  color: var(--bg);
+}
+/* The theme button shows where it goes (a moon in light, a sun in dark); the two cross-fade. */
+.ikon-tema {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1), scale 200ms cubic-bezier(0.2, 0, 0, 1), filter 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.ikon-tema--terang {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
+:root[data-theme="dark"] .ikon-tema--terang {
+  opacity: 1;
+  scale: 1;
+  filter: none;
+}
+:root[data-theme="dark"] .ikon-tema--gelap {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ikon-tema--terang {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+  }
+  :root:not([data-theme="light"]) .ikon-tema--gelap {
+    opacity: 0;
+    scale: 0.25;
+    filter: blur(4px);
+  }
+}
+
+/* The phone menu: the browser's own popover, a sheet under the top edge. */
+.menu-hp {
+  position: fixed;
+  inset: 12px var(--pinggir) auto;
+  width: auto;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 10px;
+  border-radius: 28px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  box-shadow: 0 24px 60px -20px rgb(16 16 24 / 0.4);
+}
+.menu-hp::backdrop {
+  background: rgb(10 10 14 / 0.32);
+}
+.menu-hp-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 8px;
+}
+.menu-hp ul {
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+.menu-hp ul a {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 14px;
+  border-radius: 18px;
+  color: var(--tinta);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.menu-hp ul a:hover {
+  background: var(--m-inset);
+}
+.menu-hp-bawah {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 4px 2px;
+  border-top: 1px solid var(--garis);
+}
 
 /* ---------- Buttons ---------- */
 
 .tombol {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  column-gap: 10px;
+  row-gap: 2px;
   min-height: 48px;
   padding: 10px 22px;
   border-radius: 999px;
@@ -216,15 +324,20 @@ body {
   background: var(--tinta);
   color: var(--bg);
 }
+.tombol--penuh {
+  width: 100%;
+}
 .tombol--kecil {
   min-height: 44px;
   padding: 8px 16px;
   font-size: 0.9375rem;
 }
 .tombol-ukuran {
+  white-space: nowrap;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  opacity: 0.72;
+  /* 0.85 keeps the size at 5.4:1 on the orange (0.72 gave 4.3:1, under AA). */
+  opacity: 0.85;
 }
 .tombol[aria-disabled="true"] {
   opacity: 0.55;
@@ -238,25 +351,28 @@ body {
 }
 html:not([data-perangkat]) [data-untuk~="tanpa-js"],
 html[data-perangkat="android"] [data-untuk~="android"],
-html[data-perangkat="chrome"] [data-untuk~="desktop"],
-html[data-perangkat="edge"] [data-untuk~="desktop"],
+html[data-perangkat="chrome"] [data-untuk~="chrome"],
+html[data-perangkat="edge"] [data-untuk~="edge"],
 html[data-perangkat="lain"] [data-untuk~="desktop-lain"],
 html[data-perangkat="ios"] [data-untuk~="ios"] {
   display: inline-flex;
 }
-p[data-untuk] {
-  display: none;
-}
 html:not([data-perangkat]) p[data-untuk~="tanpa-js"],
-html[data-perangkat="chrome"] p[data-untuk~="desktop"],
-html[data-perangkat="edge"] p[data-untuk~="desktop"],
-html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
+html[data-perangkat="android"] p[data-untuk~="android"],
+html[data-perangkat="chrome"] p[data-untuk~="chrome"],
+html[data-perangkat="edge"] p[data-untuk~="edge"],
+html[data-perangkat="lain"] p[data-untuk~="desktop-lain"],
+html[data-perangkat="ios"] p[data-untuk~="ios"] {
   display: block;
 }
 
 /* ---------- Hero ---------- */
 
 .pembuka {
+  /* The mascot is the first screen's leading flame, bigger than the logo and the apps' own mascots: 143 px
+     (1.7 times the old 84) on a laptop of 900 px or taller, down to 118 on a short one (1366 x 768), so
+     the buttons stay on the first screen. */
+  --maskot: clamp(118px, 16svh, 143px);
   position: relative;
   isolation: isolate;
   padding: 104px var(--pinggir) 0;
@@ -268,40 +384,14 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
   height: min(100%, 980px);
   z-index: -1;
   pointer-events: none;
-}
-.pembuka[data-latar="a"] .pembuka-langit {
-  background: linear-gradient(180deg, var(--langit-a-1) 0%, var(--langit-a-2) 58%, var(--bg) 100%);
-}
-.pembuka[data-latar="b"] .pembuka-langit {
-  background: linear-gradient(180deg, var(--langit-b-1) 0%, var(--langit-b-2) 58%, var(--bg) 100%);
-}
-.pembuka[data-latar="c"] .pembuka-langit {
-  background-image: radial-gradient(circle at 1px 1px, var(--titik) 1px, transparent 1.6px);
-  background-size: 22px 22px;
-  mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
-}
-.pembuka-awan {
-  position: absolute;
-  color: var(--awan);
-}
-/* At night the clouds would read as grey blobs: the dark sky has none. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .pembuka-awan { display: none; }
-}
-:root[data-theme="dark"] .pembuka-awan { display: none; }
-.pembuka-awan--1 {
-  top: 140px;
-  left: max(-60px, calc(50% - 720px));
-  width: 260px;
-}
-.pembuka-awan--2 {
-  top: 300px;
-  right: max(-80px, calc(50% - 700px));
-  width: 320px;
+  background: var(--langit);
+  background-size: var(--langit-ukuran);
+  mask-image: var(--langit-topeng);
+  -webkit-mask-image: var(--langit-topeng);
 }
 .pembuka-teks {
   position: relative;
+  container: teks / inline-size;
   max-width: 980px;
   margin-inline: auto;
   text-align: center;
@@ -311,25 +401,39 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
 }
 .pembuka-maskot {
   position: relative;
-  width: 84px;
-  height: 84px;
-  margin-bottom: 12px;
+  width: var(--maskot);
+  height: var(--maskot);
+  margin-bottom: 14px;
 }
+.maskot {
+  position: relative;
+}
+.maskot > svg {
+  display: block;
+}
+/* The warm light: wide and faint, falling off smoothly so it never shows an edge (no circle, no blob). */
 .cahaya {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: 280px;
-  height: 280px;
+  top: 54%;
+  width: calc(var(--maskot) * 3.6);
+  aspect-ratio: 1;
   translate: -50% -50%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--cahaya), transparent);
+  background: radial-gradient(closest-side, rgb(var(--cahaya) / 0.2), rgb(var(--cahaya) / 0.11) 32%, rgb(var(--cahaya) / 0.045) 62%, rgb(var(--cahaya) / 0.012) 84%, transparent);
   z-index: -1;
   pointer-events: none;
 }
+:root:not([data-theme="dark"]) .cahaya {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cahaya {
+    display: block;
+  }
+}
 .pembuka-cip {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   gap: 8px;
   margin: 0 0 20px;
@@ -343,12 +447,24 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
   padding: 5px 14px;
   border-radius: 999px;
   border: 1px solid var(--garis);
-  background: color-mix(in oklch, var(--kartu) 70%, transparent);
+  background: color-mix(in srgb, var(--kartu) 70%, transparent);
   color: var(--tinta);
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.3;
   text-wrap: balance;
+}
+/* The chips stay on one line at any text size: when they would not fit, the lightest goes first (third
+   "Kode terbuka", then "Gratis"; both are in the fact row right below). Widths in rem follow the text size. */
+@container teks (max-width: 24.5rem) {
+  .cip--lebar {
+    display: none;
+  }
+}
+@container teks (max-width: 17rem) {
+  .cip:nth-child(2) {
+    display: none;
+  }
 }
 .pembuka-judul {
   margin: 0;
@@ -360,11 +476,17 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
   letter-spacing: -0.022em;
   text-wrap: balance;
 }
+/* Only when the longest word cannot fit its line (very large text on a small phone) does the title hyphenate. */
+@container teks (max-width: 13rem) {
+  .pembuka-judul {
+    hyphens: auto;
+  }
+}
 .judul-abu {
   color: var(--abu);
 }
 .judul-sorot {
-  background: linear-gradient(transparent 58%, color-mix(in oklch, var(--brand-orange) 30%, transparent) 58%);
+  background: linear-gradient(transparent 58%, color-mix(in srgb, var(--brand-orange) 30%, transparent) 58%);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   padding-inline: 2px;
@@ -386,22 +508,22 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
 }
 .pembuka-catatan {
   margin: 12px 0 0;
+  text-wrap: balance;
   color: var(--abu);
   font-size: 0.875rem;
 }
 .pembuka-catatan a {
   color: inherit;
-}
-.pembuka-dukungan {
-  margin: 10px 0 0;
-  color: var(--abu);
-  font-size: 0.875rem;
+  /* A 44 px touch target round a 17 px line, without moving anything. */
+  display: inline-block;
+  padding-block: 14px;
+  margin-block: -14px;
 }
 .pratinjau {
   margin: 14px 0 0;
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid color-mix(in oklch, var(--status-estimate, var(--muted)) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-estimate, var(--muted)) 50%, transparent);
   color: var(--abu);
   font-size: 0.8125rem;
 }
@@ -417,6 +539,23 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
   position: relative;
   margin: 0;
   aspect-ratio: var(--rasio);
+}
+.perangkat-bingkai--gelap {
+  display: none;
+}
+:root[data-theme="dark"] .perangkat-bingkai--terang {
+  display: none;
+}
+:root[data-theme="dark"] .perangkat-bingkai--gelap {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .perangkat-bingkai--terang {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .perangkat-bingkai--gelap {
+    display: block;
+  }
 }
 .perangkat-bingkai,
 .perangkat-bingkai img {
@@ -476,14 +615,6 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
   line-height: 1.4;
   text-align: center;
 }
-.maskot-samping {
-  position: absolute;
-  left: -2%;
-  bottom: 64px;
-  width: 112px;
-  height: 112px;
-  z-index: 4;
-}
 
 /* The UI pieces: around the title on a wide screen, stacked by the phone on a narrow one. */
 .potongan {
@@ -492,12 +623,19 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
   z-index: 1;
   filter: drop-shadow(0 14px 22px rgb(16 16 24 / 0.1));
 }
-.potongan--tugas-1 { left: max(0px, calc(50% - 650px)); top: 150px; rotate: -1.2deg; }
-.potongan--presensi { left: max(24px, calc(50% - 610px)); top: 372px; width: 220px; rotate: 0.8deg; }
-.potongan--kalender { right: max(0px, calc(50% - 640px)); top: 170px; width: 240px; rotate: 1deg; }
-.potongan--tugas-2 { right: max(24px, calc(50% - 660px)); top: 372px; rotate: -0.8deg; }
+.potongan--tugas-1 { left: max(var(--pinggir), calc(50% - 650px)); top: 150px; }
+.potongan--presensi { left: max(var(--pinggir), calc(50% - 610px)); top: 372px; width: 220px; }
+.potongan--kalender { right: max(var(--pinggir), calc(50% - 640px)); top: 170px; width: 240px; }
+.potongan--tugas-2 { right: max(var(--pinggir), calc(50% - 660px)); top: 372px; }
 .potongan-hp {
   display: none;
+}
+/* Under 1366 the two lower pieces would reach the title's line: only the upper two stay. */
+@media (max-width: 1365px) {
+  .potongan--presensi,
+  .potongan--tugas-2 {
+    display: none;
+  }
 }
 @media (max-width: 1199px) {
   .pembuka > .potongan {
@@ -510,9 +648,9 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
   .pembuka {
     padding-top: 92px;
   }
-  .pembuka-maskot {
-    width: 72px;
-    height: 72px;
+  .pembuka {
+    /* A little up on a phone (72 before), less on a short one so the title and the button still fit. */
+    --maskot: clamp(64px, 10.5svh, 88px);
   }
   .pembuka-cip {
     margin-bottom: 16px;
@@ -559,86 +697,59 @@ html[data-perangkat="lain"] p[data-untuk~="desktop-lain"] {
     z-index: 4;
     filter: drop-shadow(0 12px 18px rgb(16 16 24 / 0.14));
   }
-  .potongan-hp--tugas-3 { top: 20%; }
-  .potongan-hp--presensi { top: 50%; width: 48%; }
-  .maskot-samping {
-    left: auto;
-    right: 4%;
-    bottom: auto;
-    top: -24px;
-    width: 84px;
-    height: 84px;
-  }
+  /* One piece on a phone, over the phone's lower part, so the phone's own first card stays readable. */
+  .potongan-hp--tugas-3 { display: none; }
+  .potongan-hp--presensi { top: 58%; width: 52%; }
 }
 
-/* ---------- Tilted iPhones (phase 1 comparison: the finished picture, or the live screen in CSS) ---------- */
+/* ---------- Tilted iPhones (finished pictures, komponen/Miring.astro) ---------- */
 
 .miring {
-  display: block;
   position: relative;
   margin: 0;
   aspect-ratio: var(--rasio);
 }
-.miring img {
+.miring-lapis,
+.miring-lapis img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
-.miring--css {
-  container-type: inline-size;
+.miring-lapis.perangkat-bingkai--gelap {
+  display: none;
 }
-.miring-ruang {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: var(--bw);
-  height: var(--bh);
-  transform-origin: 0 0;
-  transform: scale(tan(atan2(100cqw, var(--bw))));
+:root[data-theme="dark"] .miring-lapis.perangkat-bingkai--terang {
+  display: none;
 }
-.miring-layar {
-  position: absolute;
-  inset: 0;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
+:root[data-theme="dark"] .miring-lapis.perangkat-bingkai--gelap {
+  display: block;
 }
-.miring-ui {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 402px;
-  height: 874px;
-  transform-origin: 0 0;
-  background: var(--layer-screen);
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .miring-lapis.perangkat-bingkai--terang {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .miring-lapis.perangkat-bingkai--gelap {
+    display: block;
+  }
 }
-.miring-ui iframe {
-  position: absolute;
-  left: 0;
-  width: 402px;
-  border: 0;
-  pointer-events: none;
+
+/* An app's built-in browser (Instagram, Facebook...): the Android note says to open the page in Chrome instead. */
+html[data-perangkat="android"][data-dalam-aplikasi] p[data-untuk~="android"] {
+  display: none;
 }
-.miring-bingkai {
-  position: absolute;
-  inset: 0;
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: none;
+html[data-perangkat="android"][data-dalam-aplikasi] p[data-untuk~="android-aplikasi"] {
+  display: block;
 }
-.banding-miring {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 48px;
-  justify-content: center;
-  padding: 48px var(--pinggir);
+/* After a download starts: the one quiet line in place of the note. */
+.pembuka-unduh {
+  display: none;
 }
-.banding-miring figure,
-.banding-miring picture {
-  width: 300px;
+.pembuka-teks[data-unduh] .pembuka-catatan {
+  display: none !important;
 }
-.banding-miring h2 {
-  width: 100%;
-  margin: 0;
-  text-align: center;
-  font-size: 1rem;
+.pembuka-teks[data-unduh] .pembuka-unduh {
+  display: block !important;
+  color: var(--tinta);
 }

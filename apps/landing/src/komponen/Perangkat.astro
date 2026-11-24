@@ -10,8 +10,13 @@
 // indicator (their measured safe areas), on the UI's own background colour.
 //
 // The iPhone frame follows the theme of the UI in it, not the page's: "auto"
-// follows the visitor's setting for both (the picture by media query, the
-// screen by its own), "terang" and "gelap" fix both.
+// follows the page's theme for both (the visitor's setting, or the theme
+// button), "terang" and "gelap" fix both. With "auto" both frames are in the
+// page (14 KB each), so changing the theme never waits for a picture.
+//
+// The screen is a picture of the app, not something to use yet: the iframe is
+// inert (no focus, out of the accessibility tree) and the figure is one image
+// with a label.
 import bingkai from '../data/bingkai.json';
 import { teks, type Bahasa } from '../teks';
 
@@ -24,33 +29,49 @@ interface Props {
   /** The widths the frame shows at, for the picture's `sizes`. */
   sizes?: string;
   muat?: 'eager' | 'lazy';
+  /** The frame without its status bar, for a screen that draws its own ("Sehari bareng Sulo"). */
+  tanpaStatus?: boolean;
 }
-const { jenis, bahasa, tema = 'auto', class: kelas = '', sizes = '100vw', muat = 'eager' } = Astro.props;
+const { jenis, bahasa, tema = 'auto', class: kelas = '', sizes = '100vw', muat = 'eager', tanpaStatus = false } = Astro.props;
 const files = import.meta.glob<string>('../assets/bingkai/*.{webp,png}', { eager: true, query: '?url', import: 'default' });
 const url = (name: string) => files[`../assets/bingkai/${name}`]!;
 type Berkas = { width: number; height: number; webp: string; png: string };
 const b = bingkai.bingkai;
 const geo = jenis === 'laptop' ? b.macbook : b['iphone-terang'];
-const varian = (id: 'macbook' | 'iphone-terang' | 'iphone-gelap') => (b[id].berkas.utuh as Berkas[]);
+const varian = (id: 'macbook' | 'iphone-terang' | 'iphone-gelap') => {
+  const set = b[id].berkas as Record<string, Berkas[]>;
+  return (tanpaStatus && set['tanpa-status']) || set.utuh!;
+};
 const srcset = (list: Berkas[]) => list.map((f) => `${url(f.webp)} ${f.width}w`).join(', ');
-const terang = jenis === 'laptop' ? varian('macbook') : varian('iphone-terang');
-const gelap = jenis === 'laptop' ? null : varian('iphone-gelap');
-const terbesar = terang[0]!;
 const L = geo.layar.persen;
 const atas = jenis === 'hp' ? (geo as typeof b['iphone-terang']).safeArea.top : 0;
 const bawah = jenis === 'hp' ? (geo as typeof b['iphone-terang']).safeArea.bottom : 0;
 const theme = tema === 'auto' ? undefined : tema === 'gelap' ? 'dark' : 'light';
 const judul = jenis === 'laptop' ? teks[bahasa].layarLaptop : teks[bahasa].layarHp;
+// Which frames: the MacBook has one; an iPhone one per theme ("auto": both, the CSS shows the right one).
+const lapis: { berkas: Berkas[]; kelas: string }[] =
+  jenis === 'laptop'
+    ? [{ berkas: varian('macbook'), kelas: '' }]
+    : tema === 'auto'
+      ? [
+          { berkas: varian('iphone-terang'), kelas: 'perangkat-bingkai--terang' },
+          { berkas: varian('iphone-gelap'), kelas: 'perangkat-bingkai--gelap' },
+        ]
+      : [{ berkas: varian(tema === 'gelap' ? 'iphone-gelap' : 'iphone-terang'), kelas: '' }];
+const terbesar = lapis[0]!.berkas[0]!;
 ---
-<figure class:list={['perangkat', `perangkat--${jenis}`, kelas]} style={`--rasio: ${terbesar.width} / ${terbesar.height}`}>
+<figure class:list={['perangkat', `perangkat--${jenis}`, kelas]} style={`--rasio: ${terbesar.width} / ${terbesar.height}`} role="img" aria-label={judul}>
   <div class="perangkat-layar" data-theme={theme} style={`left: ${L.left}%; top: ${L.top}%; width: ${L.width}%; height: ${L.height}%`}>
     <div class="perangkat-isi" style={`--pt-w: ${geo.pt.width}px; --pt-h: ${geo.pt.height}px`}>
-      <iframe src={`/layar/${bahasa}/${jenis}/${tema}/`} title={judul} loading={muat} tabindex="-1" style={`top: ${atas}px; height: ${geo.pt.height - atas - bawah}px`}></iframe>
+      <slot>
+        <iframe src={`/layar/${bahasa}/${jenis}/${tema}/`} title={judul} loading={muat} tabindex="-1" inert style={`top: ${atas}px; height: ${geo.pt.height - atas - bawah}px`}></iframe>
+      </slot>
     </div>
   </div>
-  <picture class="perangkat-bingkai">
-    {gelap && tema === 'auto' && <source type="image/webp" media="(prefers-color-scheme: dark)" srcset={srcset(gelap)} sizes={sizes} />}
-    <source type="image/webp" srcset={srcset(tema === 'gelap' && gelap ? gelap : terang)} sizes={sizes} />
-    <img src={url((tema === 'gelap' && gelap ? gelap : terang)[0]!.png)} width={terbesar.width} height={terbesar.height} alt="" decoding="async" loading={muat} />
-  </picture>
+  {lapis.map((l) => (
+    <picture class:list={['perangkat-bingkai', l.kelas]}>
+      <source type="image/webp" srcset={srcset(l.berkas)} sizes={sizes} />
+      <img src={url(l.berkas[0]!.png)} width={terbesar.width} height={terbesar.height} alt="" decoding="async" loading={muat} />
+    </picture>
+  ))}
 </figure>

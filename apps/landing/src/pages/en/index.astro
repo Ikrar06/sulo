@@ -1,10 +1,5 @@
 ---
-import Nav from '../../komponen/Nav.astro';
-import Pembuka from '../../komponen/Pembuka.astro';
-import Dasar from '../../tata/Dasar.astro';
-import { teks } from '../../teks';
+// The home page in English, written again rather than translated.
+import Rumah from '../../komponen/Rumah.astro';
 ---
-<Dasar bahasa="en" judul={`Sulo, ${teks.en.judul.replace(/\.$/, '')}`} noindex>
-  <Nav bahasa="en" />
-  <main><Pembuka bahasa="en" pratinjau /></main>
-</Dasar>
+<Rumah bahasa="en" />

@@ -1,47 +1,37 @@
 ---
-// A tilted iPhone (turned left or right). "gambar": the finished picture made
-// at build (scripts/layar-miring.mjs), the recommended way. "css": the live
-// screen bent with matrix3d and cut with the frame's mask, for comparison in
-// phase 1 only.
+// A tilted iPhone (turned left or right): the finished picture made at build
+// (scripts/layar-miring.mjs, the owner's choice of 24 Nov 2026): the app's
+// screen with a sharp drawn status bar, bent onto the frame's screen. Light
+// UI in the light frame, dark in the dark one; "auto" follows the page's
+// theme with both pictures in the page (the hidden one loads when the theme
+// button is reached for, so a change never waits). Below the first screen
+// only: loaded lazily.
 import bingkai from '../data/bingkai.json';
 import { teks, type Bahasa } from '../teks';
-import { homografi, matrix3d } from './homografi';
 
 interface Props {
   arah: 'kiri' | 'kanan';
-  tema: 'terang' | 'gelap';
+  tema?: 'auto' | 'terang' | 'gelap';
   bahasa: Bahasa;
-  cara: 'gambar' | 'css';
+  /** The widths it shows at, for `sizes`. */
+  sizes?: string;
   class?: string;
 }
-const { arah, tema, bahasa, cara, class: kelas = '' } = Astro.props;
-const id = `iphone-${arah}-${tema}` as const;
-const g = bingkai.bingkai[id];
+const { arah, tema = 'auto', bahasa, sizes = '300px', class: kelas = '' } = Astro.props;
+const g = bingkai.bingkai[`iphone-${arah}-terang`];
 const W = g.gambar.width;
 const H = g.gambar.height;
-const files = import.meta.glob<string>('../assets/bingkai/*.{webp,png}', { eager: true, query: '?url', import: 'default' });
-const url = (name: string) => files[`../assets/bingkai/${name}`]!;
-const c = g.sudutLayar.px;
-const h = homografi([[0, 0], [402, 0], [402, 874], [0, 874]], [c.kiriAtas as [number, number], c.kananAtas as [number, number], c.kananBawah as [number, number], c.kiriBawah as [number, number]]);
-const atas = bingkai.bingkai['iphone-terang'].safeArea.top;
-const bawah = bingkai.bingkai['iphone-terang'].safeArea.bottom;
-const theme = tema === 'gelap' ? 'dark' : 'light';
+const lapis = tema === 'auto' ? (['terang', 'gelap'] as const) : ([tema] as const);
 const alt = teks[bahasa].layarHp;
 ---
-{cara === 'gambar' ? (
-  <picture class:list={['miring', kelas]} style={`--rasio: ${W} / ${H}`}>
-    <source type="image/webp" srcset={`/miring/${id}-${bahasa}-400.webp 400w, /miring/${id}-${bahasa}-${W}.webp ${W}w`} sizes="300px" />
-    <img src={`/miring/${id}-${bahasa}-${W}.png`} width={W} height={H} alt={alt} decoding="async" />
-  </picture>
-) : (
-  <figure class:list={['miring', 'miring--css', kelas]} style={`--rasio: ${W} / ${H}`}>
-    <div class="miring-ruang" style={`--bw: ${W}px; --bh: ${H}px`}>
-      <div class="miring-layar" style={`-webkit-mask-image: url(${url(`${id}-mask.webp`)}); mask-image: url(${url(`${id}-mask.webp`)})`}>
-        <div class="miring-ui" data-theme={theme} style={`transform: ${matrix3d(h)}`}>
-          <iframe src={`/layar/${bahasa}/hp/${tema}/`} title={alt} tabindex="-1" style={`top: ${atas}px; height: ${874 - atas - bawah}px`}></iframe>
-        </div>
-      </div>
-      <img class="miring-bingkai" src={url(`${id}-${W}.webp`)} width={W} height={H} alt="" />
-    </div>
-  </figure>
-)}
+<figure class:list={['miring', kelas]} style={`--rasio: ${W} / ${H}`} role="img" aria-label={alt}>
+  {lapis.map((t) => {
+    const id = `iphone-${arah}-${t}-${bahasa}`;
+    return (
+      <picture class:list={['miring-lapis', tema === 'auto' && `perangkat-bingkai--${t}`]}>
+        <source type="image/webp" srcset={`/miring/${id}-400.webp 400w, /miring/${id}-${W}.webp ${W}w`} sizes={sizes} />
+        <img src={`/miring/${id}-${W}.png`} width={W} height={H} alt="" decoding="async" loading="lazy" data-pramuat={tema === 'auto' ? '' : undefined} />
+      </picture>
+    );
+  })}
+</figure>

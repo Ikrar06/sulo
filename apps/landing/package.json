@@ -28,6 +28,7 @@
     "@types/react-dom": "19.3.0",
     "astro": "7.4.13",
     "playwright": "1.62.1",
+    "qrcode-generator": "1.4.4",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3"
   }

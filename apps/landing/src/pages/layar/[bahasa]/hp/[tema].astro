@@ -21,6 +21,14 @@ const theme = tema === 'auto' ? undefined : tema === 'gelap' ? 'dark' : 'light';
     <meta name="robots" content="noindex" />
     <meta name="color-scheme" content={theme ?? 'light dark'} />
     <title>{teks[bahasa].layarHp}</title>
+    {tema === 'auto' && (
+      <script is:inline>
+      try {
+        var t = localStorage.getItem('sulo-landing:tema');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+      </script>
+    )}
   </head>
   <body>
     <div id="root"><LayarHp data={data} bahasa={bahasa} /></div>

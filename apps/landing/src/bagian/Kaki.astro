@@ -1,0 +1,49 @@
+---
+// The footer (brief 6.11): the links, the language, the full "unofficial"
+// sentence, the sample-data note, and the maker's name in one small line with
+// the tip jar beside the other links, the same weight as them (TETAP).
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import { LISENSI, MASUKAN, PEMBUAT, PROFIL, REPO, RILIS, TRAKTEER, pathLain, pathPasang, pathRumah } from '../data/alamat';
+import { rumah2 } from '../teks/rumah-2';
+import { teks, type Bahasa } from '../teks';
+import '../styles/bagian/kaki.css';
+
+interface Props {
+  bahasa: Bahasa;
+  /** This page's own path, for the language link. */
+  path: string;
+}
+const { bahasa, path } = Astro.props;
+const t = rumah2[bahasa].kaki;
+const rumah = pathRumah(bahasa);
+const tautan = [
+  { href: pathPasang(bahasa), teks: t.tautan.pasang },
+  { href: `${rumah}#privasi`, teks: t.tautan.privasi },
+  { href: REPO, teks: t.tautan.kode },
+  { href: MASUKAN, teks: t.tautan.lapor },
+  { href: RILIS, teks: t.tautan.rilis },
+  { href: LISENSI, teks: t.tautan.lisensi },
+  { href: TRAKTEER, teks: t.tautan.traktir },
+];
+const lain = bahasa === 'en' ? 'id' : 'en';
+---
+<footer class="kaki">
+  <div class="isi">
+    <div class="kaki-atas">
+      <a class="kaki-merek" href={rumah}><img src={flame} alt="" width="28" height="28" />Sulo</a>
+      <nav aria-label={t.label}>
+        <ul class="kaki-tautan" role="list">
+          {tautan.map((l) => <li><a href={l.href}>{l.teks}</a></li>)}
+        </ul>
+      </nav>
+    </div>
+    <div class="kaki-bawah">
+      <div class="kaki-teks">
+        <p>{t.tidakResmi}</p>
+        <p>{teks[bahasa].dataContoh}</p>
+        <p><a href={PROFIL}>{t.pembuat(PEMBUAT)}</a></p>
+      </div>
+      <a class="kaki-bahasa" href={pathLain(path, bahasa)} hreflang={lain} lang={lain}>{teks[bahasa].nav.bahasaLain}</a>
+    </div>
+  </div>
+</footer>
