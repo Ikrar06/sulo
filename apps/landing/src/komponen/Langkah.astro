@@ -15,7 +15,7 @@ const { nomor, judul, isi, alt, label } = Astro.props;
 <li class="langkah">
   <div class="langkah-teks">
     <p class="langkah-nomor" aria-hidden="true">{nomor}</p>
-    <h3><span class="sr-only">{label} {nomor}: </span>{judul}</h3>
+    <h2><span class="sr-only">{label} {nomor}: </span>{judul}</h2>
     <p>{isi}</p>
     {Astro.slots.has('tombol') && <div class="langkah-tombol"><slot name="tombol" /></div>}
   </div>

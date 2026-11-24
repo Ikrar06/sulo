@@ -53,11 +53,18 @@ for (const path of halaman(DIST)) {
       if (luar(el)) continue;
       for (const a of ['alt', 'aria-label', 'title']) if (el.hasAttribute(a)) meta.push(el.getAttribute(a));
     }
-    const ambil = (sel) => [...document.querySelectorAll(sel)].filter((el) => !luar(el) && el.offsetParent !== null).map((el) => el.textContent.replace(/\s+/g, ' ').trim());
+    // What shows: text kept for screen readers only (a step's "Langkah 3:") is not counted.
+    const terlihat = (el) => {
+      const salin = el.cloneNode(true);
+      for (const x of salin.querySelectorAll('.sr-only')) x.remove();
+      return salin.textContent.replace(/\s+/g, ' ').trim();
+    };
+    const ambil = (sel) => [...document.querySelectorAll(sel)].filter((el) => !luar(el) && el.offsetParent !== null).map(terlihat);
     return {
       teks,
       meta,
-      judulBagian: ambil('main h2'),
+      // A section's title, not a guide's step (the steps are instructions, h2 under the guide's h1).
+      judulBagian: ambil('main h2').length ? [...document.querySelectorAll('main h2')].filter((el) => !el.closest('.langkah') && !luar(el) && el.offsetParent !== null).map(terlihat) : [],
       ubin: ambil('.ubin-teks p'),
       pendukung: ambil('.pembuka-pendukung'),
       tombol: ambil('a.tombol, button.tombol, span.tombol').map((t) => t.replace(/\d+([.,]\d+)?\s?MB$/, '').trim()),

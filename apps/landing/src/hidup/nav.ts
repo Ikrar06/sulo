@@ -20,10 +20,9 @@ if (utama) {
   new IntersectionObserver(([e]) => {
     if (e) html.toggleAttribute('data-tombol-lewat', !e.isIntersecting);
   }).observe(utama);
-} else {
-  // A page without the hero (the guides): Install is the one button.
-  html.setAttribute('data-tombol-lewat', '');
 }
+// A page without the hero (the guides, the 404) has its own button (a step's download, the way home): the nav's
+// Install stays quiet there, so it never outshines the page's own action or leads away from it.
 
 const menu = document.getElementById('menu-hp');
 for (const a of document.querySelectorAll<HTMLElement>('[data-tutup-menu]')) {

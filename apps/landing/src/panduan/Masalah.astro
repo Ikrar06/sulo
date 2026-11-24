@@ -1,14 +1,18 @@
 ---
 // "If something goes wrong": the most common problems, each folded (the
-// browser's own <details>, opened by keyboard as well as by touch).
+// browser's own <details>, opened by keyboard as well as by touch), and a way
+// to report what the list does not cover.
 import { ChevronDownIcon } from '@sulo/ui/icons';
+import { MASUKAN } from '../data/alamat';
 import '../styles/bagian/tanya.css';
 
 interface Props {
   judul: string;
   daftar: readonly { t: string; j: string }[];
+  /** "Still not working?" and the link to the feedback form. */
+  lapor: { tanya: string; tautan: string };
 }
-const { judul, daftar } = Astro.props;
+const { judul, daftar, lapor } = Astro.props;
 ---
 <section class="panduan-bagian">
   <h2>{judul}</h2>
@@ -23,4 +27,5 @@ const { judul, daftar } = Astro.props;
       </details>
     ))}
   </div>
+  <p class="panduan-lapor">{lapor.tanya} <a class="tautan" href={MASUKAN}>{lapor.tautan}</a></p>
 </section>

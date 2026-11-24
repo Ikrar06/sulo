@@ -276,6 +276,31 @@
   border-radius: 10px;
   background: var(--m-inset);
 }
+/* Edge keeps its Developer mode switch in a side panel beside the list, not at the page's top right. */
+.il-samping {
+  display: grid;
+  grid-template-columns: 9.5em minmax(0, 1fr);
+  gap: 12px;
+}
+.il-samping-panel {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 10px;
+  padding-right: 12px;
+  border-right: 1px solid var(--garis);
+}
+/* A menu entry whose words do not matter here: a plain bar. */
+.il-garis-isi {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--m-inset);
+}
+.il-garis-isi--pendek {
+  width: 70%;
+}
 .il-ekstensi-kepala {
   display: flex;
   align-items: center;
@@ -340,6 +365,14 @@
   gap: 6px;
   padding: 14px;
 }
+/* The files sit inside the Sulo folder, one step in. */
+.il-berkas-dalam {
+  display: grid;
+  gap: 6px;
+  margin-left: 22px;
+  padding-left: 10px;
+  border-left: 1px solid var(--garis);
+}
 .il-folder,
 .il-berkas-baris {
   display: flex;
@@ -358,7 +391,37 @@
     width: 200px;
     aspect-ratio: 9 / 16;
   }
+  /* The small phone keeps its full height: its dialogs fill it (a shorter one cut the warning off). */
   .il-hp--kecil {
     width: 150px;
+    aspect-ratio: 9 / 19;
+  }
+  .il-hp--kecil .il-hp-layar {
+    padding-top: 26px;
+  }
+  .il-hp--kecil .il-dialog {
+    padding: 12px;
+  }
+}
+
+/* A drawn screen keeps its own light palette in either theme, as the phone's does: its parts (the white card, the
+   dark switch, the outlined button) were drawn for it. Without this, a dark page's tokens reach inside the drawn
+   window and leave its title at 1.1:1 and its switch invisible. */
+.il-jendela,
+.il-berkas {
+  --kartu: #fff;
+  --tinta: #16161a;
+  --abu: #6b6b76;
+  --garis: #e4e4e9;
+  --m-inset: #efeff3;
+  color: var(--tinta);
+}
+/* On a dark page a shadow does not show: a hairline ring keeps the drawn device's edge. */
+:root[data-theme="dark"] :is(.il-hp, .il-jendela, .il-berkas) {
+  box-shadow: 0 0 0 1px oklch(1 0 0 / 0.14), 0 24px 40px -24px rgb(0 0 0 / 0.45);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) :is(.il-hp, .il-jendela, .il-berkas) {
+    box-shadow: 0 0 0 1px oklch(1 0 0 / 0.14), 0 24px 40px -24px rgb(0 0 0 / 0.45);
   }
 }

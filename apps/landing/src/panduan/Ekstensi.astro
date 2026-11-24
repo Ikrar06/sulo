@@ -9,6 +9,7 @@
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
 import rilis from '../data/rilis.json';
 import { berkas } from '../data/unduhan';
+import { alamatSitus } from '../data/situs';
 import { panduan, layarOs } from '../teks/panduan';
 import { rumah2 } from '../teks/rumah-2';
 import { teks, type Bahasa } from '../teks';
@@ -37,12 +38,14 @@ const langkah = e.langkah(B);
 const toko = rilis.toko[browser];
 const diToko = toko.status === 'terbit' && toko.url;
 const kenapa = e.kenapa(B, toko.status === 'menunggu');
+const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
 ---
 <TataPanduan bahasa={bahasa} perangkat={browser} judul={e.judul(B)} kenapa={kenapa} deskripsi={kenapa} ringkas={{ waktu: e.waktu, butuh: e.butuh(B), penting: e.penting }}>
   {diToko ? (
     <p class="langkah-tombol"><a class="tombol tombol--utama" href={toko.url}>{browser === 'edge' ? teks[bahasa].pasangEdge : teks[bahasa].pasangChrome}</a></p>
   ) : (
     <Fragment>
+      <p class="panduan-penting panduan-dihp" data-untuk="android ios">{e.diHp}</p>
       <ol class="langkah-daftar" role="list">
         <Langkah nomor={1} judul={langkah[0].judul} isi={langkah[0].isi} alt={e.ilustrasi.unduh} label={t.umum.langkah}>
           <Fragment slot="tombol">
@@ -53,7 +56,7 @@ const kenapa = e.kenapa(B, toko.status === 'menunggu');
             )}
             {zip.versi && <p class="langkah-meta">{p.versi(zip.versi)}</p>}
           </Fragment>
-          <Jendela slot="gambar" alamat="sulo">
+          <Jendela slot="gambar" alamat={host}>
             <div class="il-kartu il-kartu--jendela">
               <p class="il-judul">{p.ekstensi.judul}</p>
               <p class="il-redup">{e.waktu}</p>
@@ -67,8 +70,10 @@ const kenapa = e.kenapa(B, toko.status === 'menunggu');
             <p class="il-berkas-samping"><FolderIkon className="il-ikon" />{dok}</p>
             <div class="il-berkas-isi">
               <Lingkar class="il-lebar"><span class="il-folder"><FolderIkon className="il-ikon" />Sulo</span></Lingkar>
-              <span class="il-berkas-baris"><BerkasIkon className="il-ikon" />manifest.json</span>
-              <span class="il-berkas-baris"><BerkasIkon className="il-ikon" />popup.html</span>
+              <div class="il-berkas-dalam">
+                <span class="il-berkas-baris"><BerkasIkon className="il-ikon" />manifest.json</span>
+                <span class="il-berkas-baris"><BerkasIkon className="il-ikon" />popup.html</span>
+              </div>
             </div>
           </div>
         </Langkah>
@@ -85,12 +90,24 @@ const kenapa = e.kenapa(B, toko.status === 'menunggu');
           </Jendela>
         </Langkah>
 
-        <Langkah nomor={4} judul={langkah[3].judul} isi={langkah[3].isi} alt={e.ilustrasi.mode} label={t.umum.langkah}>
+        <Langkah nomor={4} judul={langkah[3].judul} isi={langkah[3].isi} alt={e.ilustrasi.mode(B)} label={t.umum.langkah}>
           <Jendela slot="gambar" alamat={alamat}>
-            <div class="il-ekstensi-kepala">
-              <p class="il-judul-besar">{os.halaman}</p>
-              <Lingkar><span class="il-mode">{os.mode}<span class="il-sakelar" aria-hidden="true"></span></span></Lingkar>
-            </div>
+            {browser === 'edge' ? (
+              <div class="il-samping">
+                <div class="il-samping-panel">
+                  <p class="il-judul-besar">{os.halaman}</p>
+                  <span class="il-garis-isi" aria-hidden="true"></span>
+                  <span class="il-garis-isi il-garis-isi--pendek" aria-hidden="true"></span>
+                  <Lingkar><span class="il-mode">{os.mode}<span class="il-sakelar" aria-hidden="true"></span></span></Lingkar>
+                </div>
+                <div class="il-halaman-kosong" aria-hidden="true"></div>
+              </div>
+            ) : (
+              <div class="il-ekstensi-kepala">
+                <p class="il-judul-besar">{os.halaman}</p>
+                <Lingkar><span class="il-mode">{os.mode}<span class="il-sakelar" aria-hidden="true"></span></span></Lingkar>
+              </div>
+            )}
           </Jendela>
         </Langkah>
 
@@ -110,7 +127,7 @@ const kenapa = e.kenapa(B, toko.status === 'menunggu');
 
         <Langkah nomor={6} judul={langkah[5].judul} isi={langkah[5].isi} alt={e.ilustrasi.sematkan} label={t.umum.langkah}>
           <Jendela slot="gambar" alamat="sikola-v2.unhas.ac.id">
-            <PuzzleIkon slot="alat" className="il-ikon il-ikon--alat" />
+            <Lingkar slot="alat"><PuzzleIkon className="il-ikon il-ikon--alat" /></Lingkar>
             <div class="il-menu">
               <p class="il-redup">{os.ekstensi}</p>
               <p class="il-menu-baris">
@@ -134,7 +151,7 @@ const kenapa = e.kenapa(B, toko.status === 'menunggu');
         </div>
       </section>
 
-      <Masalah judul={t.umum.masalah} daftar={e.masalah} />
+      <Masalah judul={t.umum.masalah} daftar={e.masalah} lapor={{ tanya: t.umum.masihGagal, tautan: t.umum.lapor }} />
 
       <section class="panduan-dua">
         <div>

@@ -58,20 +58,28 @@
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
-/* A picture beside the title (the Android guide: the app it installs, the second tilted phone). Its top only, the
-   lower part fading into the page rather than ending on a hard cut. On a phone the steps come first: no picture. */
+/* A picture beside the title (the Android guide: the app it installs, the second tilted phone). Its top only, rising
+   from behind the header's hairline: a clean cut, no fade (no gradients on the guides, brief 4.1). On a phone the
+   steps come first: no picture. */
 .panduan-kepala--gambar {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 200px;
   align-items: start;
   gap: 32px;
 }
+.panduan-kepala--gambar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: var(--garis);
+}
 .panduan-miring {
+  align-self: end;
   width: 200px;
-  height: 260px;
+  height: 240px;
   overflow: hidden;
-  mask-image: linear-gradient(180deg, #000 62%, transparent 100%);
-  -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent 100%);
 }
 .panduan-kepala p {
   margin: 14px 0 0;
@@ -146,7 +154,7 @@
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--tinta) 22%, transparent);
 }
-.langkah h3 {
+.langkah h2 {
   margin: 8px 0 0;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -246,22 +254,31 @@
 }
 .panduan-periksa {
   margin-top: 48px;
-  border-radius: 20px;
+  border-radius: 24px;
   border: 1px solid var(--garis);
   background: var(--kartu);
 }
 .panduan-periksa summary {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   min-height: 52px;
   padding: 12px 20px;
   font-weight: 600;
   cursor: pointer;
+  list-style: none;
+}
+.panduan-periksa summary::-webkit-details-marker {
+  display: none;
+}
+.panduan-periksa[open] .tanya-panah {
+  rotate: 180deg;
 }
 .panduan-periksa summary:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 20px;
+  border-radius: 24px;
 }
 .panduan-periksa dl {
   margin: 0;
@@ -350,6 +367,9 @@
   color: var(--tinta);
   text-decoration: none;
   transition: border-color 150ms ease-out;
+}
+.pilih-perangkat a:active {
+  background: var(--m-inset);
 }
 .pilih-perangkat a:hover {
   border-color: color-mix(in oklch, var(--tinta) 30%, var(--garis));
@@ -471,6 +491,9 @@ html[data-perangkat="ios"] [data-pilih="iphone"] .pilih-milikmu {
   .panduan-kepala--gambar {
     display: block;
   }
+  .panduan-kepala--gambar::after {
+    display: none;
+  }
   .panduan-miring {
     display: none;
   }
@@ -511,5 +534,28 @@ html[data-perangkat="ios"] [data-pilih="iphone"] .pilih-milikmu {
   }
   .pilih-panah {
     grid-column: 2;
+  }
+}
+
+/* Still not working: one line after the problems, to the feedback form. */
+.panduan-lapor {
+  margin: 16px 0 0;
+  color: var(--abu);
+}
+/* The extension's guide opened on a phone: where it is installed, first. */
+.panduan-dihp {
+  margin: 0 0 32px;
+}
+.pilih-ringkas,
+.galat p {
+  text-wrap: pretty;
+}
+.galat h1 {
+  text-wrap: balance;
+}
+/* On a phone the first step's drawing only repeats the button above it: the download comes into the first screen. */
+@media (max-width: 47.9375em) {
+  .langkah-daftar > .langkah:first-child .langkah-gambar {
+    display: none;
   }
 }

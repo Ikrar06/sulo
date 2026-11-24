@@ -7,7 +7,7 @@ import rilis from '../data/rilis.json';
 import { berkas } from '../data/unduhan';
 import { panduan, layarOs } from '../teks/panduan';
 import { rumah2 } from '../teks/rumah-2';
-import type { Bahasa } from '../teks';
+import { teks, type Bahasa } from '../teks';
 import Hp from '../ilustrasi/Hp.astro';
 import Miring from '../komponen/Miring.astro';
 import Lingkar from '../ilustrasi/Lingkar.astro';
@@ -28,7 +28,7 @@ const apk = berkas('android', bahasa);
 const unduhApk = rumah2[bahasa].pasang.unduhApk;
 const nama = apk.versi ? `sulo-${apk.versi}-android.apk` : 'sulo-android.apk';
 ---
-<TataPanduan bahasa={bahasa} perangkat="android" judul={a.judul} kenapa={a.kenapa} deskripsi={a.kenapa} ringkas={{ waktu: a.waktu, butuh: a.butuh, penting: a.penting }}>
+<TataPanduan bahasa={bahasa} perangkat="android" judul={a.judul} kenapa={a.kenapa} deskripsi={a.kenapa} ringkas={{ waktu: a.waktu, butuh: a.butuh }}>
   <div slot="kepala" class="panduan-miring" aria-hidden="true">
     <Miring arah="kanan" bahasa={bahasa} sizes="200px" />
   </div>
@@ -41,6 +41,7 @@ const nama = apk.versi ? `sulo-${apk.versi}-android.apk` : 'sulo-android.apk';
           <span class="tombol tombol--utama" aria-disabled="true">{apk.ukuran}</span>
         )}
         {apk.versi && <p class="langkah-meta">{rumah2[bahasa].pasang.versi(apk.versi)}</p>}
+        <p class="langkah-meta" data-untuk="android-aplikasi">{teks[bahasa].catatan.aplikasi}</p>
       </Fragment>
       <Hp slot="gambar">
         <div class="il-kartu">
@@ -109,7 +110,7 @@ const nama = apk.versi ? `sulo-${apk.versi}-android.apk` : 'sulo-android.apk';
   </ol>
   <p class="panduan-catatan">{t.umum.ilustrasi}</p>
 
-  <Masalah judul={t.umum.masalah} daftar={a.masalah} />
+  <Masalah judul={t.umum.masalah} daftar={a.masalah} lapor={{ tanya: t.umum.masihGagal, tautan: t.umum.lapor }} />
 
   <section class="panduan-dua">
     <div>
