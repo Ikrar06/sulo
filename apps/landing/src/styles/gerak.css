@@ -127,6 +127,32 @@
   }
 }
 
+/* The stage itself: a little smaller at the top of the page, full size as the pieces land in it. On a laptop,
+   in place of its entrance (it is in view from the start); its top centre holds still. */
+@keyframes panggung-tumbuh {
+  from {
+    scale: 0.94;
+  }
+}
+@supports (animation-timeline: scroll()) {
+  @media (min-width: 64em) {
+    :root[data-gerak="penuh"] .panggung {
+      transform-origin: 50% 0;
+      animation-name: panggung-tumbuh;
+      animation-duration: auto;
+      animation-delay: 0s;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root);
+      animation-range: 0 60vh;
+    }
+  }
+}
+/* A link to a section glides there (the browser's own smooth scroll), except under reduced motion. */
+:root:is([data-gerak="penuh"], [data-gerak="ringan"]) {
+  scroll-behavior: smooth;
+}
+
 /* ---------- Answers open with their height (brief 7.5): the browser's own <details>, no script ---------- */
 
 @supports (interpolate-size: allow-keywords) {

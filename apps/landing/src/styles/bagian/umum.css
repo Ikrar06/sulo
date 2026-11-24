@@ -1,6 +1,6 @@
 /* What every section below the hero shares: its padding, the content width, and the head (title, one line). */
 .bagian {
-  padding: clamp(72px, 9vw, 128px) var(--pinggir);
+  padding: clamp(64px, 8vw, 112px) var(--pinggir);
   scroll-margin-top: calc(var(--nav-bawah) + 4px);
 }
 .isi {

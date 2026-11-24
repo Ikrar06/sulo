@@ -9,6 +9,7 @@
 const html = document.documentElement;
 const gerak = html.dataset.gerak ?? 'diam';
 const MASUK = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const CERITA = 'cubic-bezier(0.16, 1, 0.3, 1)';
 const JARAK = 70;
 
 /** Holds the animations at their first frame, and plays them once the element is a fifth in view. */
@@ -33,6 +34,9 @@ function ukurTujuan(): void {
   if (!iframe || !dok?.body || iframe.offsetWidth === 0) return;
   const pembuka = document.querySelector<HTMLElement>('.pembuka');
   if (!pembuka) return;
+  // The stage grows with the scroll (gerak.css): measured at its full size, where the pieces land.
+  const panggung = document.querySelector<HTMLElement>('.panggung');
+  if (panggung) panggung.style.animation = 'none';
   const fr = iframe.getBoundingClientRect();
   const k = fr.width / iframe.offsetWidth;
   const asal = pembuka.getBoundingClientRect();
@@ -55,6 +59,7 @@ function ukurTujuan(): void {
     potongan.style.setProperty('--tuju-y', `${Math.round(tujuanY - pusatY)}px`);
     potongan.style.setProperty('--tuju-skala', skala.toFixed(3));
   }
+  if (panggung) panggung.style.animation = '';
 }
 
 interface Pasangan {
@@ -86,10 +91,7 @@ function cariPasangan(potongan: HTMLElement, dok: Document): Pasangan | null {
 function siapkanPotongan(): void {
   const iframe = document.querySelector<HTMLIFrameElement>('.pembuka .perangkat--laptop iframe');
   if (!iframe) return;
-  // After the devices' own entrance has settled, so the laptop is where it stays.
-  const panggung = document.querySelector('.panggung');
-  const tenang = () => Promise.all((panggung?.getAnimations() ?? []).map((a) => a.finished)).catch(() => undefined);
-  const ukur = () => void tenang().then(() => requestAnimationFrame(ukurTujuan));
+  const ukur = () => requestAnimationFrame(ukurTujuan);
   if (iframe.contentDocument?.readyState === 'complete') ukur();
   iframe.addEventListener('load', ukur);
   let tunda = 0;
@@ -136,13 +138,18 @@ function siapkanSekali(): void {
       }),
     );
   }
-  // A day with Sulo: each moment's words, then its phone, rise into place as each is reached (a moment is taller
-  // than a phone's screen: its words would wait for its phone).
-  for (const teks of document.querySelectorAll('.momen-teks')) {
-    sekaliSaatTerlihat(teks, () => [teks.animate([{ opacity: 0, translate: '0 16px' }, { opacity: 1, translate: '0 0' }], { duration: 420, easing: MASUK, fill: 'backwards' })]);
-  }
-  for (const hp of document.querySelectorAll('.momen-hp')) {
-    sekaliSaatTerlihat(hp, () => [hp.animate([{ opacity: 0, translate: '0 24px' }, { opacity: 1, translate: '0 0' }], { duration: 480, delay: JARAK, easing: MASUK, fill: 'backwards' })]);
+  // A day with Sulo: as a row is reached its tile opens, the phone rises into it from below the tile's edge, and
+  // the words follow.
+  for (const momen of document.querySelectorAll('.momen')) {
+    const ubin = momen.querySelector('.momen-ubin');
+    const hp = momen.querySelector('.momen-hp');
+    const teks = momen.querySelector('.momen-teks');
+    if (!ubin || !hp || !teks) continue;
+    sekaliSaatTerlihat(ubin, () => [
+      ubin.animate([{ opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1 }], { duration: 520, easing: CERITA, fill: 'backwards' }),
+      hp.animate([{ translate: '-50% 72px' }, { translate: '-50% 0' }], { duration: 820, delay: 60, easing: CERITA, fill: 'backwards' }),
+      teks.animate([{ opacity: 0, translate: '0 14px' }, { opacity: 1, translate: '0 0' }], { duration: 460, delay: 140, easing: MASUK, fill: 'backwards' }),
+    ]);
   }
 }
 

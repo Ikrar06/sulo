@@ -27,7 +27,7 @@ const data = await dataContoh(bahasa);
       <h2 id="judul-bento">{t.judul}</h2>
     </header>
     <div class="bento-grid">
-      <article class="ubin ubin--kabar" style="--ubin: var(--course-6)">
+      <article class="ubin ubin--kabar">
         <div class="ubin-teks">
           <h3>{t.kabar.judul}</h3>
           <p>{t.kabar.isi}</p>
@@ -35,7 +35,7 @@ const data = await dataContoh(bahasa);
         <div data-ui-aplikasi class="ubin-visual ubin-visual--kartu" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kabar" /></div></div>
       </article>
 
-      <article class="ubin ubin--beban" style="--ubin: var(--course-4)">
+      <article class="ubin ubin--beban">
         <div class="ubin-teks">
           <h3>{t.beban.judul}</h3>
           <p>{t.beban.isi}</p>
@@ -43,7 +43,7 @@ const data = await dataContoh(bahasa);
         <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="beban" /></div></div>
       </article>
 
-      <article class="ubin ubin--kalender" style="--ubin: var(--course-8)">
+      <article class="ubin ubin--kalender">
         <div class="ubin-teks">
           <h3>{t.kalender.judul}</h3>
           <p>{t.kalender.isi}</p>
@@ -51,7 +51,7 @@ const data = await dataContoh(bahasa);
         <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kalender" /></div></div>
       </article>
 
-      <article class="ubin ubin--nama" style="--ubin: var(--course-1)">
+      <article class="ubin ubin--nama">
         <Maskot mood="happy" class="ubin-maskot" sentuh ganti />
         <div class="ubin-teks">
           <h3>{t.nama.judul}</h3>
@@ -59,7 +59,7 @@ const data = await dataContoh(bahasa);
         </div>
       </article>
 
-      <article class="ubin ubin--perangkat" style="--ubin: var(--course-5)">
+      <article class="ubin ubin--perangkat">
         <div class="ubin-teks">
           <h3>{t.perangkat.judul}</h3>
           <p>{t.perangkat.isi}</p>

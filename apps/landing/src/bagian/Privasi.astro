@@ -25,6 +25,10 @@ const minat = rilis.minatIos.aktif;
     <header class="bagian-kepala">
       <h2 id="judul-privasi">{t.judul}</h2>
       <p>{t.intro}</p>
+      <p class="privasi-tautan">
+        <a class="tautan" href={PRIVASI_APLIKASI[bahasa]}>{t.tautan.privasi}</a>
+        <a class="tautan" href={REPO}>{t.tautan.kode}</a>
+      </p>
     </header>
 
     <div class="privasi-peta" aria-label={t.alamat.judul} role="group">
@@ -87,10 +91,6 @@ const minat = rilis.minatIos.aktif;
         <h3>{t.hapus.judul}</h3>
         <p>{t.hapus.isi}</p>
       </div>
-      <p class="privasi-tautan">
-        <a class="tautan" href={PRIVASI_APLIKASI[bahasa]}>{t.tautan.privasi}</a>
-        <a class="tautan" href={REPO}>{t.tautan.kode}</a>
-      </p>
     </div>
     <p class="privasi-halaman">{t.halaman}{minat && <> {t.minat}</>}</p>
   </div>

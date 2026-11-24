@@ -1,5 +1,6 @@
 /* What it helps with: a bento of seven tiles in three sizes (4 columns on a laptop, 2 on a tablet, 1 on a phone).
-   Each tile is one of the apps' course colours, thinned, with a slight same-colour gradient (brief 4.1 allows it). */
+   Every tile is the apps' own screen colour (the light grey their cards are made to sit on; in dark, the page
+   itself with a hairline): no tints, no gradients. Colour comes from the apps' UI and the mascot alone. */
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -15,11 +16,8 @@
   padding: 20px;
   border-radius: 32px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--ubin, var(--tinta)) 18%, var(--garis));
-  background: linear-gradient(180deg, color-mix(in srgb, var(--ubin, var(--tinta)) 7%, var(--kartu)) 0%, color-mix(in srgb, var(--ubin, var(--tinta)) 13%, var(--kartu)) 100%);
-}
-.ubin--tema {
-  --ubin: var(--abu);
+  border: 1px solid var(--garis);
+  background: var(--layer-screen);
 }
 .ubin--kabar {
   grid-column: span 2;
@@ -42,8 +40,7 @@
 }
 .ubin-teks p {
   margin: 6px 0 0;
-  /* A shade nearer the ink than the page's grey: the tints under it cost contrast (4.3:1 on the red tile in dark). */
-  color: color-mix(in srgb, var(--abu) 72%, var(--tinta));
+  color: var(--abu);
   font-size: 0.9375rem;
   line-height: 1.5;
   text-wrap: pretty;
@@ -60,9 +57,19 @@
   transform-origin: 0 0;
   scale: min(1, tan(atan2(100cqw, 290px)));
 }
-/* The app's own cards carry their own surface and border: no second frame around them. */
+/* The app's own cards carry their own surface and border: no second frame around them. Kabar terbaru's card fills
+   its tall tile, so the tile never shows a bare lower half. */
 .ubin-visual--kartu {
   margin-top: 0;
+  flex: 1;
+  display: flex;
+}
+.ubin-visual--kartu .ubin-skala {
+  display: flex;
+  flex: 1;
+}
+.ubin-visual--kartu .ubin-skala > * {
+  flex: 1;
 }
 
 /* The mascot tile: the mascot leads, the words under it. */
@@ -128,12 +135,26 @@
   align-self: flex-start;
 }
 
-/* The one full-colour tile: the sentence that matters most, in the apps' blue, ink on it. */
+/* The one full tile: the sentence that matters most, in ink with the page's colour on it (light on dark in the
+   dark theme): the palette's own two ends, no extra hue. */
 .ubin--kalimat {
   justify-content: flex-end;
   border-color: transparent;
-  background: var(--course-6);
-  color: #0b0b10;
+  background: var(--tinta);
+  color: var(--bg);
+}
+/* In dark the same tile is one step raised, not a white slab among dark ones. */
+[data-theme="dark"] .ubin--kalimat {
+  border-color: var(--garis);
+  background: var(--surface-raised);
+  color: var(--tinta);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ubin--kalimat {
+    border-color: var(--garis);
+    background: var(--surface-raised);
+    color: var(--tinta);
+  }
 }
 .ubin--kalimat p {
   margin: 0;

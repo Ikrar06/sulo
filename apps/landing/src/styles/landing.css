@@ -15,12 +15,14 @@
   --abu: var(--muted);
   --garis: var(--border);
   --kartu: var(--surface);
-  /* The hero's sky (owner, 24 Nov 2026): a warm dawn in light, cream into the palest orange. */
-  --langit: linear-gradient(180deg, #fff1e3 0%, #fff8f1 58%, var(--bg) 100%);
+  /* The hero's background is the plain page in both themes (owner, 24 Nov 2026: minimal, no washes of colour):
+     the only warmth is the one soft light behind the mascot (brief 4.1), as r g b, fainter on a light page. In
+     dark a fine dot grid fades out under it. */
+  --langit: none;
   --langit-ukuran: auto;
   --langit-topeng: none;
-  /* The one warm light behind the mascot (brief 4.1), as r g b. In light the dawn is warm enough without it (hidden below). */
-  --cahaya: 255 158 64;
+  --cahaya: 255 150 60;
+  --cahaya-kuat: 0.55;
   /* Where the fixed nav ends: 12 px down, then the pill, 56 px or its text's line plus padding when the visitor's
      text size makes that taller. Every page's top padding starts from it, so nothing sits under the nav. */
   --nav-bawah: calc(12px + max(56px, 1.5rem + 18px));
@@ -32,6 +34,7 @@
     --langit-ukuran: 22px 22px;
     --langit-topeng: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
     --cahaya: 255 136 48;
+    --cahaya-kuat: 1;
   }
 }
 :root[data-theme="dark"] {
@@ -39,6 +42,7 @@
   --langit-ukuran: 22px 22px;
   --langit-topeng: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
   --cahaya: 255 136 48;
+  --cahaya-kuat: 1;
 }
 @media (min-width: 40em) {
   :root { --pinggir: 24px; }
@@ -63,6 +67,15 @@ body {
   overflow-x: clip;
   /* A word longer than its line (large text on a small phone) breaks rather than pushing the page sideways. */
   overflow-wrap: break-word;
+}
+/* The parts the browser draws carry the page too: selection in the brand's warmth, a quiet scrollbar, the
+   brand's colour on native controls. */
+::selection {
+  background: color-mix(in srgb, var(--brand-orange) 26%, transparent);
+}
+html {
+  scrollbar-color: color-mix(in srgb, var(--tinta) 30%, transparent) transparent;
+  accent-color: var(--brand-orange);
 }
 .lewati {
   position: absolute;
@@ -345,6 +358,20 @@ html[data-tombol-lewat] .nav-pasang {
   background: var(--tinta);
   color: var(--bg);
 }
+/* With a pointer, a button answers before it is pressed: a shade toward the ink, nothing moves. */
+@media (hover: hover) {
+  .tombol {
+    transition: transform 120ms ease-out, background-color 150ms ease-out;
+  }
+  a.tombol--utama:hover,
+  button.tombol--utama:hover {
+    background: color-mix(in srgb, var(--primary) 90%, var(--ink));
+  }
+  a.tombol--kedua:hover,
+  button.tombol--kedua:hover {
+    background: color-mix(in srgb, var(--m-inset) 86%, var(--tinta));
+  }
+}
 .tombol--penuh {
   width: 100%;
 }
@@ -483,16 +510,9 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   aspect-ratio: 1;
   translate: -50% -50%;
   background: radial-gradient(closest-side, rgb(var(--cahaya) / 0.2), rgb(var(--cahaya) / 0.11) 32%, rgb(var(--cahaya) / 0.045) 62%, rgb(var(--cahaya) / 0.012) 84%, transparent);
+  opacity: var(--cahaya-kuat);
   z-index: -1;
   pointer-events: none;
-}
-:root:not([data-theme="dark"]) .cahaya {
-  display: none;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .cahaya {
-    display: block;
-  }
 }
 .pembuka-cip {
   display: flex;

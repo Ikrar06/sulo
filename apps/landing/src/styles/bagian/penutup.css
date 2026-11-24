@@ -1,14 +1,14 @@
-/* The closing block: night in both themes (its own colours, not the page's), one warm light behind the mascot. */
+/* The closing block: night in both themes (the brand's ink, flat), one warm light behind the mascot. */
 .penutup {
-  --malam-1: #11162a;
-  --malam-2: #07080f;
+  --malam-1: #0b0b10;
+  --malam-2: #0b0b10;
   --malam-teks: #f3f3f6;
   --malam-abu: #a6a8b8;
   position: relative;
   isolation: isolate;
   overflow: clip;
   padding: clamp(96px, 12vw, 160px) var(--pinggir);
-  background: linear-gradient(180deg, var(--malam-1) 0%, var(--malam-2) 100%);
+  background: var(--malam-1);
   color: var(--malam-teks);
   text-align: center;
   color-scheme: dark;
