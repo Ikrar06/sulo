@@ -564,6 +564,10 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   line-height: 1.55;
   text-wrap: pretty;
 }
+.pembuka-aman {
+  color: var(--tinta);
+  font-weight: 600;
+}
 .pembuka-tombol {
   display: flex;
   flex-wrap: wrap;

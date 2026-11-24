@@ -18,6 +18,8 @@ export const teks = {
     judulBagian: ['Tugas, jadwal, presensi Unhas', 'di satu tempat.'],
     // USULAN replaced (impeccable critique, 24 Nov 2026): the first screen now answers "is it safe?" too.
     pendukung: 'Sulo merangkumnya dari akun Unhas-mu sendiri, tanpa pernah meminta kata sandimu.',
+    /** The sentence's promise of safety, set in ink so it reads in the first five seconds (phase 6 test). */
+    aman: 'tanpa pernah meminta kata sandimu.',
     unduhAndroid: 'Unduh untuk Android',
     unduhEkstensi: 'Unduh ekstensi',
     pasangChrome: 'Pasang di Chrome',
@@ -52,6 +54,7 @@ export const teks = {
     judul: 'Your Unhas tasks, classes and attendance, in one place.',
     judulBagian: ['Your Unhas tasks, classes and attendance,', 'in one place.'],
     pendukung: 'Sulo gathers them from your own Unhas account, and never asks for your password.',
+    aman: 'never asks for your password.',
     unduhAndroid: 'Download for Android',
     unduhEkstensi: 'Download the extension',
     pasangChrome: 'Add to Chrome',

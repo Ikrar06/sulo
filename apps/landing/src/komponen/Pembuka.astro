@@ -22,6 +22,9 @@ const { bahasa } = Astro.props;
 const t = teks[bahasa];
 const data = await dataContoh(bahasa);
 const unduh = tombolUnduh(bahasa);
+// The sentence's last words are its promise of safety: set in ink, the one thing a visitor must read in five seconds.
+const aman = t.pendukung.endsWith(t.aman) ? t.aman : '';
+const awal = t.pendukung.slice(0, t.pendukung.length - aman.length);
 ---
 <section class="pembuka" aria-labelledby="judul-pembuka">
   <div class="pembuka-langit" aria-hidden="true"></div>
@@ -36,7 +39,7 @@ const unduh = tombolUnduh(bahasa);
     <h1 class="pembuka-judul" id="judul-pembuka">
       <span>{t.judulBagian[0]}</span> <span class="judul-abu">{t.judulBagian[1]}</span>
     </h1>
-    <p class="pembuka-pendukung">{pecah(t.pendukung).map((p) => (p.utuh ? <span class="utuh">{p.teks}</span> : p.teks))}</p>
+    <p class="pembuka-pendukung">{pecah(awal).map((p) => (p.utuh ? <span class="utuh">{p.teks}</span> : p.teks))}{aman && <strong class="pembuka-aman">{aman}</strong>}</p>
     <div class="pembuka-tombol">
       <TombolUnduh bahasa={bahasa} unduh={unduh} />
       {tombolPanduan(bahasa).map((p) => <a class="tombol tombol--kedua" data-untuk={p.untuk} href={p.href}>{t.caraPasang}</a>)}
