@@ -7,3 +7,7 @@ html,
 body {
   overflow: hidden;
 }
+/* A picture of the app: its measures as in the app, whatever text size the visitor set (rem stays 16 px). */
+html {
+  font-size: 16px;
+}

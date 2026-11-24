@@ -32,7 +32,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.kabar.judul}</h3>
           <p>{t.kabar.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual ubin-visual--kartu" aria-hidden="true"><Ubin data={data} bahasa={bahasa} jenis="kabar" /></div>
+        <div data-ui-aplikasi class="ubin-visual ubin-visual--kartu" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kabar" /></div></div>
       </article>
 
       <article class="ubin ubin--beban" style="--ubin: var(--course-4)">
@@ -40,7 +40,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.beban.judul}</h3>
           <p>{t.beban.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true"><Ubin data={data} bahasa={bahasa} jenis="beban" /></div>
+        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="beban" /></div></div>
       </article>
 
       <article class="ubin ubin--kalender" style="--ubin: var(--course-8)">
@@ -48,7 +48,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.kalender.judul}</h3>
           <p>{t.kalender.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true"><Ubin data={data} bahasa={bahasa} jenis="kalender" /></div>
+        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kalender" /></div></div>
       </article>
 
       <article class="ubin ubin--nama" style="--ubin: var(--course-1)">
@@ -64,7 +64,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.perangkat.judul}</h3>
           <p>{t.perangkat.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual ubin-visual--perangkat" aria-hidden="true">
+        <div data-ui-aplikasi class="ubin-visual ubin-visual--perangkat" aria-hidden="true" inert>
           <div class="ubin-popup">
             <iframe src={`/layar/${bahasa}/popup/auto/`} title={teks[bahasa].layarPopup} loading="lazy" tabindex="-1" inert></iframe>
           </div>
@@ -77,7 +77,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.tema.judul}</h3>
           <p>{t.tema.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual ubin-visual--tema" data-theme="dark" data-ubin-tema aria-hidden="true">
+        <div data-ui-aplikasi class="ubin-visual ubin-visual--tema" data-theme="dark" data-ubin-tema aria-hidden="true" inert>
           <Potongan data={data} bahasa={bahasa} jenis="tugas-1" />
         </div>
         <button class="tombol tombol--kedua tombol--kecil ubin-tema-tombol" type="button" data-ubin-tema-tombol aria-pressed="true">{t.tema.tombol}</button>

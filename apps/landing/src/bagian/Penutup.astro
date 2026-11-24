@@ -5,7 +5,7 @@
 // hero's logic). The eyes follow the pointer; touched, it reacts.
 import { tombolUnduh } from '../data/unduhan';
 import { rumah2 } from '../teks/rumah-2';
-import type { Bahasa } from '../teks';
+import { teks, type Bahasa } from '../teks';
 import Maskot from '../komponen/Maskot.astro';
 import TombolUnduh from '../komponen/TombolUnduh.astro';
 import '../styles/bagian/penutup.css';
@@ -17,7 +17,7 @@ const { bahasa } = Astro.props;
 const t = rumah2[bahasa].penutup;
 ---
 <section class="penutup" aria-labelledby="judul-penutup">
-  <div class="penutup-isi">
+  <div class="penutup-isi" data-unduh-wadah>
     <Maskot mood="happy" class="penutup-maskot" lihat=".penutup [data-tombol-utama]" sorot=".penutup [data-tombol-utama]" sentuh>
       <span class="penutup-cahaya" aria-hidden="true"></span>
     </Maskot>
@@ -26,5 +26,9 @@ const t = rumah2[bahasa].penutup;
     <div class="penutup-tombol">
       <TombolUnduh bahasa={bahasa} unduh={tombolUnduh(bahasa)} />
     </div>
+    <p class="penutup-unduh" data-unduh-baris aria-live="polite" data-teks-2={teks[bahasa].unduhMulai(2)} data-teks-3={teks[bahasa].unduhMulai(3)}></p>
   </div>
 </section>
+<script>
+  import '../hidup/unduh';
+</script>

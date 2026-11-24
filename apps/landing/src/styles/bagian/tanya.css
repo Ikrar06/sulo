@@ -1,14 +1,39 @@
-/* Questions: the title and a mascot on the left, the list on the right; one column on a phone. */
+/* Questions: the title and the warning drawing on the left (staying in view while the list scrolls by), the list
+   on the right; one column on a phone. */
 .tanya-isi {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: clamp(32px, 5vw, 80px);
   align-items: start;
 }
-.tanya-maskot {
-  width: 96px;
-  height: 96px;
-  margin-bottom: 20px;
+.tanya-samping {
+  display: grid;
+  gap: 28px;
+  justify-items: start;
+  position: sticky;
+  top: calc(var(--nav-bawah) + 24px);
+}
+.tanya-gambar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+  margin: 0;
+}
+.tanya-gambar-hp {
+  flex: none;
+}
+/* The whole warning shows: a full-height phone, also on a phone (where the guides draw it shorter). */
+.tanya-gambar .il-hp {
+  aspect-ratio: 9 / 19;
+}
+.tanya-gambar figcaption {
+  flex: 1 1 12rem;
+  max-width: 18rem;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  text-wrap: pretty;
 }
 .tanya-daftar {
   border-top: 1px solid var(--garis);
@@ -73,14 +98,13 @@
   align-items: center;
   min-height: 44px;
 }
-@media (max-width: 767px) {
+@media (max-width: 47.9375em) {
   .tanya-isi {
     grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
-  .tanya-maskot {
-    width: 72px;
-    height: 72px;
-    margin-bottom: 12px;
+  .tanya-samping {
+    position: static;
+    gap: 20px;
   }
 }

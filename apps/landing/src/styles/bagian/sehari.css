@@ -61,7 +61,8 @@
   line-height: 1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--tinta) 22%, transparent);
+  /* The moment's hour, large: 3:1 or more on the sky in both themes (WCAG for large text). */
+  color: color-mix(in srgb, var(--tinta) 55%, transparent);
 }
 .momen-teks h3 {
   margin: 12px 0 0;
@@ -181,7 +182,7 @@
   line-height: 1.4;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 63.9375em) {
   .sehari-maskot {
     width: 64px;
     height: 64px;

@@ -21,7 +21,7 @@ export const rumah = {
     },
     sehari: {
       judul: 'Sehari bareng Sulo',
-      intro: 'Dari bangun sampai tidur, ini yang Sulo kerjakan diam-diam.',
+      intro: 'Dari bangun sampai tidur, ini yang Sulo kerjakan untukmu.',
       baru: 'sekarang',
       momen: [
         { jam: '06.30', judul: 'Ringkasan pagi', isi: 'Satu notifikasi tanpa suara berisi tenggat hari ini dan besok.' },
@@ -47,7 +47,7 @@ export const rumah = {
     },
     sehari: {
       judul: 'A day with Sulo',
-      intro: 'From waking up to going to bed, here is what Sulo quietly does.',
+      intro: 'From waking up to going to bed, here is what Sulo does for you.',
       baru: 'now',
       momen: [
         { jam: '06.30', judul: 'Morning summary', isi: 'One silent notification with what is due today and tomorrow.' },

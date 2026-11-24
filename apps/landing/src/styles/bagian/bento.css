@@ -42,7 +42,8 @@
 }
 .ubin-teks p {
   margin: 6px 0 0;
-  color: var(--abu);
+  /* A shade nearer the ink than the page's grey: the tints under it cost contrast (4.3:1 on the red tile in dark). */
+  color: color-mix(in srgb, var(--abu) 72%, var(--tinta));
   font-size: 0.9375rem;
   line-height: 1.5;
   text-wrap: pretty;
@@ -50,6 +51,14 @@
 .ubin-visual {
   min-width: 0;
   margin-top: auto;
+  container-type: inline-size;
+}
+/* The app's card keeps a width it fits in (290 px) and, in a tile narrower than
+   that, is scaled to it as a whole rather than squeezed: its words never leave the card. */
+.ubin-skala {
+  width: max(100cqw, 290px);
+  transform-origin: 0 0;
+  scale: min(1, tan(atan2(100cqw, 290px)));
 }
 /* The app's own cards carry their own surface and border: no second frame around them. */
 .ubin-visual--kartu {
@@ -135,7 +144,7 @@
   text-wrap: balance;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 63.9375em) {
   .bento-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -143,7 +152,7 @@
     grid-row: auto;
   }
 }
-@media (max-width: 639px) {
+@media (max-width: 39.9375em) {
   .bento-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -162,5 +171,12 @@
   .ubin {
     padding: 16px;
     border-radius: 28px;
+  }
+}
+/* The narrowest phone, or very large text: the tile's padding goes to the app's card, which keeps its own width. */
+@media (max-width: 20em) {
+  .ubin {
+    padding: 14px;
+    border-radius: 26px;
   }
 }

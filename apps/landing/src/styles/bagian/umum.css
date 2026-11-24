@@ -1,7 +1,7 @@
 /* What every section below the hero shares: its padding, the content width, and the head (title, one line). */
 .bagian {
   padding: clamp(72px, 9vw, 128px) var(--pinggir);
-  scroll-margin-top: 72px;
+  scroll-margin-top: calc(var(--nav-bawah) + 4px);
 }
 .isi {
   max-width: var(--isi);
@@ -20,7 +20,8 @@
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: clamp(1.75rem, 1.25rem + 1.9vw, 2.75rem);
+  /* 28 to 44 px at the default text size; larger text grows it by part (see .pembuka-judul). */
+  font-size: clamp(calc(16px + 0.75rem), calc(8px + 0.75rem + 1.9vw), calc(32px + 0.75rem));
   line-height: 1.12;
   letter-spacing: -0.02em;
   text-wrap: balance;

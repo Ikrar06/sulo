@@ -3,7 +3,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.7fr);
   gap: 16px;
-  align-items: start;
+  /* Even heights: every card's links sit on one line at its bottom. */
+  align-items: stretch;
 }
 .pasang-kartu {
   display: flex;
@@ -24,18 +25,19 @@
   line-height: 1.25;
   text-wrap: balance;
 }
-.pasang-ikon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  /* A circle, like the fact row's: a rounded square in the card's corner would not be concentric with it. */
-  border-radius: 50%;
+/* The moment the card leads to, drawn as in the guides, cropped to its top. 12 px in from the card's edge, so its
+   corners are concentric with the card's: 28 - 12 = 16. */
+.pasang-gambar {
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 200px;
+  margin: -16px -16px 4px;
+  padding: 20px 16px 0;
+  border-radius: 16px;
   background: var(--m-inset);
-}
-.pasang-ikon svg {
-  width: 24px;
-  height: 24px;
+  overflow: hidden;
 }
 /* Version, size, time and requirement as separate pieces with space between, never a separator character. */
 .pasang-meta {
@@ -57,11 +59,22 @@
   line-height: 1.55;
   text-wrap: pretty;
 }
-.pasang-panduan {
+.pasang-unduh {
+  margin: 0;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.pasang-tautan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  margin: auto 0 -6px;
+}
+.pasang-tautan .tautan {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  margin-top: -4px;
 }
 .pasang-qr {
   display: flex;
@@ -84,6 +97,8 @@
   line-height: 1.45;
 }
 .pasang-kartu--kecil {
+  /* The smaller card stays its own height, not stretched to the others'. */
+  align-self: start;
   background: transparent;
 }
 
@@ -92,12 +107,18 @@ html[data-perangkat="android"] [data-pasang="android"],
 html[data-perangkat="ios"] [data-pasang="iphone"] {
   order: -1;
 }
+/* The other device's download stays, quietly: the loud button is the visitor's own. */
+html[data-perangkat="android"] [data-pasang="ekstensi"] .tombol--utama,
+html:is([data-perangkat="chrome"], [data-perangkat="edge"], [data-perangkat="lain"]) [data-pasang="android"] .tombol--utama {
+  background: var(--m-inset);
+  color: var(--tinta);
+}
 /* A QR code is for a wide screen: on a phone, the page is already on the phone. */
 html[data-perangkat="android"] .pasang-qr,
 html[data-perangkat="ios"] .pasang-qr {
   display: none;
 }
-@media (max-width: 1023px) {
+@media (max-width: 63.9375em) {
   .pasang-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -105,12 +126,16 @@ html[data-perangkat="ios"] .pasang-qr {
     grid-column: 1 / -1;
   }
 }
-@media (max-width: 679px) {
+@media (max-width: 42.4375em) {
   .pasang-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .pasang-kartu {
     padding: 22px;
+  }
+  .pasang-gambar {
+    margin: -10px -10px 4px;
+    border-radius: 18px;
   }
   .pasang-qr {
     display: none;

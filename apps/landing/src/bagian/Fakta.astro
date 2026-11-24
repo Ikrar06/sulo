@@ -1,7 +1,8 @@
 ---
-// Four short facts right under the hero (brief 6.3), each leading to the
-// privacy section where it is shown in full.
+// Four short facts right under the hero (brief 6.3), each leading to where
+// it is shown in full: the privacy section, and for open code the code itself.
 import { KeyIcon } from '@sulo/ui/icons';
+import { REPO } from '../data/alamat';
 import { rumah } from '../teks/rumah';
 import type { Bahasa } from '../teks';
 import { KodeIkon, MataCoretIkon, PerangkatIkon } from '../komponen/ikon';
@@ -20,7 +21,7 @@ const ikon = [KeyIcon, PerangkatIkon, MataCoretIkon, KodeIkon];
       const Ikon = ikon[i]!;
       return (
         <li>
-          <a href="#privasi">
+          <a href={i === 3 ? REPO : '#privasi'}>
             <span class="fakta-ikon" aria-hidden="true"><Ikon /></span>
             <span>{teks}</span>
           </a>

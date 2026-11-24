@@ -79,7 +79,7 @@
 }
 
 /* Narrow: the sources in a column, then one thin line down into Sulo. */
-@media (max-width: 767px) {
+@media (max-width: 47.9375em) {
   .sumber-diagram {
     grid-template-columns: minmax(0, 1fr);
   }

@@ -23,7 +23,7 @@ export const rumah2 = {
       lakukan: {
         judul: 'Yang Sulo lakukan',
         isi: [
-          'Membaca tugas, tenggat, dan presensi dari akun SIKOLA-mu sendiri, memakai sesi yang sudah ada.',
+          'Membaca tugas, tenggat, dan presensi dari akun SIKOLA-mu sendiri, lewat login yang sudah ada.',
           'Menyimpan semuanya di perangkatmu.',
           'Mengecek SIKOLA secukupnya, dengan batas harian.',
         ],
@@ -38,7 +38,7 @@ export const rumah2 = {
           { host: 'sikola-v2.unhas.ac.id', ket: 'Data akunmu sendiri, hanya dibaca.' },
           { host: 'ikrar06.github.io', ket: 'Kalender akademik, pengaturan jarak jauh, dan info versi baru. Tanpa data apa pun tentangmu.' },
         ],
-        neosia: 'NEOSIA tidak pernah dihubungi. Modul NEOSIA hanya membaca yang sudah diminta NEOSIA sendiri saat kamu membukanya.',
+        neosia: 'Sulo tidak pernah mengirim permintaan ke NEOSIA. Kalau kamu menghubungkan NEOSIA, Sulo hanya membaca halaman NEOSIA yang kamu buka sendiri.',
       },
       izin: {
         judul: 'Izin yang diminta, dan alasannya',
@@ -50,7 +50,7 @@ export const rumah2 = {
           { nama: 'Notifikasi', ket: 'Pengingat tenggat dan kabar terbaru. Bisa dimatikan per jenis.' },
           { nama: 'Status pemakaian', ket: 'Tidak mengecek SIKOLA saat laptop tidak dipakai.' },
           { nama: 'sikola-v2.unhas.ac.id', ket: 'Membaca data akunmu sendiri, tanpa kata sandi.' },
-          { nama: 'NEOSIA, pilihan', ket: 'Hanya diminta saat kamu menyalakan modul NEOSIA, dicabut saat dimatikan.' },
+          { nama: 'NEOSIA, pilihan', ket: 'Hanya diminta saat kamu menghubungkan NEOSIA, dicabut saat kamu memutuskannya.' },
         ],
         daftarAndroid: [
           { nama: 'Internet', ket: 'Membaca SIKOLA dan repo data publik Sulo.' },
@@ -68,7 +68,7 @@ export const rumah2 = {
       halaman: 'Halaman ini sendiri tanpa pelacak, tanpa cookie, dan tanpa aset dari pihak lain.',
       minat: 'Tombol minat iPhone hanya menambah satu angka total. Untuk membatasi pengulangan, alamat IP disimpan sebagai hash bergaram harian selama 24 jam.',
       perangkat: 'Perangkatmu',
-      tanpaServer: 'Server Sulo: tidak ada.',
+      tanpaServer: 'Tidak ada server Sulo.',
     },
     pasang: {
       judul: 'Pasang di perangkatmu',
@@ -81,13 +81,14 @@ export const rumah2 = {
       panduanAndroid: 'Lihat panduan Android',
       unduhZip: 'Unduh ekstensi',
       unduhApk: 'Unduh APK',
+      peringatan: 'Ada peringatan saat memasang?',
     },
     tanya: {
       judul: 'Tanya jawab',
       daftar: [
         { id: 'pembuat', t: 'Siapa yang membuat Sulo?', j: 'Ikrar Gempur Tirani, mahasiswa Teknik Informatika Unhas. Kodenya terbuka di GitHub.' },
         { id: 'resmi', t: 'Ini aplikasi resmi Unhas?', j: 'Bukan. Sulo dibuat mahasiswa dan tidak berafiliasi dengan Universitas Hasanuddin. Sulo hanya membaca data dari akunmu sendiri.' },
-        { id: 'aman', t: 'Aman untuk akun SIKOLA-ku?', j: 'Sulo tidak pernah meminta kata sandi. Ia memakai sesi yang sudah ada saat kamu masuk SIKOLA, hanya membaca, dan membatasi sendiri jumlah requestnya. Semua yang dibaca tersimpan di perangkatmu.' },
+        { id: 'aman', t: 'Aman untuk akun SIKOLA-ku?', j: 'Sulo tidak pernah meminta kata sandi. Ia memakai login yang sudah ada saat kamu masuk SIKOLA, hanya membaca, dan membatasi sendiri seberapa sering ia mengecek. Semua yang dibaca tersimpan di perangkatmu.' },
         { id: 'peringatan', t: 'Kenapa HP atau laptopku memberi peringatan saat memasang?', j: 'Karena Sulo belum ada di Play Store dan Chrome Web Store, perangkatmu belum mengenalnya. Peringatan itu wajar untuk aplikasi dari luar toko, bukan tanda aplikasinya berbahaya. Kodenya terbuka, dan tiap berkas punya SHA-256 yang bisa kamu cek di halaman panduan.' },
         { id: 'play-store', t: 'Kenapa tidak di Play Store?', j: 'Belum. Untuk sekarang APK diunduh langsung dari halaman ini, dan aplikasinya memberi tahu kalau ada versi baru.' },
         { id: 'manual', t: 'Kenapa ekstensinya dipasang manual? Nanti datanya hilang?', j: 'Sambil menunggu Chrome Web Store dan Edge Add-ons. Setelah Sulo ada di toko, pasang dari sana lalu hapus versi manual. Tanda selesai dan pengaturan tidak ikut pindah, tetapi tugas dan jadwal diambil ulang dari SIKOLA.' },
@@ -98,10 +99,15 @@ export const rumah2 = {
       ],
       formulir: 'Buka formulir masukan',
       isu: 'Buka GitHub Issues',
+      gambar: {
+        label: 'Gambar layar HP Android dengan peringatan saat memasang aplikasi dari luar Play Store, dengan tombol Batal dan Setelan.',
+        teks: 'Peringatan seperti ini wajar saat memasang dari luar Play Store.',
+        tautan: 'Kenapa muncul?',
+      },
     },
     penutup: {
       judul: 'Biar Sulo yang mengingat tenggatnya.',
-      isi: 'Sulo berarti obor. Ia menyala diam-diam, dan memberi tahu saat ada yang perlu kamu kerjakan.',
+      isi: 'Seperti obor, Sulo menyala tenang dan memberi tahu saat ada yang perlu kamu kerjakan.',
     },
     kaki: {
       tautan: { pasang: 'Cara pasang', privasi: 'Privasi', kode: 'Kode sumber', lapor: 'Lapor masalah', rilis: 'Catatan rilis', lisensi: 'Lisensi', traktir: 'Traktir kopi' },
@@ -128,7 +134,7 @@ export const rumah2 = {
       lakukan: {
         judul: 'What Sulo does',
         isi: [
-          'Reads tasks, deadlines and attendance from your own SIKOLA account, using the session you already have.',
+          'Reads tasks, deadlines and attendance from your own SIKOLA account, through the login you already have.',
           'Keeps all of it on your device.',
           'Checks SIKOLA sparingly, within a daily limit.',
         ],
@@ -143,7 +149,7 @@ export const rumah2 = {
           { host: 'sikola-v2.unhas.ac.id', ket: 'Your own account, read only.' },
           { host: 'ikrar06.github.io', ket: 'The academic calendar, remote settings and news of a new version. Nothing about you.' },
         ],
-        neosia: 'NEOSIA is never contacted. The NEOSIA module only reads what NEOSIA itself asked for while you had it open.',
+        neosia: 'Sulo never sends a request to NEOSIA. If you connect NEOSIA, Sulo only reads the NEOSIA pages you open yourself.',
       },
       izin: {
         judul: 'The permissions it asks for, and why',
@@ -155,7 +161,7 @@ export const rumah2 = {
           { nama: 'Notifications', ket: 'Deadline reminders and Kabar terbaru. Each kind can be turned off.' },
           { nama: 'Idle state', ket: 'Skips checking SIKOLA while the laptop is not in use.' },
           { nama: 'sikola-v2.unhas.ac.id', ket: 'Reads your own account, with no password.' },
-          { nama: 'NEOSIA, optional', ket: 'Asked for only when you turn the NEOSIA module on, removed when it is off.' },
+          { nama: 'NEOSIA, optional', ket: 'Asked for only when you connect NEOSIA, removed when you disconnect it.' },
         ],
         daftarAndroid: [
           { nama: 'Internet', ket: "Reads SIKOLA and Sulo's public data repository." },
@@ -173,7 +179,7 @@ export const rumah2 = {
       halaman: 'This page itself has no trackers, no cookies and nothing loaded from anyone else.',
       minat: 'The iPhone interest button only adds one to a total. To limit repeats, your IP address is kept as a daily-salted hash for 24 hours.',
       perangkat: 'Your device',
-      tanpaServer: 'A Sulo server: there is none.',
+      tanpaServer: 'No Sulo server.',
     },
     pasang: {
       judul: 'Install it',
@@ -186,13 +192,14 @@ export const rumah2 = {
       panduanAndroid: 'See the Android guide',
       unduhZip: 'Download the extension',
       unduhApk: 'Download the APK',
+      peringatan: 'Seeing a warning when installing?',
     },
     tanya: {
       judul: 'Questions',
       daftar: [
         { id: 'pembuat', t: 'Who made Sulo?', j: 'Ikrar Gempur Tirani, an Informatics student at Unhas. The code is open on GitHub.' },
         { id: 'resmi', t: 'Is this an official Unhas app?', j: 'No. A student made Sulo, and it is not affiliated with Universitas Hasanuddin. It only reads data from your own account.' },
-        { id: 'aman', t: 'Is it safe for my SIKOLA account?', j: 'Sulo never asks for your password. It uses the session you already have when you sign in to SIKOLA, only reads, and limits its own number of requests. Everything it reads stays on your device.' },
+        { id: 'aman', t: 'Is it safe for my SIKOLA account?', j: 'Sulo never asks for your password. It uses the login you already have when you sign in to SIKOLA, only reads, and limits how often it checks. Everything it reads stays on your device.' },
         { id: 'peringatan', t: 'Why does my phone or laptop warn me when I install it?', j: 'Sulo is not on the Play Store or the Chrome Web Store yet, so your device does not know it. That warning is normal for an app from outside a store; it does not mean the app is harmful. The code is open, and every file has a SHA-256 you can check on the guide page.' },
         { id: 'play-store', t: 'Why is it not on the Play Store?', j: 'Not yet. For now you download the APK straight from this page, and the app tells you when there is a new version.' },
         { id: 'manual', t: 'Why install the extension by hand? Will I lose my data later?', j: 'Only while it waits for the Chrome Web Store and Edge Add-ons. Once Sulo is there, install it from the store and remove the manual one. Your ticks and settings do not move over, but tasks and schedules are fetched again from SIKOLA.' },
@@ -203,10 +210,15 @@ export const rumah2 = {
       ],
       formulir: 'Open the feedback form',
       isu: 'Open GitHub Issues',
+      gambar: {
+        label: "An Android phone's screen with the warning shown when installing an app from outside the Play Store, with Cancel and Settings buttons.",
+        teks: 'A warning like this is normal when installing from outside the Play Store.',
+        tautan: 'Why does it appear?',
+      },
     },
     penutup: {
       judul: 'Let Sulo remember the deadlines.',
-      isi: 'Sulo means torch. It glows quietly and tells you when something needs doing.',
+      isi: 'Like a torch, Sulo burns steadily and tells you when something needs doing.',
     },
     kaki: {
       tautan: { pasang: 'How to install', privasi: 'Privacy', kode: 'Source code', lapor: 'Report a problem', rilis: 'Release notes', lisensi: 'License', traktir: 'Buy me a coffee' },

@@ -41,7 +41,8 @@
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: clamp(1.875rem, 1.3rem + 2.2vw, 3rem);
+  /* 30 to 48 px at the default text size; larger text grows it by part (see .pembuka-judul). */
+  font-size: clamp(calc(18px + 0.75rem), calc(8.8px + 0.75rem + 2.2vw), calc(36px + 0.75rem));
   line-height: 1.1;
   letter-spacing: -0.02em;
   text-wrap: balance;
@@ -65,6 +66,11 @@
 .penutup .tombol--kedua {
   background: rgb(255 255 255 / 0.12);
   color: var(--malam-teks);
+}
+.penutup-unduh {
+  margin: 16px 0 0;
+  color: var(--malam-teks);
+  font-size: 0.9375rem;
 }
 .penutup :where(a, button):focus-visible {
   outline-color: #fff;

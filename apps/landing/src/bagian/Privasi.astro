@@ -4,10 +4,11 @@
 // docs/ATURAN-REQUEST.md); every permission in one line (folded, one list
 // per app); how to delete everything; the full policy and the code; and a
 // note on this page itself. Its visual: the map of where data goes.
-import { CheckIcon } from '@sulo/ui/icons';
+import { CheckIcon, ChevronDownIcon } from '@sulo/ui/icons';
 import { PRIVASI_APLIKASI, REPO } from '../data/alamat';
 import rilis from '../data/rilis.json';
 import { rumah2 } from '../teks/rumah-2';
+import { pecah } from '../komponen/utuh';
 import type { Bahasa } from '../teks';
 import { LaptopIkon, PerangkatIkon, SilangBulatIkon, TutupIkon } from '../komponen/ikon';
 import '../styles/bagian/privasi.css';
@@ -50,7 +51,7 @@ const minat = rilis.minatIos.aktif;
       <div>
         <h3>{t.lakukan.judul}</h3>
         <ul class="privasi-daftar" role="list">
-          {t.lakukan.isi.map((x) => <li><CheckIcon className="privasi-tanda privasi-tanda--ya" />{x}</li>)}
+          {t.lakukan.isi.map((x) => <li><CheckIcon className="privasi-tanda privasi-tanda--ya" /><span>{pecah(x).map((p) => (p.utuh ? <span class="utuh">{p.teks}</span> : p.teks))}</span></li>)}
         </ul>
       </div>
       <div>
@@ -68,7 +69,7 @@ const minat = rilis.minatIos.aktif;
         { judul: t.izin.android, daftar: t.izin.daftarAndroid },
       ].map((g) => (
         <details class="privasi-lipat">
-          <summary>{g.judul}</summary>
+          <summary><span>{g.judul}</span><ChevronDownIcon className="privasi-panah" aria-hidden="true" /></summary>
           <dl>
             {g.daftar.map((i) => (
               <div>

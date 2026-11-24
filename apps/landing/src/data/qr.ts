@@ -33,9 +33,3 @@ export function buatQr(alamat: string): Qr {
   }
   return { ukuran: n + tepi * 2, path };
 }
-
-/** The site's own address, or null while it is not set (SITE_URL): no code may point at localhost. */
-export function alamatSitus(site: URL | undefined): string | null {
-  if (!site || /^(localhost|127\.|0\.0\.0\.0)/.test(site.hostname)) return null;
-  return site.origin;
-}

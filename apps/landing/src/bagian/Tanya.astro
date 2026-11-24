@@ -1,12 +1,18 @@
 ---
 // Questions (brief 6.9): the browser's own <details>, opened by keyboard as
 // well as by touch. Each answer has an id, so the guides can link straight
-// to one ("Why does my phone warn me?").
+// to one ("Why does my phone warn me?"), and a link to it opens it.
+//
+// Beside them, the section's one rich visual (brief 4.2): the warning Android
+// shows when installing from outside the Play Store, drawn as the guides draw
+// it, with the answer to it one link away. The mascot is not here: the closing
+// block's is near, and there is one mascot per screen (brief 2).
 import { ChevronDownIcon } from '@sulo/ui/icons';
 import { ISU, MASUKAN } from '../data/alamat';
 import { rumah2 } from '../teks/rumah-2';
 import type { Bahasa } from '../teks';
-import Maskot from '../komponen/Maskot.astro';
+import Hp from '../ilustrasi/Hp.astro';
+import { layarOs } from '../teks/panduan';
 import '../styles/bagian/tanya.css';
 
 interface Props {
@@ -14,12 +20,23 @@ interface Props {
 }
 const { bahasa } = Astro.props;
 const t = rumah2[bahasa].tanya;
+const os = layarOs[bahasa].android;
 ---
 <section class="bagian tanya" id="tanya" aria-labelledby="judul-tanya">
   <div class="isi tanya-isi">
     <div class="tanya-samping">
-      <Maskot mood="keen" class="tanya-maskot" />
       <h2 class="judul-bagian" id="judul-tanya">{t.judul}</h2>
+      <figure class="tanya-gambar">
+        <div class="tanya-gambar-hp" role="img" aria-label={t.gambar.label}>
+          <Hp layar="redup" kecil>
+            <div class="il-dialog">
+              <p class="il-teks">{os.peringatan}</p>
+              <p class="il-aksi"><span>{os.batal}</span><span class="il-aksi-utama">{os.setelan}</span></p>
+            </div>
+          </Hp>
+        </div>
+        <figcaption>{t.gambar.teks} <a class="tautan" href="#tanya-peringatan">{t.gambar.tautan}</a></figcaption>
+      </figure>
     </div>
     <div class="tanya-daftar">
       {t.daftar.map((q) => (
@@ -42,3 +59,6 @@ const t = rumah2[bahasa].tanya;
     </div>
   </div>
 </section>
+<script>
+  import '../hidup/tanya';
+</script>

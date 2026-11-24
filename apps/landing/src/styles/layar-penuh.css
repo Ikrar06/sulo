@@ -2,6 +2,10 @@
    and fonts, the drawn status bar on top, the app below it. Only ever photographed, never shown. */
 @import "../../../mobile/src/styles.css";
 
+/* A picture of the app: its measures as in the app (rem stays 16 px). */
+html {
+  font-size: 16px;
+}
 html,
 body.layar-penuh {
   width: 402px;

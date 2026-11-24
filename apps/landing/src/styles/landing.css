@@ -20,6 +20,9 @@
   --langit-topeng: none;
   /* The one warm light behind the mascot (brief 4.1), as r g b. In light the dawn is warm enough without it (hidden below). */
   --cahaya: 255 158 64;
+  /* Where the fixed nav ends: 12 px down, then the pill, 56 px or its text's line plus padding when the visitor's
+     text size makes that taller. Every page's top padding starts from it, so nothing sits under the nav. */
+  --nav-bawah: calc(12px + max(56px, 1.5rem + 18px));
 }
 /* Dark: a neutral night (the plain page's fine dot grid, fading out), the warmth only round the mascot. */
 @media (prefers-color-scheme: dark) {
@@ -36,10 +39,10 @@
   --langit-topeng: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
   --cahaya: 255 136 48;
 }
-@media (min-width: 640px) {
+@media (min-width: 40em) {
   :root { --pinggir: 24px; }
 }
-@media (min-width: 1024px) {
+@media (min-width: 64em) {
   :root { --pinggir: 32px; }
 }
 
@@ -63,7 +66,9 @@ body {
 .lewati {
   position: absolute;
   left: var(--pinggir);
-  top: -60px;
+  /* Above the page by its own height, whatever the text size (a fixed -60 px let large text peek in). */
+  top: 12px;
+  translate: 0 calc(-100% - 24px);
   z-index: 100;
   padding: 10px 16px;
   border-radius: 999px;
@@ -71,7 +76,7 @@ body {
   color: var(--tinta);
 }
 .lewati:focus-visible {
-  top: 12px;
+  translate: 0;
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
@@ -129,10 +134,25 @@ html[data-gulir] .nav-pil {
   font-size: 1.25rem;
   color: var(--tinta);
   text-decoration: none;
+  /* With the word hidden (very large text), the flame alone keeps a full touch target. */
+  min-width: 44px;
+  justify-content: center;
 }
 .nav-merek img {
   width: 28px;
   height: 28px;
+}
+/* Very large text on a narrow phone: the word goes (for the eye only; it still names the link), so the pill
+   stays one row instead of growing over the page. */
+@media (max-width: 12em) {
+  .nav-merek-kata {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 .nav-tautan {
   display: none;
@@ -184,7 +204,7 @@ html[data-gulir] .nav-pil {
 .nav-lebar {
   display: none;
 }
-@media (min-width: 900px) {
+@media (min-width: 56.25em) {
   .nav-tautan,
   .nav-lebar {
     display: inline-flex;
@@ -373,9 +393,14 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
      (1.7 times the old 84) on a laptop of 900 px or taller, down to 118 on a short one (1366 x 768), so
      the buttons stay on the first screen. */
   --maskot: clamp(118px, 16svh, 143px);
+  /* The lower pieces start under the title's two lines (top padding, mascot, chips, title at its largest), beside
+     the sentence and the buttons, 24 px off the sentence's edge (its 34em at 1.1875rem): a longer title (English)
+     or larger text moves them with it. */
+  --potongan-bawah: calc(var(--nav-bawah) + 36px + var(--maskot) + 14px + 2rem + 20px + 2.16 * (48px + 0.75rem) + 16px);
+  --potongan-tepi: calc(50% - 20.1875rem - 24px);
   position: relative;
   isolation: isolate;
-  padding: 104px var(--pinggir) 0;
+  padding: calc(var(--nav-bawah) + 36px) var(--pinggir) 0;
   overflow: clip;
 }
 .pembuka-langit {
@@ -388,6 +413,43 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   background-size: var(--langit-ukuran);
   mask-image: var(--langit-topeng);
   -webkit-mask-image: var(--langit-topeng);
+}
+/* A word with a hyphen ("Unhas-mu", "SIKOLA-mu") stays whole on its line: a browser may otherwise break right
+   after the hyphen (komponen/utuh.ts marks them). */
+.utuh {
+  white-space: nowrap;
+}
+/* The skip link lands here (tabindex -1): the region takes focus, the ring stays for the controls in it. */
+.pembuka-teks:focus {
+  outline: none;
+}
+/* The apps' own UI drawn on the page keeps the app's measures. In the app rem stays 16 px (Android's text
+   size is a text zoom); here rem follows the visitor's text setting, and the app's spacing would double round
+   text that does not, pushing it out of its cards. Its text sizes are px already (tokens.css). */
+/* A part of the page in its own theme (data-theme on an element, as the theme tile): the apps' layer aliases are
+   resolved again there, as at :root, so the app's cards follow that part's theme and not the page's. */
+:root [data-theme] {
+  --m-screen: var(--layer-screen);
+  --m-card: var(--layer-card);
+  --m-inset: var(--layer-inset);
+  --m-line: var(--layer-line);
+  --m-card-edge: var(--layer-card-edge);
+  --m-card-shadow: var(--layer-card-shadow);
+  --m-accent-tint: var(--accent-tint);
+  --color-m-screen: var(--m-screen);
+  --color-m-card: var(--m-card);
+  --color-m-inset: var(--m-inset);
+  --color-m-line: var(--m-line);
+  color: var(--text);
+}
+[data-ui-aplikasi] {
+  --spacing: 4px;
+  --radius: 10px;
+  --radius-2xl: 16px;
+  --container-xs: 320px;
+  --container-md: 448px;
+  --container-xl: 576px;
+  --container-2xl: 672px;
 }
 .pembuka-teks {
   position: relative;
@@ -471,7 +533,9 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   max-width: 20ch;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: clamp(2rem, 1.15rem + 3.4vw, 3.75rem);
+  /* 32 to 60 px at the default text size. A visitor's larger text grows it by part (a px base plus rem): at
+     twice the text it is 44 px on a phone, still the page's largest words, not six lines of them. */
+  font-size: clamp(calc(20px + 0.75rem), calc(10px + 0.5rem + 3.4vw), calc(48px + 0.75rem));
   line-height: 1.08;
   letter-spacing: -0.022em;
   text-wrap: balance;
@@ -624,29 +688,29 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   filter: drop-shadow(0 14px 22px rgb(16 16 24 / 0.1));
 }
 .potongan--tugas-1 { left: max(var(--pinggir), calc(50% - 650px)); top: 150px; }
-.potongan--presensi { left: max(var(--pinggir), calc(50% - 610px)); top: 372px; width: 220px; }
+.potongan--presensi { left: max(var(--pinggir), calc(var(--potongan-tepi) - 220px)); top: var(--potongan-bawah); width: 220px; }
 .potongan--kalender { right: max(var(--pinggir), calc(50% - 640px)); top: 170px; width: 240px; }
-.potongan--tugas-2 { right: max(var(--pinggir), calc(50% - 660px)); top: 372px; }
+.potongan--tugas-2 { right: max(var(--pinggir), calc(var(--potongan-tepi) - 280px)); top: var(--potongan-bawah); }
 .potongan-hp {
   display: none;
 }
 /* Under 1366 the two lower pieces would reach the title's line: only the upper two stay. */
-@media (max-width: 1365px) {
+@media (max-width: 85.3125em) {
   .potongan--presensi,
   .potongan--tugas-2 {
     display: none;
   }
 }
-@media (max-width: 1199px) {
+@media (max-width: 74.9375em) {
   .pembuka > .potongan {
     display: none;
   }
 }
 
 /* Narrow screens: the phone alone, a little left of centre, with two pieces over its right edge. */
-@media (max-width: 767px) {
+@media (max-width: 47.9375em) {
   .pembuka {
-    padding-top: 92px;
+    padding-top: calc(var(--nav-bawah) + 24px);
   }
   .pembuka {
     /* A little up on a phone (72 before), less on a short one so the title and the button still fit. */
@@ -670,7 +734,10 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
     width: 100%;
     max-width: 360px;
   }
+  /* The phone and its piece share one grid cell, so the piece is placed against the phone itself, never
+     against the note under it. */
   .panggung {
+    display: grid;
     max-width: 360px;
     margin-top: 40px;
     padding-bottom: 24px;
@@ -679,6 +746,7 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
     display: none;
   }
   .panggung .perangkat--hp {
+    grid-area: 1 / 1;
     position: relative;
     right: auto;
     bottom: auto;
@@ -686,20 +754,65 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
     margin-left: 4%;
   }
   .keterangan-data {
+    grid-row: 2;
     position: static;
     margin-top: 14px;
   }
+  /* One piece on a phone, over the phone's lower right, so the phone's own first card stays readable. The app's
+     card keeps its own width (210 px) and is scaled to the piece as a whole, never squeezed. */
   .potongan-hp {
     display: block;
-    position: absolute;
-    right: 0;
-    width: 54%;
+    grid-area: 1 / 1;
+    align-self: end;
+    justify-self: end;
+    position: relative;
+    width: 52%;
+    margin-bottom: 8%;
     z-index: 4;
+    container-type: inline-size;
     filter: drop-shadow(0 12px 18px rgb(16 16 24 / 0.14));
   }
-  /* One piece on a phone, over the phone's lower part, so the phone's own first card stays readable. */
+  .potongan-skala {
+    width: 210px;
+    transform-origin: 0 100%;
+    scale: tan(atan2(100cqw, 210px));
+  }
   .potongan-hp--tugas-3 { display: none; }
-  .potongan-hp--presensi { top: 58%; width: 52%; }
+}
+
+/* Large text on a short phone (1.3 times on a 640 px phone, twice on most): tighter round the mascot and the
+   title. At the largest the chips and the sentence move below the buttons (only their place on screen, not their
+   order for a screen reader; the chips stay whole), so the title and the main button still open the page
+   (brief 9.5). */
+@media (max-width: 47.9375em) and (max-height: 34em) {
+  .pembuka {
+    --maskot: clamp(56px, 9svh, 72px);
+  }
+  .pembuka-maskot {
+    margin-bottom: 10px;
+  }
+  .pembuka-cip {
+    margin-bottom: 12px;
+  }
+  .pembuka-pendukung {
+    margin-top: 10px;
+  }
+  .pembuka-tombol {
+    margin-top: 16px;
+  }
+}
+@media (max-width: 47.9375em) and (max-height: 30em) {
+  .pembuka-cip {
+    order: 1;
+    margin: 20px 0 0;
+  }
+  .pembuka-pendukung {
+    order: 1;
+    margin-top: 16px;
+  }
+  .pratinjau {
+    order: 2;
+  }
 }
 
 /* ---------- Tilted iPhones (finished pictures, komponen/Miring.astro) ---------- */
@@ -742,9 +855,11 @@ html[data-perangkat="android"][data-dalam-aplikasi] p[data-untuk~="android"] {
 html[data-perangkat="android"][data-dalam-aplikasi] p[data-untuk~="android-aplikasi"] {
   display: block;
 }
-/* After a download starts: the one quiet line in place of the note. */
-.pembuka-unduh {
-  display: none;
+/* After a download starts: the one quiet line in place of the note. Empty, it stays in the page (out of the
+   flow, taking no room) so a screen reader announces it once it fills. Every download line does the same. */
+[data-unduh-baris]:empty {
+  position: absolute;
+  margin: 0;
 }
 .pembuka-teks[data-unduh] .pembuka-catatan {
   display: none !important;

@@ -127,6 +127,9 @@
   line-height: 1.5;
   text-wrap: pretty;
 }
+.privasi-daftar li > span {
+  min-width: 0;
+}
 .privasi-tanda {
   flex: none;
   width: 20px;
@@ -156,10 +159,27 @@
 .privasi-lipat summary {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   min-height: 52px;
   padding: 12px 20px;
   font-weight: 600;
   cursor: pointer;
+  list-style: none;
+}
+.privasi-lipat summary::-webkit-details-marker {
+  display: none;
+}
+/* The same chevron as the questions': it opens. */
+.privasi-panah {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--abu);
+  transition: rotate 200ms ease-out;
+}
+.privasi-lipat[open] .privasi-panah {
+  rotate: 180deg;
 }
 .privasi-lipat summary:focus-visible {
   outline: 2px solid var(--focus);
@@ -217,7 +237,7 @@
   font-size: 0.875rem;
   line-height: 1.55;
 }
-@media (max-width: 767px) {
+@media (max-width: 47.9375em) {
   .privasi-panel {
     border-radius: 28px;
   }
@@ -236,5 +256,26 @@
   .privasi-izin,
   .privasi-bawah {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Very large text on a phone (1.3 times on 320 px, twice on any phone): the panel and the map give their padding
+   back to the words, and your device's icon sits above its name. */
+@media (max-width: 20em) {
+  .privasi-panel {
+    padding: 20px 14px;
+    border-radius: 24px;
+  }
+  .privasi-peta {
+    padding: 16px 14px;
+  }
+  .privasi-simpul--kamu {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .privasi-lipat summary {
+    padding-inline: 14px;
+  }
+  .privasi-lipat dl {
+    padding-inline: 14px;
   }
 }
