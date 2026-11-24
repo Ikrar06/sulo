@@ -9,6 +9,7 @@ import { panduan, layarOs } from '../teks/panduan';
 import { rumah2 } from '../teks/rumah-2';
 import type { Bahasa } from '../teks';
 import Hp from '../ilustrasi/Hp.astro';
+import Miring from '../komponen/Miring.astro';
 import Lingkar from '../ilustrasi/Lingkar.astro';
 import Langkah from '../komponen/Langkah.astro';
 import TataPanduan from '../komponen/TataPanduan.astro';
@@ -28,6 +29,9 @@ const unduhApk = rumah2[bahasa].pasang.unduhApk;
 const nama = apk.versi ? `sulo-${apk.versi}-android.apk` : 'sulo-android.apk';
 ---
 <TataPanduan bahasa={bahasa} perangkat="android" judul={a.judul} kenapa={a.kenapa} deskripsi={a.kenapa} ringkas={{ waktu: a.waktu, butuh: a.butuh, penting: a.penting }}>
+  <div slot="kepala" class="panduan-miring" aria-hidden="true">
+    <Miring arah="kanan" bahasa={bahasa} sizes="200px" />
+  </div>
   <ol class="langkah-daftar" role="list">
     <Langkah nomor={1} judul={a.langkah[0].judul} isi={a.langkah[0].isi} alt={a.ilustrasi.unduh} label={t.umum.langkah}>
       <Fragment slot="tombol">

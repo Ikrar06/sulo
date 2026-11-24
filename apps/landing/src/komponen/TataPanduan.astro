@@ -3,7 +3,8 @@
 // 3.2): breadcrumb, title, one paragraph on why it works this way, a short
 // box (time, what you need, the one note that matters), then the page's own
 // steps and sections (slot), then the other devices. Plain background, no
-// gradient; the page ends where its content ends.
+// gradient; the page ends where its content ends. A guide may set a picture
+// beside its title (slot "kepala": the Android guide's tilted phone).
 import { pathPasang, pathRumah, type Perangkat } from '../data/alamat';
 import { panduan } from '../teks/panduan';
 import type { Bahasa } from '../teks';
@@ -45,9 +46,12 @@ const nama: Record<Perangkat, string> = { android: t.daftar.android.nama, chrome
           )}
         </ol>
       </nav>
-      <header class="panduan-kepala">
-        <h1>{judul}</h1>
-        <p>{kenapa}</p>
+      <header class:list={['panduan-kepala', { 'panduan-kepala--gambar': Astro.slots.has('kepala') }]}>
+        <div class="panduan-kepala-teks">
+          <h1>{judul}</h1>
+          <p>{kenapa}</p>
+        </div>
+        <slot name="kepala" />
       </header>
       {ringkas && (
         <section class="panduan-ringkas" aria-label={t.umum.ringkasan}>
