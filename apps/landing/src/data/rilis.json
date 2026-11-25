@@ -5,5 +5,5 @@
     "chrome": { "status": "belum", "url": "" },
     "edge": { "status": "belum", "url": "" }
   },
-  "minatIos": { "aktif": false }
+  "minatIos": { "aktif": true }
 }
