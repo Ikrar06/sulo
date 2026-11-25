@@ -1,0 +1,36 @@
+---
+// One of the Android app's other screens (Presensi, Kabar, Tugas) for "Sehari
+// bareng Sulo": the same shell and sample data as the hero's phone, opened on
+// that screen. It follows the page's theme, like the hero's phone: the
+// visitor's light or dark setting, or the theme button's choice (read here
+// before the first paint, and told again by hidup/tema.ts when it changes).
+import { LayarHp } from '../../../../../layar/LayarHp';
+import { dataContoh } from '../../../../../layar/contoh';
+import { BAHASA, teks, type Bahasa } from '../../../../../teks';
+import '../../../../../styles/layar-hp.css';
+
+export function getStaticPaths() {
+  const layar = ['presensi', 'kabar', 'tugas'];
+  return BAHASA.flatMap((bahasa) => layar.map((l) => ({ params: { bahasa, layar: l } })));
+}
+const { bahasa, layar } = Astro.params as { bahasa: Bahasa; layar: 'presensi' | 'kabar' | 'tugas' };
+const data = await dataContoh(bahasa);
+---
+<html lang={bahasa}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{teks[bahasa].layarHp}</title>
+    <script is:inline>
+    try {
+      var t = localStorage.getItem('sulo-landing:tema');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"><LayarHp data={data} bahasa={bahasa} layar={layar} /></div>
+  </body>
+</html>

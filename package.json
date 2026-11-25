@@ -54,6 +54,9 @@
     "mobile:emu": "pnpm --filter @sulo/mobile run emu",
     "mobile:emu:stop": "pnpm --filter @sulo/mobile run emu:stop",
     "mobile:shots:device": "pnpm --filter @sulo/mobile run shots:device",
-    "mobile:keystore:buat": "pnpm --filter @sulo/mobile run keystore:buat"
+    "mobile:keystore:buat": "pnpm --filter @sulo/mobile run keystore:buat",
+    "landing:dev": "pnpm --filter @sulo/landing dev",
+    "landing:build": "pnpm --filter @sulo/landing build",
+    "landing:rilis": "node apps/landing/scripts/rilis.mjs"
   }
 }

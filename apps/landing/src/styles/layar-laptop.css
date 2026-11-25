@@ -1,0 +1,23 @@
+/* The extension's dashboard inside the landing page's MacBook frame: the
+   extension's own stylesheet, with its components as sources (the extension
+   finds them itself when it builds). No scrolling inside the device. */
+@import "../../../extension/assets/tailwind.css";
+@source "../../../extension/components";
+@source "../../../extension/lib";
+
+html,
+body {
+  overflow: hidden;
+}
+/* A picture of the app: its measures as in the app, whatever text size the visitor set (rem stays 16 px). */
+html {
+  font-size: 16px;
+}
+/* Reduced motion: the apps' shared rule shortens every transition but leaves them running; none start here. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-property: none !important;
+  }
+}

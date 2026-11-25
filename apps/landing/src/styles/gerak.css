@@ -1,0 +1,399 @@
+/* The page's motion (brief 7, phase 4). Transform and opacity only, with the apps' own curves and tempo
+   (apps/mobile/src/onboarding/motion.ts: enter 240 to 420 ms with a strong ease-out, siblings 70 ms apart,
+   nothing from below 0.92). The final state is the default everywhere: every rule here sits under
+   html[data-gerak], set before the first paint (tata/Dasar.astro), so a page without script, or under reduced
+   motion ("diam"), simply shows everything in place. A weak device ("ringan") gets the simple entrances and
+   none of the large moments. Entrances fill backwards only: done, they let go of their layers. */
+:root {
+  --kurva-masuk: cubic-bezier(0.22, 1, 0.36, 1);
+  --kurva-cerita: cubic-bezier(0.16, 1, 0.3, 1);
+  --jarak: 70ms;
+}
+
+/* ---------- The hero on load: the mascot, the words, the pieces, then still (about 1.1 s in all) ---------- */
+
+@keyframes naik-muncul {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+@keyframes muncul-kecil {
+  from {
+    opacity: 0;
+    scale: 0.92;
+  }
+}
+/* The title only rises: it is the first screen's largest text and stays painted from the first frame. */
+@keyframes naik {
+  from {
+    translate: 0 14px;
+  }
+}
+:root:is([data-gerak="penuh"], [data-gerak="ringan"]) {
+  .pembuka-maskot {
+    animation: muncul-kecil 420ms var(--kurva-cerita) backwards;
+  }
+  .pembuka-cip {
+    animation: naik-muncul 360ms var(--kurva-masuk) 80ms backwards;
+  }
+  .pembuka-judul {
+    animation: naik 480ms var(--kurva-cerita) 120ms backwards;
+  }
+  .pembuka-pendukung {
+    animation: naik-muncul 360ms var(--kurva-masuk) 200ms backwards;
+  }
+  .pembuka-tombol,
+  .pembuka-catatan:not(:empty),
+  .pembuka .pratinjau {
+    animation: naik-muncul 360ms var(--kurva-masuk) 260ms backwards;
+  }
+  /* The devices only rise, like the title: the phone's frame is the first screen's largest picture (its LCP on a
+     phone) and stays painted from the first frame. */
+  .panggung {
+    animation: naik 420ms var(--kurva-masuk) 340ms backwards;
+  }
+  /* The pieces arrive one after another, around the title on a laptop, by the phone on a phone. The delay rides in
+     the shorthand: a separate animation-delay lost to the shorthand's own reset on a laptop (all four came at once). */
+  .pembuka > .potongan > *,
+  .potongan-hp .potongan-skala > * {
+    animation: muncul-kecil 380ms var(--kurva-masuk) var(--tunda, 0ms) backwards;
+  }
+  .potongan--tugas-1 { --tunda: 420ms; }
+  .potongan--kalender { --tunda: calc(420ms + var(--jarak)); }
+  .potongan--presensi { --tunda: calc(420ms + 2 * var(--jarak)); }
+  .potongan--tugas-2 { --tunda: calc(420ms + 3 * var(--jarak)); }
+  .potongan-hp { --tunda: 620ms; }
+  /* After a download starts, its line arrives rather than appears: the press worked. */
+  [data-unduh-baris]:not(:empty) {
+    animation: naik-muncul 220ms var(--kurva-masuk) backwards;
+  }
+}
+/* The mascot's own frames (its engine draws at 30 per second) stay on its layer, not the page's. */
+:root[data-gerak="penuh"] .maskot > svg {
+  will-change: transform;
+}
+/* Reduced motion: the apps' shared rule shortens every transition to nothing but leaves them all running (a
+   theme change started about twelve thousand). None start. The device screens' own pages do the same. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-property: none !important;
+  }
+}
+
+/* ---------- Scrolling on a laptop: the pieces go into the screen and become its rows (brief 5, A to D) ---------- */
+
+/* Each piece moves to the row or card it shows in the laptop's own screen (hidup/gerak.ts measures it there
+   and sets --tuju-x, --tuju-y, --tuju-skala), straightening its slight tilt as it lands and fading into the real
+   one. Bound to the page's scroll over its first 60 % of a screen; no scroll hijacking, no smoothing. Without
+   the measurement it still heads down to the screen. */
+@keyframes ke-layar {
+  from {
+    translate: 0 0;
+    scale: 1;
+    rotate: var(--miring, 0deg);
+    opacity: 1;
+  }
+  /* Down the sides first, inward at the end: the pieces never cross the title on their way. */
+  45% {
+    translate: calc(var(--tuju-x, 0px) * 0.15) calc(var(--tuju-y, 45vh) * 0.6);
+  }
+  /* From halfway the piece fades into the screen's own row, so its words never lie over the screen's. */
+  50% {
+    opacity: 1;
+  }
+  to {
+    translate: var(--tuju-x, 0px) var(--tuju-y, 45vh);
+    scale: var(--tuju-skala, 0.7);
+    rotate: 0deg;
+    opacity: 0;
+  }
+}
+.potongan--tugas-1 { --miring: -1.5deg; }
+.potongan--kalender { --miring: 1.5deg; }
+.potongan--presensi { --miring: 1deg; }
+.potongan--tugas-2 { --miring: -1deg; }
+/* Longhands only, never the shorthand: the minifier would fold animation-timeline into an `animation` shorthand,
+   which no browser accepts (the timeline is reset-only there), and the whole rule would be dropped. */
+@supports (animation-timeline: scroll()) {
+  :root[data-gerak="penuh"] .pembuka > .potongan {
+    animation-name: ke-layar;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root);
+    animation-range: 0 60vh;
+  }
+}
+
+/* ---------- Where the data comes from: it keeps flowing into Sulo (owner, 24 Nov 2026) ---------- */
+
+/* While the diagram is in view (data-hidup, set by hidup/gerak.ts) on a full-motion page: a short stroke runs
+   each line into Sulo, one after another; a light goes slowly round the card's hairline; its warmth breathes with
+   the strokes arriving. Nothing runs off screen, under reduced motion or on a weak device. */
+@keyframes arus {
+  to {
+    stroke-dashoffset: -280px;
+  }
+}
+@keyframes sorot-keliling {
+  to {
+    rotate: 1turn;
+  }
+}
+@keyframes nyala-napas {
+  from {
+    opacity: 0.55;
+  }
+}
+:root[data-gerak="penuh"] .sumber-diagram[data-hidup] {
+  .sumber-arus {
+    opacity: 1;
+    transition: opacity 600ms ease-out;
+  }
+  .sumber-arus path {
+    animation: arus 2.6s linear infinite;
+  }
+  .sumber-arus path:nth-child(2) {
+    animation-delay: -0.9s;
+  }
+  .sumber-arus path:nth-child(3) {
+    animation-delay: -1.75s;
+  }
+  .sumber-sorot {
+    opacity: 1;
+    transition: opacity 600ms ease-out;
+    animation: sorot-keliling 9s linear infinite;
+  }
+  .sumber-nyala::after {
+    animation: nyala-napas 2.6s ease-in-out infinite alternate;
+  }
+}
+
+/* ---------- The guides, the device list and the not-found page ---------- */
+
+/* The top of the page arrives on load (about half a second in all): the title and its sentence only rise, as the
+   largest words there they stay painted from the first frame. The steps and what follows rise as they are reached
+   (hidup/panduan.ts). */
+:root:is([data-gerak="penuh"], [data-gerak="ringan"]) {
+  .remah {
+    animation: naik-muncul 320ms var(--kurva-masuk) backwards;
+  }
+  .panduan-kepala h1,
+  .galat h1 {
+    animation: naik 460ms var(--kurva-cerita) 40ms backwards;
+  }
+  .panduan-kepala p {
+    animation: naik 420ms var(--kurva-cerita) 100ms backwards;
+  }
+  .panduan-miring {
+    animation: naik-muncul 520ms var(--kurva-cerita) 160ms backwards;
+  }
+  .panduan-ringkas,
+  .panduan-dihp {
+    animation: naik-muncul 360ms var(--kurva-masuk) 180ms backwards;
+  }
+  .pilih-perangkat > li {
+    animation: naik-muncul 360ms var(--kurva-masuk) calc(160ms + var(--urut, 0) * var(--jarak)) backwards;
+  }
+  .pilih-perangkat > li:nth-child(2) { --urut: 1; }
+  .pilih-perangkat > li:nth-child(3) { --urut: 2; }
+  .pilih-perangkat > li:nth-child(4) { --urut: 3; }
+  .galat-maskot {
+    animation: muncul-kecil 420ms var(--kurva-cerita) backwards;
+  }
+  .galat > p,
+  .galat-en {
+    animation: naik-muncul 360ms var(--kurva-masuk) 140ms backwards;
+  }
+}
+/* The steps' rail follows the reading (full motion, a wide screen, where the browser can): its line fills down
+   to a reading line at 60 % of the screen's height, and each ring turns solid as it crosses that line. The
+   timelines' insets shrink the screen to that one line, so the fill is exactly the part of the rail above it. */
+@keyframes rel-isi {
+  from {
+    scale: 1 0;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+@keyframes nomor-lewat {
+  to {
+    background-color: var(--tinta);
+    border-color: var(--tinta);
+    color: var(--bg);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (min-width: 48em) {
+    :root[data-gerak="penuh"] .langkah {
+      view-timeline-name: --langkah;
+      view-timeline-axis: block;
+      view-timeline-inset: 60% 40%;
+    }
+    :root[data-gerak="penuh"] .langkah-nomor {
+      animation-name: nomor-lewat;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --langkah;
+      animation-range: cover 0% cover 24px;
+    }
+    :root[data-gerak="penuh"] .langkah-rel {
+      view-timeline-name: --rel;
+      view-timeline-axis: block;
+      view-timeline-inset: 60% 40%;
+    }
+    :root[data-gerak="penuh"] .langkah-rel-isi {
+      opacity: 1;
+      animation-name: rel-isi;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --rel;
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+/* ---------- Three more moments tied to the scroll itself (full motion, where the browser can) ---------- */
+
+/* A day with Sulo: each phone travels up its tile as its row crosses the screen, showing more of its screen.
+   The closing block: the torch's light opens as the block arrives. The bento's tilted phone drifts up a little.
+   Transform and opacity only, on the compositor; nothing is hijacked, and without support all of it stands still. */
+@keyframes hp-lewat {
+  from {
+    translate: -50% 16%;
+  }
+  to {
+    translate: -50% -9%;
+  }
+}
+@keyframes cahaya-buka {
+  from {
+    opacity: 0.35;
+    scale: 0.72;
+  }
+}
+@keyframes miring-lewat {
+  from {
+    translate: 0 9%;
+  }
+  to {
+    translate: 0 -5%;
+  }
+}
+@supports (animation-timeline: view()) {
+  /* Named timelines on the tiles: a tile clips its phone (overflow: hidden), which makes it the phone's nearest
+     scroll container, and a bare view() would watch the tile, which never scrolls. */
+  :root[data-gerak="penuh"] .momen-ubin {
+    view-timeline: --momen block;
+  }
+  :root[data-gerak="penuh"] .momen-hp {
+    animation-name: hp-lewat;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --momen;
+    animation-range: entry 0% exit 100%;
+  }
+  :root[data-gerak="penuh"] .penutup {
+    view-timeline: --penutup block;
+  }
+  :root[data-gerak="penuh"] .penutup-cahaya {
+    animation-name: cahaya-buka;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --penutup;
+    animation-range: entry 0% cover 45%;
+  }
+  :root[data-gerak="penuh"] .ubin--perangkat {
+    view-timeline: --perangkat block;
+  }
+  :root[data-gerak="penuh"] .ubin-miring {
+    animation-name: miring-lewat;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --perangkat;
+    animation-range: entry 0% exit 100%;
+  }
+}
+
+/* The stage itself: a little smaller at the top of the page, full size as the pieces land in it. On a laptop,
+   in place of its entrance (it is in view from the start); its top centre holds still. */
+@keyframes panggung-tumbuh {
+  from {
+    scale: 0.94;
+  }
+}
+@supports (animation-timeline: scroll()) {
+  @media (min-width: 64em) {
+    :root[data-gerak="penuh"] .panggung {
+      transform-origin: 50% 0;
+      animation-name: panggung-tumbuh;
+      animation-duration: auto;
+      animation-delay: 0s;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root);
+      animation-range: 0 60vh;
+    }
+  }
+}
+/* A link to a section glides there (the browser's own smooth scroll), except under reduced motion. */
+:root:is([data-gerak="penuh"], [data-gerak="ringan"]) {
+  scroll-behavior: smooth;
+}
+
+/* ---------- Answers open with their height (brief 7.5): the browser's own <details>, no script ---------- */
+
+@supports (interpolate-size: allow-keywords) {
+  :root:is([data-gerak="penuh"], [data-gerak="ringan"]) {
+    interpolate-size: allow-keywords;
+    details::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      transition:
+        block-size 260ms var(--kurva-masuk),
+        content-visibility 260ms allow-discrete;
+    }
+    details[open]::details-content {
+      block-size: auto;
+    }
+  }
+}
+
+/* ---------- The one statement on the page: its words go from grey to full ink as it scrolls by (brief 7.5) ---------- */
+
+/* From 0.55, not lower: a word not yet lit still reads at 3:1 or more on the tile's blue (large bold text), so a
+   reader who stops scrolling halfway is never left with words too faint to read. */
+@keyframes kata-tinta {
+  from {
+    opacity: 0.55;
+  }
+}
+@supports (animation-timeline: view()) {
+  :root[data-gerak="penuh"] .ubin--kalimat {
+    view-timeline: --kalimat block;
+  }
+  :root[data-gerak="penuh"] .kata {
+    animation-name: kata-tinta;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: --kalimat;
+    /* Word by word across the time the tile takes to come fully into view. */
+    animation-range: entry calc(var(--i) / var(--n) * 100%) entry calc((var(--i) + 1) / var(--n) * 100% + 15%);
+  }
+}
+
+/* ---------- Theme and language: the browser's own View Transitions (brief 7.2) ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: var(--kurva-masuk);
+}

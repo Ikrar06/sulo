@@ -1,0 +1,100 @@
+/* The closing block: the page's own ground and ink in either theme, one warm light behind the mascot. (It was
+   night in both themes; on the light page the owner read the black band as a mistake, 25 Nov 2026.) */
+.penutup {
+  /* The torch's light on the light page: fainter, and a closer halo that ends inside the screen. Spread as wide
+     as on the dark page, its long faint tail showed as rings on a laptop and as a stripe across a phone. */
+  --cahaya: 0.7;
+  --cahaya-luas: 0.66;
+  --cahaya-lebar-maks: 100vw;
+  /* The room above the mascot and the mascot's size: the light is measured from both (below). */
+  --penutup-atas: clamp(96px, 12vw, 160px);
+  --penutup-maskot: clamp(128px, 18vw, 200px);
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding: var(--penutup-atas) var(--pinggir);
+  text-align: center;
+}
+/* On the dark page: the whole light, as wide as the block allows. */
+:root[data-theme="dark"] .penutup {
+  --cahaya: 1;
+  --cahaya-luas: 1;
+  --cahaya-lebar-maks: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .penutup {
+    --cahaya: 1;
+    --cahaya-luas: 1;
+    --cahaya-lebar-maks: none;
+  }
+}
+.penutup-isi {
+  max-width: 40rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.penutup-maskot {
+  width: var(--penutup-maskot);
+  height: var(--penutup-maskot);
+  margin-bottom: 28px;
+}
+/* The torch's light: wide and faint, the only warm thing in the block. A flat ellipse centred on the mascot whose
+   height is twice the way from the mascot's middle to the block's top edge, so the light is spent exactly where
+   the block begins and its edge can never be cut into a line (owner, 24 Nov 2026). */
+.penutup-cahaya {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--penutup-maskot) * 5.6 * var(--cahaya-luas));
+  max-width: var(--cahaya-lebar-maks);
+  height: calc((var(--penutup-atas) * 2 + var(--penutup-maskot)) * var(--cahaya-luas));
+  translate: -50% -50%;
+  /* A bell curve in nine stops: with four, each stop showed as a faint ring on the light page. */
+  --nyala: calc(0.26 * var(--cahaya));
+  background: radial-gradient(
+    closest-side,
+    rgb(255 136 48 / var(--nyala)),
+    rgb(255 136 48 / calc(var(--nyala) * 0.9)) 12.5%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.69)) 25%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.44)) 37.5%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.25)) 50%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.12)) 62.5%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.05)) 75%,
+    rgb(255 136 48 / calc(var(--nyala) * 0.015)) 87.5%,
+    transparent
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+.penutup h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  /* 30 to 48 px at the default text size; larger text grows it by part (see .pembuka-judul). */
+  font-size: clamp(calc(18px + 0.75rem), calc(8.8px + 0.75rem + 2.2vw), calc(36px + 0.75rem));
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.penutup p {
+  margin: 16px 0 0;
+  max-width: 32rem;
+  color: var(--abu);
+  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.penutup-tombol {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+.penutup-unduh {
+  margin: 16px 0 0;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+}

@@ -1,0 +1,33 @@
+---
+// The phone's whole screen, 402 x 874 pt: the drawn status bar, then the
+// Android app (the same iframe page the straight frames show). Only for
+// scripts/layar-miring.mjs, which photographs it at 3 px a point and bends it
+// under the tilted frames (they carry no status bar of their own). Not linked
+// from any page and not indexed.
+import StatusBar from '../../../../komponen/StatusBar.astro';
+import bingkai from '../../../../data/bingkai.json';
+import { BAHASA, teks, type Bahasa } from '../../../../teks';
+import '../../../../styles/layar-penuh.css';
+
+export function getStaticPaths() {
+  return BAHASA.flatMap((bahasa) => ['terang', 'gelap'].map((tema) => ({ params: { bahasa, tema } })));
+}
+const { bahasa, tema } = Astro.params as { bahasa: Bahasa; tema: 'terang' | 'gelap' };
+const g = bingkai.bingkai['iphone-terang'];
+const atas = g.safeArea.top;
+const bawah = g.safeArea.bottom;
+const theme = tema === 'gelap' ? 'dark' : 'light';
+---
+<html lang={bahasa} data-theme={theme}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=402" />
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content={theme} />
+    <title>{teks[bahasa].layarHp}</title>
+  </head>
+  <body class="layar-penuh">
+    <StatusBar class="layar-penuh-status" />
+    <iframe src={`/layar/${bahasa}/hp/${tema}/`} title={teks[bahasa].layarHp} style={`top: ${atas}px; height: ${874 - atas - bawah}px`}></iframe>
+  </body>
+</html>

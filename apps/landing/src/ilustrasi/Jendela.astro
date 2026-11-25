@@ -1,0 +1,21 @@
+---
+// A plain browser window, drawn: an address bar and the page (slot). Like
+// enough to recognise Chrome or Edge, a copy of neither, no logos.
+import '../styles/ilustrasi.css';
+interface Props {
+  alamat: string;
+  /** Circle the address (the step where it is typed). */
+  sorotAlamat?: boolean;
+}
+const { alamat, sorotAlamat = false } = Astro.props;
+---
+<div class="il-jendela">
+  <div class="il-jendela-atas">
+    <span class="il-jendela-titik" aria-hidden="true"></span>
+    <span class:list={['il-jendela-alamat', { 'il-lingkar': sorotAlamat }]}>{alamat}</span>
+    <slot name="alat" />
+  </div>
+  <div class="il-jendela-isi">
+    <slot />
+  </div>
+</div>

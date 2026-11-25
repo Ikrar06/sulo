@@ -1,0 +1,665 @@
+/* The install guides and the not-found page: plain and calm (no gradient, brief 4.1). On a wide screen each
+   step's drawing sits beside its words, so the page has no long empty stretches and ends where it ends. */
+.panduan {
+  padding: calc(var(--nav-bawah) + 28px) var(--pinggir) 72px;
+}
+.panduan-isi {
+  max-width: 1000px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Breadcrumb: a list, the pages joined by a chevron icon (never a separator character). */
+.remah ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  color: var(--abu);
+  font-size: 0.9375rem;
+}
+.remah li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.remah a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.remah a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.remah-panah {
+  width: 14px;
+  height: 14px;
+}
+.panduan-kepala h1 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+/* A picture beside the title (the Android guide: the app it installs, the second tilted phone). Its top only, rising
+   from behind the header's hairline: a clean cut, no fade (no gradients on the guides, brief 4.1). On a phone the
+   steps come first: no picture. */
+.panduan-kepala--gambar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  align-items: start;
+  gap: 32px;
+}
+.panduan-kepala--gambar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: var(--garis);
+}
+.panduan-miring {
+  align-self: end;
+  width: 200px;
+  height: 240px;
+  overflow: hidden;
+}
+.panduan-kepala p {
+  margin: 14px 0 0;
+  max-width: 44rem;
+  color: var(--abu);
+  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* The short box: time and what you need, then the one note that matters (a tinted box, no accent edge). */
+.panduan-ringkas {
+  margin-top: 32px;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.panduan-ringkas dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 16px 32px;
+  margin: 0;
+}
+.panduan-ringkas dt {
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.panduan-ringkas dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+.panduan-ringkas ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.panduan-penting {
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  /* The palette's own inset, not a course colour's wash: those are for dots and chips. */
+  background: var(--layer-screen);
+  color: var(--tinta);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* The steps: a large quiet number, the words and the button; the drawing beside them. */
+.langkah-daftar {
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 56px;
+}
+.langkah {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  align-items: center;
+  gap: 24px 48px;
+}
+.langkah-teks {
+  min-width: 0;
+}
+.langkah-nomor {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 2.75rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--tinta) 22%, transparent);
+}
+.langkah h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.langkah-teks > p {
+  margin: 8px 0 0;
+  max-width: 34rem;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.langkah-tombol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 18px;
+}
+.langkah-meta {
+  margin: 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.salin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0;
+}
+.salin code {
+  /* An address never pushes the page sideways: at very large text it breaks where it must. */
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--m-inset);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9375rem;
+}
+.langkah-gambar {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+/* On a wide screen the steps hang on a rail: each number in a ring at the head of its step, a thin line down to
+   the next. The words start level with the top of their drawing, and the rail carries the eye through the space
+   a tall drawing leaves beside short words. Where the browser can, the rail fills and the rings turn solid as
+   the page is read (styles/gerak.css). A phone keeps the large quiet number: the rail would cost the drawings
+   their width. */
+.langkah-rel {
+  display: none;
+}
+@media (min-width: 48em) {
+  .langkah {
+    align-items: start;
+  }
+  .langkah-teks {
+    position: relative;
+    align-self: stretch;
+    padding-left: 3.75rem;
+  }
+  .langkah-nomor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--garis);
+    background: var(--bg);
+    color: var(--tinta);
+    font-size: 1.0625rem;
+  }
+  /* The title's first line sits on the ring's middle. */
+  .langkah h2 {
+    margin-top: 0;
+    padding-top: calc((2.5rem - 1.375rem * 1.25) / 2);
+  }
+  .langkah-rel {
+    display: block;
+    position: absolute;
+    left: calc(1.25rem - 1px);
+    top: calc(2.5rem + 8px);
+    /* To 8 px above the next ring: the list's 56 px gap, less 8. */
+    bottom: -48px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--garis);
+  }
+  .langkah:last-child .langkah-rel {
+    display: none;
+  }
+  .langkah-rel-isi {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--tinta);
+    transform-origin: top;
+    opacity: 0;
+  }
+}
+.panduan-catatan {
+  margin: 28px 0 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.panduan-bagian {
+  margin-top: 64px;
+}
+.panduan-bagian h2,
+.panduan-dua h2,
+.panduan-lain h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+.panduan-jujur {
+  border-top: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 40px;
+}
+.panduan-jujur-item h3 {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+.panduan-jujur-item p {
+  margin: 6px 0 0;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.panduan-dua {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 48px;
+  margin-top: 64px;
+}
+.panduan-dua p {
+  margin: 0;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.panduan-periksa {
+  margin-top: 48px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.panduan-periksa summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.panduan-periksa summary::-webkit-details-marker {
+  display: none;
+}
+.panduan-periksa[open] .tanya-panah {
+  transform: rotate(180deg);
+}
+.panduan-periksa summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 24px;
+}
+.panduan-periksa dl {
+  margin: 0;
+  padding: 0 20px;
+  display: grid;
+  gap: 12px;
+}
+.panduan-periksa dt {
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.panduan-periksa dd {
+  margin: 2px 0 0;
+}
+.panduan-periksa code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.panduan-periksa > p {
+  margin: 14px 0 0;
+  padding: 0 20px 18px;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.panduan-lain {
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--garis);
+}
+.panduan-lain ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.panduan-lain .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.panduan-iphone {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.panduan-iphone h2 {
+  margin-top: 4px;
+}
+.panduan-iphone p {
+  margin: 0 0 16px;
+  color: var(--abu);
+  line-height: 1.6;
+}
+.panduan-maskot {
+  flex: none;
+  width: 96px;
+  height: 96px;
+}
+/* The iPhone interest block: the question and one line, the button beside them, in one bordered row. */
+.panduan-minat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.panduan-minat-teks {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.panduan-minat-teks h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.panduan-minat-teks p {
+  margin: 6px 0 0;
+  color: var(--abu);
+  line-height: 1.5;
+}
+.panduan-minat-aksi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.panduan-minat-hasil {
+  margin: 0;
+  color: var(--abu);
+}
+/* Empty, it stays in the page (out of the flow) so a screen reader announces it once it fills. */
+.panduan-minat-hasil:empty {
+  position: absolute;
+}
+.panduan-minat .pratinjau {
+  flex: 1 1 100%;
+  margin: 0;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* /pasang/: one row per device; the visitor's own is marked and first. */
+.pilih-perangkat {
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.pilih-perangkat a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 80px;
+  padding: 16px 20px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  text-decoration: none;
+  transition: border-color 150ms ease-out;
+}
+.pilih-perangkat a:active {
+  background: var(--m-inset);
+}
+.pilih-perangkat a:hover {
+  border-color: color-mix(in oklch, var(--tinta) 30%, var(--garis));
+}
+.pilih-ikon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--m-inset);
+}
+.pilih-ikon svg {
+  width: 24px;
+  height: 24px;
+}
+.pilih-teks {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.pilih-nama {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+.pilih-milikmu {
+  display: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--tinta);
+  color: var(--bg);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.pilih-ringkas {
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.pilih-waktu {
+  color: var(--abu);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+.pilih-panah {
+  width: 20px;
+  height: 20px;
+  color: var(--abu);
+}
+html[data-perangkat="android"] [data-pilih="android"],
+html[data-perangkat="chrome"] [data-pilih="chrome"],
+html[data-perangkat="edge"] [data-pilih="edge"],
+html[data-perangkat="ios"] [data-pilih="iphone"] {
+  order: -1;
+}
+html[data-perangkat="android"] [data-pilih="android"] .pilih-milikmu,
+html[data-perangkat="chrome"] [data-pilih="chrome"] .pilih-milikmu,
+html[data-perangkat="edge"] [data-pilih="edge"] .pilih-milikmu,
+html[data-perangkat="ios"] [data-pilih="iphone"] .pilih-milikmu {
+  display: inline-flex;
+}
+
+/* Not found. */
+.galat {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: calc(var(--nav-bawah) + 60px) var(--pinggir) 96px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.galat-maskot {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 16px;
+}
+.galat h1 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+  line-height: 1.15;
+}
+.galat p {
+  margin: 10px 0 0;
+  color: var(--abu);
+  line-height: 1.6;
+}
+.galat-tombol {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px !important;
+}
+.galat-tombol .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.galat-en {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--garis);
+}
+.galat-en-judul {
+  color: var(--tinta) !important;
+  font-weight: 600;
+}
+
+@media (max-width: 47.9375em) {
+  .panduan-kepala--gambar {
+    display: block;
+  }
+  .panduan-kepala--gambar::after {
+    display: none;
+  }
+  .panduan-miring {
+    display: none;
+  }
+  .langkah {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .panduan-ringkas dl,
+  .panduan-jujur,
+  .panduan-dua {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pilih-perangkat a {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .pilih-waktu {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .pilih-panah {
+    grid-row: 1 / span 2;
+    grid-column: 3;
+  }
+  .panduan-iphone {
+    flex-direction: column;
+  }
+}
+/* Very large text on a phone: the device rows drop their icon and give the words the row. */
+@media (max-width: 20em) {
+  .pilih-perangkat a {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 14px 16px;
+  }
+  .pilih-ikon {
+    display: none;
+  }
+  .pilih-waktu {
+    grid-column: 1;
+  }
+  .pilih-panah {
+    grid-column: 2;
+  }
+}
+
+/* Still not working: one line after the problems, to the feedback form. */
+.panduan-lapor {
+  margin: 16px 0 0;
+  color: var(--abu);
+}
+/* The extension's guide opened on a phone: where it is installed, first. */
+.panduan-dihp {
+  margin: 0 0 32px;
+}
+.pilih-ringkas,
+.galat p {
+  text-wrap: pretty;
+}
+.galat h1 {
+  text-wrap: balance;
+}
+/* On a phone the first step's drawing only repeats the button above it: the download comes into the first screen. */
+@media (max-width: 47.9375em) {
+  .langkah-daftar > .langkah:first-child .langkah-gambar {
+    display: none;
+  }
+}

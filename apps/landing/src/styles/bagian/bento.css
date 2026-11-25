@@ -1,0 +1,203 @@
+/* What it helps with: a bento of seven tiles in three sizes (4 columns on a laptop, 2 on a tablet, 1 on a phone).
+   Every tile is the apps' own screen colour (the light grey their cards are made to sit on; in dark, the page
+   itself with a hairline): no tints, no gradients. Colour comes from the apps' UI and the mascot alone. */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.ubin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  /* Concentric with the apps' cards inside (12 px corners): 12 + 20 = 32, within the brief's 24 to 32. */
+  padding: 20px;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid var(--garis);
+  background: var(--layer-screen);
+}
+.ubin--kabar {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.ubin--beban,
+.ubin--perangkat {
+  grid-column: span 2;
+}
+.ubin-teks {
+  min-width: 0;
+}
+.ubin h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.ubin-teks p {
+  margin: 6px 0 0;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.ubin-visual {
+  min-width: 0;
+  margin-top: auto;
+  container-type: inline-size;
+}
+/* The app's card keeps a width it fits in (290 px) and, in a tile narrower than
+   that, is scaled to it as a whole rather than squeezed: its words never leave the card. */
+.ubin-skala {
+  width: max(100cqw, 290px);
+  transform-origin: 0 0;
+  scale: min(1, tan(atan2(100cqw, 290px)));
+}
+/* The app's own cards carry their own surface and border: no second frame around them. Kabar terbaru's card fills
+   its tall tile, so the tile never shows a bare lower half. */
+.ubin-visual--kartu {
+  margin-top: 0;
+  flex: 1;
+  display: flex;
+}
+.ubin-visual--kartu .ubin-skala {
+  display: flex;
+  flex: 1;
+}
+.ubin-visual--kartu .ubin-skala > * {
+  flex: 1;
+}
+
+/* The mascot tile: the mascot leads, the words under it. */
+.ubin--nama {
+  justify-content: space-between;
+}
+.ubin-maskot {
+  width: 96px;
+  height: 96px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Laptop and phone: the extension's popup (380 x 560, scaled) with the tilted iPhone over its right edge. */
+.ubin-visual--perangkat {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 240px;
+}
+.ubin-popup {
+  --w: 380px;
+  --h: 560px;
+  position: relative;
+  width: 56%;
+  aspect-ratio: 380 / 400;
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: 14px 14px 0 0;
+  border: 1px solid var(--garis);
+  border-bottom: 0;
+  background: var(--layer-screen);
+  margin-bottom: -24px;
+}
+.ubin-popup iframe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--w);
+  height: var(--h);
+  border: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+  transform: scale(tan(atan2(100cqw, var(--w))));
+}
+/* The phone is much taller than the tile: its top shows, the rest runs past the tile's edge. */
+.ubin-miring {
+  position: absolute;
+  right: 2%;
+  top: 0;
+  width: 38%;
+  filter: drop-shadow(0 18px 24px rgb(16 16 24 / 0.22));
+}
+
+/* The theme tile: the card in it changes theme on its own, the page stays as it is. */
+.ubin-visual--tema {
+  padding: 14px;
+  border-radius: 20px;
+  background: var(--bg);
+  transition: background-color 200ms ease-out;
+}
+.ubin-tema-tombol {
+  align-self: flex-start;
+}
+
+/* The one full tile: the sentence that matters most, in ink with the page's colour on it (light on dark in the
+   dark theme): the palette's own two ends, no extra hue. */
+.ubin--kalimat {
+  justify-content: flex-end;
+  border-color: transparent;
+  background: var(--tinta);
+  color: var(--bg);
+}
+/* In dark the same tile is one step raised, not a white slab among dark ones. */
+[data-theme="dark"] .ubin--kalimat {
+  border-color: var(--garis);
+  background: var(--surface-raised);
+  color: var(--tinta);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ubin--kalimat {
+    border-color: var(--garis);
+    background: var(--surface-raised);
+    color: var(--tinta);
+  }
+}
+.ubin--kalimat p {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+@media (max-width: 63.9375em) {
+  .bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ubin--kabar {
+    grid-row: auto;
+  }
+}
+@media (max-width: 39.9375em) {
+  .bento-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ubin-popup {
+    width: 60%;
+  }
+  .ubin-miring {
+    right: 0;
+    width: 40%;
+  }
+  .ubin--kabar,
+  .ubin--beban,
+  .ubin--perangkat {
+    grid-column: auto;
+  }
+  .ubin {
+    padding: 16px;
+    border-radius: 28px;
+  }
+}
+/* The narrowest phone, or very large text: the tile's padding goes to the app's card, which keeps its own width. */
+@media (max-width: 20em) {
+  .ubin {
+    padding: 14px;
+    border-radius: 26px;
+  }
+}

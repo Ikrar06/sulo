@@ -1,0 +1,428 @@
+/* The drawn devices and screens of the install steps (src/ilustrasi): a plain phone, a browser window, the
+   orange ring round what to press. Used by the guides and by the questions on the home page. Their words
+   follow the page; their colours are the drawing's own (a phone's screen stays light in either theme). */
+
+.il-hp {
+  width: 220px;
+  aspect-ratio: 9 / 19;
+  padding: 7px;
+  border-radius: 32px;
+  background: #1b1b1f;
+  box-shadow: 0 24px 40px -24px rgb(0 0 0 / 0.45);
+  flex: none;
+}
+.il-hp--kecil {
+  width: 168px;
+  padding: 6px;
+  border-radius: 26px;
+}
+.il-hp-layar {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px 12px 18px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #f4f4f6;
+  color: #16161a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.il-hp--kecil .il-hp-layar {
+  border-radius: 20px;
+  font-size: 10.5px;
+}
+.il-hp-layar--atas {
+  justify-content: flex-start;
+  padding-top: 26px;
+}
+.il-hp-layar--redup {
+  background: #7c7c85;
+}
+.il-hp-kamera {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #1b1b1f;
+  translate: -50% 0;
+}
+.il-kartu {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+}
+.il-kartu--jendela {
+  border: 1px solid #e4e4e9;
+}
+.il-judul {
+  margin: 0;
+  font-weight: 600;
+}
+.il-redup {
+  margin: 0;
+  color: #6b6b76;
+}
+.il-teks {
+  margin: 0;
+}
+.il-judul-besar {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.15em;
+}
+.il-tombol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.il-tombol--oranye {
+  background: #ff5a2a;
+  color: #16161a;
+}
+.il-tombol--garis {
+  border: 1px solid #c9c9d1;
+  background: #fff;
+  color: #1b1b1f;
+}
+.il-pudar {
+  /* Quieter than what to press, still 4.5:1 or more on the drawn white. */
+  opacity: 0.7;
+}
+.il-dialog {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff;
+  color: #16161a;
+}
+.il-aksi {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0;
+  font-weight: 600;
+}
+.il-aksi--bawah {
+  justify-content: center;
+}
+.il-aksi-utama {
+  padding: 4px 8px;
+  font-weight: 700;
+}
+.il-aplikasi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+}
+.il-setelan {
+  align-self: stretch;
+  display: grid;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff;
+}
+.il-baris {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+}
+.il-sakelar {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 18px;
+  border-radius: 999px;
+  background: #1b1b1f;
+  flex: none;
+}
+.il-sakelar::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+}
+.il-tirai {
+  align-self: stretch;
+}
+.il-notifikasi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #fff;
+}
+.il-notifikasi > span {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.il-ikon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+.il-selesai {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.il-selesai .il-aplikasi {
+  flex-direction: column;
+  font-size: 1.1em;
+}
+.il-dua {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+/* What to press: an orange ring and a small dot (brief 6.13). */
+.il-lingkar {
+  position: relative;
+  display: inline-flex;
+  border-radius: 999px;
+  outline: 2.5px solid #ff5a2a;
+  outline-offset: 4px;
+}
+.il-lingkar::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff5a2a;
+}
+.il-lebar {
+  display: flex;
+  width: 100%;
+  border-radius: 16px;
+}
+
+/* A plain browser window, in the page's own colours. */
+.il-jendela {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 16px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  box-shadow: 0 24px 40px -28px rgb(0 0 0 / 0.4);
+  font-size: 12.5px;
+}
+.il-jendela-atas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--garis);
+}
+.il-jendela-titik {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 24px;
+  border-radius: 50%;
+  background: var(--garis);
+  box-shadow: 12px 0 0 var(--garis), 24px 0 0 var(--garis);
+}
+.il-jendela-alamat {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--m-inset);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.il-jendela-isi {
+  position: relative;
+  padding: 16px;
+  min-height: 120px;
+}
+.il-halaman-kosong {
+  height: 84px;
+  border-radius: 10px;
+  background: var(--m-inset);
+}
+/* Edge keeps its Developer mode switch in a side panel beside the list, not at the page's top right. */
+.il-samping {
+  display: grid;
+  grid-template-columns: 9.5em minmax(0, 1fr);
+  gap: 12px;
+}
+.il-samping-panel {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 10px;
+  padding-right: 12px;
+  border-right: 1px solid var(--garis);
+}
+/* A menu entry whose words do not matter here: a plain bar. */
+.il-garis-isi {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--m-inset);
+}
+.il-garis-isi--pendek {
+  width: 70%;
+}
+.il-ekstensi-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.il-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+}
+.il-ekstensi-alat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.il-ikon--alat {
+  width: 18px;
+  height: 18px;
+}
+.il-menu {
+  margin-left: auto;
+  width: min(220px, 100%);
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  box-shadow: 0 16px 30px -20px rgb(0 0 0 / 0.4);
+}
+.il-menu-baris {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.il-berkas {
+  width: 100%;
+  max-width: 380px;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  border-radius: 16px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  color: var(--tinta);
+  font-size: 12.5px;
+  box-shadow: 0 24px 40px -28px rgb(0 0 0 / 0.4);
+}
+.il-berkas-samping {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 14px;
+  border-right: 1px solid var(--garis);
+  font-weight: 600;
+}
+.il-berkas-isi {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+/* The files sit inside the Sulo folder, one step in. */
+.il-berkas-dalam {
+  display: grid;
+  gap: 6px;
+  margin-left: 22px;
+  padding-left: 10px;
+  border-left: 1px solid var(--garis);
+}
+.il-folder,
+.il-berkas-baris {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.il-berkas-baris {
+  color: var(--abu);
+}
+
+@media (max-width: 47.9375em) {
+  /* A shorter phone on a phone: the drawing's content is small, the page should not be twice as long for it. */
+  .il-hp {
+    width: 200px;
+    aspect-ratio: 9 / 16;
+  }
+  /* The small phone keeps its full height: its dialogs fill it (a shorter one cut the warning off). */
+  .il-hp--kecil {
+    width: 150px;
+    aspect-ratio: 9 / 19;
+  }
+  .il-hp--kecil .il-hp-layar {
+    padding-top: 26px;
+  }
+  .il-hp--kecil .il-dialog {
+    padding: 12px;
+  }
+}
+
+/* A drawn screen keeps its own light palette in either theme, as the phone's does: its parts (the white card, the
+   dark switch, the outlined button) were drawn for it. Without this, a dark page's tokens reach inside the drawn
+   window and leave its title at 1.1:1 and its switch invisible. */
+.il-jendela,
+.il-berkas {
+  --kartu: #fff;
+  --tinta: #16161a;
+  --abu: #6b6b76;
+  --garis: #e4e4e9;
+  --m-inset: #efeff3;
+  color: var(--tinta);
+}
+/* On a dark page a shadow does not show: a hairline ring keeps the drawn device's edge. */
+:root[data-theme="dark"] :is(.il-hp, .il-jendela, .il-berkas) {
+  box-shadow: 0 0 0 1px oklch(1 0 0 / 0.14), 0 24px 40px -24px rgb(0 0 0 / 0.45);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) :is(.il-hp, .il-jendela, .il-berkas) {
+    box-shadow: 0 0 0 1px oklch(1 0 0 / 0.14), 0 24px 40px -24px rgb(0 0 0 / 0.45);
+  }
+}

@@ -1,0 +1,47 @@
+/* What every section below the hero shares: its padding, the content width, and the head (title, one line). */
+.bagian {
+  padding: clamp(64px, 8vw, 112px) var(--pinggir);
+  scroll-margin-top: calc(var(--nav-bawah) + 4px);
+}
+.isi {
+  max-width: var(--isi);
+  margin-inline: auto;
+}
+.bagian-kepala {
+  max-width: 42rem;
+  margin-bottom: clamp(32px, 4vw, 56px);
+}
+.bagian-kepala--tengah {
+  margin-inline: auto;
+  text-align: center;
+}
+.bagian-kepala h2,
+.judul-bagian {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  /* 28 to 44 px at the default text size; larger text grows it by part (see .pembuka-judul). */
+  font-size: clamp(calc(16px + 0.75rem), calc(8px + 0.75rem + 1.9vw), calc(32px + 0.75rem));
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.bagian-kepala p {
+  margin: 14px 0 0;
+  color: var(--abu);
+  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+/* A plain text link inside the page's own text. */
+.tautan {
+  color: var(--tinta);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--tinta) 40%, transparent);
+}
+.tautan:hover {
+  text-decoration-color: currentColor;
+}

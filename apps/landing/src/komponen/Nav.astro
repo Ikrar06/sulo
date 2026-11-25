@@ -1,0 +1,65 @@
+---
+// The navigation (brief 6.1): a floating pill on a wide screen (logo, links,
+// language, theme, Install), a bar with the logo, Install and a menu on a
+// phone. "Install" goes to the install section, never straight to a
+// download; it stays quiet while the hero's own button is on screen and
+// fills in once that button has scrolled away (hidup/nav.ts). The phone menu
+// is the browser's own popover: it opens without script and closes on a tap
+// outside it.
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import { pathLain, pathRumah } from '../data/alamat';
+import { teks, type Bahasa } from '../teks';
+import { BulanIkon, MatahariIkon, MenuIkon, TutupIkon } from './ikon';
+
+interface Props {
+  bahasa: Bahasa;
+  /** This page's own path, for the language link. */
+  path: string;
+}
+const { bahasa, path } = Astro.props;
+const t = teks[bahasa].nav;
+const rumah = pathRumah(bahasa);
+const lain = bahasa === 'en' ? 'id' : 'en';
+const tautan = [
+  { href: `${rumah}#fitur`, teks: t.fitur },
+  { href: `${rumah}#privasi`, teks: t.privasi },
+  { href: `${rumah}#pasang`, teks: t.pasang },
+  { href: `${rumah}#tanya`, teks: t.tanya },
+];
+---
+<header class="nav">
+  <nav class="nav-pil" aria-label="Sulo">
+    <a class="nav-merek" href={rumah}><img src={flame} alt="" width="28" height="28" /><span class="nav-merek-kata">Sulo</span></a>
+    <div class="nav-tautan">
+      {tautan.map((l) => <a href={l.href}>{l.teks}</a>)}
+    </div>
+    <div class="nav-ujung">
+      <a class="nav-kecil nav-lebar" href={pathLain(path, bahasa)} hreflang={lain} lang={lain} aria-label={t.bahasaLain}>{lain.toUpperCase()}</a>
+      <button class="nav-kecil nav-lebar nav-tema" type="button" data-tema-tombol aria-label={t.tema} data-label-gelap={t.temaGelap} data-label-terang={t.temaTerang}>
+        <MatahariIkon className="ikon-tema ikon-tema--terang" />
+        <BulanIkon className="ikon-tema ikon-tema--gelap" />
+      </button>
+      <a class="tombol tombol--kedua tombol--kecil nav-pasang" href={`${rumah}#pasang`}>{t.tombolPasang}</a>
+      <button class="nav-kecil nav-menu" type="button" popovertarget="menu-hp" aria-label={t.menu}><MenuIkon /></button>
+    </div>
+  </nav>
+  <div class="menu-hp" id="menu-hp" popover>
+    <div class="menu-hp-kepala">
+      <span class="nav-merek"><img src={flame} alt="" width="28" height="28" />Sulo</span>
+      <button class="nav-kecil" type="button" popovertarget="menu-hp" popovertargetaction="hide" aria-label={t.tutup}><TutupIkon /></button>
+    </div>
+    <nav aria-label={t.menu}>
+      <ul role="list">
+        {tautan.map((l) => <li><a href={l.href} data-tutup-menu>{l.teks}</a></li>)}
+      </ul>
+    </nav>
+    <div class="menu-hp-bawah">
+      <a class="tombol tombol--kedua tombol--kecil" href={pathLain(path, bahasa)} hreflang={lain} lang={lain}>{t.bahasaLain}</a>
+      <button class="tombol tombol--kedua tombol--kecil nav-tema-teks" type="button" data-tema-tombol data-label-gelap={t.temaGelap} data-label-terang={t.temaTerang}>{t.tema}</button>
+    </div>
+  </div>
+</header>
+<script>
+  import '../hidup/nav';
+  import '../hidup/tema';
+</script>

@@ -1,0 +1,111 @@
+/* Questions: the title and the warning drawing on the left (staying in view while the list scrolls by), the list
+   on the right; one column on a phone. */
+.tanya-isi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+.tanya-samping {
+  display: grid;
+  gap: 28px;
+  justify-items: start;
+  position: sticky;
+  top: calc(var(--nav-bawah) + 24px);
+}
+.tanya-gambar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+  margin: 0;
+}
+.tanya-gambar-hp {
+  flex: none;
+}
+/* The whole warning shows: a full-height phone, also on a phone (where the guides draw it shorter). */
+.tanya-gambar .il-hp {
+  aspect-ratio: 9 / 19;
+}
+.tanya-gambar figcaption {
+  flex: 1 1 12rem;
+  max-width: 18rem;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.tanya-daftar {
+  border-top: 1px solid var(--garis);
+}
+.tanya-item {
+  border-bottom: 1px solid var(--garis);
+}
+.tanya-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 16px 4px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.tanya-item summary::-webkit-details-marker {
+  display: none;
+}
+.tanya-item summary > span {
+  min-width: 0;
+  text-wrap: pretty;
+}
+.tanya-panah {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--abu);
+  /* With the answer's own height (260 ms, gerak.css); transform, which an SVG turns on the compositor. */
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tanya-item[open] .tanya-panah {
+  transform: rotate(180deg);
+}
+.tanya-item summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.tanya-jawab {
+  padding: 0 4px 20px;
+  color: var(--abu);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.tanya-jawab p {
+  margin: 0;
+  max-width: 40rem;
+  text-wrap: pretty;
+}
+.tanya-tautan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 10px !important;
+}
+.tanya-tautan .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+@media (max-width: 47.9375em) {
+  .tanya-isi {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .tanya-samping {
+    position: static;
+    gap: 20px;
+  }
+}

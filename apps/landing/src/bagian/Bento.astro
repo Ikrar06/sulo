@@ -1,0 +1,94 @@
+---
+// What it helps with (brief 6.6): seven tiles in three sizes, each one idea
+// with one line and a live visual from the apps: Kabar terbaru, the phone's
+// "7 hari ke depan", the academic calendar, the extension's popup beside a
+// tilted iPhone (the finished picture), the mascot (touch it), a card that
+// changes theme when asked, and one full-colour tile with the sentence that
+// matters most. Tiles take the apps' course colours, thinned (brief 4.4).
+import { dataContoh } from '../layar/contoh';
+import { rumah2 } from '../teks/rumah-2';
+import { teks, type Bahasa } from '../teks';
+import Maskot from '../komponen/Maskot.astro';
+import Miring from '../komponen/Miring.astro';
+import { Potongan } from '../komponen/Potongan';
+import { Ubin } from '../komponen/Ubin';
+import '../styles/bagian/bento.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah2[bahasa].bento;
+const data = await dataContoh(bahasa);
+---
+<section class="bagian bento" id="fitur" aria-labelledby="judul-bento">
+  <div class="isi">
+    <header class="bagian-kepala">
+      <h2 id="judul-bento">{t.judul}</h2>
+    </header>
+    <div class="bento-grid">
+      <article class="ubin ubin--kabar">
+        <div class="ubin-teks">
+          <h3>{t.kabar.judul}</h3>
+          <p>{t.kabar.isi}</p>
+        </div>
+        <div data-ui-aplikasi class="ubin-visual ubin-visual--kartu" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kabar" /></div></div>
+      </article>
+
+      <article class="ubin ubin--beban">
+        <div class="ubin-teks">
+          <h3>{t.beban.judul}</h3>
+          <p>{t.beban.isi}</p>
+        </div>
+        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="beban" /></div></div>
+      </article>
+
+      <article class="ubin ubin--kalender">
+        <div class="ubin-teks">
+          <h3>{t.kalender.judul}</h3>
+          <p>{t.kalender.isi}</p>
+        </div>
+        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kalender" /></div></div>
+      </article>
+
+      <article class="ubin ubin--nama">
+        <Maskot mood="neutral" class="ubin-maskot" sentuh />
+        <div class="ubin-teks">
+          <h3>{t.nama.judul}</h3>
+          <p>{t.nama.isi}</p>
+        </div>
+      </article>
+
+      <article class="ubin ubin--perangkat">
+        <div class="ubin-teks">
+          <h3>{t.perangkat.judul}</h3>
+          <p>{t.perangkat.isi}</p>
+        </div>
+        <div data-ui-aplikasi class="ubin-visual ubin-visual--perangkat" aria-hidden="true" inert>
+          <div class="ubin-popup">
+            <iframe src={`/layar/${bahasa}/popup/auto/`} title={teks[bahasa].layarPopup} loading="lazy" tabindex="-1" inert></iframe>
+          </div>
+          <Miring arah="kanan" bahasa={bahasa} sizes="(max-width: 767px) 40vw, 200px" class="ubin-miring" />
+        </div>
+      </article>
+
+      <article class="ubin ubin--tema">
+        <div class="ubin-teks">
+          <h3>{t.tema.judul}</h3>
+          <p>{t.tema.isi}</p>
+        </div>
+        <div data-ui-aplikasi class="ubin-visual ubin-visual--tema" data-theme="dark" data-ubin-tema aria-hidden="true" inert>
+          <Potongan data={data} bahasa={bahasa} jenis="tugas-1" />
+        </div>
+        <button class="tombol tombol--kedua tombol--kecil ubin-tema-tombol" type="button" data-ubin-tema-tombol aria-pressed="true">{t.tema.tombol}</button>
+      </article>
+
+      <article class="ubin ubin--kalimat">
+        <p style={`--n: ${t.kalimat.split(' ').length}`}>{t.kalimat.split(' ').map((kata, i) => <Fragment><span class="kata" style={`--i: ${i}`}>{kata}</span>{' '}</Fragment>)}</p>
+      </article>
+    </div>
+  </div>
+</section>
+<script>
+  import '../hidup/ubin';
+</script>

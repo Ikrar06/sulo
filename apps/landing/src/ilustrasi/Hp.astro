@@ -1,0 +1,20 @@
+---
+// A plain Android phone, drawn (brief 6.13: like enough to recognise, never a
+// copy of any maker's look, no logos): a thin bezel, a punch-hole camera, and
+// what the step shows on its screen (slot). Its words follow the page.
+import '../styles/ilustrasi.css';
+interface Props {
+  /** "terang" for a light screen, "gelap" for a dark one (a dialog over a dimmed page). */
+  layar?: 'terang' | 'redup';
+  kecil?: boolean;
+  /** The screen's content from the top rather than the middle (a picture cropped to the phone's top). */
+  atas?: boolean;
+}
+const { layar = 'terang', kecil = false, atas = false } = Astro.props;
+---
+<div class:list={['il-hp', { 'il-hp--kecil': kecil }]}>
+  <div class:list={['il-hp-layar', `il-hp-layar--${layar}`, { 'il-hp-layar--atas': atas }]}>
+    <span class="il-hp-kamera" aria-hidden="true"></span>
+    <slot />
+  </div>
+</div>

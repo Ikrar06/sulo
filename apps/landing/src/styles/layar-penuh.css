@@ -1,0 +1,38 @@
+/* The phone's whole screen for the tilted frames' pictures (pages/layar/.../hp-penuh): the app's own tokens
+   and fonts, the drawn status bar on top, the app below it. Only ever photographed, never shown. */
+@import "../../../mobile/src/styles.css";
+
+/* A picture of the app: its measures as in the app (rem stays 16 px). */
+html {
+  font-size: 16px;
+}
+html,
+body.layar-penuh {
+  width: 402px;
+  height: 874px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--layer-screen);
+}
+.layar-penuh-status {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 402px;
+  height: 63.2px;
+  color: #000;
+}
+:root[data-theme="dark"] .layar-penuh-status {
+  color: #fff;
+}
+.layar-penuh iframe {
+  position: absolute;
+  left: 0;
+  width: 402px;
+  border: 0;
+}
+.status-bar-jam {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13.38px;
+}

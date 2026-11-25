@@ -1,0 +1,126 @@
+---
+// Install (brief 6.8): two cards of one build and a slim row for iPhone, on
+// the plain page; the download right on the card (from src/data/rilis.json,
+// like every button). The visitor's own device comes first, with the one loud
+// button; the other device's button is quiet. Each card: the moment it leads
+// to, its name, what it is (version, size, time) as quiet chips, one line,
+// then the button and its two links on one line at the card's foot. On a wide
+// screen the Android card's picture carries a QR code to the Android guide.
+// SHA-256 lives on the guide pages, not here.
+//
+// Each of the two main cards opens with the moment it leads to, drawn as the
+// guides draw it (the section's rich visual, brief 4.2): Android asking to
+// install Sulo, and Sulo pinned in the browser on SIKOLA. A line under each
+// leads to why a warning appears while installing (brief 2: said as it is).
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import { berkas } from '../data/unduhan';
+import { pathPasang } from '../data/alamat';
+import { buatQr } from '../data/qr';
+import { alamatSitus } from '../data/situs';
+import { rumah2 } from '../teks/rumah-2';
+import { layarOs } from '../teks/panduan';
+import { teks, type Bahasa } from '../teks';
+import Hp from '../ilustrasi/Hp.astro';
+import Jendela from '../ilustrasi/Jendela.astro';
+import { PinIkon, PuzzleIkon } from '../komponen/ikon';
+import '../styles/bagian/pasang.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah2[bahasa].pasang;
+const os = layarOs[bahasa];
+const zip = berkas('ekstensi', bahasa);
+const apk = berkas('android', bahasa);
+const situs = alamatSitus(Astro.site);
+const qr = situs ? buatQr(`${situs}${pathPasang(bahasa, 'android')}`) : null;
+const meta = (b: typeof zip, waktu: string) => [b.versi ? t.versi(b.versi) : '', b.aktif ? b.ukuran : '', waktu].filter(Boolean);
+const mulai = teks[bahasa].unduhMulai;
+---
+<section class="bagian pasang" id="pasang" aria-labelledby="judul-pasang">
+  <div class="isi">
+    <header class="bagian-kepala bagian-kepala--tengah">
+      <h2 id="judul-pasang">{t.judul}</h2>
+      <p>{t.intro}</p>
+    </header>
+    <div class="pasang-grid">
+      <article class="pasang-kartu" data-pasang="ekstensi" data-unduh-wadah>
+        <div class="pasang-gambar" aria-hidden="true">
+          <Jendela alamat="sikola-v2.unhas.ac.id">
+            <PuzzleIkon slot="alat" className="il-ikon il-ikon--alat" />
+            <div class="il-menu">
+              <p class="il-redup">{os.chrome.ekstensi}</p>
+              <p class="il-menu-baris">
+                <span class="il-aplikasi"><img src={flame} alt="" width="20" height="20" />Sulo</span>
+                <PinIkon className="il-ikon" />
+              </p>
+            </div>
+          </Jendela>
+        </div>
+        <div class="pasang-isi">
+          <h3>{t.ekstensi.judul}</h3>
+          <ul class="pasang-meta" role="list">{meta(zip, t.ekstensi.waktu).map((m) => <li>{m}</li>)}</ul>
+          <p class="pasang-catatan">{t.ekstensi.manual}</p>
+        </div>
+        <div class="pasang-aksi">
+          {zip.aktif ? (
+            <a class="tombol tombol--utama tombol--penuh" href={zip.href} download={zip.unduhan ? '' : undefined} data-tombol-utama data-menit="3">{t.unduhZip}</a>
+          ) : (
+            <span class="tombol tombol--utama tombol--penuh" aria-disabled="true">{zip.ukuran}</span>
+          )}
+          <p class="pasang-unduh" data-unduh-baris aria-live="polite" data-teks-3={mulai(3)}></p>
+          <p class="pasang-tautan">
+            <a class="tautan" href={pathPasang(bahasa, 'chrome')}>{t.panduanEkstensi}</a>
+            <a class="tautan" href="#tanya-peringatan">{t.peringatan}</a>
+          </p>
+        </div>
+      </article>
+      <article class="pasang-kartu" data-pasang="android" data-unduh-wadah>
+        <div class="pasang-gambar">
+          <div class="pasang-gambar-hp" aria-hidden="true">
+            <Hp layar="redup" atas>
+              <div class="il-dialog">
+                <p class="il-aplikasi"><img src={flame} alt="" width="24" height="24" />Sulo</p>
+                <p class="il-teks">{os.android.tanya}</p>
+                <p class="il-aksi"><span>{os.android.batal}</span><span class="il-aksi-utama">{os.android.instal}</span></p>
+              </div>
+            </Hp>
+          </div>
+          {qr && (
+            <div class="pasang-qr">
+              <svg viewBox={`0 0 ${qr.ukuran} ${qr.ukuran}`} role="img" aria-label={t.android.qr} shape-rendering="crispEdges"><path d={qr.path} /></svg>
+              <p>{t.android.qr}</p>
+            </div>
+          )}
+        </div>
+        <div class="pasang-isi">
+          <h3>{t.android.judul}</h3>
+          <ul class="pasang-meta" role="list">{meta(apk, t.android.waktu).map((m) => <li>{m}</li>)}<li>{t.android.syarat}</li></ul>
+        </div>
+        <div class="pasang-aksi">
+          {apk.aktif ? (
+            <a class="tombol tombol--utama tombol--penuh" href={apk.href} download={apk.unduhan ? '' : undefined} data-tombol-utama data-menit="2">{t.unduhApk}</a>
+          ) : (
+            <span class="tombol tombol--utama tombol--penuh" aria-disabled="true">{apk.ukuran}</span>
+          )}
+          <p class="pasang-unduh" data-unduh-baris aria-live="polite" data-teks-2={mulai(2)}></p>
+          <p class="pasang-tautan">
+            <a class="tautan" href={pathPasang(bahasa, 'android')}>{t.panduanAndroid}</a>
+            <a class="tautan" href="#tanya-peringatan">{t.peringatan}</a>
+          </p>
+        </div>
+      </article>
+      <article class="pasang-iphone" data-pasang="iphone">
+        <div>
+          <h3>{t.iphone.judul}</h3>
+          <p>{t.iphone.isi}</p>
+        </div>
+        <a class="tombol tombol--kedua tombol--kecil" href={pathPasang(bahasa, 'iphone')}>{t.iphone.tautan}</a>
+      </article>
+    </div>
+  </div>
+</section>
+<script>
+  import '../hidup/unduh';
+</script>

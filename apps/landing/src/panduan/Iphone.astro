@@ -1,0 +1,34 @@
+---
+// /pasang/iphone (brief 6.14): the honest "not yet", why, what works now (the
+// extension on a laptop), and the interest button only while it is switched
+// on (rilis.json minatIos.aktif; off until the owner decides). Built so a
+// later .ipa guide can be added below without taking anything apart.
+import rilis from '../data/rilis.json';
+import { PRATINJAU } from '../data/mode';
+import { pathPasang } from '../data/alamat';
+import { panduan } from '../teks/panduan';
+import type { Bahasa } from '../teks';
+import TataPanduan from '../komponen/TataPanduan.astro';
+import Maskot from '../komponen/Maskot.astro';
+import TombolMinat from '../komponen/TombolMinat.astro';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = panduan[bahasa].iphone;
+const minat = rilis.minatIos.aktif;
+// With the counter off the button still shows in a preview or dev build, to be judged; it sends nothing there.
+const cobaMinat = !minat && (PRATINJAU || import.meta.env.DEV);
+---
+<TataPanduan bahasa={bahasa} perangkat="iphone" judul={t.judul} kenapa={t.kenapa} deskripsi={t.kenapa}>
+  <section class="panduan-bagian panduan-iphone">
+    <Maskot mood="worried" class="panduan-maskot" />
+    <div>
+      <h2>{t.sekarang}</h2>
+      <p>{t.alternatif}</p>
+      <p><a class="tombol tombol--utama" href={pathPasang(bahasa, 'chrome')}>{t.tautan}</a></p>
+    </div>
+  </section>
+  {(minat || cobaMinat) && <TombolMinat minat={t.minat} isi={t.minatIsi} tombol={t.minatTombol} tercatat={t.tercatat} gagal={t.gagal} pratinjau={cobaMinat ? t.minatPratinjau : undefined} />}
+</TataPanduan>

@@ -1,0 +1,67 @@
+---
+// The hero: what Sulo is, for whom, whether it is safe, and the button.
+// The owner's choices (24 Nov 2026): the warm dawn sky in light, a neutral
+// night with the warmth only round the mascot in dark; the mascot over the
+// title, the biggest flame on the first screen; three chips on a wide screen,
+// two on a phone (three never fit one line at 360 or 390); the title in ink,
+// then grey; one line under the buttons, which follows the visitor's device.
+import { dataContoh } from '../layar/contoh';
+import { PRATINJAU } from '../data/mode';
+import { tombolPanduan, tombolUnduh } from '../data/unduhan';
+import { teks, type Bahasa } from '../teks';
+import Maskot from './Maskot.astro';
+import Perangkat from './Perangkat.astro';
+import { Potongan } from './Potongan';
+import TombolUnduh from './TombolUnduh.astro';
+import { pecah } from './utuh';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = teks[bahasa];
+const data = await dataContoh(bahasa);
+const unduh = tombolUnduh(bahasa);
+// The sentence's last words are its promise of safety: set in ink, the one thing a visitor must read in five seconds.
+const aman = t.pendukung.endsWith(t.aman) ? t.aman : '';
+const awal = t.pendukung.slice(0, t.pendukung.length - aman.length);
+---
+<section class="pembuka" aria-labelledby="judul-pembuka">
+  <div class="pembuka-langit" aria-hidden="true"></div>
+
+  <div class="pembuka-teks" id="isi" tabindex="-1" data-unduh-wadah>
+    <Maskot mood="neutral" class="pembuka-maskot" lihat=".pembuka [data-tombol-utama]" sorot=".pembuka [data-tombol-utama]" sentuh>
+      <span class="cahaya" aria-hidden="true"></span>
+    </Maskot>
+    <ul class="pembuka-cip" role="list">
+      {t.cip.map((c, i) => <li class:list={['cip', { 'cip--lebar': i === 2 }]}>{c}</li>)}
+    </ul>
+    <h1 class="pembuka-judul" id="judul-pembuka">
+      <span>{t.judulBagian[0]}</span> <span class="judul-abu">{t.judulBagian[1]}</span>
+    </h1>
+    <p class="pembuka-pendukung">{pecah(awal).map((p) => (p.utuh ? <span class="utuh">{p.teks}</span> : p.teks))}{aman && <strong class="pembuka-aman">{aman}</strong>}</p>
+    <div class="pembuka-tombol">
+      <TombolUnduh bahasa={bahasa} unduh={unduh} />
+      {tombolPanduan(bahasa).map((p) => <a class="tombol tombol--kedua" data-untuk={p.untuk} href={p.href}>{t.caraPasang}</a>)}
+    </div>
+    {unduh.catatan.map((c) => <p class="pembuka-catatan" data-untuk={c.untuk}>{c.teks}</p>)}
+    <p class="pembuka-catatan pembuka-unduh" data-unduh-baris aria-live="polite" data-teks-2={t.unduhMulai(2)} data-teks-3={t.unduhMulai(3)}></p>
+    {PRATINJAU && <p class="pratinjau">{t.pratinjau}</p>}
+  </div>
+
+  <div data-ui-aplikasi class="potongan potongan--tugas-1" aria-hidden="true" inert><Potongan data={data} bahasa={bahasa} jenis="tugas-1" /></div>
+  <div data-ui-aplikasi class="potongan potongan--presensi" aria-hidden="true" inert><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div>
+  <div data-ui-aplikasi class="potongan potongan--kalender" aria-hidden="true" inert><Potongan data={data} bahasa={bahasa} jenis="kalender" /></div>
+  <div data-ui-aplikasi class="potongan potongan--tugas-2" aria-hidden="true" inert><Potongan data={data} bahasa={bahasa} jenis="tugas-2" /></div>
+
+  <div class="panggung">
+    <Perangkat jenis="laptop" bahasa={bahasa} sizes="(max-width: 767px) 1px, min(1040px, 92vw)" muat="lazy" />
+    <Perangkat jenis="hp" bahasa={bahasa} sizes="(max-width: 767px) 216px, 260px" />
+    <div data-ui-aplikasi class="potongan-hp potongan-hp--tugas-3" aria-hidden="true" inert><div class="potongan-skala"><Potongan data={data} bahasa={bahasa} jenis="tugas-3" /></div></div>
+    <div data-ui-aplikasi class="potongan-hp potongan-hp--presensi" aria-hidden="true" inert><div class="potongan-skala"><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div></div>
+    <p class="keterangan-data">{t.dataContoh}</p>
+  </div>
+</section>
+<script>
+  import '../hidup/unduh';
+</script>

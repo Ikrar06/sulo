@@ -1,0 +1,102 @@
+---
+// Every landing page's document: language, title, the stylesheet, what search
+// engines and link previews read (brief 9.4: canonical, hreflang, the social
+// card in the page's language, theme-color, favicon, and JSON-LD on the home
+// page), and a few lines of script before the first paint, from the browser
+// alone (nothing is sent anywhere): which download to put first (Android,
+// Chrome, Edge, iPhone or another browser; without it both downloads show
+// side by side), whether this is an app's built-in browser (Instagram,
+// Facebook, Line, TikTok, where a download may not start), the theme
+// chosen here before, if any, and how much the page moves (data-gerak):
+// "diam" under reduced motion, "ringan" on a weak device by the phone app's
+// own rule (core perf/tier.ts: 3 GB of memory or less, or 4 cores or fewer;
+// tests/gerak.test.ts keeps the numbers the same), "penuh" otherwise. Set
+// before the first paint so no entrance flashes; without script, nothing
+// moves and everything is in its final place.
+//
+// Absolute addresses need SITE_URL: without it (a local build) none is
+// written. A preview build is never indexed.
+import '../styles/landing.css';
+import { PRATINJAU } from '../data/mode';
+import { alamatHalaman, alamatSitus } from '../data/situs';
+import { teks, type Bahasa } from '../teks';
+
+interface Props {
+  bahasa: Bahasa;
+  judul: string;
+  deskripsi?: string;
+  noindex?: boolean;
+  /** This page's path, for canonical and the other language. */
+  path: string;
+  /** Structured data for the home page (SoftwareApplication). */
+  jsonLd?: Record<string, unknown>;
+}
+const { bahasa, judul, deskripsi, noindex = false, path, jsonLd } = Astro.props;
+const alamat = alamatHalaman(Astro.site, path, bahasa);
+const asal = alamatSitus(Astro.site);
+const kartu = asal ? `${asal}/kartu/kartu-sosial.${bahasa}.png` : null;
+const tanpaIndeks = noindex || PRATINJAU;
+---
+<!doctype html>
+<html lang={bahasa}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{judul}</title>
+    {deskripsi && <meta name="description" content={deskripsi} />}
+    {tanpaIndeks && <meta name="robots" content="noindex" />}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafb" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0b0e" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {alamat && (
+      <Fragment>
+        <link rel="canonical" href={alamat.kanonik} />
+        <link rel="alternate" hreflang="id" href={alamat.id} />
+        <link rel="alternate" hreflang="en" href={alamat.en} />
+        <link rel="alternate" hreflang="x-default" href={alamat.id} />
+        <meta property="og:url" content={alamat.kanonik} />
+      </Fragment>
+    )}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sulo" />
+    <meta property="og:title" content={judul} />
+    {deskripsi && <meta property="og:description" content={deskripsi} />}
+    <meta property="og:locale" content={bahasa === 'en' ? 'en_US' : 'id_ID'} />
+    {kartu && (
+      <Fragment>
+        <meta property="og:image" content={kartu} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={teks[bahasa].judul} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Fragment>
+    )}
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <script is:inline>
+      (function () {
+        var d = document.documentElement, u = navigator.userAgent, p = 'lain';
+        if (/Android/i.test(u)) p = 'android';
+        else if (/iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1)) p = 'ios';
+        else if (/Edg\//.test(u)) p = 'edge';
+        else if (/Chrome\//.test(u) && !/OPR\//.test(u)) p = 'chrome';
+        d.setAttribute('data-perangkat', p);
+        var mem = navigator.deviceMemory, inti = navigator.hardwareConcurrency;
+        var ringan = (mem > 0 && mem * 1024 <= 3072) || (inti > 0 && inti <= 4);
+        var diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        d.setAttribute('data-gerak', diam ? 'diam' : ringan ? 'ringan' : 'penuh');
+        if (/Instagram|FBAN|FBAV|FB_IAB|Line\/|musical_ly|BytedanceWebview/.test(u)) d.setAttribute('data-dalam-aplikasi', '');
+        try {
+          var t = localStorage.getItem('sulo-landing:tema');
+          if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="lewati" href="#isi">{teks[bahasa].lewati}</a>
+    <slot />
+  </body>
+</html>

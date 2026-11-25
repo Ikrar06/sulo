@@ -1,0 +1,32 @@
+---
+// Four short facts right under the hero (brief 6.3), each leading to where
+// it is shown in full: the privacy section, and for open code the code itself.
+import { KeyIcon } from '@sulo/ui/icons';
+import { REPO } from '../data/alamat';
+import { rumah } from '../teks/rumah';
+import type { Bahasa } from '../teks';
+import { KodeIkon, MataCoretIkon, PerangkatIkon } from '../komponen/ikon';
+import '../styles/bagian/fakta.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = rumah[bahasa].fakta;
+const ikon = [KeyIcon, PerangkatIkon, MataCoretIkon, KodeIkon];
+---
+<section class="fakta" aria-label={t.label}>
+  <ul class="fakta-daftar" role="list">
+    {t.isi.map((teks, i) => {
+      const Ikon = ikon[i]!;
+      return (
+        <li>
+          <a href={i === 3 ? REPO : '#privasi'}>
+            <span class="fakta-ikon" aria-hidden="true"><Ikon /></span>
+            <span>{teks}</span>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+</section>

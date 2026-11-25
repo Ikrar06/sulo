@@ -1,0 +1,75 @@
+/* The footer: plain, quiet, every link the same weight (the tip jar included). */
+.kaki {
+  padding: 56px var(--pinggir) 40px;
+  border-top: 1px solid var(--garis);
+  font-size: 0.9375rem;
+}
+.kaki-atas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px 40px;
+}
+.kaki-merek {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.kaki-tautan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kaki-tautan a,
+.kaki-teks a,
+.kaki-bahasa {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.kaki-tautan a:hover,
+.kaki-teks a:hover,
+.kaki-bahasa:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.kaki-bawah {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 40px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--garis);
+}
+.kaki-teks {
+  min-width: 0;
+  color: var(--abu);
+  line-height: 1.55;
+}
+.kaki-teks p {
+  margin: 0;
+  text-wrap: pretty;
+}
+.kaki-teks p + p {
+  margin-top: 4px;
+}
+.kaki-teks a {
+  min-height: 0;
+  color: var(--abu);
+  padding-block: 12px;
+  margin-block: -12px;
+}

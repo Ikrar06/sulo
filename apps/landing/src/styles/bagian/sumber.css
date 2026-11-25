@@ -1,0 +1,174 @@
+/* "Where does it come from?": three sources on the left, thin lines meeting in Sulo on the right. The three
+   rows are equal (1fr) and spaced by their own padding, so each card's middle sits at exactly 1/6, 3/6 and 5/6
+   of the list, where the lines start, whatever the length of the text. */
+.sumber-diagram {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(48px, 120px) minmax(0, 1fr);
+  align-items: center;
+}
+.sumber-daftar {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-auto-rows: 1fr;
+}
+.sumber-baris {
+  display: grid;
+  padding-block: 8px;
+}
+.sumber-kartu {
+  padding: 20px 22px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.sumber-nama {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+.sumber-nama img {
+  width: 24px;
+  height: 24px;
+}
+.sumber-label {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--m-inset);
+  color: var(--abu);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.sumber-isi {
+  margin: 6px 0 0;
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.sumber-garis {
+  align-self: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.sumber-garis path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--tinta) 26%, transparent);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+/* What flows along the lines into Sulo: one short stroke per line in the brand's orange, shown and moved only
+   while the diagram is in view on a full-motion page (styles/gerak.css, hidup/gerak.ts). */
+.sumber-arus {
+  opacity: 0;
+}
+.sumber-arus path {
+  stroke: var(--brand-orange);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  /* In screen pixels (the lines keep their stroke width in the stretched drawing): 26 on, 254 off. */
+  stroke-dasharray: 26px 254px;
+}
+/* Sulo's card is lit (owner, 24 Nov 2026): where the three lines arrive, a hairline in the flame's own colours
+   (the brand's one gradient), a soft warm shadow under it, and the faintest warmth inside its lower edge. While
+   in view a light goes slowly round the hairline and the warmth breathes (gerak.css). One card on the page, no
+   neon. Fainter on a light page. */
+.sumber-kartu--sulo {
+  --nyala-dalam: 0.07;
+  --nyala-luar: 0.3;
+  position: relative;
+  isolation: isolate;
+  padding: 26px;
+}
+[data-theme="dark"] .sumber-kartu--sulo {
+  --nyala-dalam: 0.13;
+  --nyala-luar: 0.5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sumber-kartu--sulo {
+    --nyala-dalam: 0.13;
+    --nyala-luar: 0.5;
+  }
+}
+/* Over the card's own background and hairline, under its words. */
+.sumber-nyala {
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.sumber-cincin,
+.sumber-nyala::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+/* The ring: the gradient shown only in a 1.5 px edge (the mask keeps the edge, and cuts the light inside it too). */
+.sumber-cincin {
+  padding: 1.5px;
+  overflow: hidden;
+  background: var(--brand-flame);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+/* The light that goes round the ring: one pale arc of a turning square, seen only where the ring is. */
+.sumber-sorot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 170%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: conic-gradient(from 0deg, transparent 0 68%, rgb(255 228 176 / 0.95) 84%, transparent 100%);
+  opacity: 0;
+}
+.sumber-nyala::after {
+  background: radial-gradient(80% 62% at 50% 108%, rgb(255 90 42 / var(--nyala-dalam)), transparent 72%);
+  box-shadow: 0 16px 44px -18px rgb(255 90 42 / var(--nyala-luar));
+}
+.sumber-kartu--sulo .sumber-nama {
+  font-size: 1.375rem;
+}
+.sumber-kartu--sulo .sumber-isi {
+  color: var(--tinta);
+}
+
+/* Narrow: the sources in a column, then one thin line down into Sulo. */
+@media (max-width: 47.9375em) {
+  .sumber-diagram {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* No lines to meet on a phone: each card as tall as its own words. */
+  .sumber-daftar {
+    grid-auto-rows: auto;
+  }
+  .sumber-garis {
+    display: none;
+  }
+  .sumber-kartu--sulo {
+    position: relative;
+    margin-top: 40px;
+  }
+  .sumber-kartu--sulo::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 1px);
+    width: 1.5px;
+    height: 40px;
+    background: color-mix(in srgb, var(--tinta) 26%, transparent);
+  }
+}

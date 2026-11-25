@@ -1,0 +1,36 @@
+---
+// The Android app's Ringkasan, for the landing page's iPhone frame (an iframe
+// 402 pt wide, between the frame's status bar and home indicator). "auto"
+// follows the visitor's light or dark setting, like the app.
+import { LayarHp } from '../../../../layar/LayarHp';
+import { dataContoh } from '../../../../layar/contoh';
+import { BAHASA, teks, type Bahasa } from '../../../../teks';
+import '../../../../styles/layar-hp.css';
+
+export function getStaticPaths() {
+  return BAHASA.flatMap((bahasa) => ['auto', 'terang', 'gelap'].map((tema) => ({ params: { bahasa, tema } })));
+}
+const { bahasa, tema } = Astro.params as { bahasa: Bahasa; tema: 'auto' | 'terang' | 'gelap' };
+const data = await dataContoh(bahasa);
+const theme = tema === 'auto' ? undefined : tema === 'gelap' ? 'dark' : 'light';
+---
+<html lang={bahasa} data-theme={theme}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content={theme ?? 'light dark'} />
+    <title>{teks[bahasa].layarHp}</title>
+    {tema === 'auto' && (
+      <script is:inline>
+      try {
+        var t = localStorage.getItem('sulo-landing:tema');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+      </script>
+    )}
+  </head>
+  <body>
+    <div id="root"><LayarHp data={data} bahasa={bahasa} /></div>
+  </body>
+</html>

@@ -1,0 +1,3 @@
+.astro/
+# What `vercel link` and `vercel pull` write: the project's ids and its pulled settings.
+.vercel/

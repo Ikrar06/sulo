@@ -1,0 +1,20 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../mobile/src/vite-env.d.ts"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "allowJs": false,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "types": [],
+    "paths": {
+      "@sulo/core/*": ["../../packages/core/src/*"],
+      "@sulo/ui/*": ["../../packages/ui/src/*"],
+      "@/*": ["../extension/*"]
+    }
+  }
+}

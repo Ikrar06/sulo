@@ -1,0 +1,37 @@
+---
+// A tilted iPhone (turned left or right): the finished picture made at build
+// (scripts/layar-miring.mjs, the owner's choice of 24 Nov 2026): the app's
+// screen with a sharp drawn status bar, bent onto the frame's screen. Light
+// UI in the light frame, dark in the dark one; "auto" follows the page's
+// theme with both pictures in the page (the hidden one loads when the theme
+// button is reached for, so a change never waits). Below the first screen
+// only: loaded lazily.
+import bingkai from '../data/bingkai.json';
+import { teks, type Bahasa } from '../teks';
+
+interface Props {
+  arah: 'kiri' | 'kanan';
+  tema?: 'auto' | 'terang' | 'gelap';
+  bahasa: Bahasa;
+  /** The widths it shows at, for `sizes`. */
+  sizes?: string;
+  class?: string;
+}
+const { arah, tema = 'auto', bahasa, sizes = '300px', class: kelas = '' } = Astro.props;
+const g = bingkai.bingkai[`iphone-${arah}-terang`];
+const W = g.gambar.width;
+const H = g.gambar.height;
+const lapis = tema === 'auto' ? (['terang', 'gelap'] as const) : ([tema] as const);
+const alt = teks[bahasa].layarHp;
+---
+<figure class:list={['miring', kelas]} style={`--rasio: ${W} / ${H}`} role="img" aria-label={alt}>
+  {lapis.map((t) => {
+    const id = `iphone-${arah}-${t}-${bahasa}`;
+    return (
+      <picture class:list={['miring-lapis', tema === 'auto' && `perangkat-bingkai--${t}`]}>
+        <source type="image/webp" srcset={`/miring/${id}-400.webp 400w, /miring/${id}-${W}.webp ${W}w`} sizes={sizes} />
+        <img src={`/miring/${id}-${W}.png`} width={W} height={H} alt="" decoding="async" loading="lazy" data-pramuat={tema === 'auto' ? '' : undefined} />
+      </picture>
+    );
+  })}
+</figure>
