@@ -1,0 +1,83 @@
+/* The way to the user guide: one quiet card after the features. Less room above it than a section of its own,
+   so it reads as the features' last word. */
+.arah {
+  padding-top: 0;
+}
+.arah-kartu {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid var(--garis);
+  border-radius: 32px;
+  background: var(--kartu);
+}
+.arah-teks h2 {
+  overflow-wrap: anywhere;
+}
+.arah-teks p {
+  margin: 14px 0 0;
+  max-width: 34rem;
+  color: var(--abu);
+  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.arah-tujuan {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--garis);
+}
+/* Rows of one list, a hairline between them: no card inside the card. */
+.arah-tujuan a {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+  padding: 14px 0;
+  border-top: 1px solid var(--garis);
+  color: var(--tinta);
+  text-decoration: none;
+}
+.arah-tujuan-teks {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.arah-tujuan-nama {
+  font-weight: 600;
+}
+.arah-tujuan-isi {
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.arah-panah {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--abu);
+}
+/* With a pointer the arrow leans toward where the link goes; the name is underlined, as links are. */
+.arah-tujuan a:hover .arah-tujuan-nama {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .arah-panah {
+    transition: translate 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .arah-tujuan a:hover .arah-panah {
+    translate: 3px 0;
+  }
+}
+@media (min-width: 56em) {
+  .arah-kartu {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 48px;
+  }
+}

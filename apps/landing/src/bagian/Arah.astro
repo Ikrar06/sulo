@@ -1,0 +1,43 @@
+---
+// The way to the user guide, right after the features: one card with a
+// sentence and three links (what Sulo is for, the extension's guide, the
+// Android app's). Plain: a thin line and the surface colour, no picture; the
+// guide itself has the screens.
+import { pathPakai } from '../data/alamat';
+import { pakai } from '../teks/pakai-semua';
+import type { Bahasa } from '../teks';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import '../styles/bagian/arah.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = pakai[bahasa];
+const tujuan = [
+  { href: pathPakai(bahasa), ...t.arah.mulai },
+  { href: pathPakai(bahasa, 'ekstensi'), ...t.indeks.pilih.ekstensi },
+  { href: pathPakai(bahasa, 'android'), ...t.indeks.pilih.android },
+];
+---
+<section class="bagian arah" id="panduan" aria-labelledby="judul-arah">
+  <div class="isi arah-kartu">
+    <div class="arah-teks">
+      <h2 class="judul-bagian" id="judul-arah">{t.arah.judul}</h2>
+      <p>{t.arah.isi}</p>
+    </div>
+    <ul class="arah-tujuan" role="list">
+      {tujuan.map((l) => (
+        <li>
+          <a href={l.href}>
+            <span class="arah-tujuan-teks">
+              <span class="arah-tujuan-nama">{l.nama}</span>
+              <span class="arah-tujuan-isi">{l.isi}</span>
+            </span>
+            <ChevronRightIcon className="arah-panah" />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

@@ -26,5 +26,8 @@ export type Perangkat = 'android' | 'chrome' | 'edge' | 'iphone';
 const awal = (bahasa: Bahasa) => (bahasa === 'en' ? '/en' : '');
 export const pathRumah = (bahasa: Bahasa) => `${awal(bahasa)}/`;
 export const pathPasang = (bahasa: Bahasa, perangkat?: Perangkat) => `${awal(bahasa)}/pasang/${perangkat ? `${perangkat}/` : ''}`;
+/** The user guide: its first page, or the guide of one app. */
+export type Aplikasi = 'ekstensi' | 'android';
+export const pathPakai = (bahasa: Bahasa, aplikasi?: Aplikasi) => `${awal(bahasa)}/panduan/${aplikasi ? `${aplikasi}/` : ''}`;
 /** The same page in the other language. */
 export const pathLain = (path: string, bahasa: Bahasa) => (bahasa === 'en' ? path.replace(/^\/en(\/|$)/, '/') : `/en${path}`);

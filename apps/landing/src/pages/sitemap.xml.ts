@@ -1,14 +1,15 @@
-// sitemap.xml: the home page and the install guides in both languages, each
+// sitemap.xml: the home page, the install guides and the user guide in both languages, each
 // with its other language (hreflang). Empty while SITE_URL is unset.
 import type { APIRoute } from 'astro';
-import { pathPasang, pathRumah, type Perangkat } from '../data/alamat';
+import { pathPakai, pathPasang, pathRumah, type Aplikasi, type Perangkat } from '../data/alamat';
 import { alamatHalaman } from '../data/situs';
 import type { Bahasa } from '../teks';
 
 const PERANGKAT: (Perangkat | undefined)[] = [undefined, 'android', 'chrome', 'edge', 'iphone'];
+const APLIKASI: (Aplikasi | undefined)[] = [undefined, 'ekstensi', 'android'];
 
 export const GET: APIRoute = ({ site }) => {
-  const halaman = (bahasa: Bahasa) => [pathRumah(bahasa), ...PERANGKAT.map((p) => pathPasang(bahasa, p))];
+  const halaman = (bahasa: Bahasa) => [pathRumah(bahasa), ...PERANGKAT.map((p) => pathPasang(bahasa, p)), ...APLIKASI.map((a) => pathPakai(bahasa, a))];
   const entri = (['id', 'en'] as const).flatMap((bahasa) =>
     halaman(bahasa).flatMap((path) => {
       const a = alamatHalaman(site, path, bahasa);

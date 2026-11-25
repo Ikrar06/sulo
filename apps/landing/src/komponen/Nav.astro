@@ -7,7 +7,7 @@
 // is the browser's own popover: it opens without script and closes on a tap
 // outside it.
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
-import { pathLain, pathRumah } from '../data/alamat';
+import { pathLain, pathPakai, pathRumah } from '../data/alamat';
 import { teks, type Bahasa } from '../teks';
 import { BulanIkon, MatahariIkon, MenuIkon, TutupIkon } from './ikon';
 
@@ -24,6 +24,7 @@ const tautan = [
   { href: `${rumah}#fitur`, teks: t.fitur },
   { href: `${rumah}#privasi`, teks: t.privasi },
   { href: `${rumah}#pasang`, teks: t.pasang },
+  { href: pathPakai(bahasa), teks: t.panduan },
   { href: `${rumah}#tanya`, teks: t.tanya },
 ];
 ---

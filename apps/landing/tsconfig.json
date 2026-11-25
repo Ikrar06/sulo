@@ -14,7 +14,8 @@
     "paths": {
       "@sulo/core/*": ["../../packages/core/src/*"],
       "@sulo/ui/*": ["../../packages/ui/src/*"],
-      "@/*": ["../extension/*"]
+      "@/*": ["../extension/*"],
+      "wxt/browser": ["../extension/node_modules/wxt/dist/browser.d.mts"]
     }
   }
 }
