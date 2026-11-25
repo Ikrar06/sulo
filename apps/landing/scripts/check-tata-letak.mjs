@@ -311,6 +311,15 @@ const SATU = () => {
   };
   satuPerLayar('[data-maskot]', 'dua-maskot');
   satuPerLayar('.cahaya, .penutup-cahaya', 'dua-cahaya');
+  // The apps' UI drawn at a scale (data-skala) fills the box it is scaled to, by the number measured from that
+  // box (tata/Dasar.astro) and not by the stylesheet's arithmetic alone, which Safari on an iPhone gets wrong.
+  for (const el of document.querySelectorAll('[data-skala]')) {
+    if (!shown(el)) continue;
+    const kotak = el.parentElement.clientWidth;
+    const lebar = el.getBoundingClientRect().width;
+    if (!el.style.getPropertyValue('--sx')) say('skala', el, 'tanpa angka terukur (--sx)');
+    else if (Math.abs(lebar - kotak) > 1.5) say('skala', el, `lebar ${Math.round(lebar)} di kotak ${kotak}`);
+  }
   return found;
 };
 

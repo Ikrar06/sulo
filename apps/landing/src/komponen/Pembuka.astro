@@ -57,8 +57,8 @@ const awal = t.pendukung.slice(0, t.pendukung.length - aman.length);
   <div class="panggung">
     <Perangkat jenis="laptop" bahasa={bahasa} sizes="(max-width: 767px) 1px, min(1040px, 92vw)" muat="lazy" />
     <Perangkat jenis="hp" bahasa={bahasa} sizes="(max-width: 767px) 216px, 260px" />
-    <div data-ui-aplikasi class="potongan-hp potongan-hp--tugas-3" aria-hidden="true" inert><div class="potongan-skala"><Potongan data={data} bahasa={bahasa} jenis="tugas-3" /></div></div>
-    <div data-ui-aplikasi class="potongan-hp potongan-hp--presensi" aria-hidden="true" inert><div class="potongan-skala"><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div></div>
+    <div data-ui-aplikasi class="potongan-hp potongan-hp--tugas-3" aria-hidden="true" inert><div class="potongan-skala" data-skala="210"><Potongan data={data} bahasa={bahasa} jenis="tugas-3" /></div></div>
+    <div data-ui-aplikasi class="potongan-hp potongan-hp--presensi" aria-hidden="true" inert><div class="potongan-skala" data-skala="210"><Potongan data={data} bahasa={bahasa} jenis="presensi" /></div></div>
     <p class="keterangan-data">{t.dataContoh}</p>
   </div>
 </section>

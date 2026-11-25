@@ -94,6 +94,49 @@ const tanpaIndeks = noindex || PRATINJAU;
         } catch (e) {}
       })();
     </script>
+    <script is:inline>
+      // The apps' UI drawn smaller than its own size (data-skala="WxH" or "W": its own size in px) gets its
+      // scale here, as plain numbers measured from the box it sits in (--sx, --sy). The stylesheet's own way
+      // to that number, tan(atan2()) over container units, comes out wrong in Safari on an iPhone (WebKit
+      // 26: the screens showed blank or oversized), so it is only the fallback where no script runs. Each
+      // box is watched from the moment it is parsed, and a ResizeObserver answers before the frame is
+      // painted: the first paint already has the right scale, and so has every later size.
+      (function () {
+        if (!window.ResizeObserver || !window.MutationObserver) return;
+        var ukuran = new ResizeObserver(function (daftar) {
+          for (var i = 0; i < daftar.length; i++) {
+            var kotak = daftar[i].contentBoxSize && daftar[i].contentBoxSize[0];
+            var w = kotak ? kotak.inlineSize : daftar[i].contentRect.width;
+            var h = kotak ? kotak.blockSize : daftar[i].contentRect.height;
+            // A hidden box (the laptop on a phone) has no size: it is measured when it shows.
+            if (!(w > 0)) continue;
+            var anak = daftar[i].target.children;
+            for (var j = 0; j < anak.length; j++) {
+              var asli = anak[j].getAttribute('data-skala');
+              if (!asli) continue;
+              asli = asli.split('x');
+              var sx = w / asli[0], sy = asli[1] ? h / asli[1] : sx;
+              if (anak[j].hasAttribute('data-skala-maks')) sx = sy = Math.min(1, sx);
+              anak[j].style.setProperty('--sx', sx);
+              anak[j].style.setProperty('--sy', sy);
+            }
+          }
+        });
+        function amati() {
+          var baru = document.querySelectorAll('[data-skala]:not([data-skala-diamati])');
+          for (var i = 0; i < baru.length; i++) {
+            baru[i].setAttribute('data-skala-diamati', '');
+            ukuran.observe(baru[i].parentElement);
+          }
+        }
+        var parser = new MutationObserver(amati);
+        parser.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', function () {
+          amati();
+          parser.disconnect();
+        });
+      })();
+    </script>
   </head>
   <body>
     <a class="lewati" href="#isi">{teks[bahasa].lewati}</a>

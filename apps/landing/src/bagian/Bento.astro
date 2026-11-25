@@ -32,7 +32,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.kabar.judul}</h3>
           <p>{t.kabar.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual ubin-visual--kartu" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kabar" /></div></div>
+        <div data-ui-aplikasi class="ubin-visual ubin-visual--kartu" aria-hidden="true" inert><div class="ubin-skala" data-skala="290" data-skala-maks><Ubin data={data} bahasa={bahasa} jenis="kabar" /></div></div>
       </article>
 
       <article class="ubin ubin--beban">
@@ -40,7 +40,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.beban.judul}</h3>
           <p>{t.beban.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="beban" /></div></div>
+        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala" data-skala="290" data-skala-maks><Ubin data={data} bahasa={bahasa} jenis="beban" /></div></div>
       </article>
 
       <article class="ubin ubin--kalender">
@@ -48,7 +48,7 @@ const data = await dataContoh(bahasa);
           <h3>{t.kalender.judul}</h3>
           <p>{t.kalender.isi}</p>
         </div>
-        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala"><Ubin data={data} bahasa={bahasa} jenis="kalender" /></div></div>
+        <div data-ui-aplikasi class="ubin-visual" aria-hidden="true" inert><div class="ubin-skala" data-skala="290" data-skala-maks><Ubin data={data} bahasa={bahasa} jenis="kalender" /></div></div>
       </article>
 
       <article class="ubin ubin--nama">
@@ -66,7 +66,7 @@ const data = await dataContoh(bahasa);
         </div>
         <div data-ui-aplikasi class="ubin-visual ubin-visual--perangkat" aria-hidden="true" inert>
           <div class="ubin-popup">
-            <iframe src={`/layar/${bahasa}/popup/auto/`} title={teks[bahasa].layarPopup} loading="lazy" tabindex="-1" inert></iframe>
+            <iframe src={`/layar/${bahasa}/popup/auto/`} title={teks[bahasa].layarPopup} loading="lazy" tabindex="-1" inert data-skala="380"></iframe>
           </div>
           <Miring arah="kanan" bahasa={bahasa} sizes="(max-width: 767px) 40vw, 200px" class="ubin-miring" />
         </div>
