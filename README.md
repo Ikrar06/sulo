@@ -74,19 +74,22 @@ The extension's full policy is in [PRIVACY.md](PRIVACY.md). The public page cove
 
 ## Install
 
-Sulo is in a limited trial. It is not in the Chrome Web Store or Edge Add-ons yet, and there is no public Android release yet. Until then it can be built from this repository. If you do not build software yourself, wait for the first release; this page will say so when it is out.
+Version 1.0.0 is out. The easiest way is [sulo.ikrar.dev](https://sulo.ikrar.dev): it gives the right file for your device and walks through each step. The files themselves are on this repository's [Releases](https://github.com/Ikrar06/sulo/releases) page and nowhere else.
 
-**Extension, from source**
+**Extension (Chrome and Edge)**
 
-1. Install [Node.js](https://nodejs.org) 24 and [pnpm](https://pnpm.io) 10.
-2. In this folder, run `pnpm install --frozen-lockfile`, then `pnpm build`.
-3. Open `chrome://extensions` (or `edge://extensions`) and turn on Developer mode.
-4. Choose "Load unpacked" and select the folder `.output/chrome-mv3`.
-5. Sulo opens a short guide. Sign in to SIKOLA when it asks, then pick the courses to follow.
+Sulo is not in the Chrome Web Store or Edge Add-ons yet. Until it is, install it from the zip:
+
+1. Download `sulo-<version>-ekstensi.zip` from the release page and unzip it. Keep the folder: the browser runs Sulo from it.
+2. Open `chrome://extensions` (or `edge://extensions`) and turn on Developer mode.
+3. Choose "Load unpacked" and select the unzipped folder.
+4. Sulo opens a short guide. Sign in to SIKOLA when it asks, then pick the courses to follow.
+
+Installed this way, Sulo does not update itself: for a new version, download the new zip and load it again. To build it yourself instead, see [For developers](#for-developers); the built extension is the folder `.output/chrome-mv3`.
 
 **Android**
 
-Needs Android 8.0 or newer with an up-to-date Android System WebView (version 111 or newer). Releases will be published as an APK on this repository's GitHub Releases and nowhere else. Before installing one, check that it is the file built here. Step 1 is enough for most people; step 2 is for those who have the Android SDK.
+Needs Android 8.0 or newer with an up-to-date Android System WebView (version 111 or newer). Releases are published as an APK on this repository's GitHub Releases and nowhere else. Before installing one, check that it is the file built here. Step 1 is enough for most people; step 2 is for those who have the Android SDK.
 
 1. Compare the file's SHA-256 with the `.sha256` file next to it on the release page: `shasum -a 256 sulo-<version>-android.apk` (Windows: `certutil -hashfile sulo-<version>-android.apk SHA256`).
 2. Check the signing certificate with `apksigner verify --print-certs sulo-<version>-android.apk` (apksigner comes with the Android SDK build-tools). The line "certificate SHA-256 digest" must read

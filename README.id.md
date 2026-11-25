@@ -74,19 +74,22 @@ Kebijakan lengkap ekstensi ada di [PRIVACY.md](PRIVACY.md) (Inggris). Halaman pu
 
 ## Cara pasang
 
-Sulo masih dalam uji coba terbatas. Belum ada di Chrome Web Store maupun Edge Add-ons, dan belum ada rilis Android untuk umum. Sampai saat itu, Sulo bisa dibangun dari repo ini. Kalau kamu tidak terbiasa membangun aplikasi sendiri, tunggu rilis pertamanya; halaman ini akan memberi tahu saat sudah ada.
+Versi 1.0.0 sudah terbit. Cara termudah lewat [sulo.ikrar.dev](https://sulo.ikrar.dev): halaman itu memberi berkas yang cocok untuk perangkatmu dan menuntun tiap langkahnya. Berkasnya sendiri ada di halaman [Releases](https://github.com/Ikrar06/sulo/releases) repo ini, tidak di tempat lain.
 
-**Ekstensi, dari kode sumber**
+**Ekstensi (Chrome dan Edge)**
 
-1. Pasang [Node.js](https://nodejs.org) 24 dan [pnpm](https://pnpm.io) 10.
-2. Di folder ini, jalankan `pnpm install --frozen-lockfile`, lalu `pnpm build`.
-3. Buka `chrome://extensions` (atau `edge://extensions`) dan nyalakan Developer mode.
-4. Pilih "Load unpacked", lalu pilih folder `.output/chrome-mv3`.
-5. Sulo membuka panduan singkat. Masuk ke SIKOLA saat diminta, lalu pilih mata kuliah yang mau dipantau.
+Sulo belum ada di Chrome Web Store maupun Edge Add-ons. Sampai saat itu, pasang dari berkas zip:
+
+1. Unduh `sulo-<versi>-ekstensi.zip` dari halaman rilis, lalu ekstrak. Simpan foldernya: browser menjalankan Sulo dari folder itu.
+2. Buka `chrome://extensions` (atau `edge://extensions`) dan nyalakan Developer mode.
+3. Pilih "Load unpacked", lalu pilih folder hasil ekstrak.
+4. Sulo membuka panduan singkat. Masuk ke SIKOLA saat diminta, lalu pilih mata kuliah yang mau dipantau.
+
+Dengan cara ini Sulo tidak memperbarui dirinya sendiri: untuk versi baru, unduh zip yang baru lalu muat lagi. Kalau mau membangunnya sendiri, lihat [Untuk pengembang](#untuk-pengembang); hasil build ekstensinya ada di folder `.output/chrome-mv3`.
 
 **Android**
 
-Butuh Android 8.0 atau lebih baru dengan Android System WebView yang diperbarui (versi 111 atau lebih baru). Rilis akan terbit sebagai APK di GitHub Releases repo ini, tidak lewat tempat lain. Sebelum memasang, pastikan berkasnya memang yang dibangun di sini. Langkah 1 cukup untuk kebanyakan orang; langkah 2 untuk yang punya Android SDK.
+Butuh Android 8.0 atau lebih baru dengan Android System WebView yang diperbarui (versi 111 atau lebih baru). Rilis terbit sebagai APK di GitHub Releases repo ini, tidak lewat tempat lain. Sebelum memasang, pastikan berkasnya memang yang dibangun di sini. Langkah 1 cukup untuk kebanyakan orang; langkah 2 untuk yang punya Android SDK.
 
 1. Cocokkan SHA-256 berkas dengan berkas `.sha256` di sebelahnya di halaman rilis: `shasum -a 256 sulo-<versi>-android.apk` (Windows: `certutil -hashfile sulo-<versi>-android.apk SHA256`).
 2. Periksa sertifikat tanda tangannya dengan `apksigner verify --print-certs sulo-<versi>-android.apk` (apksigner ada di build-tools Android SDK). Baris "certificate SHA-256 digest" harus berbunyi

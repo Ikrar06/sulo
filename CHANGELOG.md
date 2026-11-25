@@ -4,6 +4,15 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-25
+
+The first public release. The extension and the Android app are the same as 0.9.1; what is new is that anyone can get them.
+
+### Added
+
+- Downloads on this repository's Releases page: the Android APK with its SHA-256, and the extension as a zip for Chrome and Edge until it is in their stores.
+- A website, [sulo.ikrar.dev](https://sulo.ikrar.dev), that gives the right file for your device and walks through installing it.
+
 ## [0.9.1] - 2026-11-24
 
 For testers.

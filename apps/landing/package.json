@@ -1,6 +1,6 @@
 {
   "name": "@sulo/landing",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "private": true,
   "description": "Sulo's landing page: static pages, the apps' own UI rendered from their code with sample data.",
   "license": "MIT",
