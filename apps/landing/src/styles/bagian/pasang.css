@@ -92,9 +92,12 @@
   font-size: 0.9375rem;
 }
 .pasang-tautan .tautan {
-  display: inline-flex;
   align-items: center;
   min-height: 44px;
+}
+/* A guide link for one browser only (data-untuk) takes its display from the device rule in landing.css. */
+.pasang-tautan .tautan:not([data-untuk]) {
+  display: inline-flex;
 }
 /* The QR code stands beside the drawn phone: scan it with the phone to open the Android guide there. */
 .pasang-qr {

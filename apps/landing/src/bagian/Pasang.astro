@@ -8,12 +8,16 @@
 // screen the Android card's picture carries a QR code to the Android guide.
 // SHA-256 lives on the guide pages, not here.
 //
+// Once a browser's store has Sulo (rilis.json toko), the extension card leads
+// there for that browser and keeps the zip for the other one: Edge's button
+// and guide show in Edge, Chrome's everywhere else.
+//
 // Each of the two main cards opens with the moment it leads to, drawn as the
 // guides draw it (the section's rich visual, brief 4.2): Android asking to
 // install Sulo, and Sulo pinned in the browser on SIKOLA. A line under each
 // leads to why a warning appears while installing (brief 2: said as it is).
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
-import { berkas } from '../data/unduhan';
+import { alamatToko, berkas, NAMA_TOKO, type Browser } from '../data/unduhan';
 import { pathPasang } from '../data/alamat';
 import { buatQr } from '../data/qr';
 import { alamatSitus } from '../data/situs';
@@ -36,6 +40,15 @@ const apk = berkas('android', bahasa);
 const situs = alamatSitus(Astro.site);
 const qr = situs ? buatQr(`${situs}${pathPasang(bahasa, 'android')}`) : null;
 const meta = (b: typeof zip, waktu: string) => [b.versi ? t.versi(b.versi) : '', b.aktif ? b.ukuran : '', waktu].filter(Boolean);
+const BROWSER: Browser[] = ['chrome', 'edge'];
+const diToko = BROWSER.filter((b) => alamatToko(b));
+const manual = BROWSER.filter((b) => !alamatToko(b));
+const NAMA_BROWSER: Record<Browser, string> = { chrome: 'Chrome', edge: 'Edge' };
+// With a store in play each browser has its own button and guide; without one, a single zip for both.
+const untuk: Record<Browser, string | undefined> = diToko.length ? { chrome: 'tanpa-js android chrome desktop-lain ios', edge: 'edge' } : { chrome: undefined, edge: undefined };
+const tampil = diToko.length ? BROWSER : (['chrome'] as Browser[]);
+const metaEkstensi = diToko.length ? [zip.versi ? t.versi(zip.versi) : '', ...diToko.map((b) => NAMA_TOKO[b])].filter(Boolean) : meta(zip, t.ekstensi.waktu);
+const catatanEkstensi = !diToko.length ? t.ekstensi.manual : manual.length ? t.ekstensi.manualDi(NAMA_BROWSER[manual[0]]) : '';
 const mulai = teks[bahasa].unduhMulai;
 ---
 <section class="bagian pasang" id="pasang" aria-labelledby="judul-pasang">
@@ -60,18 +73,22 @@ const mulai = teks[bahasa].unduhMulai;
         </div>
         <div class="pasang-isi">
           <h3>{t.ekstensi.judul}</h3>
-          <ul class="pasang-meta" role="list">{meta(zip, t.ekstensi.waktu).map((m) => <li>{m}</li>)}</ul>
-          <p class="pasang-catatan">{t.ekstensi.manual}</p>
+          <ul class="pasang-meta" role="list">{metaEkstensi.map((m) => <li>{m}</li>)}</ul>
+          {catatanEkstensi && <p class="pasang-catatan">{catatanEkstensi}</p>}
         </div>
         <div class="pasang-aksi">
-          {zip.aktif ? (
-            <a class="tombol tombol--utama tombol--penuh" href={zip.href} download={zip.unduhan ? '' : undefined} data-tombol-utama data-menit="3">{t.unduhZip}</a>
-          ) : (
-            <span class="tombol tombol--utama tombol--penuh" aria-disabled="true">{zip.ukuran}</span>
-          )}
+          {tampil.map((b) => {
+            const toko = alamatToko(b);
+            if (toko) return <a class="tombol tombol--utama tombol--penuh" href={toko} data-untuk={untuk[b]}>{b === 'edge' ? teks[bahasa].pasangEdge : teks[bahasa].pasangChrome}</a>;
+            return zip.aktif ? (
+              <a class="tombol tombol--utama tombol--penuh" href={zip.href} download={zip.unduhan ? '' : undefined} data-tombol-utama data-menit="3" data-untuk={untuk[b]}>{t.unduhZip}</a>
+            ) : (
+              <span class="tombol tombol--utama tombol--penuh" aria-disabled="true" data-untuk={untuk[b]}>{zip.ukuran}</span>
+            );
+          })}
           <p class="pasang-unduh" data-unduh-baris aria-live="polite" data-teks-3={mulai(3)}></p>
           <p class="pasang-tautan">
-            <a class="tautan" href={pathPasang(bahasa, 'chrome')}>{t.panduanEkstensi}</a>
+            {tampil.map((b) => <a class="tautan" href={pathPasang(bahasa, b)} data-untuk={untuk[b]}>{t.panduanEkstensi}</a>)}
             <a class="tautan" href="#tanya-peringatan">{t.peringatan}</a>
           </p>
         </div>

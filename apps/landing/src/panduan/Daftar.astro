@@ -3,6 +3,7 @@
 // its steps in short and the time it takes, each leading to its guide. The
 // visitor's own device is marked and comes first (from the browser alone).
 import { pathPasang, type Perangkat } from '../data/alamat';
+import { alamatToko, NAMA_TOKO, type Browser } from '../data/unduhan';
 import { panduan } from '../teks/panduan';
 import type { Bahasa } from '../teks';
 import TataPanduan from '../komponen/TataPanduan.astro';
@@ -14,10 +15,12 @@ interface Props {
 }
 const { bahasa } = Astro.props;
 const t = panduan[bahasa].daftar;
+// A browser whose store has Sulo gets the store's short steps, not the manual ones.
+const browser = (nama: Browser) => (alamatToko(nama) ? { nama: t[nama].nama, ringkas: t.toko.ringkas(NAMA_TOKO[nama]), waktu: t.toko.waktu } : t[nama]);
 const baris: { id: Perangkat; teks: { nama: string; ringkas: string; waktu: string } }[] = [
   { id: 'android', teks: t.android },
-  { id: 'chrome', teks: t.chrome },
-  { id: 'edge', teks: t.edge },
+  { id: 'chrome', teks: browser('chrome') },
+  { id: 'edge', teks: browser('edge') },
   { id: 'iphone', teks: t.iphone },
 ];
 ---

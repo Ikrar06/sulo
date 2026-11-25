@@ -1,14 +1,15 @@
 ---
 // /pasang/chrome and /pasang/edge (brief 6.13): one component, two pages, so
 // the device check can send an Edge visitor straight to Edge's own names and
-// address. Installed by hand while the stores wait (rilis.json toko); once a
-// store has Sulo, the page leads there instead. Six drawn steps, the honest
+// address. Installed by hand while the stores wait (rilis.json toko): six
+// drawn steps. Once a store has Sulo, that browser's page is the store's three
+// steps instead (open it, add, pin). Either way: the honest
 // explanations, problems, updating (same folder: the extension's id comes
 // from its folder's path, the manifest has no "key", so the data stays),
 // removing, and the zip's SHA-256.
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
 import rilis from '../data/rilis.json';
-import { berkas } from '../data/unduhan';
+import { alamatToko, berkas, NAMA_TOKO } from '../data/unduhan';
 import { alamatSitus } from '../data/situs';
 import { panduan, layarOs } from '../teks/panduan';
 import { rumah2 } from '../teks/rumah-2';
@@ -17,9 +18,10 @@ import Jendela from '../ilustrasi/Jendela.astro';
 import Lingkar from '../ilustrasi/Lingkar.astro';
 import Langkah from '../komponen/Langkah.astro';
 import TataPanduan from '../komponen/TataPanduan.astro';
+import GambarSematkan from './GambarSematkan.astro';
 import Masalah from './Masalah.astro';
 import Periksa from './Periksa.astro';
-import { BerkasIkon, FolderIkon, PinIkon, PuzzleIkon } from '../komponen/ikon';
+import { BerkasIkon, FolderIkon } from '../komponen/ikon';
 
 interface Props {
   bahasa: Bahasa;
@@ -35,14 +37,73 @@ const zip = berkas('ekstensi', bahasa);
 const p = rumah2[bahasa].pasang;
 const alamat = `${browser}://extensions`;
 const langkah = e.langkah(B);
-const toko = rilis.toko[browser];
-const diToko = toko.status === 'terbit' && toko.url;
-const kenapa = e.kenapa(B, toko.status === 'menunggu');
+const urlToko = alamatToko(browser);
+const namaToko = NAMA_TOKO[browser];
+const s = e.toko;
+const langkahToko = s.langkah(B, namaToko);
+const labelToko = browser === 'edge' ? teks[bahasa].pasangEdge : teks[bahasa].pasangChrome;
+const kenapa = urlToko ? s.kenapa(namaToko) : e.kenapa(B, rilis.toko[browser].status === 'menunggu');
+const ringkas = urlToko ? { waktu: s.waktu, butuh: s.butuh(B) } : { waktu: e.waktu, butuh: e.butuh(B), penting: e.penting };
 const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
 ---
-<TataPanduan bahasa={bahasa} perangkat={browser} judul={e.judul(B)} kenapa={kenapa} deskripsi={kenapa} ringkas={{ waktu: e.waktu, butuh: e.butuh(B), penting: e.penting }}>
-  {diToko ? (
-    <p class="langkah-tombol"><a class="tombol tombol--utama" href={toko.url}>{browser === 'edge' ? teks[bahasa].pasangEdge : teks[bahasa].pasangChrome}</a></p>
+<TataPanduan bahasa={bahasa} perangkat={browser} judul={e.judul(B)} kenapa={kenapa} deskripsi={kenapa} ringkas={ringkas}>
+  {urlToko ? (
+    <Fragment>
+      <p class="panduan-penting panduan-dihp" data-untuk="android ios">{e.diHp}</p>
+      <ol class="langkah-daftar" role="list">
+        <Langkah nomor={1} judul={langkahToko[0].judul} isi={langkahToko[0].isi} alt={s.ilustrasi.buka} label={t.umum.langkah}>
+          <Fragment slot="tombol">
+            <a class="tombol tombol--utama" href={urlToko}>{labelToko}</a>
+          </Fragment>
+          <Jendela slot="gambar" alamat={host}>
+            <div class="il-kartu il-kartu--jendela">
+              <p class="il-judul">{p.ekstensi.judul}</p>
+              <p class="il-redup">{s.waktu}</p>
+              <Lingkar><span class="il-tombol il-tombol--oranye">{labelToko}</span></Lingkar>
+            </div>
+          </Jendela>
+        </Langkah>
+
+        <Langkah nomor={2} judul={langkahToko[1].judul} isi={langkahToko[1].isi} alt={s.ilustrasi.tambah(s.tombol(B))} label={t.umum.langkah}>
+          <Jendela slot="gambar" alamat={new URL(urlToko).host}>
+            <div class="il-kartu il-kartu--jendela">
+              <p class="il-aplikasi"><img src={flame} alt="" width="24" height="24" />Sulo</p>
+              <p class="il-redup">{namaToko}</p>
+              <Lingkar><span class="il-tombol il-tombol--garis">{s.tombol(B)}</span></Lingkar>
+            </div>
+          </Jendela>
+        </Langkah>
+
+        <Langkah nomor={3} judul={langkah[5].judul} isi={langkah[5].isi} alt={e.ilustrasi.sematkan} label={t.umum.langkah}>
+          <GambarSematkan slot="gambar" menu={os.ekstensi} />
+        </Langkah>
+      </ol>
+      <p class="panduan-catatan">{t.umum.ilustrasi}</p>
+
+      <section class="panduan-bagian">
+        <div class="tanya-daftar panduan-jujur">
+          {s.jujur(B).map((j) => (
+            <div class="panduan-jujur-item">
+              <h3>{j.t}</h3>
+              <p>{j.j}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Masalah judul={t.umum.masalah} daftar={e.masalah.slice(-1)} lapor={{ tanya: t.umum.masihGagal, tautan: t.umum.lapor }} />
+
+      <section class="panduan-dua">
+        <div>
+          <h2>{t.umum.perbarui}</h2>
+          <p>{s.perbarui(B)}</p>
+        </div>
+        <div>
+          <h2>{t.umum.hapus}</h2>
+          <p>{s.hapus}</p>
+        </div>
+      </section>
+    </Fragment>
   ) : (
     <Fragment>
       <p class="panduan-penting panduan-dihp" data-untuk="android ios">{e.diHp}</p>
@@ -126,16 +187,7 @@ const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
         </Langkah>
 
         <Langkah nomor={6} judul={langkah[5].judul} isi={langkah[5].isi} alt={e.ilustrasi.sematkan} label={t.umum.langkah}>
-          <Jendela slot="gambar" alamat="sikola-v2.unhas.ac.id">
-            <Lingkar slot="alat"><PuzzleIkon className="il-ikon il-ikon--alat" /></Lingkar>
-            <div class="il-menu">
-              <p class="il-redup">{os.ekstensi}</p>
-              <p class="il-menu-baris">
-                <span class="il-aplikasi"><img src={flame} alt="" width="20" height="20" />Sulo</span>
-                <Lingkar><PinIkon className="il-ikon" /></Lingkar>
-              </p>
-            </div>
-          </Jendela>
+          <GambarSematkan slot="gambar" menu={os.ekstensi} />
         </Langkah>
       </ol>
       <p class="panduan-catatan">{t.umum.ilustrasi}</p>
