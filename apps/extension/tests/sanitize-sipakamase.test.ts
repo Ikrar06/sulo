@@ -241,6 +241,20 @@ describe('links and scripts', () => {
   });
 });
 
+describe('htmx and hyperscript', () => {
+  it('reads request attributes as links and the rest as small scripts', () => {
+    const [out] = run([`<a class="btn" hx-get="/caktifitas/content/48213?nim=${NIM}" hx-target="#isi-modal" hx-swap="innerHTML" hx-trigger="click delay:200ms" hx-vals='{"nama":"${NAME}","sks":14}' hx-confirm="Hapus kegiatan ${NAME}?" _="on click add .show to #modal then wait 2s" hx-push-url="true">Lihat</a>`]);
+    expect(out).toMatch(new RegExp(`hx-get="/caktifitas/content/\\d{5}\\?nim=${SYNTHETIC.nim}"`));
+    expect(out).toContain('hx-target="#isi-modal" hx-swap="innerHTML"');
+    expect(out).toMatch(/hx-trigger="click delay:\d{3}ms"/);
+    expect(out).toMatch(/hx-vals='\{"nama":"xxx xxx","sks":\d\d\}'/);
+    expect(out).toContain('hx-confirm="Hapus kegiatan xxx xxx?"');
+    expect(out).toMatch(/_="on click add \.show to #modal then wait \ds"/);
+    expect(out).toContain('hx-push-url="true"');
+    expect(out).not.toMatch(/zulkifli|tandiabang/i);
+  });
+});
+
 describe('numbers', () => {
   it('replaces a number with another of the same shape, the same way within a run', () => {
     const [a] = run(['<td>3.50</td><td>3.50</td><td>120</td>'], 'satu');

@@ -181,6 +181,10 @@ dashed decoration del details embed enctype example family fieldset figcaption f
 kbd legend lowercase mark meter multipart multiple noscript novalidate nowrap object onchange onclick onsubmit opacity optgroup output
 picture radius relative roboto rowspan samp sans serif shadow solid strong stylesheet sub summary sup tfoot track transform underline
 uppercase valign video wbr weight
+afterbegin afterend apexcharts backpack beforebegin beforeend behavior bell brand cap circle closest debounce decrement delay dots drop
+ease event every expand fetch flame gap gif go halt htmx hx ico increment innerhtml install into intersect its justify keyframes lines
+linear load mask measure my observer once outerhtml pick pill put queue repeat revealed rotate rounded scrollbar settle simplebar
+summernote swap take tell throttle throw times trash trigger until visibility while worker
 `;
 
 // Everyday Indonesian the pages' rule text and forms are likely to use. No given names.

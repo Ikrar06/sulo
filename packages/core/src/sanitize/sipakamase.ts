@@ -45,7 +45,15 @@ const YEARS = String.raw`(?:19|20)\d{2}\s*\/\s*(?:19|20)\d{2}`;
 const SEMESTER = new RegExp(`^(?:semester\\s+\\d{1,2}|(?:semester\\s+)?(?:${TERM}\\s+)?(?:ta\\.?\\s+)?${YEARS}(?:\\s*[-–(]?\\s*${TERM}\\)?)?|(?:19|20)\\d{2}[1-3])$`, 'i');
 const UNITS = new Set(['sks', 'dari', 'jam', 'menit', 'hari', 'minggu', 'bulan', 'tahun', 'poin', 'kegiatan', 'mk', 'semester', 'kali', 'orang', 'ke', 'per', 'total', 'jumlah']);
 
-const URL_ATTRS = new Set(['href', 'src', 'action', 'formaction', 'data-url', 'data-href', 'data-src', 'data-link', 'poster', 'cite', 'background', 'longdesc', 'manifest']);
+const URL_ATTRS = new Set([
+  'href', 'src', 'action', 'formaction', 'data-url', 'data-href', 'data-src', 'data-link', 'poster', 'cite', 'background', 'longdesc', 'manifest',
+  // htmx: the request an element makes.
+  'hx-get', 'hx-post', 'hx-put', 'hx-patch', 'hx-delete', 'hx-push-url', 'hx-replace-url',
+]);
+/** htmx and hyperscript attributes that hold selectors, event names or a small script: read like a script string. */
+const SCRIPT_ATTRS = /^(?:_|hx-(?:target|swap|swap-oob|trigger|indicator|select|select-oob|include|ext|boost|sync|params|encoding|disabled-elt|disinherit|inherit|history|history-elt|preserve|validate)|data-hx-[a-z-]+|data-script)$/;
+/** htmx attributes that hold JSON or code. */
+const CODE_ATTRS = /^(?:hx-(?:vals|headers|request|vars)|hx-on[:-].*)$/;
 const PROSE_ATTRS = new Set(['title', 'alt', 'placeholder', 'aria-label', 'aria-description', 'aria-valuetext', 'aria-placeholder', 'data-original-title', 'data-title', 'data-content', 'data-confirm', 'data-placeholder', 'data-text', 'label', 'summary']);
 const KEEP_ATTRS = new Set([
   'class', 'id', 'type', 'role', 'rel', 'target', 'method', 'enctype', 'colspan', 'rowspan', 'scope', 'align', 'valign', 'width', 'height', 'border', 'cellpadding',
@@ -433,9 +441,11 @@ export class SipakamaseSanitizer {
     if (value === '') return value;
     this.counts.attributes += 1;
     if (name.startsWith('on')) return this.js(value.replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'"));
-    if (URL_ATTRS.has(name)) return this.url(value);
+    if (URL_ATTRS.has(name)) return /^(?:true|false)$/i.test(value) ? value : this.url(value);
+    if (CODE_ATTRS.test(name)) return this.js(value.replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'"));
+    if (SCRIPT_ATTRS.test(name)) return this.jsString(value);
     if (name === 'srcset') return value.split(',').map((part) => part.trim().split(/\s+/).map((p, k) => (k === 0 ? this.url(p) : p)).join(' ')).join(', ');
-    if (PROSE_ATTRS.has(name)) return this.prose(value, true);
+    if (PROSE_ATTRS.has(name) || name === 'hx-confirm' || name === 'hx-prompt') return this.prose(value, true);
     if (name === 'value') return tag === 'button' || (tag === 'input' && /^(?:submit|button|reset)$/.test(type)) ? this.prose(value, true) : this.field(value);
     if (KEEP_ATTRS.has(name) || KEEP_ATTR_PREFIX.test(name)) return this.light(value);
     return this.field(value);
