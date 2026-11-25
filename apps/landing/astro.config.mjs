@@ -1,7 +1,7 @@
 // Sulo's landing page: static pages, built from the apps' own code. Deployed
-// on Vercel (vercel.json: the install and build commands, the headers); the
-// build also writes dist/_headers, so Cloudflare Pages stays possible.
-// SITE_URL sets the address; nothing is written in for it.
+// on Vercel (vercel.json: the install and build commands, the headers).
+// Cloudflare Pages stays possible: scripts/keamanan.mjs --headers writes its
+// dist/_headers. SITE_URL sets the address; nothing is written in for it.
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';

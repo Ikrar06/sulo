@@ -2,9 +2,10 @@
 // CI check of the security headers (brief 9.4) on the built site: every page
 // has its CSP meta tag first after the charset, every inline script that runs
 // and every inline style is hashed in it, no policy allows eval or inline
-// code without a hash, and dist/_headers carries the rest (the device screens
-// framed by this site only, every other page by no one; no referrer; no
-// sniffing; unused features off).
+// code without a hash. Where the build was made for Cloudflare Pages,
+// dist/_headers carries the rest (the device screens framed by this site
+// only, every other page by no one; no referrer; no sniffing; unused features
+// off).
 //
 //   node apps/landing/scripts/check-keamanan.mjs [--dist=<folder>]
 import { createHash } from 'node:crypto';
@@ -40,9 +41,11 @@ for (const file of semuaHtml(DIST)) {
     if (!elemGaya.includes(`'sha256-${h}'`)) masalah.push(`${nama}: gaya sebaris tanpa hash di CSP (sha256-${h})`);
   }
 }
+// dist/_headers is there only in a build made for Cloudflare Pages (keamanan.mjs --headers). On Vercel the
+// same rules are in vercel.json, which tests/keamanan.test.ts holds to the one table.
 const pathHeaders = join(DIST, '_headers');
-if (!existsSync(pathHeaders)) masalah.push('_headers tidak ada');
-else {
+const adaHeaders = existsSync(pathHeaders);
+if (adaHeaders) {
   const h = readFileSync(pathHeaders, 'utf8');
   h.split('\n').forEach((b, i) => {
     if (b.length > BATAS_BARIS_HEADERS) masalah.push(`_headers baris ${i + 1}: ${b.length} karakter, Cloudflare Pages hanya membaca ${BATAS_BARIS_HEADERS}`);
@@ -63,4 +66,4 @@ if (masalah.length) {
   console.error(`check:keamanan: ${masalah.length} masalah\n- ${masalah.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`check:keamanan: ${semuaHtml(DIST).length} halaman dan _headers sesuai aturan.`);
+console.log(`check:keamanan: ${semuaHtml(DIST).length} halaman${adaHeaders ? ' dan _headers' : ''} sesuai aturan.`);

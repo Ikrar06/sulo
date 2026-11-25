@@ -57,6 +57,30 @@ export function headersVercel() {
 }
 
 /**
+ * The same headers as Cloudflare Pages reads them: the text of dist/_headers. Written only when asked
+ * (scripts/keamanan.mjs --headers): on Vercel the file would only be served to visitors as a file of its own.
+ */
+export function headersCloudflare() {
+  const baris = (pasangan) => pasangan.map(([kunci, nilai]) => `  ${kunci}: ${nilai}`);
+  return [
+    '# Written by apps/landing/scripts/keamanan.mjs --headers, for Cloudflare Pages; brief 9.4.',
+    '# (Vercel, where the site is deployed, reads apps/landing/vercel.json instead: the same rules.)',
+    '/*',
+    ...baris(headerBingkai(false)),
+    ...baris(HEADER_UMUM),
+    '',
+    "# The device screens are framed by this site's own pages, and by no one else.",
+    '/layar/*',
+    ...headerBingkai(true).map(([kunci]) => `  ! ${kunci}`),
+    ...baris(headerBingkai(true)),
+    '',
+    '/_astro/*',
+    ...baris([['Cache-Control', CACHE_ASET]]),
+    '',
+  ].join('\n');
+}
+
+/**
  * A page's policy for its inline scripts and styles (base64 SHA-256 each). Style attributes stay allowed
  * (style-src, which style-src-attr falls back to: the apps' components set sizes in them); style elements
  * only from this site or with their hash.
