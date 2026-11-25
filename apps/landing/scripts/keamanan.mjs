@@ -4,8 +4,9 @@
 // full CSP in a meta tag first in its head (it works on any host). The host
 // adds what a meta tag cannot say: who may frame the page, and the other
 // headers. Vercel, where the site is deployed, reads them from
-// apps/landing/vercel.json; dist/_headers says the same for Cloudflare Pages.
-// Both come from one table (lib/aturan-keamanan.mjs).
+// apps/landing/vercel.json. For Cloudflare Pages, --headers also writes
+// dist/_headers with the same rules. Both come from one table
+// (lib/aturan-keamanan.mjs).
 //
 // default-src 'self', scripts from this site plus the hashed inline ones and
 // never 'unsafe-eval'; <style> elements from this site only (style-src-elem),
@@ -16,14 +17,15 @@
 // screens (/layar/) may be framed by this site only; every other page by no
 // one. No referrer, no sniffing, every unused browser feature off.
 //
-//   node apps/landing/scripts/keamanan.mjs [--dist=<folder>]
+//   node apps/landing/scripts/keamanan.mjs [--dist=<folder>] [--headers]
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { CACHE_ASET, CSP_DASAR, HEADER_UMUM, cspDengan, hashGayaSebaris, hashSkripSebaris, headerBingkai } from './lib/aturan-keamanan.mjs';
+import { CSP_DASAR, cspDengan, hashGayaSebaris, hashSkripSebaris, headersCloudflare } from './lib/aturan-keamanan.mjs';
 
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const DIST = resolve(arg('dist', new URL('../dist', import.meta.url).pathname));
+const DENGAN_HEADERS = process.argv.includes('--headers');
 
 function semuaHtml(dir) {
   return readdirSync(dir).flatMap((nama) => {
@@ -49,22 +51,9 @@ for (const file of semuaHtml(DIST)) {
   writeFileSync(file, html);
 }
 
-const baris = (pasangan) => pasangan.map(([kunci, nilai]) => `  ${kunci}: ${nilai}`);
-const headers = [
-  '# Written by apps/landing/scripts/keamanan.mjs after the build. Cloudflare Pages reads it; brief 9.4.',
-  '# (Vercel reads apps/landing/vercel.json instead: the same rules, held to them by a test.)',
-  '/*',
-  ...baris(headerBingkai(false)),
-  ...baris(HEADER_UMUM),
-  '',
-  '# The device screens are framed by this site\'s own pages, and by no one else.',
-  '/layar/*',
-  ...headerBingkai(true).map(([kunci]) => `  ! ${kunci}`),
-  ...baris(headerBingkai(true)),
-  '',
-  '/_astro/*',
-  ...baris([['Cache-Control', CACHE_ASET]]),
-  '',
-];
-writeFileSync(join(DIST, '_headers'), headers.join('\n'));
-console.log(`keamanan: CSP di ${semuaHtml(DIST).length} halaman (${hashSkrip} hash skrip, ${hashGaya} hash gaya), _headers ditulis. ${CSP_DASAR.length} aturan dasar.`);
+// dist/_headers is Cloudflare Pages' file and is written only when asked. Vercel reads vercel.json, and a
+// _headers file in its output was served to anyone who asked for /_headers/ (found on the live site, 25 Nov 2026).
+const pathHeaders = join(DIST, '_headers');
+if (DENGAN_HEADERS) writeFileSync(pathHeaders, headersCloudflare());
+else rmSync(pathHeaders, { force: true });
+console.log(`keamanan: CSP di ${semuaHtml(DIST).length} halaman (${hashSkrip} hash skrip, ${hashGaya} hash gaya)${DENGAN_HEADERS ? ', _headers ditulis' : ''}. ${CSP_DASAR.length} aturan dasar.`);

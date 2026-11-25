@@ -681,7 +681,9 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   width: var(--pt-w);
   height: var(--pt-h);
   transform-origin: 0 0;
-  transform: scale(tan(atan2(100cqw, var(--pt-w))), tan(atan2(100cqh, var(--pt-h))));
+  /* --sx and --sy: the scale as numbers measured from the frame's box (tata/Dasar.astro). The arithmetic after
+     them is the fallback without script; Safari on an iPhone gets it wrong (WebKit 26). */
+  transform: scale(var(--sx, tan(atan2(100cqw, var(--pt-w)))), var(--sy, tan(atan2(100cqh, var(--pt-h)))));
 }
 .perangkat-isi iframe {
   position: absolute;
@@ -818,7 +820,7 @@ html[data-perangkat="ios"] p[data-untuk~="ios"] {
   .potongan-skala {
     width: 210px;
     transform-origin: 0 100%;
-    scale: tan(atan2(100cqw, 210px));
+    scale: var(--sx, tan(atan2(100cqw, 210px)));
   }
   .potongan-hp--tugas-3 { display: none; }
 }

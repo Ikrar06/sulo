@@ -3,9 +3,32 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { cspDengan, cspHeader, hashGayaSebaris, hashSkripSebaris, headersVercel } from '../scripts/lib/aturan-keamanan.mjs';
+import { BATAS_BARIS_HEADERS, cspDengan, cspHeader, hashGayaSebaris, hashSkripSebaris, headersCloudflare, headersVercel } from '../scripts/lib/aturan-keamanan.mjs';
 
 const sha = (isi: string) => createHash('sha256').update(isi).digest('base64');
+
+describe('header untuk Cloudflare Pages (_headers, ditulis hanya saat diminta)', () => {
+  const teks = headersCloudflare() as string;
+  const blok = (awal: string) => teks.split(/\n(?=\/)/).find((b) => b.startsWith(awal)) ?? '';
+  it('halaman biasa tidak boleh dibingkai siapa pun, tanpa referrer dan tanpa sniffing', () => {
+    const semua = blok('/*\n');
+    expect(semua).toContain(`Content-Security-Policy: ${cspHeader("'none'")}`);
+    expect(semua).toContain('X-Frame-Options: DENY');
+    expect(semua).toContain('Referrer-Policy: no-referrer');
+    expect(semua).toContain('X-Content-Type-Options: nosniff');
+    expect(semua).toContain('Permissions-Policy: ');
+  });
+  it('layar perangkat melepas aturan umum dulu, lalu hanya boleh dibingkai situs ini', () => {
+    const layar = blok('/layar/*\n');
+    expect(layar).toContain('! Content-Security-Policy');
+    expect(layar).toContain('! X-Frame-Options');
+    expect(layar).toContain(`Content-Security-Policy: ${cspHeader("'self'")}`);
+    expect(layar).toContain('X-Frame-Options: SAMEORIGIN');
+  });
+  it('tiap baris muat di batas yang dibaca Cloudflare Pages', () => {
+    for (const baris of teks.split('\n')) expect(baris.length).toBeLessThanOrEqual(BATAS_BARIS_HEADERS);
+  });
+});
 
 describe('header di Vercel (vercel.json)', () => {
   const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));

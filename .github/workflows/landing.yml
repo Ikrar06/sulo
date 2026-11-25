@@ -47,7 +47,7 @@ jobs:
         run: pnpm --filter @sulo/landing check:rilis
       # A placeholder address (RFC 2606) so the absolute addresses and the QR code are built and checked too; the
       # real one is the owner's to choose (docs/landing/DEPLOY.md).
-      - name: Build (halaman, iPhone miring, CSP dan _headers)
+      - name: Build (halaman, iPhone miring, CSP)
         run: pnpm --filter @sulo/landing build
         env:
           SITE_URL: https://sulo.example

@@ -55,7 +55,8 @@
 .ubin-skala {
   width: max(100cqw, 290px);
   transform-origin: 0 0;
-  scale: min(1, tan(atan2(100cqw, 290px)));
+  /* --sx: the measured number (tata/Dasar.astro); the arithmetic is the fallback without script. */
+  scale: var(--sx, min(1, tan(atan2(100cqw, 290px))));
 }
 /* The app's own cards carry their own surface and border: no second frame around them. Kabar terbaru's card fills
    its tall tile, so the tile never shows a bare lower half. */
@@ -64,9 +65,11 @@
   flex: 1;
   display: flex;
 }
+/* Its width stays the scaled card's own (above), never the row's: grown to the row in a tile narrower than
+   290 px, the card was squeezed to the tile and then scaled again, 28 px short of the tile's edge at 320 px. */
 .ubin-visual--kartu .ubin-skala {
   display: flex;
-  flex: 1;
+  flex: none;
 }
 .ubin-visual--kartu .ubin-skala > * {
   flex: 1;
@@ -113,7 +116,7 @@
   border: 0;
   pointer-events: none;
   transform-origin: 0 0;
-  transform: scale(tan(atan2(100cqw, var(--w))));
+  transform: scale(var(--sx, tan(atan2(100cqw, var(--w)))));
 }
 /* The phone is much taller than the tile: its top shows, the rest runs past the tile's edge. */
 .ubin-miring {
