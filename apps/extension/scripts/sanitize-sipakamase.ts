@@ -109,6 +109,8 @@ export function runSipakamase(argv: string[], paths: SipakamasePaths = PATHS): n
   for (const o of outputs) console.log(`  ${o.name}  ${o.kind}${o.kind === 'HAR' ? `, ${o.requests} permintaan` : ''}, ${o.text.length} karakter`);
   console.log(`Hitungan: ${COUNT_KEYS.map((k) => `${k} ${sanitizer.counts[k]}`).join(', ')}`);
   console.log(`Kata tambahan dari fixtures/sipakamase-kata-aman.txt: ${extraWords.length}. Kata berbeda yang disamarkan di teks halaman: ${masked.length} (daftarnya di fixtures/raw/sipakamase/_kata-disamarkan.txt, jangan dibagikan).`);
+  const shapes = sanitizer.tokenShapes().slice(0, 8);
+  if (shapes.length > 0) console.log(`Bentuk token id di tautan (panjang tiap bagian, lalu jumlahnya): ${shapes.map(([shape, n]) => `${shape} x${n}`).join(', ')}`);
   console.log('Pemeriksa kebocoran: bersih. Periksa hasilnya dengan mata sebelum dipakai.');
   return 0;
 }

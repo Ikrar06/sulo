@@ -144,6 +144,8 @@ export class SipakamaseSanitizer {
   private readonly masked = new Map<string, number>();
   /** Names written as one word ("andibaso"), from values of two to five words: masked wherever they occur. */
   private readonly joined = new Set<string>();
+  /** Shapes of opaque path segments ("7.27": seven characters, a dot, twenty-seven), with how often. Lengths only. */
+  private readonly shapes = new Map<string, number>();
   /** Identifier-shaped values seen in the raw input, for the final check. */
   private readonly rawIds = new Set<string>();
 
@@ -335,6 +337,11 @@ export class SipakamaseSanitizer {
     if (!file && /^[a-z][a-z_-]{0,39}$/.test(base)) return seg;
     const words = base.split(/[^\p{L}]+/u).filter(Boolean);
     if (words.length > 0 && words.every((w) => this.isWord(w))) return `${base.replace(/\d{5,}/g, (d) => this.digits(d))}${tail}`;
+    // The lengths of an id token's parts hint at how the server signs it; nothing of its content is kept.
+    if (seg.length >= 12) {
+      const shape = seg.split('.').map((part) => part.length).join('.');
+      this.shapes.set(shape, (this.shapes.get(shape) ?? 0) + 1);
+    }
     return `${this.opaque(base)}${tail}`;
   }
 
@@ -575,6 +582,11 @@ export class SipakamaseSanitizer {
     const index = this.runIndex(text);
     const ids = [...this.rawIds].filter((id) => id !== SYNTHETIC.phone && index.lower.includes(id.toLowerCase())).length;
     return ids + (index.phrases ? (text.match(index.phrases) ?? []).length : 0) + (text.match(/\p{L}+/gu) ?? []).filter((run) => index.hit(run)).length;
+  }
+
+  /** Shapes of the id tokens found in links, most frequent first. */
+  tokenShapes(): [string, number][] {
+    return [...this.shapes.entries()].sort((a, b) => b[1] - a[1]);
   }
 
   /** Words masked in running text, most frequent first: for the owner's eyes only (they may be names). */

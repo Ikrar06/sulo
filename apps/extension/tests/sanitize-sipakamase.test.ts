@@ -219,6 +219,12 @@ describe('links and scripts', () => {
     expect(home).toContain('<form action="/home/simpan" method="post">');
   });
 
+  it('reports the shape of id tokens as lengths only', () => {
+    const s = sanitizer();
+    s.html('<a href="/x/hapus/MTIzNDU.aB3_dE6-gH9jK2mN5pQ8sT1vW4y"></a><a href="/x/lihat/MTIzNDY.zY8_xW6-vU4tS2rQ0pO8nM6lK4j"></a>');
+    expect(s.tokenShapes()).toEqual([['7.27', 2]]);
+  });
+
   it('drops the payload of an embedded image and the name of a photo file', () => {
     expect(home).toContain('src="data:image/png;base64,x"');
     expect(home).toContain(`src="/foto/${SYNTHETIC.nim}.jpg"`);
