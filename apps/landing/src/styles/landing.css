@@ -218,7 +218,9 @@ html[data-gulir] .nav-pil {
 .nav-lebar {
   display: none;
 }
-@media (min-width: 56.25em) {
+/* Five links need 64em: at 56.25em they wrapped to a second line under large text (1920 px wide at 200%),
+   and the taller pill covered the top of the page. Below it the links are in the menu. */
+@media (min-width: 64em) {
   .nav-tautan,
   .nav-lebar {
     display: inline-flex;

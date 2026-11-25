@@ -1,0 +1,36 @@
+---
+// One of the apps' own screens in the user guide: an iframe of /layar/...
+// (the app's code with sample data, drawn at build time) inside a plain
+// bordered box, scaled to the box by the number tata/Dasar.astro measures
+// (data-skala). No device art here: a guide shows many screens, and the
+// screen is what matters. The screen is a picture, not something to use:
+// the iframe is inert and out of the accessibility tree, and the caption
+// says what it shows. A dashboard page is drawn small on a phone, so there
+// its caption links to the screen itself (a page 1280 wide, which a phone
+// lets you zoom).
+import type { GambarPakai } from '../teks/pakai';
+import { pakai } from '../teks/pakai-semua';
+import type { Bahasa } from '../teks';
+
+interface Props {
+  gambar: GambarPakai;
+  bahasa: Bahasa;
+}
+const { gambar, bahasa } = Astro.props;
+// Each screen's own size in points: the phone's screen, a laptop window, the popup.
+const UKURAN = { hp: [402, 780], dasbor: [1280, 800], popup: [380, 560] } as const;
+const [lebar, tinggi] = UKURAN[gambar.jenis];
+const src =
+  gambar.jenis === 'popup' ? `/layar/${bahasa}/popup/auto/` : `/layar/${bahasa}/${gambar.jenis}/${gambar.nama}/auto/`;
+---
+<figure class:list={['pakai-layar', `pakai-layar--${gambar.jenis}`]}>
+  <div class="pakai-layar-kotak" style={`aspect-ratio: ${lebar} / ${tinggi}`} data-ui-aplikasi aria-hidden="true">
+    <div class="pakai-layar-isi" data-skala={`${lebar}x${tinggi}`} style={`--pt-w: ${lebar}px; --pt-h: ${tinggi}px`}>
+      <iframe src={src} title={gambar.ket} loading="lazy" tabindex="-1" inert></iframe>
+    </div>
+  </div>
+  <figcaption>
+    {gambar.ket}
+    {gambar.jenis === 'dasbor' && <a class="tautan pakai-besar" href={src} target="_blank" rel="noopener">{pakai[bahasa].perbesar}</a>}
+  </figcaption>
+</figure>

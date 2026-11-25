@@ -1,0 +1,443 @@
+/* The user guide (/panduan/): the install guides' plain page, wider, with a list of the page's sections beside
+   them and the apps' own screens in plain bordered boxes. No gradient, no shadow: a thin line and the surface
+   colour carry the depth. */
+.pakai-isi {
+  max-width: var(--isi);
+}
+.pakai-badan {
+  margin-top: 36px;
+}
+.pakai-bagian-semua {
+  min-width: 0;
+}
+
+/* The list of sections: a card of links on a phone, a column that stays in view on a wide screen. */
+.pakai-daftar {
+  padding: 16px 18px;
+  border: 1px solid var(--garis);
+  border-radius: 20px;
+  background: var(--kartu);
+}
+.pakai-daftar-judul {
+  margin: 0 0 4px;
+  color: var(--abu);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.pakai-daftar ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+}
+.pakai-daftar a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  /* A title on two lines keeps its distance from the ones around it. */
+  padding-block: 6px;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.pakai-daftar a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* The section being read (hidup/pakai.ts): ink and weight, no bar or box. */
+.pakai-daftar a[aria-current] {
+  color: var(--tinta);
+  font-weight: 600;
+}
+
+/* A section: its words (never wider than a comfortable line), then its screens. */
+.pakai-bagian {
+  padding: 40px 0;
+  border-top: 1px solid var(--garis);
+  /* A link from the list lands below the floating navigation. */
+  scroll-margin-top: calc(var(--nav-bawah) + 8px);
+}
+.pakai-bagian:first-child {
+  margin-top: 32px;
+}
+/* A line of reading: about 70 characters, whatever the page's width. On a wide screen the words stand in two
+   columns instead (below), so they end where the screens under them end without a line growing long. */
+.pakai-teks {
+  max-width: 68ch;
+}
+.pakai-uraian > p:first-child {
+  margin-top: 16px;
+}
+.pakai-teks h2,
+.pakai-akhir h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.pakai-teks p {
+  margin: 12px 0 0;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.pakai-cara h3,
+.pakai-sumber h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.pakai-teks .panduan-penting {
+  margin-top: 20px;
+}
+/* What you can do: one action a line, a small quiet mark before each. */
+.pakai-bisa {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.pakai-bisa li {
+  position: relative;
+  padding-left: 18px;
+  line-height: 1.5;
+  text-wrap: pretty;
+  /* A long word at a large text size on a narrow phone breaks instead of sticking out. */
+  overflow-wrap: anywhere;
+}
+.pakai-bisa li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--primary);
+}
+
+/* The apps' own screens. A dashboard page takes the section's width; phone screens stand side by side. */
+.pakai-gambar {
+  display: grid;
+  gap: 24px;
+  margin-top: 28px;
+}
+.pakai-gambar--hp,
+.pakai-gambar--popup {
+  grid-template-columns: repeat(auto-fit, minmax(0, 260px));
+  justify-content: center;
+}
+/* The first page's pair: the dashboard and the phone, the same height on a wide screen. */
+.pakai-gambar--pasangan {
+  grid-template-columns: minmax(0, 1fr);
+}
+.pakai-gambar--pasangan .pakai-layar--hp {
+  width: min(100%, 260px);
+  justify-self: center;
+}
+.pakai-layar {
+  margin: 0;
+  min-width: 0;
+}
+.pakai-layar-kotak {
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+  border: 1px solid var(--garis);
+  border-radius: 14px;
+  background: var(--layer-screen);
+}
+.pakai-layar--hp .pakai-layar-kotak {
+  border-radius: 28px;
+}
+.pakai-layar--popup .pakai-layar-kotak {
+  border-radius: 16px;
+}
+.pakai-layar-isi {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--pt-w);
+  height: var(--pt-h);
+  transform-origin: 0 0;
+  /* --sx and --sy: measured from the box (tata/Dasar.astro). The arithmetic after them is the fallback without script. */
+  transform: scale(var(--sx, tan(atan2(100cqw, var(--pt-w)))), var(--sy, tan(atan2(100cqh, var(--pt-h)))));
+}
+.pakai-layar-isi iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+.pakai-layar figcaption {
+  margin-top: 10px;
+  color: var(--abu);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+/* On a phone a dashboard page is small: a link to the screen itself, which can be zoomed. Not needed on a wide screen. */
+.pakai-besar {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+}
+@media (min-width: 48em) {
+  .pakai-besar {
+    display: none;
+  }
+}
+.pakai-gambar--hp figcaption,
+.pakai-gambar--popup figcaption {
+  text-align: center;
+}
+
+/* The first page. The three sources are rows of one list, a hairline between them: the name and whether it is
+   needed on the left, what it gives on the right. The two ways to connect are two cards of steps. */
+.pakai-sumber {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--garis);
+}
+.pakai-sumber > li {
+  display: grid;
+  gap: 12px;
+  padding: 20px 0;
+  border-top: 1px solid var(--garis);
+}
+.pakai-sumber-nama p {
+  margin: 2px 0 0;
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.pakai-sumber-isi > p {
+  margin: 0;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.pakai-sumber .pakai-bisa {
+  margin-top: 12px;
+  gap: 6px 24px;
+}
+.pakai-cara,
+.pakai-pilih {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pakai-cara > div {
+  padding: 20px;
+  border: 1px solid var(--garis);
+  border-radius: 20px;
+  background: var(--kartu);
+}
+.pakai-cara ol {
+  margin: 12px 0 0;
+  padding: 0 0 0 1.25rem;
+  list-style: decimal;
+  display: grid;
+  gap: 8px;
+  line-height: 1.5;
+}
+.pakai-cara + .panduan-penting {
+  max-width: 44rem;
+}
+.pakai-pilih a {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 88px;
+  padding: 18px 20px;
+  border: 1px solid var(--garis);
+  border-radius: 20px;
+  background: var(--kartu);
+  color: var(--tinta);
+  text-decoration: none;
+}
+.pakai-pilih a:active {
+  transform: scale(0.98);
+}
+.pakai-pilih-teks {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.pakai-pilih-nama {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.pakai-pilih-isi {
+  color: var(--abu);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.pakai-pilih-panah {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--abu);
+}
+@media (hover: hover) {
+  .pakai-pilih a {
+    transition: background-color 150ms ease-out, transform 120ms ease-out;
+  }
+  .pakai-pilih a:hover {
+    background: var(--m-inset);
+  }
+}
+
+/* The end of the page: the sample-data line, the other guides, where to ask. */
+.pakai-contoh {
+  margin: 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--garis);
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.pakai-akhir {
+  display: grid;
+  gap: 32px;
+  margin-top: 40px;
+}
+.pakai-akhir h2 {
+  font-size: 1.25rem;
+}
+.pakai-akhir ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pakai-akhir .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.pakai-akhir p {
+  margin: 8px 0 0;
+  max-width: 30rem;
+  color: var(--abu);
+  line-height: 1.5;
+}
+
+/* A narrow phone: the list of sections in one column, so no title breaks into three lines. */
+@media (max-width: 22.4375em) {
+  .pakai-daftar ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (min-width: 40em) {
+  .pakai-sumber > li {
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: 24px;
+  }
+  .pakai-sumber .pakai-bisa {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pakai-cara,
+  .pakai-pilih,
+  .pakai-akhir {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 48em) {
+  /* 1280:800 beside 402:780 at one height: their widths stand as 1.6 to 0.515. */
+  .pakai-gambar--pasangan {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.515fr);
+    align-items: start;
+  }
+  .pakai-gambar--pasangan .pakai-layar--hp {
+    width: auto;
+    justify-self: stretch;
+  }
+  /* One upright screen (a phone, the popup) beside its words. */
+  .pakai-bagian--samping {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    align-items: start;
+    gap: 40px;
+  }
+  .pakai-bagian--samping .pakai-gambar {
+    margin-top: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (min-width: 64em) {
+  .pakai-badan {
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    align-items: start;
+    gap: 56px;
+  }
+  .pakai-daftar {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .pakai-daftar ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Still 44 px tall: 1024 px wide is also a tablet held sideways. */
+  .pakai-daftar a {
+    color: var(--abu);
+  }
+  .pakai-daftar a:hover {
+    color: var(--tinta);
+  }
+  .pakai-bagian:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  /* The words in two columns: the title, what it is and the note on the left; what you can do on the right, down
+     both rows. A section with its one upright screen beside it keeps a single column of words. */
+  .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks:has(> .pakai-kepala) {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto 1fr;
+    column-gap: 48px;
+    max-width: none;
+  }
+  .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks > .pakai-kepala {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks > .panduan-penting {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+  .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks > :is(.pakai-bisa, .pakai-uraian) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    /* Level with the title's first line. */
+    margin-top: 6px;
+  }
+  .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks > .pakai-uraian > p:first-child {
+    margin-top: 0;
+  }
+}
+/* The list of sections stays in view while the page scrolls, where the screen is tall enough to show all of it. */
+@media (min-width: 64em) and (min-height: 46em) {
+  .pakai-daftar {
+    position: sticky;
+    top: calc(var(--nav-bawah) + 16px);
+  }
+}

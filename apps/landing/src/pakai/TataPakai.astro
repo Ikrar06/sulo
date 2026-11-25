@@ -1,0 +1,89 @@
+---
+// The frame of every user-guide page: breadcrumb, title, one paragraph, then
+// the page's own sections beside a list of them (slot "daftar": on a wide
+// screen it stays in view while the page scrolls), then the other guides and
+// where to ask. The same plain page as the install guides (styles/panduan.css).
+import { MASUKAN, pathPakai, pathPasang, pathRumah, type Aplikasi } from '../data/alamat';
+import { pakai } from '../teks/pakai-semua';
+import type { Bahasa } from '../teks';
+import Dasar from '../tata/Dasar.astro';
+import Kaki from '../bagian/Kaki.astro';
+import Nav from '../komponen/Nav.astro';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import '../styles/bagian/umum.css';
+import '../styles/panduan.css';
+import '../styles/pakai.css';
+
+interface Props {
+  bahasa: Bahasa;
+  /** Which app's guide, or null for the guide's first page. */
+  aplikasi: Aplikasi | null;
+  judul: string;
+  kenapa: string;
+  deskripsi: string;
+  /** The page's sections, for the list beside them. */
+  daftar: readonly { id: string; judul: string }[];
+}
+const { bahasa, aplikasi, judul, kenapa, deskripsi, daftar } = Astro.props;
+const t = pakai[bahasa];
+const path = pathPakai(bahasa, aplikasi ?? undefined);
+const lain = ([null, 'ekstensi', 'android'] as const).filter((a) => a !== aplikasi);
+const nama = (a: Aplikasi | null) => (a === null ? t.indeks.judul.replace(/\.$/, '') : a === 'ekstensi' ? t.indeks.pilih.ekstensi.nama : t.indeks.pilih.android.nama);
+---
+<Dasar bahasa={bahasa} judul={`${judul.replace(/\.$/, '')}, Sulo`} deskripsi={deskripsi} path={path}>
+  <Nav bahasa={bahasa} path={path} />
+  <main class="panduan pakai" id="isi">
+    <div class="isi pakai-isi">
+      <nav class="remah" aria-label={t.remah}>
+        <ol role="list">
+          <li><a href={pathRumah(bahasa)}>{t.beranda}</a><ChevronRightIcon className="remah-panah" /></li>
+          {aplikasi ? (
+            <Fragment>
+              <li><a href={pathPakai(bahasa)}>{t.panduan}</a><ChevronRightIcon className="remah-panah" /></li>
+              <li aria-current="page">{t[aplikasi].nama}</li>
+            </Fragment>
+          ) : (
+            <li aria-current="page">{t.panduan}</li>
+          )}
+        </ol>
+      </nav>
+      <header class="panduan-kepala">
+        <div class="panduan-kepala-teks">
+          <h1>{judul}</h1>
+          <p>{kenapa}</p>
+        </div>
+      </header>
+      <div class="pakai-badan">
+        <nav class="pakai-daftar" aria-labelledby="judul-daftar">
+          <p class="pakai-daftar-judul" id="judul-daftar">{t.isiHalaman}</p>
+          <ol role="list">
+            {daftar.map((b) => <li><a href={`#${b.id}`}>{b.judul}</a></li>)}
+          </ol>
+        </nav>
+        <div class="pakai-bagian-semua">
+          <slot />
+          <p class="pakai-contoh">{t.dataContoh}</p>
+          <section class="pakai-akhir" aria-labelledby="judul-lain">
+            <div>
+              <h2 id="judul-lain">{t.lain}</h2>
+              <ul role="list">
+                {lain.map((a) => <li><a class="tautan" href={pathPakai(bahasa, a ?? undefined)}>{nama(a)}</a></li>)}
+                <li><a class="tautan" href={pathPasang(bahasa)}>{t.caraPasang}</a></li>
+              </ul>
+            </div>
+            <div>
+              <h2>{t.bantuanTitle}</h2>
+              <p>{t.bantuanIsi}</p>
+              <a class="tautan" href={MASUKAN} target="_blank" rel="noopener noreferrer">{t.kirimMasukan}</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+  <Kaki bahasa={bahasa} path={path} />
+</Dasar>
+
+<script>
+  import '../hidup/pakai';
+</script>

@@ -1,0 +1,115 @@
+---
+// The guide's first page: what Sulo is for, where its data comes from, what
+// it never does, how it connects to SIKOLA and to NEOSIA in each app, and
+// the way on to each app's own guide.
+import { pathPakai } from '../data/alamat';
+import { pakai } from '../teks/pakai-semua';
+import type { Bahasa } from '../teks';
+import Layar from './Layar.astro';
+import TataPakai from './TataPakai.astro';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = pakai[bahasa];
+const i = t.indeks;
+const daftar = [
+  { id: 'fungsi', judul: i.fungsi.judul },
+  { id: 'sumber', judul: i.sumber.judul },
+  { id: 'tidak', judul: i.tidak.judul },
+  { id: 'sikola', judul: i.sikola.judul },
+  { id: 'neosia', judul: i.neosia.judul },
+  { id: 'fitur', judul: i.pilih.judul },
+];
+---
+<TataPakai bahasa={bahasa} aplikasi={null} judul={i.judul} kenapa={i.kenapa} deskripsi={i.deskripsi} daftar={daftar}>
+  <section class="pakai-bagian" id="fungsi" aria-labelledby="judul-fungsi">
+    <div class="pakai-teks">
+      <div class="pakai-kepala">
+        <h2 id="judul-fungsi">{i.fungsi.judul}</h2>
+      </div>
+      <div class="pakai-uraian">
+        {i.fungsi.isi.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+    <div class="pakai-gambar pakai-gambar--pasangan">
+      {i.fungsi.gambar.map((g) => <Layar gambar={g} bahasa={bahasa} />)}
+    </div>
+  </section>
+
+  <section class="pakai-bagian" id="sumber" aria-labelledby="judul-sumber">
+    <div class="pakai-teks">
+      <h2 id="judul-sumber">{i.sumber.judul}</h2>
+      <p>{i.sumber.isi}</p>
+    </div>
+    <ul class="pakai-sumber" role="list">
+      {i.sumber.daftar.map((s) => (
+        <li>
+          <div class="pakai-sumber-nama">
+            <h3>{s.nama}</h3>
+            <p>{s.label}</p>
+          </div>
+          <div class="pakai-sumber-isi">
+            <p>{s.isi}</p>
+            <ul class="pakai-bisa">
+              {s.dapat.map((d) => <li>{d}</li>)}
+            </ul>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="pakai-bagian" id="tidak" aria-labelledby="judul-tidak">
+    <div class="pakai-teks">
+      <div class="pakai-kepala">
+        <h2 id="judul-tidak">{i.tidak.judul}</h2>
+      </div>
+      <ul class="pakai-bisa">
+        {i.tidak.daftar.map((x) => <li>{x}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  {([['sikola', i.sikola, [i.sikola.isi]], ['neosia', i.neosia, i.neosia.isi]] as const).map(([id, b, isi]) => (
+    <section class="pakai-bagian" id={id} aria-labelledby={`judul-${id}`}>
+      <div class="pakai-teks">
+        <h2 id={`judul-${id}`}>{b.judul}</h2>
+        {isi.map((p) => <p>{p}</p>)}
+      </div>
+      <div class="pakai-cara">
+        {[b.ekstensi, b.android].map((c) => (
+          <div>
+            <h3>{c.nama}</h3>
+            <ol>
+              {c.langkah.map((l) => <li>{l}</li>)}
+            </ol>
+          </div>
+        ))}
+      </div>
+      <p class="panduan-penting">{b.catatan}</p>
+    </section>
+  ))}
+
+  <section class="pakai-bagian" id="fitur" aria-labelledby="judul-fitur">
+    <div class="pakai-teks">
+      <h2 id="judul-fitur">{i.pilih.judul}</h2>
+      <p>{i.pilih.isi}</p>
+    </div>
+    <ul class="pakai-pilih" role="list">
+      {(['ekstensi', 'android'] as const).map((a) => (
+        <li>
+          <a href={pathPakai(bahasa, a)}>
+            <span class="pakai-pilih-teks">
+              <span class="pakai-pilih-nama">{i.pilih[a].nama}</span>
+              <span class="pakai-pilih-isi">{i.pilih[a].isi}</span>
+            </span>
+            <ChevronRightIcon className="pakai-pilih-panah" />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</TataPakai>

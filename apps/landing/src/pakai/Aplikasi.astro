@@ -1,0 +1,43 @@
+---
+// The guide of one app (the extension or the Android app): every section with
+// its words, what you can do there, the app's own screens, and the one note
+// that matters. All of it comes from teks/pakai.ts.
+import type { Aplikasi } from '../data/alamat';
+import { pakai } from '../teks/pakai-semua';
+import type { Bahasa } from '../teks';
+import Layar from './Layar.astro';
+import TataPakai from './TataPakai.astro';
+
+interface Props {
+  bahasa: Bahasa;
+  aplikasi: Aplikasi;
+}
+const { bahasa, aplikasi } = Astro.props;
+const h = pakai[bahasa][aplikasi];
+// One upright picture (a phone screen, the popup) sits beside its words on a wide screen; anything else goes below
+// them, and there the words stand in two columns (the title and what it is on the left, what you can do on the right).
+const samping = (b: (typeof h.bagian)[number]) => b.gambar?.length === 1 && b.gambar[0]!.jenis !== 'dasbor';
+---
+<TataPakai bahasa={bahasa} aplikasi={aplikasi} judul={h.judul} kenapa={h.kenapa} deskripsi={h.deskripsi} daftar={h.bagian}>
+  {h.bagian.map((b) => (
+    <section class:list={['pakai-bagian', { 'pakai-bagian--samping': samping(b) }]} id={b.id} aria-labelledby={`judul-${b.id}`}>
+      <div class="pakai-teks">
+        <div class="pakai-kepala">
+          <h2 id={`judul-${b.id}`}>{b.judul}</h2>
+          {b.isi.map((p) => <p>{p}</p>)}
+        </div>
+        {b.bisa && (
+          <ul class="pakai-bisa">
+            {b.bisa.map((x) => <li>{x}</li>)}
+          </ul>
+        )}
+        {b.catatan && <p class="panduan-penting">{b.catatan}</p>}
+      </div>
+      {b.gambar && (
+        <div class:list={['pakai-gambar', `pakai-gambar--${b.gambar[0]!.jenis}`]}>
+          {b.gambar.map((g) => <Layar gambar={g} bahasa={bahasa} />)}
+        </div>
+      )}
+    </section>
+  ))}
+</TataPakai>

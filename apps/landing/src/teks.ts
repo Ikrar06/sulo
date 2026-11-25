@@ -10,7 +10,7 @@ export const teks = {
     lewati: 'Lewati ke isi',
     judulHalaman: 'Sulo: tugas, jadwal, presensi Unhas di satu tempat',
     deskripsi: 'Pendamping akademik tidak resmi untuk mahasiswa Unhas. Tugas SIKOLA, jadwal, presensi, dan kalender akademik di satu tempat, tanpa kata sandi.',
-    nav: { fitur: 'Fitur', privasi: 'Privasi', pasang: 'Cara pasang', tanya: 'Tanya jawab', tombolPasang: 'Pasang', tema: 'Ganti tema', temaGelap: 'Pakai tema gelap', temaTerang: 'Pakai tema terang', bahasaLain: 'English', menu: 'Menu', tutup: 'Tutup menu' },
+    nav: { fitur: 'Fitur', privasi: 'Privasi', pasang: 'Cara pasang', panduan: 'Panduan', tanya: 'Tanya jawab', tombolPasang: 'Pasang', tema: 'Ganti tema', temaGelap: 'Pakai tema gelap', temaTerang: 'Pakai tema terang', bahasaLain: 'English', menu: 'Menu', tutup: 'Tutup menu' },
     // The third chip shows on a wide screen only: three never fit one line on a phone of 360 or 390.
     cip: ['Bukan aplikasi resmi Unhas', 'Gratis', 'Kode terbuka'],
     judul: 'Tugas, jadwal, presensi Unhas di satu tempat.',
@@ -49,7 +49,7 @@ export const teks = {
     lewati: 'Skip to content',
     judulHalaman: 'Sulo: your Unhas tasks, classes and attendance in one place',
     deskripsi: 'An unofficial study companion for Unhas students. SIKOLA tasks, classes, attendance and the academic calendar in one place, with no password.',
-    nav: { fitur: 'Features', privasi: 'Privacy', pasang: 'How to install', tanya: 'FAQ', tombolPasang: 'Install', tema: 'Change theme', temaGelap: 'Use the dark theme', temaTerang: 'Use the light theme', bahasaLain: 'Bahasa Indonesia', menu: 'Menu', tutup: 'Close the menu' },
+    nav: { fitur: 'Features', privasi: 'Privacy', pasang: 'How to install', panduan: 'Guide', tanya: 'FAQ', tombolPasang: 'Install', tema: 'Change theme', temaGelap: 'Use the dark theme', temaTerang: 'Use the light theme', bahasaLain: 'Bahasa Indonesia', menu: 'Menu', tutup: 'Close the menu' },
     cip: ['Not an official Unhas app', 'Free', 'Open source'],
     judul: 'Your Unhas tasks, classes and attendance, in one place.',
     judulBagian: ['Your Unhas tasks, classes and attendance,', 'in one place.'],
