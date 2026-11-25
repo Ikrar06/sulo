@@ -78,14 +78,16 @@ Versi 1.0.0 sudah terbit. Cara termudah lewat [sulo.ikrar.dev](https://sulo.ikra
 
 **Ekstensi (Chrome dan Edge)**
 
-Sulo belum ada di Chrome Web Store maupun Edge Add-ons. Sampai saat itu, pasang dari berkas zip:
+Di Chrome, pasang dari [Chrome Web Store](https://chromewebstore.google.com/detail/mpemdmllhhomdkbjmoakagjpealajmnb). Pembaruannya masuk sendiri dari sana.
+
+Sulo belum ada di Edge Add-ons. Di Edge, atau kalau mau menjalankan berkas rilisnya sendiri, pasang dari berkas zip:
 
 1. Unduh `sulo-<versi>-ekstensi.zip` dari halaman rilis, lalu ekstrak. Simpan foldernya: browser menjalankan Sulo dari folder itu.
 2. Buka `chrome://extensions` (atau `edge://extensions`) dan nyalakan Developer mode.
 3. Pilih "Load unpacked", lalu pilih folder hasil ekstrak.
 4. Sulo membuka panduan singkat. Masuk ke SIKOLA saat diminta, lalu pilih mata kuliah yang mau dipantau.
 
-Dengan cara ini Sulo tidak memperbarui dirinya sendiri: untuk versi baru, unduh zip yang baru lalu muat lagi. Kalau mau membangunnya sendiri, lihat [Untuk pengembang](#untuk-pengembang); hasil build ekstensinya ada di folder `.output/chrome-mv3`.
+Dengan cara ini Sulo tidak memperbarui dirinya sendiri: untuk versi baru, unduh zip yang baru lalu muat lagi. Kalau nanti pindah ke versi toko, hapus yang ini supaya tidak ada dua salinan yang berjalan. Kalau mau membangunnya sendiri, lihat [Untuk pengembang](#untuk-pengembang); hasil build ekstensinya ada di folder `.output/chrome-mv3`.
 
 **Android**
 

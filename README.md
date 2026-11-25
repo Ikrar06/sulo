@@ -78,14 +78,16 @@ Version 1.0.0 is out. The easiest way is [sulo.ikrar.dev](https://sulo.ikrar.dev
 
 **Extension (Chrome and Edge)**
 
-Sulo is not in the Chrome Web Store or Edge Add-ons yet. Until it is, install it from the zip:
+In Chrome, install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/mpemdmllhhomdkbjmoakagjpealajmnb). It updates itself from there.
+
+Sulo is not in Edge Add-ons yet. In Edge, or to run the released file yourself, install it from the zip:
 
 1. Download `sulo-<version>-ekstensi.zip` from the release page and unzip it. Keep the folder: the browser runs Sulo from it.
 2. Open `chrome://extensions` (or `edge://extensions`) and turn on Developer mode.
 3. Choose "Load unpacked" and select the unzipped folder.
 4. Sulo opens a short guide. Sign in to SIKOLA when it asks, then pick the courses to follow.
 
-Installed this way, Sulo does not update itself: for a new version, download the new zip and load it again. To build it yourself instead, see [For developers](#for-developers); the built extension is the folder `.output/chrome-mv3`.
+Installed this way, Sulo does not update itself: for a new version, download the new zip and load it again. If you move to the store version later, remove this one so two copies are not running. To build it yourself instead, see [For developers](#for-developers); the built extension is the folder `.output/chrome-mv3`.
 
 **Android**
 

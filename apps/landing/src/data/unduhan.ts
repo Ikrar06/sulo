@@ -41,6 +41,11 @@ export function berkas(jenis: 'android' | 'ekstensi', bahasa: Bahasa): Berkas {
   return { aktif: false, href: '', ukuran: teks[bahasa].segeraTersedia, versi: '', sha256: '', unduhan: false };
 }
 
+export type Browser = 'chrome' | 'edge';
+export const NAMA_TOKO: Record<Browser, string> = { chrome: 'Chrome Web Store', edge: 'Edge Add-ons' };
+/** The extension's page in the browser's own store, once it is published there. */
+export const alamatToko = (nama: Browser): string | null => (rilis.toko[nama].status === 'terbit' && rilis.toko[nama].url ? rilis.toko[nama].url : null);
+
 export type Untuk = 'tanpa-js' | 'android' | 'chrome' | 'edge' | 'desktop-lain' | 'ios';
 
 export interface Tombol {
@@ -66,9 +71,9 @@ export function tombolUnduh(bahasa: Bahasa): { tombol: Tombol[]; catatan: Catata
   const apk = berkas('android', bahasa);
   const zip = berkas('ekstensi', bahasa);
   const dariBerkas = (b: Berkas) => ({ ukuran: b.ukuran, href: b.href, aktif: b.aktif, unduhan: b.unduhan });
-  const toko = (nama: 'chrome' | 'edge'): Tombol => {
-    const s = rilis.toko[nama];
-    if (s.status === 'terbit' && s.url) return { untuk: nama, label: nama === 'chrome' ? t.pasangChrome : t.pasangEdge, ukuran: '', href: s.url, aktif: true, unduhan: false };
+  const toko = (nama: Browser): Tombol => {
+    const url = alamatToko(nama);
+    if (url) return { untuk: nama, label: nama === 'chrome' ? t.pasangChrome : t.pasangEdge, ukuran: '', href: url, aktif: true, unduhan: false };
     return { untuk: nama, label: t.unduhEkstensi, ...dariBerkas(zip) };
   };
   const tombol: Tombol[] = [
@@ -78,15 +83,14 @@ export function tombolUnduh(bahasa: Bahasa): { tombol: Tombol[]; catatan: Catata
     toko('edge'),
     { untuk: 'ios', label: t.belumIphone, ukuran: '', href: pathPasang(bahasa, 'iphone'), aktif: true, unduhan: false, ringan: true },
   ];
-  const manual = (nama: 'chrome' | 'edge'): Catatan[] =>
-    rilis.toko[nama].status === 'terbit' ? [] : [{ untuk: nama, teks: nama === 'chrome' ? t.catatan.chrome : t.catatan.edge }];
+  const browser = (nama: Browser): Catatan => ({ untuk: nama, teks: alamatToko(nama) ? t.catatan.toko(NAMA_TOKO[nama]) : nama === 'chrome' ? t.catatan.chrome : t.catatan.edge });
   // Plain status lines (impeccable critique): the way to the guide is the second button, one per device.
   const catatan: Catatan[] = [
     { untuk: 'tanpa-js', teks: t.catatan.tanpaJs },
     { untuk: 'android', teks: t.catatan.android },
     { untuk: 'android-aplikasi', teks: t.catatan.aplikasi },
-    ...manual('chrome'),
-    ...manual('edge'),
+    browser('chrome'),
+    browser('edge'),
     { untuk: 'desktop-lain', teks: t.catatan.lain },
     { untuk: 'ios', teks: t.catatan.ios },
   ];

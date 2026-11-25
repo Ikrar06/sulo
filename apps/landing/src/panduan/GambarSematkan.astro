@@ -1,0 +1,24 @@
+---
+// The last step of both ways to install the extension: Sulo in the browser's
+// extensions menu on SIKOLA, the pin beside it circled.
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import Jendela from '../ilustrasi/Jendela.astro';
+import Lingkar from '../ilustrasi/Lingkar.astro';
+import { PinIkon, PuzzleIkon } from '../komponen/ikon';
+
+interface Props {
+  /** The menu's own heading, in the browser's words. */
+  menu: string;
+}
+const { menu } = Astro.props;
+---
+<Jendela alamat="sikola-v2.unhas.ac.id">
+  <Lingkar slot="alat"><PuzzleIkon className="il-ikon il-ikon--alat" /></Lingkar>
+  <div class="il-menu">
+    <p class="il-redup">{menu}</p>
+    <p class="il-menu-baris">
+      <span class="il-aplikasi"><img src={flame} alt="" width="20" height="20" />Sulo</span>
+      <Lingkar><PinIkon className="il-ikon" /></Lingkar>
+    </p>
+  </div>
+</Jendela>
