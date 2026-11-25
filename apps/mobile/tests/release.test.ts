@@ -17,7 +17,8 @@ function memory(init: Record<string, unknown> = {}): KeyValueStore {
   };
 }
 const NOW = 1_800_000_000;
-const REL = { versionCode: 906, versionName: '0.9.6', url: 'https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk', sha256: 'b'.repeat(64) };
+// A release newer than this build (1.0.0, versionCode 10000).
+const REL = { versionCode: 10006, versionName: '1.0.6', url: 'https://github.com/Ikrar06/sulo/releases/download/v1.0.6/sulo-1.0.6-android.apk', sha256: 'b'.repeat(64) };
 const config = (release: unknown) => ({ [REMOTE_CONFIG_KEY]: { enabled: true, minIntervalMinutes: 30, message: '', fetchedAt: NOW, okAt: NOW, mobile: { release } } });
 
 describe('release on the phone', () => {
@@ -27,15 +28,15 @@ describe('release on the phone', () => {
     expect(showChecksum(10003, false)).toBe(false);
     expect(showChecksum(10000, true)).toBe(true);
   });
-  it('this build reads its own versionCode (0.9.1 = 901)', () => {
-    expect(INSTALLED_CODE).toBe(901);
+  it('this build reads its own versionCode (1.0.0 = 10000)', () => {
+    expect(INSTALLED_CODE).toBe(10000);
   });
   it('available, then closed for 3 days by Nanti; Tentang still knows', async () => {
     const store = memory(config(REL));
     expect((await releaseState(store, NOW)).kind).toBe('available');
-    await dismissRelease(store, 906, NOW);
+    await dismissRelease(store, 10006, NOW);
     expect((await releaseState(store, NOW + 3600)).kind).toBe('none');
-    expect((await newerRelease(store))?.versionName).toBe('0.9.6');
+    expect((await newerRelease(store))?.versionName).toBe('1.0.6');
     expect((await releaseState(store, NOW + 3 * 86_400)).kind).toBe('available');
   });
   it('a broken or missing section: nothing at all', async () => {
@@ -47,7 +48,7 @@ describe('release on the phone', () => {
     expect(await updateRequired(memory(), NOW)).toBe(false);
   });
   it('below minVersionCode the SIKOLA client refuses without any request', async () => {
-    const store = memory(config({ ...REL, minVersionCode: 905 }));
+    const store = memory(config({ ...REL, minVersionCode: 10005 }));
     expect(await updateRequired(store, NOW)).toBe(true);
     let sent = 0;
     const client = createMoodleClient({

@@ -1,6 +1,6 @@
 {
   "name": "@sulo/mobile",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "private": true,
   "description": "Sulo for Android (Capacitor). Unofficial, not affiliated with Universitas Hasanuddin.",
   "license": "MIT",
