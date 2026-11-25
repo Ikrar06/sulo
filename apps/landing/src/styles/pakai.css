@@ -94,8 +94,13 @@
   font-weight: 600;
   line-height: 1.3;
 }
-.pakai-teks .panduan-penting {
+/* The one note: a box of its own on the page's ground (the install guides' note sits inside a card, where the
+   ground's colour is enough; here it would vanish on the dark page). */
+.pakai .panduan-penting {
   margin-top: 20px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  font-size: 0.9375rem;
 }
 /* What you can do: one action a line, a small quiet mark before each. */
 .pakai-bisa {
@@ -427,6 +432,8 @@
   .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks > :is(.pakai-bisa, .pakai-uraian) {
     grid-column: 2;
     grid-row: 1 / span 2;
+    /* As tall as its own lines, however tall the left column is (stretched, its lines drifted apart). */
+    align-self: start;
     /* Level with the title's first line. */
     margin-top: 6px;
   }

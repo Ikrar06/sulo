@@ -8,6 +8,7 @@
 // says what it shows. A dashboard page is drawn small on a phone, so there
 // its caption links to the screen itself (a page 1280 wide, which a phone
 // lets you zoom).
+import { dasbor, LEBAR_DASBOR, TINGGI_DASBOR } from '../layar/dasbor';
 import type { GambarPakai } from '../teks/pakai';
 import { pakai } from '../teks/pakai-semua';
 import type { Bahasa } from '../teks';
@@ -17,9 +18,9 @@ interface Props {
   bahasa: Bahasa;
 }
 const { gambar, bahasa } = Astro.props;
-// Each screen's own size in points: the phone's screen, a laptop window, the popup.
-const UKURAN = { hp: [402, 780], dasbor: [1280, 800], popup: [380, 560] } as const;
-const [lebar, tinggi] = UKURAN[gambar.jenis];
+// Each screen's own size in points: the phone's screen, a laptop window (shorter for a short page), the popup.
+const [lebar, tinggi] =
+  gambar.jenis === 'hp' ? [402, 780] : gambar.jenis === 'popup' ? [380, 560] : [LEBAR_DASBOR, dasbor(gambar.nama).tinggi ?? TINGGI_DASBOR];
 const src =
   gambar.jenis === 'popup' ? `/layar/${bahasa}/popup/auto/` : `/layar/${bahasa}/${gambar.jenis}/${gambar.nama}/auto/`;
 ---

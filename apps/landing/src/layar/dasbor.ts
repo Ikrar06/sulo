@@ -23,20 +23,27 @@ interface Dasbor {
   hidup?: boolean;
   /** The element (by id) the page is scrolled to, for a part further down. */
   ke?: string;
+  /** The window's height in points, for a page shorter than a laptop screen (800): no empty band under it. */
+  tinggi?: number;
 }
+
+/** A dashboard screen's size in points. */
+export const LEBAR_DASBOR = 1280;
+export const TINGGI_DASBOR = 800;
 
 export const LAYAR_DASBOR = {
   ringkasan: { halaman: 'ringkasan' },
   tugas: { halaman: 'tugas', hidup: true },
   'tugas-rincian': { halaman: 'tugas', rincian: 'tugas', hidup: true },
-  'mata-kuliah': { halaman: 'mata-kuliah' },
-  presensi: { halaman: 'presensi' },
-  'presensi-rincian': { halaman: 'presensi', rincian: 'presensi' },
-  kabar: { halaman: 'kabar', hidup: true },
+  'mata-kuliah': { halaman: 'mata-kuliah', tinggi: 600 },
+  presensi: { halaman: 'presensi', tinggi: 600 },
+  'presensi-rincian': { halaman: 'presensi', rincian: 'presensi', tinggi: 710 },
+  kabar: { halaman: 'kabar', hidup: true, tinggi: 620 },
   kalender: { halaman: 'kalender' },
   pengaturan: { halaman: 'pengaturan', hidup: true },
   'pengaturan-pengingat': { halaman: 'pengaturan', hidup: true, ke: 'set-pengingat' },
-  'pengaturan-data': { halaman: 'pengaturan', hidup: true, ke: 'set-data' },
+  // Short, so the page can scroll far enough to put Data at the top (it is near the page's end).
+  'pengaturan-data': { halaman: 'pengaturan', hidup: true, ke: 'set-data', tinggi: 520 },
   'neosia-ringkasan': { halaman: 'ringkasan', neosia: true },
   'neosia-jadwal': { halaman: 'jadwal', neosia: true },
   'neosia-nilai': { halaman: 'nilai', neosia: true },
