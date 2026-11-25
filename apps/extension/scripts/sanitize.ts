@@ -1,6 +1,7 @@
 // Sanitizes a JSON file with the same rules the fixture recorder uses, or a
 // saved SIKOLA attendance page (.html, sanitize/html.ts).
 // Usage: node scripts/sanitize.ts <input.json|.html> <output> [--shift-days N]
+//        node scripts/sanitize.ts sipakamase [--rinci]   (a folder of saved pages, see sanitize-sipakamase.ts)
 // Runs on Node 24+ (built-in TypeScript type stripping), no build step.
 // Refuses to write the output if a leak pattern survives sanitization.
 
@@ -10,10 +11,12 @@ import { sanitizeJson } from '../../../packages/core/src/sanitize/json.ts';
 import { sanitizeAttendanceHtml, signedInNames } from '../../../packages/core/src/sanitize/html.ts';
 import { PAGE_USER_ORDER, pageUserCandidates, pageUserId } from '../../../packages/core/src/presensi/page-user.ts';
 import { findLeaks } from '../../../packages/core/src/sanitize/leak-rules.mjs';
+import { runSipakamase } from './sanitize-sipakamase.ts';
 
 const SIKOLA_ORIGIN = 'https://sikola-v2.unhas.ac.id';
 
 function main(argv: string[]): number {
+  if (argv[0] === 'sipakamase') return runSipakamase(argv.slice(1));
   // pnpm runs this from apps/extension; paths are read from where the command was typed.
   const fromCaller = (p: string | undefined) => (p === undefined ? undefined : resolve(process.env.INIT_CWD ?? process.cwd(), p));
   const [input, output] = [fromCaller(argv[0]), fromCaller(argv[1])];

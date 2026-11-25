@@ -33,7 +33,10 @@ export function plausibleNip(m) {
 /**
  * `onlyFixtures`: the rule applies only to files under fixtures/ (and to
  * recorder output, which becomes a fixture).
- * @type {{ name: string, re: RegExp, allow?: (match: string) => boolean, onlyFixtures?: boolean }[]}
+ * `onlyUnder`: the rule applies only to paths that contain this folder. Pages
+ * saved from a browser hold more kinds of personal data than a Moodle
+ * response, so their folder gets stricter rules.
+ * @type {{ name: string, re: RegExp, allow?: (match: string) => boolean, onlyFixtures?: boolean, onlyUnder?: string }[]}
  */
 export const LEAK_RULES = [
   {
@@ -91,13 +94,28 @@ export const LEAK_RULES = [
     re: /"(?:nik|nisn|tanggal_lahir|alamat)"\s*:/gi,
     onlyFixtures: true,
   },
+  {
+    // Any address, not only a campus one. The sanitizer's placeholders pass.
+    name: 'Alamat email di halaman tersimpan',
+    re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g,
+    allow: (m) => /@example\.(?:invalid|test)$/i.test(m),
+    onlyUnder: 'fixtures/sipakamase/',
+  },
+  {
+    // Indonesian mobile numbers: 08..., 628..., +628..., with or without separators.
+    name: 'Pola mirip nomor HP',
+    re: /(?<![A-Za-z\d.])(?:\+?62|0)[\s-]?8(?:[\s-]?\d){7,11}(?!\d)/g,
+    allow: (m) => /^080{7,}\d{0,3}$/.test(m),
+    onlyUnder: 'fixtures/sipakamase/',
+  },
 ];
 
 /**
- * @param {{ onlyFixtures?: boolean }} rule
+ * @param {{ onlyFixtures?: boolean, onlyUnder?: string }} rule
  * @param {string} relPath repository-relative path with forward slashes
  */
 export function ruleApplies(rule, relPath) {
+  if (rule.onlyUnder) return relPath.startsWith(rule.onlyUnder) || relPath.includes(`/${rule.onlyUnder}`);
   // fixtures/ at the root of the scan or of a workspace package (apps/extension/fixtures/).
   return !rule.onlyFixtures || relPath.startsWith('fixtures/') || relPath.includes('/fixtures/');
 }
