@@ -16,8 +16,12 @@
 //
 // Absolute addresses need SITE_URL: without it (a local build) none is
 // written. A preview build is never indexed.
+//
+// On the live site the host counts visits (data/mode.ts): its script comes
+// from this site's own address, so the policy needs nothing new. The device
+// screens (/layar/) have their own document and are not counted.
 import '../styles/landing.css';
-import { PRATINJAU } from '../data/mode';
+import { HITUNG_KUNJUNGAN, PRATINJAU } from '../data/mode';
 import { alamatHalaman, alamatSitus } from '../data/situs';
 import { teks, type Bahasa } from '../teks';
 
@@ -137,6 +141,12 @@ const tanpaIndeks = noindex || PRATINJAU;
         });
       })();
     </script>
+    {HITUNG_KUNJUNGAN && (
+      <Fragment>
+        <script is:inline>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+        <script is:inline defer src="/_vercel/insights/script.js"></script>
+      </Fragment>
+    )}
   </head>
   <body>
     <a class="lewati" href="#isi">{teks[bahasa].lewati}</a>
