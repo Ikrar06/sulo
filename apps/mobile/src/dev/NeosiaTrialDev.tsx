@@ -32,8 +32,8 @@ export function NeosiaTrialDev() {
   const open = (page: NeosiaPage) =>
     void SuloNeosia.open({ page, close: 'Tutup' }).then(({ result }) => {
       setLast(result === 'signed_in' ? 'Sudah masuk NEOSIA.' : result === 'needs_login' ? 'NEOSIA meminta masuk; layar menutup sendiri. Masuk dulu.' : 'Ditutup.');
-      setLastResult(result);
-      if (result === 'signed_in') setSignedIn(true);
+      setLastResult(result === 'data' ? 'signed_in' : result);
+      if (result === 'signed_in' || result === 'data') setSignedIn(true);
       void load();
     });
   // Beranda once without the script and once with it, each closing itself; the counters reset in between.

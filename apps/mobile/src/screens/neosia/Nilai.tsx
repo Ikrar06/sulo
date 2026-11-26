@@ -201,7 +201,7 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
       </section>
 
       <p className="text-m12 text-muted-foreground">{seenAt !== null ? t.source(formatAgo(seenAt, data!.now, m)) : null}</p>
-      <PillButton full onPress={() => void neo.open('khs')}>
+      <PillButton full onPress={() => void neo.refreshFrom('khs')}>
         {n.refresh.grades}
       </PillButton>
 

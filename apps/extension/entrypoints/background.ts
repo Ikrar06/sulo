@@ -53,6 +53,8 @@ import { SIPAKAMASE_NEWS_KEY } from '@sulo/core/sipakamase/store';
 import { disableModule, enableModule, reconcileModule } from '@sulo/core/neosia/module';
 import { NEOSIA_APP_ORIGIN } from '@sulo/core/neosia/allowlist';
 import { ingestCapture, pruneUnlistedSnapshots } from '@sulo/core/neosia/store';
+import { captureFrom, REFRESH_SETTLE_MS, startRefresh } from '@sulo/core/neosia/refresh-tab';
+import { NEOSIA_HOME, NEOSIA_KHS, NEOSIA_KRS } from '@sulo/core/links';
 import { recordGrades } from '@sulo/core/neosia/grades';
 import { buildPopupView } from '@sulo/core/view/popup-view';
 import { EXTENSION_WATCH_KEY, readExtensionWatch, setExtensionWatch, watchInForce } from '@sulo/core/watch/extension';
@@ -68,6 +70,8 @@ const SNOOZE_FROM_NOTIFICATION = 3600;
 const ONBOARDING_PAGE = '/onboarding.html';
 /** "Pantau tugas baru" (1.1.0): the periodic light check, only while it is on. */
 const WATCH_ALARM = 'watch';
+/** Where "Perbarui dari NEOSIA" goes, by what the page needs. */
+const NEOSIA_REFRESH_PAGES = { home: NEOSIA_HOME, khs: NEOSIA_KHS, krs: NEOSIA_KRS } as const;
 /** Catch-up syncs after the browser starts or the user returns: "catchup:startup", "catchup:idle". */
 const CATCHUP_ALARM_PREFIX = 'catchup:';
 const CATCHUP_TRIGGERS = new Set<SyncTrigger>(['startup', 'idle']);
@@ -537,6 +541,9 @@ export default defineBackground(() => {
         return sipakamase.disable();
       case 'sipakamase/refresh':
         return sipakamase.refresh();
+      case 'neosia/refresh':
+        // From the click on "Perbarui dari NEOSIA": the page in a new tab, watched for its data (core neosia/refresh-tab.ts).
+        return startRefresh(session, async () => (await browser.tabs.create({ url: NEOSIA_REFRESH_PAGES[message.page], active: true })).id, clock.now()).then((ok) => ({ ok }));
       default:
         return null;
     }
@@ -675,6 +682,11 @@ export default defineBackground(() => {
       // Only the bridge on a NEOSIA page; anything else is dropped unread.
       if (!isContentScriptOn(sender, extensionId, NEOSIA_APP_ORIGIN)) return false;
       onNeosiaCapture(message.capture);
+      // The refresh tab Sulo opened from the user's click closes once its data came in.
+      const tabId = sender.tab?.id;
+      void captureFrom(session, tabId, clock.now()).then((close) => {
+        if (close && tabId !== undefined) setTimeout(() => void browser.tabs.remove(tabId).catch(() => undefined), REFRESH_SETTLE_MS);
+      });
       return false;
     }
     if (message.type === 'sipakamase/passive') {

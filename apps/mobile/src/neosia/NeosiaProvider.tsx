@@ -46,6 +46,8 @@ export interface NeosiaState {
   disable: () => Promise<void>;
   /** Opens a NEOSIA page from a tap; its captures are stored when it closes. */
   open: (page: NeosiaPage | SourceId | 'login') => Promise<OpenResult>;
+  /** "Perbarui dari NEOSIA" (1.1.0): the page opens, its data comes in, the screen closes by itself. */
+  refreshFrom: (page: NeosiaPage | SourceId) => Promise<OpenResult>;
   /** The full snapshots with grades, for Nilai and the Studi card only. */
   loadGrades: () => Promise<Snapshots>;
   reload: () => Promise<void>;
@@ -135,9 +137,11 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
   }, [platform, reload]);
 
   const open = useCallback(
-    async (target: NeosiaPage | SourceId | 'login'): Promise<OpenResult> => {
+    async (target: NeosiaPage | SourceId | 'login', closeOnData = false): Promise<OpenResult> => {
       const page = (target in PAGE_OF ? PAGE_OF[target as SourceId] : target) as NeosiaPage;
-      const { result } = await SuloNeosia.open({ page, close: 'Tutup' });
+      const answer = (await SuloNeosia.open({ page, close: 'Tutup', ...(closeOnData ? { closeOnData: true } : {}) })).result;
+      // Data came in: the session was alive, like a sign-in seen.
+      const result: OpenResult = answer === 'data' ? 'signed_in' : answer;
       setLastResult(result);
       setNeedsLogin(result === 'needs_login');
       if (result === 'signed_in') await store.set(SIGNED_IN_KEY, true).catch(() => undefined);
@@ -161,7 +165,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
     return full;
   }, [snapshots, gradeKeys, store]);
 
-  const value: NeosiaState = { supported, enabled: module.enabled, snapshots, done, next, needsLogin, signedIn, courseMap, mkpk, enable, disable, open, loadGrades, reload };
+  const value: NeosiaState = { supported, enabled: module.enabled, snapshots, done, next, needsLogin, signedIn, courseMap, mkpk, enable, disable, open: (t) => open(t), refreshFrom: (t) => open(t, true), loadGrades, reload };
   return <NeosiaContext.Provider value={value}>{children}</NeosiaContext.Provider>;
 }
 

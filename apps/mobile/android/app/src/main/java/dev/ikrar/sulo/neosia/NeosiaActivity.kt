@@ -54,6 +54,8 @@ class NeosiaActivity : Activity() {
     private var lastUrl: String? = null
     private lateinit var page: NeosiaRules.Page
     private var closing = false
+    /** "Perbarui dari NEOSIA" (1.1.0): the screen closes itself once data came in. */
+    private var closeOnData = false
     private val queue by lazy { CaptureQueue.of(this) }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -97,6 +99,7 @@ class NeosiaActivity : Activity() {
         // The script and the bridge only for a page that is not the login page, before it loads.
         // Debug builds (B0 "Bandingkan request"): the same page may open without them, and close itself.
         val withScript = !BuildConfig.DEBUG || intent.getBooleanExtra(EXTRA_SCRIPT, true)
+        closeOnData = intent.getBooleanExtra(EXTRA_CLOSE_ON_DATA, false)
         if (NeosiaRules.scriptFor(page) && withScript) attach()
         webView.loadUrl(NeosiaRules.url(page))
         val autoClose = if (BuildConfig.DEBUG) intent.getLongExtra(EXTRA_AUTO_CLOSE_MS, 0) else 0
@@ -115,6 +118,8 @@ class NeosiaActivity : Activity() {
                 // Already projected in the page; encrypted in the queue until the app runs core's gate and stores it.
                 runCatching { queue.append(data) }
                 NeosiaTrial.capture(NeosiaRules.label(data), data.toByteArray(Charsets.UTF_8).size)
+                // The page's other answers usually follow within a moment: a short wait, then back to the app.
+                if (closeOnData) close(RESULT_DATA, DATA_SETTLE_MS)
             } else {
                 NeosiaTrial.reject(verdict.name)
             }
@@ -250,12 +255,15 @@ class NeosiaActivity : Activity() {
         const val EXTRA_CLOSE = "sulo.close"
         /** Debug builds: false opens a page without the capture script (to compare requests). */
         const val EXTRA_SCRIPT = "sulo.neosia.script"
+        const val EXTRA_CLOSE_ON_DATA = "sulo.neosia.closeOnData"
+        const val DATA_SETTLE_MS = 2_500L
         /** Debug builds: the screen closes itself after this many ms. */
         const val EXTRA_AUTO_CLOSE_MS = "sulo.neosia.autoClose"
         /** Signed in on NEOSIA's login page. */
         const val RESULT_SIGNED_IN = RESULT_FIRST_USER + 1
         /** A page with the script went to the login page: sign in first. */
         const val RESULT_NEEDS_LOGIN = RESULT_FIRST_USER + 2
+        const val RESULT_DATA = RESULT_FIRST_USER + 3
         /** How long the login page stays after signing in, for NEOSIA to store its sign-in. */
         const val SIGNED_IN_SETTLE_MS = 1_500L
     }

@@ -15,6 +15,7 @@ import { sourceDone } from '@sulo/core/neosia/sources';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { isOlderThan } from '@sulo/core/neosia/sources';
 import { NeosiaChecklist } from '../NeosiaChecklist';
+import { useDashboard } from '../data';
 import { neosiaStatus, profile } from '@sulo/core/neosia/view';
 import { GpaChart } from '../GpaChart';
 import { yAxisRange } from '@sulo/core/grades/axis';
@@ -163,12 +164,12 @@ function DevTranscript({ rows, semesters }: { rows: readonly TranscriptRow[]; se
 }
 
 /** "Perbarui dari NEOSIA": opens the NEOSIA KHS page in a new tab on the user's click. */
+/** "Perbarui dari NEOSIA": the KHS page in a new tab, which closes by itself once its data came in. */
 function RefreshButton({ label }: { label: string }) {
+  const { actions } = useDashboard();
   return (
-    <Button variant="outline" asChild>
-      <a href={NEOSIA_KHS} target="_blank" rel="noopener noreferrer">
-        {label}
-      </a>
+    <Button variant="outline" onClick={() => void actions.send({ type: 'neosia/refresh', page: 'khs' })}>
+      {label}
     </Button>
   );
 }

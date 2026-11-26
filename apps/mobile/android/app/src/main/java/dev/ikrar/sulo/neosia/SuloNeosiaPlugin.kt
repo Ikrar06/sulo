@@ -48,6 +48,7 @@ class SuloNeosiaPlugin : Plugin() {
             // B0 "Bandingkan request": the same page without the script, closing itself.
             .putExtra(NeosiaActivity.EXTRA_SCRIPT, if (BuildConfig.DEBUG) call.getBoolean("script") ?: true else true)
             .putExtra(NeosiaActivity.EXTRA_AUTO_CLOSE_MS, (call.getInt("autoCloseMs") ?: 0).coerceIn(0, 30_000).toLong())
+            .putExtra(NeosiaActivity.EXTRA_CLOSE_ON_DATA, call.getBoolean("closeOnData") ?: false)
         startActivityForResult(call, intent, "neosiaClosed")
     }
 
@@ -57,6 +58,7 @@ class SuloNeosiaPlugin : Plugin() {
         val how = when (result.resultCode) {
             NeosiaActivity.RESULT_SIGNED_IN -> "signed_in"
             NeosiaActivity.RESULT_NEEDS_LOGIN -> "needs_login"
+            NeosiaActivity.RESULT_DATA -> "data"
             else -> "closed"
         }
         call?.resolve(JSObject().put("result", how))

@@ -48,6 +48,8 @@ export const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('sipakamase/disable') }),
   /** "Perbarui sekarang": the five fragments, at most once every 2 minutes. */
   z.object({ type: z.literal('sipakamase/refresh') }),
+  /** "Perbarui dari NEOSIA": that NEOSIA page in a new tab, closed by itself once its data came in. */
+  z.object({ type: z.literal('neosia/refresh'), page: z.enum(['home', 'khs', 'krs']) }),
   /**
    * Reader on a Sipakamase page: one fragment's projected data, or that the
    * page asks for a password. Checked loosely here; the service worker
