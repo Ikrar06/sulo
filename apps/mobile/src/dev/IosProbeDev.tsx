@@ -39,7 +39,7 @@ export function IosProbeDev() {
   const [note, setNote] = useState<string | null>(null);
   const load = () => void SuloProbe.status().then(setS).catch(() => setNote('Uji iPhone tidak terbaca.'));
   useEffect(load, []);
-  const row = 'py-1.5 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line';
+  const row = 'py-2 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line';
   return (
     <Card>
       <h2 className="text-m15 font-semibold">Uji iPhone (Fase 1)</h2>

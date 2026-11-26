@@ -5,6 +5,7 @@
 //   sync     web build, cap sync ios, project sync (scripts/ios-project.mjs)
 //   sim      sync, build for the simulator, install and open it   [--device="iPhone 17"]
 //   live     the simulator loading the UI from Vite on this Mac (localhost only, development only)
+//   live-device  the same on the iPhone over the Mac's Wi-Fi (same network; owner only, development only)
 //   device   owner only: sign with the Personal Team (ios/App/Local.xcconfig), install and open on the iPhone
 //   ipa      unsigned archive -> .output/sulo-<versi>-ios[-sintetis].ipa, then scripts/ios-verify.mjs
 //   log      the app's log from the simulator, or from the iPhone with --iphone
@@ -13,7 +14,7 @@
 // --data=sintetis (default in Fase 1) builds the web app with synthetic data: no request to SIKOLA,
 // NEOSIA, Sipakamase or anywhere else. --data=debug and --data=rilis need the native session (Fase 2).
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statfsSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statfsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { IOS_APP, PBXPROJ, syncProject } from './ios-project.mjs';
@@ -84,18 +85,71 @@ function sim() {
   console.log(`Sulo jalan di ${d.name}.`);
 }
 
-function live() {
-  // localhost only: the simulator shares this Mac's network, so no Wi-Fi address, no local-network
-  // permission and no HTTP exception in Info.plist. The .ipa never carries this (scripts/ios-verify.mjs).
-  const d = simulator();
-  const server = spawn('pnpm', ['exec', 'vite', '--mode', 'web', '--host', '127.0.0.1', '--port', String(LIVE_PORT), '--strictPort'], { cwd: MOBILE, stdio: 'inherit' });
-  const stop = () => server.kill();
-  process.on('SIGINT', stop);
+/**
+ * Live reload: the app's web view loads the UI from Vite on this Mac instead of its bundle. Development
+ * only, through these two commands: the address goes into the generated capacitor.config.json (ignored by
+ * git), and `cap copy ios` writes the bundle's own config back when the session ends. ios:ipa runs
+ * ios:sync first, and scripts/ios-verify.mjs refuses any server.url or dev-server address anyway.
+ */
+function liveRun({ host, destination, products, extra = [], install, launch }) {
+  const data = dataMode();
+  const url = `http://${host}:${LIVE_PORT}`;
+  const server = spawn('pnpm', ['exec', 'vite', '--mode', DATA_MODES[data], '--host', host, '--port', String(LIVE_PORT), '--strictPort'], { cwd: MOBILE, stdio: 'inherit' });
+  const restore = () => {
+    server.kill();
+    spawnSync('pnpm', ['exec', 'cap', 'copy', 'ios'], { cwd: MOBILE, stdio: 'ignore' });
+    console.log('Muat ulang langsung selesai; konfigurasi bundel dipulihkan.');
+  };
+  process.on('SIGINT', () => {
+    restore();
+    process.exit(0);
+  });
   try {
-    run('pnpm', ['exec', 'cap', 'run', 'ios', '--live-reload', '--host', '127.0.0.1', '--port', String(LIVE_PORT), '--target', d.udid]);
-  } finally {
-    console.log('Muat ulang langsung selesai. Sebelum ios:ipa atau ios:device, ios:sync menulis ulang konfigurasinya.');
+    sync();
+    const configPath = join(IOS_APP, 'App', 'capacitor.config.json');
+    const config = JSON.parse(readFileSync(configPath, 'utf8'));
+    writeFileSync(configPath, JSON.stringify({ ...config, server: { ...config.server, url: url } }, null, 2));
+    buildFor(destination, 'Debug', extra);
+    install(join(DERIVED, 'Build/Products', products, 'App.app'));
+    launch();
+    console.log(`Sulo memuat tampilan dari ${url}. Simpan berkas untuk melihat perubahan. Ctrl+C untuk selesai.`);
+  } catch (e) {
+    restore();
+    throw e;
   }
+}
+
+function live() {
+  // localhost only: the simulator shares this Mac's network, so nothing is reachable from other devices.
+  const d = simulator();
+  spawnSync('xcrun', ['simctl', 'boot', d.udid]);
+  spawnSync('open', ['-a', 'Simulator']);
+  liveRun({
+    host: '127.0.0.1',
+    destination: `id=${d.udid}`,
+    products: 'Debug-iphonesimulator',
+    install: (app) => run('xcrun', ['simctl', 'install', d.udid, app]),
+    launch: () => run('xcrun', ['simctl', 'launch', d.udid, BUNDLE_ID]),
+  });
+}
+
+function liveDevice() {
+  // The iPhone reaches Vite over this Mac's Wi-Fi address (same network). While it runs, the UI's source
+  // is served to that network; Ctrl+C stops it. The first time, iOS asks to allow Sulo on the local network.
+  const id = team();
+  if (!id) fail(`Tim penanda tangan belum ada di ${LOCAL} (lihat docs/ios/XCODE-KAPAN.md bagian 2).`);
+  const phone = iphone();
+  if (!phone) fail('iPhone tidak terlihat. Colok kabelnya sekali dan buka kuncinya, lalu cek: xcrun devicectl list devices');
+  const host = spawnSync('ipconfig', ['getifaddr', 'en0'], { encoding: 'utf8' }).stdout.trim();
+  if (!/^\d+\.\d+\.\d+\.\d+$/.test(host)) fail('Mac tidak tersambung ke WiFi. Sambungkan Mac dan iPhone ke WiFi yang sama.');
+  liveRun({
+    host,
+    destination: `id=${phone.hardwareProperties.udid}`,
+    products: 'Debug-iphoneos',
+    extra: ['-allowProvisioningUpdates', '-allowProvisioningDeviceRegistration', '-xcconfig', LOCAL],
+    install: (app) => run('xcrun', ['devicectl', 'device', 'install', 'app', '--device', phone.identifier, app]),
+    launch: () => run('xcrun', ['devicectl', 'device', 'process', 'launch', '--terminate-existing', '--device', phone.identifier, BUNDLE_ID]),
+  });
 }
 
 function team() {
@@ -172,6 +226,6 @@ function doctor() {
   line(free >= 10, `ruang kosong ${free} GB`);
 }
 
-const commands = { sync, sim, live, device, ipa, log, doctor };
+const commands = { sync, sim, live, 'live-device': liveDevice, device, ipa, log, doctor };
 if (!commands[command]) fail(`Perintah: ${Object.keys(commands).join(', ')}`);
 commands[command]();

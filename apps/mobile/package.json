@@ -38,6 +38,7 @@
     "ios:sync": "node scripts/ios.mjs sync",
     "ios:sim": "node scripts/ios.mjs sim",
     "ios:live": "node scripts/ios.mjs live",
+    "ios:live:device": "node scripts/ios.mjs live-device",
     "ios:device": "node scripts/ios.mjs device",
     "ios:ipa": "node scripts/ios.mjs ipa",
     "ios:log": "node scripts/ios.mjs log",
