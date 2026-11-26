@@ -1,7 +1,8 @@
 ---
-// The footer (brief 6.11): the links, the language, the full "unofficial"
-// sentence, the sample-data note, and the maker's name in one small line with
-// the tip jar beside the other links, the same weight as them (TETAP).
+// The footer (brief 6.11): the links in three groups (using Sulo, the
+// project, support), the language, the full "unofficial" sentence, the
+// sample-data note, and the maker's name in one small line. The tip jar sits
+// among the other links, the same weight as them (TETAP).
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
 import { LISENSI, MASUKAN, PEMBUAT, PROFIL, REPO, RILIS, TRAKTEER, pathLain, pathPakai, pathPasang, pathRumah } from '../data/alamat';
 import { pakai } from '../teks/pakai-semua';
@@ -17,35 +18,67 @@ interface Props {
 const { bahasa, path } = Astro.props;
 const t = rumah2[bahasa].kaki;
 const rumah = pathRumah(bahasa);
-const tautan = [
-  { href: pathPasang(bahasa), teks: t.tautan.pasang },
-  { href: pathPakai(bahasa), teks: pakai[bahasa].kaki },
-  { href: `${rumah}#privasi`, teks: t.tautan.privasi },
-  { href: REPO, teks: t.tautan.kode },
-  { href: MASUKAN, teks: t.tautan.lapor },
-  { href: RILIS, teks: t.tautan.rilis },
-  { href: LISENSI, teks: t.tautan.lisensi },
-  { href: TRAKTEER, teks: t.tautan.traktir },
+// Three groups, so the links never wrap at an arbitrary place: columns with a
+// small label on wide screens, one row per group on a phone.
+const kelompok = [
+  {
+    id: 'pakai',
+    judul: t.kelompok.pakai,
+    tautan: [
+      { href: pathPasang(bahasa), teks: t.tautan.pasang },
+      { href: pathPakai(bahasa), teks: pakai[bahasa].kaki },
+      { href: `${rumah}#privasi`, teks: t.tautan.privasi },
+    ],
+  },
+  {
+    id: 'proyek',
+    judul: t.kelompok.proyek,
+    tautan: [
+      { href: REPO, teks: t.tautan.kode },
+      { href: RILIS, teks: t.tautan.rilis },
+      { href: LISENSI, teks: t.tautan.lisensi },
+    ],
+  },
+  {
+    id: 'bantuan',
+    judul: t.kelompok.bantuan,
+    tautan: [
+      { href: MASUKAN, teks: t.tautan.lapor },
+      { href: TRAKTEER, teks: t.tautan.traktir },
+    ],
+  },
 ];
+// The maker's line, with only the name as the link.
+const [sebelumNama, sesudahNama] = t.pembuat(PEMBUAT).split(PEMBUAT);
 const lain = bahasa === 'en' ? 'id' : 'en';
 ---
 <footer class="kaki">
   <div class="isi">
     <div class="kaki-atas">
       <a class="kaki-merek" href={rumah}><img src={flame} alt="" width="28" height="28" />Sulo</a>
-      <nav aria-label={t.label}>
-        <ul class="kaki-tautan" role="list">
-          {tautan.map((l) => <li><a href={l.href}>{l.teks}</a></li>)}
-        </ul>
+      <nav class="kaki-nav" aria-label={t.label}>
+        {
+          kelompok.map((k) => (
+            <div class="kaki-kelompok">
+              <p class="kaki-judul" id={`kaki-${k.id}`}>{k.judul}</p>
+              <ul class="kaki-tautan" role="list" aria-labelledby={`kaki-${k.id}`}>
+                {k.tautan.map((l) => <li><a href={l.href}>{l.teks}</a></li>)}
+              </ul>
+            </div>
+          ))
+        }
       </nav>
     </div>
     <div class="kaki-bawah">
       <div class="kaki-teks">
         <p>{t.tidakResmi}</p>
         <p>{teks[bahasa].dataContoh}</p>
-        <p><a href={PROFIL}>{t.pembuat(PEMBUAT)}</a></p>
+        <p>{sebelumNama}<a class="kaki-nama" href={PROFIL}>{PEMBUAT}</a>{sesudahNama}</p>
       </div>
-      <a class="kaki-bahasa" href={pathLain(path, bahasa)} hreflang={lain} lang={lain}>{teks[bahasa].nav.bahasaLain}</a>
+      <p class="kaki-bahasa">
+        <span>{t.bahasa}</span>
+        <a href={pathLain(path, bahasa)} hreflang={lain} lang={lain}>{teks[bahasa].nav.bahasaLain}</a>
+      </p>
     </div>
   </div>
 </footer>

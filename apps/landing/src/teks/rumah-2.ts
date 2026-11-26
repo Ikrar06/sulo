@@ -115,6 +115,7 @@ export const rumah2 = {
       pembuat: (nama: string) => `${nama}, Teknik Informatika Unhas`,
       bahasa: 'Bahasa',
       label: 'Tautan kaki halaman',
+      kelompok: { pakai: 'Pakai', proyek: 'Proyek', bantuan: 'Bantuan' },
     },
   },
   en: {
@@ -226,6 +227,7 @@ export const rumah2 = {
       pembuat: (nama: string) => `${nama}, Informatics, Unhas`,
       bahasa: 'Language',
       label: 'Footer links',
+      kelompok: { pakai: 'Using Sulo', proyek: 'Project', bantuan: 'Support' },
     },
   },
 } as const satisfies Record<Bahasa, unknown>;
