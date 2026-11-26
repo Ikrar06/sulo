@@ -1,6 +1,9 @@
-/* The footer: plain, quiet, every link the same weight (the tip jar included). */
+/* The footer: plain and quiet. The links sit in three groups, so they never
+   break at an arbitrary place: one row per group on a phone, three columns
+   with a small label from 40em up. Every link has the same weight (the tip
+   jar included), and the small print is one step smaller than the links. */
 .kaki {
-  padding: 56px var(--pinggir) 40px;
+  padding: 56px var(--pinggir) 48px;
   border-top: 1px solid var(--garis);
   font-size: 0.9375rem;
 }
@@ -9,7 +12,7 @@
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px 40px;
+  gap: 16px 56px;
 }
 .kaki-merek {
   display: inline-flex;
@@ -22,6 +25,34 @@
   color: var(--tinta);
   text-decoration: none;
 }
+/* The logo and what Sulo is, in the page's own words: the left side of the
+   footer says something instead of standing empty. */
+.kaki-kenal {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+.kaki-kenal p {
+  max-width: 44ch;
+  margin: 4px 0 0;
+  color: var(--abu);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.kaki-nav {
+  display: grid;
+  min-width: 0;
+}
+/* On a phone the group's name is for assistive technology only: each row is
+   already one group. */
+.kaki-judul {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .kaki-tautan {
   display: flex;
   flex-wrap: wrap;
@@ -31,8 +62,7 @@
   list-style: none;
 }
 .kaki-tautan a,
-.kaki-teks a,
-.kaki-bahasa {
+.kaki-bahasa a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -40,36 +70,88 @@
   text-decoration: none;
 }
 .kaki-tautan a:hover,
-.kaki-teks a:hover,
-.kaki-bahasa:hover {
+.kaki-bahasa a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+@media (min-width: 40em) {
+  .kaki-kenal p {
+    max-width: 34ch;
+  }
+  .kaki-nav {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: 0 40px;
+  }
+  /* The label shares the logo's row: the same height, so both sit on one line. */
+  .kaki-judul {
+    position: static;
+    display: flex;
+    align-items: center;
+    width: auto;
+    height: auto;
+    min-height: 44px;
+    overflow: visible;
+    clip-path: none;
+    font-size: 0.8125rem;
+    color: var(--abu);
+  }
+  .kaki-tautan {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
 }
 .kaki-bawah {
   display: flex;
   flex-wrap: wrap;
+  /* Side by side, the language sits on the last line of the small print
+     (bottom edges where "last baseline" is not known). */
   align-items: flex-end;
+  align-items: last baseline;
   justify-content: space-between;
+  /* 16px between the rows on a phone: the name's touch area reaches 12px below its line. */
   gap: 16px 40px;
-  margin-top: 32px;
+  margin-top: 28px;
   padding-top: 24px;
   border-top: 1px solid var(--garis);
+  font-size: 0.8125rem;
+  color: var(--abu);
 }
 .kaki-teks {
   min-width: 0;
-  color: var(--abu);
-  line-height: 1.55;
+  line-height: 1.6;
 }
 .kaki-teks p {
   margin: 0;
   text-wrap: pretty;
 }
 .kaki-teks p + p {
-  margin-top: 4px;
+  margin-top: 2px;
 }
-.kaki-teks a {
-  min-height: 0;
-  color: var(--abu);
+/* The maker's name is the one link in the small print: a thin underline that
+   is always there, in the text's own colour, so it reads as a link and stays
+   as quiet as the lines around it. */
+.kaki-nama {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
   padding-block: 12px;
-  margin-block: -12px;
+}
+.kaki-nama:hover {
+  color: var(--tinta);
+  text-decoration-color: currentColor;
+}
+.kaki-bahasa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+@media (min-width: 64em) {
+  .kaki-nav {
+    gap: 0 56px;
+  }
 }
