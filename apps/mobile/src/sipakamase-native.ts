@@ -18,4 +18,6 @@ export interface SuloSipakamasePlugin extends NeosiaNative {
 export const SuloSipakamase = registerPlugin<SuloSipakamasePlugin>('SuloSipakamase', {
   // pnpm mobile:web and Vitest: synthetic data in memory, no Sipakamase page (src/fake/sipakamase.ts).
   ...(__SULO_WEB_FAKE__ ? { web: () => import('./fake/sipakamase').then((m) => m.fakeSipakamase()) } : {}),
+  // The synthetic iPhone build (Fase 1, docs/ios): the same stand-in until the native plugin exists.
+  ...(__SULO_WEB_FAKE__ ? { ios: () => import('./fake/sipakamase').then((m) => m.fakeSipakamase()) } : {}),
 });

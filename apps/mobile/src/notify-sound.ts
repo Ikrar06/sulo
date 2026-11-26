@@ -26,6 +26,8 @@ interface SuloNotifyPlugin {
 export const SuloNotify = registerPlugin<SuloNotifyPlugin>('SuloNotify', {
   // pnpm mobile:web and Vitest: there are no channels in a browser.
   web: () => ({ applyChannels: async () => ({ created: [], removed: [], channels: [] }) }),
+  // iOS has no notification channels: each notification carries its own sound.
+  ios: () => ({ applyChannels: async () => ({ created: [], removed: [], channels: [] }) }),
 });
 
 /** The chosen sound; a new install (or anything unreadable) has the first one. */

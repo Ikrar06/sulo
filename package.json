@@ -57,6 +57,13 @@
     "mobile:keystore:buat": "pnpm --filter @sulo/mobile run keystore:buat",
     "landing:dev": "pnpm --filter @sulo/landing dev",
     "landing:build": "pnpm --filter @sulo/landing build",
-    "landing:rilis": "node apps/landing/scripts/rilis.mjs"
+    "landing:rilis": "node apps/landing/scripts/rilis.mjs",
+    "ios:sync": "pnpm --filter @sulo/mobile run ios:sync",
+    "ios:sim": "pnpm --filter @sulo/mobile run ios:sim",
+    "ios:live": "pnpm --filter @sulo/mobile run ios:live",
+    "ios:device": "pnpm --filter @sulo/mobile run ios:device",
+    "ios:ipa": "pnpm --filter @sulo/mobile run ios:ipa",
+    "ios:log": "pnpm --filter @sulo/mobile run ios:log",
+    "ios:doctor": "pnpm --filter @sulo/mobile run ios:doctor"
   }
 }

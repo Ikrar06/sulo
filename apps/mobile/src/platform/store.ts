@@ -10,13 +10,22 @@ import type { KeyValueStore, StorageChange } from '@sulo/core/platform';
  * On the phone, writes go through SuloStore (native, commit(): on disk before
  * they count as done, whole or not at all), same file as Preferences. The
  * web build keeps Preferences.
+ *
+ * iOS reads through SuloStore too: there Preferences is UserDefaults, a
+ * plain plist that goes into iCloud backups, so SuloStore keeps the whole
+ * store in its own files, excluded from backups (ios/App/App/Sulo/FileStore.swift).
  */
 interface Writer {
   set(o: { key: string; value: string }): Promise<void>;
   remove(o: { key: string }): Promise<void>;
 }
-const SuloStore = registerPlugin<Writer>('SuloStore');
+interface Reader {
+  get(o: { key: string }): Promise<{ value: string | null }>;
+  keys(): Promise<{ keys: string[] }>;
+}
+const SuloStore = registerPlugin<Writer & Reader>('SuloStore');
 const writer = (): Writer => (Capacitor.isNativePlatform() ? SuloStore : Preferences);
+const reader = (): Reader => (Capacitor.getPlatform() === 'ios' ? SuloStore : Preferences);
 
 type Listener = (changes: Record<string, StorageChange>) => void;
 
@@ -24,7 +33,7 @@ export function createPreferencesStore(prefix = 'sulo:'): KeyValueStore {
   const listeners = new Set<Listener>();
   const emit = (changes: Record<string, StorageChange>) => listeners.forEach((l) => l(changes));
   const read = async <T>(key: string): Promise<T | undefined> => {
-    const { value } = await Preferences.get({ key: prefix + key });
+    const { value } = await reader().get({ key: prefix + key });
     if (value === null) return undefined;
     try {
       return JSON.parse(value) as T;
@@ -49,7 +58,7 @@ export function createPreferencesStore(prefix = 'sulo:'): KeyValueStore {
       emit(changes);
     },
     async keys(start: string) {
-      const { keys } = await Preferences.keys();
+      const { keys } = await reader().keys();
       return keys.filter((k) => k.startsWith(prefix + start)).map((k) => k.slice(prefix.length));
     },
     watch(listener) {

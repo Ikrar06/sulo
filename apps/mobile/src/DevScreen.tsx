@@ -17,6 +17,8 @@ import { TestConfig } from './dev/TestConfig';
 import { NeosiaTrialDev } from './dev/NeosiaTrialDev';
 import { SessionDiagDev } from './dev/SessionDiagDev';
 import { DiagnostikCards } from './screens/Diagnostik';
+import { IosProbeDev } from './dev/IosProbeDev';
+import { Capacitor } from '@capacitor/core';
 
 const time = (at: number) => new Date(at * 1000).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
 
@@ -36,6 +38,7 @@ export function DevScreen({ platform, w, onBack }: { platform: Platform; w: Mobi
   return (
     <main className="mx-auto flex min-h-full max-w-md flex-col gap-3 bg-m-screen px-4 pt-6 pb-[calc(24px+env(safe-area-inset-bottom))] text-m13 tabular-nums">{/* lint-ui-allow: 24 over the gesture bar */}
       <h1 className="px-1 text-m26">{w.dev.title}</h1>
+      {Capacitor.getPlatform() === 'ios' && <IosProbeDev />}
       <DiagnostikCards platform={platform} w={w} />
       <Card>
         <p>Sesi habis tercatat: {stats.count} · median sejak sukses terakhir: {stats.median ?? '-'} menit · median umur sesi: {hours ?? '-'} jam</p>

@@ -43,4 +43,6 @@ export interface SuloNeosiaPlugin {
 export const SuloNeosia = registerPlugin<SuloNeosiaPlugin>('SuloNeosia', {
   // pnpm mobile:web and Vitest: synthetic snapshots in memory, no NEOSIA page (src/fake/neosia.ts).
   ...(__SULO_WEB_FAKE__ ? { web: () => import('./fake/neosia').then((m) => m.fakeNeosia()) } : {}),
+  // The synthetic iPhone build (Fase 1, docs/ios): the same stand-in until the native plugin exists.
+  ...(__SULO_WEB_FAKE__ ? { ios: () => import('./fake/neosia').then((m) => m.fakeNeosia()) } : {}),
 });

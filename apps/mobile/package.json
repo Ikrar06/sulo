@@ -34,12 +34,20 @@
     "shots:device": "node scripts/device-shots.mjs",
     "keystore:buat": "node scripts/keystore-create.mjs",
     "check:hosts": "node scripts/check-hosts.mjs",
-    "check:version": "node scripts/check-version-code.mjs"
+    "check:version": "node scripts/check-version-code.mjs",
+    "ios:sync": "node scripts/ios.mjs sync",
+    "ios:sim": "node scripts/ios.mjs sim",
+    "ios:live": "node scripts/ios.mjs live",
+    "ios:device": "node scripts/ios.mjs device",
+    "ios:ipa": "node scripts/ios.mjs ipa",
+    "ios:log": "node scripts/ios.mjs log",
+    "ios:doctor": "node scripts/ios.mjs doctor"
   },
   "dependencies": {
     "@capacitor/android": "8.6.2",
     "@capacitor/app": "8.1.2",
     "@capacitor/core": "8.6.2",
+    "@capacitor/ios": "8.6.2",
     "@capacitor/local-notifications": "8.3.1",
     "@capacitor/preferences": "8.0.1",
     "@sulo/core": "workspace:*",
