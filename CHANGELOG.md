@@ -8,6 +8,8 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ### Added
 
+- **Sulo for iPhone.** Installed from a laptop with Sideloadly and your own Apple ID, on iOS 16.4 or later; with a free Apple ID it is refreshed from the laptop every 7 days, and Sulo reminds you the day before. The same tasks, calendar, attendance, NEOSIA and Sipakamase as on Android. On iPhone new tasks show when you open Sulo, and "Keep the SIKOLA session" (optional) keeps your session only when the iPhone gives it time. The guide: [sulo.ikrar.dev/en/pasang/iphone](https://sulo.ikrar.dev/en/pasang/iphone).
+- **Sign in again, once for every source** (phone): when SIKOLA, NEOSIA or Sipakamase signed you out, the morning summary offers Sign in again, at most once a day and never as a separate repeating notification; one tap walks through each source.
 - **Sipakamase.** Connect Sipakamase (optional, off until you agree to it) and the MKPK card shows the activity credits not converted yet and the passed courses not yet in NEOSIA, with reminders: a course in your KRS not passed yet as the grade-entry deadline nears, a passed course you can program when KRS opens, an activity with no companion, a grade to claim. Changes to your activities' status arrive as news. Sulo only reads five fixed pages of your MKPK data; you sign in on Sipakamase's own page, and Sulo never fills in, deletes, converts or claims anything. While you are waiting for something, Sulo keeps the session alive with one read every 3 hours (on the phone only on the background check that already runs); when nothing is pending it stops.
 - **MKPK card.** With NEOSIA connected: the MKPK credits on your transcript and in your KRS, the MKPK courses your program offers this semester, and your program's MKPK load (Sulo's estimate until you confirm it).
 - **Watch for new tasks in the extension** (optional): SIKOLA is checked every 15 minutes while your computer is in use and each time you open Sulo, so new tasks and updates arrive as notifications without pressing Update. Your SIKOLA session stays active in this browser while it is on.
@@ -18,6 +20,7 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ### Changed
 
+- The phone's session keepers time themselves from how long sessions really last on your phone. The notes behind it hold times only, never leave the phone, and show on the Diagnostik screen (seven taps on the version in About).
 - After 7 days without Sulo being opened, watching and session keeping stop with one notification; opening Sulo starts them again (Sipakamase asks to connect again).
 - One remembered choice shows grades on the dashboard: "Show" on the Studies card and on Grades now do the same thing.
 - Lighter screens: KRS readiness as short label and value rows, shorter help in Settings, notification system steps folded away, every button in the extension a pill like on the phone, and "Open dashboard" always visible in the popup.

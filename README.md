@@ -13,7 +13,7 @@
 
 <p align="center"><a href="README.id.md">Bahasa Indonesia</a></p>
 
-Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic calendar in one place, and reminds you before things are due. It is a browser extension (Chrome and Edge) and an Android app.
+Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic calendar in one place, and reminds you before things are due. It is a browser extension (Chrome and Edge), an Android app and an iPhone app.
 
 **Not an official Unhas app.** Sulo is an independent project, not affiliated with or endorsed by Universitas Hasanuddin. The name means "torch" in Buginese and Makassarese.
 
@@ -25,7 +25,7 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
     <img alt="Sulo's dashboard on a laptop, showing today's tasks, the academic calendar and a 14-day workload strip, next to Sulo's phone app showing the nearest deadline, 3 hours left. Sample data." src="docs-publik/hero-light.png" width="88%">
   </picture>
   <br>
-  <sub>Extension dashboard and Android app, with sample data. Phone frame is illustrative: the mobile app is Android only.</sub>
+  <sub>Extension dashboard and phone app, with sample data. The phone frame is illustrative.</sub>
 </p>
 
 ## Contents
@@ -49,8 +49,8 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
 - **Only the courses you follow**, each with a display name and color you choose.
 - **Optional: NEOSIA.** Your class schedule, KRS status and grades, read from the NEOSIA pages you open yourself. Off until you turn it on. Grades stay hidden until you choose to show them.
 - **Optional: Sipakamase.** Your MKPK progress in one card: activity credits not converted yet, passed courses not yet in NEOSIA, and reminders before the grade-entry deadline. Sulo only reads, and you sign in on Sipakamase's own page. Off until you connect it.
-- **Watch for new tasks** (optional): the extension checks SIKOLA every 15 minutes while your computer is in use and each time you open it; the Android app checks in the background.
-- **On Android:** the same on your phone, plus an optional app lock.
+- **Watch for new tasks** (optional): the extension checks SIKOLA every 15 minutes while your computer is in use and each time you open it; the Android app checks in the background. On iPhone, new tasks show when you open Sulo.
+- **On Android and iPhone:** the same on your phone, plus an optional app lock.
 - Light and dark themes, Indonesian and English.
 
 ## How it works
@@ -58,7 +58,7 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
 Sulo reads what you could read yourself in SIKOLA and lays it out so nothing gets missed.
 
 - **In the browser** it uses the sign-in your browser already has with SIKOLA (the session). Sign in to SIKOLA as usual, and Sulo picks it up. There is no Sulo account.
-- **On Android** you sign in on SIKOLA's own page inside the app. Sulo keeps the session, never the password.
+- **On a phone** (Android or iPhone) you sign in on SIKOLA's own page inside the app. Sulo keeps the session, never the password.
 - **Everything is kept on your device.** There is no Sulo server for it to go to.
 - **It only reads.** Sulo cannot hand in work, fill in attendance or change anything in SIKOLA, NEOSIA or Sipakamase.
 
@@ -68,11 +68,11 @@ When SIKOLA signs you out, Sulo keeps showing the last data it has and asks you 
 
 - **No password.** Sulo never asks for, reads or stores your username or password.
 - **Read only.** No submitting, no marking as read, no attendance, no KRS, no converting or claiming. Sulo sends no request to NEOSIA at all: it only notes what NEOSIA's own page loads. In Sipakamase it reads five fixed pages of your MKPK data and nothing else.
-- **Your data stays on your device.** No Sulo server, no analytics, no ads. On Android the SIKOLA session is encrypted with a key held in the Android Keystore and is left out of device backups.
+- **Your data stays on your device.** No Sulo server, no analytics, no ads. On Android the SIKOLA session is encrypted with a key held in the Android Keystore and is left out of device backups. On iPhone it is kept in the Keychain for that iPhone only, and Sulo's files are left out of iCloud and computer backups.
 - **Only the places it needs.** Sulo talks to SIKOLA, to its own public data repository for a small settings file and the academic calendar, and to Sipakamase only if you connect it. Those requests carry nothing about you. Every other link (Google Calendar, the official calendar PDF, the feedback form) opens in a new tab only when you click it.
 - **Sensitive things are hidden by default.** Grades and GPA never appear in notifications, exports or copied lists.
 
-The extension's full policy is in [PRIVACY.md](PRIVACY.md). The public page covers the extension and the Android app, in [English](https://ikrar06.github.io/sulo-data/privacy.html) and [Indonesian](https://ikrar06.github.io/sulo-data/privasi.html).
+The extension's full policy is in [PRIVACY.md](PRIVACY.md). The public page covers the extension, the Android app and the iPhone app, in [English](https://ikrar06.github.io/sulo-data/privacy.html) and [Indonesian](https://ikrar06.github.io/sulo-data/privasi.html).
 
 ## Install
 
@@ -104,6 +104,12 @@ Needs Android 8.0 or newer with an up-to-date Android System WebView (version 11
 
 An APK with another fingerprint is not from this project.
 
+**iPhone**
+
+Needs iOS 16.4 or newer, a Windows or Mac laptop and an Apple ID (a free one works). Sulo is not on the App Store: you install `sulo-<version>-ios.ipa` from the release page with [Sideloadly](https://sideloadly.io), which signs it with your Apple ID. Your Apple ID password goes into Sideloadly, never into Sulo. With a free Apple ID the install lasts 7 days; Sulo reminds you the day before, and installing the same file again keeps your data. Step by step: [sulo.ikrar.dev/en/pasang/iphone](https://sulo.ikrar.dev/en/pasang/iphone).
+
+The .ipa is unsigned (Sideloadly signs it on your laptop) and is built by this repository's "iPhone rilis" workflow. Compare its SHA-256 with the `.sha256` file next to it: `shasum -a 256 sulo-<version>-ios.ipa`.
+
 ## Questions people ask
 
 **Is this from the university?** No. Sulo is made by one Unhas student, on their own time. Deadlines, grades and rules in SIKOLA, NEOSIA and from your academic advisor are the ones that count.
@@ -112,11 +118,11 @@ An APK with another fingerprint is not from this project.
 
 **Does Sulo see my password?** No. You sign in on SIKOLA's own page. Sulo only uses the session that sign-in creates.
 
-**Why does it ask me to sign in to SIKOLA again?** SIKOLA ends a session after some hours without activity. If you turn on "Watch for new tasks", SIKOLA counts its checks as activity, so your session stays active (in the extension, while the browser is open). Without it Sulo does not keep the session; an update you start yourself still counts as activity, just like opening SIKOLA.
+**Why does it ask me to sign in to SIKOLA again?** SIKOLA ends a session after some hours without activity. If you turn on "Watch for new tasks", SIKOLA counts its checks as activity, so your session stays active (in the extension, while the browser is open). On iPhone, "Keep the SIKOLA session" does this only when the iPhone gives it time in the background, so you may be asked more often. Without it Sulo does not keep the session; an update you start yourself still counts as activity, just like opening SIKOLA.
 
 **Does it put load on SIKOLA?** Sulo asks one thing at a time, never in parallel, stays under a daily limit, and backs off when SIKOLA is slow or refuses. The maintainer can pause every installation remotely.
 
-**How do I delete my data?** In the extension: Settings, "Delete data", then "Delete all data". On Android: More, Settings, "Sign out and delete data". Nothing in SIKOLA is touched.
+**How do I delete my data?** In the extension: Settings, "Delete data", then "Delete all data". On a phone: More, Settings, "Sign out and delete data". Nothing in SIKOLA is touched.
 
 **What if Sulo shows something wrong?** It can be out of date or incomplete. Check SIKOLA, then [tell us](#reporting-a-problem).
 
@@ -140,6 +146,8 @@ git config core.hooksPath .githooks   # scans every commit for personal or sessi
 | `pnpm lint` | UI rules, the core's no-platform rule and the personal-data scan |
 | `pnpm mobile:web` | The Android app's interface in a desktop browser, with a synthetic demo account |
 | `pnpm mobile:apk:debug` | A debug APK |
+| `pnpm --filter @sulo/mobile ios:sim` | The iPhone app in the iOS simulator, with synthetic data (macOS and Xcode) |
+| `pnpm --filter @sulo/mobile ios:ipa --data=rilis` | The unsigned release .ipa, checked by `scripts/ios-verify.mjs` |
 | `pnpm shots:audit --out <dir>` | Screenshots of every screen and state, from synthetic data |
 
 `pnpm mobile:web` is the quickest way to look around: it needs no SIKOLA account and makes no request to SIKOLA. For the extension, `pnpm dev` adds a preview page (`preview.html`) that shows the popup and the first-run guide from the same kind of synthetic data.
@@ -153,12 +161,14 @@ packages/core/     shared logic, no browser or DOM APIs: the SIKOLA client, sync
                    reminders, calendar, attendance, NEOSIA parsing, and every text (i18n)
 packages/ui/       shared React components, icons and the mascot
 apps/extension/    the browser extension (WXT, Manifest V3): popup, dashboard, onboarding
-apps/mobile/       the Android app (Capacitor) and its web mode for development
+apps/mobile/       the phone app (Capacitor) for Android and iPhone, and its web mode for development
 apps/mobile/android/  native Kotlin: SIKOLA's login screen, the encrypted session store,
                    the background watch worker
+apps/mobile/ios/      native Swift: the same login screen and session store in the Keychain,
+                   the session keeper iOS runs when it chooses
 ```
 
-Stack: TypeScript, React, Tailwind CSS, Zod and Vitest, with WXT for the extension and Capacitor for Android.
+Stack: TypeScript, React, Tailwind CSS, Zod and Vitest, with WXT for the extension and Capacitor for Android and iPhone.
 
 ### Rules the code holds itself to
 
@@ -179,6 +189,9 @@ Stack: TypeScript, React, Tailwind CSS, Zod and Vitest, with WXT for the extensi
 | Android | internet and network state | read SIKOLA and the public data repository |
 | Android | notifications, restart and wake lock | reminders and background checks, rescheduled after a restart |
 | Android | biometric | the optional app lock |
+| iPhone | notifications | reminders, asked once during the introduction |
+| iPhone | background app refresh (`BGTaskScheduler`) | "Keep the SIKOLA session", only when you turn it on; iOS decides when |
+| iPhone | Face ID | the optional app lock |
 
 The Android list is enforced on every release build by `apps/mobile/scripts/check-permissions.mjs`.
 
