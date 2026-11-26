@@ -11,6 +11,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // A fresh install: an earlier install's Keychain items are removed before anything reads them.
         InstallMarker.cleanIfFresh()
         Keeper.register()
+        ScreenGuard.shared.start()
         Probe.noteLaunch()
         #if DEBUG
         // Debug builds only: `simctl launch <sim> dev.ikrar.sulo -suloProbe write|status` runs the Fase 1

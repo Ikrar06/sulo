@@ -4,7 +4,9 @@ import { App } from './App';
 import { readPrefs } from '@sulo/core/prefs';
 import { initPerf } from './perf';
 import { createMobilePlatform } from './platform';
-import { applyTextZoom } from './text-zoom';
+import { applyIosTextScale, applyTextZoom } from './text-zoom';
+import { Capacitor } from '@capacitor/core';
+import { SuloSession } from './session';
 import './styles.css';
 
 declare global {
@@ -19,6 +21,13 @@ if (window.__suloWebViewTooOld) throw new Error('webview-too-old');
 
 // The layout's thresholds follow the phone's text size (src/text-zoom.ts), before the first frame.
 applyTextZoom();
+// iPhone: the text size comes from the native side (WKWebView does not follow it), at start and on each return.
+if (Capacitor.getPlatform() === 'ios') {
+  await applyIosTextScale(() => SuloSession.textScale());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void applyIosTextScale(() => SuloSession.textScale());
+  });
+}
 
 const platform = createMobilePlatform();
 

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		36160C3E78679885ECDE1058 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9FC6AB958B0D214130160348 /* InfoPlist.strings */; };
+		14EFADF9806DCB6A88563881 /* ScreenGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FD61DE4C4A200FFA535257 /* ScreenGuard.swift */; };
 		9040CB9FC9DFCE1A2C889AF8 /* SipakamaseRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */; };
 		946F4A9B75CAD8DBA104823D /* NeosiaScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D33B5AC94B451D95C88D63 /* NeosiaScreen.swift */; };
 		976268402E8C6B9D7C80F6E3 /* NeosiaRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2516248D64870EB3D12B32AE /* NeosiaRules.swift */; };
@@ -41,6 +43,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A3E9A3761298037FB6EF6F50 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		FE77C4159453C3CA40CA23D4 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		08FD61DE4C4A200FFA535257 /* ScreenGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/ScreenGuard.swift; sourceTree = "<group>"; };
 		A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SipakamaseRules.swift; sourceTree = "<group>"; };
 		13D33B5AC94B451D95C88D63 /* NeosiaScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/NeosiaScreen.swift; sourceTree = "<group>"; };
 		2516248D64870EB3D12B32AE /* NeosiaRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/NeosiaRules.swift; sourceTree = "<group>"; };
@@ -108,6 +113,8 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				9FC6AB958B0D214130160348 /* InfoPlist.strings */,
+				08FD61DE4C4A200FFA535257 /* ScreenGuard.swift */,
 				A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */,
 				13D33B5AC94B451D95C88D63 /* NeosiaScreen.swift */,
 				2516248D64870EB3D12B32AE /* NeosiaRules.swift */,
@@ -188,6 +195,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				id,
 				Base,
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
@@ -208,6 +216,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				36160C3E78679885ECDE1058 /* InfoPlist.strings in Resources */,
 				347D768DDA59871B74DCB5DD /* sulo_notif_4.caf in Resources */,
 				728F97678E071926EFB6576B /* sulo_notif_3.caf in Resources */,
 				505512ED933E2D1737F61E27 /* sulo_notif_2.caf in Resources */,
@@ -228,6 +237,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14EFADF9806DCB6A88563881 /* ScreenGuard.swift in Sources */,
 				9040CB9FC9DFCE1A2C889AF8 /* SipakamaseRules.swift in Sources */,
 				946F4A9B75CAD8DBA104823D /* NeosiaScreen.swift in Sources */,
 				976268402E8C6B9D7C80F6E3 /* NeosiaRules.swift in Sources */,
@@ -254,6 +264,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		9FC6AB958B0D214130160348 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FE77C4159453C3CA40CA23D4 /* id */,
+				A3E9A3761298037FB6EF6F50 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

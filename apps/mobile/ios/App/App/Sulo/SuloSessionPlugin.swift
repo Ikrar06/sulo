@@ -14,7 +14,7 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         "deviceInfo", "haptic", "login", "status", "endSession", "suspect", "note", "ready", "diagLog", "request", "page", "logout",
         "discardSession", "watchReset", "lockAvailable", "unlock", "openAppSettings", "secure",
-        "watchApply", "watchTake", "watchStatus", "watchTakeOpen", "watchRunNow", "watchSimulate", "devTestBudget", "profileExpiry",
+        "watchApply", "watchTake", "watchStatus", "watchTakeOpen", "watchRunNow", "watchSimulate", "devTestBudget", "profileExpiry", "textScale",
     ].map { CAPPluginMethod(name: $0, returnType: CAPPluginReturnPromise) }
 
     private let vault = SessionVault.shared
@@ -297,10 +297,22 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    /// iOS cannot block screenshots; the cover and the recording mask come with Fase 4.
-    @objc func secure(_ call: CAPPluginCall) { call.resolve() }
+    /// iOS cannot block screenshots: while grades show, a cover in the app switcher and a mask while recording.
+    @objc func secure(_ call: CAPPluginCall) {
+        ScreenGuard.shared.secure = call.getBool("on") ?? false
+        call.resolve()
+    }
 
     // MARK: The keeper (Keeper.swift); Android's watching answers the rest with nothing
+
+    /// The phone's text size (Settings, Display, Text Size) as a factor of the default, clamped like Android's
+    /// textZoom (85 to 130 percent): WKWebView does not follow Dynamic Type on its own.
+    @objc func textScale(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let factor = UIFontMetrics(forTextStyle: .body).scaledValue(for: 17, compatibleWith: UITraitCollection(preferredContentSizeCategory: UIApplication.shared.preferredContentSizeCategory)) / 17
+            call.resolve(["scale": min(1.3, max(0.85, (factor * 100).rounded() / 100))])
+        }
+    }
 
     @objc func profileExpiry(_ call: CAPPluginCall) { call.resolve(["at": AppProfile.expiry() ?? NSNull()]) }
     @objc func watchReset(_ call: CAPPluginCall) {

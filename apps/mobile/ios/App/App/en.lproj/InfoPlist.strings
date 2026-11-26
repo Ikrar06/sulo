@@ -1,0 +1,2 @@
+/* Sulo: the permission texts iOS shows, in English. */
+"NSFaceIDUsageDescription" = "Sulo uses Face ID to unlock the app, when you turn on the app lock.";

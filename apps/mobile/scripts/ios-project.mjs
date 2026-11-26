@@ -54,6 +54,21 @@ export function syncProject({ version = JSON.parse(readFileSync(join(MOBILE, 'pa
     text = insertAfter(text, '504EC3061FED79650016851F /* App */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (', `\t\t\t\t${ref} /* ${file} */,\n`);
     text = insertAfter(text, '504EC3021FED79650016851F /* Resources */ = {\n\t\t\tisa = PBXResourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = (', `\t\t\t\t${build} /* ${file} in Resources */,\n`);
   }
+  // The permission texts in Indonesian and English (App/<lang>.lproj/InfoPlist.strings, brief 9.4).
+  const strings = id('variant', 'InfoPlist.strings');
+  if (!text.includes(strings)) {
+    const langs = ['id', 'en'];
+    const build = id('build', 'InfoPlist.strings');
+    text = insertAfter(text, '/* Begin PBXBuildFile section */', `\t\t${build} /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = ${strings} /* InfoPlist.strings */; };\n`);
+    for (const lang of langs) {
+      text = insertAfter(text, '/* Begin PBXFileReference section */', `\t\t${id('ref', `${lang}.lproj/InfoPlist.strings`)} /* ${lang} */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ${lang}; path = ${lang}.lproj/InfoPlist.strings; sourceTree = "<group>"; };\n`);
+    }
+    const children = langs.map((lang) => `\t\t\t\t${id('ref', `${lang}.lproj/InfoPlist.strings`)} /* ${lang} */,\n`).join('');
+    text = insertAfter(text, '/* Begin PBXVariantGroup section */', `\t\t${strings} /* InfoPlist.strings */ = {\n\t\t\tisa = PBXVariantGroup;\n\t\t\tchildren = (\n${children}\t\t\t);\n\t\t\tname = InfoPlist.strings;\n\t\t\tsourceTree = "<group>";\n\t\t};\n`);
+    text = insertAfter(text, '504EC3061FED79650016851F /* App */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (', `\t\t\t\t${strings} /* InfoPlist.strings */,\n`);
+    text = insertAfter(text, '504EC3021FED79650016851F /* Resources */ = {\n\t\t\tisa = PBXResourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = (', `\t\t\t\t${build} /* InfoPlist.strings in Resources */,\n`);
+    text = text.replace(/knownRegions = \(\n\t\t\t\ten,\n\t\t\t\tBase,\n\t\t\t\);/, 'knownRegions = (\n\t\t\t\ten,\n\t\t\t\tid,\n\t\t\t\tBase,\n\t\t\t);');
+  }
   text = text
     .replace(/IPHONEOS_DEPLOYMENT_TARGET = [\d.]+;/g, `IPHONEOS_DEPLOYMENT_TARGET = ${MIN_IOS};`)
     .replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${version};`)
