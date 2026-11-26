@@ -35,12 +35,14 @@ const HIDDEN = '••••';
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 const LOW = new Set(['D', 'E']);
 
-export function NilaiPage({ data }: PageProps) {
+export function NilaiPage({ data, actions }: PageProps) {
   const { m, locale } = useI18n();
   const w = neosiaWords(locale);
   const n = w.nilai;
   const masked = usePrivacy();
-  const [shown, setShown] = useState(false);
+  // One remembered choice for every grade (prefs.gradesShown, hidden by default), shared with the Studi card.
+  const shown = data.prefs.gradesShown;
+  const setShown = (gradesShown: boolean) => void actions.setPrefs({ gradesShown });
   const snapshots = data.neosia.snapshots;
   const rows = useMemo(() => readTranscript(snapshots.getTranskripMahasiswa?.data), [snapshots]);
   const semesters = useMemo(() => readSemesters(snapshots['mahasiswa/semester']?.data), [snapshots]);

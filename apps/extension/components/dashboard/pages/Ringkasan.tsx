@@ -211,7 +211,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
           <Card title={r.calendarTitle} action={<CardLink href={routeHash('kalender')}>{r.openCalendar}</CardLink>} className="flex flex-1 flex-col [&>div:last-child]:flex-1">
             <AcademicCard calendar={data.calendar} today={data.today} d={d} />
           </Card>
-          <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} neosiaOn={neosiaOn} attendance={attendance} />
+          <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} neosiaOn={neosiaOn} attendance={attendance} gradesShown={data.prefs.gradesShown} onGradesShown={(gradesShown) => void actions.setPrefs({ gradesShown })} />
           {neosiaOn && <MkpkCard snapshots={snapshots} transcript={data.neosia.mkpk} load={data.prefs.mkpkLoad} onLoad={(mkpkLoad) => void actions.setPrefs({ mkpkLoad })} now={data.now} sipakamase={mkpkSip} />}
         </div>
       </div>

@@ -197,7 +197,12 @@ function AttendanceLine({ summary }: { summary: AttendanceSummary | null }) {
  * Studies card. NEOSIA parts only while that module is on; the attendance
  * line whenever attendance data exists (it comes from SIKOLA).
  */
-export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = null }: { snapshots: Snapshots; sksTarget: number; neosiaOn?: boolean; attendance?: AttendanceSummary | null }) {
+/**
+ * `gradesShown` is the one remembered choice for every grade on the
+ * dashboard (prefs, hidden by default): "Tampilkan" here and on Nilai set
+ * the same preference, so grades show everywhere after one click.
+ */
+export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = null, gradesShown = false, onGradesShown }: { snapshots: Snapshots; sksTarget: number; neosiaOn?: boolean; attendance?: AttendanceSummary | null; gradesShown?: boolean; onGradesShown?: (shown: boolean) => void }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).studi;
   if (!neosiaOn) {
@@ -207,13 +212,12 @@ export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = 
       </Card>
     );
   }
-  return <NeosiaStudi snapshots={snapshots} sksTarget={sksTarget} attendance={attendance} />;
+  return <NeosiaStudi snapshots={snapshots} sksTarget={sksTarget} attendance={attendance} shown={gradesShown} setShown={(v) => onGradesShown?.(v)} />;
 }
 
-function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshots; sksTarget: number; attendance: AttendanceSummary | null }) {
+function NeosiaStudi({ snapshots, sksTarget, attendance, shown, setShown }: { snapshots: Snapshots; sksTarget: number; attendance: AttendanceSummary | null; shown: boolean; setShown: (shown: boolean) => void }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).studi;
-  const [shown, setShown] = useState(false);
   const masked = usePrivacy();
   const profileData = profile(snapshots);
   const advisor = advisorName(snapshots);
