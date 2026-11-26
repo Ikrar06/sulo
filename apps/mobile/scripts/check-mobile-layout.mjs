@@ -390,7 +390,15 @@ async function session({ look, lang, query = '', finished = false }, steps) {
   const check = (state) => checkState(page, state, look, lang);
   const c = { page, t, lang, btn, starts, go, closeSheet, enter, check };
   const sep = query.includes('?') ? '&' : '?';
-  await page.goto(`http://localhost:${PORT}/${query}${sep}lang=${lang}&perf=${tier}${IOS ? '&os=ios' : ''}`);
+  // A long run (hours, in WebKit) can stall one load: it is tried once more, then the session counts as a
+  // failed step instead of ending the whole run and losing every result before it.
+  const url = `http://localhost:${PORT}/${query}${sep}lang=${lang}&perf=${tier}${IOS ? '&os=ios' : ''}`;
+  const loaded = await page.goto(url).then(() => true, () => page.goto(url).then(() => true, (e) => e));
+  if (loaded !== true) {
+    failedSteps.push(`${theme}/${tier} ${lang} ${steps.map(([n]) => n).join(', ')}: halaman tidak termuat (${String(loaded.message ?? loaded).split('\n')[0]})`);
+    await context.close();
+    return;
+  }
   for (const [name, run] of steps) {
     try {
       await run(c);
