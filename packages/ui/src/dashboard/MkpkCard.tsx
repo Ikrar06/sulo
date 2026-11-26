@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useI18n } from '../i18n';
+import { ChevronDownIcon } from '../icons';
 import { Private, usePrivacy } from '../private';
 import { Button } from '../ui/button';
 import { Card } from '../card';
@@ -42,14 +43,20 @@ export function MkpkCard({ snapshots, transcript, load, onLoad, now }: Props) {
   const seen = Math.max(p.transcriptAt ?? 0, p.krsAt ?? 0);
   const text = (sks: number) => sksText(sks, locale);
 
+  const link = 'rounded text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-ring';
+
   return (
     <Card title={w.title}>
       {p.transcriptAt === null ? (
         <p className="text-[14px] text-muted-foreground">{w.noTranscript}</p>
       ) : (
-        <>
-          <p className="text-[14px] font-semibold">
-            <Private>{scale !== null ? w.passedOf(text(p.passedSks), scale) : w.passed(text(p.passedSks))}</Private>
+        // One number carries the card; its unit and scale sit beside it in the quiet voice.
+        <div>
+          <p className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-[24px] leading-8 font-semibold tabular-nums">
+              <Private>{text(p.passedSks)}</Private>
+            </span>
+            <span className="text-[14px] text-muted-foreground">{scale !== null ? w.passedUnitOf(scale) : w.passedUnit}</span>
           </p>
           {fill !== null && (
             // The same bar as the studies card: solid, neutral, empty in privacy mode.
@@ -57,45 +64,56 @@ export function MkpkCard({ snapshots, transcript, load, onLoad, now }: Props) {
               {!masked && <div className="h-full rounded-full bg-foreground" style={{ width: `${fill}%` }} />}
             </div>
           )}
-        </>
+        </div>
       )}
-      {p.enrolledSks > 0 && (
-        <p className="mt-2 text-[14px] text-muted-foreground">
-          <Private>{w.enrolled(text(p.enrolledSks))}</Private>
-        </p>
-      )}
-      {p.offered.length > 0 && (
-        <div className="mt-2">
-          <p className="text-[14px] text-muted-foreground">{w.offered(p.offered.length)}</p>
-          <p>
-            <button
-              type="button"
-              aria-expanded={listOpen}
-              onClick={() => setListOpen(!listOpen)}
-              className="rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-ring"
-            >
-              {listOpen ? w.hideOffered : w.showOffered}
-            </button>
-          </p>
-          {listOpen && (
-            <ul className="mt-2 space-y-1 text-[14px]">
-              {p.offered.map((o) => (
-                <li key={o.code} className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0">{o.name}</span>
-                  <span className="shrink-0 tabular-nums text-muted-foreground">{`${text(o.sks)} SKS`}</span>
-                </li>
-              ))}
-            </ul>
+
+      {/* Label and value rows instead of sentences: read down the right edge. */}
+      {(p.enrolledSks > 0 || p.offered.length > 0) && (
+        <div className="mt-3 text-[14px]">
+          {p.enrolledSks > 0 && (
+            <div className="flex min-h-10 items-center justify-between gap-3 border-t border-border">
+              <span className="text-muted-foreground">{w.enrolledLabel}</span>
+              <span className="tabular-nums">
+                <Private>{w.sksValue(text(p.enrolledSks))}</Private>
+              </span>
+            </div>
+          )}
+          {p.offered.length > 0 && (
+            <div className="border-t border-border">
+              <button
+                type="button"
+                aria-expanded={listOpen}
+                onClick={() => setListOpen(!listOpen)}
+                className="flex min-h-10 w-full items-center justify-between gap-3 rounded text-left outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-ring"
+              >
+                <span className="text-muted-foreground">{w.offeredLabel}</span>
+                <span className="flex items-center gap-1 tabular-nums">
+                  {w.coursesValue(p.offered.length)}
+                  <ChevronDownIcon aria-hidden="true" className={`size-4 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${listOpen ? 'rotate-180' : ''}`} />
+                </span>
+              </button>
+              {listOpen && (
+                <ul className="space-y-1 pb-1" aria-label={w.offeredLabel}>
+                  {p.offered.map((o) => (
+                    <li key={o.code} className="flex items-baseline justify-between gap-3">
+                      <span className="min-w-0">{o.name}</span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">{w.sksValue(text(o.sks))}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
         </div>
       )}
 
       {load === null && (
-        <div className="mt-4 border-t border-border pt-3">
+        // The load question, set apart by space alone.
+        <div className="mt-4 space-y-2">
           {guess !== null && !choosing ? (
             <>
               <p className="text-[14px]">{w.loadGuess(guess)}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={() => onLoad(guess)}>{w.correct}</Button>
                 <Button variant="outline" onClick={() => setChoosing(true)}>
                   {w.change}
@@ -104,23 +122,22 @@ export function MkpkCard({ snapshots, transcript, load, onLoad, now }: Props) {
             </>
           ) : (
             <>
-              <p className="text-[14px]">{w.loadAsk}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => onLoad(20)}>
-                  {w.choice[20]}
-                </Button>
-                <Button variant="outline" onClick={() => onLoad(10)}>
-                  {w.choice[10]}
-                </Button>
-                <Button variant="ghost" onClick={() => onLoad('none')}>
-                  {w.choice.none}
-                </Button>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-[14px] font-medium">{w.loadAsk}</p>
+                <a href={MKPK_INFO_URL} target="_blank" rel="noopener noreferrer" className={`shrink-0 text-[12px] ${link}`}>
+                  {w.rulesShort}
+                </a>
               </div>
+              <div role="group" aria-label={w.loadAsk} className="grid grid-cols-3 gap-2">
+                {([20, 10, 'none'] as const).map((c) => (
+                  <Button key={c} variant="outline" onClick={() => onLoad(c)} aria-label={w.choice[c]}>
+                    {w.loadShort[c]}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-[12px] text-muted-foreground">{w.loadHelp}</p>
             </>
           )}
-          <a href={MKPK_INFO_URL} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block rounded text-[12px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-ring">
-            {w.rules}
-          </a>
         </div>
       )}
 

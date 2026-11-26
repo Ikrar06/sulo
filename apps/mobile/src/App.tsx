@@ -349,6 +349,8 @@ export function App({ platform }: { platform: Platform }) {
       await sync((onStage) => syncAfterLogin(platform, false, onStage));
       // Kept as finished, so a reload opens Ringkasan (a cold open with data, scripts/perf-measure.mjs).
       await saveFlow(platform, { step: 'finished', mode: 'first' });
+      // Like a new install's own "Buka Sulo": nothing "new" to read.
+      await markWhatsNewRead(platform.store);
       setFlow((f) => (f ? { ...f, step: 'finished' } : f));
     };
   }, [platform, sync]);

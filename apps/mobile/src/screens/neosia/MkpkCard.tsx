@@ -13,6 +13,7 @@ import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { Private, usePrivacy } from '@sulo/ui/private';
 import { useI18n } from '@sulo/ui/i18n';
+import { ChevronDownIcon } from '@sulo/ui/icons';
 import { useMobileData } from '../../shell/data';
 import { useNeosia } from '../../neosia/NeosiaProvider';
 
@@ -36,15 +37,22 @@ export function MkpkCard() {
   const text = (sks: number) => sksText(sks, locale);
   const choose = (mkpkLoad: 20 | 10 | 'none') => void actions.setPrefs({ mkpkLoad });
 
+  const ring = 'outline-none focus-ring:ring-2 focus-ring:ring-focus';
+
   return (
-    <Card className="mb-4" inner="space-y-3">
+    <Card className="mb-4">
       <p className="text-m15 font-semibold">{w.title}</p>
+
       {p.transcriptAt === null ? (
-        <p className="text-m13 text-muted-foreground">{w.noTranscript}</p>
+        <p className="mt-2 text-m13 text-muted-foreground">{w.noTranscript}</p>
       ) : (
-        <div>
-          <p className="text-m15">
-            <Private>{scale !== null ? w.passedOf(text(p.passedSks), scale) : w.passed(text(p.passedSks))}</Private>
+        // One number carries the card; its unit and scale sit beside it in the quiet voice.
+        <div className="mt-3">
+          <p className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-m22 font-semibold tabular-nums">
+              <Private>{text(p.passedSks)}</Private>
+            </span>
+            <span className="text-m13 text-muted-foreground">{scale !== null ? w.passedUnitOf(scale) : w.passedUnit}</span>
           </p>
           {fill !== null && (
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-m-inset" role="img" aria-label={w.scale(scale!)}>
@@ -53,32 +61,51 @@ export function MkpkCard() {
           )}
         </div>
       )}
-      {p.enrolledSks > 0 && (
-        <p className="text-m13 text-muted-foreground">
-          <Private>{w.enrolled(text(p.enrolledSks))}</Private>
-        </p>
-      )}
-      {p.offered.length > 0 && (
-        <div>
-          <p className="text-m13 text-muted-foreground">{w.offered(p.offered.length)}</p>
-          <button type="button" aria-expanded={listOpen} onClick={() => setListOpen(!listOpen)} className="m-hit text-left text-m13 text-muted-foreground underline underline-offset-2">
-            {listOpen ? w.hideOffered : w.showOffered}
-          </button>
-          {listOpen && (
-            <ul className="mt-2 space-y-2 text-m13">
-              {p.offered.map((o) => (
-                <li key={o.code} className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0">{o.name}</span>
-                  <span className="shrink-0 tabular-nums text-muted-foreground">{`${text(o.sks)} SKS`}</span>
-                </li>
-              ))}
-            </ul>
+
+      {/* Label and value rows instead of sentences: read down the right edge. */}
+      {(p.enrolledSks > 0 || p.offered.length > 0) && (
+        <div className="mt-3">
+          {p.enrolledSks > 0 && (
+            <div className="flex min-h-11 items-center justify-between gap-3 border-t border-m-line">
+              <span className="text-m13 text-muted-foreground">{w.enrolledLabel}</span>
+              <span className="text-m15 tabular-nums">
+                <Private>{w.sksValue(text(p.enrolledSks))}</Private>
+              </span>
+            </div>
+          )}
+          {p.offered.length > 0 && (
+            <div className="border-t border-m-line">
+              <button
+                type="button"
+                aria-expanded={listOpen}
+                aria-label={`${w.offeredLabel}, ${w.coursesValue(p.offered.length)}. ${listOpen ? w.hideOffered : w.showOffered}`}
+                onClick={() => setListOpen(!listOpen)}
+                className={`m-press flex min-h-11 w-full items-center justify-between gap-3 rounded-[8px] text-left ${ring}`}
+              >
+                <span className="text-m13 text-muted-foreground">{w.offeredLabel}</span>
+                <span className="flex items-center gap-1 text-m15 tabular-nums">
+                  {w.coursesValue(p.offered.length)}
+                  <ChevronDownIcon aria-hidden="true" className={`size-4 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${listOpen ? 'rotate-180' : ''}`} />
+                </span>
+              </button>
+              {listOpen && (
+                <ul className="space-y-2 pb-1 text-m13">
+                  {p.offered.map((o) => (
+                    <li key={o.code} className="flex items-baseline justify-between gap-3">
+                      <span className="min-w-0">{o.name}</span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">{w.sksValue(text(o.sks))}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
         </div>
       )}
 
       {load === null && (
-        <div className="space-y-2 border-t border-border pt-3">
+        // The load question, set apart by space alone (no divider, no card in the card).
+        <div className="mt-4 space-y-2">
           {guess !== null && !choosing ? (
             <>
               <p className="text-m13">{w.loadGuess(guess)}</p>
@@ -93,27 +120,26 @@ export function MkpkCard() {
             </>
           ) : (
             <>
-              <p className="text-m13">{w.loadAsk}</p>
-              <div className="flex flex-col items-start gap-2">
-                <PillButton small onPress={() => choose(20)}>
-                  {w.choice[20]}
-                </PillButton>
-                <PillButton small onPress={() => choose(10)}>
-                  {w.choice[10]}
-                </PillButton>
-                <PillButton small onPress={() => choose('none')}>
-                  {w.choice.none}
-                </PillButton>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-m13 font-medium">{w.loadAsk}</p>
+                <button type="button" onClick={() => actions.openExternal(MKPK_INFO_URL)} className={`m-hit shrink-0 rounded text-m12 text-muted-foreground underline underline-offset-2 ${ring}`}>
+                  {w.rulesShort}
+                </button>
               </div>
+              <div role="group" aria-label={w.loadAsk} className="grid grid-cols-3 gap-1 rounded-full bg-m-inset p-1">
+                {([20, 10, 'none'] as const).map((c) => (
+                  <button key={c} type="button" onClick={() => choose(c)} aria-label={w.choice[c]} className={`m-hit m-press min-h-9 rounded-full px-1 text-m13 ${ring}`}>
+                    {w.loadShort[c]}
+                  </button>
+                ))}
+              </div>
+              <p className="text-m12 text-muted-foreground">{w.loadHelp}</p>
             </>
           )}
-          <button type="button" onClick={() => actions.openExternal(MKPK_INFO_URL)} className="m-hit text-m12 text-muted-foreground underline underline-offset-2">
-            {w.rules}
-          </button>
         </div>
       )}
 
-      {seen > 0 && <p className="text-m12 text-muted-foreground">{w.source(formatAgo(seen, data!.now, m))}</p>}
+      {seen > 0 && <p className="mt-3 text-m12 text-muted-foreground">{w.source(formatAgo(seen, data!.now, m))}</p>}
     </Card>
   );
 }
