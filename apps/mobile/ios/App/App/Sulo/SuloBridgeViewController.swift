@@ -7,5 +7,7 @@ class SuloBridgeViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(SuloStorePlugin())
         bridge?.registerPluginInstance(SuloSessionPlugin())
         bridge?.registerPluginInstance(SuloProbePlugin())
+        bridge?.registerPluginInstance(SuloNeosiaPlugin())
+        bridge?.registerPluginInstance(SuloSipakamasePlugin())
     }
 }

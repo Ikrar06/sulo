@@ -8,6 +8,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Background tasks must be registered before launch finishes (Fase 1: the probe's, no network).
+        // A fresh install: an earlier install's Keychain items are removed before anything reads them.
+        InstallMarker.cleanIfFresh()
         Probe.registerBackgroundTasks()
         Probe.noteLaunch()
         #if DEBUG
@@ -15,6 +17,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // checks without the dev screen and prints them, so they can be checked from the terminal.
         if let i = CommandLine.arguments.firstIndex(of: "-suloProbe"), i + 1 < CommandLine.arguments.count {
             if CommandLine.arguments[i + 1] == "write" { Probe.write() }
+            if CommandLine.arguments[i + 1] == "stores" {
+                // The vault's rules on a test service (never the real session) and one sealed round trip.
+                let v = SessionVault(service: "dev.ikrar.sulo.selftest")
+                v.save(SikolaSession(moodleSession: "c1", sesskey: "AbC123xyZ0"))
+                let saved = v.session == SikolaSession(moodleSession: "c1", sesskey: "AbC123xyZ0") && v.status() == "connected"
+                v.saveCandidate("c2")
+                let promoted = v.promoteCandidate() == "c2" && v.session?.moodleSession == "c2"
+                v.markSuspect("test")
+                let suspect = v.suspectCount() == 1
+                v.clearSuspect()
+                v.markExpired("test")
+                let expired = v.status() == "expired" && v.session == nil
+                v.clear()
+                let cleared = v.status() == "none"
+                let store = EncryptedStore(name: "SuloSelfTest", keyService: "dev.ikrar.sulo.selftest.key")
+                try? store.set(user: 7, key: "neosia:x", value: "{\"a\":1}")
+                let sealed = store.get(user: 7, key: "neosia:x") == "{\"a\":1}" && store.keys(user: 7, prefix: "neosia:") == ["neosia:x"]
+                store.wipeAll()
+                let wiped = store.get(user: 7, key: "neosia:x") == nil
+                print("SULO_STORES saved=\(saved) promoted=\(promoted) suspect=\(suspect) expired=\(expired) cleared=\(cleared) sealed=\(sealed) wiped=\(wiped)")
+            }
             Probe.status { status in
                 let data = try? JSONSerialization.data(withJSONObject: status, options: [.sortedKeys])
                 print("SULO_PROBE " + (data.flatMap { String(data: $0, encoding: .utf8) } ?? "{}"))

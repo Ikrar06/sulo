@@ -64,6 +64,7 @@
     "ios:live:device": "pnpm --filter @sulo/mobile run ios:live:device",
     "ios:device": "pnpm --filter @sulo/mobile run ios:device",
     "ios:ipa": "pnpm --filter @sulo/mobile run ios:ipa",
+    "ios:test": "pnpm --filter @sulo/mobile run ios:test",
     "ios:log": "pnpm --filter @sulo/mobile run ios:log",
     "ios:doctor": "pnpm --filter @sulo/mobile run ios:doctor"
   }

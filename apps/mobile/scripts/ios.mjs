@@ -8,11 +8,13 @@
 //   live-device  the same on the iPhone over the Mac's Wi-Fi (same network; owner only, development only)
 //   device   owner only: sign with the Personal Team (ios/App/Local.xcconfig), install and open on the iPhone
 //   ipa      unsigned archive -> .output/sulo-<versi>-ios[-sintetis].ipa, then scripts/ios-verify.mjs
+//   test     Swift tests for the pure rules (ios/SuloTests), on the Mac
 //   log      the app's log from the simulator, or from the iPhone with --iphone
 //   doctor   Xcode, simulator, iPhone, signing team, disk
 //
-// --data=sintetis (default in Fase 1) builds the web app with synthetic data: no request to SIKOLA,
-// NEOSIA, Sipakamase or anywhere else. --data=debug and --data=rilis need the native session (Fase 2).
+// --data=sintetis (the default) builds the web app with synthetic data: no request to SIKOLA, NEOSIA,
+// Sipakamase or anywhere else (the only kind Claude runs). --data=debug: the real app with the dev screen
+// (the owner's iPhone, his own sign-in); --data=rilis: the release build.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statfsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -42,7 +44,6 @@ const DATA_MODES = { sintetis: 'web', debug: 'debug', rilis: 'production' };
 function dataMode() {
   const data = flag('data') ?? 'sintetis';
   if (!(data in DATA_MODES)) fail(`--data harus salah satu dari: ${Object.keys(DATA_MODES).join(', ')}`);
-  if (data !== 'sintetis') fail('Build dengan data sungguhan butuh sesi native iPhone (Fase 2). Untuk sekarang pakai --data=sintetis.');
   return data;
 }
 
@@ -157,6 +158,17 @@ function team() {
   return /^\s*DEVELOPMENT_TEAM\s*=\s*([A-Z0-9]{10})\s*$/m.exec(text)?.[1] ?? null;
 }
 
+/**
+ * The Personal Team's id from the Apple Development certificate Xcode made in this Mac's keychain (its
+ * subject's OU), written to Local.xcconfig (ignored by git). Never printed. Null before Xcode signed once.
+ */
+function teamFromCertificate() {
+  const pem = spawnSync('security', ['find-certificate', '-c', 'Apple Development', '-p'], { encoding: 'utf8' });
+  if (pem.status !== 0 || !pem.stdout.includes('BEGIN CERTIFICATE')) return null;
+  const subject = spawnSync('openssl', ['x509', '-noout', '-subject', '-nameopt', 'RFC2253'], { input: pem.stdout, encoding: 'utf8' }).stdout;
+  return /(?:^|,)OU=([A-Z0-9]{10})(?:,|$)/.exec(subject.replace(/^subject=/, '').trim())?.[1] ?? null;
+}
+
 function iphone() {
   const res = spawnSync('xcrun', ['devicectl', 'list', 'devices', '--json-output', '-'], { encoding: 'utf8' });
   const devices = res.status === 0 ? (JSON.parse(res.stdout).result?.devices ?? []) : [];
@@ -186,7 +198,8 @@ function ipa() {
     mkdirSync(payload);
     cpSync(join(archive, 'Products/Applications/App.app'), join(payload, 'App.app'), { recursive: true });
     mkdirSync(join(ROOT, '.output'), { recursive: true });
-    const name = `sulo-${VERSION}-ios${data === 'sintetis' ? '-sintetis' : ''}.ipa`;
+    // The release has the plain name; test builds say what they carry.
+    const name = `sulo-${VERSION}-ios${data === 'rilis' ? '' : `-${data}`}.ipa`;
     const target = join(ROOT, '.output', name);
     rmSync(target, { force: true });
     run('zip', ['-qry', target, 'Payload'], { cwd: work });
@@ -207,6 +220,20 @@ function log() {
   run('xcrun', ['simctl', 'spawn', 'booted', 'log', 'stream', '--level', 'info', '--predicate', 'process == "App"']);
 }
 
+/** The Swift files with no UIKit and no network, tested on the Mac (ios/SuloTests/main.swift). */
+const PURE = ['SikolaRules.swift', 'FileStore.swift'];
+
+function test() {
+  const work = mkdtempSync(join(tmpdir(), 'sulo-swift-test-'));
+  try {
+    const bin = join(work, 'sulotests');
+    run('xcrun', ['swiftc', '-O', '-o', bin, ...PURE.map((f) => join(IOS_APP, 'App', 'Sulo', f)), join(MOBILE, 'ios', 'SuloTests', 'main.swift')]);
+    run(bin, []);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+}
+
 function doctor() {
   const line = (ok, text) => console.log(`${ok ? 'ok  ' : 'BELUM'} ${text}`);
   const xcode = spawnSync('xcode-select', ['-p'], { encoding: 'utf8' }).stdout.trim();
@@ -217,7 +244,11 @@ function doctor() {
   line(runtimes.length > 0, `runtime simulator: ${runtimes.map((r) => r.split(' - ')[0]).join(', ') || 'tidak ada'}`);
   const phone = iphone();
   line(Boolean(phone), phone ? `iPhone: ${phone.hardwareProperties.productType}, iOS ${phone.deviceProperties.osVersionNumber}, Mode Pengembang ${phone.deviceProperties.developerModeStatus}` : 'iPhone tidak tersambung (hanya perlu untuk ios:device)');
-  line(Boolean(team()), team() ? 'tim penanda tangan ada di ios/App/Local.xcconfig' : 'ios/App/Local.xcconfig belum berisi DEVELOPMENT_TEAM (hanya perlu untuk ios:device)');
+  if (!team()) {
+    const found = teamFromCertificate();
+    if (found) writeFileSync(LOCAL, `// The owner's Personal Team, read from Xcode's certificate. Never committed.\nDEVELOPMENT_TEAM = ${found}\n`);
+  }
+  line(Boolean(team()), team() ? 'tim penanda tangan ada di ios/App/Local.xcconfig' : 'tim penanda tangan belum ada; jalur Sideloadly tidak membutuhkannya (lihat docs/ios/XCODE-KAPAN.md)');
   line(!/DEVELOPMENT_TEAM = /.test(readFileSync(PBXPROJ, 'utf8')), 'project.pbxproj tanpa DEVELOPMENT_TEAM');
   const free = (() => {
     const s = statfsSync('/');
@@ -226,6 +257,6 @@ function doctor() {
   line(free >= 10, `ruang kosong ${free} GB`);
 }
 
-const commands = { sync, sim, live, 'live-device': liveDevice, device, ipa, log, doctor };
+const commands = { sync, sim, live, 'live-device': liveDevice, device, ipa, test, log, doctor };
 if (!commands[command]) fail(`Perintah: ${Object.keys(commands).join(', ')}`);
 commands[command]();

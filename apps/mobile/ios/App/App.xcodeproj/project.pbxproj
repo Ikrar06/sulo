@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FDE7E16CEC5EB55D07A34798 /* SourcePlugins.swift in Sources */ = {isa = PBXBuildFile; fileRef = 570A8D060255058D87B4B9AF /* SourcePlugins.swift */; };
+		47C577F086BF316FCD53AE58 /* SikolaRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5AD59EA98E0A6B15413108 /* SikolaRules.swift */; };
+		0948FE3C25E1D9090A7D8BDC /* SikolaHttp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB4723405F0333EFEE25902F /* SikolaHttp.swift */; };
+		BD13A6BB936BDF8EC1B4E02F /* SessionVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A9C4EE1D3068246F16CCD1 /* SessionVault.swift */; };
+		49D9CD4482F0D353EE4BBBE5 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A70236F962959759C7D7ED /* LoginViewController.swift */; };
+		9608DEC4801995D56FAA250F /* EncryptedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CE5F56E4244AB6F02B621B /* EncryptedStore.swift */; };
+		9967DB23337E5D21CC68B0F0 /* Diag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0C2C280C3CF51CE694F932 /* Diag.swift */; };
 		4CE1F0DAE65D00139F2860E0 /* SuloStorePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96E59BF3FC3C9E66398F92E /* SuloStorePlugin.swift */; };
 		E0FB2C5BB7E154C9F7223E86 /* SuloSessionPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31CE2EFAA52FB7A81DCF09A5 /* SuloSessionPlugin.swift */; };
 		B88F90A1CDF2FE1276FA4F64 /* SuloProbePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA687D57DC0AC27F0990DA85 /* SuloProbePlugin.swift */; };
@@ -26,6 +33,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		570A8D060255058D87B4B9AF /* SourcePlugins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SourcePlugins.swift; sourceTree = "<group>"; };
+		9C5AD59EA98E0A6B15413108 /* SikolaRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SikolaRules.swift; sourceTree = "<group>"; };
+		CB4723405F0333EFEE25902F /* SikolaHttp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SikolaHttp.swift; sourceTree = "<group>"; };
+		B5A9C4EE1D3068246F16CCD1 /* SessionVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SessionVault.swift; sourceTree = "<group>"; };
+		E1A70236F962959759C7D7ED /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/LoginViewController.swift; sourceTree = "<group>"; };
+		A1CE5F56E4244AB6F02B621B /* EncryptedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/EncryptedStore.swift; sourceTree = "<group>"; };
+		5B0C2C280C3CF51CE694F932 /* Diag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/Diag.swift; sourceTree = "<group>"; };
 		A96E59BF3FC3C9E66398F92E /* SuloStorePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SuloStorePlugin.swift; sourceTree = "<group>"; };
 		31CE2EFAA52FB7A81DCF09A5 /* SuloSessionPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SuloSessionPlugin.swift; sourceTree = "<group>"; };
 		DA687D57DC0AC27F0990DA85 /* SuloProbePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SuloProbePlugin.swift; sourceTree = "<group>"; };
@@ -78,6 +92,13 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				570A8D060255058D87B4B9AF /* SourcePlugins.swift */,
+				9C5AD59EA98E0A6B15413108 /* SikolaRules.swift */,
+				CB4723405F0333EFEE25902F /* SikolaHttp.swift */,
+				B5A9C4EE1D3068246F16CCD1 /* SessionVault.swift */,
+				E1A70236F962959759C7D7ED /* LoginViewController.swift */,
+				A1CE5F56E4244AB6F02B621B /* EncryptedStore.swift */,
+				5B0C2C280C3CF51CE694F932 /* Diag.swift */,
 				A96E59BF3FC3C9E66398F92E /* SuloStorePlugin.swift */,
 				31CE2EFAA52FB7A81DCF09A5 /* SuloSessionPlugin.swift */,
 				DA687D57DC0AC27F0990DA85 /* SuloProbePlugin.swift */,
@@ -179,6 +200,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDE7E16CEC5EB55D07A34798 /* SourcePlugins.swift in Sources */,
+				47C577F086BF316FCD53AE58 /* SikolaRules.swift in Sources */,
+				0948FE3C25E1D9090A7D8BDC /* SikolaHttp.swift in Sources */,
+				BD13A6BB936BDF8EC1B4E02F /* SessionVault.swift in Sources */,
+				49D9CD4482F0D353EE4BBBE5 /* LoginViewController.swift in Sources */,
+				9608DEC4801995D56FAA250F /* EncryptedStore.swift in Sources */,
+				9967DB23337E5D21CC68B0F0 /* Diag.swift in Sources */,
 				4CE1F0DAE65D00139F2860E0 /* SuloStorePlugin.swift in Sources */,
 				E0FB2C5BB7E154C9F7223E86 /* SuloSessionPlugin.swift in Sources */,
 				B88F90A1CDF2FE1276FA4F64 /* SuloProbePlugin.swift in Sources */,

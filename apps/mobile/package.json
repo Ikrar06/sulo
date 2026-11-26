@@ -41,6 +41,7 @@
     "ios:live:device": "node scripts/ios.mjs live-device",
     "ios:device": "node scripts/ios.mjs device",
     "ios:ipa": "node scripts/ios.mjs ipa",
+    "ios:test": "node scripts/ios.mjs test",
     "ios:log": "node scripts/ios.mjs log",
     "ios:doctor": "node scripts/ios.mjs doctor"
   },
