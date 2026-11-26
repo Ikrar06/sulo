@@ -382,6 +382,17 @@ export function PopupView(props: PopupViewProps) {
           </>
         )}
 
+        {/* The dashboard, always in sight (1.1.0): it was only in the ⚙ menu. */}
+        {!props.sample && (view.onboarded || mismatch) && (
+          <button
+            type="button"
+            onClick={() => props.onOpenDashboard('')}
+            className="flex min-h-10 w-full items-center justify-between gap-2 border-t border-border px-4 text-[13px] font-medium outline-none hover:bg-muted focus-ring:ring-2 focus-ring:ring-inset focus-ring:ring-focus"
+          >
+            {m.popup.settings.openDashboard}
+            <ChevronRightIcon aria-hidden="true" className="size-4 text-muted-foreground" />
+          </button>
+        )}
         {!props.sample && <footer className="flex items-center justify-between border-t border-border px-4 py-2 text-[11.5px] text-muted-foreground">
           <span>{m.disclaimerShort}</span>
           <button type="button" className="underline-offset-2 hover:text-foreground hover:underline" onClick={props.onOpenPrivacy}>
