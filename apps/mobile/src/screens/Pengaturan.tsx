@@ -38,6 +38,7 @@ import { SignOutSheet } from './SignOutSheet';
 import { Group, Row, ValueRow } from './settings-rows';
 import { WatchSettings } from './WatchSettings';
 import { NeosiaSettings } from './neosia/NeosiaSettings';
+import { SipakamaseSettings } from './sipakamase/SipakamaseSettings';
 export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut: () => void; section?: string | null }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
@@ -194,6 +195,7 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
       </Group>
 
       <NeosiaSettings scrollTo={section === 'neosia'} />
+      <SipakamaseSettings />
 
       <Group title={w.connected.lock}>
         <Row label={w.connected.lock} help={lockAvailable ? w.connected.lockHelp : w.connected.lockUnavailable}>

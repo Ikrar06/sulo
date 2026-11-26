@@ -32,6 +32,7 @@ import { scheduleIfNoneScheduled, scheduleReminders } from './reminders';
 import { LockScreen } from './screens/Gate';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
 import { markWhatsNewRead, WhatsNewSheet } from './WhatsNew';
+import { SipakamaseProvider } from './sipakamase/SipakamaseProvider';
 import { SwitchAccount } from './onboarding/SwitchAccount';
 import { holdWatching, keepPreviousAccount, switchPending, useOtherAccount } from './switch-account';
 import { readSavedFlow, saveFlow } from './onboarding/data';
@@ -371,6 +372,7 @@ export function App({ platform }: { platform: Platform }) {
   const shell = (
     <MobileDataProvider platform={platform}>
       <NeosiaProvider platform={platform}>
+      <SipakamaseProvider platform={platform}>
       <Shell
         expired={status === 'expired'}
         busy={busy}
@@ -389,6 +391,7 @@ export function App({ platform }: { platform: Platform }) {
       />
       {/* Once after an update that brought something new; never during the onboarding or its landing. */}
       {flow.step === 'finished' && !landing && <WhatsNewSheet store={platform.store} />}
+      </SipakamaseProvider>
       </NeosiaProvider>
     </MobileDataProvider>
   );

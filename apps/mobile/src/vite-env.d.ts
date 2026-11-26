@@ -14,3 +14,8 @@ declare module '*/demo-presensi.mjs' {
 declare module '*/demo-neosia.mjs' {
   export function demoNeosia(now?: number): Record<string, unknown>;
 }
+
+// The extension's demo Sipakamase data (1.1.0).
+declare module '*/demo-sipakamase.mjs' {
+  export function demoSipakamase(now: number): Record<string, unknown>;
+}

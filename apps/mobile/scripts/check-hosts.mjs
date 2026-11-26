@@ -19,6 +19,7 @@ const ALLOWED = {
   // Pages the user opens; Sulo sends nothing there itself.
   'neosia.unhas.ac.id': "NEOSIA's own pages, opened from a tap (zero requests by Sulo)",
   'api.neosia.unhas.ac.id': "NEOSIA's API, called by NEOSIA's own page; only its path allowlist is matched",
+  'sipakamase.unhas.ac.id': 'Sipakamase (1.1.0): its login page, and GETs to five read-only fragments (core sipakamase/allowlist.ts)',
   'github.com': 'links: the owner\'s GitHub and release downloads (opened in the browser)',
   'www.unhas.ac.id': 'link: the official academic calendar PDF (opened in the browser)',
   'forms.gle': 'link: feedback form (opened in the browser)',

@@ -15,6 +15,7 @@
 //   the previous account's data is untouched and shows with "Masuk lagi".
 
 import { SuloNeosia } from './neosia-native';
+import { disconnectSipakamase } from './sipakamase/service';
 import { currentUser } from '@sulo/core/storage';
 import { ACCOUNT_PENDING_KEY, readPending } from '@sulo/core/account/pending';
 import type { Platform } from '@sulo/core/platform';
@@ -48,6 +49,8 @@ export async function useOtherAccount(platform: Platform): Promise<boolean> {
   // The previous account's NEOSIA data goes too (encrypted, its own file; M8d B2).
   const previous = await currentUser(platform.store);
   if (previous !== null) await SuloNeosia.wipe({ user: previous }).catch(() => undefined);
+  // Sipakamase too: the new account's owner has not agreed to it (its session, its data, its module state).
+  await disconnectSipakamase(platform).catch(() => undefined);
   // Every u:{previous}:* key goes; the other account becomes current, empty.
   await switchUser(platform.store, pending.userId);
   await writePrefs(platform.store, { nickname: '' });

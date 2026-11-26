@@ -13,7 +13,12 @@ import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { Private, usePrivacy } from '@sulo/ui/private';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronDownIcon } from '@sulo/ui/icons';
+import { AlertIcon, ChevronDownIcon } from '@sulo/ui/icons';
+import { sipakamaseWords } from '@sulo/core/i18n/sipakamase';
+import { mkpkReminders, reminderText, type MkpkReminder } from '@sulo/core/mkpk/reminders';
+import { summarizeSipakamase, type SipakamaseSummary } from '@sulo/core/mkpk/sipakamase-summary';
+import { lastReadAt } from '@sulo/core/sipakamase/store';
+import { useSipakamase } from '../../sipakamase/SipakamaseProvider';
 import { useMobileData } from '../../shell/data';
 import { useNeosia } from '../../neosia/NeosiaProvider';
 
@@ -25,6 +30,9 @@ export function MkpkCard() {
   const masked = usePrivacy();
   const [listOpen, setListOpen] = useState(false);
   const [choosing, setChoosing] = useState(false);
+  const [allReminders, setAllReminders] = useState(false);
+  const sip = useSipakamase();
+  const sw = sipakamaseWords(locale);
   const load = data!.prefs.mkpkLoad;
   if (!neo.enabled || load === 'none') return null;
   const p = mkpkProgress(neo.snapshots, neo.mkpk);
@@ -103,6 +111,17 @@ export function MkpkCard() {
         </div>
       )}
 
+      {sip.enabled ? (
+        <SipakamaseRows summary={summarizeSipakamase(sip.data, sip.connection)} reminders={mkpkReminders(sip.data, p)} text={text} all={allReminders} onAll={() => setAllReminders(true)} />
+      ) : (
+        <p className="mt-3 border-t border-m-line pt-3 text-m13 text-muted-foreground">
+          {sw.card.invite}{' '}
+          <button type="button" onClick={sip.ask} className={`m-hit rounded text-foreground underline underline-offset-2 ${ring}`}>
+            {sw.connect}
+          </button>
+        </p>
+      )}
+
       {load === null && (
         // The load question, set apart by space alone (no divider, no card in the card).
         <div className="mt-4 space-y-2">
@@ -139,7 +158,54 @@ export function MkpkCard() {
         </div>
       )}
 
-      {seen > 0 && <p className="mt-3 text-m12 text-muted-foreground">{w.source(formatAgo(seen, data!.now, m))}</p>}
+      {(seen > 0 || (sip.data && lastReadAt(sip.data))) && (
+        <p className="mt-3 text-m12 text-muted-foreground">
+          {[seen > 0 ? w.source(formatAgo(seen, data!.now, m)) : null, sip.data && lastReadAt(sip.data) ? sw.card.source(formatAgo(lastReadAt(sip.data)!, data!.now, m)) : null].filter(Boolean).join(' ')}
+        </p>
+      )}
     </Card>
+  );
+}
+
+const SHOWN_REMINDERS = 2;
+
+/** Sipakamase's rows on the card: credits not in NEOSIA, credits not converted, then the named reminders. */
+function SipakamaseRows({ summary, reminders, text, all, onAll }: { summary: SipakamaseSummary; reminders: MkpkReminder[]; text: (sks: number) => string; all: boolean; onAll: () => void }) {
+  const { locale } = useI18n();
+  const sw = sipakamaseWords(locale);
+  const named = reminders.filter((r) => r.kind !== 'd');
+  const shown = all ? named : named.slice(0, SHOWN_REMINDERS);
+  const problem = summary.state === 'needs_login' ? sw.card.needsLogin : summary.state === 'broken' ? sw.card.broken : null;
+  const row = (label: string, sks: number) => (
+    <div className="flex min-h-11 items-center justify-between gap-3 border-t border-m-line">
+      <span className="text-m13 text-muted-foreground">{label}</span>
+      <span className="text-m15 tabular-nums">
+        <Private>{`${text(sks)} SKS`}</Private>
+      </span>
+    </div>
+  );
+  return (
+    <div>
+      {summary.notInNeosiaSks !== null && summary.notInNeosiaSks > 0 && row(sw.card.notInNeosiaLabel, summary.notInNeosiaSks)}
+      {summary.unconvertedSks !== null && summary.unconvertedSks > 0 && row(sw.card.unconvertedLabel, summary.unconvertedSks)}
+      {shown.length > 0 && (
+        <ul className="space-y-2 border-t border-m-line pt-3">
+          {shown.map((r, i) => (
+            <li key={`${r.kind}-${i}`} className="flex items-start gap-2 text-m13">
+              <AlertIcon aria-hidden="true" className="mt-px size-4 shrink-0 text-urgency-soon" />
+              <span>{reminderText(r, sw, text)}</span>
+            </li>
+          ))}
+          {!all && named.length > SHOWN_REMINDERS && (
+            <li>
+              <button type="button" onClick={onAll} className="m-hit rounded text-m13 text-muted-foreground underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                {sw.card.more(named.length - SHOWN_REMINDERS)}
+              </button>
+            </li>
+          )}
+        </ul>
+      )}
+      {problem && <p className="mt-2 text-m12 text-muted-foreground">{problem}</p>}
+    </div>
   );
 }

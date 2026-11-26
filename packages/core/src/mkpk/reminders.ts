@@ -11,6 +11,7 @@
 // have one. Item a says "belum lulus", never "nilai T": the consequence is
 // explained on the help page with its source and "konfirmasi ke KPS".
 
+import type { SipakamaseWords } from '../i18n/sipakamase';
 import type { MkpkProgress } from './progress';
 import { activities, type SipakamaseData } from '../sipakamase/store';
 
@@ -64,4 +65,10 @@ export function mkpkReminders(data: SipakamaseData | null, progress: Pick<MkpkPr
   for (const a of activities(data)) if (a.stage === 'running' && a.hasCompanion === false && a.status !== 'finished') out.push({ kind: 'e', name: a.name });
 
   return out;
+}
+
+/** A reminder's sentence on the card, both platforms. */
+export function reminderText(r: MkpkReminder, sw: SipakamaseWords, text: (sks: number) => string): string {
+  const t = sw.card.reminders;
+  return r.kind === 'd' ? t.d(text(r.sks), r.activities) : t[r.kind](r.name);
 }

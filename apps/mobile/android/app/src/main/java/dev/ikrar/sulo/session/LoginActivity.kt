@@ -23,6 +23,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import dev.ikrar.sulo.R
+import dev.ikrar.sulo.sipakamase.Sipakamase
 import dev.ikrar.sulo.ui.Palette
 
 /**
@@ -42,6 +43,17 @@ import dev.ikrar.sulo.ui.Palette
  * closes. The cookie never travels in an Intent and never reaches JavaScript.
  */
 class LoginActivity : Activity() {
+    /** The site this screen signs in to: SIKOLA, or Sipakamase (1.1.0, EXTRA_SITE). Same screen, same rules. */
+    private data class Site(val host: String, val origin: String, val entry: String, val cookie: String, val signedIn: (String?) -> Boolean)
+
+    private val site by lazy {
+        if (intent.getStringExtra(EXTRA_SITE) == SITE_SIPAKAMASE) {
+            Site(Sipakamase.HOST, Sipakamase.ORIGIN, Sipakamase.ENTRY_URL, Sipakamase.SESSION_COOKIE, Sipakamase::isSignedInPage)
+        } else {
+            Site(Sikola.HOST, Sikola.ORIGIN, Sikola.LOGIN_URL, Sikola.SESSION_COOKIE, Sikola::isSignedInPage)
+        }
+    }
+
     private lateinit var webView: WebView
     private lateinit var host: TextView
     private lateinit var offline: LinearLayout
@@ -64,16 +76,16 @@ class LoginActivity : Activity() {
         webView.settings.allowFileAccess = false
         webView.settings.allowContentAccess = false
         webView.webViewClient = object : WebViewClient() {
-            // Only SIKOLA stays in this screen; anything else is not followed.
+            // Only the site stays in this screen; anything else is not followed.
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-                request.url.host != Sikola.HOST
+                request.url.host != site.host
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
                 android.net.Uri.parse(url ?: "").host?.let { host.text = it }
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
-                if (!done && Sikola.isSignedInPage(url)) capture()
+                if (!done && site.signedIn(url)) capture()
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -113,7 +125,7 @@ class LoginActivity : Activity() {
 
     private fun load() {
         showOffline(false)
-        webView.loadUrl(Sikola.LOGIN_URL)
+        webView.loadUrl(site.entry)
     }
 
     private fun bar(c: Palette): LinearLayout = LinearLayout(this).apply {
@@ -123,7 +135,7 @@ class LoginActivity : Activity() {
         setPadding(dp(16), 0, dp(4), 0)
         addView(ImageView(context).apply { setImageResource(R.drawable.sulo_ic_lock); setColorFilter(c.muted); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(dp(16), dp(16)))
         host = TextView(context).apply {
-            text = Sikola.HOST
+            text = site.host
             setTextColor(c.text)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             maxLines = 1
@@ -180,9 +192,9 @@ class LoginActivity : Activity() {
     private fun capture() {
         val cookies = CookieManager.getInstance()
         cookies.flush()
-        val session = SikolaText.cookieValue(cookies.getCookie(Sikola.ORIGIN), Sikola.SESSION_COOKIE) ?: return
+        val session = SikolaText.cookieValue(cookies.getCookie(site.origin), site.cookie) ?: return
         done = true
-        Captured.moodleSession = session
+        if (site.host == Sipakamase.HOST) Captured.sipakamase = session else Captured.moodleSession = session
         setResult(RESULT_OK)
         finish()
     }
@@ -215,12 +227,16 @@ class LoginActivity : Activity() {
         const val EXTRA_OFFLINE = "sulo.offline"
         const val EXTRA_RETRY = "sulo.retry"
         const val RESULT_OFFLINE = RESULT_FIRST_USER + 1
+        const val EXTRA_SITE = "sulo.site"
+        const val SITE_SIPAKAMASE = "sipakamase"
     }
 }
 
 /** Hand-over from the login screen to the plugin inside this process; emptied as soon as it is read. */
 internal object Captured {
     @Volatile var moodleSession: String? = null
+    @Volatile var sipakamase: String? = null
 
     fun take(): String? = moodleSession.also { moodleSession = null }
+    fun takeSipakamase(): String? = sipakamase.also { sipakamase = null }
 }

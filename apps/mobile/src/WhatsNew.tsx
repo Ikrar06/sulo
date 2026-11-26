@@ -12,6 +12,8 @@ import { NOTICE_VERSION } from '@sulo/core/storage';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { Sheet } from '@sulo/ui/mobile/sheet';
 import { useI18n } from '@sulo/ui/i18n';
+import { sipakamaseWords } from '@sulo/core/i18n/sipakamase';
+import { useSipakamase } from './sipakamase/SipakamaseProvider';
 
 export const WHATS_NEW_READ_KEY = 'mobile:whatsNewRead';
 
@@ -26,6 +28,7 @@ export const markWhatsNewRead = (store: KeyValueStore) => store.set(WHATS_NEW_RE
 export function WhatsNewSheet({ store }: { store: KeyValueStore }) {
   const { m, locale } = useI18n();
   const [entries, setEntries] = useState<WhatsNewEntry[]>([]);
+  const sip = useSipakamase();
 
   useEffect(() => {
     void readWhatsNewVersion(store).then((read) => setEntries(pendingWhatsNew(WHATS_NEW, read, true, 'android')));
@@ -44,6 +47,20 @@ export function WhatsNewSheet({ store }: { store: KeyValueStore }) {
             <li key={e.id} className="space-y-1">
               <p className="text-m15 font-semibold">{entryText(e, locale).title}</p>
               <p className="text-m15r text-muted-foreground">{entryText(e, locale).body}</p>
+              {e.action === 'sipakamase' && !sip.enabled && (
+                <div className="pt-2">
+                  {/* The consent sheet comes first; nothing connects from this button alone. */}
+                  <PillButton
+                    small
+                    onPress={() => {
+                      close();
+                      sip.ask();
+                    }}
+                  >
+                    {sipakamaseWords(locale).connectCta}
+                  </PillButton>
+                </div>
+              )}
             </li>
           ))}
         </ul>

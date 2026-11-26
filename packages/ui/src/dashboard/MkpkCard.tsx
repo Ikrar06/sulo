@@ -16,7 +16,7 @@ import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { MKPK_INFO_URL } from '@sulo/core/links';
 import { estimateLoad, type MkpkLoadChoice } from '@sulo/core/mkpk/load';
 import { mkpkProgress, sksText } from '@sulo/core/mkpk/progress';
-import type { MkpkReminder } from '@sulo/core/mkpk/reminders';
+import { reminderText, type MkpkReminder } from '@sulo/core/mkpk/reminders';
 import type { SipakamaseSummary } from '@sulo/core/mkpk/sipakamase-summary';
 import { sipakamaseWords, type SipakamaseWords } from '@sulo/core/i18n/sipakamase';
 import { AlertCircleIcon } from '../dashboard-icons';
@@ -217,9 +217,4 @@ function SipakamasePart({ part, sw, text, allReminders, onAll }: { part: NonNull
       {problem && <p className="mt-2 text-[12px] text-muted-foreground">{problem}</p>}
     </div>
   );
-}
-
-export function reminderText(r: MkpkReminder, sw: SipakamaseWords, text: (sks: number) => string): string {
-  const t = sw.card.reminders;
-  return r.kind === 'd' ? t.d(text(r.sks), r.activities) : t[r.kind](r.name);
 }
