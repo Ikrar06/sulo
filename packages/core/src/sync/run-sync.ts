@@ -15,6 +15,7 @@ import { readBudget, remainingQuota } from '../moodle/budget';
 import {
   CALENDAR_LOOKBACK_DAYS,
   CATCHUP_FRESH_MIN,
+  EXTENSION_WATCH,
   COURSE_LIST_MIN_GAP_H,
   MANUAL_COOLDOWN_SEC,
   ONBOARDING_FRESH_MIN,
@@ -22,6 +23,7 @@ import {
   SAVER_MIN_GAP_MIN,
   SIKOLA_ORIGIN,
   SOFT_DAILY_POSTS,
+  WATCH_STOP,
   TASKS_TTL_MIN,
   TTL_TOLERANCE_MIN,
 } from '../moodle/limits';
@@ -59,7 +61,20 @@ export interface SyncDeps {
    * attendance after the recap. Never called for a stage that did not run.
    */
   onStage?: (stage: SyncStage, result: 'ok' | 'failed') => void;
+  /**
+   * The extension's "Pantau tugas baru" intervals in force (remote config
+   * applied), for the watch trigger. Defaults: moodle/limits.ts EXTENSION_WATCH.
+   */
+  watch?: { activeMinutes: number; idleMinutes: number };
 }
+
+/**
+ * The extension's "Pantau tugas baru" checks (1.1.0): the periodic one
+ * (watch) and the one when the popup opens (popup). Light: session,
+ * calendar and notifications every time, course structures when their own
+ * turn is due; no attendance recap. They keep the SIKOLA session alive.
+ */
+export const LIGHT_TRIGGERS: ReadonlySet<SyncTrigger> = new Set(['watch', 'popup']);
 
 export type SyncStage = 'tasks' | 'courses' | 'attendance';
 
@@ -95,8 +110,8 @@ async function finish(deps: SyncDeps, now: UnixSeconds, work: () => Promise<Sync
   return outcome;
 }
 
-/** Triggers that run without a click: quiet hours and idle apply. */
-const UNATTENDED = new Set<SyncTrigger>(['background', 'startup', 'idle']);
+/** Triggers that run without a click: quiet hours and idle apply (watch has its own rule for idle). */
+const UNATTENDED = new Set<SyncTrigger>(['background', 'startup', 'idle', 'watch']);
 
 /**
  * Data younger than this (minutes) makes a trigger skip without a request.
@@ -115,10 +130,26 @@ export function freshForMinutes(trigger: SyncTrigger): number {
       return ONBOARDING_FRESH_MIN;
     case 'relogin':
       return RELOGIN_FRESH_MIN;
+    case 'watch':
+      return EXTENSION_WATCH.activeMinutes - EXTENSION_WATCH.slackMinutes;
+    case 'popup':
+      return EXTENSION_WATCH.popupFreshMinutes;
     case 'manual':
     case 'sesskey':
       return 0;
   }
+}
+
+/**
+ * The watch check's own gates: never between 00.00 and 06.00 or while the
+ * screen is locked; while the computer is idle, the longer interval; and it
+ * stops for the day at WATCH_STOP, so the rest of the budget stays for what
+ * the user does.
+ */
+function watchFreshMinutes(deps: SyncDeps): number {
+  const active = deps.watch?.activeMinutes ?? EXTENSION_WATCH.activeMinutes;
+  const idle = deps.watch?.idleMinutes ?? EXTENSION_WATCH.idleMinutes;
+  return (deps.idleState === 'idle' ? idle : active) - EXTENSION_WATCH.slackMinutes;
 }
 
 /** Which sync this is: "Perbarui" is always full; automatic syncs past the soft limit save. */
@@ -128,11 +159,17 @@ export function syncMode(trigger: SyncTrigger, postsToday: number): RadarMode {
 }
 
 async function skipReason(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome | null> {
-  if (UNATTENDED.has(deps.trigger)) {
+  if (deps.trigger === 'watch') {
+    // Idle is allowed (with the longer interval); locked is not.
+    const block = backgroundBlockReason(deps.clock, deps.idleState === 'idle' ? 'active' : (deps.idleState ?? 'locked'));
+    if (block) return { status: 'skipped', reason: block };
+  } else if (UNATTENDED.has(deps.trigger)) {
     const block = backgroundBlockReason(deps.clock, deps.idleState ?? 'idle');
     if (block) return { status: 'skipped', reason: block };
   }
-  const mode = syncMode(deps.trigger, (await readBudget(deps.store, deps.clock)).used);
+  const used = (await readBudget(deps.store, deps.clock)).used;
+  if (LIGHT_TRIGGERS.has(deps.trigger) && used >= WATCH_STOP.posts) return { status: 'skipped', reason: 'WATCH_STOPPED' };
+  const mode = syncMode(deps.trigger, used);
   // "Perbarui" right after a good sync: nothing to fetch, nothing sent ("Sudah terbaru").
   // Saver mode: automatic syncs at least an hour apart.
   const freshFor = deps.forceCourseList
@@ -141,7 +178,9 @@ async function skipReason(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome
       ? MANUAL_COOLDOWN_SEC / 60
       : mode === 'saver'
         ? Math.max(SAVER_MIN_GAP_MIN, freshForMinutes(deps.trigger))
-        : freshForMinutes(deps.trigger);
+        : deps.trigger === 'watch'
+          ? watchFreshMinutes(deps)
+          : freshForMinutes(deps.trigger);
   if (freshFor > 0) {
     const userId = await currentUser(deps.store);
     const meta = userId === null ? null : await readUser(deps.store, userId, 'sync');
@@ -201,17 +240,20 @@ async function syncOnce(deps: SyncDeps, now: UnixSeconds): Promise<SyncOutcome> 
       now,
       mode,
       knownUser === null ? [] : await readUser(deps.store, knownUser, 'tasks'),
+      // A light check exists to find news: notifications every time, not every 3 hours.
+      LIGHT_TRIGGERS.has(deps.trigger),
     ),
     userId: knownUser,
     remaining: remainingQuota(budget),
   });
   // A course that stops the batch (not reachable for this user): the calls after it once more, in one extra POST.
-  const result = await callBatchOnceMore(deps.client, plan.calls, { source: deps.trigger, withCourseList: plan.withCourseList });
+  const light = LIGHT_TRIGGERS.has(deps.trigger);
+  const result = await callBatchOnceMore(deps.client, plan.calls, { source: deps.trigger, withCourseList: plan.withCourseList, ...(light ? { keepSession: true } : {}) });
   if (result.kind !== 'ok') {
     stage(deps, 'tasks', 'failed');
     return transportOutcome(result);
   }
-  return applyBatch(deps, now, { knownUser, mode, plan }, result.results, { followUp: true, recap: true });
+  return applyBatch(deps, now, { knownUser, mode, plan }, result.results, { followUp: true, recap: !light });
 }
 
 /** What a batch's answer is read against: who was known before it, the radar mode, and the plan it was sent with. */

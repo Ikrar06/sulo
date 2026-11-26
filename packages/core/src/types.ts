@@ -27,8 +27,10 @@ export type RequestSource =
   /** Catch-up after the browser starts / after the user returns (idle -> active). */
   | 'startup'
   | 'idle'
-  /** The popup no longer sends requests; kept so older counts still show a label. */
+  /** The popup opened while "Pantau tugas baru" is on (extension, 1.1.0): one light check. */
   | 'popup'
+  /** "Pantau tugas baru" in the extension: the periodic light check (1.1.0). */
+  | 'watch'
   | 'manual'
   | 'onboarding'
   /** Removed message (connection test); kept so older counts still show a label. */
@@ -74,6 +76,8 @@ export interface RemoteConfig {
   okAt?: UnixSeconds;
   /** The Android app's own section (remote/keep-alive.ts validates it on read); the extension ignores it. */
   mobile?: unknown;
+  /** The extension's own section (remote/extension-watch.ts validates it on read); the phone ignores it. */
+  extension?: unknown;
 }
 
 export type ClientRefusal =
@@ -250,11 +254,11 @@ export interface ParseResult<T> {
 // ---------- Sync ----------
 
 /** The popup never triggers a sync (it only reads storage). */
-export type SyncTrigger = 'background' | 'startup' | 'idle' | 'manual' | 'onboarding' | 'sesskey' | 'relogin';
+export type SyncTrigger = 'background' | 'startup' | 'idle' | 'manual' | 'onboarding' | 'sesskey' | 'relogin' | 'watch' | 'popup';
 
 export type SyncOutcome =
   | { status: 'ok'; at: UnixSeconds; tasks: number; courseListFetched: boolean }
-  | { status: 'skipped'; reason: ClientRefusal | 'QUIET_HOURS' | 'IDLE' | 'FRESH' | 'BUSY' | 'ACCOUNT_MISMATCH' | 'NOT_NEEDED' }
+  | { status: 'skipped'; reason: ClientRefusal | 'QUIET_HOURS' | 'IDLE' | 'FRESH' | 'BUSY' | 'ACCOUNT_MISMATCH' | 'NOT_NEEDED' | 'WATCH_STOPPED' }
   /** Another SIKOLA account is signed in: its data was not written (docs/ARCHITECTURE.md section 5). */
   | { status: 'account_mismatch'; userId: UserId }
   /** The previous account is back: normal syncs resume at the next cycle. */

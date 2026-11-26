@@ -40,19 +40,28 @@ describe('onboarding flow', () => {
 
 describe("what's new", () => {
   const entries: WhatsNewEntry[] = [
-    { noticeVersion: 2, title: 'A', body: 'a' },
-    { noticeVersion: 3, title: 'B', body: 'b' },
+    { noticeVersion: 2, id: 'a', title: { id: 'A', en: 'A' }, body: { id: 'a', en: 'a' } },
+    { noticeVersion: 3, id: 'b', title: { id: 'B', en: 'B' }, body: { id: 'b', en: 'b' } },
   ];
 
   it('shows entries newer than the notice version the user read', () => {
-    expect(pendingWhatsNew(entries, 2, true).map((e) => e.title)).toEqual(['B']);
+    expect(pendingWhatsNew(entries, 2, true).map((e) => e.id)).toEqual(['b']);
   });
 
   it('shows nothing to someone who has not finished onboarding', () => {
     expect(pendingWhatsNew(entries, 1, false)).toEqual([]);
   });
 
-  it('shows nothing when there are no entries (M2)', () => {
+  it('shows nothing when there are no entries', () => {
     expect(pendingWhatsNew([], 0, true)).toEqual([]);
+  });
+
+  it('1.1.0 has at most three entries, each in both languages, newer than notice version 1', async () => {
+    const { WHATS_NEW } = await import('@sulo/core/onboarding/whats-new');
+    const { NOTICE_VERSION } = await import('@sulo/core/storage');
+    const current = WHATS_NEW.filter((e) => e.noticeVersion === NOTICE_VERSION);
+    expect(current.length).toBeGreaterThan(0);
+    expect(current.length).toBeLessThanOrEqual(3);
+    for (const e of current) for (const t of [e.title, e.body]) expect(t.id && t.en).toBeTruthy();
   });
 });

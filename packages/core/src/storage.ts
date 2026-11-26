@@ -10,7 +10,8 @@ export const CURRENT_USER_KEY = 'global:currentUser';
 export const NOTICE_KEY = 'global:notice';
 
 /** Version of the privacy notice shown in onboarding step 1. Bump when its text changes. */
-export const NOTICE_VERSION = 1;
+/** 2: 1.1.0 (Pantau tugas baru keeps the session, Sipakamase, MKPK; the privacy text changed). */
+export const NOTICE_VERSION = 2;
 
 export interface SyncMeta {
   /** Last successful sync for this user. */

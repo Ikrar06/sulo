@@ -5,6 +5,8 @@ import { WipeDialog } from '@/components/popup/WipeDialog';
 import { RemindersPanel } from '@sulo/ui/reminders/RemindersPanel';
 import { DocLayout } from '@sulo/ui/ui/doc-layout';
 import { SwitchRow } from '@sulo/ui/ui/switch-row';
+import { watchWords } from '@sulo/core/i18n/watch';
+import { WatchSwitch } from '../../WatchSwitch';
 import { Button } from '@sulo/ui/ui/button';
 import { Input } from '@sulo/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
@@ -26,7 +28,7 @@ const UsageStats = import.meta.env.MODE === 'development' ? lazy(() => import('.
 const RadarDiagnosis = import.meta.env.MODE !== 'production' ? lazy(() => import('../RadarDiagnosis')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
-const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data', 'laporan', 'hapus'] as const;
+const SECTIONS = ['tampilan', 'tentangKamu', 'pantau', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data', 'laporan', 'hapus'] as const;
 
 function Field({ label, help, children }: { label: string; help?: string; children: (id: string) => ReactNode }) {
   const id = useId();
@@ -45,7 +47,7 @@ function Field({ label, help, children }: { label: string; help?: string; childr
 }
 
 export function PengaturanPage({ d, data, actions, route }: PageProps) {
-  const { m } = useI18n();
+  const { m, locale } = useI18n();
   const t = d.pengaturan;
   const prefs = data.prefs;
   const [nickname, setNickname] = useState(prefs.nickname);
@@ -59,7 +61,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
   }, [route.detail]);
 
   // The sections on the right, as on Bantuan (DocLayout's scrollspy, core's pure getActiveSection). Delete stays last.
-  const toc = SECTIONS.map((id) => ({ id: `set-${id}`, label: id === 'neosia' ? 'NEOSIA' : id === 'laporan' ? t.bugReport.cardTitle : t.sections[id] }));
+  const toc = SECTIONS.map((id) => ({ id: `set-${id}`, label: id === 'neosia' ? 'NEOSIA' : id === 'pantau' ? watchWords(locale).title : id === 'laporan' ? t.bugReport.cardTitle : t.sections[id] }));
 
   return (
     <DocLayout toc={toc} tocLabel={d.bantuan.onThisPage} hashFor={(id) => `pengaturan/${id.slice(4)}`}>
@@ -150,6 +152,11 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             </Select>
           )}
         </Field>
+      </Card>
+
+      {/* "Pantau tugas baru" (1.1.0): off until the user turns it on; the setup offers it to new installs. */}
+      <Card id="set-pantau" title={watchWords(locale).title}>
+        <WatchSwitch />
       </Card>
 
       {/* One test for every kind of notification (tasks, updates, calendar): they share one path. */}

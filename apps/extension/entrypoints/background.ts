@@ -51,6 +51,7 @@ import { NEOSIA_APP_ORIGIN } from '@sulo/core/neosia/allowlist';
 import { ingestCapture, pruneUnlistedSnapshots } from '@sulo/core/neosia/store';
 import { recordGrades } from '@sulo/core/neosia/grades';
 import { buildPopupView } from '@sulo/core/view/popup-view';
+import { EXTENSION_WATCH_KEY, readExtensionWatch, setExtensionWatch, watchInForce } from '@sulo/core/watch/extension';
 
 const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
@@ -61,6 +62,8 @@ const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
 const ONBOARDING_PAGE = '/onboarding.html';
+/** "Pantau tugas baru" (1.1.0): the periodic light check, only while it is on. */
+const WATCH_ALARM = 'watch';
 /** Catch-up syncs after the browser starts or the user returns: "catchup:startup", "catchup:idle". */
 const CATCHUP_ALARM_PREFIX = 'catchup:';
 const CATCHUP_TRIGGERS = new Set<SyncTrigger>(['startup', 'idle']);
@@ -170,6 +173,29 @@ export default defineBackground(() => {
     if (!(await browser.alarms.get(BADGE_ALARM))) {
       await browser.alarms.create(BADGE_ALARM, { periodInMinutes: BADGE_REFRESH_MIN });
     }
+    // "Pantau tugas baru": one alarm at the active interval while it is in force; idle and
+    // locked are decided when it fires (sync/run-sync.ts). Off or stopped remotely: no alarm.
+    const watch = watchInForce(await readExtensionWatch(local), config);
+    const watchAlarm = await browser.alarms.get(WATCH_ALARM);
+    if (!watch.on) {
+      if (watchAlarm) await browser.alarms.clear(WATCH_ALARM);
+    } else if (!watchAlarm || watchAlarm.periodInMinutes !== watch.config.activeIntervalMinutes) {
+      await browser.alarms.create(WATCH_ALARM, { delayInMinutes: watch.config.activeIntervalMinutes, periodInMinutes: watch.config.activeIntervalMinutes });
+    }
+  };
+
+  /** The intervals in force for the watch trigger. */
+  const watchIntervals = async () => {
+    const { config } = watchInForce(await readExtensionWatch(local), await readRemoteConfig(local));
+    return { activeMinutes: config.activeIntervalMinutes, idleMinutes: config.idleIntervalMinutes };
+  };
+
+  /** "Pantau tugas baru" switched: stored, the alarm follows, and turning it on checks once at once. */
+  const setWatch = async (enabled: boolean) => {
+    await setExtensionWatch(local, enabled, clock.now());
+    await ensureAlarms();
+    if (enabled && watchInForce(await readExtensionWatch(local), await readRemoteConfig(local)).on) void sync('popup');
+    return { ok: true };
   };
 
   // ---------- Reminders: one rolling alarm ----------
@@ -304,7 +330,7 @@ export default defineBackground(() => {
 
   const syncOnceGuarded = async ({ trigger, forceCourseList = false }: SyncRequest): Promise<SyncOutcome> => {
     await refreshConfig();
-    const unattended = trigger === 'background' || CATCHUP_TRIGGERS.has(trigger);
+    const unattended = trigger === 'background' || trigger === 'watch' || CATCHUP_TRIGGERS.has(trigger);
     const idleState: IdleState | undefined = unattended ? ((await browser.idle.queryState(IDLE_THRESHOLD_SEC)) as IdleState) : undefined;
     await recoverSesskeyIfAllowed(trigger);
     // The onboarding's "Menyiapkan Sulo" follows the real stages as they finish (Tahap 2): each
@@ -318,7 +344,8 @@ export default defineBackground(() => {
           }
         : undefined;
     if (onStage) await session.set(ONBOARDING_STAGES_KEY, { at: Date.now(), stages: [] });
-    const outcome = await runSync({ client, store: local, clock, trigger, idleState, forceCourseList, onStage });
+    const watch = trigger === 'watch' ? await watchIntervals() : undefined;
+    const outcome = await runSync({ client, store: local, clock, trigger, idleState, forceCourseList, onStage, watch });
     if (outcome.status === 'invalid_sesskey') await session.remove(SESSKEY_KEY);
     await updateBadge();
     return outcome;
@@ -452,10 +479,17 @@ export default defineBackground(() => {
       case 'status/get':
         return status();
       // Local only: counts the open for the "baru" markers. No request.
+      // With "Pantau tugas baru" on, opening the popup also checks once (runSync skips it
+      // when the last check is younger than 2 minutes); the popup shows stored data at once.
       case 'popup/opened':
         return countOpen()
           .then(() => bumpUsage(local, today(), 'popupOpens'))
+          .then(async () => {
+            if (watchInForce(await readExtensionWatch(local), await readRemoteConfig(local)).on) void sync('popup');
+          })
           .then(status);
+      case 'watch/set':
+        return setWatch(message.enabled);
       case 'sync/request':
         // A request that arrives while a cycle runs shares that cycle's result.
         return sync(message.trigger, message.forceCourseList ?? false);
@@ -517,6 +551,7 @@ export default defineBackground(() => {
 
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SYNC_ALARM) void sync('background');
+    if (alarm.name === WATCH_ALARM) void sync('watch');
     if (alarm.name.startsWith(CATCHUP_ALARM_PREFIX)) {
       const trigger = alarm.name.slice(CATCHUP_ALARM_PREFIX.length) as SyncTrigger;
       if (CATCHUP_TRIGGERS.has(trigger)) void sync(trigger);
@@ -535,7 +570,7 @@ export default defineBackground(() => {
     if (pendingChange?.newValue && (pendingChange.newValue as AccountPending).userId !== (pendingChange.oldValue as AccountPending | undefined)?.userId) {
       void clearAllNotifications();
     }
-    if ('global:remoteConfig' in changes) void ensureAlarms();
+    if ('global:remoteConfig' in changes || EXTENSION_WATCH_KEY in changes) void ensureAlarms();
     if (keys.some((k) => REMINDER_INPUTS.test(k))) runReminders();
     const account = changes[CURRENT_USER_KEY];
     if (account && account.oldValue !== undefined && account.oldValue !== account.newValue) void onAccountChanged();

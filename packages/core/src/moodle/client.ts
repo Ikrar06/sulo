@@ -78,6 +78,13 @@ export interface RequestOptions {
    * the mobile adaptor turns it into a native option and never sends it on.
    */
   freshConnection?: boolean;
+  /**
+   * Sends this batch without nosessionupdate, so SIKOLA counts it as
+   * activity: only the extension's "Pantau tugas baru" checks, while the
+   * user has it on (docs/ATURAN-REQUEST.md, rule 13). Everything else keeps
+   * the client's setting.
+   */
+  keepSession?: boolean;
 }
 
 /** The marker for RequestOptions.freshConnection, read by the mobile HTTP adaptor (never sent to SIKOLA). */
@@ -106,7 +113,7 @@ export async function callBatchOnceMore(client: MoodleClient, list: readonly Moo
   if (first.kind !== 'ok') return first;
   const missing = first.results.flatMap((r, i) => (!r.ok && r.errorcode === NOT_RUN_CODE ? [i] : []));
   if (missing.length === 0) return first;
-  const again = await client.callBatch([calls.sessionTimeRemaining(), ...missing.map((i) => list[i]!)], { source: options.source });
+  const again = await client.callBatch([calls.sessionTimeRemaining(), ...missing.map((i) => list[i]!)], { source: options.source, ...(options.keepSession ? { keepSession: true } : {}) });
   if (again.kind !== 'ok') return first;
   const merged = [...first.results];
   missing.forEach((i, k) => {
@@ -177,7 +184,7 @@ async function executeBatch(deps: ResolvedDeps, calls: readonly MoodleCall[], op
 
   const sent = await send(
     deps,
-    batchPath(sesskey, deps.noSessionUpdate),
+    batchPath(sesskey, options.keepSession ? false : deps.noSessionUpdate),
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(options.freshConnection ? { [FRESH_CONNECTION_HEADER]: '1' } : {}) },
@@ -238,7 +245,7 @@ async function askSessionOnly(deps: ResolvedDeps, options: RequestOptions): Prom
   const only = [calls.sessionTimeRemaining()];
   const sent = await send(
     deps,
-    batchPath(sesskey, deps.noSessionUpdate),
+    batchPath(sesskey, options.keepSession ? false : deps.noSessionUpdate),
     // A new connection: the second ask must not ride the first answer's connection (owner's rule, 20 Nov 2026).
     { method: 'POST', headers: { 'Content-Type': 'application/json', [FRESH_CONNECTION_HEADER]: '1' }, body: JSON.stringify(only.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))) },
     options,

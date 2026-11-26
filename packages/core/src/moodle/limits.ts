@@ -98,8 +98,27 @@ export const QUOTA_LOWER = { posts: 6, calls: 30 } as const; // also drop the co
 export const QUOTA_LOWEST = { posts: 3, calls: 15 } as const; // also drop notifications
 
 /**
- * Sends nosessionupdate=true with every batch, so Sulo's checks do not keep
- * the SIKOLA session alive (project rule: never keep a session alive).
- * Set to false only to compare behaviour while verifying.
+ * Sends nosessionupdate=true with every batch by default, so an ordinary
+ * sync does not extend the SIKOLA session. The extension's "Pantau tugas
+ * baru" checks (trigger watch or popup, only while the user has it on) are
+ * the exception: they pass RequestOptions.keepSession (owner's decision,
+ * 26 Nov 2026; docs/ATURAN-REQUEST.md rule 13). Set to false only to compare
+ * behaviour while verifying.
  */
 export const SEND_NOSESSIONUPDATE = true;
+
+/**
+ * "Pantau tugas baru" in the extension (1.1.0): one light check every
+ * `activeMinutes` while the computer is in use, every `idleMinutes` while it
+ * is idle, none while it is locked or between 00.00 and 06.00. Opening the
+ * popup checks too when the last check is older than `popupFreshMinutes`.
+ * The remote config may slow these down within `limits`, never speed them up.
+ */
+export const EXTENSION_WATCH = {
+  activeMinutes: 15,
+  idleMinutes: 30,
+  popupFreshMinutes: 2,
+  /** An alarm a few seconds early still counts as due. */
+  slackMinutes: 1,
+  limits: { activeMinutes: { min: 15, max: 60 }, idleMinutes: { min: 30, max: 110 } },
+} as const;

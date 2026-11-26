@@ -13,12 +13,14 @@ import { Button } from '@sulo/ui/ui/button';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
 import { In } from './journey-intro';
 import { JActions, JAfter, JLine, JTitle, sceneLevel, useMascot, useRoomy } from './journey';
+import { WatchSwitch } from '../WatchSwitch';
 
 const words = (locale: 'id' | 'en') => extOnboardingWords(locale);
 
 // ---------- Done: the user's own nearest tasks, then Ringkasan ----------
 
 /** Up to four of the user's tasks, in the popup's order (the most pressing first); the scene shows three, four at 1440x900. */
+
 export function doneTasks(groups: { rows: TaskRow[] }[]): TaskRow[] {
   return groups.flatMap((g) => g.rows).slice(0, 4);
 }
@@ -52,7 +54,8 @@ export function SceneDone({ tasks }: { tasks: TaskRow[] }) {
   );
 }
 
-export function DoneText({ tasks, courses, onOpen }: { tasks: number; courses: number; onOpen: () => void }) {
+/** `watch`: a first setup offers "Pantau tugas baru", on by default and switchable right here. */
+export function DoneText({ tasks, courses, onOpen, watch = false }: { tasks: number; courses: number; onOpen: () => void; watch?: boolean }) {
   const { locale } = useI18n();
   const { phone, ext } = words(locale);
   // It celebrates (a jump, star eyes for a moment, then happy), in its usual place.
@@ -69,6 +72,11 @@ export function DoneText({ tasks, courses, onOpen }: { tasks: number; courses: n
           <Chip>{tasks > 0 ? phone.done.tasks(tasks) : phone.done.empty}</Chip>
           <Chip>{ext.done.courses(courses)}</Chip>
         </div>
+        {watch && (
+          <div className="mt-5 max-w-md">
+            <WatchSwitch defaultOn compact />
+          </div>
+        )}
       </JAfter>
     </>
   );

@@ -481,7 +481,7 @@ function App() {
         />
       )}
       {screen === 'courses' && <CoursesText selected={selected} saving={saving} onNext={() => void onSave()} />}
-      {screen === 'done' && <DoneText tasks={ownView?.pendingCount ?? 0} courses={selected} onOpen={() => location.assign(browser.runtime.getURL('/dashboard.html#ringkasan'))} />}
+      {screen === 'done' && <DoneText watch={mode !== 'switch-account'} tasks={ownView?.pendingCount ?? 0} courses={selected} onOpen={() => location.assign(browser.runtime.getURL('/dashboard.html#ringkasan'))} />}
       <WhyDialog
         open={whyOpen}
         onOpenChange={setWhyOpen}

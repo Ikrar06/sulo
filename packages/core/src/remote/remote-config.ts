@@ -8,6 +8,7 @@ import { BACKGROUND_INTERVAL_MIN } from '../moodle/limits';
 import { createScheduler, type Scheduler } from '../net/scheduler';
 import type { Clock, FetchLike, KeyValueStore, RemoteConfig } from '../types';
 import { fetchPublicJson } from './fetch-public';
+import { extensionWatchSwitchReadable } from './extension-watch';
 
 export const REMOTE_CONFIG_KEY = 'global:remoteConfig';
 /** Revalidation state (Last-Modified, content hash) of the config file. */
@@ -22,7 +23,11 @@ export const remoteConfigSchema = z.object({
   // One exception: a switch that is there but not a boolean makes the whole
   // file invalid, so a broken switch is never read as permission.
   mobile: z.unknown().optional(),
-}).refine((c) => keepAliveSwitchReadable(c.mobile), { message: 'mobile.backgroundKeepAlive.enabled must be a boolean' });
+  // The extension's section (1.1.0), read the same way (remote/extension-watch.ts).
+  extension: z.unknown().optional(),
+})
+  .refine((c) => keepAliveSwitchReadable(c.mobile), { message: 'mobile.backgroundKeepAlive.enabled must be a boolean' })
+  .refine((c) => extensionWatchSwitchReadable(c.extension), { message: 'extension.backgroundWatch.enabled must be a boolean' });
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
