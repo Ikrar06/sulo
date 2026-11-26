@@ -11,7 +11,8 @@ export const ISU = `${REPO}/issues/new/choose`;
 export const LISENSI = `${REPO}/blob/main/LICENSE`;
 /** The maker, the tip jar and the feedback form: the apps' own (packages/core/src/links.ts), never a copy. */
 export const PEMBUAT = CREATOR_NAME;
-export const PROFIL = CREATOR_LINKS.find((l) => l.id === 'github')?.url ?? 'https://github.com/Ikrar06';
+/** Where the maker's name leads: the portfolio. */
+export const PROFIL = CREATOR_LINKS.find((l) => l.id === 'web')?.url ?? 'https://ikrar.dev';
 export const TRAKTEER = TRAKTEER_URL;
 /** "Lapor masalah": the app's own feedback form (no account needed); GitHub issues are named in the FAQ. */
 export const MASUKAN = FEEDBACK_FORM_URL;
