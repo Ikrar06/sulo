@@ -8,6 +8,7 @@ import { CONNECTION_KEY, OFF, transition, type Connection } from '@sulo/core/sip
 import { afterAuto, KEEP_ORDER, KEEPER, planKeeper, planRefresh, START } from '@sulo/core/sipakamase/keeper';
 import { disableSipakamase, enableSipakamase, readSipakamaseModule, reconcileSipakamase, READER_MATCHES, SIPAKAMASE_MODULE_KEY, type ModuleDeps, type ReaderScript } from '@sulo/core/sipakamase/module';
 import { keep, passive, refresh, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
+import { readPage } from '@sulo/core/sipakamase/reader';
 import { parsePassive, PASSIVE_MESSAGE_TYPE } from '@sulo/core/sipakamase/schema';
 import { activities, applyFragment, EMPTY_DATA, FRAGMENT_PATH, hasPending, SIPAKAMASE_DATA_KEY, type SipakamaseData } from '@sulo/core/sipakamase/store';
 import type { RemoteConfig } from '@sulo/core/types';
@@ -293,5 +294,30 @@ describe('sources in the config', () => {
     expect(remoteConfigSchema.safeParse({ ...base, sources: { sipakamase: { keep: 'no' } } }).success).toBe(false);
     expect(remoteConfigSchema.safeParse({ ...base, sources: { neosia: 1 } }).success).toBe(false);
     expect(remoteConfigSchema.safeParse({ ...base, sources: { sipakamase: { keep: false } } }).success).toBe(true);
+  });
+});
+
+describe('the reader on a page', () => {
+  const page = `<header><span>Nama Mahasiswa Sintetis</span> <span>contoh@student.example</span></header><div id="main_content">${fx('klaim')}</div>`;
+
+  it('sends each fragment it recognises once, projected, with nothing from the rest of the page', () => {
+    const out: unknown[] = [];
+    const sent = new Map();
+    const deps = { html: () => page, asksPassword: () => false, send: (m: unknown) => void out.push(m) };
+    expect(readPage(deps, sent)).toBe(1);
+    expect(readPage(deps, sent)).toBe(0);
+    expect(out).toHaveLength(1);
+    expect(parsePassive(out[0]).kind).toBe('value');
+    const text = JSON.stringify(out);
+    for (const leak of ['Nama Mahasiswa', 'student.example', '90.00', 'hx-get', 'Klaim Nilai']) expect(text).not.toContain(leak);
+  });
+
+  it('on a page asking for a password reads nothing and says so once', () => {
+    const out: unknown[] = [];
+    const sent = new Map();
+    const deps = { html: () => page, asksPassword: () => true, send: (m: unknown) => void out.push(m) };
+    readPage(deps, sent);
+    readPage(deps, sent);
+    expect(out).toEqual([{ type: `${PASSIVE_MESSAGE_TYPE}:login` }]);
   });
 });

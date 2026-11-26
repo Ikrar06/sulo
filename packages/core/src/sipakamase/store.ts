@@ -11,6 +11,8 @@ import type { Activity, CollectedCourse, Conversion, PassedCourse, Programmed } 
 
 export const SIPAKAMASE_DATA_PREFIX = 'sipakamase:';
 export const SIPAKAMASE_DATA_KEY = `${SIPAKAMASE_DATA_PREFIX}data`;
+/** The passive reader's message type (reader.ts sends it, schema.ts checks it). */
+export const PASSIVE_MESSAGE_TYPE = 'sulo:sipakamase:v1';
 
 export type FragmentId = 'running' | 'history' | 'courses' | 'claim' | 'conversions';
 

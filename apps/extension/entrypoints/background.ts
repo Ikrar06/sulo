@@ -46,6 +46,8 @@ import { messagesFor, resolveLocale } from '@sulo/core/i18n';
 import type { SyncOutcome, SyncTrigger } from '@sulo/core/types';
 import { loadPopupInput } from '@sulo/core/view/load';
 import { browserModuleDeps } from '@/src/platform/neosia';
+import { createSipakamaseService, SIPAKAMASE_ALARM } from '@/src/sipakamase';
+import { SIPAKAMASE_ORIGIN } from '@sulo/core/sipakamase/allowlist';
 import { disableModule, enableModule, reconcileModule } from '@sulo/core/neosia/module';
 import { NEOSIA_APP_ORIGIN } from '@sulo/core/neosia/allowlist';
 import { ingestCapture, pruneUnlistedSnapshots } from '@sulo/core/neosia/store';
@@ -116,6 +118,10 @@ export default defineBackground(() => {
   // ---------- NEOSIA module (optional, off by default) ----------
 
   const neosia = browserModuleDeps(local, () => clock.now());
+
+  // ---------- Sipakamase module (optional, off by default, 1.1.0) ----------
+
+  const sipakamase = createSipakamaseService({ store: local, scheduler, now: () => clock.now(), today: () => localParts(clock.now(), timeZone()).dateKey });
   // One reconcile at a time (startup and a permission change can coincide).
   let neosiaQueue: Promise<unknown> = Promise.resolve();
   const reconcileNeosia = () => {
@@ -431,8 +437,11 @@ export default defineBackground(() => {
 
   const useNew = async () => {
     const ok = await useNewAccount({ store: local, clearNotifications: clearAllNotifications, openSetup });
-    // The new account's owner has not agreed to the NEOSIA module.
-    if (ok) await disableModule(neosia);
+    // The new account's owner has not agreed to the NEOSIA or Sipakamase module.
+    if (ok) {
+      await disableModule(neosia);
+      await sipakamase.disable();
+    }
     await updateBadge();
     return { ok };
   };
@@ -449,7 +458,10 @@ export default defineBackground(() => {
       sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
       clearAlarms: async () => void (await browser.alarms.clearAll()),
       // NEOSIA scripts off and permissions removed before the data goes.
-      beforeClear: () => disableModule(neosia),
+      beforeClear: async () => {
+        await disableModule(neosia);
+        await sipakamase.disable();
+      },
       clearNotifications: clearAllNotifications,
       clearLocal: () => browser.storage.local.clear(),
       clearSession: () => browser.storage.session.clear(),
@@ -507,6 +519,12 @@ export default defineBackground(() => {
         return enableModule(neosia);
       case 'neosia/disable':
         return disableModule(neosia).then(() => ({ ok: true }));
+      case 'sipakamase/enable':
+        return sipakamase.enable();
+      case 'sipakamase/disable':
+        return sipakamase.disable();
+      case 'sipakamase/refresh':
+        return sipakamase.refresh();
       default:
         return null;
     }
@@ -552,6 +570,7 @@ export default defineBackground(() => {
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SYNC_ALARM) void sync('background');
     if (alarm.name === WATCH_ALARM) void sync('watch');
+    if (alarm.name === SIPAKAMASE_ALARM) void sipakamase.keep();
     if (alarm.name.startsWith(CATCHUP_ALARM_PREFIX)) {
       const trigger = alarm.name.slice(CATCHUP_ALARM_PREFIX.length) as SyncTrigger;
       if (CATCHUP_TRIGGERS.has(trigger)) void sync(trigger);
@@ -571,6 +590,7 @@ export default defineBackground(() => {
       void clearAllNotifications();
     }
     if ('global:remoteConfig' in changes || EXTENSION_WATCH_KEY in changes) void ensureAlarms();
+    if ('global:remoteConfig' in changes) void sipakamase.ensureAlarm();
     if (keys.some((k) => REMINDER_INPUTS.test(k))) runReminders();
     const account = changes[CURRENT_USER_KEY];
     if (account && account.oldValue !== undefined && account.oldValue !== account.newValue) void onAccountChanged();
@@ -589,6 +609,8 @@ export default defineBackground(() => {
 
   // A NEOSIA permission removed in Chrome's settings turns the module off and deletes its data.
   browser.permissions.onRemoved.addListener(reconcileNeosia);
+  // The same for Sipakamase.
+  browser.permissions.onRemoved.addListener(() => void sipakamase.reconcile());
 
   browser.notifications.onClicked.addListener((id) => void onNotificationClick(id));
 
@@ -606,6 +628,7 @@ export default defineBackground(() => {
   // earlier account are removed first.
   void pruneOrphanUserKeys(local).then(runReminders);
   reconcileNeosia();
+  void sipakamase.reconcile();
   // Endpoints dropped from the allowlist leave no data behind.
   void pruneUnlistedSnapshots(local).catch(() => undefined);
 
@@ -640,6 +663,12 @@ export default defineBackground(() => {
       // Only the bridge on a NEOSIA page; anything else is dropped unread.
       if (!isContentScriptOn(sender, extensionId, NEOSIA_APP_ORIGIN)) return false;
       onNeosiaCapture(message.capture);
+      return false;
+    }
+    if (message.type === 'sipakamase/passive') {
+      // Only the reader on a Sipakamase page; validated again before anything is stored.
+      if (!isContentScriptOn(sender, extensionId, SIPAKAMASE_ORIGIN)) return false;
+      void sipakamase.passive(message.message);
       return false;
     }
     if (message.type === 'presensi/seenCmid') {

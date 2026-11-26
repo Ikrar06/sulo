@@ -42,6 +42,18 @@ export const messageSchema = z.discriminatedUnion('type', [
    * (lib/neosia/schema.ts) before anything is stored.
    */
   z.object({ type: z.literal('neosia/capture'), capture: z.unknown() }),
+  /** The dashboard got the Sipakamase permissions in the consent dialog: register the reader. */
+  z.object({ type: z.literal('sipakamase/enable') }),
+  /** "Putuskan": reader off, permissions removed, Sipakamase data deleted. */
+  z.object({ type: z.literal('sipakamase/disable') }),
+  /** "Perbarui sekarang": the five fragments, at most once every 2 minutes. */
+  z.object({ type: z.literal('sipakamase/refresh') }),
+  /**
+   * Reader on a Sipakamase page: one fragment's projected data, or that the
+   * page asks for a password. Checked loosely here; the service worker
+   * validates `message` (core sipakamase/schema.ts) before anything is stored.
+   */
+  z.object({ type: z.literal('sipakamase/passive'), message: z.unknown() }),
 ]);
 // Dev-only messages live in lib/dev/messages.ts and are handled by a module
 // that only development builds contain (scripts/check-no-dev-code.mjs).

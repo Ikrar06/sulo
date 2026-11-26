@@ -4,9 +4,9 @@
 // again, with the same limits, before anything is stored.
 
 import { z } from 'zod';
-import { FRAGMENTS, type FragmentValue } from './store';
+import { FRAGMENTS, PASSIVE_MESSAGE_TYPE, type FragmentValue } from './store';
 
-export const PASSIVE_MESSAGE_TYPE = 'sulo:sipakamase:v1';
+export { PASSIVE_MESSAGE_TYPE };
 
 const text = z.string().max(160);
 const sks = z.number().min(0).max(40);

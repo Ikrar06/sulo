@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import { stripLocalPaths } from './vite/strip-local-paths';
 import { NEOSIA_HOST_PERMISSIONS } from '../../packages/core/src/neosia/allowlist';
+import { SIPAKAMASE_HOST_PERMISSION } from '../../packages/core/src/sipakamase/allowlist';
 
 const ICONS = {
   16: 'icon/icon-16.png',
@@ -49,9 +50,10 @@ export default defineConfig({
     action: { default_icon: ICONS, default_title: 'Sulo' },
     permissions: ['storage', 'alarms', 'notifications', 'idle'],
     host_permissions: ['https://sikola-v2.unhas.ac.id/*'],
-    // NEOSIA module (M7): asked for together in the consent dialog, removed
-    // when the module is turned off (lib/neosia/module.ts). Never at install.
+    // NEOSIA module (M7) and Sipakamase module (1.1.0): each asked for in its
+    // consent dialog, removed when the module is turned off (core
+    // neosia/module.ts, sipakamase/module.ts). Never at install.
     optional_permissions: ['scripting'],
-    optional_host_permissions: [...NEOSIA_HOST_PERMISSIONS],
+    optional_host_permissions: [...NEOSIA_HOST_PERMISSIONS, SIPAKAMASE_HOST_PERMISSION],
   },
 });
