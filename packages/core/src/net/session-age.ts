@@ -1,8 +1,9 @@
 // SIKOLA session age log (M7 part F): how long a session lasts, measured
 // only from what Sulo already does. Never a ping or an extra request, and
 // sync behaves exactly as before: the Moodle client reports outcomes here
-// after the fact. Development and tester builds only (the background passes
-// nothing in production). Local, never sent, not in the bug report copy;
+// after the fact. The phone logs in every build (owner's decision of 26 Nov
+// 2026, shown on its hidden Diagnostik screen); the extension's background
+// in development builds only. Local, never sent, not in the bug report copy;
 // "Hapus semua data" clears it with everything else. Pure; the store is injected.
 
 import type { KeyValueStore, UnixSeconds } from '../types';

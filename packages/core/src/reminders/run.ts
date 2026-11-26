@@ -46,11 +46,16 @@ export interface CycleDeps {
   morningStyle?: 'classic' | 'full';
   /** The phone only: the full summary also lists today's classes from NEOSIA's schedule (names and times). */
   morningClasses?: boolean;
+  /** The phone only: "Masuk lagi" in the morning summary instead of a notice of its own (plan.ts). */
+  sessionInMorning?: boolean;
+  relogin?: readonly string[];
 }
 
 /** Notification ids carry what a click needs: "task|eventId|key", "summary|…", "morning|…", "session|…". */
 export function notificationId(notice: Notice): string {
   if (notice.kind === 'task') return `task|${notice.task.eventId}|${notice.key}`;
+  // A morning summary that offers "Masuk lagi": a tap opens the sign-in, like the session notice.
+  if (notice.kind === 'morning' && notice.relogin && notice.relogin.length > 0) return `session|${notice.key}`;
   // A single update carries its log entry id, so a click can open its page.
   if (notice.kind === 'changes' && notice.entries.length === 1) return `changes|${notice.entries[0]!.id}`;
   // Several updates for one course: a click opens "Kabar terbaru" filtered to that course.
@@ -115,6 +120,8 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
     krsWindows: windows,
     morningStyle: deps.morningStyle,
+    sessionInMorning: deps.sessionInMorning,
+    relogin: deps.relogin,
     classes,
     nudges: neosia.enabled ? neosiaNudges(calendar.kegiatan, prefs.calendar) : [],
   });

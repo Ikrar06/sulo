@@ -37,6 +37,8 @@ export function NeosiaContoh({ snapshots, courseMap, children }: { snapshots: Sn
 }
 
 export const useNeosia = () => useContext(Contoh) as never;
+/** The shell's optional hook (mobile NeosiaProvider.useNeosiaIfAny): the sample state, never missing here. */
+export const useNeosiaIfAny = () => useContext(Contoh) as never;
 export function useGrades(): null {
   return null;
 }

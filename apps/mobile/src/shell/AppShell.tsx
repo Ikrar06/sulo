@@ -34,6 +34,9 @@ import { Screens } from '../screens/Screens';
 import { REFRESHED_EVENT } from '../events';
 import { LineSlot, SyncStatusLine, SyncUiContext } from './SyncStatusLine';
 import { IDLE, type SyncUi } from './sync-status';
+import { useSipakamase } from '../sipakamase/SipakamaseProvider';
+import { useNeosiaIfAny } from '../neosia/NeosiaProvider';
+import { endedSources } from '../relogin';
 
 /** The data's age shows under the header only past an hour. */
 export const STALE_SHOWN_SEC = 3600;
@@ -66,7 +69,8 @@ export interface ShellProps {
   lastSyncAt: number | null;
   /** Runs Perbarui; resolves with the line to show (empty: updated). */
   onRefresh: () => Promise<string>;
-  onSignIn: () => void;
+  /** SIKOLA's sign-in; resolves once it closed (signed in or not). */
+  onSignIn: () => Promise<void> | void;
   onSignedOut: () => void;
   /** Set once by App when a reminder was tapped while the app was closed. */
   initialScreen?: Screen | null;
@@ -167,7 +171,17 @@ export function AppShell(props: ShellProps) {
   // A reminder tapped while the app runs.
   // "Masuk lagi" opens SIKOLA's sign-in; after it, the sync runs and background watching starts again (App.signIn).
   const onSignIn = props.onSignIn;
-  const openNotice = useCallback((id: string) => (opensSignIn(id) ? onSignIn() : go(screenForNotification(id))), [go, onSignIn]);
+  // "Masuk lagi" from a notification: every source whose session ended, one sign-in page after another
+  // (owner's decision of 26 Nov 2026); each is the source's own page, the system's password autofill untouched.
+  const sipakamase = useSipakamase();
+  const neosia = useNeosiaIfAny();
+  const reloginAll = useCallback(async () => {
+    const ended = await endedSources(platform).catch(() => [] as string[]);
+    if (props.expired) await onSignIn();
+    if (ended.includes('Sipakamase')) await sipakamase.signIn();
+    if (ended.includes('NEOSIA') && neosia) await neosia.open('login');
+  }, [platform, props.expired, onSignIn, sipakamase, neosia]);
+  const openNotice = useCallback((id: string) => (opensSignIn(id) ? void reloginAll() : go(screenForNotification(id))), [go, reloginAll]);
   useEffect(() => platform.notifier.onClick(openNotice), [platform, openNotice]);
   // A background-watching notification tapped (posted natively): its id waits in the worker's store.
   useEffect(() => {

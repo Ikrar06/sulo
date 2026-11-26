@@ -194,7 +194,7 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
         </Row>
       </Group>
 
-      <NeosiaSettings scrollTo={section === 'neosia'} />
+      <NeosiaSettings scrollTo={section === 'neosia'} lock={lock} lockAvailable={lockAvailable} onLockOn={() => setLock(true)} />
       <SipakamaseSettings />
 
       <Group title={w.connected.lock}>

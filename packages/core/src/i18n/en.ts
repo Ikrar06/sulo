@@ -254,6 +254,8 @@ export const en: Messages = {
     sessionTitle: "Your tasks can't be updated",
     sessionRepeatTitle: "Your tasks haven't been updated since yesterday",
     sessionBody: 'Sign in to SIKOLA again so Sulo can update your tasks.',
+    morningRelogin: (sources: readonly string[]) =>
+      `Sign in to ${sources.length > 1 ? `${sources.slice(0, -1).join(', ')} and ${sources[sources.length - 1]}` : sources[0]} again so Sulo can update.`,
     reloginTitle: 'Your tasks are updated',
     reloginBody: 'Sulo updated them once you signed in to SIKOLA again.',
     snoozeButton: 'Snooze 1 hour',

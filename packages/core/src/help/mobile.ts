@@ -33,8 +33,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa Sulo minta aku masuk lagi ke SIKOLA?', en: 'Why does Sulo ask me to sign in to SIKOLA again?' },
     a: [
       {
-        id: 'Sesi SIKOLA berakhir setelah beberapa jam tanpa aktivitas (bisa sampai sekitar 8 jam, tergantung SIKOLA). Kalau "Pantau tugas baru" mati, Sulo tidak menjaga sesimu tetap aktif, jadi kamu diminta masuk lagi sesekali. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui.',
-        en: 'A SIKOLA session ends after some hours without activity (up to about 8 hours, depending on SIKOLA). With "Watch for new tasks" off, Sulo doesn’t keep your session active, so it asks you to sign in now and then. The latest data stays on screen; tap Sign in again to update.',
+        id: 'Sesi SIKOLA berakhir setelah beberapa jam tanpa aktivitas (bisa sampai sekitar 8 jam, tergantung SIKOLA). Kalau "Pantau tugas baru" mati, Sulo tidak menjaga sesimu tetap aktif, jadi kamu diminta masuk lagi sesekali. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui. Kalau Ringkasan pagi menyala, tawaran masuk lagi ikut di dalamnya, paling banyak sekali sehari, untuk semua sumber yang sesinya habis (SIKOLA, Sipakamase, NEOSIA). Kalau mati, Sulo memberi tahu sekali saja.',
+        en: 'A SIKOLA session ends after some hours without activity (up to about 8 hours, depending on SIKOLA). With "Watch for new tasks" off, Sulo doesn’t keep your session active, so it asks you to sign in now and then. The latest data stays on screen; tap Sign in again to update. With the Morning summary on, the offer to sign in again comes inside it, at most once a day, for every source whose session ended (SIKOLA, Sipakamase, NEOSIA). With it off, Sulo tells you once.',
       },
     ],
   },

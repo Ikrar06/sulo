@@ -87,6 +87,8 @@ export interface WorkerKeep {
   count: number;
   /** When a worker read landed on the login page; 0: never. */
   loginAt: UnixSeconds;
+  /** When a worker read last came back signed in; 0 or absent: never (older apps' worker). */
+  okAt?: UnixSeconds;
 }
 
 /**

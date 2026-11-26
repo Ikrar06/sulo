@@ -37,7 +37,8 @@ export function sikolaClient(platform: Platform, options: { userInitiated: boole
     getSesskey: async () => NATIVE_SESSKEY,
     noSessionUpdate: !options.userInitiated,
     ...(options.dailyBudget !== undefined ? { dailyBudget: options.dailyBudget } : {}),
-    sessionAge: options.dev ? createSessionAgeLogger(store) : undefined,
+    // Every build since 26 Nov 2026 (owner's decision, docs/ios/PENJAGA-SESI.md A2): the Diagnostik screen shows it.
+    sessionAge: createSessionAgeLogger(store),
     // One login answer is never enough: a second, separate ask after 2 to 5 seconds must agree.
     confirmLogin: { wait: () => new Promise((resolve) => setTimeout(resolve, confirmDelayMs())) },
     // Only then does the vault end the session (the one place that decides; native SuloSession.endSession).

@@ -40,10 +40,10 @@ export function TentangScreen() {
   const creators = CREATOR_LINKS.filter((l) => isShownLink(l.url));
   const coffee = isShownLink(TRAKTEER_URL);
   const feedback = isShownLink(FEEDBACK_FORM_URL);
-  // Debug builds: seven taps open the session-age screen.
+  // Seven taps: the Diagnostik screen (every build; debug builds open the dev screen, which has it too).
   const tap = () => {
     taps.current += 1;
-    if (taps.current >= 7 && __SULO_DEV__) {
+    if (taps.current >= 7) {
       taps.current = 0;
       window.dispatchEvent(new Event(DEV_EVENT));
     }

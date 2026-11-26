@@ -18,6 +18,7 @@ import { idleTooLong, markOpened } from '@sulo/core/watch/idle';
 import { foldWorker, readKeeper, writeKeeper } from '@sulo/core/sipakamase/keeper';
 import { readConnection, transition, writeConnection } from '@sulo/core/sipakamase/connection';
 import { SIPAKAMASE_DATA_PREFIX } from '@sulo/core/sipakamase/store';
+import { noteCookieAttrs, noteSession } from '@sulo/core/sipakamase/session-log';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { SuloNeosia } from '../neosia-native';
 import { createEncryptedStore, createNeosiaStore } from '../platform/neosia-store';
@@ -33,21 +34,25 @@ export function sipakamaseStore(platform: Platform): KeyValueStore {
 
 const toLogin = () => new Response(null, { status: 303, headers: { Location: `${SIPAKAMASE_ORIGIN}/` } });
 
-/** core's FetchLike for the sipakamase domain: the native GET, its answer as a Response. */
-async function nativeFetch(input: string, init?: RequestInit): Promise<Response> {
+/**
+ * core's FetchLike for the sipakamase domain: the native GET, its answer as a Response. The session
+ * cookie's attributes (Expires present, Max-Age; never its value) go to the session log.
+ */
+const nativeFetch = (store: KeyValueStore, now: () => number) => async (input: string, init?: RequestInit): Promise<Response> => {
   const url = new URL(input);
   if (url.origin !== SIPAKAMASE_ORIGIN || (init?.method ?? 'GET') !== 'GET' || url.search || url.hash) return new Response('', { status: 404 });
   const reply = await SuloSipakamase.get({ path: url.pathname });
+  if (typeof reply.cookieExpires === 'boolean') await noteCookieAttrs(store, { expires: reply.cookieExpires, maxAge: reply.cookieMaxAge ?? null }, now()).catch(() => undefined);
   if (reply.networkError) throw new TypeError('network');
   if (reply.noSession || reply.toLogin || reply.status === undefined) return toLogin();
   return new Response(reply.html ?? '', { status: reply.status, headers: { 'Content-Type': 'text/html' } });
-}
+};
 
 export function sipakamaseDeps(platform: Platform): { run: SipakamaseDeps; module: ModuleDeps } {
   const store = sipakamaseStore(platform);
   const now = () => platform.clock.now();
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const scheduler = createScheduler({ fetch: nativeFetch, store: platform.store, clock: platform.clock, random: Math.random });
+  const scheduler = createScheduler({ fetch: nativeFetch(store, now), store: platform.store, clock: platform.clock, random: Math.random });
   return {
     run: { store, scheduler, now, today: () => localParts(now(), timeZone).dateKey, config: () => readRemoteConfig(platform.store) },
     module: {
@@ -95,6 +100,9 @@ export async function foldWorkerKeep(platform: Platform): Promise<void> {
   const worker = await SuloSipakamase.workerState().catch(() => null);
   if (!worker) return;
   await writeKeeper(deps.store, foldWorker(await readKeeper(deps.store), worker, deps.today()));
+  // The worker's signed-in and login answers into the session log, oldest first (session-log.ts).
+  const events = [...(worker.okAt ? [{ at: worker.okAt, e: 'signed_in' as const }] : []), ...(worker.loginAt ? [{ at: worker.loginAt, e: 'login_page' as const }] : [])].sort((a, b) => a.at - b.at);
+  for (const { at, e } of events) await noteSession(deps.store, e, at);
   const conn = await readConnection(deps.store, true);
   if (worker.loginAt > conn.since) {
     const next = transition(conn, { kind: 'login_page' }, worker.loginAt);

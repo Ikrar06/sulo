@@ -5,7 +5,7 @@
 
 import { SIPAKAMASE_CONSENT, type Block, type Section, type Text } from './content.ts';
 
-export const MOBILE_PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
+export const MOBILE_PRIVACY_UPDATED: Text = { id: '27 November 2026', en: '27 November 2026' };
 
 /** The three points shown first, each restating a section below (no new claim). */
 export const MOBILE_PRIVACY_SUMMARY: readonly { icon: 'key' | 'shield' | 'eye'; title: Text; body: Text }[] = [
@@ -53,6 +53,10 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Latest updates (activity names and kinds, not their content).' },
           { id: 'Rekap presensi untuk mata kuliah yang dipantau, dan rincian per pertemuan yang kamu buka.', en: 'The attendance recap for the courses you follow, and the per-session details you open.' },
           { id: 'Pengaturan, dan sesi SIKOLA.', en: 'Your settings, and the SIKOLA session.' },
+          {
+            id: 'Catatan sesi: kapan sesi SIKOLA, Sipakamase, dan NEOSIA berakhir, berapa menit setelah masuk dan setelah aktivitas terakhir. Tanpa isi cookie atau token. Dipakai untuk mengatur jarak penjaga sesi dan ditampilkan di layar Diagnostik. Tidak pernah dikirim, terhapus saat Keluar.',
+            en: 'Session notes: when the SIKOLA, Sipakamase and NEOSIA sessions ended, and how many minutes after signing in and after the last activity. No cookie or token content. Used to pace the session keepers and shown on the Diagnostik screen. Never sent, deleted when you sign out.',
+          },
         ],
       },
       {

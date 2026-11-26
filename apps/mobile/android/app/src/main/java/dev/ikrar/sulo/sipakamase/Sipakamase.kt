@@ -39,4 +39,18 @@ object Sipakamase {
     /** A page that asks for a password is the login page: the session is gone. */
     private val PASSWORD = Regex("""<input[^>]*type\s*=\s*["']?password""", RegexOption.IGNORE_CASE)
     fun isLoginPage(html: String): Boolean = PASSWORD.containsMatchIn(html)
+
+    /**
+     * The attributes of the session cookie a response set: whether it carries Expires, and its Max-Age
+     * (owner's decision of 26 Nov 2026: Sulo notes how long Sipakamase says its session lasts). Only the
+     * attribute names and the Max-Age number are read, never the cookie's value. Null: no session cookie set.
+     */
+    data class CookieAttrs(val expires: Boolean, val maxAge: Long?)
+
+    fun cookieAttrs(setCookies: List<String>?): CookieAttrs? {
+        val header = setCookies?.firstOrNull { it.trimStart().startsWith("$SESSION_COOKIE=") } ?: return null
+        val attrs = header.split(';').drop(1).map { it.trim().lowercase() }
+        val maxAge = attrs.firstOrNull { it.startsWith("max-age=") }?.substringAfter('=')?.trim()?.toLongOrNull()
+        return CookieAttrs(attrs.any { it.startsWith("expires=") }, maxAge)
+    }
 }

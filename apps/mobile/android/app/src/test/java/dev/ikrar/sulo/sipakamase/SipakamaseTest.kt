@@ -51,4 +51,12 @@ class SipakamaseTest {
         assertTrue(Sipakamase.isLoginPage("<form><input type=\"password\" name=\"p\"></form>"))
         assertFalse(Sipakamase.isLoginPage("<table><tr><th>Aksi</th></tr></table>"))
     }
+
+    @Test
+    fun readsOnlyTheSessionCookiesAttributesNeverItsValue() {
+        assertEquals(null, Sipakamase.cookieAttrs(null))
+        assertEquals(null, Sipakamase.cookieAttrs(listOf("_ga=x; Max-Age=100")))
+        assertEquals(Sipakamase.CookieAttrs(false, null), Sipakamase.cookieAttrs(listOf("session=abc; HttpOnly; Path=/")))
+        assertEquals(Sipakamase.CookieAttrs(true, 3600L), Sipakamase.cookieAttrs(listOf("session=abc; Expires=Thu, 27 Nov 2026 10:00:00 GMT; Max-Age=3600; HttpOnly")))
+    }
 }

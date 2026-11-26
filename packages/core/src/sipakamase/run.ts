@@ -17,6 +17,7 @@ import { afterAuto, afterRefresh, planKeeper, planRefresh, readKeeper, writeKeep
 import { readSipakamaseModule } from './module';
 import { applyFragment, hasPending, queueNews, readSipakamaseData, statusChanges, writeSipakamaseData, type FragmentValue } from './store';
 import type { PassiveRead } from './schema';
+import { keepPace, noteSession, readSessionLog } from './session-log';
 
 export interface SipakamaseDeps {
   store: KeyValueStore;
@@ -45,9 +46,13 @@ async function settle(deps: SipakamaseDeps, conn: Connection, read: FragmentRead
     const data = applyFragment(before, read.value, deps.now());
     await writeSipakamaseData(deps.store, data);
     await queueNews(deps.store, statusChanges(before, data, deps.now()));
+    await noteSession(deps.store, 'signed_in', deps.now());
     return move(deps, conn, { kind: 'read_ok', pending: hasPending(data) });
   }
-  if (read.kind === 'login') return move(deps, conn, { kind: 'login_page' });
+  if (read.kind === 'login') {
+    await noteSession(deps.store, 'login_page', deps.now());
+    return move(deps, conn, { kind: 'login_page' });
+  }
   if (read.kind === 'shape') return move(deps, conn, { kind: 'read_shape' });
   return conn;
 }
@@ -69,7 +74,9 @@ export async function keep(deps: SipakamaseDeps): Promise<KeepResult> {
   const c = await current(deps);
   if (!c) return { sent: false, reason: 'off' };
   const keeper = await readKeeper(deps.store);
-  const plan = planKeeper(keeper, c.conn.state, c.config, deps.now(), deps.today());
+  // The pace follows the measured session length, never faster than the config (session-log.ts).
+  const pace = keepPace(await readSessionLog(deps.store), c.config.keepIntervalMinutes);
+  const plan = planKeeper(keeper, c.conn.state, { ...c.config, keepIntervalMinutes: pace.intervalMin }, deps.now(), deps.today());
   if (!plan.due) return { sent: false, reason: plan.reason };
   // Counted before the answer: a read that hangs or fails still used its turn.
   await writeKeeper(deps.store, afterAuto(keeper, deps.now(), deps.today()));

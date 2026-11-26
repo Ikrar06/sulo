@@ -38,6 +38,13 @@ export interface PlanInput {
    * KRS reminders keep running from that data whatever the session state.
    */
   session: { state: SessionState; expiredAt: UnixSeconds | null; dataAt?: UnixSeconds | null };
+  /**
+   * The phone (owner's decision of 26 Nov 2026, mobile rule 7): "Masuk lagi" rides in the morning
+   * summary, at most once a day, and never as a notice of its own. `relogin` names the other sources
+   * whose session ended (Sipakamase, NEOSIA); SIKOLA's comes from `session`.
+   */
+  sessionInMorning?: boolean;
+  relogin?: readonly string[];
   /** Change log (M4); entries with notify set and not yet sent become update notices. */
   changes?: readonly ChangeLogEntry[];
   updates?: UpdateSettings;
@@ -70,7 +77,7 @@ export type Notice =
   | { kind: 'task'; key: string; task: Task; snoozed: boolean }
   /** Several reminders at once (missed while the browser was closed, or held by quiet hours). */
   | { kind: 'summary'; key: string; count: number; nearest: Task }
-  | { kind: 'morning'; key: string; today: number; week: number; nearest: Task; full?: MorningCounts }
+  | { kind: 'morning'; key: string; today: number; week: number; nearest: Task; full?: MorningCounts; relogin?: readonly string[] }
   | { kind: 'session'; key: string; repeat: boolean }
   /** Updates for one course in one cycle ("3 materi baru di Hidrologi"). */
   | { kind: 'changes'; key: string; courseId: CourseId | null; entries: ChangeLogEntry[] }
@@ -315,6 +322,10 @@ function taskCandidates(task: Task, input: PlanInput): Candidate[] {
 function sessionCandidates(input: PlanInput): { key: string; at: UnixSeconds; repeat: boolean }[] {
   const { state, expiredAt } = input.session;
   if (state !== 'EXPIRED' || expiredAt === null) return [];
+  // The phone (sessionInMorning): with the morning summary on, the offer rides in it; with it off, one notice
+  // per ended session and never a repeat (mobile rule 7, owner's decision of 26 Nov 2026).
+  const morningOn = input.settings.enabled && input.settings.morning.enabled;
+  if (input.sessionInMorning && morningOn) return [];
   const dataAt = input.session.dataAt ?? null;
   const lastSent = Math.max(0, ...Object.entries(input.sent).filter(([k]) => k.startsWith('s:')).map(([, v]) => v));
   const spaced = (at: UnixSeconds) => Math.max(at, lastSent > 0 ? lastSent + SESSION_REPEAT_AFTER : 0);
@@ -323,7 +334,7 @@ function sessionCandidates(input: PlanInput): { key: string; at: UnixSeconds; re
   const candidates = !(firstKey in input.sent)
     ? [{ key: firstKey, at: spaced(first), repeat: false }]
     : [{ key: `${firstKey}:24h`, at: spaced(first), repeat: true }].filter((c) => !(c.key in input.sent));
-  return candidates.map((c) => ({ ...c, at: quietAdjusted(c.at, false, input) }));
+  return candidates.filter((c) => !(input.sessionInMorning && c.repeat)).map((c) => ({ ...c, at: quietAdjusted(c.at, false, input) }));
 }
 
 function morning(input: PlanInput, tasks: readonly Task[]): { notice: Notice | null; mark: string[]; nextAt: UnixSeconds | null } {
@@ -336,14 +347,19 @@ function morning(input: PlanInput, tasks: readonly Task[]): { notice: Notice | n
   const nextAt = quietAdjusted(nextLocalTime(Math.max(input.now, todayAt), m.atMin, input.timeZone), false, input);
   if (input.now < todayAt || key in input.sent) return { notice: null, mark: [], nextAt: input.now < todayAt ? todayAt : nextAt };
   if (input.now - todayAt > MORNING_GRACE) return { notice: null, mark: [key], nextAt };
+  // The phone: the sources whose session ended, offered in the summary (sessionInMorning).
+  const ended = input.sessionInMorning
+    ? [...(input.session.state === 'EXPIRED' && input.session.expiredAt !== null && input.now >= input.session.expiredAt ? ['SIKOLA'] : []), ...(input.relogin ?? [])]
+    : [];
+  const relogin = ended.length > 0 ? { relogin: ended } : {};
   if (input.morningStyle === 'full') {
     const pending = pendingForMorning(input.tasks, input.taskState, input.activeCourseIds);
     const todays = input.classes ? classesToday(input.classes.meetings, today, 0, input.classes.holidays).map((c) => ({ name: c.name, start: c.start })) : [];
     const full = morningCounts(input.now, input.timeZone, pending, input.calendar?.events ?? [], todays);
-    // Nothing overdue, due or on the calendar: no summary, the day handled.
-    if (!full) return { notice: null, mark: [key], nextAt };
     const nearest = [...pending].sort((a, b) => (a.dueAt as number) - (b.dueAt as number))[0] ?? ({ name: '', dueAt: input.now } as Task);
-    return { notice: { kind: 'morning', key, today: full.today, week: full.today + full.tomorrow, nearest, full }, mark: [key], nextAt };
+    // Nothing overdue, due or on the calendar: no summary, the day handled; with an ended session, the offer alone.
+    if (!full) return { notice: ended.length > 0 ? { kind: 'morning', key, today: 0, week: 0, nearest, ...relogin } : null, mark: [key], nextAt };
+    return { notice: { kind: 'morning', key, today: full.today, week: full.today + full.tomorrow, nearest, full, ...relogin }, mark: [key], nextAt };
   }
   const dated = tasks.filter((t) => t.dueAt !== null).sort((a, b) => (a.dueAt as number) - (b.dueAt as number));
   const days = (t: Task) => calendarDaysBetween(input.now, t.dueAt as UnixSeconds, input.timeZone);

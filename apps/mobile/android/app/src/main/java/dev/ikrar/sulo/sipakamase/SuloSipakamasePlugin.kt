@@ -71,7 +71,10 @@ class SuloSipakamasePlugin : Plugin() {
             try {
                 val reply = http.get(path, session.moodleSession) { fresh -> vault.save(SikolaSession(fresh, null), note = false) }
                 val toLogin = reply.status in 300..399 || reply.status == 401 || reply.status == 403
-                call.resolve(JSObject().put("status", reply.status).put("toLogin", toLogin).put("html", if (toLogin) "" else reply.body))
+                val out = JSObject().put("status", reply.status).put("toLogin", toLogin).put("html", if (toLogin) "" else reply.body)
+                // The session cookie's attributes only (Expires present, Max-Age), never its value.
+                reply.cookieAttrs?.let { out.put("cookieExpires", it.expires).put("cookieMaxAge", it.maxAge ?: org.json.JSONObject.NULL) }
+                call.resolve(out)
             } catch (e: Exception) {
                 call.resolve(JSObject().put("networkError", true))
             }
@@ -83,7 +86,7 @@ class SuloSipakamasePlugin : Plugin() {
     fun workerState(call: PluginCall) {
         io.execute {
             val k = SipakamaseKeeper(context).state()
-            call.resolve(JSObject().put("lastAt", k.lastAt).put("date", k.date).put("count", k.count).put("loginAt", k.loginAt))
+            call.resolve(JSObject().put("lastAt", k.lastAt).put("date", k.date).put("count", k.count).put("loginAt", k.loginAt).put("okAt", k.okAt))
         }
     }
 

@@ -21,6 +21,9 @@ import { snapshotKey } from '@sulo/core/neosia/store';
 import { COURSE_MAP_KEY } from '@sulo/core/neosia/course-map';
 import { createNeosiaStore } from './platform/neosia-store';
 import { SuloNeosia } from './neosia-native';
+import { readSession } from '@sulo/core/moodle/session';
+import { readPrefs } from '@sulo/core/prefs';
+import { endedSources } from './relogin';
 
 /**
  * The only NEOSIA records the reminders read (the class schedule for
@@ -84,11 +87,18 @@ export async function sessionForReminders(store: KeyValueStore, now: UnixSeconds
   const config = await readRemoteConfig(store);
   const watching = watch.enabled === true && config.enabled && keepAliveFrom(config).enabled;
   const last = userId === null ? null : (await readUser(store, userId, 'sync')).lastSyncAt;
-  if (watching || last === null) return { state: 'OK', userId, checkedAt: now };
+  if (last === null) return { state: 'OK', userId, checkedAt: now };
+  // Known to have ended (a sync asked twice): offered in the morning summary (mobile rule 7, 26 Nov 2026). While
+  // watching with the summary off, the worker's own single notice already said it: nothing more here.
+  const known = await readSession(store).catch(() => null);
+  const reminders = (await readPrefs(store)).reminders;
+  const morningOn = reminders.enabled && reminders.morning.enabled;
+  if (known?.state === 'EXPIRED' && (morningOn || !watching)) return { state: 'EXPIRED', userId, checkedAt: now, expiredAt: known.expiredAt ?? now };
+  if (watching) return { state: 'OK', userId, checkedAt: now };
   return { state: 'EXPIRED', userId, checkedAt: now, expiredAt: last + SESSION_ESTIMATE_SEC };
 }
 
-export async function planReminders(store: KeyValueStore, now: UnixSeconds, timeZone: string, uiLanguage: string, neosia: Record<string, unknown> = {}): Promise<PlannedReminder[]> {
+export async function planReminders(store: KeyValueStore, now: UnixSeconds, timeZone: string, uiLanguage: string, neosia: Record<string, unknown> = {}, relogin: readonly string[] = []): Promise<PlannedReminder[]> {
   const sim = await copyStore(store);
   for (const [key, value] of Object.entries(neosia)) await sim.set(key, structuredClone(value));
   await sim.set('global:session', await sessionForReminders(store, now));
@@ -98,7 +108,7 @@ export async function planReminders(store: KeyValueStore, now: UnixSeconds, time
   for (let guard = 0; at !== null && at <= end && out.length < MAX_SCHEDULED && guard < 500; guard++) {
     const when: UnixSeconds = at;
     // The phone's morning summary is the full one: overdue, today, tomorrow, today's events (reminders/morning.ts).
-    const result = await runNotifyCycle({ store: sim, now: when, timeZone, uiLanguage, morningStyle: 'full', morningClasses: true, notifier: { show: async (id, view) => void out.push({ at: when, id, view }) } });
+    const result = await runNotifyCycle({ store: sim, now: when, timeZone, uiLanguage, morningStyle: 'full', morningClasses: true, sessionInMorning: true, relogin, notifier: { show: async (id, view) => void out.push({ at: when, id, view }) } });
     at = result.nextAt !== null && result.nextAt > when ? result.nextAt : null;
   }
   return out.slice(0, MAX_SCHEDULED);
@@ -116,7 +126,7 @@ export async function scheduleReminders(platform: Platform): Promise<number> {
   // Another account is waiting for the user's answer: the previous account's reminders are cancelled, none planned (as the extension does).
   const pending = (await readPending(platform.store)) !== null;
   const neosia = pending ? {} : await remindersNeosia(createNeosiaStore(platform.store, SuloNeosia));
-  const planned = pending ? [] : await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language, neosia);
+  const planned = pending ? [] : await planReminders(platform.store, platform.clock.now(), timeZone, navigator.language, neosia, await endedSources(platform));
   const previous = (await platform.store.get<number[]>(SCHEDULED_KEY)) ?? [];
   if (previous.length > 0) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
   // The channels follow the chosen sound whether or not notifications are allowed yet: making a channel asks nothing.

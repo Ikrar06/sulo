@@ -24,6 +24,7 @@ import { sourcesFrom } from '@sulo/core/remote/sources';
 import { keeperRuns, readConnection } from '@sulo/core/sipakamase/connection';
 import { ownReadsToday, readKeeper } from '@sulo/core/sipakamase/keeper';
 import { readSipakamaseModule } from '@sulo/core/sipakamase/module';
+import { keepPace, readSessionLog } from '@sulo/core/sipakamase/session-log';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { sipakamaseStore } from './sipakamase/service';
 import { applyWatchAnswers, markChangesHandled, type WatchAnswer } from '@sulo/core/watch/queue';
@@ -132,5 +133,7 @@ async function sipakamaseWatchPart(platform: Platform, config: RemoteConfig, now
   if (!source.enabled || !source.keep || !keeperRuns(conn.state)) return undefined;
   const keeper = await readKeeper(store);
   const today = localParts(now, Intl.DateTimeFormat().resolvedOptions().timeZone).dateKey;
-  return { keep: true, intervalMin: source.keepIntervalMinutes, next: keeper.next, usedToday: ownReadsToday(keeper, today), date: today, lastAutoAt: keeper.lastAutoAt ?? 0 };
+  // The worker keeps the same pace as the app: the measured session length, never faster than the config.
+  const pace = keepPace(await readSessionLog(store), source.keepIntervalMinutes);
+  return { keep: true, intervalMin: pace.intervalMin, next: keeper.next, usedToday: ownReadsToday(keeper, today), date: today, lastAutoAt: keeper.lastAutoAt ?? 0 };
 }

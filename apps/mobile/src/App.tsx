@@ -51,6 +51,8 @@ import { afterStage, DONE_MS, holdLeft, IDLE, running, type SyncUi } from './she
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
 const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({ default: m.DevScreen }))) : null;
+/** Every build: seven taps on the version (screens/Diagnostik.tsx). */
+const Diagnostik = lazy(() => import('./screens/Diagnostik').then((m) => ({ default: m.Diagnostik })));
 
 export { NOTIFY_ASKED_KEY } from './onboarding/OnboardingFlow';
 
@@ -274,7 +276,7 @@ export function App({ platform }: { platform: Platform }) {
       const held = now === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
       if ((held.suspect || held.deferred === true) && !(__SULO_DEV__ && devHoldResume())) void refreshRef.current();
     })();
-    const onDev = () => __SULO_DEV__ && setDev(true);
+    const onDev = () => setDev(true);
     // Debug builds: the scenes' pace chosen on the dev screen, and a replay of the onboarding from the first screen.
     const onReplay = () => {
       if (!__SULO_DEV__) return;
@@ -381,7 +383,7 @@ export function App({ platform }: { platform: Platform }) {
         onRetry={() => void refresh()}
         lastSyncAt={last}
         onRefresh={refresh}
-        onSignIn={() => void signIn()}
+        onSignIn={() => signIn()}
         onSignedOut={async () => {
           setNote('');
           await refreshState();
@@ -423,6 +425,10 @@ export function App({ platform }: { platform: Platform }) {
               void refreshState();
             }}
           />
+        </Suspense>
+      ) : dev ? (
+        <Suspense fallback={null}>
+          <Diagnostik platform={platform} w={w} onBack={() => setDev(false)} />
         </Suspense>
       ) : switching ? (
         <SwitchAccount

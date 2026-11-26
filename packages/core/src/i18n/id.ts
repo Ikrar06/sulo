@@ -261,6 +261,8 @@ export const id = {
     sessionTitle: 'Tugasmu belum bisa diperbarui',
     sessionRepeatTitle: 'Tugasmu belum diperbarui sejak kemarin',
     sessionBody: 'Masuk lagi ke SIKOLA supaya Sulo bisa memperbarui tugasmu.',
+    morningRelogin: (sources: readonly string[]) =>
+      `Masuk lagi ke ${sources.length > 1 ? `${sources.slice(0, -1).join(', ')} dan ${sources[sources.length - 1]}` : sources[0]} supaya Sulo bisa memperbarui.`,
     reloginTitle: 'Tugasmu sudah diperbarui',
     reloginBody: 'Sulo memperbaruinya begitu kamu masuk lagi ke SIKOLA.',
     snoozeButton: 'Tunda 1 jam',

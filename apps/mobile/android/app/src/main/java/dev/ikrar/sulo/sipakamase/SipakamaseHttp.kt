@@ -12,7 +12,7 @@ import java.net.URL
  * the cookie never leaves this process.
  */
 class SipakamaseHttp(private val userAgent: String, private val origin: String = Sipakamase.ORIGIN) {
-    data class Reply(val status: Int, val location: String?, val body: String)
+    data class Reply(val status: Int, val location: String?, val body: String, val cookieAttrs: Sipakamase.CookieAttrs? = null)
 
     fun get(path: String, cookie: String, onCookie: (String) -> Unit): Reply {
         require(Sipakamase.isReadPath(path)) { "not a Sipakamase read path" }
@@ -42,7 +42,7 @@ class SipakamaseHttp(private val userAgent: String, private val origin: String =
                 }
                 String(buf, 0, n)
             } ?: ""
-            Reply(status, conn.getHeaderField("Location"), body)
+            Reply(status, conn.getHeaderField("Location"), body, Sipakamase.cookieAttrs(setCookies))
         } finally {
             conn.disconnect()
         }

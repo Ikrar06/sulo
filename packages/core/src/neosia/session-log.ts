@@ -1,5 +1,5 @@
 // How long a NEOSIA session lasts (1.1.0, docs/mkpk/RENCANA.md 5b.1), noted
-// in debug and tester builds only, with no request of its own: when a page
+// in every phone build since 26 Nov 2026 (the Diagnostik screen), with no request of its own: when a page
 // showed NEOSIA signed in (data came in, or its login was left) and when a
 // page landed on NEOSIA's login again. Times and events only. It tells
 // whether the scheduled visit can keep NEOSIA useful (sources.neosia).

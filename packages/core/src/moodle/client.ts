@@ -32,8 +32,9 @@ export interface MoodleClientDeps {
   /** Adds nosessionupdate=true to batches; default SEND_NOSESSIONUPDATE. */
   noSessionUpdate?: boolean;
   /**
-   * Session age log (lib/net/session-age.ts), dev and tester builds only:
-   * told about outcomes after the fact. Never changes what is sent.
+   * Session age log (net/session-age.ts): the phone in every build (its
+   * Diagnostik screen), the extension in development builds. Told about
+   * outcomes after the fact; never changes what is sent.
    */
   sessionAge?: { success(now: number): Promise<void>; expired(now: number): Promise<void> };
   /**

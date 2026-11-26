@@ -46,4 +46,13 @@ class SipakamaseKeepTest {
         assertEquals(77L, R.afterRead(p, State(), 0, 77, "d", login = true).loginAt)
         assertEquals(5L, R.afterRead(p, State(loginAt = 5), 0, 77, "d", login = false).loginAt)
     }
+
+    @Test
+    fun remembersTheLastSignedInReadForTheSessionLog() {
+        val p = R.parse(plan())!!
+        assertEquals(77L, R.afterRead(p, State(), 0, 77, "d", login = false, ok = true).okAt)
+        // A login page or an error leaves the last good read where it was.
+        assertEquals(9L, R.afterRead(p, State(okAt = 9), 0, 77, "d", login = true).okAt)
+        assertEquals(9L, R.afterRead(p, State(okAt = 9), 0, 77, "d", login = false).okAt)
+    }
 }

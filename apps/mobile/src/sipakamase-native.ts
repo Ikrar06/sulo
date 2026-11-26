@@ -7,10 +7,10 @@ import type { NeosiaNative } from './platform/neosia-store';
 
 export interface SuloSipakamasePlugin extends NeosiaNative {
   signIn(options: { close: string; offline: string; retry: string }): Promise<{ result: 'signed_in' | 'closed' | 'offline' }>;
-  get(options: { path: string }): Promise<{ status?: number; toLogin?: boolean; html?: string; noSession?: boolean; networkError?: boolean }>;
+  get(options: { path: string }): Promise<{ status?: number; toLogin?: boolean; html?: string; noSession?: boolean; networkError?: boolean; cookieExpires?: boolean; cookieMaxAge?: number | null }>;
   status(): Promise<{ hasSession: boolean }>;
   /** What the background keeper did: times and counts only. */
-  workerState(): Promise<{ lastAt: number; date: string; count: number; loginAt: number }>;
+  workerState(): Promise<{ lastAt: number; date: string; count: number; loginAt: number; okAt?: number }>;
   /** Putuskan: the vault's cookie, the WebView's cookie, every account's data. */
   forget(): Promise<void>;
 }

@@ -67,6 +67,9 @@ export const useNeosia = (): NeosiaState => {
   return v;
 };
 
+/** The shell (the landing page renders it without NEOSIA): null when no provider is there. */
+export const useNeosiaIfAny = (): NeosiaState | null => useContext(NeosiaContext);
+
 export function NeosiaProvider({ platform, children }: { platform: Platform; children: ReactNode }) {
   const store = useMemo(() => createNeosiaStore(platform.store, SuloNeosia), [platform]);
   const [supported, setSupported] = useState<boolean | null>(null);
@@ -139,7 +142,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
         if (!due) return;
         await store.set(VISIT_KEY, now);
         const { result } = await SuloNeosia.visit();
-        if (__SULO_DEV__ && (result === 'data' || result === 'needs_login')) await noteNeosiaSession(store, { at: now, event: result === 'data' ? 'signed_in' : 'needs_login', via: 'visit' }).catch(() => undefined);
+        if (result === 'data' || result === 'needs_login') await noteNeosiaSession(store, { at: now, event: result === 'data' ? 'signed_in' : 'needs_login', via: 'visit' }).catch(() => undefined);
         if (result === 'needs_login') {
           setNeedsLogin(true);
           await store.remove(SIGNED_IN_KEY).catch(() => undefined);
@@ -186,7 +189,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
       // Data came in: the session was alive, like a sign-in seen.
       const result: OpenResult = answer === 'data' ? 'signed_in' : answer;
       // Debug and tester builds: how long NEOSIA sessions last (no request).
-      if (__SULO_DEV__ && (result === 'signed_in' || result === 'needs_login')) await noteNeosiaSession(store, { at: platform.clock.now(), event: result, via: 'tap' }).catch(() => undefined);
+      if (result === 'signed_in' || result === 'needs_login') await noteNeosiaSession(store, { at: platform.clock.now(), event: result, via: 'tap' }).catch(() => undefined);
       setLastResult(result);
       setNeedsLogin(result === 'needs_login');
       if (result === 'signed_in') await store.set(SIGNED_IN_KEY, true).catch(() => undefined);
