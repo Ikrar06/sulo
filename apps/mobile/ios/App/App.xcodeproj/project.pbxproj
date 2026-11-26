@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FB01A66D01A54727ADC855F1 /* Keeper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 177CBF489789052344BA5BAE /* Keeper.swift */; };
+		347D768DDA59871B74DCB5DD /* sulo_notif_4.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7F4C5B6B8FC434F1DBB6C909 /* sulo_notif_4.caf */; };
+		728F97678E071926EFB6576B /* sulo_notif_3.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7E7C439080C007E69B5CD1F5 /* sulo_notif_3.caf */; };
+		505512ED933E2D1737F61E27 /* sulo_notif_2.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7A375572B7616FE92B270A99 /* sulo_notif_2.caf */; };
+		11B0AEE3F8E538ED91FCD14D /* sulo_notif_1.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4B56DB723D7293FE2EF00B81 /* sulo_notif_1.caf */; };
 		FDE7E16CEC5EB55D07A34798 /* SourcePlugins.swift in Sources */ = {isa = PBXBuildFile; fileRef = 570A8D060255058D87B4B9AF /* SourcePlugins.swift */; };
 		47C577F086BF316FCD53AE58 /* SikolaRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5AD59EA98E0A6B15413108 /* SikolaRules.swift */; };
 		0948FE3C25E1D9090A7D8BDC /* SikolaHttp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB4723405F0333EFEE25902F /* SikolaHttp.swift */; };
@@ -33,6 +38,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		177CBF489789052344BA5BAE /* Keeper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/Keeper.swift; sourceTree = "<group>"; };
+		7F4C5B6B8FC434F1DBB6C909 /* sulo_notif_4.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/sulo_notif_4.caf; sourceTree = "<group>"; };
+		7E7C439080C007E69B5CD1F5 /* sulo_notif_3.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/sulo_notif_3.caf; sourceTree = "<group>"; };
+		7A375572B7616FE92B270A99 /* sulo_notif_2.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/sulo_notif_2.caf; sourceTree = "<group>"; };
+		4B56DB723D7293FE2EF00B81 /* sulo_notif_1.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/sulo_notif_1.caf; sourceTree = "<group>"; };
 		570A8D060255058D87B4B9AF /* SourcePlugins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SourcePlugins.swift; sourceTree = "<group>"; };
 		9C5AD59EA98E0A6B15413108 /* SikolaRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SikolaRules.swift; sourceTree = "<group>"; };
 		CB4723405F0333EFEE25902F /* SikolaHttp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SikolaHttp.swift; sourceTree = "<group>"; };
@@ -92,6 +102,11 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				177CBF489789052344BA5BAE /* Keeper.swift */,
+				7F4C5B6B8FC434F1DBB6C909 /* sulo_notif_4.caf */,
+				7E7C439080C007E69B5CD1F5 /* sulo_notif_3.caf */,
+				7A375572B7616FE92B270A99 /* sulo_notif_2.caf */,
+				4B56DB723D7293FE2EF00B81 /* sulo_notif_1.caf */,
 				570A8D060255058D87B4B9AF /* SourcePlugins.swift */,
 				9C5AD59EA98E0A6B15413108 /* SikolaRules.swift */,
 				CB4723405F0333EFEE25902F /* SikolaHttp.swift */,
@@ -184,6 +199,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				347D768DDA59871B74DCB5DD /* sulo_notif_4.caf in Resources */,
+				728F97678E071926EFB6576B /* sulo_notif_3.caf in Resources */,
+				505512ED933E2D1737F61E27 /* sulo_notif_2.caf in Resources */,
+				11B0AEE3F8E538ED91FCD14D /* sulo_notif_1.caf in Resources */,
 				504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */,
 				50B271D11FEDC1A000F3C39B /* public in Resources */,
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
@@ -200,6 +219,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB01A66D01A54727ADC855F1 /* Keeper.swift in Sources */,
 				FDE7E16CEC5EB55D07A34798 /* SourcePlugins.swift in Sources */,
 				47C577F086BF316FCD53AE58 /* SikolaRules.swift in Sources */,
 				0948FE3C25E1D9090A7D8BDC /* SikolaHttp.swift in Sources */,

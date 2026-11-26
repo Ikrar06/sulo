@@ -24,6 +24,11 @@ import { SuloNeosia } from './neosia-native';
 import { readSession } from '@sulo/core/moodle/session';
 import { readPrefs } from '@sulo/core/prefs';
 import { endedSources } from './relogin';
+import { Capacitor } from '@capacitor/core';
+import { resolveLocale } from '@sulo/core/i18n';
+import { mobileWords } from '@sulo/core/i18n/mobile';
+import { REFRESH_NOTICE_PREFIX, refreshNoticeAt } from './ios-refresh';
+import { SuloSession } from './session';
 
 /**
  * The only NEOSIA records the reminders read (the class schedule for
@@ -146,8 +151,28 @@ export async function scheduleReminders(platform: Platform): Promise<number> {
   }));
   // Each on the channel of its kind: reminders and news with the chosen sound, the morning summary and the sign-in notice silent.
   await scheduleOnChannels(platform.store, notifications);
-  await platform.store.set(SCHEDULED_KEY, notifications.map((n) => n.id));
+  const refresh = await scheduleRefreshNotice(platform, timeZone);
+  await platform.store.set(SCHEDULED_KEY, [...notifications.map((n) => n.id), ...refresh]);
   return notifications.length;
+}
+
+/**
+ * iPhone: "Sulo perlu disegarkan besok", silent, from the profile's end date in the app's own bundle
+ * (ios-refresh.ts). Scheduled with the reminders, so it is replaced with them; returns its id when set.
+ */
+async function scheduleRefreshNotice(platform: Platform, timeZone: string): Promise<number[]> {
+  if (Capacitor.getPlatform() !== 'ios') return [];
+  const prefs = await readPrefs(platform.store);
+  if (!prefs.refreshReminder) return [];
+  const expiry = (await SuloSession.profileExpiry().catch(() => ({ at: null }))).at;
+  const at = expiry === null ? null : refreshNoticeAt(expiry, platform.clock.now(), timeZone, prefs.reminders.quiet);
+  if (expiry === null || at === null) return [];
+  const words = mobileWords(resolveLocale(prefs.locale, navigator.language)).iphone;
+  const suloId = `${REFRESH_NOTICE_PREFIX}${expiry}`;
+  const id = numericId(suloId);
+  // Quiet (platform/notifications.ts gives the refresh kind no sound).
+  await scheduleOnChannels(platform.store, [{ id, title: words.refreshTitle, body: words.refreshBody, extra: { suloId }, schedule: { at: new Date(at * 1000), allowWhileIdle: true } }]);
+  return [id];
 }
 
 /**

@@ -274,6 +274,12 @@ const id = {
     neosiaHours: (list: string) => `Umur sesi (jam): ${list}`,
     back: 'Kembali',
   },
+  iphone: {
+    refreshTitle: 'Sulo perlu disegarkan besok',
+    refreshBody: 'Buka Sideloadly di laptopmu dengan iPhone tersambung, supaya Sulo tetap bisa dibuka setelah besok.',
+    refreshSwitch: 'Ingatkan sebelum perlu disegarkan',
+    refreshHelp: 'Satu notifikasi tanpa suara, sehari sebelum Sulo di iPhone ini perlu disegarkan lewat laptop.',
+  },
 };
 
 export type MobileWords = typeof id;
@@ -526,6 +532,12 @@ const en: MobileWords = {
     cookie: (expires: boolean, maxAge: number | null) => (maxAge !== null ? `The session cookie lasts ${maxAge} seconds.` : expires ? 'The session cookie has an expiry date.' : 'The session cookie has no expiry date.'),
     neosiaHours: (list: string) => `Session length (hours): ${list}`,
     back: 'Back',
+  },
+  iphone: {
+    refreshTitle: 'Sulo needs a refresh tomorrow',
+    refreshBody: 'Open Sideloadly on your laptop with this iPhone connected, so Sulo still opens after tomorrow.',
+    refreshSwitch: 'Remind me before it needs a refresh',
+    refreshHelp: 'One silent notification, the day before Sulo on this iPhone needs a refresh from your laptop.',
   },
 };
 

@@ -8,7 +8,7 @@
 // Never writes DEVELOPMENT_TEAM: the signing team stays in ios/App/Local.xcconfig, ignored by git.
 // Idempotent: the IDs come from the file names, so running it twice changes nothing.
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { versionCode } from './version-code.mjs';
 
@@ -17,6 +17,7 @@ export const IOS_APP = join(MOBILE, 'ios', 'App');
 export const PBXPROJ = join(IOS_APP, 'App.xcodeproj', 'project.pbxproj');
 export const MIN_IOS = '16.4';
 const SOURCES = join(IOS_APP, 'App', 'Sulo');
+const SOUNDS = join(IOS_APP, 'App', 'Sounds');
 
 const id = (kind, name) => createHash('md5').update(`sulo:${kind}:${name}`).digest('hex').slice(0, 24).toUpperCase();
 
@@ -41,6 +42,17 @@ export function syncProject({ version = JSON.parse(readFileSync(join(MOBILE, 'pa
     // The App group's children, then the Sources phase's files.
     text = insertAfter(text, '504EC3061FED79650016851F /* App */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (', `\t\t\t\t${ref} /* ${file} */,\n`);
     text = insertAfter(text, '504EC3001FED79650016851F /* Sources */ = {\n\t\t\tisa = PBXSourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = (', `\t\t\t\t${build} /* ${file} in Sources */,\n`);
+  }
+  // The notification sounds (scripts/ios-sounds.mjs): resources at the bundle's root, where UNNotificationSound looks.
+  const sounds = existsSync(SOUNDS) ? readdirSync(SOUNDS).filter((f) => f.endsWith('.caf')).sort() : [];
+  for (const file of sounds) {
+    const ref = id('ref', `Sounds/${file}`);
+    const build = id('build', `Sounds/${file}`);
+    if (text.includes(ref)) continue;
+    text = insertAfter(text, '/* Begin PBXBuildFile section */', `\t\t${build} /* ${file} in Resources */ = {isa = PBXBuildFile; fileRef = ${ref} /* ${file} */; };\n`);
+    text = insertAfter(text, '/* Begin PBXFileReference section */', `\t\t${ref} /* ${file} */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/${file}; sourceTree = "<group>"; };\n`);
+    text = insertAfter(text, '504EC3061FED79650016851F /* App */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (', `\t\t\t\t${ref} /* ${file} */,\n`);
+    text = insertAfter(text, '504EC3021FED79650016851F /* Resources */ = {\n\t\t\tisa = PBXResourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = (', `\t\t\t\t${build} /* ${file} in Resources */,\n`);
   }
   text = text
     .replace(/IPHONEOS_DEPLOYMENT_TARGET = [\d.]+;/g, `IPHONEOS_DEPLOYMENT_TARGET = ${MIN_IOS};`)

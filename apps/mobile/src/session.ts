@@ -62,6 +62,8 @@ export interface SuloSessionPlugin {
   note(options: { e: string }): Promise<void>;
   /** The first frame is drawn: the launch screen may go. */
   ready(): Promise<void>;
+  /** iPhone: when the app's 7-day profile ends (from its own bundle), or null (the simulator, Android). */
+  profileExpiry(): Promise<{ at: number | null }>;
   /** Debug builds: the owner's one-off test budget for today (one background check may use it). */
   devTestBudget(options: { date: string }): Promise<void>;
   /** Debug builds: what happened to the session (times and event codes only, native Diag). */

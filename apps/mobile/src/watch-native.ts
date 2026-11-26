@@ -9,7 +9,8 @@ import { parseRelease } from '@sulo/core/remote/release';
 import { readPending } from '@sulo/core/account/pending';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
-import { resolveLocale } from '@sulo/core/i18n';
+import { messagesFor, resolveLocale } from '@sulo/core/i18n';
+import { Capacitor } from '@capacitor/core';
 import { mobileWords } from '@sulo/core/i18n/mobile';
 import type { Platform } from '@sulo/core/platform';
 import { readPrefs } from '@sulo/core/prefs';
@@ -86,7 +87,22 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
     channels,
     sipakamase: await sipakamaseWatchPart(platform, config, clock.now()),
   });
-  await SuloSession.watchApply({ plan: JSON.stringify(plan) }).catch(() => undefined);
+  // iPhone: the keeper (PENJAGA-SESI.md A3) only pings and offers "Masuk lagi"; it needs the words and the morning time.
+  const n = messagesFor(resolveLocale(prefs.locale, navigator.language));
+  const ios =
+    Capacitor.getPlatform() === 'ios'
+      ? {
+          ios: {
+            morningOn: prefs.reminders.enabled && prefs.reminders.morning.enabled,
+            morningAtMin: prefs.reminders.morning.atMin,
+            morningTitle: n.notify.morningFullTitle,
+            reloginLine: n.notify.morningRelogin(['SIKOLA']),
+            noticeTitle: n.notify.sessionTitle,
+            noticeBody: n.notify.sessionBody,
+          },
+        }
+      : {};
+  await SuloSession.watchApply({ plan: JSON.stringify({ ...plan, ...ios }) }).catch(() => undefined);
 }
 
 /**

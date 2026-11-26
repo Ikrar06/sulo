@@ -14,7 +14,7 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         "deviceInfo", "haptic", "login", "status", "endSession", "suspect", "note", "ready", "diagLog", "request", "page", "logout",
         "discardSession", "watchReset", "lockAvailable", "unlock", "openAppSettings", "secure",
-        "watchApply", "watchTake", "watchStatus", "watchTakeOpen", "watchRunNow", "watchSimulate", "devTestBudget",
+        "watchApply", "watchTake", "watchStatus", "watchTakeOpen", "watchRunNow", "watchSimulate", "devTestBudget", "profileExpiry",
     ].map { CAPPluginMethod(name: $0, returnType: CAPPluginReturnPromise) }
 
     private let vault = SessionVault.shared
@@ -123,6 +123,7 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func logout(_ call: CAPPluginCall) {
         SikolaLock.queue.async {
             self.vault.clear()
+            Keeper.clear()
             UserDefaults.standard.removeObject(forKey: Self.deferredKey)
             call.resolve(["status": "none"])
         }
@@ -207,6 +208,8 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
                 Diag.shared.note("sikola_login_signal:batch:\(SikolaRequest.sessionCodes(reply.body, functions: functions).first ?? "?")")
             } else if SikolaRequest.sessionAnswered(reply.body, functions: functions) {
                 vault.clearSuspect()
+                // The session works: a later end may be offered again (Keeper.offerRelogin).
+                Keeper.clearOffer()
             }
             call.resolve(["httpStatus": reply.status, "body": reply.body, "sessionStatus": vault.status()])
         } catch SiteHttp.Failure.network(let kind) {
@@ -297,12 +300,24 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     /// iOS cannot block screenshots; the cover and the recording mask come with Fase 4.
     @objc func secure(_ call: CAPPluginCall) { call.resolve() }
 
-    // MARK: Background watching (Android's; nothing here on iOS)
+    // MARK: The keeper (Keeper.swift); Android's watching answers the rest with nothing
 
-    @objc func watchReset(_ call: CAPPluginCall) { call.resolve() }
-    @objc func watchApply(_ call: CAPPluginCall) { call.resolve() }
+    @objc func profileExpiry(_ call: CAPPluginCall) { call.resolve(["at": AppProfile.expiry() ?? NSNull()]) }
+    @objc func watchReset(_ call: CAPPluginCall) {
+        SikolaLock.queue.async {
+            Keeper.clear()
+            call.resolve()
+        }
+    }
+    @objc func watchApply(_ call: CAPPluginCall) {
+        let plan = call.getString("plan") ?? "{}"
+        SikolaLock.queue.async {
+            Keeper.apply(plan)
+            call.resolve()
+        }
+    }
     @objc func watchTake(_ call: CAPPluginCall) { call.resolve(["answers": [String](), "fullSync": false]) }
-    @objc func watchStatus(_ call: CAPPluginCall) { call.resolve(["timings": "[]", "sessionEnds": "[]", "plannedAt": 0, "queued": 0]) }
+    @objc func watchStatus(_ call: CAPPluginCall) { SikolaLock.queue.async { call.resolve(Keeper.status()) } }
     @objc func watchTakeOpen(_ call: CAPPluginCall) { call.resolve(["id": NSNull()]) }
     @objc func watchRunNow(_ call: CAPPluginCall) { call.reject("not available") }
     @objc func watchSimulate(_ call: CAPPluginCall) { call.reject("not available") }

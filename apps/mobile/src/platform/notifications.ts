@@ -1,5 +1,6 @@
 import { LocalNotifications, type LocalNotificationSchema } from '@capacitor/local-notifications';
-import { channelFor } from '@sulo/core/notify/channels';
+import { Capacitor } from '@capacitor/core';
+import { channelFor, type ChannelPlan } from '@sulo/core/notify/channels';
 import type { AlarmScheduler, Notifier, ScheduledAlarm } from '@sulo/core/platform';
 import type { KeyValueStore } from '@sulo/core/types';
 import { applyNotifyChannels } from '../notify-sound';
@@ -40,7 +41,22 @@ export function numericId(id: string): number {
 export async function scheduleOnChannels(store: KeyValueStore, notifications: LocalNotificationSchema[]): Promise<void> {
   if (notifications.length === 0) return;
   const plan = await applyNotifyChannels(store);
+  if (Capacitor.getPlatform() === 'ios') {
+    // iOS has no channels: each notification carries its kind's sound (a CAF in the bundle, scripts/ios-sounds.mjs),
+    // "default" for the phone's own, and none for the silent kinds (the plugin plays nothing without one).
+    await LocalNotifications.schedule({ notifications: notifications.map((n) => ({ ...n, ...iosSound(plan, String(n.extra?.suloId ?? '')) })) });
+    return;
+  }
   await LocalNotifications.schedule({ notifications: notifications.map((n) => ({ ...n, channelId: channelFor(plan, String(n.extra?.suloId ?? '')) })) });
+}
+
+/** The sound of a notification on iOS, from the same channel plan Android follows. */
+export function iosSound(plan: ChannelPlan, suloId: string): { sound?: string } {
+  // "Sulo perlu disegarkan besok" (ios-refresh.ts) is always quiet.
+  if (suloId.startsWith('refresh|')) return {};
+  const spec = plan.channels.find((c) => c.id === channelFor(plan, suloId));
+  if (!spec || spec.importance === 'low' || spec.sound === null) return {};
+  return { sound: spec.sound === 'default' ? 'default' : `${spec.sound}.caf` };
 }
 
 export function createNotifier(store: KeyValueStore): Notifier {

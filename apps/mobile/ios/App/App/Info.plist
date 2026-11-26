@@ -4,8 +4,8 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>dev.ikrar.sulo.probe.refresh</string>
-		<string>dev.ikrar.sulo.probe.charge</string>
+		<string>dev.ikrar.sulo.keep.refresh</string>
+		<string>dev.ikrar.sulo.keep.charge</string>
 	</array>
 	<key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>

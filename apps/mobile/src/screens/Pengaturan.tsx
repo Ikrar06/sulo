@@ -5,6 +5,7 @@
 // every value is the same prefs field the extension uses.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
 import { formatClock } from '@sulo/core/format/time';
 import { LANGUAGE_NAMES } from '@sulo/core/i18n';
@@ -166,6 +167,16 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
         </Row>
         <ValueRow label={r.at} value={hour(rem.morning.atMin)} disabled={!rem.morning.enabled} onPress={() => setPicker('morning')} />
         <ValueRow label={r.snoozeMorning} value={hour(rem.snoozeMorningMin)} onPress={() => setPicker('snooze')} />
+        {/* iPhone only: the day before the app needs a refresh from the laptop (ios-refresh.ts). */}
+        {Capacitor.getPlatform() === 'ios' && (
+          <Row label={w.iphone.refreshSwitch} help={w.iphone.refreshHelp}>
+            <Toggle
+              checked={prefs.refreshReminder}
+              label={w.iphone.refreshSwitch}
+              onChange={(v) => void actions.setPrefs({ refreshReminder: v }).then(() => scheduleReminders(platform))}
+            />
+          </Row>
+        )}
       </Group>
 
       <Group title={t.sections.kalender} help={t.calendarHelp}>

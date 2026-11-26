@@ -87,54 +87,12 @@ enum Probe {
 
     // MARK: Profile expiry
 
-    /// The expiry of the provisioning profile Sideloadly or Xcode put in the app (embedded.mobileprovision):
-    /// a signed file whose middle is a plain XML plist. Only the date is read. nil in the simulator.
-    static func profileExpiry() -> Int? {
-        guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
-              let data = try? Data(contentsOf: url),
-              let start = data.range(of: Data("<?xml".utf8)),
-              let end = data.range(of: Data("</plist>".utf8), in: start.lowerBound..<data.endIndex) else { return nil }
-        let plist = data.subdata(in: start.lowerBound..<end.upperBound)
-        guard let dict = (try? PropertyListSerialization.propertyList(from: plist, format: nil)) as? [String: Any],
-              let date = dict["ExpirationDate"] as? Date else { return nil }
-        return Int(date.timeIntervalSince1970)
-    }
+    static func profileExpiry() -> Int? { AppProfile.expiry() }
 
-    // MARK: Background tasks (no network; they only write the time they ran)
+    // MARK: Background runs (the keeper's tasks, Keeper.swift)
 
-    static func registerBackgroundTasks() {
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: refreshTask, using: nil) { task in
-            noteBackgroundRun("refresh")
-            scheduleBackgroundTasks()
-            task.setTaskCompleted(success: true)
-        }
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: chargeTask, using: nil) { task in
-            noteBackgroundRun("charge")
-            scheduleBackgroundTasks()
-            task.setTaskCompleted(success: true)
-        }
-    }
-
-    static func scheduleBackgroundTasks() {
-        let refresh = BGAppRefreshTaskRequest(identifier: refreshTask)
-        refresh.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
-        let charge = BGProcessingTaskRequest(identifier: chargeTask)
-        charge.requiresExternalPower = true
-        charge.requiresNetworkConnectivity = false
-        charge.earliestBeginDate = Date(timeIntervalSinceNow: 60 * 60)
-        var log = readJSON("background.json") ?? [:]
-        do {
-            try BGTaskScheduler.shared.submit(refresh)
-            try BGTaskScheduler.shared.submit(charge)
-            log["lastSubmitAt"] = now()
-            log["lastSubmitError"] = NSNull()
-        } catch {
-            log["lastSubmitError"] = (error as NSError).code
-        }
-        writeJSON("background.json", log)
-    }
-
-    private static func noteBackgroundRun(_ kind: String) {
+    /** The keeper's background tasks (Keeper.swift) note each run here, for the Fase 1 card. */
+    static func noteBackgroundRun(_ kind: String) {
         var log = readJSON("background.json") ?? [:]
         var runs = (log["runs"] as? [[String: Any]]) ?? []
         runs.insert(["kind": kind, "at": now()], at: 0)

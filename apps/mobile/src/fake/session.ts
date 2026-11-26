@@ -24,6 +24,7 @@ export function fakeSession(): SuloSessionPlugin {
     },
     status: async () => ({ status }),
     diagLog: async () => ({ events: [] }),
+    profileExpiry: async () => ({ at: null }),
     endSession: async () => ((status = 'expired'), { status }),
     suspect: async () => ({ suspect: false }),
     note: async () => undefined,

@@ -10,13 +10,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Background tasks must be registered before launch finishes (Fase 1: the probe's, no network).
         // A fresh install: an earlier install's Keychain items are removed before anything reads them.
         InstallMarker.cleanIfFresh()
-        Probe.registerBackgroundTasks()
+        Keeper.register()
         Probe.noteLaunch()
         #if DEBUG
         // Debug builds only: `simctl launch <sim> dev.ikrar.sulo -suloProbe write|status` runs the Fase 1
         // checks without the dev screen and prints them, so they can be checked from the terminal.
         if let i = CommandLine.arguments.firstIndex(of: "-suloProbe"), i + 1 < CommandLine.arguments.count {
             if CommandLine.arguments[i + 1] == "write" { Probe.write() }
+            if CommandLine.arguments[i + 1] == "keeper" {
+                // The keeper's gates on made-up plans (no request; Keeper.blocked is pure but for its counts file).
+                let t = Int(Date().timeIntervalSince1970)
+                let base: [String: Any] = [
+                    "enabled": true, "writtenAt": t - 3600,
+                    "remote": ["okAt": t - 3600, "config": ["globalEnabled": true, "keepAlive": ["enabled": true]]],
+                    "budget": ["watchStopPosts": 40],
+                    "schedule": ["dayStartMin": 360, "nightStartMin": 1320, "dayIntervalMin": 20, "nightIntervalMin": 110],
+                ]
+                func with(_ k: String, _ v: Any) -> [String: Any] { var p = base; p[k] = v; return p }
+                let open = Keeper.blocked(base, at: t)
+                let off = Keeper.blocked(with("enabled", false), at: t)
+                let idle = Keeper.blocked(with("writtenAt", t - 8 * 86_400), at: t)
+                let stale = Keeper.blocked(with("remote", ["okAt": t - 73 * 3600, "config": ["globalEnabled": true, "keepAlive": ["enabled": true]]]), at: t)
+                let remote = Keeper.blocked(with("remote", ["okAt": t - 3600, "config": ["globalEnabled": true, "keepAlive": ["enabled": false]]]), at: t)
+                let pace = Keeper.intervalMin(base, at: t)
+                print("SULO_KEEPER open=\(open ?? "nil") off=\(off ?? "nil") idle=\(idle ?? "nil") stale=\(stale ?? "nil") remote=\(remote ?? "nil") pace=\(pace)")
+            }
             if CommandLine.arguments[i + 1] == "stores" {
                 // The vault's rules on a test service (never the real session) and one sealed round trip.
                 let v = SessionVault(service: "dev.ikrar.sulo.selftest")
