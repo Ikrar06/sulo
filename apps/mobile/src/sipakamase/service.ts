@@ -13,7 +13,8 @@ import type { Platform, KeyValueStore } from '@sulo/core/platform';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { SIPAKAMASE_ORIGIN } from '@sulo/core/sipakamase/allowlist';
 import { disableSipakamase, enableSipakamase, readSipakamaseModule, type ModuleDeps } from '@sulo/core/sipakamase/module';
-import { idlePause, keep, refresh, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
+import { idlePause, keep, refresh, type RefreshResult, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
+import { isReadOnly } from '../read-only';
 import { idleTooLong, markOpened } from '@sulo/core/watch/idle';
 import { foldWorker, readKeeper, writeKeeper } from '@sulo/core/sipakamase/keeper';
 import { readConnection, transition, writeConnection } from '@sulo/core/sipakamase/connection';
@@ -71,6 +72,8 @@ export type ConnectResult = 'connected' | 'closed' | 'offline';
 
 /** After consent: the module on, the sign-in screen, then the five fragments once (the user asked). */
 export async function connectSipakamase(platform: Platform, words: { close: string; offline: string; retry: string }): Promise<ConnectResult> {
+  // "Lihat data terakhir" (read-only.ts): nothing opens, nothing is sent.
+  if (isReadOnly()) return 'closed';
   const deps = sipakamaseDeps(platform);
   await enableSipakamase(deps.module, false);
   const signed = await SuloSipakamase.signIn(words);
@@ -81,6 +84,7 @@ export async function connectSipakamase(platform: Platform, words: { close: stri
 
 /** "Masuk lagi": the sign-in screen only, then a refresh. */
 export async function signInAgain(platform: Platform, words: { close: string; offline: string; retry: string }): Promise<ConnectResult> {
+  if (isReadOnly()) return 'closed';
   const signed = await SuloSipakamase.signIn(words);
   if (signed.result !== 'signed_in') return signed.result;
   await refresh(sipakamaseDeps(platform).run);
@@ -88,7 +92,7 @@ export async function signInAgain(platform: Platform, words: { close: string; of
 }
 
 export const disconnectSipakamase = (platform: Platform) => disableSipakamase(sipakamaseDeps(platform).module);
-export const refreshSipakamase = (platform: Platform) => refresh(sipakamaseDeps(platform).run);
+export const refreshSipakamase = (platform: Platform): Promise<RefreshResult> => (isReadOnly() ? Promise.resolve({ kind: 'paused' }) : refresh(sipakamaseDeps(platform).run));
 /**
  * The background keeper's reads into the app's state: its count and time
  * into the keeper (one limit, one interval), and a login page it met into

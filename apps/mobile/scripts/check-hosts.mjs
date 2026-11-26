@@ -33,6 +33,7 @@ const ALLOWED = {
   'www.instagram.com': "link: the owner's social profile (opened in the browser)",
   'www.linkedin.com': "link: the owner's social profile (opened in the browser)",
   'ikrar.dev': "link: the owner's portfolio (opened in the browser)",
+  'sulo.ikrar.dev': "link: Sulo's own site, the iPhone install and update guide (opened in the browser)",
   // Debug builds only (PublicConfig.urlFor, BuildConfig.DEBUG): a test config from the data repository.
   'raw.githubusercontent.com': 'debug only: test config (never used by a release build)',
   // Not addresses: XML namespaces and library error/docs strings.

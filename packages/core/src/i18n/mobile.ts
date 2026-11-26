@@ -279,6 +279,13 @@ const id = {
     refreshBody: 'Buka Sideloadly di laptopmu dengan iPhone tersambung, supaya Sulo tetap bisa dibuka setelah besok.',
     refreshSwitch: 'Ingatkan sebelum perlu disegarkan',
     refreshHelp: 'Satu notifikasi tanpa suara, sehari sebelum Sulo di iPhone ini perlu disegarkan lewat laptop.',
+    howToUpdate: 'Cara memperbarui',
+    sendToLaptop: 'Kirim tautan ke laptop',
+    shareTitle: 'Cara memperbarui Sulo di iPhone',
+    readOnly: 'Lihat data terakhir',
+    requiredBody: 'Versi ini tidak dipakai lagi untuk memperbarui data. Perbarui Sulo lewat laptop, dengan Sideloadly.',
+    versions: (installed: string, min: string) => `Terpasang ${installed}, minimal ${min}.`,
+    readOnlyBar: 'Sulo perlu diperbarui. Ini data terakhir yang tersimpan.',
   },
 };
 
@@ -538,6 +545,13 @@ const en: MobileWords = {
     refreshBody: 'Open Sideloadly on your laptop with this iPhone connected, so Sulo still opens after tomorrow.',
     refreshSwitch: 'Remind me before it needs a refresh',
     refreshHelp: 'One silent notification, the day before Sulo on this iPhone needs a refresh from your laptop.',
+    howToUpdate: 'How to update',
+    sendToLaptop: 'Send the link to my laptop',
+    shareTitle: 'How to update Sulo on iPhone',
+    readOnly: 'See the latest data',
+    requiredBody: 'This version no longer updates your data. Update Sulo from your laptop, with Sideloadly.',
+    versions: (installed: string, min: string) => `Installed ${installed}, at least ${min}.`,
+    readOnlyBar: 'Sulo needs an update. This is the latest data it kept.',
   },
 };
 

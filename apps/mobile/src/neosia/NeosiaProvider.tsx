@@ -22,6 +22,7 @@ import { GRADE_ENDPOINTS, withoutGrades } from './grade-guard';
 import { readMkpkTranscript, type MkpkTranscript } from '@sulo/core/mkpk/transcript';
 import { VISIT_KEY, visitDue } from '@sulo/core/neosia/visit';
 import { noteNeosiaSession } from '@sulo/core/neosia/session-log';
+import { isReadOnly } from '../read-only';
 import { readPrefs } from '@sulo/core/prefs';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { sourcesFrom } from '@sulo/core/remote/sources';
@@ -139,7 +140,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
         const now = platform.clock.now();
         const today = localParts(now, Intl.DateTimeFormat().resolvedOptions().timeZone).dateKey;
         const due = visitDue({ consented: prefs.neosiaAutoVisit, configAllows: sourcesFrom(config).neosia.scheduledVisit, moduleOn: module.enabled, lastVisitAt: last ?? null, now, today, kegiatan: calendar.kegiatan });
-        if (!due) return;
+        if (!due || isReadOnly()) return;
         await store.set(VISIT_KEY, now);
         const { result } = await SuloNeosia.visit();
         if (result === 'data' || result === 'needs_login') await noteNeosiaSession(store, { at: now, event: result === 'data' ? 'signed_in' : 'needs_login', via: 'visit' }).catch(() => undefined);
@@ -184,6 +185,8 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
 
   const open = useCallback(
     async (target: NeosiaPage | SourceId | 'login', closeOnData = false): Promise<OpenResult> => {
+      // "Lihat data terakhir" (read-only.ts): NEOSIA's pages do not open either.
+      if (isReadOnly()) return 'closed';
       const page = (target in PAGE_OF ? PAGE_OF[target as SourceId] : target) as NeosiaPage;
       const answer = (await SuloNeosia.open({ page, close: 'Tutup', ...(closeOnData ? { closeOnData: true } : {}) })).result;
       // Data came in: the session was alive, like a sign-in seen.

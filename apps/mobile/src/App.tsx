@@ -25,6 +25,8 @@ import { refreshPublicData } from './public-data';
 import { releaseState } from './release';
 import type { ReleaseInfo } from '@sulo/core/remote/release';
 import { UpdateRequiredScreen } from './screens/ReleaseNotice';
+import { enterReadOnly, isReadOnly } from './read-only';
+import { iosUpdateGuide } from '@sulo/core/links';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { applyWatchPlan, processWatchQueue } from './watch-native';
 import { markChangesHandled } from '@sulo/core/watch/queue';
@@ -114,6 +116,8 @@ export function App({ platform }: { platform: Platform }) {
   const [locked, setLocked] = useState(false);
   /** Below a required update (config.json mobile.release.minVersionCode): the whole app is one screen. */
   const [required, setRequired] = useState<ReleaseInfo | null>(null);
+  /** iPhone, "Lihat data terakhir" chosen on the required-update screen: the kept data, read-only (read-only.ts). */
+  const [readOnlyView, setReadOnlyView] = useState(false);
   const checkRequired = useCallback(async () => {
     const n = await releaseState(platform.store, platform.clock.now()).catch(() => ({ kind: 'none' as const }));
     setRequired(n.kind === 'required' ? n.release : null);
@@ -169,6 +173,8 @@ export function App({ platform }: { platform: Platform }) {
    */
   const sync = useCallback(
     async (run: (onStage: SyncDeps['onStage']) => Promise<SyncOutcome>): Promise<string> => {
+      // "Lihat data terakhir": no sync of any kind (read-only.ts).
+      if (isReadOnly()) return '';
       const startedAt = performance.now();
       if (doneTimer.current !== null) window.clearTimeout(doneTimer.current);
       setSyncUi(running());
@@ -384,6 +390,8 @@ export function App({ platform }: { platform: Platform }) {
         lastSyncAt={last}
         onRefresh={refresh}
         onSignIn={() => signIn()}
+        readOnly={readOnlyView}
+        onUpdateHelp={() => void window.open(iosUpdateGuide(locale), '_blank', 'noopener,noreferrer')}
         onSignedOut={async () => {
           setNote('');
           await refreshState();
@@ -401,9 +409,18 @@ export function App({ platform }: { platform: Platform }) {
   return (
     <I18nProvider locale={locale}>
       <MascotScopeContext.Provider value={{ lite }}>
-      {required ? (
+      {required && !readOnlyView ? (
         // No SIKOLA request (the client refuses), no sign-in, the worker holds; the data stays.
-        <UpdateRequiredScreen release={required} openExternal={(url) => void window.open(url, '_blank', 'noopener,noreferrer')} />
+        <UpdateRequiredScreen
+          release={required}
+          openExternal={(url) => void window.open(url, '_blank', 'noopener,noreferrer')}
+          onReadOnly={() => {
+            // iPhone: the kept data, with no request anywhere, until the next start (read-only.ts).
+            enterReadOnly();
+            setReadOnlyView(true);
+            void applyWatchPlan(platform);
+          }}
+        />
       ) : locked ? (
         <LockScreen
           w={w}

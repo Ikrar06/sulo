@@ -72,6 +72,10 @@ export interface ShellProps {
   /** SIKOLA's sign-in; resolves once it closed (signed in or not). */
   onSignIn: () => Promise<void> | void;
   onSignedOut: () => void;
+  /** iPhone, "Lihat data terakhir" (read-only.ts): the kept data only, no refresh, one line that stays. */
+  readOnly?: boolean;
+  /** Opens the guide's "Memperbarui Sulo" part. */
+  onUpdateHelp?: () => void;
   /** Set once by App when a reminder was tapped while the app was closed. */
   initialScreen?: Screen | null;
 }
@@ -302,7 +306,7 @@ export function AppShell(props: ShellProps) {
   const actions = (
     <>
       {top.name === 'kalender' && <IconButton icon={BellIcon} label={d.kalender.notifyAria} href={routeHash('pengaturan', 'kalender')} />}
-      {dataScreen && !props.expired && paused === null && <IconButton icon={RefreshIcon} label={props.busy ? w.connected.refreshing : w.connected.refresh} onPress={() => void refresh()} disabled={props.busy} spinning={props.busy} />}
+      {dataScreen && !props.expired && !props.readOnly && paused === null && <IconButton icon={RefreshIcon} label={props.busy ? w.connected.refreshing : w.connected.refresh} onPress={() => void refresh()} disabled={props.busy} spinning={props.busy} />}
     </>
   );
   const ringkasan = top.name === 'ringkasan';
@@ -357,11 +361,17 @@ export function AppShell(props: ShellProps) {
           {/* Scroll-edge fade just under the bar, its opacity tied to the scroll. */}
           <span aria-hidden="true" className="m-fade-top pointer-events-none absolute inset-x-0 top-full h-5" />
         </header>
-        <PullToRefresh disabled={!dataScreen || props.expired || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
+        <PullToRefresh disabled={!dataScreen || props.expired || props.readOnly === true || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
           <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''} ${syncUi.phase === 'done' ? 'm-data-in' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
       {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
             <LineSlot>
-            {syncUi.phase !== 'idle' ? (
+            {props.readOnly ? (
+              <button type="button" onClick={props.onUpdateHelp} className="m-hit m-press mb-3 flex min-h-9 items-center rounded-2xl bg-m-inset px-4 py-2 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                <span role="status" className="min-w-0">
+                  {w.iphone.readOnlyBar} <span className="font-medium underline underline-offset-2">{w.iphone.howToUpdate}</span>
+                </span>
+              </button>
+            ) : syncUi.phase !== 'idle' ? (
               <SyncStatusLine ui={syncUi} w={w} onRetry={props.onRetry ?? (() => void refresh())} />
             ) : notice === 'expired' ? (
               <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-hit m-press mb-3 flex min-h-9 items-center rounded-2xl bg-m-inset px-4 py-2 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">

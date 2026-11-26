@@ -14,7 +14,7 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         "deviceInfo", "haptic", "login", "status", "endSession", "suspect", "note", "ready", "diagLog", "request", "page", "logout",
         "discardSession", "watchReset", "lockAvailable", "unlock", "openAppSettings", "secure",
-        "watchApply", "watchTake", "watchStatus", "watchTakeOpen", "watchRunNow", "watchSimulate", "devTestBudget", "profileExpiry", "textScale",
+        "watchApply", "watchTake", "watchStatus", "watchTakeOpen", "watchRunNow", "watchSimulate", "devTestBudget", "profileExpiry", "textScale", "share",
     ].map { CAPPluginMethod(name: $0, returnType: CAPPluginReturnPromise) }
 
     private let vault = SessionVault.shared
@@ -311,6 +311,18 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         DispatchQueue.main.async {
             let factor = UIFontMetrics(forTextStyle: .body).scaledValue(for: 17, compatibleWith: UITraitCollection(preferredContentSizeCategory: UIApplication.shared.preferredContentSizeCategory)) / 17
             call.resolve(["scale": min(1.3, max(0.85, (factor * 100).rounded() / 100))])
+        }
+    }
+
+    /// The share sheet for Sulo's own guide ("Kirim tautan ke laptop"): sulo.ikrar.dev links only.
+    @objc func share(_ call: CAPPluginCall) {
+        guard let s = call.getString("url"), let url = URL(string: s), url.scheme == "https", url.host == "sulo.ikrar.dev" else { return call.reject("url") }
+        let text = call.getString("text") ?? ""
+        DispatchQueue.main.async {
+            let sheet = UIActivityViewController(activityItems: [text, url], applicationActivities: nil)
+            sheet.completionWithItemsHandler = { _, done, _, _ in call.resolve(["shared": done]) }
+            sheet.popoverPresentationController?.sourceView = self.bridge?.viewController?.view
+            self.bridge?.viewController?.present(sheet, animated: true)
         }
     }
 

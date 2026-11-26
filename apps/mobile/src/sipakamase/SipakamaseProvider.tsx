@@ -14,6 +14,7 @@ import { useI18n } from '@sulo/ui/i18n';
 import { connectSipakamase, disconnectSipakamase, keepSipakamase, notifyMkpk, refreshSipakamase, signInAgain, sipakamaseStore, type ConnectResult } from './service';
 import { SipakamaseConsentSheet } from './SipakamaseConsent';
 import { applyWatchPlan } from '../watch-native';
+import { isReadOnly } from '../read-only';
 
 export interface SipakamaseState {
   enabled: boolean;
@@ -64,7 +65,7 @@ export function SipakamaseProvider({ platform, children }: { platform: Platform;
     void reload();
     // Opening the app: the keeper's read when one is due (core decides), then fresh state.
     const onVisible = () => {
-      if (document.visibilityState === 'visible') void keepSipakamase(platform).then(() => notifyMkpk(platform)).then(reload);
+      if (document.visibilityState === 'visible' && !isReadOnly()) void keepSipakamase(platform).then(() => notifyMkpk(platform)).then(reload);
     };
     onVisible();
     document.addEventListener('visibilitychange', onVisible);

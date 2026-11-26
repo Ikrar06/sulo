@@ -6,6 +6,7 @@
 // broken read keeps the last stored value (core).
 
 import { refreshCalendar } from '@sulo/core/calendar/remote';
+import { isReadOnly } from './read-only';
 import { CALENDAR_URL, REMOTE_CONFIG_URL } from '@sulo/core/moodle/limits';
 import { createScheduler } from '@sulo/core/net/scheduler';
 import type { Platform } from '@sulo/core/platform';
@@ -18,8 +19,8 @@ export const OPENED_MIN_GAP_H = 6;
 
 /** Reads what is due; `opened` when the app came to the foreground. Never throws. */
 export async function refreshPublicData(platform: Platform, opened: boolean): Promise<void> {
-  // pnpm mobile:web: nothing leaves the browser.
-  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return;
+  // pnpm mobile:web: nothing leaves the browser. "Lihat data terakhir": nothing leaves at all (read-only.ts).
+  if ((__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') || isReadOnly()) return;
   const { store, clock } = platform;
   const scheduler = createScheduler({ fetch: (input, init) => fetch(input, { ...init, credentials: 'omit' }), store, clock, random: Math.random });
   const slot = await fetchSlotHour(store);

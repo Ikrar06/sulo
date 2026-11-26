@@ -60,3 +60,11 @@ export const NEOSIA_TRANSKRIP = 'https://neosia.unhas.ac.id/transkrip-nilai';
 export const NEOSIA_KRS = 'https://neosia.unhas.ac.id/kartu-rencana-studi';
 export const NEOSIA_KHS = 'https://neosia.unhas.ac.id/kartu-hasil-studi';
 export const NEOSIA_MATAKULIAH = 'https://neosia.unhas.ac.id/matakuliah';
+
+/** Sulo's own site (the landing page and its guides). */
+export const SULO_SITE = 'https://sulo.ikrar.dev';
+
+/** The iPhone guide's "Memperbarui Sulo" part, in the app's language (owner's decision of 26 Nov 2026, C3). */
+export function iosUpdateGuide(locale: 'id' | 'en'): string {
+  return `${SULO_SITE}${locale === 'en' ? '/en' : ''}/pasang/iphone#perbarui`;
+}

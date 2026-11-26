@@ -11,6 +11,7 @@ import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { messagesFor, resolveLocale } from '@sulo/core/i18n';
 import { Capacitor } from '@capacitor/core';
+import { isReadOnly } from './read-only';
 import { mobileWords } from '@sulo/core/i18n/mobile';
 import type { Platform } from '@sulo/core/platform';
 import { readPrefs } from '@sulo/core/prefs';
@@ -46,7 +47,8 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
   const { store, clock } = platform;
   const userId = await currentUser(store);
   // No account, or another account waiting for the user's answer: no plan in force (never the previous account's for the new session).
-  if (userId === null || (await readPending(store)) !== null) return void (await SuloSession.watchApply({ plan: JSON.stringify({ enabled: false }) }).catch(() => undefined));
+  // "Lihat data terakhir" (read-only.ts): the keeper stops too.
+  if (userId === null || isReadOnly() || (await readPending(store)) !== null) return void (await SuloSession.watchApply({ plan: JSON.stringify({ enabled: false }) }).catch(() => undefined));
   const [channels, watch, config, prefs, session, tasks, courses, snapshots, radar, changes] = await Promise.all([
     // The same channel plan the app's own notifications use: the worker reads the chosen sound from here.
     readChannelPlan(store),

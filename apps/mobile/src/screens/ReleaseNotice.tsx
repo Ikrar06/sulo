@@ -15,6 +15,20 @@ import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { dismissRelease, releaseState, showChecksum } from '../release';
+import { Capacitor } from '@capacitor/core';
+import { iosUpdateGuide } from '@sulo/core/links';
+import type { IosReleaseInfo } from '@sulo/core/remote/release';
+import { SuloSession } from '../session';
+
+/**
+ * The iPhone (owner's decision of 26 Nov 2026, C2): an update is installed from a laptop with Sideloadly, so
+ * every update button opens the guide's "Memperbarui Sulo" part instead of a file, and there is no checksum
+ * line here (the guide has it).
+ */
+const onIphone = () => Capacitor.getPlatform() === 'ios';
+
+/** "1.1.1" from its versionCode (major * 10000 + minor * 100 + patch). */
+const versionName = (code: number) => `${Math.floor(code / 10000)}.${Math.floor(code / 100) % 100}.${code % 100}`;
 import { useMobileData } from '../shell/data';
 
 /** The notice for now, read again whenever the app's data is (the config comes with it). */
@@ -80,10 +94,10 @@ export function ReleaseCard({ notice, onDismiss }: { notice: ReleaseNotice; onDi
       {notice.requiredFrom !== undefined && (
         <p className="text-m13 font-medium">{t.requiredOn(new Date(notice.requiredFrom * 1000).toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', { day: 'numeric', month: 'long' }))}</p>
       )}
-      <Verify release={r} />
+      {!onIphone() && <Verify release={r} />}
       <div className="flex gap-2">
-        <PillButton kind="primary" small onPress={() => actions.openExternal(r.url)}>
-          {t.download}
+        <PillButton kind="primary" small onPress={() => actions.openExternal(onIphone() ? iosUpdateGuide(locale) : r.url)}>
+          {onIphone() ? mobileWords(locale).iphone.howToUpdate : t.download}
         </PillButton>
         {notice.requiredFrom === undefined && (
           <PillButton small onPress={onDismiss}>
@@ -105,19 +119,20 @@ export function ReleaseAboutRow({ release }: { release: ReleaseInfo | null }) {
     <Card inner="space-y-3">
       <div className="flex items-center gap-3">
         <p className="min-w-0 flex-1 text-m15 font-semibold tabular-nums">{t.aboutRow(release.versionName)}</p>
-        <PillButton kind="primary" small onPress={() => actions.openExternal(release.url)}>
-          {t.download}
+        <PillButton kind="primary" small onPress={() => actions.openExternal(onIphone() ? iosUpdateGuide(locale) : release.url)}>
+          {onIphone() ? mobileWords(locale).iphone.howToUpdate : t.download}
         </PillButton>
       </div>
-      <Verify release={release} />
+      {!onIphone() && <Verify release={release} />}
     </Card>
   );
 }
 
 /** Below a required update: the whole app is this screen. No SIKOLA request (the client refuses), the worker holds, data stays. */
-export function UpdateRequiredScreen({ release, openExternal }: { release: ReleaseInfo; openExternal: (url: string) => void }) {
+export function UpdateRequiredScreen({ release, openExternal, onReadOnly }: { release: ReleaseInfo; openExternal: (url: string) => void; onReadOnly?: () => void }) {
   const { locale } = useI18n();
   const t = mobileWords(locale).release;
+  if (onIphone()) return <UpdateRequiredIphone release={release as IosReleaseInfo} openExternal={openExternal} onReadOnly={onReadOnly} />;
   return (
     <main className="flex min-h-dvh flex-col justify-center bg-background px-4 py-8">
       <div className="mx-auto w-full max-w-md space-y-4">
@@ -133,6 +148,45 @@ export function UpdateRequiredScreen({ release, openExternal }: { release: Relea
           {t.download}
         </PillButton>
         <Verify release={release} />
+      </div>
+    </main>
+  );
+}
+
+/**
+ * The iPhone's "Sulo perlu diperbarui" (C2): why, in plain words; the installed and the minimum version; the
+ * guide; the guide's link sent to the laptop through the share sheet (the update happens there); and, unless
+ * the release turned it off, "Lihat data terakhir": the kept data, read-only, with no request anywhere.
+ */
+function UpdateRequiredIphone({ release, openExternal, onReadOnly }: { release: IosReleaseInfo; openExternal: (url: string) => void; onReadOnly?: () => void }) {
+  const { locale } = useI18n();
+  const t = mobileWords(locale).release;
+  const p = mobileWords(locale).iphone;
+  const guide = iosUpdateGuide(locale);
+  return (
+    <main className="flex min-h-dvh flex-col justify-center bg-background px-4 py-8">
+      <div className="mx-auto w-full max-w-md space-y-4">
+        <div className="flex flex-col items-center text-center">
+          <SuloMascot mood="stale" size={48} />
+          <h1 className="mt-3 text-m22 font-semibold">{t.requiredTitle}</h1>
+          <p className="mt-2 text-m15r text-muted-foreground">{p.requiredBody}</p>
+          <p className="text-m15r text-muted-foreground">{t.requiredData}</p>
+          <p className="mt-1 text-m13 text-muted-foreground tabular-nums">{p.versions(__SULO_VERSION__, versionName(release.minVersionCode))}</p>
+        </div>
+        {release.notes && <p className="text-center text-m13">{locale === 'en' ? release.notes.en : release.notes.id}</p>}
+        <div className="space-y-2">
+          <PillButton kind="primary" full onPress={() => openExternal(guide)}>
+            {p.howToUpdate}
+          </PillButton>
+          <PillButton full onPress={() => void SuloSession.share({ url: guide, text: p.shareTitle }).catch(() => undefined)}>
+            {p.sendToLaptop}
+          </PillButton>
+          {release.readOnlyAllowed && onReadOnly && (
+            <PillButton full onPress={onReadOnly}>
+              {p.readOnly}
+            </PillButton>
+          )}
+        </div>
       </div>
     </main>
   );

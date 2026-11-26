@@ -80,6 +80,9 @@ enum Keeper {
         let config = remote?["config"] as? [String: Any]
         let keep = config?["keepAlive"] as? [String: Any]
         if config?["globalEnabled"] as? Bool == false || keep?["enabled"] as? Bool == false { return "remote_off" }
+        // Below a required update the keeper holds, as Android's worker does (it compares with its own version).
+        let installed = Int(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0") ?? 0
+        if let min = config?["minVersionCode"] as? Int, min > installed { return "update_required" }
         return nil
     }
 

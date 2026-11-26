@@ -72,6 +72,36 @@ export function parseRelease(mobile: unknown): ReleaseInfo | null {
   return { versionCode: r.versionCode, versionName: r.versionName, url: r.url, sha256: r.sha256.toLowerCase(), minVersionCode: min as number, requiredFrom, notes };
 }
 
+/** The iPhone's file: an .ipa asset of one of the owner's GitHub releases. */
+export const IOS_RELEASE_URL = /^https:\/\/github\.com\/Ikrar06\/[A-Za-z0-9_-][A-Za-z0-9._-]*\/releases\/download\/[A-Za-z0-9_-][A-Za-z0-9._-]*\/[A-Za-z0-9_-][A-Za-z0-9._-]*\.ipa$/;
+
+export interface IosReleaseInfo extends ReleaseInfo {
+  /** The .ipa's size in bytes, for the guide's download button. */
+  size: number;
+  /**
+   * "Lihat data terakhir" on the required-update screen (owner's decision of 26 Nov 2026, C2): the old data
+   * read-only, with no request anywhere. False for a heavy security fix: then only the guide is offered.
+   */
+  readOnlyAllowed: boolean;
+}
+
+/**
+ * mobile.ios.release (the iPhone, kept apart from Android's mobile.release), read as strictly: any field
+ * missing, of the wrong type, or a URL that is not one of the owner's GitHub release .ipa assets makes it
+ * absent. Same versionCode rule as Android (CFBundleVersion). Pure.
+ */
+export function parseIosRelease(mobile: unknown): IosReleaseInfo | null {
+  if (!isObject(mobile) || !isObject(mobile.ios) || !isObject(mobile.ios.release)) return null;
+  const r = mobile.ios.release;
+  if (typeof r.url !== 'string' || !IOS_RELEASE_URL.test(r.url)) return null;
+  if (!isCode(r.size)) return null;
+  if (r.readOnlyAllowed !== undefined && typeof r.readOnlyAllowed !== 'boolean') return null;
+  // The rest is Android's own rules, on a copy whose url passes them.
+  const base = parseRelease({ release: { ...r, url: 'https://github.com/Ikrar06/sulo/releases/download/v0.0.0/x.apk' } });
+  if (base === null) return null;
+  return { ...base, url: r.url, size: r.size as number, readOnlyAllowed: r.readOnlyAllowed !== false };
+}
+
 export interface ReleaseDismissal {
   versionCode: number;
   at: UnixSeconds;
