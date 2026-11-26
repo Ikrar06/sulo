@@ -12,7 +12,7 @@
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build && node scripts/layar-miring.mjs && node scripts/sebaris.mjs && node scripts/keamanan.mjs",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
-    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.fungsi.json",
+    "typecheck": "tsc --noEmit -p .",
     "bingkai": "node scripts/olah-bingkai.mjs",
     "check:bingkai": "node scripts/check-bingkai.mjs",
     "miring": "node scripts/layar-miring.mjs",

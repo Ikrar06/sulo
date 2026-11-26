@@ -2,7 +2,7 @@ name: Landing page
 
 # Sulo's landing page (apps/landing) alone, with every check of its brief (9.7):
 # build, outside assets and internal links, CSP and headers, rilis.json, text
-# budgets and separators, layout, the interest counter's tests. A second job
+# budgets and separators, layout, the build checks' own tests. A second job
 # runs the install and build commands Vercel runs, on the system Vercel builds
 # on. It runs only when the landing page changes (or by hand) and never
 # deploys anything: Vercel builds from the repository itself.
@@ -41,7 +41,7 @@ jobs:
         run: sudo apt-get install -y --no-install-recommends webp
       - name: Typecheck
         run: pnpm --filter @sulo/landing typecheck
-      - name: Test (penghitung minat, aturan teks, CSP, tingkat gerak)
+      - name: Test (aturan teks, CSP, tingkat gerak)
         run: pnpm --filter @sulo/landing test
       - name: rilis.json
         run: pnpm --filter @sulo/landing check:rilis

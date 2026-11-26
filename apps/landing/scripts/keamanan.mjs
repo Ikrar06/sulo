@@ -12,7 +12,7 @@
 // never 'unsafe-eval'; <style> elements from this site only (style-src-elem),
 // style attributes allowed (style-src, which style-src-attr falls back to:
 // the apps' components set sizes and positions in them); images from here or
-// data:; connect-src 'self' (the iPhone interest button, when on). Every
+// data:; connect-src 'none' (the page fetches nothing). Every
 // address is this site's own, so there is nothing to upgrade. The device
 // screens (/layar/) may be framed by this site only; every other page by no
 // one. No referrer, no sniffing, every unused browser feature off.

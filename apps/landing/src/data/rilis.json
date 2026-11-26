@@ -25,7 +25,8 @@
       "url": ""
     }
   },
-  "minatIos": {
-    "aktif": true
+  "iphone": {
+    "tersedia": false,
+    "iosMin": "16.4"
   }
 }

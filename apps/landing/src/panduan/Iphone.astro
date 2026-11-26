@@ -1,34 +1,141 @@
 ---
-// /pasang/iphone (brief 6.14): the honest "not yet", why, what works now (the
-// extension on a laptop), and the interest button only while it is switched
-// on (rilis.json minatIos.aktif; off until the owner decides). Built so a
-// later .ipa guide can be added below without taking anything apart.
-import rilis from '../data/rilis.json';
-import { PRATINJAU } from '../data/mode';
-import { pathPasang } from '../data/alamat';
+// /pasang/iphone (1.1.0, owner's decisions B3 and C3): Sulo for iPhone is
+// installed from a laptop with Sideloadly. Six drawn steps, what goes wrong
+// most, the weekly refresh, updating (#perbarui, where the app's "Cara
+// memperbarui" lands), removing, what differs on an iPhone said plainly, and
+// the .ipa's SHA-256. An iPhone visitor is told to open the page on a laptop.
+// Sideloadly's own labels are not published on its site: the steps name
+// Start, as its window shows it (to be matched with the owner's notes).
+import flame from '../../../extension/assets/brand/flame-full.svg?url';
+import { berkas } from '../data/unduhan';
+import { alamatSitus } from '../data/situs';
 import { panduan } from '../teks/panduan';
+import { rumah2 } from '../teks/rumah-2';
 import type { Bahasa } from '../teks';
+import Hp from '../ilustrasi/Hp.astro';
+import Jendela from '../ilustrasi/Jendela.astro';
+import Lingkar from '../ilustrasi/Lingkar.astro';
+import Langkah from '../komponen/Langkah.astro';
 import TataPanduan from '../komponen/TataPanduan.astro';
-import Maskot from '../komponen/Maskot.astro';
-import TombolMinat from '../komponen/TombolMinat.astro';
+import Masalah from './Masalah.astro';
+import Periksa from './Periksa.astro';
+import { BerkasIkon } from '../komponen/ikon';
 
 interface Props {
   bahasa: Bahasa;
 }
 const { bahasa } = Astro.props;
-const t = panduan[bahasa].iphone;
-const minat = rilis.minatIos.aktif;
-// With the counter off the button still shows in a preview or dev build, to be judged; it sends nothing there.
-const cobaMinat = !minat && (PRATINJAU || import.meta.env.DEV);
+const t = panduan[bahasa];
+const i = t.iphone;
+const l = i.layar;
+const ipa = berkas('iphone', bahasa);
+const nama = ipa.versi ? `sulo-${ipa.versi}-ios.ipa` : 'sulo-ios.ipa';
+const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
 ---
-<TataPanduan bahasa={bahasa} perangkat="iphone" judul={t.judul} kenapa={t.kenapa} deskripsi={t.kenapa}>
-  <section class="panduan-bagian panduan-iphone">
-    <Maskot mood="worried" class="panduan-maskot" />
+<TataPanduan bahasa={bahasa} perangkat="iphone" judul={i.judul} kenapa={i.kenapa} deskripsi={i.kenapa} ringkas={{ waktu: i.waktu, butuh: i.butuh, penting: i.penting }}>
+  <p class="panduan-penting panduan-dihp" data-untuk="ios">{i.diHp}</p>
+  <ol class="langkah-daftar" role="list">
+    <Langkah nomor={1} judul={i.langkah[0].judul} isi={i.langkah[0].isi} alt={i.ilustrasi.unduh} label={t.umum.langkah}>
+      <Fragment slot="tombol">
+        {ipa.aktif ? (
+          <a class="tombol tombol--utama" href={ipa.href} download={ipa.unduhan ? '' : undefined}><span>{i.unduh}</span><span class="tombol-ukuran">{ipa.ukuran}</span></a>
+        ) : (
+          <span class="tombol tombol--utama" aria-disabled="true">{ipa.ukuran}</span>
+        )}
+        {ipa.versi && <p class="langkah-meta">{rumah2[bahasa].pasang.versi(ipa.versi)}</p>}
+      </Fragment>
+      <Jendela slot="gambar" alamat={host}>
+        <div class="il-kartu il-kartu--jendela">
+          <p class="il-judul">{t.daftar.iphone.nama}</p>
+          <p class="il-redup">{i.waktu}</p>
+          <Lingkar><span class="il-tombol il-tombol--oranye">{i.unduh}</span></Lingkar>
+        </div>
+      </Jendela>
+    </Langkah>
+
+    <Langkah nomor={2} judul={i.langkah[1].judul} isi={i.langkah[1].isi} alt={i.ilustrasi.sideloadly} label={t.umum.langkah}>
+      <Jendela slot="gambar" alamat="sideloadly.io">
+        <div class="il-kartu il-kartu--jendela">
+          <p class="il-judul">Sideloadly</p>
+          <p class="il-redup">Windows, macOS</p>
+          <Lingkar><span class="il-tombol il-tombol--garis">Download</span></Lingkar>
+        </div>
+      </Jendela>
+    </Langkah>
+
+    <Langkah nomor={3} judul={i.langkah[2].judul} isi={i.langkah[2].isi} alt={i.ilustrasi.percayai} label={t.umum.langkah}>
+      <Hp slot="gambar" layar="redup">
+        <div class="il-dialog">
+          <p class="il-teks">{l.percayaiKomputer}</p>
+          <p class="il-aksi"><span>{l.jangan}</span><Lingkar><span class="il-aksi-utama">{l.percayai}</span></Lingkar></p>
+        </div>
+      </Hp>
+    </Langkah>
+
+    <Langkah nomor={4} judul={i.langkah[3].judul} isi={i.langkah[3].isi} alt={i.ilustrasi.pasang} label={t.umum.langkah}>
+      <Jendela slot="gambar" alamat="Sideloadly">
+        <div class="il-kartu il-kartu--jendela">
+          <p class="il-aplikasi"><BerkasIkon className="il-ikon" />{nama}</p>
+          <p class="il-redup">{l.appleId}</p>
+          <Lingkar><span class="il-tombol il-tombol--oranye">{l.mulai}</span></Lingkar>
+        </div>
+      </Jendela>
+    </Langkah>
+
+    <Langkah nomor={5} judul={i.langkah[4].judul} isi={i.langkah[4].isi} alt={i.ilustrasi.izin} label={t.umum.langkah}>
+      <div slot="gambar" class="il-dua">
+        <Hp kecil>
+          <div class="il-setelan">
+            <p class="il-judul-besar">{l.appPengembang}</p>
+            <p class="il-baris"><span>{l.appleId}</span><Lingkar><span class="il-aksi-utama">{l.percayai}</span></Lingkar></p>
+          </div>
+        </Hp>
+        <Hp kecil>
+          <div class="il-setelan">
+            <p class="il-judul-besar">{l.modePengembang}</p>
+            <p class="il-baris">
+              <span>{l.modePengembang}</span>
+              <Lingkar><span class="il-sakelar" aria-hidden="true"></span></Lingkar>
+            </p>
+          </div>
+        </Hp>
+      </div>
+    </Langkah>
+
+    <Langkah nomor={6} judul={i.langkah[5].judul} isi={i.langkah[5].isi} alt={i.ilustrasi.buka} label={t.umum.langkah}>
+      <Hp slot="gambar">
+        <div class="il-selesai">
+          <Lingkar><span class="il-aplikasi"><img src={flame} alt="" width="40" height="40" />Sulo</span></Lingkar>
+        </div>
+      </Hp>
+    </Langkah>
+  </ol>
+  <p class="panduan-catatan">{t.umum.ilustrasi}</p>
+
+  <Masalah judul={t.umum.masalah} daftar={i.masalah} lapor={{ tanya: t.umum.masihGagal, tautan: t.umum.lapor }} />
+
+  <section class="panduan-bagian" id="segarkan">
+    <h2>{i.segarkanJudul}</h2>
+    <p class="panduan-teks">{i.segarkan}</p>
+  </section>
+
+  <section class="panduan-dua">
+    <div id="perbarui">
+      <h2>{t.umum.perbarui}</h2>
+      <p>{i.perbarui}</p>
+    </div>
     <div>
-      <h2>{t.sekarang}</h2>
-      <p>{t.alternatif}</p>
-      <p><a class="tombol tombol--utama" href={pathPasang(bahasa, 'chrome')}>{t.tautan}</a></p>
+      <h2>{t.umum.hapus}</h2>
+      <p>{i.hapus}</p>
     </div>
   </section>
-  {(minat || cobaMinat) && <TombolMinat minat={t.minat} isi={t.minatIsi} tombol={t.minatTombol} tercatat={t.tercatat} gagal={t.gagal} pratinjau={cobaMinat ? t.minatPratinjau : undefined} />}
+
+  <section class="panduan-bagian">
+    <h2>{i.tahuJudul}</h2>
+    <ul class="panduan-tahu" role="list">
+      {i.tahu.map((x) => <li>{x}</li>)}
+    </ul>
+  </section>
+
+  <Periksa bahasa={bahasa} baris={[{ label: t.umum.sha, nilai: ipa.sha256 }]} />
 </TataPanduan>

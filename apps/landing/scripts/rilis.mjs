@@ -3,9 +3,10 @@
 // on this computer: size, SHA-256, the APK's signing certificate, and the
 // versioned GitHub Release address each button downloads from. Run by the
 // owner at release time; it only reads the files it is given and writes
-// rilis.json. The store states and the iPhone counter's switch are kept.
+// rilis.json. The store states are kept; the iPhone's entry too unless --ipa
+// is given (from 1.1.0, the .ipa of the "iPhone rilis" workflow).
 //
-//   pnpm landing:rilis v1.0.0 --apk <path to the APK> --zip <path to the extension zip> [--sertifikat <SHA-256 fingerprint>]
+//   pnpm landing:rilis v1.1.0 --apk <path to the APK> --zip <path to the extension zip> [--ipa <path to the .ipa>] [--sertifikat <SHA-256 fingerprint>]
 //
 // The certificate comes from `keytool -printcert -jarfile` when keytool is
 // installed (with Android Studio or a JDK); otherwise pass --sertifikat.
@@ -65,9 +66,11 @@ const baru = {
   ...lama,
   android: { ...berkas(apk, `sulo-${versi}-android.apk`), sidikSertifikat: sertifikat(apk), androidMin: lama.android?.androidMin ?? '8.0' },
   ekstensi: berkas(zip, `sulo-${versi}-ekstensi.zip`),
+  iphone: opsi('ipa') ? { ...berkas(opsi('ipa'), `sulo-${versi}-ios.ipa`), iosMin: lama.iphone?.iosMin ?? '16.4' } : lama.iphone,
 };
 writeFileSync(RILIS, `${JSON.stringify(baru, null, 2)}\n`);
 console.log(`landing:rilis: ${RILIS} diisi untuk ${tag}.`);
 console.log(`  APK ${baru.android.ukuranByte} byte, SHA-256 ${baru.android.sha256}`);
 console.log(`  zip ${baru.ekstensi.ukuranByte} byte, SHA-256 ${baru.ekstensi.sha256}`);
+if (opsi('ipa')) console.log(`  ipa ${baru.iphone.ukuranByte} byte, SHA-256 ${baru.iphone.sha256}`);
 console.log('Jalankan pnpm --filter @sulo/landing check:rilis, lalu build.');

@@ -94,7 +94,7 @@ const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
       <Masalah judul={t.umum.masalah} daftar={e.masalah.slice(-1)} lapor={{ tanya: t.umum.masihGagal, tautan: t.umum.lapor }} />
 
       <section class="panduan-dua">
-        <div>
+        <div id="perbarui">
           <h2>{t.umum.perbarui}</h2>
           <p>{s.perbarui(B)}</p>
         </div>
@@ -206,7 +206,7 @@ const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
       <Masalah judul={t.umum.masalah} daftar={e.masalah} lapor={{ tanya: t.umum.masihGagal, tautan: t.umum.lapor }} />
 
       <section class="panduan-dua">
-        <div>
+        <div id="perbarui">
           <h2>{t.umum.perbarui}</h2>
           <p>{e.perbarui}</p>
         </div>

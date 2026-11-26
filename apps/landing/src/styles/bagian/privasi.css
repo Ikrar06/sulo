@@ -156,7 +156,8 @@
 }
 .privasi-izin {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* One folded list per app (extension, Android, iPhone): side by side while each keeps a readable width. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
   gap: 12px;
   align-items: start;
 }

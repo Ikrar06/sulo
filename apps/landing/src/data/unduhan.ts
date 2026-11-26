@@ -5,7 +5,8 @@
 // Which button leads is the visitor's device (one line of script in
 // tata/Dasar.astro, nothing sent): Android downloads the APK; Chrome or Edge
 // downloads the zip, or goes to its store once Sulo is there; another desktop
-// browser gets the zip with a note; an iPhone gets the honest "not yet".
+// browser gets the zip with a note; an iPhone goes to its guide (installed from
+// a laptop with Sideloadly, 1.1.0).
 // Without the script, the Android and extension buttons show side by side.
 //
 // Before 1.0.0 the files are not there: a button says "Segera tersedia" and
@@ -16,8 +17,17 @@ import { PRATINJAU } from './mode';
 import { pathPasang } from './alamat';
 import { teks, type Bahasa } from '../teks';
 
-/** The 0.9.1 test build's files, for a preview (docs/rilis: 1,609,911 and 6,644,460 bytes). */
-const UKURAN_PRATINJAU = { android: 1_609_911, ekstensi: 6_644_460 };
+/** The 0.9.1 test build's files, for a preview (docs/rilis: 1,609,911 and 6,644,460 bytes); the iPhone's .ipa from its 1.1.0 build. */
+const UKURAN_PRATINJAU = { android: 1_609_911, ekstensi: 6_644_460, iphone: 1_300_000 };
+
+/** One file's entry in rilis.json; a file not out yet has only `tersedia: false`. */
+interface Entri {
+  tersedia: boolean;
+  versi?: string;
+  url?: string;
+  ukuranByte?: number;
+  sha256?: string;
+}
 
 export const mb = (bytes: number, bahasa: Bahasa) => `${(bytes / 1_000_000).toLocaleString(bahasa === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 })}\u00a0MB`;
 
@@ -33,11 +43,11 @@ export interface Berkas {
   unduhan: boolean;
 }
 
-export function berkas(jenis: 'android' | 'ekstensi', bahasa: Bahasa): Berkas {
-  const r = rilis[jenis];
-  const panduan = pathPasang(bahasa, jenis === 'android' ? 'android' : 'chrome');
-  if (r.tersedia) return { aktif: true, href: r.url, ukuran: mb(r.ukuranByte, bahasa), versi: r.versi, sha256: r.sha256, unduhan: true };
-  if (PRATINJAU) return { aktif: true, href: panduan, ukuran: mb(UKURAN_PRATINJAU[jenis], bahasa), versi: '1.0.0', sha256: '', unduhan: false };
+export function berkas(jenis: 'android' | 'ekstensi' | 'iphone', bahasa: Bahasa): Berkas {
+  const r: Entri = rilis[jenis];
+  const panduan = pathPasang(bahasa, jenis === 'ekstensi' ? 'chrome' : jenis);
+  if (r.tersedia && r.url && r.ukuranByte && r.versi && r.sha256) return { aktif: true, href: r.url, ukuran: mb(r.ukuranByte, bahasa), versi: r.versi, sha256: r.sha256, unduhan: true };
+  if (PRATINJAU) return { aktif: true, href: panduan, ukuran: mb(UKURAN_PRATINJAU[jenis], bahasa), versi: jenis === 'iphone' ? '1.1.0' : '1.0.0', sha256: '', unduhan: false };
   return { aktif: false, href: '', ukuran: teks[bahasa].segeraTersedia, versi: '', sha256: '', unduhan: false };
 }
 
@@ -56,7 +66,7 @@ export interface Tombol {
   href: string;
   aktif: boolean;
   unduhan: boolean;
-  /** The honest "not on iPhone yet": a lighter button. */
+  /** A lighter button. */
   ringan?: boolean;
 }
 
@@ -81,7 +91,8 @@ export function tombolUnduh(bahasa: Bahasa): { tombol: Tombol[]; catatan: Catata
     { untuk: 'tanpa-js desktop-lain', label: t.unduhEkstensi, ...dariBerkas(zip) },
     toko('chrome'),
     toko('edge'),
-    { untuk: 'ios', label: t.belumIphone, ukuran: '', href: pathPasang(bahasa, 'iphone'), aktif: true, unduhan: false, ringan: true },
+    // An iPhone installs Sulo from a laptop, so its button is the guide, not a download.
+    { untuk: 'ios', label: t.pasangIphone, ukuran: '', href: pathPasang(bahasa, 'iphone'), aktif: true, unduhan: false },
   ];
   const browser = (nama: Browser): Catatan => ({ untuk: nama, teks: alamatToko(nama) ? t.catatan.toko(NAMA_TOKO[nama]) : nama === 'chrome' ? t.catatan.chrome : t.catatan.edge });
   // Plain status lines (impeccable critique): the way to the guide is the second button, one per device.

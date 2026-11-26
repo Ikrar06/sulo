@@ -11,7 +11,7 @@ export const CSP_DASAR = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
+  "connect-src 'none'",
   "frame-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
