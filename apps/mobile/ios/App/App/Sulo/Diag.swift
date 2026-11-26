@@ -36,7 +36,8 @@ final class Diag {
         return list
     }
 
+    /** Waits for the notes already queued, so none lands after it (never called on the diag queue). */
     func clear() {
-        queue.async { try? FileManager.default.removeItem(at: self.file) }
+        queue.sync { try? FileManager.default.removeItem(at: self.file) }
     }
 }

@@ -10,6 +10,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Background tasks must be registered before launch finishes (Fase 1: the probe's, no network).
         // A fresh install: an earlier install's Keychain items are removed before anything reads them.
         InstallMarker.cleanIfFresh()
+        // Nothing of Sulo's goes into an iCloud or computer backup (Android: allowBackup="false").
+        BackupGuard.apply()
         Keeper.register()
         ScreenGuard.shared.start()
         Probe.noteLaunch()
@@ -55,7 +57,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 let sealed = store.get(user: 7, key: "neosia:x") == "{\"a\":1}" && store.keys(user: 7, prefix: "neosia:") == ["neosia:x"]
                 store.wipeAll()
                 let wiped = store.get(user: 7, key: "neosia:x") == nil
-                print("SULO_STORES saved=\(saved) promoted=\(promoted) suspect=\(suspect) expired=\(expired) cleared=\(cleared) sealed=\(sealed) wiped=\(wiped)")
+                let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                let backup = BackupGuard.excluded(support)
+                print("SULO_STORES saved=\(saved) promoted=\(promoted) suspect=\(suspect) expired=\(expired) cleared=\(cleared) sealed=\(sealed) wiped=\(wiped) backupExcluded=\(backup)")
+            }
+            if CommandLine.arguments[i + 1] == "signout" {
+                // "Keluar" on made-up values (the simulator holds synthetic data only): every store it must empty.
+                let v = SessionVault(service: "dev.ikrar.sulo.selftest")
+                v.save(SikolaSession(moodleSession: "c1", sesskey: "AbC123xyZ0"))
+                try? EncryptedStore.neosia.set(user: 7, key: "neosia:x", value: "1")
+                try? EncryptedStore.sipakamase.set(user: 7, key: "sipakamase:x", value: "1")
+                SuloSipakamasePlugin.vault.save(SikolaSession(moodleSession: "c1", sesskey: nil))
+                Diag.shared.note("selftest")
+                SuloSessionPlugin.signOut(vault: v) {
+                    let sikola = v.status() == "none"
+                    let neosia = EncryptedStore.neosia.get(user: 7, key: "neosia:x") == nil
+                    let sipakamase = EncryptedStore.sipakamase.get(user: 7, key: "sipakamase:x") == nil && SuloSipakamasePlugin.vault.session == nil
+                    let diag = Diag.shared.entries().isEmpty
+                    print("SULO_SIGNOUT sikola=\(sikola) neosia=\(neosia) sipakamase=\(sipakamase) diag=\(diag)")
+                }
             }
             Probe.status { status in
                 let data = try? JSONSerialization.data(withJSONObject: status, options: [.sortedKeys])
@@ -72,8 +92,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+        // WebKit creates its folder once a page has loaded (NEOSIA's first): marked before the next backup.
+        BackupGuard.apply()
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {

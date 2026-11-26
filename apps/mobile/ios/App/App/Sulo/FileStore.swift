@@ -85,3 +85,30 @@ final class FileStore {
         }
     }
 }
+
+/// Android turns backups off for the whole app (android:allowBackup="false"); iOS backs up Library unless a
+/// folder says otherwise. At launch and on leaving the foreground (iCloud backs up while the phone is locked),
+/// every folder the app writes is marked excluded: Application Support (the store, the encrypted stores, the
+/// keeper, the diagnostics) and WebKit's data (NEOSIA's own pages, its sign-in included). What stays in a
+/// backup: UserDefaults' two flags without data (SessionVault's state mirror, the deferred sync), and the
+/// Keychain items, which are this-device-only and never move to another iPhone.
+enum BackupGuard {
+    static func apply() {
+        let fm = FileManager.default
+        let library = fm.urls(for: .libraryDirectory, in: .userDomainMask)[0]
+        let support = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        try? fm.createDirectory(at: support, withIntermediateDirectories: true)
+        for url in [support, library.appendingPathComponent("WebKit", isDirectory: true), library.appendingPathComponent("Cookies", isDirectory: true)] {
+            guard fm.fileExists(atPath: url.path) else { continue }
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            var target = url
+            try? target.setResourceValues(values)
+        }
+    }
+
+    /** Whether a folder is excluded (the probe's check). */
+    static func excluded(_ url: URL) -> Bool {
+        (try? url.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup) ?? false
+    }
+}

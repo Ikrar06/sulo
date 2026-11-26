@@ -2,6 +2,7 @@ import Capacitor
 import Foundation
 import LocalAuthentication
 import UIKit
+import WebKit
 
 /// SuloSession on iOS (Android SuloSessionPlugin): the SIKOLA session held natively. JavaScript only ever
 /// gets statuses and Moodle's JSON: the cookie and the sesskey never cross into it (mobile hard rule 2).
@@ -118,14 +119,30 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    /// "Keluar": the vault and the deferred flag. SIKOLA's sign-in page keeps nothing in WebKit (non-persistent);
-    /// NEOSIA's and Sipakamase's own data go through their plugins' wipe and forget.
+    /// "Keluar", the same as Android's: the SIKOLA vault, the keeper, the deferred flag and the diagnostics;
+    /// NEOSIA's data of every account, its queue and its key; Sipakamase's session, keeper state and data of
+    /// every account with its key; then every WebKit record (NEOSIA's own sign-in and storage; SIKOLA's and
+    /// Sipakamase's sign-in pages keep nothing there, they are non-persistent).
     @objc func logout(_ call: CAPPluginCall) {
+        Self.signOut(vault: vault) { call.resolve(["status": "none"]) }
+    }
+
+    /** Everything "Keluar" deletes, on the SIKOLA queue then WebKit's on the main thread (the probe's check too). */
+    static func signOut(vault: SessionVault, done: @escaping () -> Void) {
         SikolaLock.queue.async {
-            self.vault.clear()
+            vault.clear()
             Keeper.clear()
-            UserDefaults.standard.removeObject(forKey: Self.deferredKey)
-            call.resolve(["status": "none"])
+            UserDefaults.standard.removeObject(forKey: deferredKey)
+            EncryptedStore.neosia.wipeAll()
+            NeosiaQueue.take()
+            SuloSipakamasePlugin.vault.clear()
+            Keeper.clearSipakamase()
+            EncryptedStore.sipakamase.wipeAll()
+            // Last: the steps above note what they did.
+            Diag.shared.clear()
+            DispatchQueue.main.async {
+                WKWebsiteDataStore.default().removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast, completionHandler: done)
+            }
         }
     }
 
