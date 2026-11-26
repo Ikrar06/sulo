@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-Last updated: 22 November 2026
+Last updated: 27 November 2026
 
 Sulo is an unofficial academic companion for Universitas Hasanuddin students. It is not affiliated with or endorsed by Universitas Hasanuddin.
 
@@ -119,6 +119,7 @@ Any time, in Settings with "Disconnect". All Sipakamase data is deleted at once 
 - Sulo asks for five fixed addresses only, with GET, without parameters, and never follows a link from its pages. Addresses that change data (deleting an activity, converting, claiming, signing out) are refused before they are sent.
 - Extension: its permissions are optional ("scripting" and access to sipakamase.unhas.ac.id), asked for when connecting and removed when disconnecting. One small script on the activity, history, conversion and claim pages reads what you open yourself, without a request; the login page and the home page never get a script.
 - Android: you sign in on Sipakamase's own page in a screen without any script. Its session cookie is kept encrypted with an Android Keystore key of its own, never leaves the phone, and is deleted by Disconnect or Sign out. Keeping the session in the background only rides the "Watch for new tasks" check that already runs; the pages' content is not kept.
+- iPhone: you sign in on Sipakamase's own page in a screen without any script. Its session cookie is kept in the iPhone's Keychain, never leaves the iPhone, and is deleted by Disconnect or Sign out. Keeping the session in the background only rides "Keep the SIKOLA session" when the iPhone gives it time; the pages' content is not kept.
 - After 7 days without Sulo being opened, keeping stops and you are asked to connect again.
 
 ## Deleting your data

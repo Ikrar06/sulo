@@ -15,8 +15,11 @@ export interface WhatsNewEntry {
   /** One action in place: the "Pantau tugas baru" switch (extension), or "Hubungkan Sipakamase". */
   action?: 'watch' | 'sipakamase';
   /** Where it shows; both when absent. */
-  platforms?: readonly ('extension' | 'android')[];
+  platforms?: readonly WhatsNewPlatform[];
 }
+
+/** The surfaces Sulo runs on: the iPhone joins in 1.1.0 (B3). */
+export type WhatsNewPlatform = 'extension' | 'android' | 'ios';
 
 /** 1.1.0 (notice version 2). Ordered as they show: the biggest change first. */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
@@ -53,7 +56,7 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
   },
 ];
 
-export function pendingWhatsNew(entries: readonly WhatsNewEntry[], readVersion: number, completed: boolean, platform: 'extension' | 'android' = 'extension'): WhatsNewEntry[] {
+export function pendingWhatsNew(entries: readonly WhatsNewEntry[], readVersion: number, completed: boolean, platform: WhatsNewPlatform = 'extension'): WhatsNewEntry[] {
   if (!completed) return [];
   return entries.filter((e) => e.noticeVersion > readVersion && (e.platforms === undefined || e.platforms.includes(platform)));
 }

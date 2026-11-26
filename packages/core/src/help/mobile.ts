@@ -1,8 +1,9 @@
-// Help for the Android app (M8c): the same plain words as the extension's
+// Help for the phone app (M8c; the iPhone's own wording below, B3): the same plain words as the extension's
 // FAQ (i18n/glossary.md, no "request"), answered for the phone. No guide
 // videos here.
 
 import { FAQ, type FaqEntry } from './content';
+import { mobileOs } from '../i18n/os';
 
 /** Extension answers that read the same on the phone. */
 const SHARED = new Set(['kabar-lama', 'presensi-diperbarui', 'resmi', 'mkpk-belum-lulus', 'sipakamase-aman']);
@@ -206,6 +207,83 @@ const PHONE: FaqEntry[] = [
 /** The Android app's FAQ: phone answers first, then the shared ones in their usual order. */
 export const MOBILE_FAQ: FaqEntry[] = [...PHONE, ...FAQ.filter((e) => SHARED.has(e.id))];
 
+/** Android-only answers the iPhone leaves out: battery settings, Android System WebView, the worker's pauses. */
+const ANDROID_ONLY = new Set(['masuk-lagi-pemantauan-hp', 'baterai-hp', 'webview-hp', 'pemantauan-dijeda-hp']);
+
+/** The iPhone's own answers where Android's name the Keystore, background watching or Android's settings (B3). */
+const IPHONE_ANSWERS: Record<string, FaqEntry['a']> = {
+  'aman-hp': [
+    {
+      id: 'Kamu masuk di halaman SIKOLA sendiri, jadi Sulo tidak pernah melihat password-mu. Sesi SIKOLA disimpan di Keychain iPhone, dan Sulo hanya membaca dari SIKOLA. Tidak ada iklan, pelacakan, atau server Sulo.',
+      en: 'You sign in on SIKOLA’s own page, so Sulo never sees your password. The SIKOLA session is kept in the iPhone’s Keychain, and Sulo only reads from SIKOLA. No ads, no tracking, no Sulo server.',
+    },
+  ],
+  'kapan-diperbarui': [
+    {
+      id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Paling cepat 2 menit sekali. Di iPhone tidak ada pemantauan tugas baru di latar belakang.',
+      en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. At most once every 2 minutes. On iPhone there is no watching for new tasks in the background.',
+    },
+  ],
+  'seberapa-cepat-hp': [
+    {
+      id: 'Begitu kamu membuka Sulo. iPhone tidak memberi aplikasi seperti Sulo waktu tetap di latar belakang, jadi tugas baru terlihat saat Sulo dibuka. Pengingat tenggat tetap muncul dari data terakhir.',
+      en: 'As soon as you open Sulo. The iPhone gives apps like Sulo no fixed time in the background, so new tasks show when Sulo is opened. Deadline reminders still come from the latest data.',
+    },
+  ],
+  'masuk-lagi-hp': [
+    {
+      id: 'Sesi SIKOLA berakhir setelah beberapa jam tanpa aktivitas (bisa sampai sekitar 8 jam). Di iPhone, Sulo hanya bisa menjaganya saat iPhone memberi waktu di latar belakang, jadi kamu bisa cukup sering diminta masuk lagi. Data terakhir tetap tampil; ketuk Masuk lagi untuk memperbarui.',
+      en: 'A SIKOLA session ends after some hours without activity (up to about 8 hours). On iPhone, Sulo can only keep it when the iPhone gives it time in the background, so you may be asked to sign in again fairly often. The latest data stays on screen; tap Sign in again to update.',
+    },
+  ],
+  'hapus-data-hp': [
+    {
+      id: 'Buka Lainnya, Pengaturan, lalu Keluar dan hapus data. Sesi, semua data, dan pengingat terjadwal di iPhone ini terhapus. Lakukan ini sebelum menghapus aplikasi: iPhone menyimpan isi Keychain setelah aplikasi dihapus, dan Sulo baru membersihkannya saat dipasang lagi. Data di SIKOLA tidak tersentuh.',
+      en: 'Open More, Settings, then Sign out and delete data. The session, all data and the scheduled reminders on this iPhone are deleted. Do this before deleting the app: the iPhone keeps Keychain items after an app is deleted, and Sulo clears them only when it is installed again. Nothing on SIKOLA is touched.',
+    },
+  ],
+  'pengingat-hp': [
+    {
+      id: 'Pastikan notifikasi Sulo diizinkan di Pengaturan iPhone, Notifikasi, Sulo, dan cek mode Fokus. Cek juga jam tenang di Lainnya, Pengaturan. Pengingat dijadwalkan untuk 7 hari ke depan dari data terakhir, jadi buka Sulo sesekali supaya jadwalnya ikut terbaru.',
+      en: 'Make sure Sulo’s notifications are allowed in iPhone Settings, Notifications, Sulo, and check your Focus mode. Check the quiet hours in More, Settings too. Reminders are scheduled for the next 7 days from the latest data, so open Sulo now and then to keep the schedule current.',
+    },
+  ],
+};
+
+/** Questions only the iPhone has: the weekly refresh. */
+const IPHONE_ONLY: FaqEntry[] = [
+  {
+    id: 'segarkan-7-hari',
+    q: { id: 'Kenapa Sulo harus disegarkan tiap 7 hari?', en: 'Why does Sulo need a refresh every 7 days?' },
+    a: [
+      {
+        id: 'Sulo di iPhone dipasang lewat laptop dengan Apple ID gratis, dan Apple hanya membiarkan aplikasi seperti itu berjalan 7 hari. Sideloadly bisa menyegarkannya otomatis kalau laptopmu menyala dan iPhone tersambung ke WiFi yang sama atau kabel. Sehari sebelumnya, Sulo memberi tahu.',
+        en: 'Sulo on iPhone is installed from a laptop with a free Apple ID, and Apple lets such apps run for 7 days. Sideloadly can refresh it on its own when your laptop is on and the iPhone is on the same Wi-Fi or a cable. Sulo tells you the day before.',
+      },
+    ],
+  },
+  {
+    id: 'tidak-bisa-dibuka-iphone',
+    q: { id: 'Sulo tidak bisa dibuka di iPhone', en: 'Sulo does not open on my iPhone' },
+    a: [
+      {
+        id: 'Kemungkinan masa 7 harinya habis. Segarkan lewat Sideloadly di laptop, dengan Apple ID yang sama seperti saat memasang. Datamu tidak hilang.',
+        en: 'Most likely its 7 days ran out. Refresh it with Sideloadly on your laptop, with the same Apple ID you installed it with. Your data stays.',
+      },
+    ],
+  },
+];
+
+/** The help this phone shows: Android's, or the iPhone's own wording (i18n/os.ts). */
+export function mobileFaq(): FaqEntry[] {
+  if (mobileOs() !== 'ios') return MOBILE_FAQ;
+  const own = MOBILE_FAQ.filter((e) => !ANDROID_ONLY.has(e.id)).map((e) => (IPHONE_ANSWERS[e.id] ? { ...e, a: IPHONE_ANSWERS[e.id]! } : e));
+  return [...own, ...IPHONE_ONLY];
+}
+
+/** Where the iPhone's own questions sit (the Android ones it hides simply drop out of their groups). */
+const IPHONE_TOPIC_EXTRA: Readonly<Record<string, readonly string[]>> = { tentang: ['segarkan-7-hari', 'tidak-bisa-dibuka-iphone'] };
+
 /** Bantuan's groups on the phone, in order; every MOBILE_FAQ entry is in exactly one (tested). */
 export const MOBILE_FAQ_TOPICS = [
   { id: 'privasi', title: { id: 'Keamanan dan privasi', en: 'Security and privacy' }, entries: ['aman-hp', 'akun-lain-hp', 'hapus-data-hp'] },
@@ -228,13 +306,13 @@ export interface FaqGroup {
 const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 /** The grouped FAQ in one language, keeping only entries whose question or answer holds every word of the query. Empty groups drop out. */
-export function searchFaq(query: string, lang: 'id' | 'en', faq: readonly FaqEntry[] = MOBILE_FAQ): FaqGroup[] {
+export function searchFaq(query: string, lang: 'id' | 'en', faq: readonly FaqEntry[] = mobileFaq()): FaqGroup[] {
   const words = fold(query).split(/\s+/).filter(Boolean);
   const byId = new Map(faq.map((e) => [e.id, e]));
   return MOBILE_FAQ_TOPICS.map((t) => ({
     id: t.id,
     title: t.title[lang],
-    entries: t.entries
+    entries: [...(mobileOs() === 'ios' ? (IPHONE_TOPIC_EXTRA[t.id] ?? []) : []), ...t.entries]
       .map((id) => byId.get(id))
       .filter((e): e is FaqEntry => e !== undefined)
       .filter((e) => {

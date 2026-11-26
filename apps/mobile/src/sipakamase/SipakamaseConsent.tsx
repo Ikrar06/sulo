@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { sipakamaseWords } from '@sulo/core/i18n/sipakamase';
-import { SIPAKAMASE_CONSENT as C } from '@sulo/core/privacy/content';
+import { sipakamaseConsent } from '@sulo/core/privacy/iphone';
 import { useI18n } from '@sulo/ui/i18n';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { Sheet } from '@sulo/ui/mobile/sheet';
@@ -13,6 +13,7 @@ import type { ConnectResult } from './service';
 export function SipakamaseConsentSheet({ open, onClose, onConnect }: { open: boolean; onClose: () => void; onConnect: () => Promise<ConnectResult> }) {
   const { locale: l } = useI18n();
   const w = sipakamaseWords(l);
+  const C = sipakamaseConsent();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   return (

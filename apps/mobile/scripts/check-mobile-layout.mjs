@@ -35,10 +35,15 @@
 //   [--widths=300,360] [--heights=640] [--scales=1,2]  a part of the matrix, for working on a finding
 //   --ci  a shorter matrix for CI: widths 300, 360, 412, 600; heights 640;
 //         scales 1, 1.3, 2; both languages; light/full.
+//   --ios  the iPhone app (B3): its words (?os=ios), iPhone widths 375-440 and heights 667-956, the
+//         Dynamic Island's safe areas (59 top, 34 bottom), and iOS's text sizes as the app applies them
+//         (--m-tz and --m-zoom together, 0.85 to 1.3, src/text-zoom.ts applyIosTextScale).
+//   --engine=webkit  Safari's engine instead of Chromium. WebKit has no safe-area override, so that
+//         check is off there (Chromium's --ios run has it); everything else is the same.
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 import { MOBILE, ROOT } from './env.mjs';
 import { loadWords } from './lib/words.mjs';
 import { SPECIAL, walk } from './onboarding-walk.mjs';
@@ -46,19 +51,23 @@ import { SPECIAL, walk } from './onboarding-walk.mjs';
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=').slice(1).join('=') ?? fallback;
 const has = (name) => process.argv.includes(`--${name}`);
 const CI = has('ci');
+const IOS = has('ios');
+const ENGINE = arg('engine', 'chromium');
+if (!['chromium', 'webkit'].includes(ENGINE)) throw new Error('--engine: chromium or webkit');
 const only = arg('only', null)?.split(',') ?? null;
 const out = resolve(process.env.INIT_CWD ?? process.cwd(), arg('out', join(ROOT, 'docs/uji-layout/sebelum')));
 const jsonOut = arg('json', null);
 
 const list = (name) => arg(name, null)?.split(',').map(Number) ?? null;
-const WIDTHS = list('widths') ?? (CI ? [300, 360, 412, 600] : [300, 320, 360, 384, 412, 430, 480, 600, 700]);
-const HEIGHTS = list('heights') ?? (CI ? [640] : [640, 915]);
-const SCALES = list('scales') ?? (CI ? [1, 1.3, 2] : [0.85, 1, 1.15, 1.3, 1.5, 2]);
+const WIDTHS = list('widths') ?? (IOS ? (CI ? [375, 393, 440] : [375, 390, 393, 402, 430, 440]) : CI ? [300, 360, 412, 600] : [300, 320, 360, 384, 412, 430, 480, 600, 700]);
+const HEIGHTS = list('heights') ?? (IOS ? (CI ? [852] : [667, 852, 956]) : CI ? [640] : [640, 915]);
+const SCALES = list('scales') ?? (IOS ? (CI ? [1, 1.3] : [0.85, 1, 1.15, 1.3]) : CI ? [1, 1.3, 2] : [0.85, 1, 1.15, 1.3, 1.5, 2]);
 const LANGS = ['en', 'id'];
 // Each value of each axis: light with the full tier, dark with the lite tier. Theme changes colours only and the
 // tier motion only, so a pairing covers both without doubling the run.
 const LOOKS = CI ? [['light', 'full']] : [['light', 'full'], ['dark', 'lite']];
-const SAFE = { top: 48, bottom: 24 };
+// WebKit cannot be given safe areas, so none are assumed there.
+const SAFE = ENGINE === 'webkit' ? { top: 0, bottom: 0 } : IOS ? { top: 59, bottom: 34 } : { top: 48, bottom: 24 };
 const TOUCH = 44;
 const PORT = Number(arg('port', '5195'));
 const DIST = resolve(ROOT, arg('dist', '.output/layout-mobile-web'));
@@ -70,17 +79,23 @@ if (!has('no-build')) {
   log('build web mode (production)');
   execFileSync('pnpm', ['exec', 'vite', 'build', '--mode', 'web', '--outDir', DIST, '--emptyOutDir', '--logLevel', 'warn'], { cwd: MOBILE, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, GITHUB_SHA: 'layout00' } });
 }
-const WORDS = await loadWords();
+const WORDS = await loadWords({ os: IOS ? 'ios' : 'android' });
 const server = spawn('pnpm', ['exec', 'vite', 'preview', '--mode', 'web', '--outDir', DIST, '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 await new Promise((ok) => server.stdout.on('data', (d) => String(d).includes(String(PORT)) && ok()));
-const browser = await chromium.launch({ channel: 'chromium', headless: true, args: [OFFLINE] });
+const browser = ENGINE === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ channel: 'chromium', headless: true, args: [OFFLINE] });
 
 /**
  * In the page: Android's text zoom. Every text size of the app is a text-m* token, calc(px * var(--m-tz)) for the
  * size and the line height (src/tokens.css; check-type-tokens.mjs keeps it so), which is the app's own way to
  * emulate the setting (web-shots.mjs). Components that measure their text see the scaled size, as on the phone.
  */
-const applyTextZoom = (f) => document.documentElement.style.setProperty('--m-tz', String(f));
+// iPhone: the app sets the layout's thresholds (--m-zoom) with the text size (applyIosTextScale); Android's WebView only zooms text.
+const applyTextZoom = IOS
+  ? (f) => {
+      document.documentElement.style.setProperty('--m-tz', String(f));
+      document.documentElement.style.setProperty('--m-zoom', String(f));
+    }
+  : (f) => document.documentElement.style.setProperty('--m-tz', String(f));
 
 /** In the page: the findings of the state as it stands. */
 const FIND = ({ safe, touch }) => {
@@ -344,9 +359,13 @@ async function session({ look, lang, query = '', finished = false }, steps) {
     if (document.head) add();
     else document.addEventListener('DOMContentLoaded', add, { once: true });
   });
+  // Offline but for the local build: Chromium by its resolver rules, WebKit here.
+  if (ENGINE === 'webkit') await context.route(/^(?!http:\/\/localhost[:/])/, (r) => r.abort());
   const page = await context.newPage();
-  const cdp = await context.newCDPSession(page);
-  await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: SAFE });
+  if (ENGINE === 'chromium') {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: SAFE });
+  }
   await page.clock.setFixedTime(NOW);
   const t = WORDS[lang];
   const btn = (name, exact = false) => page.getByRole('button', { name, exact }).first();
@@ -371,7 +390,7 @@ async function session({ look, lang, query = '', finished = false }, steps) {
   const check = (state) => checkState(page, state, look, lang);
   const c = { page, t, lang, btn, starts, go, closeSheet, enter, check };
   const sep = query.includes('?') ? '&' : '?';
-  await page.goto(`http://localhost:${PORT}/${query}${sep}lang=${lang}&perf=${tier}`);
+  await page.goto(`http://localhost:${PORT}/${query}${sep}lang=${lang}&perf=${tier}${IOS ? '&os=ios' : ''}`);
   for (const [name, run] of steps) {
     try {
       await run(c);

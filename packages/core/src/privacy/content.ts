@@ -16,7 +16,7 @@ export interface Section {
   blocks: Block[];
 }
 
-export const PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
+export const PRIVACY_UPDATED: Text = { id: '27 November 2026', en: '27 November 2026' };
 
 export const PRIVACY_TITLE: Text = { id: 'Kebijakan Privasi', en: 'Privacy Policy' };
 
@@ -127,6 +127,21 @@ export const SIPAKAMASE_CONSENT: ConsentText = {
     en: 'Any time, in Settings with "Disconnect". All Sipakamase data is deleted at once and the permission is removed.',
   },
   unofficial: NEOSIA_CONSENT.unofficial,
+};
+
+/**
+ * The iPhone's Sipakamase consent (owner's decision of 26 Nov 2026, B3): its keeper runs only when iOS
+ * gives the SIKOLA keeper time, so the first point promises nothing about the session. The rest as above.
+ */
+export const SIPAKAMASE_CONSENT_IPHONE: ConsentText = {
+  ...SIPAKAMASE_CONSENT,
+  kept: [
+    {
+      id: 'Selama ada yang kamu tunggu (kegiatan yang belum selesai diproses, atau nilai yang belum sampai NEOSIA), Sulo mengambil satu dari lima halaman MKPK-mu paling sering tiap 3 jam: saat kamu membuka Sulo, dan saat iPhone memberi waktu ke "Jaga sesi SIKOLA". Itu memperbarui datamu dan membuat sesimu lebih jarang habis, tapi iPhone tidak menjamin waktunya.',
+      en: 'While you are waiting for something (an activity not processed yet, or a grade not in NEOSIA yet), Sulo reads one of your five MKPK pages at most every 3 hours: when you open Sulo, and when the iPhone gives "Keep the SIKOLA session" time. That keeps your data current and your session from ending as often, but the iPhone does not promise when.',
+    },
+    ...SIPAKAMASE_CONSENT.kept.slice(1),
+  ],
 };
 
 export const PRIVACY_SECTIONS: Section[] = [
@@ -337,6 +352,10 @@ export const PRIVACY_SECTIONS: Section[] = [
           {
             id: 'Android: kamu masuk di halaman Sipakamase sendiri dalam layar tanpa skrip. Cookie sesinya disimpan terenkripsi dengan kunci Android Keystore tersendiri, tidak pernah keluar dari HP, dan terhapus saat Putuskan atau Keluar. Penjagaan sesi di latar belakang hanya ikut cek "Pantau tugas baru" yang sudah berjalan; isi halamannya tidak disimpan.',
             en: 'Android: you sign in on Sipakamase\'s own page in a screen without any script. Its session cookie is kept encrypted with an Android Keystore key of its own, never leaves the phone, and is deleted by Disconnect or Sign out. Keeping the session in the background only rides the "Watch for new tasks" check that already runs; the pages\' content is not kept.',
+          },
+          {
+            id: 'iPhone: kamu masuk di halaman Sipakamase sendiri dalam layar tanpa skrip. Cookie sesinya disimpan di Keychain iPhone, tidak pernah keluar dari iPhone, dan terhapus saat Putuskan atau Keluar. Penjagaan sesi di latar belakang hanya ikut "Jaga sesi SIKOLA" saat iPhone memberinya waktu; isi halamannya tidak disimpan.',
+            en: 'iPhone: you sign in on Sipakamase\'s own page in a screen without any script. Its session cookie is kept in the iPhone\'s Keychain, never leaves the iPhone, and is deleted by Disconnect or Sign out. Keeping the session in the background only rides "Keep the SIKOLA session" when the iPhone gives it time; the pages\' content is not kept.',
           },
           {
             id: 'Setelah 7 hari Sulo tidak dibuka, penjagaan berhenti dan kamu diminta menghubungkan lagi.',

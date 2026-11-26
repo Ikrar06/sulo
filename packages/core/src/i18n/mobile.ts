@@ -2,6 +2,7 @@
 // (lib/i18n/glossary.md). Grades never appear here.
 
 import type { Locale } from './index';
+import { mobileOs } from './os';
 import { GREET_LINE1 } from './greet-line';
 import { dashFor, type DashMessages } from './dashboard';
 
@@ -556,8 +557,46 @@ const en: MobileWords = {
 };
 
 export function mobileWords(locale: Locale): MobileWords {
-  return locale === 'en' ? en : id;
+  const words = locale === 'en' ? en : id;
+  return mobileOs() === 'ios' ? (locale === 'en' ? IPHONE_EN : IPHONE_ID) : words;
 }
+
+/** The iPhone's wording where Android's names a fingerprint, the APK or background watching (B3). */
+function iphone(w: MobileWords, t: { lockHelp: string; lockUnavailable: string; version: (v: string) => string; watch: Partial<MobileWords['watch']> }): MobileWords {
+  return { ...w, connected: { ...w.connected, lockHelp: t.lockHelp, lockUnavailable: t.lockUnavailable }, about: { ...w.about, apkVersion: t.version }, watch: { ...w.watch, ...t.watch } };
+}
+
+const IPHONE_ID = iphone(id, {
+  lockHelp: 'Meminta Face ID, Touch ID, atau kode iPhone setiap Sulo dibuka.',
+  lockUnavailable: 'Pasang kode di iPhone dulu untuk memakai ini.',
+  version: (v) => `Versi ${v}`,
+  watch: {
+    title: 'Jaga sesi SIKOLA',
+    help: 'Saat iPhone memberi waktu, Sulo sesekali mengecek sesi SIKOLA di latar belakang supaya tidak cepat habis. iPhone yang menentukan kapan, jadi tidak dijamin. Tugas baru terlihat saat kamu membuka Sulo.',
+    remoteOff: 'Penjagaan sesi sedang dimatikan sementara.',
+    lockOfferTitle: 'Mau kunci Sulo dengan Face ID?',
+    lockOfferBody: 'Sesi SIKOLA-mu dijaga di iPhone ini. Kunci aplikasi meminta Face ID, Touch ID, atau kode iPhone setiap Sulo dibuka.',
+    sleepTitle: 'iPhone jarang memberi Sulo waktu di latar belakang',
+    sleepBody: 'Buka Sulo sesekali supaya datanya tetap baru.',
+    sleepOpen: 'Buka Pengaturan iPhone',
+  },
+});
+
+const IPHONE_EN = iphone(en, {
+  lockHelp: 'Asks for Face ID, Touch ID or your iPhone passcode every time Sulo opens.',
+  lockUnavailable: 'Set a passcode on your iPhone first to use this.',
+  version: (v) => `Version ${v}`,
+  watch: {
+    title: 'Keep the SIKOLA session',
+    help: 'When the iPhone gives it time, Sulo now and then checks the SIKOLA session in the background so it does not end early. The iPhone decides when, so it is not guaranteed. New tasks show when you open Sulo.',
+    remoteOff: 'Keeping the session is paused for now.',
+    lockOfferTitle: 'Lock Sulo with Face ID?',
+    lockOfferBody: 'Your SIKOLA session is kept on this iPhone. The app lock asks for Face ID, Touch ID or your iPhone passcode every time Sulo opens.',
+    sleepTitle: 'The iPhone rarely gives Sulo time in the background',
+    sleepBody: 'Open Sulo now and then to keep its data fresh.',
+    sleepOpen: 'Open iPhone Settings',
+  },
+});
 
 /**
  * The dashboard's words as the Android app shows them: where the extension

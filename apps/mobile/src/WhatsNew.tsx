@@ -6,6 +6,7 @@
 // this sheet existed has no mark and counts as having read version 1.
 
 import { useEffect, useState } from 'react';
+import { mobileOs } from '@sulo/core/i18n/os';
 import { entryText, pendingWhatsNew, WHATS_NEW, type WhatsNewEntry } from '@sulo/core/onboarding/whats-new';
 import type { KeyValueStore } from '@sulo/core/platform';
 import { NOTICE_VERSION } from '@sulo/core/storage';
@@ -31,7 +32,7 @@ export function WhatsNewSheet({ store }: { store: KeyValueStore }) {
   const sip = useSipakamase();
 
   useEffect(() => {
-    void readWhatsNewVersion(store).then((read) => setEntries(pendingWhatsNew(WHATS_NEW, read, true, 'android')));
+    void readWhatsNewVersion(store).then((read) => setEntries(pendingWhatsNew(WHATS_NEW, read, true, mobileOs())));
   }, [store]);
 
   const close = () => {

@@ -16,9 +16,10 @@ export async function withCore(use) {
   }
 }
 
-/** { id, en }, each { base, dash, mobile, neosia, onboarding, extOnboarding }. */
-export function loadWords() {
+/** { id, en }, each { base, dash, mobile, neosia, onboarding, extOnboarding }. `os: 'ios'`: the iPhone's words (i18n/os.ts). */
+export function loadWords({ os = 'android' } = {}) {
   return withCore(async (load) => {
+    (await load('/i18n/os.ts')).setMobileOs(os);
     const [base, dash, mobile, neosia, onboarding, ext] = await Promise.all(['/i18n/index.ts', '/i18n/dashboard/index.ts', '/i18n/mobile.ts', '/i18n/neosia.ts', '/i18n/mobile-onboarding.ts', '/i18n/ext-onboarding.ts'].map(load));
     const of = (locale) => ({
       base: base.messagesFor(locale),

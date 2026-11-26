@@ -4,6 +4,7 @@
 // bottom sheets (`sheets`). The intro's sample data is synthetic.
 
 import type { Locale } from './index';
+import { mobileOs } from './os';
 
 /** Checked by the text-budget test: every title and supporting line listed here. */
 export const TITLE_MAX = 28;
@@ -217,7 +218,25 @@ const en: Words = {
 
 export type OnboardingWords = Words;
 
-export const onboardingWords = (locale: Locale): OnboardingWords => (locale === 'en' ? en : id);
+/** The iPhone's watch step (B3): its keeper only keeps the session, when iOS gives it time; no new-task watching. */
+function iphone(w: Words, t: { watchTitle: string; watchBody: string; sheet: string }): Words {
+  return { ...w, reminders: { ...w.reminders, watchTitle: t.watchTitle, watchBody: t.watchBody }, sheets: { ...w.sheets, watch: t.sheet } };
+}
+
+const IPHONE_ID = iphone(id, {
+  watchTitle: 'Jaga sesi SIKOLA',
+  watchBody: 'Sulo menjaga sesi SIKOLA saat iPhone memberi waktu.',
+  sheet: 'Saat iPhone memberi Sulo waktu di latar belakang, Sulo mengecek sesi SIKOLA supaya tidak cepat habis. iPhone yang menentukan kapan, jadi tidak dijamin. Tugas baru terlihat saat kamu membuka Sulo. Matikan kapan saja di Pengaturan.',
+});
+
+const IPHONE_EN = iphone(en, {
+  watchTitle: 'Keep the SIKOLA session',
+  watchBody: 'Sulo keeps your session when the iPhone allows.',
+  sheet: 'When the iPhone gives Sulo time in the background, Sulo checks the SIKOLA session so it does not end early. The iPhone decides when, so it is not promised. New tasks show when you open Sulo. Turn it off anytime in Settings.',
+});
+
+export const onboardingWords = (locale: Locale): OnboardingWords =>
+  mobileOs() === 'ios' ? (locale === 'en' ? IPHONE_EN : IPHONE_ID) : locale === 'en' ? en : id;
 
 /** Every title and supporting line, for the budget test. */
 export function budgetedTexts(w: OnboardingWords): { titles: string[]; supports: string[] } {

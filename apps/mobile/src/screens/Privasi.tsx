@@ -2,7 +2,7 @@
 // summary in icon cards, then each section as a card (title 15 semibold,
 // body 15/22). The servers section is a card of rows, one per server.
 
-import { MOBILE_PRIVACY_INTRO, MOBILE_PRIVACY_SECTIONS, MOBILE_PRIVACY_SERVERS_HEADING, MOBILE_PRIVACY_SUMMARY, MOBILE_PRIVACY_TITLE, MOBILE_PRIVACY_UPDATED } from '@sulo/core/privacy/mobile';
+import { mobilePrivacy } from '@sulo/core/privacy/iphone';
 import { EyeIcon, GlobeIcon, ShieldIcon } from '@sulo/ui/dashboard-icons';
 import { KeyIcon } from '@sulo/ui/icons';
 import { useI18n } from '@sulo/ui/i18n';
@@ -13,21 +13,23 @@ const ICONS = { key: KeyIcon, shield: ShieldIcon, eye: EyeIcon } as const;
 
 export function PrivasiScreen() {
   const { locale } = useI18n();
+  // Android's notice, or the iPhone's own (B3).
+  const p = mobilePrivacy();
   return (
     <article className="space-y-3">
       <header className="px-1 pb-1">
-        <h2 className="text-m18 font-semibold">{MOBILE_PRIVACY_TITLE[locale]}</h2>
-        <p className="text-m12 text-muted-foreground">{MOBILE_PRIVACY_UPDATED[locale]}</p>
+        <h2 className="text-m18 font-semibold">{p.title[locale]}</h2>
+        <p className="text-m12 text-muted-foreground">{p.updated[locale]}</p>
       </header>
       <ul className="space-y-3">
-        {MOBILE_PRIVACY_SUMMARY.map((p) => (
-          <li key={p.icon}>
+        {p.summary.map((point) => (
+          <li key={point.icon}>
             <Card dense>
               <div className="flex items-center gap-3">
-                <IconTile color="neutral" icon={ICONS[p.icon]} size={40} />
+                <IconTile color="neutral" icon={ICONS[point.icon]} size={40} />
                 <div className="min-w-0">
-                  <h3 className="text-m15 font-medium">{p.title[locale]}</h3>
-                  <p className="text-m13 text-muted-foreground">{p.body[locale]}</p>
+                  <h3 className="text-m15 font-medium">{point.title[locale]}</h3>
+                  <p className="text-m13 text-muted-foreground">{point.body[locale]}</p>
                 </div>
               </div>
             </Card>
@@ -35,10 +37,10 @@ export function PrivasiScreen() {
         ))}
       </ul>
       <Card className="space-y-2">
-        <DocBlocks blocks={MOBILE_PRIVACY_INTRO} lang={locale} />
+        <DocBlocks blocks={p.intro} lang={locale} />
       </Card>
-      {MOBILE_PRIVACY_SECTIONS.map((s) =>
-        s.heading.en === MOBILE_PRIVACY_SERVERS_HEADING ? (
+      {p.sections.map((s) =>
+        s.heading.en === p.serversHeading ? (
           <Card key={s.heading.en}>
             <h3 className="text-m15 font-semibold">{s.heading[locale]}</h3>
             <ul className="mt-1">

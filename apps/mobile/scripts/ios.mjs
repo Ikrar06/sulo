@@ -14,7 +14,7 @@
 //
 // --data=sintetis (the default) builds the web app with synthetic data: no request to SIKOLA, NEOSIA,
 // Sipakamase or anywhere else (the only kind Claude runs). --data=debug: the real app with the dev screen
-// (the owner's iPhone, his own sign-in); --data=rilis: the release build.
+// (the owner's iPhone, their own sign-in); --data=rilis: the release build.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statfsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

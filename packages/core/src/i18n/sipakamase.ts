@@ -4,6 +4,7 @@
 
 import type { Locale } from './index';
 import type { ConnState } from '../sipakamase/connection';
+import { mobileOs } from './os';
 
 const id = {
   name: 'Sipakamase',
@@ -133,6 +134,19 @@ const en: SipakamaseWords = {
   remindersHelp: 'Notifications for MKPK courses not passed near the grade deadline, courses you can program when KRS opens, and activity status changes.',
 };
 
+/** The iPhone keeps the session only when iOS gives the keeper time (B3): nothing promised. */
+const IPHONE_ID: SipakamaseWords = {
+  ...id,
+  phoneHelp: 'Kegiatan MKPK, SKS yang dikonversi, dan mata kuliah yang lulus. Diperbarui saat Sulo dibuka.',
+  state: { ...id.state, live: 'Terhubung, diperbarui saat Sulo dibuka.' },
+};
+const IPHONE_EN: SipakamaseWords = {
+  ...en,
+  phoneHelp: 'MKPK activities, converted credits and passed courses. Updated when you open Sulo.',
+  state: { ...en.state, live: 'Connected, updated when you open Sulo.' },
+};
+
 export function sipakamaseWords(locale: Locale): SipakamaseWords {
+  if (mobileOs() === 'ios') return locale === 'en' ? IPHONE_EN : IPHONE_ID;
   return locale === 'en' ? en : id;
 }
