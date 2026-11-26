@@ -51,6 +51,8 @@ function sync() {
   const data = dataMode();
   const mode = DATA_MODES[data];
   run('pnpm', ['exec', 'vite', 'build', '--mode', mode]);
+  // A release carries no debug-only code (the dev screen, its tests), the same check as the APK's.
+  if (data === 'rilis') run('node', ['scripts/check-no-dev-code.mjs', 'dist']);
   // The NEOSIA page script: the same rules as the extension's and the APK's (size, no request, no storage).
   if (mode !== 'web') run('node', ['../extension/scripts/check-neosia-main.mjs', 'dist']);
   // Only the hosts Sulo uses, as for the APK (scripts/check-hosts.mjs).
@@ -190,12 +192,15 @@ function device() {
   console.log('Sulo terpasang dan terbuka di iPhone. Profil ini berlaku 7 hari; jalankan lagi sebelum habis.');
 }
 
+/** The Fase 1 probe (Probe.swift) is in every test build, never in the release: a Swift flag for the Release configuration. */
+const probeFlag = (data) => (data === 'rilis' ? [] : ['SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) SULO_PROBE']);
+
 function ipa() {
   const data = sync();
   const work = mkdtempSync(join(tmpdir(), 'sulo-ipa-'));
   try {
     const archive = join(work, 'Sulo.xcarchive');
-    run('xcodebuild', ['-project', PROJECT, '-scheme', 'App', '-configuration', 'Release', '-destination', 'generic/platform=iOS', '-archivePath', archive, '-derivedDataPath', DERIVED, '-quiet', 'archive', 'CODE_SIGNING_ALLOWED=NO', 'CODE_SIGNING_REQUIRED=NO', 'CODE_SIGN_IDENTITY=']);
+    run('xcodebuild', ['-project', PROJECT, '-scheme', 'App', '-configuration', 'Release', '-destination', 'generic/platform=iOS', '-archivePath', archive, '-derivedDataPath', DERIVED, '-quiet', 'archive', 'CODE_SIGNING_ALLOWED=NO', 'CODE_SIGNING_REQUIRED=NO', 'CODE_SIGN_IDENTITY=', ...probeFlag(data)]);
     const payload = join(work, 'Payload');
     mkdirSync(payload);
     cpSync(join(archive, 'Products/Applications/App.app'), join(payload, 'App.app'), { recursive: true });

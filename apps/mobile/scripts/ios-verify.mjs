@@ -73,7 +73,12 @@ try {
   } catch (e) {
     problems.push(`check-hosts: ${String(e.stdout ?? e.message).trim().split('\n').slice(-3).join(' ')}`);
   }
-  if (!synthetic) check(!files.some((f) => f.includes('SuloProbe')), 'uji Fase 1 (SuloProbe) masih ada di build rilis');
+  // The release (sulo-<version>-ios.ipa, no suffix): the Fase 1 probe is compiled out (SULO_PROBE off), so the app's
+  // binary holds none of its marks. Test builds (-sintetis, -debug) keep it for the owner's 7-day test.
+  if (/-ios\.ipa$/.test(file)) {
+    const binary = readFileSync(join(app, 'App'));
+    for (const mark of ['dev.ikrar.sulo.probe', 'sulo.probe.', 'SuloProbePlugin']) check(!binary.includes(Buffer.from(mark)), `uji Fase 1 (${mark}) masih ada di build rilis`);
+  }
 } finally {
   rmSync(work, { recursive: true, force: true });
 }

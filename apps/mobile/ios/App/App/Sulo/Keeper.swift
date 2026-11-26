@@ -127,7 +127,9 @@ enum Keeper {
     }
 
     private static func handle(_ task: BGTask, kind: String) {
+        #if DEBUG || SULO_PROBE
         Probe.noteBackgroundRun(kind)
+        #endif
         let work = DispatchWorkItem { run(reason: kind) }
         task.expirationHandler = { work.cancel() }
         SikolaLock.queue.async {

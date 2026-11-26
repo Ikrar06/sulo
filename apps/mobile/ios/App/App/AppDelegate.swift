@@ -14,7 +14,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         BackupGuard.apply()
         Keeper.register()
         ScreenGuard.shared.start()
+        #if DEBUG || SULO_PROBE
         Probe.noteLaunch()
+        #endif
         #if DEBUG
         // Debug builds only: `simctl launch <sim> dev.ikrar.sulo -suloProbe write|status` runs the Fase 1
         // checks without the dev screen and prints them, so they can be checked from the terminal.

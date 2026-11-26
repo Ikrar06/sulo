@@ -1,3 +1,5 @@
+// Test builds only (Debug, and the synthetic and debug .ipa: SULO_PROBE, scripts/ios.mjs); never in a release.
+#if DEBUG || SULO_PROBE
 import Capacitor
 import Foundation
 
@@ -27,3 +29,4 @@ public class SuloProbePlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 }
+#endif

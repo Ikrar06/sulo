@@ -6,7 +6,9 @@ class SuloBridgeViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(SuloStorePlugin())
         bridge?.registerPluginInstance(SuloSessionPlugin())
+        #if DEBUG || SULO_PROBE
         bridge?.registerPluginInstance(SuloProbePlugin())
+        #endif
         bridge?.registerPluginInstance(SuloNeosiaPlugin())
         bridge?.registerPluginInstance(SuloSipakamasePlugin())
     }

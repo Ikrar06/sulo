@@ -1,0 +1,73 @@
+name: iPhone rilis
+
+# Manual (workflow_dispatch) or a pushed tag "v*" only. Builds the iPhone
+# release .ipa, unsigned: each user's Sideloadly signs it on their own laptop
+# with their own Apple ID, so this job needs no secret at all and the file
+# carries no signing profile (scripts/ios-verify.mjs refuses one). Verified,
+# kept as an artifact with its SHA-256. Publishing a GitHub Release is a
+# separate, deliberate step (not here).
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  release-ipa:
+    # Only in the owner's repository.
+    if: github.repository == 'Ikrar06/sulo'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Versi tag sama dengan package.json
+        if: github.ref_type == 'tag'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION=$(node -p "require('./apps/mobile/package.json').version")
+          test "v$VERSION" = "$TAG" || { echo "Tag $TAG bukan v$VERSION (apps/mobile/package.json)."; exit 1; }
+
+      - name: Xcode
+        run: xcodebuild -version
+
+      - name: Uji Swift murni
+        working-directory: apps/mobile
+        run: pnpm ios:test
+
+      # Production web build with its checks (no debug code, only Sulo's hosts, the NEOSIA page script's
+      # rules), cap sync, an unsigned Release archive, then ios-verify: version, app id, no signing profile,
+      # no debug string, no dev-server address.
+      - name: .ipa rilis
+        working-directory: apps/mobile
+        run: pnpm ios:ipa --data=rilis
+
+      - name: SHA-256 dan pemindai data pribadi
+        run: |
+          VERSION=$(node -p "require('./apps/mobile/package.json').version")
+          OUT=".output/sulo-$VERSION-ios.ipa"
+          (cd .output && shasum -a 256 "sulo-$VERSION-ios.ipa" > "sulo-$VERSION-ios.ipa.sha256")
+          cat ".output/sulo-$VERSION-ios.ipa.sha256"
+          node apps/extension/scripts/check-leaks.mjs --zip "$OUT"
+
+      - name: Simpan .ipa rilis
+        uses: actions/upload-artifact@v7
+        with:
+          name: sulo-ios-release
+          path: |
+            .output/sulo-*-ios.ipa
+            .output/sulo-*-ios.ipa.sha256
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

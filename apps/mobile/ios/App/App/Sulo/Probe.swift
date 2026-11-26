@@ -1,3 +1,5 @@
+// Test builds only (Debug, and the synthetic and debug .ipa: SULO_PROBE, scripts/ios.mjs); never in a release.
+#if DEBUG || SULO_PROBE
 import BackgroundTasks
 import Foundation
 import UIKit
@@ -9,7 +11,7 @@ import UserNotifications
 /// - do scheduled notifications still show while the app's 7-day profile has expired;
 /// - when does the app's profile expire (read from the app's own bundle);
 /// - does iOS ever run Sulo's background tasks on a free Apple ID (they only write a time here).
-/// Shown on the hidden dev screen. Removed or reduced to the diagnostics screen before release.
+/// Shown on the hidden dev screen. Compiled out of the release (SULO_PROBE, scripts/ios.mjs); test builds keep it.
 enum Probe {
     static let keychainService = "dev.ikrar.sulo.probe"
     static let keychainAccount = "fase1"
@@ -165,3 +167,4 @@ enum Probe {
         }
     }
 }
+#endif
