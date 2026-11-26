@@ -3,7 +3,7 @@
 // Same shape as privacy/content.ts so the same renderer shows it. Keep it
 // true to the app: when the app starts contacting anything new, say so here.
 
-import { SIPAKAMASE_CONSENT, type Block, type Section, type Text } from './content';
+import { SIPAKAMASE_CONSENT, type Block, type Section, type Text } from './content.ts';
 
 export const MOBILE_PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
 
