@@ -5,7 +5,7 @@
 import { FAQ, type FaqEntry } from './content';
 
 /** Extension answers that read the same on the phone. */
-const SHARED = new Set(['kabar-lama', 'presensi-diperbarui', 'resmi']);
+const SHARED = new Set(['kabar-lama', 'presensi-diperbarui', 'resmi', 'mkpk-belum-lulus', 'sipakamase-aman']);
 
 const PHONE: FaqEntry[] = [
   {
@@ -149,8 +149,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kenapa NEOSIA memintaku masuk lagi?', en: 'Why does NEOSIA ask me to sign in again?' },
     a: [
       {
-        id: 'Sulo tidak menjaga sesi NEOSIA tetap aktif. Saat kamu memperbarui dan NEOSIA memintamu masuk lagi, ketuk Masuk NEOSIA. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan sesi NEOSIA di HP ini.',
-        en: 'Sulo doesn’t keep your NEOSIA session alive. When you update and the NEOSIA page asks you to sign in, tap Sign in to NEOSIA and sign in there. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
+        id: 'Sesi NEOSIA disimpan aplikasi NEOSIA sendiri, dan Sulo tidak bisa memperpanjangnya. "Perbarui NEOSIA otomatis" membuka NEOSIA saat kamu membuka Sulo, jadi kamu lebih cepat tahu kalau sesinya habis. Saat NEOSIA memintamu masuk lagi, ketuk Masuk NEOSIA. Data terakhir tetap tampil. Putuskan NEOSIA di Pengaturan menghapus semua data NEOSIA dan sesi NEOSIA di HP ini.',
+        en: 'NEOSIA keeps its own session, and Sulo cannot extend it. "Update NEOSIA automatically" opens NEOSIA when you open Sulo, so you learn sooner when the session has ended. When NEOSIA asks you to sign in, tap Sign in to NEOSIA. The last data stays on screen. Disconnect NEOSIA in Settings deletes all NEOSIA data and the NEOSIA sign-in on this phone.',
       },
     ],
   },
@@ -214,6 +214,7 @@ export const MOBILE_FAQ_TOPICS = [
   { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
   { id: 'neosia', title: { id: 'Jadwal dan nilai dari NEOSIA', en: 'Schedule and grades from NEOSIA' }, entries: ['neosia-hp', 'nilai-tersembunyi-hp', 'sesi-neosia-hp'] },
+  { id: 'mkpk', title: { id: 'MKPK dan Sipakamase', en: 'MKPK and Sipakamase' }, entries: ['mkpk-belum-lulus', 'sipakamase-aman'] },
   { id: 'tentang', title: { id: 'Tentang Sulo', en: 'About Sulo' }, entries: ['webview-hp', 'resmi'] },
 ] as const;
 

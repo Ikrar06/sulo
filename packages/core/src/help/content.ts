@@ -44,6 +44,10 @@ export const HOW_IT_WORKS: HelpSection[] = [
         id: 'Sulo mengecek dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
         en: 'Sulo checks sparingly to go easy on SIKOLA, so new data sometimes shows up a little later.',
       },
+      {
+        id: 'Kalau kamu menyalakan "Pantau tugas baru" di Pengaturan, Sulo mengecek tiap 15 menit selama komputermu dipakai dan saat kamu membuka popup (paling sering tiap 2 menit), lalu memberi tahu kalau ada tugas, tenggat, atau kabar baru. Selama itu sesi SIKOLA-mu tetap aktif di browser ini. Setelah 7 hari Sulo tidak dibuka, pantauan berhenti sampai kamu membukanya lagi.',
+        en: 'If you turn on "Watch for new tasks" in Settings, Sulo checks every 15 minutes while your computer is in use and when you open the popup (at most every 2 minutes), then tells you about new tasks, deadlines or updates. Meanwhile your SIKOLA session stays active in this browser. After 7 days without Sulo being opened, watching stops until you open it again.',
+      },
     ],
   },
   {
@@ -275,6 +279,34 @@ export const FAQ: FaqEntry[] = [
       {
         id: 'Sulo tidak pernah menghubungi NEOSIA sendiri. Buka Beranda dan Kartu Hasil Studi sekali. Setelah itu cukup buka Kartu Hasil Studi setiap ada nilai baru, dan Beranda atau KRS di awal semester.',
         en: 'Sulo never contacts NEOSIA. Open the Home page and the study results card (KHS) once. After that, open the KHS whenever new grades are out, and Home or KRS at the start of each semester.',
+      },
+    ],
+  },
+  {
+    id: 'mkpk-belum-lulus',
+    q: { id: 'Apa artinya "belum lulus di Sipakamase"?', en: 'What does "not passed in Sipakamase yet" mean?' },
+    a: [
+      {
+        id: 'Mata kuliah MKPK itu ada di KRS-mu semester ini, tetapi Sipakamase belum mencatatnya lulus. Nilai MKPK berasal dari kegiatan yang dikonversi di Sipakamase lalu diklaim ke NEOSIA.',
+        en: 'That MKPK course is in your KRS this semester, but Sipakamase has not recorded it as passed. MKPK grades come from activities converted in Sipakamase and then claimed into NEOSIA.',
+      },
+      {
+        id: 'Menurut Peraturan Rektor Unhas Nomor 29/UN4.1/2023 Pasal 41, mata kuliah yang nilainya belum masuk sampai batas penginputan nilai bisa tercatat T (tunda). Aturan dan batasnya bisa berbeda tiap prodi: konfirmasi ke PA atau KPS.',
+        en: 'Under Unhas Rector Regulation No. 29/UN4.1/2023, Article 41, a course whose grade is not in by the grade-entry deadline can be recorded as T (deferred). Rules and dates can differ by program: confirm with your advisor or KPS.',
+      },
+    ],
+  },
+  {
+    id: 'sipakamase-aman',
+    q: { id: 'Apa yang dilakukan Sulo di Sipakamase?', en: 'What does Sulo do in Sipakamase?' },
+    a: [
+      {
+        id: 'Hanya membaca lima halaman MKPK-mu: kegiatan berjalan, riwayat, alokasi SKS, mata kuliah yang lulus, dan klaim. Sulo tidak mengisi, menghapus, mengonversi, atau mengklaim apa pun, dan tidak membaca NIM, kontak, nama dosen, obrolan, atau angka nilai.',
+        en: 'It only reads five pages of your MKPK data: activities in progress, history, credit allocation, passed courses and claims. Sulo never fills in, deletes, converts or claims anything, and never reads your student number, contacts, lecturer names, chats or numeric grades.',
+      },
+      {
+        id: 'Selama ada yang kamu tunggu, Sulo mengambil satu halaman tiap 3 jam supaya datamu terbaru dan kamu tidak diminta masuk terus. Kalau tidak ada yang ditunggu, Sulo berhenti sampai kamu membuka Sipakamase atau menekan Perbarui sekarang. Putuskan di Pengaturan menghapus semuanya.',
+        en: 'While you are waiting for something, Sulo reads one page every 3 hours so your data stays current and you are not asked to sign in again and again. When nothing is pending, it stops until you open Sipakamase or press Update now. Disconnect in Settings deletes everything.',
       },
     ],
   },

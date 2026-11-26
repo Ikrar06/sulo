@@ -220,17 +220,21 @@ export const PRIVACY_SECTIONS: Section[] = [
   {
     heading: { id: 'Koneksi jaringan', en: 'Network requests' },
     blocks: [
-      { kind: 'p', text: { id: 'Sulo hanya menghubungi dua tempat:', en: 'Sulo makes requests to two places only:' } },
+      { kind: 'p', text: { id: 'Sulo hanya menghubungi tempat-tempat ini:', en: 'Sulo makes requests to these places only:' } },
       {
         kind: 'ol',
         items: [
           {
-            id: 'SIKOLA (sikola-v2.unhas.ac.id), untuk membaca datamu sendiri. Sulo mengecek SIKOLA seperlunya, satu per satu. Ada batas pengaman 150 permintaan per hari. Kalau batas itu tercapai, Sulo berhenti mengecek sampai besok. Sulo tidak mengecek sendiri pada jam tenang (00.00 sampai 06.00) dan saat komputermu sedang tidak dipakai.',
-            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. Sulo checks SIKOLA only as needed, one request at a time. A safety limit caps it at 150 requests a day. If Sulo reaches the limit, it stops checking until the next day. Sulo does not check on its own during quiet hours (00:00 to 06:00) or while your computer is idle.',
+            id: 'SIKOLA (sikola-v2.unhas.ac.id), untuk membaca datamu sendiri. Sulo mengecek SIKOLA seperlunya, satu per satu. Ada batas pengaman 150 permintaan per hari. Kalau batas itu tercapai, Sulo berhenti mengecek sampai besok. Sulo tidak mengecek sendiri pada jam tenang (00.00 sampai 06.00) dan saat komputermu sedang tidak dipakai. Kalau kamu menyalakan "Pantau tugas baru", Sulo mengecek tiap 15 menit selama komputermu dipakai dan saat kamu membuka Sulo, dan selama itu sesi SIKOLA-mu tetap aktif di browser ini. Setelah 7 hari Sulo tidak dibuka, pantauan berhenti sampai kamu membukanya lagi.',
+            en: 'SIKOLA (sikola-v2.unhas.ac.id), to read your own data. Sulo checks SIKOLA only as needed, one request at a time. A safety limit caps it at 150 requests a day. If Sulo reaches the limit, it stops checking until the next day. Sulo does not check on its own during quiet hours (00:00 to 06:00) or while your computer is idle. If you turn on "Watch for new tasks", Sulo checks every 15 minutes while your computer is in use and when you open Sulo, and meanwhile your SIKOLA session stays active in this browser. After 7 days without Sulo being opened, watching stops until you open it again.',
           },
           {
             id: 'Repo data publik Sulo di GitHub Pages (ikrar06.github.io/sulo-data), untuk mengambil berkas konfigurasi kecil dan data kalender akademik. Permintaan ini tidak membawa informasi apa pun tentangmu (tanpa cookie, header tambahan, atau parameter) dan paling sering sekali sehari per berkas. Seperti situs mana pun, GitHub dapat melihat alamat IP-mu saat berkas diambil.',
             en: "Sulo's public data repository on GitHub Pages (ikrar06.github.io/sulo-data), to fetch a small configuration file and the academic calendar data. These requests carry no information about you (no cookies, extra headers or parameters) and are made at most once a day per file. As with any website, GitHub can see your IP address when a file is fetched.",
+          },
+          {
+            id: 'Sipakamase (sipakamase.unhas.ac.id), hanya kalau kamu menghubungkannya: permintaan GET ke lima halaman MKPK-mu yang hanya-baca, tidak ke alamat lain. Lihat bagian Modul Sipakamase.',
+            en: 'Sipakamase (sipakamase.unhas.ac.id), only if you connect it: GET requests to five read-only pages of your MKPK data, never any other address. See the Sipakamase module section.',
           },
         ],
       },
@@ -293,6 +297,50 @@ export const PRIVACY_SECTIONS: Section[] = [
           {
             id: 'Tidak ada otomatisasi: Sulo tidak mengisi KRS, survei, atau presensi, dan tidak memantau kuota kelas.',
             en: 'No automation: Sulo never fills in KRS, surveys or attendance, and never watches class capacity.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    heading: { id: 'Modul Sipakamase (opsional)', en: 'Sipakamase module (optional)' },
+    blocks: [
+      {
+        kind: 'p',
+        text: {
+          id: 'Mati secara bawaan. Kalau kamu menekan "Hubungkan" di Pengaturan, Sulo lebih dulu menampilkan layar persetujuan dengan isi di bawah ini; di ekstensi, Chrome lalu menanyakan izinnya.',
+          en: 'Off by default. If you press "Connect" in Settings, Sulo first shows a consent screen with the text below; in the extension, Chrome then asks for its permission.',
+        },
+      },
+      { kind: 'p', text: SIPAKAMASE_CONSENT.how },
+      { kind: 'p', text: SIPAKAMASE_CONSENT.keptTitle },
+      { kind: 'ul', items: [...SIPAKAMASE_CONSENT.kept] },
+      { kind: 'p', text: SIPAKAMASE_CONSENT.droppedTitle },
+      { kind: 'ul', items: [...SIPAKAMASE_CONSENT.dropped] },
+      { kind: 'p', text: SIPAKAMASE_CONSENT.offTitle },
+      { kind: 'p', text: SIPAKAMASE_CONSENT.off },
+      {
+        kind: 'ul',
+        items: [
+          {
+            id: 'Yang disimpan, di perangkat ini saja: per kegiatan semester, basis, jenis, nama, status, ada tidaknya pendamping dan nilai, SKS yang dikonversi; mata kuliah MKPK yang lulus dengan SKS-nya dan sudah di NEOSIA atau belum; kode dan jenis mata kuliah yang diprogramkan.',
+            en: 'What is kept, on this device only: per activity its semester, basis, kind, name, status, whether it has a companion and a score, its converted credits; passed MKPK courses with their credits and whether they reached NEOSIA; the codes and kinds of the courses in your KRS.',
+          },
+          {
+            id: 'Sulo hanya meminta lima alamat tetap, dengan GET, tanpa parameter, dan tidak pernah mengikuti tautan dari halamannya. Alamat yang mengubah data (menghapus kegiatan, mengonversi, mengklaim, keluar) ditolak sebelum dikirim.',
+            en: 'Sulo asks for five fixed addresses only, with GET, without parameters, and never follows a link from its pages. Addresses that change data (deleting an activity, converting, claiming, signing out) are refused before they are sent.',
+          },
+          {
+            id: 'Ekstensi: izinnya opsional ("scripting" dan akses ke sipakamase.unhas.ac.id), diminta saat menghubungkan dan dicabut saat memutuskan. Satu skrip kecil di halaman kegiatan, riwayat, konversi, dan klaim membaca yang kamu buka sendiri, tanpa request; halaman login dan beranda tidak pernah mendapat skrip.',
+            en: 'Extension: its permissions are optional ("scripting" and access to sipakamase.unhas.ac.id), asked for when connecting and removed when disconnecting. One small script on the activity, history, conversion and claim pages reads what you open yourself, without a request; the login page and the home page never get a script.',
+          },
+          {
+            id: 'Android: kamu masuk di halaman Sipakamase sendiri dalam layar tanpa skrip. Cookie sesinya disimpan terenkripsi dengan kunci Android Keystore tersendiri, tidak pernah keluar dari HP, dan terhapus saat Putuskan atau Keluar. Penjagaan sesi di latar belakang hanya ikut cek "Pantau tugas baru" yang sudah berjalan; isi halamannya tidak disimpan.',
+            en: 'Android: you sign in on Sipakamase\'s own page in a screen without any script. Its session cookie is kept encrypted with an Android Keystore key of its own, never leaves the phone, and is deleted by Disconnect or Sign out. Keeping the session in the background only rides the "Watch for new tasks" check that already runs; the pages\' content is not kept.',
+          },
+          {
+            id: 'Setelah 7 hari Sulo tidak dibuka, penjagaan berhenti dan kamu diminta menghubungkan lagi.',
+            en: 'After 7 days without Sulo being opened, keeping stops and you are asked to connect again.',
           },
         ],
       },
