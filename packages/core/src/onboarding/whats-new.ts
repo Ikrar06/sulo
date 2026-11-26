@@ -25,8 +25,8 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     id: 'sipakamase',
     title: { id: 'Sulo terhubung ke Sipakamase', en: 'Sulo connects to Sipakamase' },
     body: {
-      id: 'Lihat kegiatan MKPK yang belum dikonversi, nilai yang belum masuk NEOSIA, dan dapat pengingat sebelum batas nilai. Sulo hanya membaca, dan kamu masuk di halaman Sipakamase sendiri.',
-      en: 'See MKPK activities not yet converted, grades not yet in NEOSIA, and get reminders before the grade deadline. Sulo only reads, and you sign in on Sipakamase’s own page.',
+      id: 'Kegiatan MKPK yang belum dikonversi, nilai yang belum masuk NEOSIA, dan pengingat sebelum batas nilai. Sulo hanya membaca.',
+      en: 'MKPK activities not yet converted, grades not yet in NEOSIA, and reminders before the grade deadline. Sulo only reads.',
     },
     action: 'sipakamase',
   },
@@ -35,8 +35,8 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     id: 'mkpk-card',
     title: { id: 'Progres MKPK di dashboard', en: 'MKPK progress on the dashboard' },
     body: {
-      id: 'Kalau NEOSIA sudah terhubung, kartu MKPK menghitung SKS MKPK di transkrip dan KRS-mu, dan menunjukkan MKPK yang ditawarkan prodimu semester ini.',
-      en: 'With NEOSIA connected, the MKPK card adds up the MKPK credits on your transcript and KRS, and shows the MKPK courses your program offers this semester.',
+      id: 'SKS MKPK di transkrip dan KRS-mu, dan MKPK yang ditawarkan prodimu, dari data NEOSIA.',
+      en: 'MKPK credits on your transcript and KRS, and the MKPK courses your program offers, from NEOSIA.',
     },
   },
   {

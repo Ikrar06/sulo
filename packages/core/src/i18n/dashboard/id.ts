@@ -310,7 +310,7 @@ export const dashId = {
   pengaturan: {
     bugReport: {
       cardTitle: 'Laporan bug',
-      help: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya hanya versi, browser, dan catatan teknis pengecekan terakhir, tanpa nama, NIM, atau isi tugas.',
+      help: 'Ada yang tidak beres? Salin info ini ke formulir masukan. Tanpa nama, NIM, atau isi tugas.',
       button: 'Salin info untuk laporan bug',
       title: 'Info untuk laporan bug',
       body: 'Ini yang akan disalin. Cek dulu, lalu salin.',
@@ -337,7 +337,7 @@ export const dashId = {
     nicknameHelp: 'Opsional, maksimal 24 karakter. Hanya untuk menyapamu di dashboard, disimpan di browsermu.',
     angkatan: 'Angkatan',
     angkatanNone: 'Tidak dipilih',
-    angkatanHelp: 'Opsional. Dipakai untuk menyorot evaluasi studi yang menyebut angkatanmu. Sulo tidak membaca angkatan dari NIM.',
+    angkatanHelp: 'Opsional. Untuk menyorot evaluasi studi angkatanmu. Tidak dibaca dari NIM.',
     manageCourses: 'Atur mata kuliah',
     openPrivacy: 'Kebijakan privasi',
     wipeHelp: 'Menghapus semua yang Sulo simpan di browser ini. Data di SIKOLA tidak tersentuh.',

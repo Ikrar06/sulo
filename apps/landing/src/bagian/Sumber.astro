@@ -1,5 +1,5 @@
 ---
-// "Where does it come from?" (brief 6.4): three sources into one. Each says
+// "Where does it come from?" (brief 6.4): four sources into one (Sipakamase since 1.1.0). Each says
 // what is read; NEOSIA as it is (read only while the student has it open,
 // off until turned on). Thin whole lines, names as words, no logos.
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
@@ -12,7 +12,12 @@ interface Props {
 }
 const { bahasa } = Astro.props;
 const t = rumah[bahasa].sumber;
-const sumber = [t.sikola, t.neosia, t.kalender];
+const sumber = [t.sikola, t.neosia, t.sipakamase, t.kalender];
+// One line from each row's middle to the Sulo card's (y 150 of 300), as many as there are sources.
+const garis = sumber.map((_, i) => {
+  const y = Math.round(((i + 0.5) * 300) / sumber.length);
+  return y === 150 ? 'M0 150H100' : `M0 ${y}C55 ${y} 45 150 100 150`;
+});
 ---
 <section class="bagian sumber" aria-labelledby="judul-sumber">
   <div class="isi">
@@ -35,13 +40,9 @@ const sumber = [t.sikola, t.neosia, t.kalender];
         ))}
       </ul>
       <svg class="sumber-garis" viewBox="0 0 100 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <path d="M0 50C55 50 45 150 100 150" />
-        <path d="M0 150H100" />
-        <path d="M0 250C55 250 45 150 100 150" />
+        {garis.map((d) => <path d={d} />)}
         <g class="sumber-arus">
-          <path d="M0 50C55 50 45 150 100 150" />
-          <path d="M0 150H100" />
-          <path d="M0 250C55 250 45 150 100 150" />
+          {garis.map((d) => <path d={d} />)}
         </g>
       </svg>
       <div class="sumber-kartu sumber-kartu--sulo">

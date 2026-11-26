@@ -147,7 +147,7 @@ const id = {
   settings: {
     language: 'Bahasa',
     languageNote: 'Mengikuti bahasa HP.',
-    bugHelp: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya versi aplikasi dan catatan teknis pengecekan terakhir, tanpa nama, NIM, sesi, atau isi tugas.',
+    bugHelp: 'Ada yang tidak beres? Salin info ini ke formulir masukan. Tanpa nama, NIM, sesi, atau isi tugas.',
     copied: 'Info disalin.',
     signOutDelete: 'Keluar dan hapus data',
     nicknameHelp: 'Opsional, maksimal 24 karakter. Hanya untuk menyapamu di Ringkasan, disimpan di HP ini.',
@@ -375,7 +375,7 @@ const en: MobileWords = {
   settings: {
     language: 'Language',
     languageNote: "Follows the phone's language.",
-    bugHelp: "If something is wrong, copy this and paste it into the feedback form. It holds the app version and technical notes on the last check: no name, student number, session or task content.",
+    bugHelp: "Something wrong? Copy this into the feedback form. No name, student number, session or task content.",
     copied: 'Info copied.',
     signOutDelete: 'Sign out and delete data',
     nicknameHelp: 'Optional, up to 24 characters. Only used to greet you on Overview, kept on this phone.',

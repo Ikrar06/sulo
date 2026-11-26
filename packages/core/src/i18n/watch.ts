@@ -5,7 +5,7 @@ import type { Locale } from './index';
 
 const id = {
   title: 'Pantau tugas baru',
-  body: 'Sulo mengecek SIKOLA tiap 15 menit selama komputermu dipakai, dan tiap kali kamu membuka Sulo, lalu memberi tahu kalau ada tugas, tenggat, atau kabar baru.',
+  body: 'Sulo mengecek SIKOLA tiap 15 menit selama komputermu dipakai dan memberi tahu kalau ada tugas, tenggat, atau kabar baru.',
   session: 'Selama ini menyala, sesi SIKOLA-mu tetap aktif di browser ini.',
   // Settings: the card already says "Pantau tugas baru", so the switch says what it does.
   switchLabel: 'Cek SIKOLA tiap 15 menit',
@@ -17,7 +17,7 @@ const id = {
   idleNote: 'Pantauan berhenti karena Sulo 7 hari tidak dibuka. Menyala lagi sekarang.',
   whatsNew: {
     title: 'Kabar SIKOLA lebih cepat',
-    body: 'Nyalakan Pantau tugas baru supaya Sulo mengecek SIKOLA tiap 15 menit dan tiap kali kamu membuka Sulo. Selama menyala, sesi SIKOLA-mu tetap aktif di browser ini.',
+    body: 'Nyalakan supaya Sulo mengecek SIKOLA tiap 15 menit. Selama menyala, sesi SIKOLA-mu tetap aktif di browser ini.',
   },
 };
 
@@ -25,7 +25,7 @@ export type WatchWords = typeof id;
 
 const en: WatchWords = {
   title: 'Watch for new tasks',
-  body: 'Sulo checks SIKOLA every 15 minutes while your computer is in use, and each time you open Sulo, then tells you when there is a new task, deadline or update.',
+  body: 'Sulo checks SIKOLA every 15 minutes while your computer is in use and tells you about new tasks, deadlines and updates.',
   session: 'While this is on, your SIKOLA session stays active in this browser.',
   switchLabel: 'Check SIKOLA every 15 minutes',
   short: 'Also when you open Sulo. Your SIKOLA session stays active in this browser.',
@@ -36,7 +36,7 @@ const en: WatchWords = {
   idleNote: 'Watching stopped because Sulo was not opened for 7 days. It is on again now.',
   whatsNew: {
     title: 'SIKOLA news arrives faster',
-    body: 'Turn on Watch for new tasks so Sulo checks SIKOLA every 15 minutes and each time you open Sulo. While it is on, your SIKOLA session stays active in this browser.',
+    body: 'Turn it on and Sulo checks SIKOLA every 15 minutes. While it is on, your SIKOLA session stays active in this browser.',
   },
 };
 

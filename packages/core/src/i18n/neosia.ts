@@ -9,7 +9,7 @@ const id = {
   mobile: {
     akademik: 'Akademik',
     connectTitle: 'Hubungkan NEOSIA',
-    connectBody: 'Sulo membaca jadwal kuliah, kesiapan KRS, dan nilai dari halaman NEOSIA yang kamu buka sendiri di Sulo. Sulo tidak pernah mengirim permintaan ke NEOSIA, tidak membaca password atau token, dan tidak menyimpan data pribadi seperti NIK, alamat, atau nominal pembayaran. Nilai tersembunyi sampai kamu menyalakannya.',
+    connectBody: 'Jadwal kuliah, kesiapan KRS, dan nilai, dari halaman NEOSIA yang kamu buka. Sulo tidak mengirim permintaan ke NEOSIA dan tidak menyimpan password, NIK, alamat, atau nominal pembayaran. Nilai tersembunyi sampai kamu menyalakannya.',
     connect: 'Hubungkan',
     signIn: 'Masuk NEOSIA',
     signInDesc: 'Masuk di halaman NEOSIA sendiri. Biasanya cukup sekali.',
@@ -301,7 +301,7 @@ const en: NeosiaWords = {
   mobile: {
     akademik: 'Academics',
     connectTitle: 'Connect NEOSIA',
-    connectBody: 'Sulo reads your class schedule, KRS readiness and grades from the NEOSIA pages you open yourself in Sulo. Sulo never sends a request to NEOSIA, never reads your password or token, and never stores personal data such as your national ID number, address or payment amounts. Grades stay hidden until you turn them on.',
+    connectBody: 'Your class schedule, KRS readiness and grades, from the NEOSIA pages you open. Sulo sends no request to NEOSIA and never keeps your password, national ID, address or payment amounts. Grades stay hidden until you turn them on.',
     connect: 'Connect',
     signIn: 'Sign in to NEOSIA',
     signInDesc: "Sign in on NEOSIA's own page. Usually once is enough.",

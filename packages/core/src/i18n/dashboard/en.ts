@@ -306,7 +306,7 @@ export const dashEn: DashMessages = {
   pengaturan: {
     bugReport: {
       cardTitle: 'Bug report',
-      help: 'If something is wrong, copy this info and paste it into the feedback form. It only holds the version, the browser and a technical note of the last checks, no name, student number or task content.',
+      help: 'Something wrong? Copy this into the feedback form. No name, student number or task content.',
       button: 'Copy info for a bug report',
       title: 'Info for a bug report',
       body: 'This is what will be copied. Check it, then copy.',
@@ -333,7 +333,7 @@ export const dashEn: DashMessages = {
     nicknameHelp: 'Optional, up to 24 characters. Only used to greet you on the dashboard, kept in your browser.',
     angkatan: 'Intake year',
     angkatanNone: 'Not chosen',
-    angkatanHelp: 'Optional. Used to highlight study evaluations that mention your intake year. Sulo never reads it from your student number.',
+    angkatanHelp: 'Optional. Highlights study evaluations for your intake year. Never read from your student number.',
     manageCourses: 'Choose courses',
     openPrivacy: 'Privacy policy',
     wipeHelp: 'Deletes everything Sulo keeps in this browser. Nothing on SIKOLA is touched.',

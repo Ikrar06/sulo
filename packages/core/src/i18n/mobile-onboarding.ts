@@ -107,7 +107,7 @@ const id = {
   },
   sheets: {
     why: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi SIKOLA disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
-    watch: 'Sulo mengecek SIKOLA berkala di latar belakang supaya kamu cepat tahu ada tugas baru. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
+    watch: 'Sulo mengecek SIKOLA di latar belakang dan memberi tahu kalau ada tugas baru. Sesi SIKOLA-mu tetap aktif. Matikan kapan saja di Pengaturan.',
   },
   unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
 };
@@ -210,7 +210,7 @@ const en: Words = {
   },
   sheets: {
     why: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your SIKOLA session is stored encrypted on this phone.', 'No Sulo server, no ads, no tracking.'],
-    watch: 'Sulo checks SIKOLA regularly in the background so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
+    watch: 'Sulo checks SIKOLA in the background and tells you about new tasks. Your SIKOLA session stays active. Turn it off anytime in Settings.',
   },
   unofficial: 'Unofficial. Not affiliated with Universitas Hasanuddin.',
 };
