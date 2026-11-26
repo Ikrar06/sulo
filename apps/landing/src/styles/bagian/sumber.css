@@ -146,9 +146,17 @@
   color: var(--tinta);
 }
 
-/* Narrow: the sources in a column, then one thin line down into Sulo. */
+/* Narrow: the sources in a column, joined by one thin rail on the left that runs down into Sulo, so every
+   source visibly feeds it (not only the last one). Built from each row's own pseudo-elements: a branch at the
+   card's name line, the rail through the row, and on Sulo the rail's last stretch and its branch in. */
 @media (max-width: 47.9375em) {
   .sumber-diagram {
+    --rel-x: 8px;
+    --rel-masuk: 32px;
+    --rel-cabang: 40px; /* the row's 8 px padding, the card's 20 px, half the name line */
+    --rel-sulo: 40px; /* Sulo's 26 px padding + half its larger name line */
+    --rel-celah: 32px;
+    --rel-warna: color-mix(in srgb, var(--tinta) 34%, transparent);
     grid-template-columns: minmax(0, 1fr);
   }
   /* No lines to meet on a phone: each card as tall as its own words. */
@@ -158,17 +166,51 @@
   .sumber-garis {
     display: none;
   }
-  .sumber-kartu--sulo {
+  .sumber-baris {
     position: relative;
-    margin-top: 40px;
+    padding-left: var(--rel-masuk);
   }
-  .sumber-kartu--sulo::before {
+  .sumber-baris::before,
+  .sumber-baris::after,
+  .sumber-kartu--sulo::before,
+  .sumber-kartu--sulo::after {
     content: "";
     position: absolute;
-    left: 50%;
-    bottom: calc(100% + 1px);
+    background: var(--rel-warna);
+  }
+  /* The branch from the rail to the card. */
+  .sumber-baris::before {
+    left: var(--rel-x);
+    top: var(--rel-cabang);
+    width: calc(var(--rel-masuk) - var(--rel-x));
+    height: 1.5px;
+  }
+  /* The rail through the row: from the first branch down, through every row. */
+  .sumber-baris::after {
+    left: var(--rel-x);
+    top: 0;
+    bottom: 0;
     width: 1.5px;
-    height: 40px;
-    background: color-mix(in srgb, var(--tinta) 26%, transparent);
+  }
+  .sumber-baris:first-child::after {
+    top: var(--rel-cabang);
+  }
+  .sumber-kartu--sulo {
+    position: relative;
+    margin-top: var(--rel-celah);
+    margin-left: var(--rel-masuk);
+  }
+  /* The rail's last stretch, across the gap down to Sulo's name line, and the branch into Sulo. */
+  .sumber-kartu--sulo::before {
+    left: calc(var(--rel-x) - var(--rel-masuk));
+    top: calc(-1 * var(--rel-celah));
+    height: calc(var(--rel-celah) + var(--rel-sulo));
+    width: 1.5px;
+  }
+  .sumber-kartu--sulo::after {
+    left: calc(var(--rel-x) - var(--rel-masuk));
+    top: var(--rel-sulo);
+    width: calc(var(--rel-masuk) - var(--rel-x));
+    height: 1.5px;
   }
 }
