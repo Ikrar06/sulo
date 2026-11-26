@@ -40,6 +40,8 @@ export interface WorkerConfig {
   keepAlive: { enabled: boolean; dayIntervalMinutes: number; nightIntervalMinutes: number; radarEvery: number };
   /** From a valid mobile.release only, and only when above 0 (absent otherwise, so older configs read the same). */
   minVersionCode?: number;
+  /** When minVersionCode applies (mobile.release.requiredFrom, 1.1.0); present only when set, so older configs read the same. */
+  minVersionFrom?: number;
   /** sources.sipakamase (1.1.0): present (false) only when the owner stopped its keeper, so older configs read the same. */
   sipakamaseKeep?: false;
 }
@@ -59,10 +61,12 @@ export function parseConfigResponse(status: number, body: string | null): Config
   const parsed = remoteConfigSchema.safeParse(json);
   if (!parsed.success) return { kind: 'failed' };
   const k = parseKeepAlive(parsed.data.mobile);
-  const min = parseRelease(parsed.data.mobile)?.minVersionCode ?? 0;
+  const release = parseRelease(parsed.data.mobile);
+  const min = release?.minVersionCode ?? 0;
+  const from = min > 0 ? (release?.requiredFrom ?? null) : null;
   const sip = parseSources(parsed.data.sources).sipakamase;
   const sipOff = !sip.enabled || !sip.keep;
-  return { kind: 'ok', config: { globalEnabled: parsed.data.enabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery }, ...(min > 0 ? { minVersionCode: min } : {}) , ...(sipOff ? { sipakamaseKeep: false as const } : {}) } };
+  return { kind: 'ok', config: { globalEnabled: parsed.data.enabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery }, ...(min > 0 ? { minVersionCode: min } : {}) , ...(from !== null ? { minVersionFrom: from } : {}), ...(sipOff ? { sipakamaseKeep: false as const } : {}) } };
 }
 
 /** A read is due when the last one (the worker's or the app's) is 6 hours old or more. */
@@ -90,7 +94,7 @@ export function decideRemote(s: RemoteState): RemoteDecision {
   if (s.now - s.lastAppAt >= APP_PAUSE_SEC) return { action: 'paused' };
   if (s.config === null || s.configOkAt <= 0) return { action: 'hold', reason: 'no_config', intervalMin: HOLD_INTERVAL_MIN };
   if (s.now - s.configOkAt >= CONFIG_MAX_AGE_SEC) return { action: 'hold', reason: 'stale_config', intervalMin: HOLD_INTERVAL_MIN };
-  if (s.config.minVersionCode !== undefined && s.installedCode !== undefined && s.installedCode < s.config.minVersionCode) return { action: 'hold', reason: 'update_required', intervalMin: HOLD_INTERVAL_MIN };
+  if (s.config.minVersionCode !== undefined && s.installedCode !== undefined && s.installedCode < s.config.minVersionCode && s.now >= (s.config.minVersionFrom ?? 0)) return { action: 'hold', reason: 'update_required', intervalMin: HOLD_INTERVAL_MIN };
   if (!s.config.globalEnabled) return { action: 'hold', reason: 'global_off', intervalMin: HOLD_INTERVAL_MIN };
   if (!s.config.keepAlive.enabled) return { action: 'hold', reason: 'keepalive_off', intervalMin: HOLD_INTERVAL_MIN };
   const k = s.config.keepAlive;

@@ -48,7 +48,9 @@ Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akadem
 - **Kalender akademik Unhas** berdampingan dengan tenggatmu. Kalender publiknya bisa ditambahkan ke Google Kalender (dan dari ekstensi juga ke Outlook atau Apple Calendar).
 - **Hanya mata kuliah yang kamu pantau**, masing-masing dengan nama tampilan dan warna pilihanmu.
 - **Opsional: NEOSIA.** Jadwal kuliah, status KRS, dan nilai, dibaca dari halaman NEOSIA yang kamu buka sendiri. Mati sampai kamu menyalakannya. Nilai tersembunyi sampai kamu memilih menampilkannya.
-- **Di Android:** hal yang sama di HP-mu, ditambah pilihan kunci aplikasi dan pilihan mengecek tugas baru di latar belakang.
+- **Opsional: Sipakamase.** Progres MKPK dalam satu kartu: SKS kegiatan yang belum dikonversi, mata kuliah lulus yang belum masuk NEOSIA, dan pengingat sebelum batas penginputan nilai. Sulo hanya membaca, dan kamu masuk di halaman Sipakamase sendiri. Mati sampai kamu menghubungkannya.
+- **Pantau tugas baru** (pilihan): ekstensi mengecek SIKOLA tiap 15 menit selama komputermu dipakai dan tiap kali kamu membukanya; aplikasi Android mengecek di latar belakang.
+- **Di Android:** hal yang sama di HP-mu, ditambah pilihan kunci aplikasi.
 - Tema terang dan gelap, bahasa Indonesia dan Inggris.
 
 ## Cara kerjanya
@@ -58,23 +60,23 @@ Sulo membaca apa yang bisa kamu baca sendiri di SIKOLA, lalu menyusunnya supaya 
 - **Di browser**, Sulo memakai login SIKOLA yang sudah ada di browsermu (sesi). Masuk ke SIKOLA seperti biasa, dan Sulo langsung mengenalinya. Tidak ada akun Sulo.
 - **Di Android**, kamu masuk di halaman SIKOLA sendiri di dalam aplikasi. Yang disimpan Sulo sesinya, bukan password-nya.
 - **Semuanya disimpan di perangkatmu.** Tidak ada server Sulo yang menampungnya.
-- **Sulo hanya membaca.** Sulo tidak bisa mengumpulkan tugas, mengisi presensi, atau mengubah apa pun di SIKOLA maupun NEOSIA.
+- **Sulo hanya membaca.** Sulo tidak bisa mengumpulkan tugas, mengisi presensi, atau mengubah apa pun di SIKOLA, NEOSIA, maupun Sipakamase.
 
 Saat SIKOLA mengeluarkanmu, Sulo tetap menampilkan data terakhir dan memintamu masuk lagi. Sulo tidak pernah masuk atas namamu.
 
 ## Privasi
 
 - **Tanpa password.** Sulo tidak pernah meminta, membaca, atau menyimpan username dan password-mu.
-- **Hanya membaca.** Tidak mengumpulkan tugas, tidak menandai sudah dibaca, tidak mengisi presensi, tidak mengisi KRS. Sulo tidak mengirim permintaan apa pun ke NEOSIA: Sulo hanya mencatat apa yang dimuat halaman NEOSIA sendiri saat kamu membukanya.
+- **Hanya membaca.** Tidak mengumpulkan tugas, tidak menandai sudah dibaca, tidak mengisi presensi, tidak mengisi KRS, tidak mengonversi atau mengklaim. Sulo tidak mengirim permintaan apa pun ke NEOSIA: Sulo hanya mencatat apa yang dimuat halaman NEOSIA sendiri. Di Sipakamase, Sulo membaca lima halaman MKPK-mu yang tetap, tidak lebih.
 - **Datamu tetap di perangkatmu.** Tanpa server Sulo, tanpa analitik, tanpa iklan. Di Android, sesi SIKOLA dienkripsi dengan kunci di Android Keystore dan tidak ikut cadangan perangkat.
-- **Hanya dua tujuan.** Sulo terhubung ke SIKOLA, dan ke repo data publiknya sendiri untuk satu berkas pengaturan kecil serta kalender akademik. Permintaan itu tidak membawa apa pun tentangmu. Tautan lain (Google Kalender, PDF kalender resmi, formulir masukan) baru terbuka di browser saat kamu mengekliknya.
+- **Hanya tujuan yang perlu.** Sulo terhubung ke SIKOLA, ke repo data publiknya sendiri untuk satu berkas pengaturan kecil serta kalender akademik, dan ke Sipakamase hanya kalau kamu menghubungkannya. Permintaan itu tidak membawa apa pun tentangmu. Tautan lain (Google Kalender, PDF kalender resmi, formulir masukan) hanya terbuka di tab baru saat kamu mengekliknya.
 - **Hal sensitif tersembunyi sejak awal.** Nilai dan IPK tidak pernah muncul di notifikasi, ekspor, maupun daftar yang disalin.
 
 Kebijakan lengkap ekstensi ada di [PRIVACY.md](PRIVACY.md) (Inggris). Halaman publiknya mencakup ekstensi dan aplikasi Android, dalam bahasa [Indonesia](https://ikrar06.github.io/sulo-data/privasi.html) dan [Inggris](https://ikrar06.github.io/sulo-data/privacy.html).
 
 ## Cara pasang
 
-Versi 1.0.0 sudah terbit. Cara termudah lewat [sulo.ikrar.dev](https://sulo.ikrar.dev): halaman itu memberi berkas yang cocok untuk perangkatmu dan menuntun tiap langkahnya. Berkasnya sendiri ada di halaman [Releases](https://github.com/Ikrar06/sulo/releases) repo ini, tidak di tempat lain.
+Versi 1.1.0 sudah terbit. Cara termudah lewat [sulo.ikrar.dev](https://sulo.ikrar.dev): halaman itu memberi berkas yang cocok untuk perangkatmu dan menuntun tiap langkahnya. Berkasnya sendiri ada di halaman [Releases](https://github.com/Ikrar06/sulo/releases) repo ini, tidak di tempat lain.
 
 **Ekstensi (Chrome dan Edge)**
 
@@ -110,7 +112,7 @@ APK dengan sidik jari lain bukan dari proyek ini.
 
 **Apakah Sulo melihat password-ku?** Tidak. Kamu masuk di halaman SIKOLA sendiri. Sulo hanya memakai sesi yang dihasilkan dari situ.
 
-**Kenapa aku diminta masuk lagi ke SIKOLA?** SIKOLA mengakhiri sesi setelah beberapa jam. Ekstensi browser tidak melakukan apa pun untuk menjaga sesi itu tetap hidup. Di Android, pembaruan yang kamu mulai sendiri dihitung sebagai aktivitas, sama seperti membuka SIKOLA; di latar belakang, sesi hanya dijaga kalau kamu menyalakan "Pantau tugas baru".
+**Kenapa aku diminta masuk lagi ke SIKOLA?** SIKOLA mengakhiri sesi setelah beberapa jam tanpa aktivitas. Kalau kamu menyalakan "Pantau tugas baru", cek berkalanya dihitung SIKOLA sebagai aktivitas, jadi sesimu tetap aktif (di ekstensi selama browser terbuka). Tanpa itu, Sulo tidak menjaga sesi; pembaruan yang kamu mulai sendiri tetap dihitung sebagai aktivitas, sama seperti membuka SIKOLA.
 
 **Apakah Sulo membebani SIKOLA?** Sulo meminta satu hal dalam satu waktu, tidak pernah berbarengan, tetap di bawah batas harian, dan menahan diri saat SIKOLA lambat atau menolak. Pengelola bisa menjeda semua pemasangan dari jauh.
 

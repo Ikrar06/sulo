@@ -174,6 +174,7 @@ const id = {
     requiredTitle: 'Sulo perlu diperbarui',
     requiredBody: 'Sulo berhenti mengecek SIKOLA sampai diperbarui.',
     requiredData: 'Datamu tetap ada di HP ini.',
+    requiredOn: (date: string) => `Wajib diperbarui mulai ${date}. Setelah itu Sulo berhenti mengecek SIKOLA sampai diperbarui.`,
   },
   /** Ringkasan's greeting (core dashboard/mobile-greeting.ts). [s] marks a casual line, only when nothing is overdue or due today. */
   greet: {
@@ -400,6 +401,7 @@ const en: MobileWords = {
     requiredTitle: 'Sulo needs an update',
     requiredBody: 'Sulo stops checking SIKOLA until it is updated.',
     requiredData: 'Your data stays on this phone.',
+    requiredOn: (date: string) => `Required from ${date}. After that Sulo stops checking SIKOLA until it is updated.`,
   },
   greet: {
     line1: GREET_LINE1.en,

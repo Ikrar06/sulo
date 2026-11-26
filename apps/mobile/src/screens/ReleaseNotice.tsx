@@ -76,14 +76,20 @@ export function ReleaseCard({ notice, onDismiss }: { notice: ReleaseNotice; onDi
         <p className="text-m13 text-muted-foreground tabular-nums">{t.version(r.versionName)}</p>
       </div>
       {r.notes && <p className="text-m13">{locale === 'en' ? r.notes.en : r.notes.id}</p>}
+      {/* A required update in its grace period (1.1.0): its date, and no "Nanti". */}
+      {notice.requiredFrom !== undefined && (
+        <p className="text-m13 font-medium">{t.requiredOn(new Date(notice.requiredFrom * 1000).toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', { day: 'numeric', month: 'long' }))}</p>
+      )}
       <Verify release={r} />
       <div className="flex gap-2">
         <PillButton kind="primary" small onPress={() => actions.openExternal(r.url)}>
           {t.download}
         </PillButton>
-        <PillButton small onPress={onDismiss}>
-          {t.later}
-        </PillButton>
+        {notice.requiredFrom === undefined && (
+          <PillButton small onPress={onDismiss}>
+            {t.later}
+          </PillButton>
+        )}
       </div>
     </Card>
   );

@@ -48,7 +48,9 @@ Sulo puts your SIKOLA tasks, deadlines and attendance and the Unhas academic cal
 - **The Unhas academic calendar** next to your own deadlines. Its public calendars can be added to Google Calendar (and, from the extension, to Outlook or Apple Calendar).
 - **Only the courses you follow**, each with a display name and color you choose.
 - **Optional: NEOSIA.** Your class schedule, KRS status and grades, read from the NEOSIA pages you open yourself. Off until you turn it on. Grades stay hidden until you choose to show them.
-- **On Android:** the same on your phone, plus an optional app lock and an optional background check for new tasks.
+- **Optional: Sipakamase.** Your MKPK progress in one card: activity credits not converted yet, passed courses not yet in NEOSIA, and reminders before the grade-entry deadline. Sulo only reads, and you sign in on Sipakamase's own page. Off until you connect it.
+- **Watch for new tasks** (optional): the extension checks SIKOLA every 15 minutes while your computer is in use and each time you open it; the Android app checks in the background.
+- **On Android:** the same on your phone, plus an optional app lock.
 - Light and dark themes, Indonesian and English.
 
 ## How it works
@@ -58,23 +60,23 @@ Sulo reads what you could read yourself in SIKOLA and lays it out so nothing get
 - **In the browser** it uses the sign-in your browser already has with SIKOLA (the session). Sign in to SIKOLA as usual, and Sulo picks it up. There is no Sulo account.
 - **On Android** you sign in on SIKOLA's own page inside the app. Sulo keeps the session, never the password.
 - **Everything is kept on your device.** There is no Sulo server for it to go to.
-- **It only reads.** Sulo cannot hand in work, fill in attendance or change anything in SIKOLA or NEOSIA.
+- **It only reads.** Sulo cannot hand in work, fill in attendance or change anything in SIKOLA, NEOSIA or Sipakamase.
 
 When SIKOLA signs you out, Sulo keeps showing the last data it has and asks you to sign in again. It never does that for you.
 
 ## Privacy
 
 - **No password.** Sulo never asks for, reads or stores your username or password.
-- **Read only.** No submitting, no marking as read, no attendance, no KRS. Sulo sends no request to NEOSIA at all: it only notes what NEOSIA's own page loads while you have it open.
+- **Read only.** No submitting, no marking as read, no attendance, no KRS, no converting or claiming. Sulo sends no request to NEOSIA at all: it only notes what NEOSIA's own page loads. In Sipakamase it reads five fixed pages of your MKPK data and nothing else.
 - **Your data stays on your device.** No Sulo server, no analytics, no ads. On Android the SIKOLA session is encrypted with a key held in the Android Keystore and is left out of device backups.
-- **Two places only.** Sulo talks to SIKOLA, and to its own public data repository for a small settings file and the academic calendar. Those requests carry nothing about you. Every other link (Google Calendar, the official calendar PDF, the feedback form) opens in your browser only when you click it.
+- **Only the places it needs.** Sulo talks to SIKOLA, to its own public data repository for a small settings file and the academic calendar, and to Sipakamase only if you connect it. Those requests carry nothing about you. Every other link (Google Calendar, the official calendar PDF, the feedback form) opens in a new tab only when you click it.
 - **Sensitive things are hidden by default.** Grades and GPA never appear in notifications, exports or copied lists.
 
 The extension's full policy is in [PRIVACY.md](PRIVACY.md). The public page covers the extension and the Android app, in [English](https://ikrar06.github.io/sulo-data/privacy.html) and [Indonesian](https://ikrar06.github.io/sulo-data/privasi.html).
 
 ## Install
 
-Version 1.0.0 is out. The easiest way is [sulo.ikrar.dev](https://sulo.ikrar.dev): it gives the right file for your device and walks through each step. The files themselves are on this repository's [Releases](https://github.com/Ikrar06/sulo/releases) page and nowhere else.
+Version 1.1.0 is out. The easiest way is [sulo.ikrar.dev](https://sulo.ikrar.dev): it gives the right file for your device and walks through each step. The files themselves are on this repository's [Releases](https://github.com/Ikrar06/sulo/releases) page and nowhere else.
 
 **Extension (Chrome and Edge)**
 
@@ -110,7 +112,7 @@ An APK with another fingerprint is not from this project.
 
 **Does Sulo see my password?** No. You sign in on SIKOLA's own page. Sulo only uses the session that sign-in creates.
 
-**Why does it ask me to sign in to SIKOLA again?** SIKOLA ends a session after some hours. The browser extension does nothing to keep it alive. On Android, an update you start yourself counts as activity, the same as opening SIKOLA; nothing keeps the session going in the background unless you turn on "Watch for new tasks".
+**Why does it ask me to sign in to SIKOLA again?** SIKOLA ends a session after some hours without activity. If you turn on "Watch for new tasks", SIKOLA counts its checks as activity, so your session stays active (in the extension, while the browser is open). Without it Sulo does not keep the session; an update you start yourself still counts as activity, just like opening SIKOLA.
 
 **Does it put load on SIKOLA?** Sulo asks one thing at a time, never in parallel, stays under a daily limit, and backs off when SIKOLA is slow or refuses. The maintainer can pause every installation remotely.
 

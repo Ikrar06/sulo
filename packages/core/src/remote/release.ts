@@ -21,6 +21,11 @@ export interface ReleaseInfo {
   sha256: string;
   /** 0 when absent; never above versionCode. */
   minVersionCode: number;
+  /**
+   * When minVersionCode starts to apply (unix seconds; 1.1.0, owner's rule:
+   * the card first, required 3 days later). Null: at once.
+   */
+  requiredFrom: UnixSeconds | null;
   notes: { id: string; en: string } | null;
 }
 
@@ -54,6 +59,8 @@ export function parseRelease(mobile: unknown): ReleaseInfo | null {
   if (typeof r.sha256 !== 'string' || !SHA256.test(r.sha256)) return null;
   const min = r.minVersionCode === undefined ? 0 : r.minVersionCode;
   if (!(min === 0 || isCode(min)) || (min as number) > r.versionCode) return null;
+  if (r.requiredFrom !== undefined && !isCode(r.requiredFrom)) return null;
+  const requiredFrom = r.requiredFrom === undefined ? null : (r.requiredFrom as number);
   let notes: ReleaseInfo['notes'] = null;
   if (r.notes !== undefined) {
     if (!isObject(r.notes) || typeof r.notes.id !== 'string' || typeof r.notes.en !== 'string') return null;
@@ -62,7 +69,7 @@ export function parseRelease(mobile: unknown): ReleaseInfo | null {
     if (id === '' || en === '' || id.length > NOTES_MAX || en.length > NOTES_MAX) return null;
     notes = { id, en };
   }
-  return { versionCode: r.versionCode, versionName: r.versionName, url: r.url, sha256: r.sha256.toLowerCase(), minVersionCode: min as number, notes };
+  return { versionCode: r.versionCode, versionName: r.versionName, url: r.url, sha256: r.sha256.toLowerCase(), minVersionCode: min as number, requiredFrom, notes };
 }
 
 export interface ReleaseDismissal {
@@ -70,7 +77,7 @@ export interface ReleaseDismissal {
   at: UnixSeconds;
 }
 
-export type ReleaseNotice = { kind: 'none' } | { kind: 'available'; release: ReleaseInfo } | { kind: 'required'; release: ReleaseInfo };
+export type ReleaseNotice = { kind: 'none' } | { kind: 'available'; release: ReleaseInfo; requiredFrom?: UnixSeconds } | { kind: 'required'; release: ReleaseInfo };
 
 /**
  * What to show for the installed versionCode: "required" below
@@ -79,7 +86,11 @@ export type ReleaseNotice = { kind: 'none' } | { kind: 'available'; release: Rel
  */
 export function releaseNotice(release: ReleaseInfo | null, installed: number, dismissed: ReleaseDismissal | null, now: UnixSeconds): ReleaseNotice {
   if (release === null || release.versionCode <= installed) return { kind: 'none' };
-  if (installed < release.minVersionCode) return { kind: 'required', release };
+  if (installed < release.minVersionCode) {
+    // Before its date a required update is only the card, which cannot be closed away (it says when it becomes required).
+    if (release.requiredFrom !== null && now < release.requiredFrom) return { kind: 'available', release, requiredFrom: release.requiredFrom };
+    return { kind: 'required', release };
+  }
   if (dismissed && dismissed.versionCode === release.versionCode && now - dismissed.at < RELEASE_RESHOW_SEC) return { kind: 'none' };
   return { kind: 'available', release };
 }

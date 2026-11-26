@@ -55,6 +55,10 @@ export const remoteParseCases: { name: string; status: number; body: string | nu
   { name: 'network-failure', status: 0, body: null, want: failed },
   // M8e E3: a valid mobile.release carries its minVersionCode to the worker; anything invalid in it is ignored (never a failed read).
   { name: 'release-with-min', status: 200, body: body({ ...base, mobile: { release: REL } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: ON, minVersionCode: 905 } } },
+  // 1.1.0: requiredFrom, the date a required update starts to apply (the card shows first).
+  { name: 'release-required-from', status: 200, body: body({ ...base, mobile: { release: { ...REL, requiredFrom: 1_795_000_000 } } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: ON, minVersionCode: 905, minVersionFrom: 1_795_000_000 } } },
+  { name: 'release-required-from-without-min-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: 0, requiredFrom: 1_795_000_000 } } }), want: ok() },
+  { name: 'release-required-from-not-integer', status: 200, body: body({ ...base, mobile: { release: { ...REL, requiredFrom: '2026-12-01' } } }), want: ok() },
   { name: 'release-without-min', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: undefined } } }), want: ok() },
   { name: 'release-min-zero', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: 0 } } }), want: ok() },
   { name: 'release-url-elsewhere-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, url: 'https://example.com/sulo.apk' } } }), want: ok() },
@@ -99,6 +103,8 @@ export const remoteDecideCases: { name: string; state: RemoteState; want: Remote
   // M8e E3: below a valid release's minVersionCode nothing goes to SIKOLA (the chain keeps reading the config).
   { name: 'update-required', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 904 }, want: hold('update_required') },
   { name: 'update-required-even-when-off', state: { ...state({ config: { ...cfg({}, false), minVersionCode: 905 } }), installedCode: 900 }, want: hold('update_required') },
+  { name: 'update-required-before-its-date-checks', state: { ...state({ config: { ...cfg({}), minVersionCode: 905, minVersionFrom: NOW + D } }), installedCode: 904 }, want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'update-required-from-its-date', state: { ...state({ config: { ...cfg({}), minVersionCode: 905, minVersionFrom: NOW } }), installedCode: 904 }, want: hold('update_required') },
   { name: 'at-min-version-checks', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 905 }, want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'paused-before-update-required', state: { ...state({ lastAppAt: NOW - 8 * D, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: { action: 'paused' } },
   { name: 'stale-before-update-required', state: { ...state({ configOkAt: NOW - 72 * H, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: hold('stale_config') },

@@ -10,8 +10,17 @@ const NOW = 1_800_000_000;
 
 describe('parseRelease', () => {
   it('reads a valid section (sha256 lowercased, notes trimmed)', () => {
-    expect(parseRelease({ release: REL })).toEqual({ ...REL, sha256: 'a'.repeat(64), notes: { id: 'Perbaikan pengingat.', en: 'Reminder fixes.' } });
+    expect(parseRelease({ release: REL })).toEqual({ ...REL, sha256: 'a'.repeat(64), requiredFrom: null, notes: { id: 'Perbaikan pengingat.', en: 'Reminder fixes.' } });
     expect(parseRelease({ release: { ...REL, minVersionCode: undefined, notes: undefined } })).toMatchObject({ minVersionCode: 0, notes: null });
+  });
+  it('a required update shows as the card until its date, then as the required screen (1.1.0)', () => {
+    const release = parseRelease({ release: { ...REL, minVersionCode: 906, requiredFrom: NOW + 3 * 86_400 } })!;
+    expect(release.requiredFrom).toBe(NOW + 3 * 86_400);
+    expect(releaseNotice(release, 905, null, NOW)).toEqual({ kind: 'available', release, requiredFrom: NOW + 3 * 86_400 });
+    // A closed card comes back: it is a required update.
+    expect(releaseNotice(release, 905, { versionCode: 906, at: NOW }, NOW + 60).kind).toBe('available');
+    expect(releaseNotice(release, 905, null, NOW + 3 * 86_400).kind).toBe('required');
+    expect(parseRelease({ release: { ...REL, requiredFrom: 'soon' } })).toBeNull();
   });
   it('ignores the whole section for any bad field', () => {
     const bad: Record<string, unknown>[] = [

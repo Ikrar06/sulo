@@ -1,6 +1,6 @@
 {
   "name": "@sulo/ui",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Sulo's shared interface pieces for the extension and the Android app: React components with no chrome.*, no WXT and no Capacitor.",
   "license": "MIT",

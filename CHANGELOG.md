@@ -4,6 +4,29 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-27
+
+### Added
+
+- **Sipakamase.** Connect Sipakamase (optional, off until you agree to it) and the MKPK card shows the activity credits not converted yet and the passed courses not yet in NEOSIA, with reminders: a course in your KRS not passed yet as the grade-entry deadline nears, a passed course you can program when KRS opens, an activity with no companion, a grade to claim. Changes to your activities' status arrive as news. Sulo only reads five fixed pages of your MKPK data; you sign in on Sipakamase's own page, and Sulo never fills in, deletes, converts or claims anything. While you are waiting for something, Sulo keeps the session alive with one read every 3 hours (on the phone only on the background check that already runs); when nothing is pending it stops.
+- **MKPK card.** With NEOSIA connected: the MKPK credits on your transcript and in your KRS, the MKPK courses your program offers this semester, and your program's MKPK load (Sulo's estimate until you confirm it).
+- **Watch for new tasks in the extension** (optional): SIKOLA is checked every 15 minutes while your computer is in use and each time you open Sulo, so new tasks and updates arrive as notifications without pressing Update. Your SIKOLA session stays active in this browser while it is on.
+- **Update from NEOSIA closes itself.** The page opens, its data comes in, and the tab (extension) or screen (phone) closes by itself.
+- **Update NEOSIA automatically** (Android, optional): when you open Sulo and a visit is due (daily during KRS and grade periods, weekly otherwise), NEOSIA's Beranda loads out of sight; if NEOSIA asks you to sign in again, Sulo says so.
+- **What's new in Sulo** on the phone too, once after an update.
+- A quick check when you open the phone app with data from 5 to 15 minutes ago.
+
+### Changed
+
+- After 7 days without Sulo being opened, watching and session keeping stop with one notification; opening Sulo starts them again (Sipakamase asks to connect again).
+- One remembered choice shows grades on the dashboard: "Show" on the Studies card and on Grades now do the same thing.
+- Lighter screens: KRS readiness as short label and value rows, shorter help in Settings, notification system steps folded away, every button in the extension a pill like on the phone, and "Open dashboard" always visible in the popup.
+- A required Android update can be set to apply from a date, so the update card shows first.
+
+### Fixed
+
+- The phone's background check now refuses a remote config whose extension switch is broken, like the app does, and a failed config read no longer drops the extension's settings.
+
 ## [1.0.0] - 2026-11-25
 
 The first public release. The extension and the Android app are the same as 0.9.1; what is new is that anyone can get them.
