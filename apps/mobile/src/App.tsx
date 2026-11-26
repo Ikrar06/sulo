@@ -31,6 +31,7 @@ import { markChangesHandled } from '@sulo/core/watch/queue';
 import { scheduleIfNoneScheduled, scheduleReminders } from './reminders';
 import { LockScreen } from './screens/Gate';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
+import { markWhatsNewRead, WhatsNewSheet } from './WhatsNew';
 import { SwitchAccount } from './onboarding/SwitchAccount';
 import { holdWatching, keepPreviousAccount, switchPending, useOtherAccount } from './switch-account';
 import { readSavedFlow, saveFlow } from './onboarding/data';
@@ -39,7 +40,7 @@ import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
-import { lastSyncAt, manualFresh, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
+import { checkNow, lastSyncAt, manualFresh, resumeNeedsCheck, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
 import type { SyncDeps } from '@sulo/core/sync/run-sync';
 import { calls } from '@sulo/core/moodle/calls';
 import { TEST_BUDGET_FLAG, TEST_CHECK_GAP_MS, testCheckLimit } from './dev/test-budget';
@@ -312,7 +313,10 @@ export function App({ platform }: { platform: Platform }) {
       const suspect = held.suspect || held.deferred === true;
       // Debug builds: the staged tests can hold the sync on open, to check the session before it runs.
       if (__SULO_DEV__ && devHoldResume()) return;
-      if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
+      const last = await lastSyncAt(platform);
+      if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(last, platform.clock.now()))) void refresh();
+      // Data from 5 to 15 minutes ago: one light check, quietly (no spinner); the screen updates from storage.
+      else if (s === 'connected' && resumeNeedsCheck(last, platform.clock.now())) void checkNow(platform).finally(() => void applyWatchPlan(platform));
       else void applyWatchPlan(platform);
     };
     document.addEventListener('visibilitychange', onVisible);
@@ -381,6 +385,8 @@ export function App({ platform }: { platform: Platform }) {
           setFlow(resume(await readSavedFlow(platform), { signedIn: false, hasData: false }));
         }}
       />
+      {/* Once after an update that brought something new; never during the onboarding or its landing. */}
+      {flow.step === 'finished' && !landing && <WhatsNewSheet store={platform.store} />}
       </NeosiaProvider>
     </MobileDataProvider>
   );
@@ -455,6 +461,8 @@ export function App({ platform }: { platform: Platform }) {
                 // "Buka Sulo": the onboarding is finished on disk now, before any landing motion
                 // (a process ended during it would otherwise come back on "Semua siap").
                 void saveFlow(platform, { step: 'finished', mode: flow.mode });
+                // A new install has nothing "new" to read: this version counts as read.
+                void markWhatsNewRead(platform.store);
                 const land = () => {
                   // The hero greets with the same happy face the flying mascot wears (its own 1.5 s cheer), so the hand-over shows nothing.
                   window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: true } }));

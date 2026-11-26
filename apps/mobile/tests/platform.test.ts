@@ -39,7 +39,7 @@ vi.mock('../src/session', () => ({
 
 const { createPreferencesStore } = await import('../src/platform/store');
 const { createSessionHttp, NATIVE_SESSKEY } = await import('../src/platform/http');
-const { resumeNeedsSync, RESUME_STALE_SEC } = await import('../src/sync');
+const { resumeNeedsCheck, resumeNeedsSync, RESUME_CHECK_SEC, RESUME_STALE_SEC } = await import('../src/sync');
 const { planReminders } = await import('../src/reminders');
 
 beforeEach(() => {
@@ -99,6 +99,11 @@ describe('opening the app', () => {
     expect(resumeNeedsSync(null, 1000)).toBe(true);
     expect(resumeNeedsSync(1000, 1000 + RESUME_STALE_SEC - 1)).toBe(false);
     expect(resumeNeedsSync(1000, 1000 + RESUME_STALE_SEC)).toBe(true);
+    // 1.1.0: between 5 and 15 minutes, a light check; never alongside a full sync.
+    expect(resumeNeedsCheck(null, 1000)).toBe(false);
+    expect(resumeNeedsCheck(1000, 1000 + RESUME_CHECK_SEC - 1)).toBe(false);
+    expect(resumeNeedsCheck(1000, 1000 + RESUME_CHECK_SEC)).toBe(true);
+    expect(resumeNeedsCheck(1000, 1000 + RESUME_STALE_SEC)).toBe(false);
   });
 });
 

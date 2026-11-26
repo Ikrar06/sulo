@@ -12,8 +12,10 @@ export interface WhatsNewEntry {
   id: string;
   title: { id: string; en: string };
   body: { id: string; en: string };
-  /** One action in place: the "Pantau tugas baru" switch. */
+  /** One action in place: the "Pantau tugas baru" switch (extension). */
   action?: 'watch';
+  /** Where it shows; both when absent. */
+  platforms?: readonly ('extension' | 'android')[];
 }
 
 /** 1.1.0 (notice version 2). Ordered as they show: the biggest change first. */
@@ -36,12 +38,14 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
       en: 'Turn on Watch for new tasks so Sulo checks SIKOLA every 15 minutes and each time you open Sulo.',
     },
     action: 'watch',
+    // The phone already had it; its 1.1.0 change (a light check on opening) needs no entry.
+    platforms: ['extension'],
   },
 ];
 
-export function pendingWhatsNew(entries: readonly WhatsNewEntry[], readVersion: number, completed: boolean): WhatsNewEntry[] {
+export function pendingWhatsNew(entries: readonly WhatsNewEntry[], readVersion: number, completed: boolean, platform: 'extension' | 'android' = 'extension'): WhatsNewEntry[] {
   if (!completed) return [];
-  return entries.filter((e) => e.noticeVersion > readVersion);
+  return entries.filter((e) => e.noticeVersion > readVersion && (e.platforms === undefined || e.platforms.includes(platform)));
 }
 
 /** An entry's words in the page's language. */

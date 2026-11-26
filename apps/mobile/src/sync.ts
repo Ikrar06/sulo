@@ -19,8 +19,10 @@ import { SuloSession } from './session';
 import { recordTimeRemaining } from './dev-log';
 import { updateRequired } from './release';
 
-/** Opening the app syncs when the data is older than this. */
+/** Opening the app syncs fully when the data is older than this. */
 export const RESUME_STALE_SEC = 15 * 60;
+/** Between this and RESUME_STALE_SEC, opening the app runs one light check instead (1.1.0). */
+export const RESUME_CHECK_SEC = 5 * 60;
 
 /** SIKOLA through SuloSession, with the core client's budget, queue and backoff. */
 export function sikolaClient(platform: Platform, options: { userInitiated: boolean; dev?: boolean; dailyBudget?: number }): MoodleClient {
@@ -93,6 +95,23 @@ export async function manualFresh(platform: Platform): Promise<boolean> {
 /** Back in the foreground: sync only when the data is older than 15 minutes. */
 export function resumeNeedsSync(last: UnixSeconds | null, now: UnixSeconds): boolean {
   return last === null || now - last >= RESUME_STALE_SEC;
+}
+
+/**
+ * Back in the foreground with data from 5 to 15 minutes ago: one light
+ * check (session, calendar, notifications; core's trigger "popup", the
+ * opening of the app), so news found since then shows without a full sync.
+ * The screen is already on, so it wakes nothing that was asleep.
+ */
+export function resumeNeedsCheck(last: UnixSeconds | null, now: UnixSeconds): boolean {
+  return last !== null && now - last >= RESUME_CHECK_SEC && now - last < RESUME_STALE_SEC;
+}
+
+/** The light check when the app opens: the user's own activity, like a sync on open. */
+export async function checkNow(platform: Platform): Promise<SyncOutcome> {
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return { status: 'skipped', reason: 'FRESH' };
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'offline' };
+  return runSync({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock, trigger: 'popup' });
 }
 
 /**
