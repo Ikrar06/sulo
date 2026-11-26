@@ -48,3 +48,13 @@ describe('the phone\'s scheduled NEOSIA visit', async () => {
     expect(visitDue({ ...base, now: 7 * DAY })).toBe(true);
   });
 });
+
+describe('NEOSIA session log (debug builds)', async () => {
+  const { neosiaSessionHours, noteNeosiaSession, NEOSIA_SESSION_LOG_KEY } = await import('@sulo/core/neosia/session-log');
+  it('measures each session from its first sign-in seen to the next login page', async () => {
+    const { memoryStore } = await import('./helpers');
+    const store = memoryStore();
+    for (const [at, event] of [[0, 'signed_in'], [3600, 'signed_in'], [5 * 3600, 'needs_login'], [6 * 3600, 'needs_login'], [7 * 3600, 'signed_in']] as const) await noteNeosiaSession(store, { at, event, via: 'tap' });
+    expect(neosiaSessionHours(store.dump()[NEOSIA_SESSION_LOG_KEY] as never)).toEqual([5]);
+  });
+});

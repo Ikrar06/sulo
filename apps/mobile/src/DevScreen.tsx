@@ -2,6 +2,9 @@
 // age log and the remaining time SIKOLA reported. Numbers and times only.
 import { useEffect, useState } from 'react';
 import { readSessionAge, sessionAgeStats, medianSessionHours, type SessionAgeState } from '@sulo/core/net/session-age';
+import { NEOSIA_SESSION_LOG_KEY, neosiaSessionHours, type NeosiaSessionEntry } from '@sulo/core/neosia/session-log';
+import { createNeosiaStore } from './platform/neosia-store';
+import { SuloNeosia } from './neosia-native';
 import type { MobileWords } from '@sulo/core/i18n/mobile';
 import type { Platform } from '@sulo/core/platform';
 import { Card } from '@sulo/ui/mobile/cards';
@@ -19,7 +22,10 @@ const time = (at: number) => new Date(at * 1000).toLocaleString('id-ID', { dateS
 export function DevScreen({ platform, w, onBack }: { platform: Platform; w: MobileWords; onBack: () => void }) {
   const [age, setAge] = useState<SessionAgeState | null>(null);
   const [left, setLeft] = useState<TimeRemainingEntry[]>([]);
+  const [neosia, setNeosia] = useState<NeosiaSessionEntry[]>([]);
   useEffect(() => {
+    // NEOSIA's log lives in its encrypted store (keys under "neosia:").
+    void createNeosiaStore(platform.store, SuloNeosia).get<NeosiaSessionEntry[]>(NEOSIA_SESSION_LOG_KEY).then((v) => setNeosia(v ?? []));
     void readSessionAge(platform.store).then(setAge);
     void platform.store.get<TimeRemainingEntry[]>(TIME_REMAINING_KEY).then((v) => setLeft(v ?? []));
   }, [platform]);
@@ -35,6 +41,17 @@ export function DevScreen({ platform, w, onBack }: { platform: Platform; w: Mobi
           {(age?.entries ?? []).map((e) => (
             <li key={e.expiredDetectedAt} className={row}>
               {time(e.expiredDetectedAt)} · {e.sejakSuksesTerakhirMenit} menit sejak sukses · {e.sejakMulaiSesiMenit ?? '-'} menit sejak mulai sesi
+            </li>
+          ))}
+        </ul>
+      </Card>
+      <Card>
+        <h2 className="text-m15 font-semibold">Sesi NEOSIA</h2>
+        <p className="mt-1">Umur sesi (jam): {neosiaSessionHours(neosia).join(', ') || '-'}</p>
+        <ul className="mt-2">
+          {neosia.map((e) => (
+            <li key={`${e.at}-${e.event}`} className={row}>
+              {time(e.at)} · {e.event === 'signed_in' ? 'masuk terlihat' : 'halaman login'} · {e.via === 'visit' ? 'kunjungan' : 'ketukan'}
             </li>
           ))}
         </ul>
