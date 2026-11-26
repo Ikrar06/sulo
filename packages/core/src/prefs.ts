@@ -58,6 +58,12 @@ export interface Prefs {
   privacyMode: boolean;
   /** Credits to graduate, the scale of the overview's credits bar (NEOSIA, 100 to 200). */
   sksTarget: number;
+  /**
+   * The study program's MKPK load as the student confirmed or chose it: 20 or
+   * 10 credits, or 'none' (no MKPK in their curriculum: the card is hidden).
+   * Null until then; Sulo's estimate is never stored here unconfirmed.
+   */
+  mkpkLoad: 20 | 10 | 'none' | null;
   /** Android (M8d): grades and GPA are shown only once turned on in Pengaturan; hidden by default. */
   gradesShown: boolean;
   /** Mobile: how much motion (perf/tier.ts); "auto" follows the detected tier. */
@@ -76,6 +82,7 @@ export const DEFAULT_PREFS: Prefs = {
   calendarFilter: DEFAULT_GROUP_FILTER,
   privacyMode: false,
   sksTarget: 144,
+  mkpkLoad: null,
   gradesShown: false,
   animation: 'auto',
 };
@@ -93,6 +100,7 @@ const prefsSchema = z.object({
   calendarFilter: groupFilterSchema,
   privacyMode: z.boolean().catch(false),
   sksTarget: z.number().int().min(100).max(200).catch(144),
+  mkpkLoad: z.union([z.literal(20), z.literal(10), z.literal('none')]).nullable().catch(null),
   gradesShown: z.boolean().catch(false),
   animation: z.enum(['auto', 'full', 'lite']).catch('auto'),
 });

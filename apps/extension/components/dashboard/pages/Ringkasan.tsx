@@ -38,6 +38,7 @@ import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { HeroMascot } from '../HeroMascot';
 import { useFlip } from '@/lib/ui/flip';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
+import { MkpkCard } from '@sulo/ui/dashboard/MkpkCard';
 
 const LEVELS = [1, 2, 3, 4] as const;
 
@@ -199,6 +200,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
             <AcademicCard calendar={data.calendar} today={data.today} d={d} />
           </Card>
           <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} neosiaOn={neosiaOn} attendance={attendance} />
+          {neosiaOn && <MkpkCard snapshots={snapshots} transcript={data.neosia.mkpk} load={data.prefs.mkpkLoad} onLoad={(mkpkLoad) => void actions.setPrefs({ mkpkLoad })} now={data.now} />}
         </div>
       </div>
 

@@ -19,6 +19,7 @@ import { SuloNeosia, type NeosiaPage } from '../neosia-native';
 import { createNeosiaStore } from '../platform/neosia-store';
 import { ingestQueued } from './ingest';
 import { GRADE_ENDPOINTS, withoutGrades } from './grade-guard';
+import { readMkpkTranscript, type MkpkTranscript } from '@sulo/core/mkpk/transcript';
 
 /** NEOSIA's sign-in was seen (a page left its login), kept until a page lands on the login again; NEOSIA data, so wiped with it. */
 const SIGNED_IN_KEY = 'neosia:signedIn';
@@ -39,6 +40,8 @@ export interface NeosiaState {
   signedIn: boolean;
   /** NEOSIA classes linked by hand to SIKOLA courses (encrypted like the rest). */
   courseMap: CourseMap;
+  /** The MKPK card's summary of the transcript: passed MKPK credits and course-code letters, never a grade. */
+  mkpk: MkpkTranscript | null;
   enable: () => Promise<void>;
   disable: () => Promise<void>;
   /** Opens a NEOSIA page from a tap; its captures are stored when it closes. */
@@ -64,6 +67,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
   const [lastResult, setLastResult] = useState<OpenResult>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [courseMap, setCourseMap] = useState<CourseMap>({});
+  const [mkpk, setMkpk] = useState<MkpkTranscript | null>(null);
   const [signedInSeen, setSignedInSeen] = useState(false);
 
   const reload = useCallback(async () => {
@@ -72,6 +76,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
       setSnapshots({});
       setGradeKeys(new Set());
       setSignedInSeen(false);
+      setMkpk(null);
       return;
     }
     const keys = new Set(await store.keys(snapshotKey('' as EndpointId)));
@@ -90,6 +95,8 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
     setGradeKeys(grades);
     setSignedInSeen((await store.get<boolean>(SIGNED_IN_KEY)) === true);
     setCourseMap(await readCourseMap(store).catch(() => ({})));
+    // Made once from a transcript captured before the summary existed; the transcript itself is not kept here.
+    setMkpk(await readMkpkTranscript(store, snapshotKey('getTranskripMahasiswa')).catch(() => null));
   }, [platform, store]);
 
   useEffect(() => {
@@ -154,7 +161,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
     return full;
   }, [snapshots, gradeKeys, store]);
 
-  const value: NeosiaState = { supported, enabled: module.enabled, snapshots, done, next, needsLogin, signedIn, courseMap, enable, disable, open, loadGrades, reload };
+  const value: NeosiaState = { supported, enabled: module.enabled, snapshots, done, next, needsLogin, signedIn, courseMap, mkpk, enable, disable, open, loadGrades, reload };
   return <NeosiaContext.Provider value={value}>{children}</NeosiaContext.Provider>;
 }
 

@@ -8,7 +8,8 @@ import type { CalendarFile } from '../calendar/schema';
 import { readCourseMap, type CourseMap } from '../neosia/course-map';
 import { readInvite, type InviteState } from '../neosia/invite';
 import { readModuleState, type NeosiaModuleState } from '../neosia/module';
-import { readSnapshots, type Snapshots } from '../neosia/store';
+import { readSnapshots, snapshotKey, type Snapshots } from '../neosia/store';
+import { readMkpkTranscript, type MkpkTranscript } from '../mkpk/transcript';
 import { readPrefs, type Prefs } from '../prefs';
 import { localParts } from '../reminders/zoned';
 import { currentUser, readAllUser, type UserData } from '../storage';
@@ -29,12 +30,12 @@ export interface DashboardData {
   /** Today's local date, YYYY-MM-DD. */
   today: string;
   /** The optional NEOSIA module: its state and the stored projections. */
-  neosia: { module: NeosiaModuleState; snapshots: Snapshots; courseMap: CourseMap; invite: InviteState };
+  neosia: { module: NeosiaModuleState; snapshots: Snapshots; courseMap: CourseMap; invite: InviteState; mkpk: MkpkTranscript | null };
 }
 
 export async function loadDashboardData(store: KeyValueStore, clock: Clock, timeZone: string, online: boolean): Promise<DashboardData> {
   const userId = await currentUser(store);
-  const [input, prefs, user, pending, calendar, module, snapshots, courseMap, invite] = await Promise.all([
+  const [input, prefs, user, pending, calendar, module, snapshots, courseMap, invite, mkpk] = await Promise.all([
     loadPopupInput(store, clock, timeZone),
     readPrefs(store),
     userId === null ? Promise.resolve(null) : readAllUser(store, userId),
@@ -44,6 +45,7 @@ export async function loadDashboardData(store: KeyValueStore, clock: Clock, time
     readSnapshots(store),
     readCourseMap(store),
     readInvite(store),
+    readMkpkTranscript(store, snapshotKey('getTranskripMahasiswa')).catch(() => null),
   ]);
   return {
     now: input.now,
@@ -56,6 +58,6 @@ export async function loadDashboardData(store: KeyValueStore, clock: Clock, time
     calendar,
     today: localParts(input.now, timeZone).dateKey,
     // While the module is off nothing of it shows, even if a key were left behind.
-    neosia: { module, snapshots: module.enabled ? snapshots : {}, courseMap: module.enabled ? courseMap : {}, invite },
+    neosia: { module, snapshots: module.enabled ? snapshots : {}, courseMap: module.enabled ? courseMap : {}, invite, mkpk: module.enabled ? mkpk : null },
   };
 }

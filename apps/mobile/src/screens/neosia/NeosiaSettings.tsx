@@ -23,7 +23,7 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
   const neo = useNeosia();
   const { data, actions } = useMobileData();
   const prefs = data!.prefs;
-  const [sheet, setSheet] = useState<'sks' | 'disconnect' | null>(null);
+  const [sheet, setSheet] = useState<'sks' | 'mkpk' | 'disconnect' | null>(null);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,12 +42,13 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
           <Toggle checked={prefs.gradesShown} label={n.mobile.gradesShown} onChange={(v) => void actions.setPrefs({ gradesShown: v })} />
         </Row>
         <ValueRow label={n.settings.sksTarget} value={String(target)} onPress={() => setSheet('sks')} />
+        <ValueRow label={n.mkpk.settingsRow} value={prefs.mkpkLoad === null ? n.mkpk.settingsUnset : n.mkpk.choice[prefs.mkpkLoad]} onPress={() => setSheet('mkpk')} />
         <button type="button" onClick={() => setSheet('disconnect')} className="m-hit flex min-h-12 w-full items-center text-left text-m15 text-urgency-overdue outline-none focus-ring:ring-2 focus-ring:ring-focus">
           {n.mobile.disconnect}
         </button>
       </Group>
 
-      <Sheet open={sheet !== null} onOpenChange={(o) => !o && setSheet(null)} title={sheet === 'sks' ? n.settings.sksTarget : n.settings.disconnectTitle}>
+      <Sheet open={sheet !== null} onOpenChange={(o) => !o && setSheet(null)} title={sheet === 'sks' ? n.settings.sksTarget : sheet === 'mkpk' ? n.mkpk.settingsRow : n.settings.disconnectTitle}>
         {sheet === 'sks' && (
           <SheetTextForm
             label={n.settings.sksTarget}
@@ -60,6 +61,24 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
               if (v !== null) void actions.setPrefs({ sksTarget: v });
             }}
           />
+        )}
+        {sheet === 'mkpk' && (
+          <div className="space-y-2">
+            <p className="text-m13 text-muted-foreground">{n.mkpk.settingsHelp}</p>
+            {([20, 10, 'none'] as const).map((choice) => (
+              <PillButton
+                key={String(choice)}
+                full
+                kind={prefs.mkpkLoad === choice ? 'primary' : 'secondary'}
+                onPress={() => {
+                  void actions.setPrefs({ mkpkLoad: choice });
+                  setSheet(null);
+                }}
+              >
+                {n.mkpk.choice[choice]}
+              </PillButton>
+            ))}
+          </div>
         )}
         {sheet === 'disconnect' && (
           <div className="space-y-4">

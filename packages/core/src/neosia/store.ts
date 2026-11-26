@@ -9,6 +9,7 @@ import { NEOSIA_DATA_PREFIX, readModuleState } from './module';
 import type { Projected } from './project';
 import { parseCapture, stableStringify } from './schema';
 import { readRemoteConfig } from '../remote/remote-config';
+import { writeMkpkTranscript } from '../mkpk/transcript';
 
 export const snapshotKey = (endpoint: EndpointId) => `${NEOSIA_DATA_PREFIX}snap:${endpoint}`;
 
@@ -85,6 +86,8 @@ export async function ingestCapture(store: KeyValueStore, now: UnixSeconds, raw:
     unknownShapeAt: null,
   };
   await store.set(key, next);
+  // The MKPK card's own summary of the transcript (credits only, no grades): see mkpk/transcript.ts.
+  if (capture.endpoint === 'getTranskripMahasiswa') await writeMkpkTranscript(store, data, now);
   return { kind: 'stored', endpoint: capture.endpoint, previous, next, changed, baseline: !comparable };
 }
 

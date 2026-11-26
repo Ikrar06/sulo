@@ -36,6 +36,7 @@ import { HeroMascot } from './HeroMascot';
 import { WeekCard } from './WeekCard';
 import { useSyncUi } from '../shell/SyncStatusLine';
 import { KrsReadinessCard, NeosiaSetupCard, StudiCard, TodayClassCard } from './neosia/RingkasanNeosia';
+import { MkpkCard } from './neosia/MkpkCard';
 import { ReleaseCard, useReleaseNotice } from './ReleaseNotice';
 import { URGENCY_TEXT } from './Tugas';
 
@@ -259,6 +260,9 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
           <StudiCard go={go} />
         </div>
       </section>
+
+      {/* NEOSIA connected and a Kurikulum 2023 student: MKPK progress. */}
+      <MkpkCard />
 
       <WeekCard
         bars={bars}

@@ -30,6 +30,9 @@ export const REPO_URL = '';
 /** "Traktir kopi" (Trakteer). */
 export const TRAKTEER_URL = 'https://teer.id/krar';
 
+/** Unhas's own page on MKPK (load per cluster, rules, rubric): a plain link that opens a new tab. */
+export const MKPK_INFO_URL = 'https://www.unhas.ac.id/mkpk/?lang=id';
+
 export type CreatorLinkId = 'instagram' | 'linkedin' | 'github' | 'web';
 
 /** "Dibuat oleh": the maintainer's public profiles. Empty URLs are hidden. */
