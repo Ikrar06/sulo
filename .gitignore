@@ -31,3 +31,8 @@ skills/
 *.p12
 *.keystore
 !apps/mobile/android/app/sulo-debug.keystore
+
+# Sanitized copies of saved Sipakamase pages: a local shape reference only,
+# never committed (CONTRIBUTING.md, Data rules).
+fixtures/sipakamase/
+fixtures/sipakamase-kata-aman.txt
