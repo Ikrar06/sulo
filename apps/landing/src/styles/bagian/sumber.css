@@ -11,10 +11,13 @@
   padding: 0;
   list-style: none;
   display: grid;
+  /* One column no wider than the list: an implicit (auto) one grows to the longest word at large text sizes. */
+  grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: 1fr;
 }
 .sumber-baris {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   padding-block: 8px;
 }
 .sumber-kartu {
@@ -33,6 +36,8 @@
   font-weight: 700;
   font-size: 1.125rem;
   line-height: 1.3;
+  /* Twice the text size on a 320 px phone: a source's name breaks inside its card rather than past its edge. */
+  overflow-wrap: anywhere;
 }
 .sumber-nama img {
   width: 24px;
@@ -53,6 +58,8 @@
   font-size: 0.9375rem;
   line-height: 1.5;
   text-wrap: pretty;
+  /* A word longer than the card (twice the text size on a 320 px phone) breaks rather than sticking out. */
+  overflow-wrap: break-word;
 }
 .sumber-garis {
   align-self: stretch;
