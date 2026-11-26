@@ -3,6 +3,8 @@ import { Button } from '@sulo/ui/ui/button';
 import { useI18n } from '@sulo/ui/i18n';
 import { entryText, type WhatsNewEntry } from '@sulo/core/onboarding/whats-new';
 import { WatchSwitch } from '../WatchSwitch';
+import { dashboardPath } from '@sulo/core/dashboard/routes';
+import { sipakamaseWords } from '@sulo/core/i18n/sipakamase';
 import { Lead, Title } from './Shell';
 
 
@@ -23,6 +25,16 @@ export function StepWhatsNew(props: { entries: readonly WhatsNewEntry[]; noticeC
               {e.action === 'watch' && (
                 <div className="pt-2">
                   <WatchSwitch compact />
+                </div>
+              )}
+              {e.action === 'sipakamase' && (
+                <div className="pt-2">
+                  {/* To the Sipakamase settings, where the consent comes before any permission. */}
+                  <Button variant="outline" asChild>
+                    <a href={dashboardPath('pengaturan', 'sipakamase')} target="_blank" rel="noopener noreferrer">
+                      {sipakamaseWords(locale).connectCta}
+                    </a>
+                  </Button>
                 </div>
               )}
             </li>

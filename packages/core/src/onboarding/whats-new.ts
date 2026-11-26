@@ -12,14 +12,24 @@ export interface WhatsNewEntry {
   id: string;
   title: { id: string; en: string };
   body: { id: string; en: string };
-  /** One action in place: the "Pantau tugas baru" switch (extension). */
-  action?: 'watch';
+  /** One action in place: the "Pantau tugas baru" switch (extension), or "Hubungkan Sipakamase". */
+  action?: 'watch' | 'sipakamase';
   /** Where it shows; both when absent. */
   platforms?: readonly ('extension' | 'android')[];
 }
 
 /** 1.1.0 (notice version 2). Ordered as they show: the biggest change first. */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
+  {
+    noticeVersion: 2,
+    id: 'sipakamase',
+    title: { id: 'Sulo terhubung ke Sipakamase', en: 'Sulo connects to Sipakamase' },
+    body: {
+      id: 'Lihat kegiatan MKPK yang belum dikonversi, nilai yang belum masuk NEOSIA, dan dapat pengingat sebelum batas nilai. Sulo hanya membaca, dan kamu masuk di halaman Sipakamase sendiri.',
+      en: 'See MKPK activities not yet converted, grades not yet in NEOSIA, and get reminders before the grade deadline. Sulo only reads, and you sign in on Sipakamase’s own page.',
+    },
+    action: 'sipakamase',
+  },
   {
     noticeVersion: 2,
     id: 'mkpk-card',
