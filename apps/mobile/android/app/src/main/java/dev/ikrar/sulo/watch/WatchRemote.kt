@@ -67,12 +67,22 @@ object WatchRemote {
         return Read.Ok(Config(enabled, keepAlive(root.opt("mobile")), releaseMin(root.opt("mobile"))))
     }
 
-    private fun switchReadable(root: JSONObject): Boolean {
-        if (!root.has("mobile")) return true
-        val mobile = root.opt("mobile") as? JSONObject ?: return false
-        if (!mobile.has("backgroundKeepAlive")) return true
-        val k = mobile.opt("backgroundKeepAlive") as? JSONObject ?: return false
-        return !k.has("enabled") || k.opt("enabled") is Boolean
+    /** core remote/switches.ts CONFIG_SWITCHES: the same paths, the same rule. */
+    private val SWITCHES = listOf(
+        Triple("mobile", "backgroundKeepAlive", "enabled"),
+        Triple("extension", "backgroundWatch", "enabled"),
+        Triple("sources", "sipakamase", "enabled"),
+        Triple("sources", "sipakamase", "keep"),
+        Triple("sources", "neosia", "scheduledVisit"),
+    )
+
+    /** Every switch path, where present, is readable: its sections objects, the switch a boolean. */
+    private fun switchReadable(root: JSONObject): Boolean = SWITCHES.all { (section, group, name) ->
+        if (!root.has(section) || root.isNull(section)) return@all !root.has(section)
+        val s = root.opt(section) as? JSONObject ?: return@all false
+        if (!s.has(group)) return@all true
+        val g = s.opt(group) as? JSONObject ?: return@all false
+        !g.has(name) || g.opt(name) is Boolean
     }
 
     /** keep-alive.ts parseKeepAlive: each field its default when missing, of the wrong type or out of range. */

@@ -1,4 +1,5 @@
-// A small, forgiving HTML tokenizer for the page sanitizers. Text level only
+// A small, forgiving HTML tokenizer: the page sanitizers and the Sipakamase
+// readers (sipakamase/parse.ts). Text level only
 // (no DOM), so it runs in Node without dependencies. It never throws: markup
 // it cannot read comes back as text, which the caller treats as untrusted.
 

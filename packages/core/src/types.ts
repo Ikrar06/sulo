@@ -78,6 +78,8 @@ export interface RemoteConfig {
   mobile?: unknown;
   /** The extension's own section (remote/extension-watch.ts validates it on read); the phone ignores it. */
   extension?: unknown;
+  /** Per campus system (remote/sources.ts validates it on read). */
+  sources?: unknown;
 }
 
 export type ClientRefusal =

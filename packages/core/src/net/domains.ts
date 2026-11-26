@@ -8,11 +8,15 @@
 //   (lib/remote/fetch-public.ts).
 // - neosia: refuses everything. Sulo never sends a request to NEOSIA
 //   (project rule 12); its data only comes from passive capture.
+// - sipakamase (1.1.0): GET only, to five exact read-only paths with no
+//   query (sipakamase/allowlist.ts), checked here as a second lock behind
+//   the Sipakamase client itself.
 
 import { BACKOFF_KEY } from '../moodle/backoff';
 import { REQUEST_TIMEOUT_MS, SIKOLA_ORIGIN } from '../moodle/limits';
+import { READ_PATHS, SIPAKAMASE_ORIGIN } from '../sipakamase/allowlist';
 
-export type DomainId = 'sikola' | 'sulo-data' | 'neosia';
+export type DomainId = 'sikola' | 'sulo-data' | 'neosia' | 'sipakamase';
 
 export interface DomainPolicy {
   id: DomainId;
@@ -24,6 +28,8 @@ export interface DomainPolicy {
   backoffKey: string;
   /** Fixed fetch options; callers cannot override them. */
   init: Pick<RequestInit, 'credentials' | 'redirect' | 'cache'>;
+  /** When set: only these exact paths, no query or fragment, GET only. */
+  readOnlyPaths?: readonly string[];
   timeoutMs: number;
 }
 
@@ -48,6 +54,16 @@ export const DOMAINS: Readonly<Record<DomainId, DomainPolicy>> = {
     // no-cache: the browser revalidates its own copy (it adds the conditional
     // headers itself); Sulo adds no header of its own.
     init: { credentials: 'omit', cache: 'no-cache' },
+    timeoutMs: REQUEST_TIMEOUT_MS,
+  },
+  sipakamase: {
+    id: 'sipakamase',
+    origins: [SIPAKAMASE_ORIGIN],
+    allowRequests: true,
+    backoffKey: 'global:backoff:sipakamase',
+    // The browser's own session cookie; a redirect means the session is gone (the login page) and is never followed.
+    init: { credentials: 'include', redirect: 'manual', cache: 'no-store' },
+    readOnlyPaths: READ_PATHS,
     timeoutMs: REQUEST_TIMEOUT_MS,
   },
   neosia: {

@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { tokenizeHtml } from '@sulo/core/sanitize/html-tokens';
+import { tokenizeHtml } from '@sulo/core/html/tokens';
 import { findLeaks } from '@sulo/core/sanitize/leak-rules.mjs';
 import { summarizeHar } from '@sulo/core/sanitize/sipakamase-har';
 import { SipakamaseSanitizer, SYNTHETIC } from '@sulo/core/sanitize/sipakamase';

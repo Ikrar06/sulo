@@ -37,16 +37,6 @@ export function parseExtensionWatch(extension: unknown): ExtensionWatchConfig {
   };
 }
 
-/** The switch's path, when present, is readable: a switch that is there but not a boolean makes the file invalid. */
-export function extensionWatchSwitchReadable(extension: unknown): boolean {
-  if (extension === undefined) return true;
-  if (!isObject(extension)) return false;
-  const w = extension.backgroundWatch;
-  if (w === undefined) return true;
-  if (!isObject(w)) return false;
-  return w.enabled === undefined || typeof w.enabled === 'boolean';
-}
-
 /** The settings in force: from the last stored config (its last good read), or the defaults. */
 export function extensionWatchFrom(config: RemoteConfig | null): ExtensionWatchConfig {
   return parseExtensionWatch(config?.extension);

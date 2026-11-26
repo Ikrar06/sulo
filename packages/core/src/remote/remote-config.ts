@@ -8,7 +8,7 @@ import { BACKGROUND_INTERVAL_MIN } from '../moodle/limits';
 import { createScheduler, type Scheduler } from '../net/scheduler';
 import type { Clock, FetchLike, KeyValueStore, RemoteConfig } from '../types';
 import { fetchPublicJson } from './fetch-public';
-import { extensionWatchSwitchReadable } from './extension-watch';
+import { switchesReadable } from './switches';
 
 export const REMOTE_CONFIG_KEY = 'global:remoteConfig';
 /** Revalidation state (Last-Modified, content hash) of the config file. */
@@ -25,21 +25,9 @@ export const remoteConfigSchema = z.object({
   mobile: z.unknown().optional(),
   // The extension's section (1.1.0), read the same way (remote/extension-watch.ts).
   extension: z.unknown().optional(),
-})
-  .refine((c) => keepAliveSwitchReadable(c.mobile), { message: 'mobile.backgroundKeepAlive.enabled must be a boolean' })
-  .refine((c) => extensionWatchSwitchReadable(c.extension), { message: 'extension.backgroundWatch.enabled must be a boolean' });
-
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-
-/** The switch's path, when present, is readable: `mobile` and `backgroundKeepAlive` are objects, `enabled` a boolean. */
-function keepAliveSwitchReadable(mobile: unknown): boolean {
-  if (mobile === undefined) return true;
-  if (!isObject(mobile)) return false;
-  const k = mobile.backgroundKeepAlive;
-  if (k === undefined) return true;
-  if (!isObject(k)) return false;
-  return k.enabled === undefined || typeof k.enabled === 'boolean';
-}
+  // Per campus system (1.1.0): sources.sipakamase, sources.neosia (remote/sources.ts).
+  sources: z.unknown().optional(),
+}).refine((c) => switchesReadable(c), { message: 'a config switch must be a boolean (remote/switches.ts)' });
 
 export const DEFAULT_REMOTE_CONFIG: RemoteConfig = {
   enabled: true,
@@ -97,5 +85,12 @@ export async function refreshRemoteConfig(deps: RefreshDeps): Promise<RemoteConf
 }
 
 function stripFetchedAt(config: RemoteConfig): Omit<RemoteConfig, 'fetchedAt'> {
-  return { enabled: config.enabled, minIntervalMinutes: config.minIntervalMinutes, message: config.message, ...(config.mobile !== undefined ? { mobile: config.mobile } : {}) };
+  return {
+    enabled: config.enabled,
+    minIntervalMinutes: config.minIntervalMinutes,
+    message: config.message,
+    ...(config.mobile !== undefined ? { mobile: config.mobile } : {}),
+    ...(config.extension !== undefined ? { extension: config.extension } : {}),
+    ...(config.sources !== undefined ? { sources: config.sources } : {}),
+  };
 }

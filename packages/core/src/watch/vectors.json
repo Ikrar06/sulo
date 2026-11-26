@@ -2150,6 +2150,79 @@
    }
   },
   {
+   "name": "extension-switch-not-boolean",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"extension\":{\"backgroundWatch\":{\"enabled\":\"no\"}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "extension-not-object",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"extension\":1}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "sipakamase-keep-not-boolean",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":{\"sipakamase\":{\"keep\":0}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "sipakamase-enabled-null",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":{\"sipakamase\":{\"enabled\":null}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "sipakamase-not-object",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":{\"sipakamase\":true}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "neosia-visit-not-boolean",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":{\"neosia\":{\"scheduledVisit\":\"yes\"}}}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "sources-not-object",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":[]}",
+   "out": {
+    "kind": "failed"
+   }
+  },
+  {
+   "name": "sources-switches-off",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":{\"sipakamase\":{\"enabled\":false,\"keep\":false},\"neosia\":{\"scheduledVisit\":false}},\"extension\":{\"backgroundWatch\":{\"enabled\":false}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 110,
+      "radarEvery": 3
+     }
+    }
+   }
+  },
+  {
    "name": "missing-enabled",
    "status": 200,
    "body": "{\"minIntervalMinutes\":30}",

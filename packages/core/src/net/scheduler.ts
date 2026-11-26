@@ -76,6 +76,7 @@ export function createScheduler(deps: SchedulerDeps): Scheduler {
 async function send(deps: SchedulerDeps, policy: DomainPolicy, url: string, init: RequestInit, meta: NetRequestMeta): Promise<NetResult> {
   if (!policy.allowRequests) return refused('DOMAIN_DENIED');
   if (!isOnDomain(url, policy)) return refused('NOT_ALLOWLISTED');
+  if (policy.readOnlyPaths && !isAllowedReadOnly(url, init, policy.readOnlyPaths)) return refused('NOT_ALLOWLISTED');
   const now = deps.clock.now();
   if (isBackingOff(await readBackoff(deps.store, policy.backoffKey), now)) return refused('BACKING_OFF');
   if (meta.reserve && !(await meta.reserve())) return refused('BUDGET_EXHAUSTED');
@@ -103,6 +104,18 @@ async function send(deps: SchedulerDeps, policy: DomainPolicy, url: string, init
   await recordSuccess(deps.store, policy.backoffKey);
   await log(response.type === 'opaqueredirect' ? 'redirect' : `http ${response.status}`, await bodyLength(deps, response));
   return { kind: 'response', response };
+}
+
+/** A read-only domain: GET, one of its exact paths, no query, no fragment, no credentials in the URL. */
+export function isAllowedReadOnly(url: string, init: RequestInit, paths: readonly string[]): boolean {
+  if ((init.method ?? 'GET').toUpperCase() !== 'GET' || init.body !== undefined) return false;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  return parsed.search === '' && parsed.hash === '' && parsed.username === '' && parsed.password === '' && paths.includes(parsed.pathname);
 }
 
 /** Exact origin match: no subdomains, no lookalikes. */

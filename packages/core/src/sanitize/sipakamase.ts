@@ -16,7 +16,7 @@
 // One instance handles one run: numbering and the salt for replaced numbers
 // are shared across the files, which keeps cross references between pages.
 
-import { tokenizeHtml, VOID_TAGS, type HtmlAttr, type HtmlToken } from './html-tokens.ts';
+import { tokenizeHtml, VOID_TAGS, type HtmlAttr, type HtmlToken } from '../html/tokens.ts';
 import { DICTIONARY, isSafeCell } from './sipakamase-kosakata.ts';
 
 export const SYNTHETIC = { email: 'mahasiswa@example.invalid', nim: 'D000000001', phone: '080000000000', grade: 'B', word: 'xxx' } as const;
