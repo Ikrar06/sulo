@@ -52,6 +52,14 @@ const id = {
     },
     more: (n: number) => `${n} pengingat lainnya`,
   },
+  notice: {
+    title: 'MKPK',
+    a: (name: string, days: number) => (days === 0 ? `${name} belum lulus di Sipakamase. Batas penginputan nilai hari ini.` : `${name} belum lulus di Sipakamase. Batas penginputan nilai ${days} hari lagi.`),
+    c: (name: string) => `KRS dibuka. ${name} sudah lulus di Sipakamase dan bisa diprogramkan.`,
+    news: (name: string, to: string) => `Kegiatanmu di Sipakamase berubah: ${name} sekarang ${to}.`,
+  },
+  remindersSwitch: 'Pengingat MKPK',
+  remindersHelp: 'Notifikasi untuk MKPK yang belum lulus menjelang batas nilai, yang bisa diprogramkan saat KRS dibuka, dan perubahan status kegiatan.',
 };
 
 export type SipakamaseWords = typeof id;
@@ -103,6 +111,14 @@ const en: SipakamaseWords = {
     },
     more: (n: number) => (n === 1 ? '1 more reminder' : `${n} more reminders`),
   },
+  notice: {
+    title: 'MKPK',
+    a: (name: string, days: number) => (days === 0 ? `${name} is not passed in Sipakamase yet. Grade entry closes today.` : `${name} is not passed in Sipakamase yet. Grade entry closes in ${days} days.`),
+    c: (name: string) => `KRS is open. ${name} is passed in Sipakamase and can be programmed.`,
+    news: (name: string, to: string) => `Your Sipakamase activity changed: ${name} is now ${to}.`,
+  },
+  remindersSwitch: 'MKPK reminders',
+  remindersHelp: 'Notifications for MKPK courses not passed near the grade deadline, courses you can program when KRS opens, and activity status changes.',
 };
 
 export function sipakamaseWords(locale: Locale): SipakamaseWords {

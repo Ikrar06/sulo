@@ -15,7 +15,7 @@ import { readFragment, type FragmentRead } from './client';
 import { readConnection, readsAllowed, transition, writeConnection, type Connection, type ConnEvent } from './connection';
 import { afterAuto, afterRefresh, planKeeper, planRefresh, readKeeper, writeKeeper } from './keeper';
 import { readSipakamaseModule } from './module';
-import { applyFragment, hasPending, readSipakamaseData, writeSipakamaseData, type FragmentValue } from './store';
+import { applyFragment, hasPending, queueNews, readSipakamaseData, statusChanges, writeSipakamaseData, type FragmentValue } from './store';
 import type { PassiveRead } from './schema';
 
 export interface SipakamaseDeps {
@@ -41,8 +41,10 @@ async function move(deps: SipakamaseDeps, conn: Connection, event: ConnEvent): P
 /** Stores a good value and moves the connection; a login or shape answer only moves it. */
 async function settle(deps: SipakamaseDeps, conn: Connection, read: FragmentRead | { kind: 'value'; value: FragmentValue }): Promise<Connection> {
   if (read.kind === 'ok' || read.kind === 'value') {
-    const data = applyFragment(await readSipakamaseData(deps.store), read.value, deps.now());
+    const before = await readSipakamaseData(deps.store);
+    const data = applyFragment(before, read.value, deps.now());
     await writeSipakamaseData(deps.store, data);
+    await queueNews(deps.store, statusChanges(before, data, deps.now()));
     return move(deps, conn, { kind: 'read_ok', pending: hasPending(data) });
   }
   if (read.kind === 'login') return move(deps, conn, { kind: 'login_page' });

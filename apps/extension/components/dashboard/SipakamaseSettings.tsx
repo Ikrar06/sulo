@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useI18n } from '@sulo/ui/i18n';
 import { Button } from '@sulo/ui/ui/button';
+import { SwitchRow } from '@sulo/ui/ui/switch-row';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@sulo/ui/ui/alert-dialog';
 import { AlertCircleIcon, CheckCircleIcon, InfoCircleIcon } from '@sulo/ui/dashboard-icons';
 import { formatAgo, formatClock } from '@sulo/core/format/time';
@@ -99,6 +100,12 @@ export function SipakamaseSettings({ data, actions }: { data: DashboardData; act
         </p>
       )}
       <p className="max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{w.browserClosed}</p>
+      <div className="border-t border-border pt-3">
+        <SwitchRow checked={data.prefs.mkpkReminders} onChange={(on) => void actions.setPrefs({ mkpkReminders: on })}>
+          {w.remindersSwitch}
+        </SwitchRow>
+        <p className="mt-1 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{w.remindersHelp}</p>
+      </div>
 
       <AlertDialog open={confirm} onOpenChange={setConfirm}>
         <AlertDialogContent>

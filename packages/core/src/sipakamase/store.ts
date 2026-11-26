@@ -106,3 +106,38 @@ export async function wipeSipakamaseData(store: KeyValueStore): Promise<void> {
   const keys = await store.keys(SIPAKAMASE_DATA_PREFIX);
   if (keys.length > 0) await store.remove(keys);
 }
+
+/** A status change of one activity between two reads (the "kabar"). */
+export interface SipakamaseNews {
+  name: string;
+  from: string;
+  to: string;
+  at: UnixSeconds;
+}
+
+export const SIPAKAMASE_NEWS_KEY = `${SIPAKAMASE_DATA_PREFIX}news`;
+const NEWS_MAX = 20;
+
+/**
+ * Activities whose status changed from `before` to `after`, across both
+ * lists (an activity moves from running to history when it is finished).
+ * The first read of the activities is the baseline: no news.
+ */
+export function statusChanges(before: SipakamaseData, after: SipakamaseData, now: UnixSeconds): SipakamaseNews[] {
+  const seen = (d: SipakamaseData) => d.parts.running !== undefined || d.parts.history !== undefined;
+  if (!seen(before)) return [];
+  const map = (d: SipakamaseData) => new Map([...(d.parts.running ?? []), ...(d.parts.history ?? [])].map((a) => [a.name.toLowerCase().replace(/\s+/g, ' ').trim(), a]));
+  const old = map(before);
+  const out: SipakamaseNews[] = [];
+  for (const [k, a] of map(after)) {
+    const b = old.get(k);
+    if (b && b.statusText !== a.statusText) out.push({ name: a.name, from: b.statusText, to: a.statusText, at: now });
+  }
+  return out;
+}
+
+export async function queueNews(store: KeyValueStore, news: SipakamaseNews[]): Promise<void> {
+  if (news.length === 0) return;
+  const queued = (await store.get<SipakamaseNews[]>(SIPAKAMASE_NEWS_KEY)) ?? [];
+  await store.set(SIPAKAMASE_NEWS_KEY, [...queued, ...news].slice(-NEWS_MAX));
+}

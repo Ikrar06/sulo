@@ -64,6 +64,8 @@ export interface Prefs {
    * Null until then; Sulo's estimate is never stored here unconfirmed.
    */
   mkpkLoad: 20 | 10 | 'none' | null;
+  /** "Pengingat MKPK" (1.1.0): notifications for MKPK courses near the grade deadline and in the KRS window, and Sipakamase news. */
+  mkpkReminders: boolean;
   /** Android (M8d): grades and GPA are shown only once turned on in Pengaturan; hidden by default. */
   gradesShown: boolean;
   /** Mobile: how much motion (perf/tier.ts); "auto" follows the detected tier. */
@@ -83,6 +85,7 @@ export const DEFAULT_PREFS: Prefs = {
   privacyMode: false,
   sksTarget: 144,
   mkpkLoad: null,
+  mkpkReminders: true,
   gradesShown: false,
   animation: 'auto',
 };
@@ -101,6 +104,7 @@ const prefsSchema = z.object({
   privacyMode: z.boolean().catch(false),
   sksTarget: z.number().int().min(100).max(200).catch(144),
   mkpkLoad: z.union([z.literal(20), z.literal(10), z.literal('none')]).nullable().catch(null),
+  mkpkReminders: z.boolean().catch(true),
   gradesShown: z.boolean().catch(false),
   animation: z.enum(['auto', 'full', 'lite']).catch('auto'),
 });

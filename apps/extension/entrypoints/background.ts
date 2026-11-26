@@ -38,6 +38,7 @@ import { bumpUsage } from '@sulo/core/stats/usage';
 import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@sulo/core/account/pending';
 import { useNewAccount, wipeAllData } from '@sulo/core/account/actions';
 import { runSync, type SyncStage } from '@sulo/core/sync/run-sync';
+import { runMkpkNotices } from '@sulo/core/mkpk/notices-run';
 import { ONBOARDING_STAGES_KEY, type OnboardingStages } from '@sulo/core/onboarding/stages';
 import { recordSeenCmid, refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
 import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@sulo/core/sync/relogin';
@@ -48,6 +49,7 @@ import { loadPopupInput } from '@sulo/core/view/load';
 import { browserModuleDeps } from '@/src/platform/neosia';
 import { createSipakamaseService, SIPAKAMASE_ALARM } from '@/src/sipakamase';
 import { SIPAKAMASE_ORIGIN } from '@sulo/core/sipakamase/allowlist';
+import { SIPAKAMASE_NEWS_KEY } from '@sulo/core/sipakamase/store';
 import { disableModule, enableModule, reconcileModule } from '@sulo/core/neosia/module';
 import { NEOSIA_APP_ORIGIN } from '@sulo/core/neosia/allowlist';
 import { ingestCapture, pruneUnlistedSnapshots } from '@sulo/core/neosia/store';
@@ -227,6 +229,15 @@ export default defineBackground(() => {
       // The phone's full morning summary (Tahap 2): overdue, today, tomorrow and today's calendar events; none when all are empty.
       const result = await runNotifyCycle({ store: local, now, timeZone: timeZone(), uiLanguage: browser.i18n.getUILanguage(), morningStyle: 'full', notifier });
       await countShown(result.shownKinds ?? []);
+      // MKPK (1.1.0): courses near the grade deadline or in the KRS window, and Sipakamase news.
+      const prefs = await readPrefs(local);
+      await runMkpkNotices({
+        store: local,
+        now,
+        timeZone: timeZone(),
+        locale: resolveLocale(prefs.locale, browser.i18n.getUILanguage()),
+        show: (id, title, body) => notifier.show(id, { icon: 'idle', title, message: body, buttons: [] }),
+      }).catch(() => 0);
       if (result.nextAt === null) await browser.alarms.clear(NOTIFY_ALARM);
       else await browser.alarms.create(NOTIFY_ALARM, { when: result.nextAt * 1000 });
       return result;
@@ -275,7 +286,8 @@ export default defineBackground(() => {
     } else if (kind === 'nudge') {
       // The user clicked the notification: open the NEOSIA page it names. Sulo never touches that tab.
       await browser.tabs.create({ url: nudgeTarget(id) });
-    } else if (kind === 'krs') {
+    } else if (kind === 'krs' || kind === 'mkpk') {
+      // MKPK notices (1.1.0) open the overview, where the MKPK card is.
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     } else if (kind === 'calendar') {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('kalender')) });
@@ -591,7 +603,7 @@ export default defineBackground(() => {
     }
     if ('global:remoteConfig' in changes || EXTENSION_WATCH_KEY in changes) void ensureAlarms();
     if ('global:remoteConfig' in changes) void sipakamase.ensureAlarm();
-    if (keys.some((k) => REMINDER_INPUTS.test(k))) runReminders();
+    if (keys.some((k) => REMINDER_INPUTS.test(k) || k === SIPAKAMASE_NEWS_KEY)) runReminders();
     const account = changes[CURRENT_USER_KEY];
     if (account && account.oldValue !== undefined && account.oldValue !== account.newValue) void onAccountChanged();
   });
