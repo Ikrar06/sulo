@@ -19,6 +19,7 @@ import { Card } from '@sulo/ui/card';
 import { ChevronDownIcon } from '@sulo/ui/icons';
 import { BugReport } from '@sulo/ui/dashboard/BugReport';
 import { NeosiaSettings } from '../NeosiaSettings';
+import { SipakamaseSettings } from '../SipakamaseSettings';
 import type { PageProps } from '../types';
 
 /** Development builds only: the branch is false in production, so the module is never bundled. */
@@ -29,7 +30,7 @@ const UsageStats = import.meta.env.MODE === 'development' ? lazy(() => import('.
 const RadarDiagnosis = import.meta.env.MODE !== 'production' ? lazy(() => import('../RadarDiagnosis')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
-const SECTIONS = ['tampilan', 'tentangKamu', 'pantau', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data', 'laporan', 'hapus'] as const;
+const SECTIONS = ['tampilan', 'tentangKamu', 'pantau', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'sipakamase', 'data', 'laporan', 'hapus'] as const;
 
 function Field({ label, help, children }: { label: string; help?: string; children: (id: string) => ReactNode }) {
   const id = useId();
@@ -62,7 +63,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
   }, [route.detail]);
 
   // The sections on the right, as on Bantuan (DocLayout's scrollspy, core's pure getActiveSection). Delete stays last.
-  const toc = SECTIONS.map((id) => ({ id: `set-${id}`, label: id === 'neosia' ? 'NEOSIA' : id === 'pantau' ? watchWords(locale).title : id === 'laporan' ? t.bugReport.cardTitle : t.sections[id] }));
+  const toc = SECTIONS.map((id) => ({ id: `set-${id}`, label: id === 'neosia' ? 'NEOSIA' : id === 'sipakamase' ? 'Sipakamase' : id === 'pantau' ? watchWords(locale).title : id === 'laporan' ? t.bugReport.cardTitle : t.sections[id] }));
 
   return (
     <DocLayout toc={toc} tocLabel={d.bantuan.onThisPage} hashFor={(id) => `pengaturan/${id.slice(4)}`}>
@@ -227,6 +228,10 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
 
       <Card id="set-neosia" title="NEOSIA">
         <NeosiaSettings data={data} actions={actions} />
+      </Card>
+
+      <Card id="set-sipakamase" title="Sipakamase">
+        <SipakamaseSettings data={data} actions={actions} />
       </Card>
 
       <Card id="set-data" title={t.sections.data}>

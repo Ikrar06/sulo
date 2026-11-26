@@ -28,6 +28,7 @@ import { chromium } from 'playwright';
 import { clipLog, staticTexts } from '../../mobile/scripts/lib/clipped.mjs';
 import { loadWords } from '../../mobile/scripts/lib/words.mjs';
 import { demoNeosia } from './lib/demo-neosia.mjs';
+import { demoSipakamase } from './lib/demo-sipakamase.mjs';
 import { demoPresensi } from './lib/demo-presensi.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -76,7 +77,7 @@ function demoStorage() {
 
 /** Fresh data (so no sync starts), with attendance and NEOSIA unless `neosia` is false. */
 function seed(prefs, extra = {}, { neosia = true } = {}) {
-  const s = { ...demoStorage(), ...demoPresensi(NOW), ...(neosia ? demoNeosia(NOW) : {}) };
+  const s = { ...demoStorage(), ...demoPresensi(NOW), ...(neosia ? { ...demoNeosia(NOW), ...demoSipakamase(NOW) } : {}) };
   s['u:1:sync'] = { ...(s['u:1:sync'] ?? {}), lastSyncAt: NOW, lastCourseListAt: NOW };
   s['global:prefs'] = { ...(s['global:prefs'] ?? {}), ...prefs };
   return { ...s, ...extra };

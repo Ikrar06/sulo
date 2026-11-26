@@ -92,6 +92,43 @@ export const NEOSIA_CONSENT: ConsentText = {
   },
 };
 
+/** The Sipakamase consent (1.1.0, docs/mkpk/RENCANA-RINCI.md E): the dialog and the privacy page render this object. */
+export const SIPAKAMASE_CONSENT: ConsentText = {
+  title: { id: 'Hubungkan Sipakamase?', en: 'Connect Sipakamase?' },
+  how: {
+    id: 'Sulo membaca kegiatan MKPK-mu, SKS yang sudah dikonversi, dan mata kuliah yang sudah lulus, supaya kamu melihat progresnya di satu tempat. Kamu masuk di halaman Sipakamase sendiri. Sulo tidak melihat kata sandimu.',
+    en: 'Sulo reads your MKPK activities, the credits already converted and the courses you passed, so you see your progress in one place. You sign in on Sipakamase’s own page. Sulo never sees your password.',
+  },
+  keptTitle: { id: 'Cara Sulo menjaganya', en: 'How Sulo keeps it up to date' },
+  kept: [
+    {
+      id: 'Selama ada yang kamu tunggu (kegiatan yang belum selesai diproses, atau nilai yang belum sampai NEOSIA), Sulo mengambil satu dari lima halaman MKPK-mu tiap 3 jam. Itu memperbarui datamu dan membuatmu tidak diminta masuk terus. Selama itu sesi Sipakamase-mu tetap aktif di perangkat ini.',
+      en: 'While you are waiting for something (an activity not processed yet, or a grade not in NEOSIA yet), Sulo reads one of your five MKPK pages every 3 hours. That keeps your data current and keeps you from being asked to sign in again and again. Meanwhile your Sipakamase session stays active on this device.',
+    },
+    {
+      id: 'Kalau tidak ada yang ditunggu, Sulo berhenti mengambil apa pun sampai kamu membuka Sipakamase atau menekan Perbarui sekarang.',
+      en: 'When nothing is waited for, Sulo stops reading until you open Sipakamase or press Update now.',
+    },
+    {
+      id: 'Sulo hanya membaca. Ia tidak mengisi, menghapus, mengonversi, atau mengklaim apa pun.',
+      en: 'Sulo only reads. It never fills in, deletes, converts or claims anything.',
+    },
+  ],
+  droppedTitle: { id: 'Yang tidak dibaca', en: 'What is never read' },
+  dropped: [
+    { id: 'NIM, email, dan nomor HP', en: 'Your student number, email and phone number' },
+    { id: 'Nama dosen pendamping dan verifikator', en: 'The names of companions and verifiers' },
+    { id: 'Isi obrolan dan notifikasi', en: 'Chat messages and notifications' },
+    { id: 'Angka nilai', en: 'Numeric grades' },
+  ],
+  offTitle: { id: 'Memutuskan', en: 'Disconnecting' },
+  off: {
+    id: 'Kapan saja, lewat Pengaturan lalu "Putuskan". Semua data Sipakamase langsung terhapus dan izinnya dicabut.',
+    en: 'Any time, in Settings with "Disconnect". All Sipakamase data is deleted at once and the permission is removed.',
+  },
+  unofficial: NEOSIA_CONSENT.unofficial,
+};
+
 export const PRIVACY_SECTIONS: Section[] = [
   {
     heading: { id: 'Yang dibaca Sulo', en: 'What Sulo reads' },

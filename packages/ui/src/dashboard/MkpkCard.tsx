@@ -16,6 +16,10 @@ import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { MKPK_INFO_URL } from '@sulo/core/links';
 import { estimateLoad, type MkpkLoadChoice } from '@sulo/core/mkpk/load';
 import { mkpkProgress, sksText } from '@sulo/core/mkpk/progress';
+import type { MkpkReminder } from '@sulo/core/mkpk/reminders';
+import type { SipakamaseSummary } from '@sulo/core/mkpk/sipakamase-summary';
+import { sipakamaseWords, type SipakamaseWords } from '@sulo/core/i18n/sipakamase';
+import { AlertCircleIcon } from '../dashboard-icons';
 import type { MkpkTranscript } from '@sulo/core/mkpk/transcript';
 import type { Snapshots } from '@sulo/core/neosia/store';
 
@@ -26,14 +30,18 @@ interface Props {
   load: MkpkLoadChoice | null;
   onLoad: (choice: MkpkLoadChoice) => void;
   now: number;
+  /** Sipakamase (1.1.0): its summary and reminders when connected; `onConnect` opens its consent when not. */
+  sipakamase?: { summary: SipakamaseSummary; reminders: MkpkReminder[]; onConnect: () => void } | null;
 }
 
-export function MkpkCard({ snapshots, transcript, load, onLoad, now }: Props) {
+export function MkpkCard({ snapshots, transcript, load, onLoad, now, sipakamase = null }: Props) {
   const { locale, m } = useI18n();
   const w = neosiaWords(locale).mkpk;
   const masked = usePrivacy();
   const [listOpen, setListOpen] = useState(false);
   const [choosing, setChoosing] = useState(false);
+  const [allReminders, setAllReminders] = useState(false);
+  const sw = sipakamaseWords(locale);
   const p = mkpkProgress(snapshots, transcript);
   if (!p.applies || load === 'none') return null;
 
@@ -107,6 +115,8 @@ export function MkpkCard({ snapshots, transcript, load, onLoad, now }: Props) {
         </div>
       )}
 
+      {sipakamase && <SipakamasePart part={sipakamase} sw={sw} text={text} allReminders={allReminders} onAll={() => setAllReminders(true)} />}
+
       {load === null && (
         // The load question, set apart by space alone.
         <div className="mt-4 space-y-2">
@@ -141,7 +151,75 @@ export function MkpkCard({ snapshots, transcript, load, onLoad, now }: Props) {
         </div>
       )}
 
-      {seen > 0 && <p className="mt-3 text-[12px] leading-normal text-muted-foreground">{w.source(formatAgo(seen, now, m))}</p>}
+      {(seen > 0 || sipakamase?.summary.readAt) && (
+        <p className="mt-3 text-[12px] leading-normal text-muted-foreground">
+          {[seen > 0 ? w.source(formatAgo(seen, now, m)) : null, sipakamase?.summary.readAt ? sw.card.source(formatAgo(sipakamase.summary.readAt, now, m)) : null].filter(Boolean).join(' ')}
+        </p>
+      )}
     </Card>
   );
+}
+
+/** Reminders shown before "n lainnya": the card stays a glance. */
+const SHOWN_REMINDERS = 2;
+
+function SipakamasePart({ part, sw, text, allReminders, onAll }: { part: NonNullable<Props['sipakamase']>; sw: SipakamaseWords; text: (sks: number) => string; allReminders: boolean; onAll: () => void }) {
+  const { summary, reminders, onConnect } = part;
+  if (!summary.connected) {
+    return (
+      <p className="mt-3 border-t border-border pt-3 text-[14px] text-muted-foreground">
+        {sw.card.invite}{' '}
+        <button type="button" onClick={onConnect} className="rounded text-foreground underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-ring">
+          {sw.connect}
+        </button>
+      </p>
+    );
+  }
+  // d is the row above; the list holds what has a name.
+  const named = reminders.filter((r) => r.kind !== 'd');
+  const shown = allReminders ? named : named.slice(0, SHOWN_REMINDERS);
+  const problem = summary.state === 'needs_login' ? sw.card.needsLogin : summary.state === 'broken' ? sw.card.broken : null;
+  return (
+    <div className="text-[14px]">
+      {summary.notInNeosiaSks !== null && summary.notInNeosiaSks > 0 && (
+        <div className="flex min-h-10 items-center justify-between gap-3 border-t border-border">
+          <span className="text-muted-foreground">{sw.card.notInNeosiaLabel}</span>
+          <span className="tabular-nums">
+            <Private>{`${text(summary.notInNeosiaSks)} SKS`}</Private>
+          </span>
+        </div>
+      )}
+      {summary.unconvertedSks !== null && summary.unconvertedSks > 0 && (
+        <div className="flex min-h-10 items-center justify-between gap-3 border-t border-border">
+          <span className="text-muted-foreground">{sw.card.unconvertedLabel}</span>
+          <span className="tabular-nums">
+            <Private>{`${text(summary.unconvertedSks)} SKS`}</Private>
+          </span>
+        </div>
+      )}
+      {shown.length > 0 && (
+        <ul className="space-y-1 border-t border-border pt-2">
+          {shown.map((r, i) => (
+            <li key={`${r.kind}-${i}`} className="flex items-start gap-2 text-[12px] leading-5">
+              <AlertCircleIcon aria-hidden="true" className="mt-1 size-3.5 shrink-0 text-urgency-soon" />
+              <span>{reminderText(r, sw, text)}</span>
+            </li>
+          ))}
+          {!allReminders && named.length > SHOWN_REMINDERS && (
+            <li>
+              <button type="button" onClick={onAll} className="rounded text-[12px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-ring">
+                {sw.card.more(named.length - SHOWN_REMINDERS)}
+              </button>
+            </li>
+          )}
+        </ul>
+      )}
+      {problem && <p className="mt-2 text-[12px] text-muted-foreground">{problem}</p>}
+    </div>
+  );
+}
+
+export function reminderText(r: MkpkReminder, sw: SipakamaseWords, text: (sks: number) => string): string {
+  const t = sw.card.reminders;
+  return r.kind === 'd' ? t.d(text(r.sks), r.activities) : t[r.kind](r.name);
 }
