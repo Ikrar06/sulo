@@ -2,7 +2,8 @@
 // extension (core neosia/capture.ts: allowlist, projection, size limit); only
 // the bridge differs: the extension forwards with window.postMessage to its
 // content script, this forwards to the app through the WebMessageListener
-// object `SuloNeosia`, which the app adds only for https://neosia.unhas.ac.id.
+// object `SuloNeosia` (Android) or the WKScriptMessageHandler `SuloNeosia`
+// (iPhone), which the app adds only for https://neosia.unhas.ac.id.
 //
 // The native side adds this script (WebViewCompat.addDocumentStartJavaScript)
 // only for pages Sulo opens from a tap that are not the login page, and takes
@@ -24,7 +25,9 @@ const onLogin = () => location.pathname === '/login' || location.pathname.starts
   try {
     // The app adds this script only for NEOSIA's origin (the native origin rule), so the page's own origin is NEOSIA's.
     if (onLogin()) return;
-    const port = (globalThis as unknown as { SuloNeosia?: Port }).SuloNeosia;
+    // Android: the WebMessageListener object; iOS: the WKScriptMessageHandler of the same name.
+    const g = globalThis as unknown as { SuloNeosia?: Port; webkit?: { messageHandlers?: { SuloNeosia?: Port } } };
+    const port = g.SuloNeosia ?? g.webkit?.messageHandlers?.SuloNeosia;
     if (!port || typeof port.postMessage !== 'function') return;
     window.addEventListener('message', (event) => {
       try {

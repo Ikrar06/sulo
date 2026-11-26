@@ -51,6 +51,8 @@ function sync() {
   const data = dataMode();
   const mode = DATA_MODES[data];
   run('pnpm', ['exec', 'vite', 'build', '--mode', mode]);
+  // The NEOSIA page script: the same rules as the extension's and the APK's (size, no request, no storage).
+  if (mode !== 'web') run('node', ['../extension/scripts/check-neosia-main.mjs', 'dist']);
   // Only the hosts Sulo uses, as for the APK (scripts/check-hosts.mjs).
   run('node', ['scripts/check-hosts.mjs', 'dist', ...(data === 'sintetis' ? ['--sintetis'] : [])]);
   run('pnpm', ['exec', 'cap', 'sync', 'ios']);
@@ -221,7 +223,7 @@ function log() {
 }
 
 /** The Swift files with no UIKit and no network, tested on the Mac (ios/SuloTests/main.swift). */
-const PURE = ['SikolaRules.swift', 'FileStore.swift'];
+const PURE = ['SikolaRules.swift', 'FileStore.swift', 'NeosiaRules.swift', 'SipakamaseRules.swift'];
 
 function test() {
   const work = mkdtempSync(join(tmpdir(), 'sulo-swift-test-'));

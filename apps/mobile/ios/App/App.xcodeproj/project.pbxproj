@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9040CB9FC9DFCE1A2C889AF8 /* SipakamaseRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */; };
+		946F4A9B75CAD8DBA104823D /* NeosiaScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D33B5AC94B451D95C88D63 /* NeosiaScreen.swift */; };
+		976268402E8C6B9D7C80F6E3 /* NeosiaRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2516248D64870EB3D12B32AE /* NeosiaRules.swift */; };
 		FB01A66D01A54727ADC855F1 /* Keeper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 177CBF489789052344BA5BAE /* Keeper.swift */; };
 		347D768DDA59871B74DCB5DD /* sulo_notif_4.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7F4C5B6B8FC434F1DBB6C909 /* sulo_notif_4.caf */; };
 		728F97678E071926EFB6576B /* sulo_notif_3.caf in Resources */ = {isa = PBXBuildFile; fileRef = 7E7C439080C007E69B5CD1F5 /* sulo_notif_3.caf */; };
@@ -38,6 +41,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SipakamaseRules.swift; sourceTree = "<group>"; };
+		13D33B5AC94B451D95C88D63 /* NeosiaScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/NeosiaScreen.swift; sourceTree = "<group>"; };
+		2516248D64870EB3D12B32AE /* NeosiaRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/NeosiaRules.swift; sourceTree = "<group>"; };
 		177CBF489789052344BA5BAE /* Keeper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/Keeper.swift; sourceTree = "<group>"; };
 		7F4C5B6B8FC434F1DBB6C909 /* sulo_notif_4.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/sulo_notif_4.caf; sourceTree = "<group>"; };
 		7E7C439080C007E69B5CD1F5 /* sulo_notif_3.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sounds/sulo_notif_3.caf; sourceTree = "<group>"; };
@@ -102,6 +108,9 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */,
+				13D33B5AC94B451D95C88D63 /* NeosiaScreen.swift */,
+				2516248D64870EB3D12B32AE /* NeosiaRules.swift */,
 				177CBF489789052344BA5BAE /* Keeper.swift */,
 				7F4C5B6B8FC434F1DBB6C909 /* sulo_notif_4.caf */,
 				7E7C439080C007E69B5CD1F5 /* sulo_notif_3.caf */,
@@ -219,6 +228,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9040CB9FC9DFCE1A2C889AF8 /* SipakamaseRules.swift in Sources */,
+				946F4A9B75CAD8DBA104823D /* NeosiaScreen.swift in Sources */,
+				976268402E8C6B9D7C80F6E3 /* NeosiaRules.swift in Sources */,
 				FB01A66D01A54727ADC855F1 /* Keeper.swift in Sources */,
 				FDE7E16CEC5EB55D07A34798 /* SourcePlugins.swift in Sources */,
 				47C577F086BF316FCD53AE58 /* SikolaRules.swift in Sources */,

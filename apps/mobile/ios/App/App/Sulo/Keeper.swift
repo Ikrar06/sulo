@@ -67,7 +67,10 @@ enum Keeper {
     private static func plan() -> [String: Any]? { readJSON("plan.json") }
 
     /** Why the keeper does not ping now, or nil when it may. */
-    static func blocked(_ plan: [String: Any], at t: Int) -> String? {
+    static func blocked(_ plan: [String: Any], at t: Int) -> String? { commonBlocked(plan, at: t) ?? sikolaBlocked(plan, at: t) }
+
+    /** The switches every keeper step obeys: the user's switch, 7 days without the app, the remote config. */
+    static func commonBlocked(_ plan: [String: Any], at t: Int) -> String? {
         guard plan["enabled"] as? Bool == true else { return "off" }
         let written = plan["writtenAt"] as? Int ?? 0
         if t - written > 7 * day { return "idle_7d" }
@@ -77,6 +80,11 @@ enum Keeper {
         let config = remote?["config"] as? [String: Any]
         let keep = config?["keepAlive"] as? [String: Any]
         if config?["globalEnabled"] as? Bool == false || keep?["enabled"] as? Bool == false { return "remote_off" }
+        return nil
+    }
+
+    /** SIKOLA's own: the daily stop and the pace. */
+    static func sikolaBlocked(_ plan: [String: Any], at t: Int) -> String? {
         let budget = plan["budget"] as? [String: Any]
         let stop = budget?["watchStopPosts"] as? Int ?? 0
         let counts = readJSON("counts.json") ?? [:]
@@ -159,7 +167,10 @@ enum Keeper {
     static func run(reason: String) -> String {
         let t = now()
         guard let plan = plan() else { return "no_plan" }
-        if let why = blocked(plan, at: t) { return why }
+        if let why = commonBlocked(plan, at: t) { return why }
+        // Sipakamase keeps its own pace (SipakamaseKeep), riding the same wake.
+        sipakamaseStep(plan, at: t)
+        if let why = sikolaBlocked(plan, at: t) { return why }
         let vault = SessionVault.shared
         guard case let .ok(session) = vault.read(), let sesskey = session.sesskey else { return "no_session" }
         let http = SiteHttp(cookieName: Sikola.sessionCookie)
@@ -192,6 +203,37 @@ enum Keeper {
         }
         Diag.shared.note("keeper:\(reason):\(outcome)")
         return outcome
+    }
+
+    // MARK: Sipakamase (hard rule 17: one rotating GET, every 3 hours or slower, 10 a day with the app's)
+
+    static func sipakamaseState() -> SipakamaseKeep.State {
+        guard let data = try? Data(contentsOf: dir.appendingPathComponent("sipakamase.json")), let s = try? JSONDecoder().decode(SipakamaseKeep.State.self, from: data) else { return SipakamaseKeep.State() }
+        return s
+    }
+
+    private static func saveSipakamase(_ s: SipakamaseKeep.State) {
+        guard let data = try? JSONEncoder().encode(s) else { return }
+        try? data.write(to: dir.appendingPathComponent("sipakamase.json"), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+    }
+
+    static func clearSipakamase() { try? FileManager.default.removeItem(at: dir.appendingPathComponent("sipakamase.json")) }
+
+    private static func sipakamaseStep(_ plan: [String: Any], at t: Int) {
+        let part = SipakamaseKeep.parse(plan)
+        let state = sipakamaseState()
+        let today = dateKey(t)
+        guard let part, let index = SipakamaseKeep.due(part, configKeep: true, state: state, now: t, today: today) else { return }
+        guard let session = SuloSipakamasePlugin.vault.session else { return }
+        let path = Sipakamase.readPaths[index]
+        guard let reply = try? SuloSipakamasePlugin.http.get(Sipakamase.origin + path, cookie: session.moodleSession) else {
+            return saveSipakamase(SipakamaseKeep.after(part, state: state, index: index, now: t, today: today, login: false, ok: false))
+        }
+        if case let .replaced(fresh) = reply.cookie, (200 ... 299).contains(reply.status) { SuloSipakamasePlugin.vault.save(SikolaSession(moodleSession: fresh, sesskey: nil)) }
+        // The page is read only to tell a login page apart, then dropped: nothing of it is kept.
+        let login = (300 ... 399).contains(reply.status) || reply.status == 401 || reply.status == 403 || (reply.status == 200 && Sipakamase.isLoginPage(reply.body))
+        saveSipakamase(SipakamaseKeep.after(part, state: state, index: index, now: t, today: today, login: login, ok: reply.status == 200 && !login))
+        Diag.shared.note("keeper:sipakamase:\(login ? "login" : "\(reply.status)")")
     }
 
     // MARK: "Masuk lagi", once per ended session
