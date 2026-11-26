@@ -7,6 +7,9 @@ const id = {
   title: 'Pantau tugas baru',
   body: 'Sulo mengecek SIKOLA tiap 15 menit selama komputermu dipakai, dan tiap kali kamu membuka Sulo, lalu memberi tahu kalau ada tugas, tenggat, atau kabar baru.',
   session: 'Selama ini menyala, sesi SIKOLA-mu tetap aktif di browser ini.',
+  // Settings: the card already says "Pantau tugas baru", so the switch says what it does.
+  switchLabel: 'Cek SIKOLA tiap 15 menit',
+  short: 'Juga saat kamu membuka Sulo. Sesi SIKOLA-mu tetap aktif di browser ini.',
   closed: 'Saat browser ditutup, Sulo tidak bisa mengecek. Ia menyusul begitu browser dibuka lagi.',
   stopped: 'Pantauan sedang dihentikan pengelola Sulo.',
   whatsNew: {
@@ -21,6 +24,8 @@ const en: WatchWords = {
   title: 'Watch for new tasks',
   body: 'Sulo checks SIKOLA every 15 minutes while your computer is in use, and each time you open Sulo, then tells you when there is a new task, deadline or update.',
   session: 'While this is on, your SIKOLA session stays active in this browser.',
+  switchLabel: 'Check SIKOLA every 15 minutes',
+  short: 'Also when you open Sulo. Your SIKOLA session stays active in this browser.',
   closed: 'While the browser is closed, Sulo cannot check. It catches up as soon as the browser opens again.',
   stopped: "Watching is paused by Sulo's maintainer.",
   whatsNew: {

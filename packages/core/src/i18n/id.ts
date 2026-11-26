@@ -179,6 +179,7 @@ export const id = {
       test: 'Kirim notifikasi uji',
       testSent: 'Notifikasi uji sudah dikirim.',
       testHelp: 'Kalau tidak muncul, nyalakan notifikasi untuk Chrome di pengaturan sistem komputermu.',
+      notShowing: 'Notifikasi tidak muncul?',
       macSteps: 'macOS: Pengaturan Sistem > Notifikasi > Google Chrome > Izinkan notifikasi.',
       winSteps: 'Windows: Pengaturan > Sistem > Notifikasi > nyalakan untuk Google Chrome.',
       sessionNote: 'Kalau kamu perlu masuk lagi ke SIKOLA, Sulo memberi tahu sekali saja.',

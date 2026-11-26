@@ -337,7 +337,7 @@ export const dashEn: DashMessages = {
     manageCourses: 'Choose courses',
     openPrivacy: 'Privacy policy',
     wipeHelp: 'Deletes everything Sulo keeps in this browser. Nothing on SIKOLA is touched.',
-    calendarHelp: 'Sulo tells you one day before, and for KRS, UKT and UAS also a week before. Multi-day events also get a reminder before their last day. Quiet hours still apply.',
+    calendarHelp: 'Sulo reminds you a day before, and a week before for KRS, UKT and UAS. Quiet hours still apply.',
     calendarKinds: {
       krs: 'Course registration (KRS)',
       ukt: 'Tuition payment (UKT)',

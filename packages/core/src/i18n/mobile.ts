@@ -200,7 +200,7 @@ const id = {
   },
   watch: {
     title: 'Pantau tugas baru',
-    help: 'Sulo mengecek SIKOLA berkala, lebih sering di siang hari dan lebih jarang di malam hari, supaya kamu cepat tahu ada tugas atau kabar baru. Sesi SIKOLA-mu akan tetap aktif di HP ini.',
+    help: 'Sulo mengecek SIKOLA berkala dan memberi tahu kalau ada yang baru. Sesi SIKOLA-mu tetap aktif di HP ini.',
     lastCheck: (when: string) => `Cek terakhir ${when}`,
     noCheck: 'Belum ada cek',
     more: 'Selengkapnya',
@@ -214,7 +214,7 @@ const id = {
     sleepOpen: 'Buka pengaturan aplikasi',
     sleepDismiss: 'Tutup',
     emailTitle: 'Email dari SIKOLA',
-    emailBody: 'SIKOLA bisa mengirim email untuk tugas dan forum, sebagai pelengkap Sulo. Di SIKOLA: menu profil, Preferensi, Preferensi notifikasi, lalu nyalakan kolom Email. Sulo tidak mengubah pengaturan itu.',
+    emailBody: 'SIKOLA juga bisa mengirim email tugas dan forum. Nyalakan kolom Email di Preferensi notifikasi SIKOLA.',
     emailOpen: 'Buka preferensi SIKOLA',
     /** Texts the background worker fills in (core watch/plan.ts): {name}, {course}, {n}, {courses}. */
     templates: {
@@ -426,7 +426,7 @@ const en: MobileWords = {
   },
   watch: {
     title: 'Watch for new tasks',
-    help: 'Sulo checks SIKOLA regularly, more often by day and less often at night, so you hear about new tasks and updates quickly. Your SIKOLA session stays active on this phone.',
+    help: 'Sulo checks SIKOLA regularly and tells you when something is new. Your SIKOLA session stays active on this phone.',
     lastCheck: (when: string) => `Last check ${when}`,
     noCheck: 'No check yet',
     more: 'Learn more',
@@ -440,7 +440,7 @@ const en: MobileWords = {
     sleepOpen: 'Open app settings',
     sleepDismiss: 'Close',
     emailTitle: 'Email from SIKOLA',
-    emailBody: 'SIKOLA can email you about assignments and forums, alongside Sulo. On SIKOLA: the profile menu, Preferences, Notification preferences, then turn on the Email column. Sulo does not change those settings.',
+    emailBody: 'SIKOLA can also email you about assignments and forums. Turn on the Email column in SIKOLA’s notification preferences.',
     emailOpen: 'Open SIKOLA preferences',
     templates: {
       taskAdded: { title: 'New task: {name}', body: '{course}' },

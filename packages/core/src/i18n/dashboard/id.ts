@@ -341,7 +341,7 @@ export const dashId = {
     manageCourses: 'Atur mata kuliah',
     openPrivacy: 'Kebijakan privasi',
     wipeHelp: 'Menghapus semua yang Sulo simpan di browser ini. Data di SIKOLA tidak tersentuh.',
-    calendarHelp: 'Sulo memberi tahu satu hari sebelumnya, dan untuk KRS, UKT, dan UAS juga seminggu sebelumnya. Acara yang berlangsung beberapa hari juga diingatkan menjelang hari terakhir. Jam tenang tetap berlaku.',
+    calendarHelp: 'Sulo mengingatkan sehari sebelumnya, dan seminggu sebelumnya untuk KRS, UKT, dan UAS. Jam tenang tetap berlaku.',
     calendarKinds: {
       krs: 'Pengisian KRS',
       ukt: 'Pembayaran UKT',

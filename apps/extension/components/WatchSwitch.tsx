@@ -15,7 +15,8 @@ import { createWatchedStore } from '@/src/platform/store';
 
 const local = createWatchedStore(browser.storage.local, 'local');
 
-export function WatchSwitch({ defaultOn = false, compact = false }: { defaultOn?: boolean; compact?: boolean }) {
+/** `settings`: inside the settings card titled "Pantau tugas baru": the switch names what it does, one short line under it. */
+export function WatchSwitch({ defaultOn = false, compact = false, settings = false }: { defaultOn?: boolean; compact?: boolean; settings?: boolean }) {
   const { locale } = useI18n();
   const w = watchWords(locale);
   const [state, setState] = useState<{ chosen: boolean; stopped: boolean } | null>(null);
@@ -37,6 +38,15 @@ export function WatchSwitch({ defaultOn = false, compact = false }: { defaultOn?
   }, [defaultOn]);
 
   if (state === null) return null;
+  if (settings)
+    return (
+      <div>
+        <SwitchRow checked={state.chosen} disabled={state.stopped} onChange={(enabled) => void browser.runtime.sendMessage({ type: 'watch/set', enabled })}>
+          {w.switchLabel}
+        </SwitchRow>
+        <p className="mt-1 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{state.stopped ? w.stopped : w.short}</p>
+      </div>
+    );
   return (
     <div>
       <SwitchRow checked={state.chosen} disabled={state.stopped} onChange={(enabled) => void browser.runtime.sendMessage({ type: 'watch/set', enabled })}>

@@ -16,6 +16,7 @@ import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, t
 import { UPDATE_CATEGORIES } from '@sulo/core/radar/settings';
 import { local, timeZone } from '../data';
 import { Card } from '@sulo/ui/card';
+import { ChevronDownIcon } from '@sulo/ui/icons';
 import { BugReport } from '@sulo/ui/dashboard/BugReport';
 import { NeosiaSettings } from '../NeosiaSettings';
 import type { PageProps } from '../types';
@@ -156,7 +157,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
 
       {/* "Pantau tugas baru" (1.1.0): off until the user turns it on; the setup offers it to new installs. */}
       <Card id="set-pantau" title={watchWords(locale).title}>
-        <WatchSwitch />
+        <WatchSwitch settings />
       </Card>
 
       {/* One test for every kind of notification (tasks, updates, calendar): they share one path. */}
@@ -177,12 +178,19 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             </span>
           )}
         </div>
-        <p className="mt-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.testHelp}</p>
-        <ul className="mt-1 space-y-1 text-[12px] leading-normal text-muted-foreground">
-          <li>{m.popup.reminders.macSteps}</li>
-          <li>{m.popup.reminders.winSteps}</li>
-        </ul>
-        <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.sessionNote}</p>
+        <p className="mt-3 text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.sessionNote}</p>
+        {/* The system steps only for whoever needs them. */}
+        <details className="group mt-2">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded text-[12px] text-muted-foreground outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus [&::-webkit-details-marker]:hidden">
+            {m.popup.reminders.notShowing}
+            <ChevronDownIcon className="size-3.5 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+          </summary>
+          <div className="mt-2 max-w-[68ch] space-y-1 text-[12px] leading-normal text-muted-foreground">
+            <p>{m.popup.reminders.testHelp}</p>
+            <p>{m.popup.reminders.macSteps}</p>
+            <p>{m.popup.reminders.winSteps}</p>
+          </div>
+        </details>
       </Card>
 
       {/* The panel's sections use the dashboard padding (--panel-px: 20) so they line up with the card title. */}

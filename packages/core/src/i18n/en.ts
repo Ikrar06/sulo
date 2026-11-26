@@ -176,6 +176,7 @@ export const en: Messages = {
       check: 'Check notifications',
       test: 'Send a test notification',
       testSent: 'Test notification sent.',
+      notShowing: 'Notifications not showing?',
       testHelp: "If it doesn't show up, turn on notifications for Chrome in your computer's system settings.",
       macSteps: 'macOS: System Settings > Notifications > Google Chrome > Allow notifications.',
       winSteps: 'Windows: Settings > System > Notifications > turn on for Google Chrome.',
