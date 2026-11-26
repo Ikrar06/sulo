@@ -15,7 +15,6 @@ import { sourceDone } from '@sulo/core/neosia/sources';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { isOlderThan } from '@sulo/core/neosia/sources';
 import { NeosiaChecklist } from '../NeosiaChecklist';
-import { useDashboard } from '../data';
 import { neosiaStatus, profile } from '@sulo/core/neosia/view';
 import { GpaChart } from '../GpaChart';
 import { yAxisRange } from '@sulo/core/grades/axis';
@@ -57,7 +56,7 @@ export function NilaiPage({ data, actions }: PageProps) {
     return (
       <div className="space-y-4">
         <div className="flex justify-end">
-          <RefreshButton label={w.refresh.grades} />
+          <RefreshButton label={w.refresh.grades} actions={actions} />
         </div>
         <NeosiaChecklist snapshots={snapshots} now={data.now} highlight="khs" />
       </div>
@@ -97,7 +96,7 @@ export function NilaiPage({ data, actions }: PageProps) {
           <Button variant="outline" aria-pressed={shown} onClick={() => setShown(!shown)}>
             {shown ? n.hide : n.show}
           </Button>
-          <RefreshButton label={w.refresh.grades} />
+          <RefreshButton label={w.refresh.grades} actions={actions} />
         </div>
       </div>
       {/* A transcript older than 30 days: when it is from, and how to update it. */}
@@ -165,8 +164,7 @@ function DevTranscript({ rows, semesters }: { rows: readonly TranscriptRow[]; se
 
 /** "Perbarui dari NEOSIA": opens the NEOSIA KHS page in a new tab on the user's click. */
 /** "Perbarui dari NEOSIA": the KHS page in a new tab, which closes by itself once its data came in. */
-function RefreshButton({ label }: { label: string }) {
-  const { actions } = useDashboard();
+function RefreshButton({ label, actions }: { label: string; actions: PageProps['actions'] }) {
   return (
     <Button variant="outline" onClick={() => void actions.send({ type: 'neosia/refresh', page: 'khs' })}>
       {label}

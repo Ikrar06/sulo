@@ -102,18 +102,19 @@ export const pakaiId: KataPakai = {
     },
     sumber: {
       judul: 'Dari mana datanya',
-      isi: 'Tiga sumber. Semuanya dibaca dari akunmu dan disimpan di perangkatmu saja.',
+      isi: 'Empat sumber. Semuanya dibaca dari akunmu dan disimpan di perangkatmu saja.',
       daftar: [
         { nama: 'SIKOLA', label: 'Wajib', isi: 'Inti Sulo. Terhubung lewat sesi SIKOLA-mu, tanpa password.', dapat: ['Tugas dan tenggatnya', 'Materi, tugas, dan pengumuman baru', 'Perubahan tenggat', 'Rekap dan rincian presensi'] },
         { nama: 'Kalender akademik Unhas', label: 'Otomatis', isi: 'Dari kalender resmi (SK Rektor). Tidak perlu masuk ke mana pun.', dapat: ['Jadwal KRS dan pembayaran UKT', 'Masa kuliah, UTS, dan UAS', 'Libur nasional dan libur semester', 'Wisuda dan KKN'] },
         { nama: 'NEOSIA', label: 'Opsional', isi: 'Mati sampai kamu nyalakan. Sulo hanya membaca halaman NEOSIA yang kamu buka sendiri.', dapat: ['Jadwal kuliah mingguan', 'Kesiapan KRS', 'Nilai, IPS, dan IPK', 'SKS lulus dan sisa masa studi'] },
+        { nama: 'Sipakamase', label: 'Opsional', isi: 'Mati sampai kamu hubungkan. Kamu masuk di Sipakamase sendiri; Sulo hanya membaca lima halaman MKPK-mu.', dapat: ['SKS kegiatan MKPK yang belum dikonversi', 'MKPK lulus yang belum masuk NEOSIA', 'Pengingat sebelum batas penginputan nilai', 'Kabar saat status kegiatan berubah'] },
       ],
     },
     tidak: {
       judul: 'Yang tidak Sulo lakukan',
       daftar: [
-        'Tidak meminta, membaca, atau menyimpan password SIKOLA maupun NEOSIA.',
-        'Tidak mengubah apa pun di SIKOLA atau NEOSIA. Sulo hanya membaca.',
+        'Tidak meminta, membaca, atau menyimpan password SIKOLA, NEOSIA, maupun Sipakamase.',
+        'Tidak mengubah apa pun di SIKOLA, NEOSIA, atau Sipakamase. Sulo hanya membaca.',
         'Tidak mengumpulkan tugas, tidak mengisi KRS, survei, atau presensi.',
         'Tidak mengirim datamu ke server mana pun. Tidak ada iklan dan pelacakan.',
         'Bukan aplikasi resmi Unhas. Untuk hal penting, tetap cek SIKOLA, NEOSIA, dan dokumen resmi kampus.',

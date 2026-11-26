@@ -40,18 +40,19 @@ export const pakaiEn: KataPakai = {
     },
     sumber: {
       judul: 'Where the data comes from',
-      isi: 'Three sources. Everything is read from your account and kept on your device only.',
+      isi: 'Four sources. Everything is read from your account and kept on your device only.',
       daftar: [
         { nama: 'SIKOLA', label: 'Required', isi: 'The core of Sulo. It connects through your SIKOLA session, with no password.', dapat: ['Tasks and their due dates', 'New materials, tasks and announcements', 'Changed deadlines', 'Attendance, summed up and by session'] },
         { nama: 'The Unhas academic calendar', label: 'Automatic', isi: "From the official calendar (the Rector's decree). No sign-in anywhere.", dapat: ['KRS and tuition (UKT) dates', 'Lectures, midterms (UTS) and finals (UAS)', 'National holidays and semester breaks', 'Graduation and KKN'] },
         { nama: 'NEOSIA', label: 'Optional', isi: 'Off until you turn it on. Sulo only reads NEOSIA pages you open yourself.', dapat: ['Your weekly class schedule', 'KRS readiness', 'Grades, semester GPA and GPA', 'Credits passed and study time left'] },
+        { nama: 'Sipakamase', label: 'Optional', isi: 'Off until you connect it. You sign in on Sipakamase itself; Sulo only reads five pages of your MKPK data.', dapat: ['MKPK activity credits not converted yet', 'Passed MKPK courses not yet in NEOSIA', 'Reminders before the grade-entry deadline', 'News when an activity changes status'] },
       ],
     },
     tidak: {
       judul: 'What Sulo does not do',
       daftar: [
-        'It never asks for, reads or keeps your SIKOLA or NEOSIA password.',
-        'It changes nothing on SIKOLA or NEOSIA. Sulo only reads.',
+        'It never asks for, reads or keeps your SIKOLA, NEOSIA or Sipakamase password.',
+        'It changes nothing on SIKOLA, NEOSIA or Sipakamase. Sulo only reads.',
         'It does not hand in tasks, and does not fill in KRS, surveys or attendance.',
         'It sends your data to no server. No ads and no tracking.',
         'It is not an official Unhas app. For anything that matters, check SIKOLA, NEOSIA and the official campus documents.',

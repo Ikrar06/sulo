@@ -28,11 +28,20 @@ export interface SipakamaseState {
 }
 
 const Ctx = createContext<SipakamaseState | null>(null);
-export const useSipakamase = (): SipakamaseState => {
-  const v = useContext(Ctx);
-  if (!v) throw new Error('SipakamaseProvider missing');
-  return v;
+
+/** Outside the app (the landing page renders screens with sample data): not connected, nothing happens. */
+const NOT_CONNECTED: SipakamaseState = {
+  enabled: false,
+  connection: OFF,
+  data: null,
+  ask: () => undefined,
+  signIn: async () => 'closed',
+  refresh: async () => ({ kind: 'off' }),
+  disconnect: async () => undefined,
+  reload: async () => undefined,
 };
+
+export const useSipakamase = (): SipakamaseState => useContext(Ctx) ?? NOT_CONNECTED;
 
 export function SipakamaseProvider({ platform, children }: { platform: Platform; children: ReactNode }) {
   const { locale } = useI18n();
