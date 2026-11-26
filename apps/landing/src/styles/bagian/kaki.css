@@ -25,6 +25,19 @@
   color: var(--tinta);
   text-decoration: none;
 }
+/* The logo and what Sulo is, in the page's own words: the left side of the
+   footer says something instead of standing empty. */
+.kaki-kenal {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+.kaki-kenal p {
+  max-width: 44ch;
+  margin: 4px 0 0;
+  color: var(--abu);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
 .kaki-nav {
   display: grid;
   min-width: 0;
@@ -62,10 +75,13 @@
   text-underline-offset: 3px;
 }
 @media (min-width: 40em) {
+  .kaki-kenal p {
+    max-width: 34ch;
+  }
   .kaki-nav {
     grid-auto-flow: column;
     grid-auto-columns: max-content;
-    gap: 0 56px;
+    gap: 0 40px;
   }
   /* The label shares the logo's row: the same height, so both sit on one line. */
   .kaki-judul {
@@ -133,4 +149,9 @@
   align-items: center;
   gap: 8px;
   margin: 0;
+}
+@media (min-width: 64em) {
+  .kaki-nav {
+    gap: 0 56px;
+  }
 }

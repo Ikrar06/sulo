@@ -1,8 +1,9 @@
 ---
-// The footer (brief 6.11): the links in three groups (using Sulo, the
-// project, support), the language, the full "unofficial" sentence, the
-// sample-data note, and the maker's name in one small line. The tip jar sits
-// among the other links, the same weight as them (TETAP).
+// The footer (brief 6.11): the logo with the page's own one-line description
+// under it, the links in three groups (using Sulo, the project, support), the
+// language, the full "unofficial" sentence, the sample-data note, and the
+// maker's name in one small line. The tip jar sits among the other links, the
+// same weight as them (TETAP).
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
 import { LISENSI, MASUKAN, PEMBUAT, PROFIL, REPO, RILIS, TRAKTEER, pathLain, pathPakai, pathPasang, pathRumah } from '../data/alamat';
 import { pakai } from '../teks/pakai-semua';
@@ -55,7 +56,10 @@ const lain = bahasa === 'en' ? 'id' : 'en';
 <footer class="kaki">
   <div class="isi">
     <div class="kaki-atas">
-      <a class="kaki-merek" href={rumah}><img src={flame} alt="" width="28" height="28" />Sulo</a>
+      <div class="kaki-kenal">
+        <a class="kaki-merek" href={rumah}><img src={flame} alt="" width="28" height="28" />Sulo</a>
+        <p>{teks[bahasa].deskripsi}</p>
+      </div>
       <nav class="kaki-nav" aria-label={t.label}>
         {
           kelompok.map((k) => (
