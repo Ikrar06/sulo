@@ -321,3 +321,16 @@ describe('the reader on a page', () => {
     expect(out).toEqual([{ type: `${PASSIVE_MESSAGE_TYPE}:login` }]);
   });
 });
+
+describe('the phone worker and the app share one keeper', () => {
+  it('folds the worker reads into the count and the interval, once each', async () => {
+    const { foldWorker, ownReadsToday } = await import('@sulo/core/sipakamase/keeper');
+    const mine = { ...START, autoDate: 'd', autoCount: 2, lastAutoAt: 100 };
+    const once = foldWorker(mine, { lastAt: 500, date: 'd', count: 3, loginAt: 0 }, 'd');
+    expect(once).toMatchObject({ autoCount: 5, workerCounted: 3, lastAutoAt: 500 });
+    expect(foldWorker(once, { lastAt: 500, date: 'd', count: 3, loginAt: 0 }, 'd').autoCount).toBe(5);
+    expect(ownReadsToday(once, 'd')).toBe(2);
+    // A new day: yesterday's worker reads do not count.
+    expect(foldWorker(once, { lastAt: 500, date: 'd', count: 3, loginAt: 0 }, 'e')).toMatchObject({ autoCount: 0, autoDate: 'e' });
+  });
+});

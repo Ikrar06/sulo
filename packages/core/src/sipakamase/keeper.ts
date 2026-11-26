@@ -32,6 +32,8 @@ export interface KeeperState {
   autoCount: number;
   lastAutoAt: UnixSeconds | null;
   lastRefreshAt: UnixSeconds | null;
+  /** Phone: the worker's reads today already added to autoCount (foldWorker). */
+  workerCounted?: number;
 }
 
 export const KEEPER_KEY = `${SIPAKAMASE_DATA_PREFIX}keeper`;
@@ -77,3 +79,33 @@ export async function readKeeper(store: KeyValueStore): Promise<KeeperState> {
 }
 
 export const writeKeeper = (store: KeyValueStore, state: KeeperState) => store.set(KEEPER_KEY, state);
+
+/** What the phone's background worker did since the app last looked (Kotlin SipakamaseKeeper). */
+export interface WorkerKeep {
+  lastAt: UnixSeconds;
+  date: string;
+  count: number;
+  /** When a worker read landed on the login page; 0: never. */
+  loginAt: UnixSeconds;
+}
+
+/**
+ * The app's keeper state with the worker's reads folded in, so the next
+ * automatic read waits its interval from whichever read came last and the
+ * daily limit counts both.
+ */
+export function foldWorker(state: KeeperState, worker: WorkerKeep, today: string): KeeperState {
+  const workerToday = worker.date === today ? worker.count : 0;
+  const ownToday = state.autoDate === today ? state.autoCount : 0;
+  const counted = state.autoDate === today ? (state.workerCounted ?? 0) : 0;
+  return {
+    ...state,
+    autoDate: today,
+    autoCount: Math.max(ownToday, ownToday + workerToday - counted),
+    workerCounted: workerToday,
+    lastAutoAt: Math.max(state.lastAutoAt ?? 0, worker.lastAt) || null,
+  };
+}
+
+/** The app's own automatic reads today (for the worker's plan: the worker adds its own). */
+export const ownReadsToday = (state: KeeperState, today: string): number => (state.autoDate === today ? Math.max(0, state.autoCount - (state.workerCounted ?? 0)) : 0);

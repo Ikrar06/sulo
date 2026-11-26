@@ -2218,6 +2218,42 @@
       "dayIntervalMinutes": 20,
       "nightIntervalMinutes": 110,
       "radarEvery": 3
+     },
+     "sipakamaseKeep": false
+    }
+   }
+  },
+  {
+   "name": "sipakamase-keep-off-only",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":{\"sipakamase\":{\"keep\":false}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 110,
+      "radarEvery": 3
+     },
+     "sipakamaseKeep": false
+    }
+   }
+  },
+  {
+   "name": "sipakamase-on",
+   "status": 200,
+   "body": "{\"enabled\":true,\"minIntervalMinutes\":30,\"message\":\"\",\"sources\":{\"sipakamase\":{\"enabled\":true,\"keep\":true,\"keepIntervalMinutes\":360}}}",
+   "out": {
+    "kind": "ok",
+    "config": {
+     "globalEnabled": true,
+     "keepAlive": {
+      "enabled": true,
+      "dayIntervalMinutes": 20,
+      "nightIntervalMinutes": 110,
+      "radarEvery": 3
      }
     }
    }

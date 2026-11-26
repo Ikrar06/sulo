@@ -78,6 +78,15 @@ class SuloSipakamasePlugin : Plugin() {
         }
     }
 
+    /** What the background keeper did (times and counts only). */
+    @PluginMethod
+    fun workerState(call: PluginCall) {
+        io.execute {
+            val k = SipakamaseKeeper(context).state()
+            call.resolve(JSObject().put("lastAt", k.lastAt).put("date", k.date).put("count", k.count).put("loginAt", k.loginAt))
+        }
+    }
+
     @PluginMethod
     fun status(call: PluginCall) {
         io.execute { call.resolve(JSObject().put("hasSession", vault.load() != null)) }

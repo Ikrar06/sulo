@@ -39,5 +39,6 @@ object SipakamaseVault {
     fun wipeAll(context: Context) {
         runCatching { session(context).wipe() }
         runCatching { data(context).wipeAll() }
+        runCatching { SipakamaseKeeper(context).clear() }
     }
 }

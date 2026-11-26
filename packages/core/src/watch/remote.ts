@@ -24,6 +24,7 @@
 
 import { parseKeepAlive } from '../remote/keep-alive';
 import { remoteConfigSchema } from '../remote/remote-config';
+import { parseSources } from '../remote/sources';
 import { parseRelease } from '../remote/release';
 import type { UnixSeconds } from '../types';
 import { SOFT_DAY_INTERVAL_MIN } from './plan';
@@ -39,6 +40,8 @@ export interface WorkerConfig {
   keepAlive: { enabled: boolean; dayIntervalMinutes: number; nightIntervalMinutes: number; radarEvery: number };
   /** From a valid mobile.release only, and only when above 0 (absent otherwise, so older configs read the same). */
   minVersionCode?: number;
+  /** sources.sipakamase (1.1.0): present (false) only when the owner stopped its keeper, so older configs read the same. */
+  sipakamaseKeep?: false;
 }
 
 export type ConfigRead = { kind: 'ok'; config: WorkerConfig } | { kind: 'not_modified' } | { kind: 'failed' };
@@ -57,7 +60,9 @@ export function parseConfigResponse(status: number, body: string | null): Config
   if (!parsed.success) return { kind: 'failed' };
   const k = parseKeepAlive(parsed.data.mobile);
   const min = parseRelease(parsed.data.mobile)?.minVersionCode ?? 0;
-  return { kind: 'ok', config: { globalEnabled: parsed.data.enabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery }, ...(min > 0 ? { minVersionCode: min } : {}) } };
+  const sip = parseSources(parsed.data.sources).sipakamase;
+  const sipOff = !sip.enabled || !sip.keep;
+  return { kind: 'ok', config: { globalEnabled: parsed.data.enabled, keepAlive: { enabled: k.enabled, dayIntervalMinutes: k.dayIntervalMinutes, nightIntervalMinutes: k.nightIntervalMinutes, radarEvery: k.radarEvery }, ...(min > 0 ? { minVersionCode: min } : {}) , ...(sipOff ? { sipakamaseKeep: false as const } : {}) } };
 }
 
 /** A read is due when the last one (the worker's or the app's) is 6 hours old or more. */

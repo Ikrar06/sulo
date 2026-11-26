@@ -18,7 +18,14 @@ import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { REMOTE_CONFIG_URL } from '@sulo/core/moodle/limits';
 import { currentUser, readUser } from '@sulo/core/storage';
 import type { CheckTiming } from '@sulo/core/watch/sleep-help';
-import { buildWatchPlan } from '@sulo/core/watch/plan';
+import { buildWatchPlan, type SipakamaseWatchPart } from '@sulo/core/watch/plan';
+import type { RemoteConfig } from '@sulo/core/types';
+import { sourcesFrom } from '@sulo/core/remote/sources';
+import { keeperRuns, readConnection } from '@sulo/core/sipakamase/connection';
+import { ownReadsToday, readKeeper } from '@sulo/core/sipakamase/keeper';
+import { readSipakamaseModule } from '@sulo/core/sipakamase/module';
+import { localParts } from '@sulo/core/reminders/zoned';
+import { sipakamaseStore } from './sipakamase/service';
 import { applyWatchAnswers, markChangesHandled, type WatchAnswer } from '@sulo/core/watch/queue';
 import { SuloSession } from './session';
 import { readWatch } from './watch';
@@ -76,6 +83,7 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
     courseNames: Object.fromEntries(courses.map((c) => [String(c.id), courseAlias(c)])),
     templates: w.watch.templates,
     channels,
+    sipakamase: await sipakamaseWatchPart(platform, config, clock.now()),
   });
   await SuloSession.watchApply({ plan: JSON.stringify(plan) }).catch(() => undefined);
 }
@@ -109,4 +117,20 @@ export async function readWatchStatus(): Promise<{ timings: WatchTiming[]; sessi
   const s = await SuloSession.watchStatus().catch(() => null);
   if (!s) return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0 };
   return { timings: JSON.parse(s.timings) as WatchTiming[], sessionEnds: JSON.parse(s.sessionEnds), plannedAt: s.plannedAt, queued: s.queued };
+}
+
+/**
+ * Sipakamase's part of the plan (1.1.0): present only while its module is on,
+ * something is waited for (connection live or broken) and the config lets it
+ * keep. The worker then rides its own wakes to keep the session.
+ */
+async function sipakamaseWatchPart(platform: Platform, config: RemoteConfig, now: number): Promise<SipakamaseWatchPart | undefined> {
+  const store = sipakamaseStore(platform);
+  if (!(await readSipakamaseModule(store)).enabled) return undefined;
+  const source = sourcesFrom(config).sipakamase;
+  const conn = await readConnection(store, true);
+  if (!source.enabled || !source.keep || !keeperRuns(conn.state)) return undefined;
+  const keeper = await readKeeper(store);
+  const today = localParts(now, Intl.DateTimeFormat().resolvedOptions().timeZone).dateKey;
+  return { keep: true, intervalMin: source.keepIntervalMinutes, next: keeper.next, usedToday: ownReadsToday(keeper, today), date: today, lastAutoAt: keeper.lastAutoAt ?? 0 };
 }

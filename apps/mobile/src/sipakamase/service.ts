@@ -12,8 +12,10 @@ import { createScheduler } from '@sulo/core/net/scheduler';
 import type { Platform, KeyValueStore } from '@sulo/core/platform';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { SIPAKAMASE_ORIGIN } from '@sulo/core/sipakamase/allowlist';
-import { disableSipakamase, enableSipakamase, type ModuleDeps } from '@sulo/core/sipakamase/module';
+import { disableSipakamase, enableSipakamase, readSipakamaseModule, type ModuleDeps } from '@sulo/core/sipakamase/module';
 import { keep, refresh, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
+import { foldWorker, readKeeper, writeKeeper } from '@sulo/core/sipakamase/keeper';
+import { readConnection, transition, writeConnection } from '@sulo/core/sipakamase/connection';
 import { SIPAKAMASE_DATA_PREFIX } from '@sulo/core/sipakamase/store';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { SuloNeosia } from '../neosia-native';
@@ -81,8 +83,29 @@ export async function signInAgain(platform: Platform, words: { close: string; of
 
 export const disconnectSipakamase = (platform: Platform) => disableSipakamase(sipakamaseDeps(platform).module);
 export const refreshSipakamase = (platform: Platform) => refresh(sipakamaseDeps(platform).run);
-/** On opening the app: the keeper's rotating read when one is due; nothing otherwise. */
-export const keepSipakamase = (platform: Platform) => keep(sipakamaseDeps(platform).run).catch(() => undefined);
+/**
+ * The background keeper's reads into the app's state: its count and time
+ * into the keeper (one limit, one interval), and a login page it met into
+ * the connection.
+ */
+export async function foldWorkerKeep(platform: Platform): Promise<void> {
+  const deps = sipakamaseDeps(platform).run;
+  if (!(await readSipakamaseModule(deps.store)).enabled) return;
+  const worker = await SuloSipakamase.workerState().catch(() => null);
+  if (!worker) return;
+  await writeKeeper(deps.store, foldWorker(await readKeeper(deps.store), worker, deps.today()));
+  const conn = await readConnection(deps.store, true);
+  if (worker.loginAt > conn.since) {
+    const next = transition(conn, { kind: 'login_page' }, worker.loginAt);
+    if (next !== conn) await writeConnection(deps.store, next);
+  }
+}
+
+/** On opening the app: the worker's reads folded in, then the keeper's rotating read when one is due; nothing otherwise. */
+export const keepSipakamase = (platform: Platform) =>
+  foldWorkerKeep(platform)
+    .then(() => keep(sipakamaseDeps(platform).run))
+    .catch(() => undefined);
 
 /** MKPK notifications (core mkpk/notices-run.ts) after a read or on opening the app; shown at once on the reminders channel. */
 export async function notifyMkpk(platform: Platform): Promise<number> {

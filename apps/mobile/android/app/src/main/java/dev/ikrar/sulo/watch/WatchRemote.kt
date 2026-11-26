@@ -26,7 +26,8 @@ object WatchRemote {
 
     data class KeepAlive(val enabled: Boolean, val dayIntervalMinutes: Int, val nightIntervalMinutes: Int, val radarEvery: Int)
     /** minVersionCode: from a valid mobile.release only, 0 when none (core remote/release.ts). */
-    data class Config(val globalEnabled: Boolean, val keepAlive: KeepAlive, val minVersionCode: Int = 0)
+    /** sipakamaseKeep: false only when sources.sipakamase is off or its keeper stopped (core watch/remote.ts). */
+    data class Config(val globalEnabled: Boolean, val keepAlive: KeepAlive, val minVersionCode: Int = 0, val sipakamaseKeep: Boolean = true)
 
     sealed class Read {
         data class Ok(val config: Config) : Read()
@@ -64,7 +65,13 @@ object WatchRemote {
         }
         // The switch's path, when present, is readable (the schema's refine).
         if (!switchReadable(root)) return Read.Failed
-        return Read.Ok(Config(enabled, keepAlive(root.opt("mobile")), releaseMin(root.opt("mobile"))))
+        return Read.Ok(Config(enabled, keepAlive(root.opt("mobile")), releaseMin(root.opt("mobile")), sipakamaseKeep(root.opt("sources"))))
+    }
+
+    /** core remote/sources.ts: sources.sipakamase.enabled and .keep, each true unless a boolean false (the switch rule already refused a non-boolean). */
+    private fun sipakamaseKeep(sources: Any?): Boolean {
+        val s = (sources as? JSONObject)?.optJSONObject("sipakamase") ?: return true
+        return s.opt("enabled") != false && s.opt("keep") != false
     }
 
     /** core remote/switches.ts CONFIG_SWITCHES: the same paths, the same rule. */
@@ -170,11 +177,12 @@ object WatchRemote {
         .put("globalEnabled", c.globalEnabled)
         .put("keepAlive", JSONObject().put("enabled", c.keepAlive.enabled).put("dayIntervalMinutes", c.keepAlive.dayIntervalMinutes).put("nightIntervalMinutes", c.keepAlive.nightIntervalMinutes).put("radarEvery", c.keepAlive.radarEvery))
         .apply { if (c.minVersionCode > 0) put("minVersionCode", c.minVersionCode) }
+        .apply { if (!c.sipakamaseKeep) put("sipakamaseKeep", false) }
 
     /** From the plan's or the store's JSON; anything unreadable is null (no config). */
     fun fromJson(o: JSONObject?): Config? = runCatching {
         val k = o!!.getJSONObject("keepAlive")
-        Config(o.getBoolean("globalEnabled"), KeepAlive(k.getBoolean("enabled"), k.getInt("dayIntervalMinutes"), k.getInt("nightIntervalMinutes"), k.getInt("radarEvery")), o.optInt("minVersionCode", 0))
+        Config(o.getBoolean("globalEnabled"), KeepAlive(k.getBoolean("enabled"), k.getInt("dayIntervalMinutes"), k.getInt("nightIntervalMinutes"), k.getInt("radarEvery")), o.optInt("minVersionCode", 0), o.optBoolean("sipakamaseKeep", true))
     }.getOrNull()
 }
 

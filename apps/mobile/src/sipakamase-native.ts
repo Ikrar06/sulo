@@ -9,6 +9,8 @@ export interface SuloSipakamasePlugin extends NeosiaNative {
   signIn(options: { close: string; offline: string; retry: string }): Promise<{ result: 'signed_in' | 'closed' | 'offline' }>;
   get(options: { path: string }): Promise<{ status?: number; toLogin?: boolean; html?: string; noSession?: boolean; networkError?: boolean }>;
   status(): Promise<{ hasSession: boolean }>;
+  /** What the background keeper did: times and counts only. */
+  workerState(): Promise<{ lastAt: number; date: string; count: number; loginAt: number }>;
   /** Putuskan: the vault's cookie, the WebView's cookie, every account's data. */
   forget(): Promise<void>;
 }

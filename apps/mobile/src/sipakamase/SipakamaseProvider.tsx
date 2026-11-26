@@ -13,6 +13,7 @@ import { onboardingWords } from '@sulo/core/i18n/mobile-onboarding';
 import { useI18n } from '@sulo/ui/i18n';
 import { connectSipakamase, disconnectSipakamase, keepSipakamase, notifyMkpk, refreshSipakamase, signInAgain, sipakamaseStore, type ConnectResult } from './service';
 import { SipakamaseConsentSheet } from './SipakamaseConsent';
+import { applyWatchPlan } from '../watch-native';
 
 export interface SipakamaseState {
   enabled: boolean;
@@ -46,7 +47,9 @@ export function SipakamaseProvider({ platform, children }: { platform: Platform;
     setEnabled(module.enabled);
     setConnection(await readConnection(store, module.enabled));
     setData(module.enabled ? await readSipakamaseData(store) : null);
-  }, [store]);
+    // The worker's plan follows: it keeps the session only while something is waited for.
+    void applyWatchPlan(platform).catch(() => undefined);
+  }, [store, platform]);
 
   useEffect(() => {
     void reload();

@@ -37,6 +37,7 @@ export function fakeSipakamase(): SuloSipakamasePlugin {
     signIn: async () => ((session = true), { result: 'signed_in' }),
     get: async ({ path }) => (session ? { status: 200, toLogin: false, html: PAGES[path] ?? '' } : { noSession: true }),
     status: async () => ({ hasSession: session }),
+    workerState: async () => ({ lastAt: 0, date: '', count: 0, loginAt: 0 }),
     forget: async () => {
       session = false;
       stores.clear();
