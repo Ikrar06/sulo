@@ -23,7 +23,7 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
   const neo = useNeosia();
   const { data, actions } = useMobileData();
   const prefs = data!.prefs;
-  const [sheet, setSheet] = useState<'sks' | 'mkpk' | 'disconnect' | null>(null);
+  const [sheet, setSheet] = useState<'sks' | 'mkpk' | 'disconnect' | 'visit' | null>(null);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -41,6 +41,10 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
         <Row label={n.mobile.gradesShown}>
           <Toggle checked={prefs.gradesShown} label={n.mobile.gradesShown} onChange={(v) => void actions.setPrefs({ gradesShown: v })} />
         </Row>
+        {/* Off until agreed in its sheet; turning it off needs no sheet. */}
+        <Row label={n.mobile.autoVisit} help={n.mobile.autoVisitHelp}>
+          <Toggle checked={prefs.neosiaAutoVisit} label={n.mobile.autoVisit} onChange={(v) => (v ? setSheet('visit') : void actions.setPrefs({ neosiaAutoVisit: false }))} />
+        </Row>
         <ValueRow label={n.settings.sksTarget} value={String(target)} onPress={() => setSheet('sks')} />
         <ValueRow label={n.mkpk.settingsRow} value={prefs.mkpkLoad === null ? n.mkpk.settingsUnset : n.mkpk.choice[prefs.mkpkLoad]} onPress={() => setSheet('mkpk')} />
         <button type="button" onClick={() => setSheet('disconnect')} className="m-hit flex min-h-12 w-full items-center text-left text-m15 text-urgency-overdue outline-none focus-ring:ring-2 focus-ring:ring-focus">
@@ -48,7 +52,29 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
         </button>
       </Group>
 
-      <Sheet open={sheet !== null} onOpenChange={(o) => !o && setSheet(null)} title={sheet === 'sks' ? n.settings.sksTarget : sheet === 'mkpk' ? n.mkpk.settingsRow : n.settings.disconnectTitle}>
+      <Sheet open={sheet !== null} onOpenChange={(o) => !o && setSheet(null)} title={sheet === 'sks' ? n.settings.sksTarget : sheet === 'mkpk' ? n.mkpk.settingsRow : sheet === 'visit' ? n.mobile.autoVisit : n.settings.disconnectTitle}>
+        {sheet === 'visit' && (
+          <div className="space-y-4">
+            <ul className="list-disc space-y-2 pl-5 text-m13 text-muted-foreground">
+              {n.mobile.autoVisitConsent.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+            <PillButton
+              kind="primary"
+              full
+              onPress={() => {
+                void actions.setPrefs({ neosiaAutoVisit: true });
+                setSheet(null);
+              }}
+            >
+              {n.mobile.autoVisitOn}
+            </PillButton>
+            <PillButton full onPress={() => setSheet(null)}>
+              {n.mobile.autoVisitLater}
+            </PillButton>
+          </div>
+        )}
         {sheet === 'sks' && (
           <SheetTextForm
             label={n.settings.sksTarget}

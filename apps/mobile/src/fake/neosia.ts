@@ -56,6 +56,7 @@ export function fakeNeosia(): SuloNeosiaPlugin {
   const stats: NeosiaTrialStats = { captures: {}, rejected: {}, requests: {}, pages: [], largestBytes: 0, scriptOnLogin: 0, spaToLogin: 0, spaFromLogin: 0, webView: 'web', docStartSupported: true, listenerSupported: true };
 
   return {
+    visit: async () => ({ result: stage === 'expired' ? 'needs_login' : 'unsupported' }),
     open: async ({ page }) => {
       if (stage === 'expired') return { result: 'needs_login' };
       if (page === 'login') {

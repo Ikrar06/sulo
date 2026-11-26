@@ -23,6 +23,8 @@ export interface SuloNeosiaPlugin {
   /** Resolves when the NEOSIA screen closes: signed_in (it left the login page), needs_login (a page with the script reached the login page; the screen closed itself), or closed. */
   /** closeOnData (1.1.0, "Perbarui dari NEOSIA"): the screen closes itself once data came in, answering `data`. */
   open(options: { page: NeosiaPage; close: string; script?: boolean; autoCloseMs?: number; closeOnData?: boolean }): Promise<{ result: 'signed_in' | 'needs_login' | 'closed' | 'data' }>;
+  /** "Perbarui NEOSIA otomatis" (1.1.0): Beranda in a hidden WebView, at most 30 s. */
+  visit(): Promise<{ result: 'data' | 'needs_login' | 'timeout' | 'unsupported' }>;
   /** Whether this WebView can capture at all (both features). */
   support(): Promise<{ docStart: boolean; listener: boolean; webViewPackage: string | null }>;
   /** The projected captures waiting since the NEOSIA screen was open; the queue is empty after. */

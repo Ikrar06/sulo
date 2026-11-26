@@ -66,6 +66,8 @@ export interface Prefs {
   mkpkLoad: 20 | 10 | 'none' | null;
   /** "Pengingat MKPK" (1.1.0): notifications for MKPK courses near the grade deadline and in the KRS window, and Sipakamase news. */
   mkpkReminders: boolean;
+  /** Android (1.1.0): "Perbarui NEOSIA otomatis", the hidden Beranda visit on opening the app; off until the user agrees. */
+  neosiaAutoVisit: boolean;
   /** Android (M8d): grades and GPA are shown only once turned on in Pengaturan; hidden by default. */
   gradesShown: boolean;
   /** Mobile: how much motion (perf/tier.ts); "auto" follows the detected tier. */
@@ -86,6 +88,7 @@ export const DEFAULT_PREFS: Prefs = {
   sksTarget: 144,
   mkpkLoad: null,
   mkpkReminders: true,
+  neosiaAutoVisit: false,
   gradesShown: false,
   animation: 'auto',
 };
@@ -105,6 +108,7 @@ const prefsSchema = z.object({
   sksTarget: z.number().int().min(100).max(200).catch(144),
   mkpkLoad: z.union([z.literal(20), z.literal(10), z.literal('none')]).nullable().catch(null),
   mkpkReminders: z.boolean().catch(true),
+  neosiaAutoVisit: z.boolean().catch(false),
   gradesShown: z.boolean().catch(false),
   animation: z.enum(['auto', 'full', 'lite']).catch('auto'),
 });

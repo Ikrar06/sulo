@@ -52,6 +52,18 @@ class SuloNeosiaPlugin : Plugin() {
         startActivityForResult(call, intent, "neosiaClosed")
     }
 
+    /**
+     * "Perbarui NEOSIA otomatis" (1.1.0): Beranda in an invisible WebView, at
+     * most 30 seconds; the app decides when it is due and only while it is
+     * open. Answers data, needs_login, timeout or unsupported.
+     */
+    @PluginMethod
+    fun visit(call: PluginCall) {
+        bridge.executeOnMainThread {
+            NeosiaVisit(activity) { result -> call.resolve(JSObject().put("result", result)) }.start()
+        }
+    }
+
     /** How the NEOSIA screen ended: signed_in (left the login page), needs_login (a page with the script reached the login page), or closed. */
     @ActivityCallback
     private fun neosiaClosed(call: PluginCall?, result: ActivityResult) {

@@ -20,6 +20,12 @@ import { createNeosiaStore } from '../platform/neosia-store';
 import { ingestQueued } from './ingest';
 import { GRADE_ENDPOINTS, withoutGrades } from './grade-guard';
 import { readMkpkTranscript, type MkpkTranscript } from '@sulo/core/mkpk/transcript';
+import { VISIT_KEY, visitDue } from '@sulo/core/neosia/visit';
+import { readPrefs } from '@sulo/core/prefs';
+import { readRemoteConfig } from '@sulo/core/remote/remote-config';
+import { sourcesFrom } from '@sulo/core/remote/sources';
+import { readCalendar } from '@sulo/core/calendar/remote';
+import { localParts } from '@sulo/core/reminders/zoned';
 
 /** NEOSIA's sign-in was seen (a page left its login), kept until a page lands on the login again; NEOSIA data, so wiped with it. */
 const SIGNED_IN_KEY = 'neosia:signedIn';
@@ -111,6 +117,41 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
       if (NEOSIA_MODULE_KEY in changes || CURRENT_USER_KEY in changes) void reload();
     });
   }, [platform, reload]);
+
+  // "Perbarui NEOSIA otomatis" (1.1.0): on opening the app, when a visit is due, Beranda in a hidden WebView.
+  useEffect(() => {
+    let running = false;
+    const maybeVisit = async () => {
+      if (running || document.visibilityState !== 'visible') return;
+      running = true;
+      try {
+        const [module, prefs, config, calendar, last] = await Promise.all([
+          readModuleState(platform.store),
+          readPrefs(platform.store),
+          readRemoteConfig(platform.store),
+          readCalendar(platform.store),
+          store.get<number>(VISIT_KEY),
+        ]);
+        const now = platform.clock.now();
+        const today = localParts(now, Intl.DateTimeFormat().resolvedOptions().timeZone).dateKey;
+        const due = visitDue({ consented: prefs.neosiaAutoVisit, configAllows: sourcesFrom(config).neosia.scheduledVisit, moduleOn: module.enabled, lastVisitAt: last ?? null, now, today, kegiatan: calendar.kegiatan });
+        if (!due) return;
+        await store.set(VISIT_KEY, now);
+        const { result } = await SuloNeosia.visit();
+        if (result === 'needs_login') {
+          setNeedsLogin(true);
+          await store.remove(SIGNED_IN_KEY).catch(() => undefined);
+        }
+        await ingestQueued({ take: () => SuloNeosia.takeCaptures(), store, now: () => platform.clock.now() });
+        await reload();
+      } finally {
+        running = false;
+      }
+    };
+    void maybeVisit();
+    document.addEventListener('visibilitychange', maybeVisit);
+    return () => document.removeEventListener('visibilitychange', maybeVisit);
+  }, [platform, store, reload]);
 
   // The checklist counts a grade source by its stored key; the grades themselves stay unread.
   const done = useMemo(() => {
