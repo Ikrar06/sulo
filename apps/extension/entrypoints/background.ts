@@ -58,6 +58,8 @@ import { NEOSIA_HOME, NEOSIA_KHS, NEOSIA_KRS } from '@sulo/core/links';
 import { recordGrades } from '@sulo/core/neosia/grades';
 import { buildPopupView } from '@sulo/core/view/popup-view';
 import { EXTENSION_WATCH_KEY, readExtensionWatch, setExtensionWatch, watchInForce } from '@sulo/core/watch/extension';
+import { IDLE_PAUSE_KEY, markOpened, pauseIfIdle, readIdlePause } from '@sulo/core/watch/idle';
+import { watchWords } from '@sulo/core/i18n/watch';
 
 const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
@@ -189,7 +191,8 @@ export default defineBackground(() => {
     // locked are decided when it fires (sync/run-sync.ts). Off or stopped remotely: no alarm.
     const watch = watchInForce(await readExtensionWatch(local), config);
     const watchAlarm = await browser.alarms.get(WATCH_ALARM);
-    if (!watch.on) {
+    // Not opened for 7 days: the watch rests until Sulo is opened again (watch/idle.ts).
+    if (!watch.on || (await readIdlePause(local)) !== null) {
       if (watchAlarm) await browser.alarms.clear(WATCH_ALARM);
     } else if (!watchAlarm || watchAlarm.periodInMinutes !== watch.config.activeIntervalMinutes) {
       await browser.alarms.create(WATCH_ALARM, { delayInMinutes: watch.config.activeIntervalMinutes, periodInMinutes: watch.config.activeIntervalMinutes });
@@ -200,6 +203,20 @@ export default defineBackground(() => {
   const watchIntervals = async () => {
     const { config } = watchInForce(await readExtensionWatch(local), await readRemoteConfig(local));
     return { activeMinutes: config.activeIntervalMinutes, idleMinutes: config.idleIntervalMinutes };
+  };
+
+  /**
+   * Seven days without Sulo opened (popup or dashboard): SIKOLA's watch and
+   * Sipakamase's keeper stop, with one notification. Opening Sulo starts the
+   * watch again; Sipakamase asks to connect again.
+   */
+  const checkIdle = async () => {
+    if (!(await pauseIfIdle(local, clock.now()))) return;
+    await ensureAlarms();
+    await sipakamase.idle();
+    const prefs = await readPrefs(local);
+    const w = watchWords(resolveLocale(prefs.locale, browser.i18n.getUILanguage()));
+    await notifier.show('idle', { icon: 'sleepy', title: w.idleTitle, message: w.idleBody, buttons: [] }).catch(() => undefined);
   };
 
   /** "Pantau tugas baru" switched: stored, the alarm follows, and turning it on checks once at once. */
@@ -290,7 +307,7 @@ export default defineBackground(() => {
     } else if (kind === 'nudge') {
       // The user clicked the notification: open the NEOSIA page it names. Sulo never touches that tab.
       await browser.tabs.create({ url: nudgeTarget(id) });
-    } else if (kind === 'krs' || kind === 'mkpk') {
+    } else if (kind === 'krs' || kind === 'mkpk' || kind === 'idle') {
       // MKPK notices (1.1.0) open the overview, where the MKPK card is.
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     } else if (kind === 'calendar') {
@@ -510,7 +527,8 @@ export default defineBackground(() => {
       // With "Pantau tugas baru" on, opening the popup also checks once (runSync skips it
       // when the last check is younger than 2 minutes); the popup shows stored data at once.
       case 'popup/opened':
-        return countOpen()
+        return markOpened(local, clock.now())
+          .then(countOpen)
           .then(() => bumpUsage(local, today(), 'popupOpens'))
           .then(async () => {
             if (watchInForce(await readExtensionWatch(local), await readRemoteConfig(local)).on) void sync('popup');
@@ -594,7 +612,10 @@ export default defineBackground(() => {
       const trigger = alarm.name.slice(CATCHUP_ALARM_PREFIX.length) as SyncTrigger;
       if (CATCHUP_TRIGGERS.has(trigger)) void sync(trigger);
     }
-    if (alarm.name === BADGE_ALARM) void updateBadge();
+    if (alarm.name === BADGE_ALARM) {
+      void updateBadge();
+      void checkIdle();
+    }
     if (alarm.name === NOTIFY_ALARM) runReminders();
   });
 
@@ -608,7 +629,7 @@ export default defineBackground(() => {
     if (pendingChange?.newValue && (pendingChange.newValue as AccountPending).userId !== (pendingChange.oldValue as AccountPending | undefined)?.userId) {
       void clearAllNotifications();
     }
-    if ('global:remoteConfig' in changes || EXTENSION_WATCH_KEY in changes) void ensureAlarms();
+    if ('global:remoteConfig' in changes || EXTENSION_WATCH_KEY in changes || IDLE_PAUSE_KEY in changes) void ensureAlarms();
     if ('global:remoteConfig' in changes) void sipakamase.ensureAlarm();
     if (keys.some((k) => REMINDER_INPUTS.test(k) || k === SIPAKAMASE_NEWS_KEY)) runReminders();
     const account = changes[CURRENT_USER_KEY];

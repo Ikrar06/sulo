@@ -12,6 +12,9 @@ const id = {
   short: 'Juga saat kamu membuka Sulo. Sesi SIKOLA-mu tetap aktif di browser ini.',
   closed: 'Saat browser ditutup, Sulo tidak bisa mengecek. Ia menyusul begitu browser dibuka lagi.',
   stopped: 'Pantauan sedang dihentikan pengelola Sulo.',
+  idleTitle: 'Sulo berhenti menjaga koneksi',
+  idleBody: 'Sulo tidak dibuka 7 hari, jadi pantauan SIKOLA dan penjagaan sesi berhenti. Buka Sulo untuk menyalakannya lagi.',
+  idleNote: 'Pantauan berhenti karena Sulo 7 hari tidak dibuka. Menyala lagi sekarang.',
   whatsNew: {
     title: 'Kabar SIKOLA lebih cepat',
     body: 'Nyalakan Pantau tugas baru supaya Sulo mengecek SIKOLA tiap 15 menit dan tiap kali kamu membuka Sulo. Selama menyala, sesi SIKOLA-mu tetap aktif di browser ini.',
@@ -28,6 +31,9 @@ const en: WatchWords = {
   short: 'Also when you open Sulo. Your SIKOLA session stays active in this browser.',
   closed: 'While the browser is closed, Sulo cannot check. It catches up as soon as the browser opens again.',
   stopped: "Watching is paused by Sulo's maintainer.",
+  idleTitle: 'Sulo stopped keeping connections',
+  idleBody: 'Sulo was not opened for 7 days, so SIKOLA watching and session keeping stopped. Open Sulo to start them again.',
+  idleNote: 'Watching stopped because Sulo was not opened for 7 days. It is on again now.',
   whatsNew: {
     title: 'SIKOLA news arrives faster',
     body: 'Turn on Watch for new tasks so Sulo checks SIKOLA every 15 minutes and each time you open Sulo. While it is on, your SIKOLA session stays active in this browser.',

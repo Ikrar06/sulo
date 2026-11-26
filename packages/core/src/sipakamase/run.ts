@@ -111,3 +111,9 @@ export async function passive(deps: SipakamaseDeps, message: PassiveRead): Promi
   await settle(deps, c.conn, message.kind === 'login' ? { kind: 'login' } : message);
   return message.kind === 'login' ? 'login' : 'stored';
 }
+
+/** Sulo not opened for 7 days (watch/idle.ts): the connection rests until the user connects again. No request. */
+export async function idlePause(deps: SipakamaseDeps): Promise<void> {
+  if (!(await readSipakamaseModule(deps.store)).enabled) return;
+  await move(deps, await readConnection(deps.store, true), { kind: 'idle_days' });
+}

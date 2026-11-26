@@ -8,7 +8,7 @@ import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { sourcesFrom } from '@sulo/core/remote/sources';
 import type { Scheduler } from '@sulo/core/net/scheduler';
 import { disableSipakamase, enableSipakamase, readSipakamaseModule, reconcileSipakamase } from '@sulo/core/sipakamase/module';
-import { keep, passive, refresh, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
+import { idlePause, keep, passive, refresh, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
 import { parsePassive } from '@sulo/core/sipakamase/schema';
 import type { KeyValueStore, UnixSeconds } from '@sulo/core/types';
 import { browserSipakamaseDeps } from './platform/sipakamase';
@@ -64,5 +64,6 @@ export function createSipakamaseService(opts: { store: KeyValueStore; scheduler:
     refresh: () => serial(() => refresh(deps)),
     keep: () => serial(() => keep(deps)).catch(() => undefined),
     passive: (raw: unknown) => serial(() => passive(deps, parsePassive(raw))).catch(() => 'ignored' as const),
+    idle: () => serial(() => idlePause(deps)).catch(() => undefined),
   };
 }

@@ -13,7 +13,8 @@ import type { Platform, KeyValueStore } from '@sulo/core/platform';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { SIPAKAMASE_ORIGIN } from '@sulo/core/sipakamase/allowlist';
 import { disableSipakamase, enableSipakamase, readSipakamaseModule, type ModuleDeps } from '@sulo/core/sipakamase/module';
-import { keep, refresh, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
+import { idlePause, keep, refresh, type SipakamaseDeps } from '@sulo/core/sipakamase/run';
+import { idleTooLong, markOpened } from '@sulo/core/watch/idle';
 import { foldWorker, readKeeper, writeKeeper } from '@sulo/core/sipakamase/keeper';
 import { readConnection, transition, writeConnection } from '@sulo/core/sipakamase/connection';
 import { SIPAKAMASE_DATA_PREFIX } from '@sulo/core/sipakamase/store';
@@ -101,8 +102,19 @@ export async function foldWorkerKeep(platform: Platform): Promise<void> {
   }
 }
 
-/** On opening the app: the worker's reads folded in, then the keeper's rotating read when one is due; nothing otherwise. */
-export const keepSipakamase = (platform: Platform) =>
+/**
+ * On opening the app: after 7 days or more without it (watch/idle.ts) the
+ * connection rests and asks to connect again; otherwise the worker's reads
+ * are folded in, then the keeper's rotating read runs when one is due.
+ */
+export const keepSipakamase = async (platform: Platform) => {
+  const now = platform.clock.now();
+  const previous = await markOpened(platform.store, now).catch(() => null);
+  if (idleTooLong(previous, now)) return idlePause(sipakamaseDeps(platform).run).catch(() => undefined);
+  return keepNow(platform);
+};
+
+const keepNow = (platform: Platform) =>
   foldWorkerKeep(platform)
     .then(() => keep(sipakamaseDeps(platform).run))
     .catch(() => undefined);
