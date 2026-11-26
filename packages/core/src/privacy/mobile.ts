@@ -213,7 +213,10 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             id: 'Penjagaan sesi di latar belakang hanya ikut cek "Pantau tugas baru" yang sudah membangunkan HP, tanpa bangun tambahan. Isi halaman yang diambil di latar belakang tidak disimpan; datamu diperbarui saat kamu membuka Sulo.',
             en: 'Keeping the session in the background only rides the "Watch for new tasks" check that already wakes the phone, with no wake of its own. Pages fetched in the background are not kept; your data updates when you open Sulo.',
           },
-          { id: SIPAKAMASE_CONSENT.off.id, en: SIPAKAMASE_CONSENT.off.en },
+          {
+            id: 'Kapan saja, lewat Pengaturan lalu "Putuskan". Semua data dan sesi Sipakamase di HP ini langsung terhapus.',
+            en: 'Any time, in Settings with "Disconnect". All Sipakamase data and its session on this phone are deleted at once.',
+          },
         ],
       },
     ],

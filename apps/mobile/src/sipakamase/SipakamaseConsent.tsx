@@ -26,9 +26,14 @@ export function SipakamaseConsentSheet({ open, onClose, onConnect }: { open: boo
         </ul>
         <div>
           <p className="text-m13 font-semibold">{C.droppedTitle[l]}</p>
-          <p className="mt-1 text-m13 text-muted-foreground">{C.dropped.map((t) => t[l]).join(', ')}.</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5 text-m13 text-muted-foreground">
+            {C.dropped.map((t) => (
+              <li key={t.id}>{t[l]}</li>
+            ))}
+          </ul>
         </div>
-        <p className="text-m13 text-muted-foreground">{C.off[l]}</p>
+        {/* No browser permission on the phone: its own sentence. */}
+        <p className="text-m13 text-muted-foreground">{w.phoneOff}</p>
         <p className="text-m12 text-muted-foreground">{C.unofficial[l]}</p>
         {note && (
           <p role="status" className="text-m13">
