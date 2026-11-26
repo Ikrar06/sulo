@@ -458,6 +458,12 @@ const STATES = [
     await c.page.reload();
     await c.page.waitForTimeout(1500);
     await c.check('update-wajib');
+    // iPhone: "Lihat data terakhir", the old data read-only under its bar (C2).
+    if (IOS) {
+      await c.btn(c.t.mobile.iphone.readOnly, true).click();
+      await c.page.waitForTimeout(1500);
+      await c.check('update-wajib-baca-saja');
+    }
   }]]],
   ...['wait', 'fail'].map((m) => [{ query: `?lock=${m}`, lockOn: true }, [[`kunci ${m}`, async (c) => (await c.page.waitForTimeout(900), c.check(`kunci-${m}`))]]]),
   ...['invite', 'new', 'beranda'].map((s) => [{ query: `?neosia=${s}` }, one(`neosia-${s}`)]),

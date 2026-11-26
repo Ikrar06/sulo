@@ -52,3 +52,29 @@ describe('test config (debug screen)', () => {
     expect((await readRemoteConfig(platform.store)).fetchedAt).toBe(0);
   });
 });
+
+describe('made-up release (debug screen, the update test)', () => {
+  it('writes a required release for Android and the iPhone, and "Kembali ke config resmi" removes it', async () => {
+    const { applyFakeRelease } = await import('../src/dev/test-config');
+    const { parseIosRelease, parseRelease, releaseNotice } = await import('@sulo/core/remote/release');
+    const platform = createMobilePlatform();
+    await applyFakeRelease(platform, 'required');
+    const config = await readRemoteConfig(platform.store);
+    const ios = parseIosRelease(config.mobile);
+    expect(ios).toMatchObject({ versionCode: 90100, minVersionCode: 90100, size: 1_300_000, readOnlyAllowed: true });
+    expect(parseRelease(config.mobile)?.url).toMatch(/\.apk$/);
+    expect(releaseNotice(ios, 10100, null, platform.clock.now()).kind).toBe('required');
+    expect((await readTestConfig(platform))?.url).toBe('rilis-palsu:required');
+    await clearTestConfig(platform);
+    expect(parseIosRelease((await readRemoteConfig(platform.store)).mobile)).toBeNull();
+  });
+  it('"tersedia" is a card, not a block', async () => {
+    const { applyFakeRelease } = await import('../src/dev/test-config');
+    const { parseIosRelease, releaseNotice } = await import('@sulo/core/remote/release');
+    const platform = createMobilePlatform();
+    await applyFakeRelease(platform, 'available');
+    const ios = parseIosRelease((await readRemoteConfig(platform.store)).mobile);
+    expect(releaseNotice(ios, 10100, null, platform.clock.now()).kind).toBe('available');
+    await clearTestConfig(platform);
+  });
+});

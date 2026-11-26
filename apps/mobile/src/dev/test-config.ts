@@ -8,7 +8,8 @@
 // scripts/check-no-dev-code.mjs fails a release build that carries this.
 
 import type { Platform } from '@sulo/core/platform';
-import { REMOTE_CONFIG_FILE_KEY, REMOTE_CONFIG_KEY, remoteConfigSchema } from '@sulo/core/remote/remote-config';
+import { DEFAULT_REMOTE_CONFIG, REMOTE_CONFIG_FILE_KEY, REMOTE_CONFIG_KEY, remoteConfigSchema } from '@sulo/core/remote/remote-config';
+import type { RemoteConfig } from '@sulo/core/types';
 
 export const TEST_CONFIG_PREFIX = 'https://raw.githubusercontent.com/Ikrar06/sulo-data/';
 export const TEST_CONFIG_KEY = 'mobile:dev:testConfig';
@@ -56,4 +57,29 @@ export async function readTestConfig(platform: Platform): Promise<{ url: string;
 /** Back to the official config: the test is forgotten and the official file is due at once. */
 export async function clearTestConfig(platform: Platform): Promise<void> {
   await platform.store.remove([TEST_CONFIG_KEY, REMOTE_CONFIG_KEY, REMOTE_CONFIG_FILE_KEY]);
+}
+
+/** A made-up release (9.1.0, far above any real build) on the stored config, for the update screens. */
+export const FAKE_RELEASE_URL = (kind: 'available' | 'required') => `rilis-palsu:${kind}`;
+
+/**
+ * "Rilis palsu" (C4, the iPhone's update test): a newer release written into the stored config, for Android
+ * (mobile.release) and the iPhone (mobile.ios.release), required or not; no request anywhere. Shown as the
+ * active test config, so "Kembali ke config resmi" removes it; the next official read (6 hours) replaces it too.
+ */
+export async function applyFakeRelease(platform: Platform, kind: 'available' | 'required'): Promise<void> {
+  const now = platform.clock.now();
+  const current = (await platform.store.get<RemoteConfig>(REMOTE_CONFIG_KEY)) ?? DEFAULT_REMOTE_CONFIG;
+  const mobile = typeof current.mobile === 'object' && current.mobile !== null ? (current.mobile as Record<string, unknown>) : {};
+  const release = {
+    versionCode: 90100,
+    versionName: '9.1.0',
+    url: 'https://github.com/Ikrar06/sulo/releases/download/v9.1.0/sulo-9.1.0-android.apk',
+    sha256: '3f1c9a0e5b7d24c86e19af03b25d7c4e8a96f10d2bc35e47a8f9061d2c4b7e5a',
+    minVersionCode: kind === 'required' ? 90100 : 0,
+    notes: { id: 'Rilis palsu untuk uji pembaruan.', en: 'A made-up release for the update test.' },
+  };
+  const ios = { ...release, url: 'https://github.com/Ikrar06/sulo/releases/download/v9.1.0/sulo-9.1.0-ios.ipa', size: 1_300_000 };
+  await platform.store.set(REMOTE_CONFIG_KEY, { ...current, mobile: { ...mobile, release, ios: { release: ios } }, fetchedAt: now });
+  await platform.store.set(TEST_CONFIG_KEY, { url: FAKE_RELEASE_URL(kind), at: now });
 }

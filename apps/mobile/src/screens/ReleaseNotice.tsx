@@ -15,7 +15,6 @@ import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { dismissRelease, releaseState, showChecksum } from '../release';
-import { Capacitor } from '@capacitor/core';
 import { iosUpdateGuide } from '@sulo/core/links';
 import type { IosReleaseInfo } from '@sulo/core/remote/release';
 import { SuloSession } from '../session';
@@ -25,11 +24,13 @@ import { SuloSession } from '../session';
  * every update button opens the guide's "Memperbarui Sulo" part instead of a file, and there is no checksum
  * line here (the guide has it).
  */
-const onIphone = () => Capacitor.getPlatform() === 'ios';
+// The iPhone's words and guide (core i18n/os.ts, set from the platform at start; ?os=ios in the web preview).
+const onIphone = () => mobileOs() === 'ios';
 
 /** "1.1.1" from its versionCode (major * 10000 + minor * 100 + patch). */
 const versionName = (code: number) => `${Math.floor(code / 10000)}.${Math.floor(code / 100) % 100}.${code % 100}`;
 import { useMobileData } from '../shell/data';
+import { mobileOs } from '@sulo/core/i18n/os';
 
 /** The notice for now, read again whenever the app's data is (the config comes with it). */
 export function useReleaseNotice(platform: Platform, tick: unknown): { notice: ReleaseNotice; dismiss: () => Promise<void> } {

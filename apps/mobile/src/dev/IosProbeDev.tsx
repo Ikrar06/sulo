@@ -21,6 +21,8 @@ interface ProbeStatus {
   backgroundTotal: number;
   backgroundSubmitError: number | null;
   pending: { id: string; at: number | null }[];
+  /** The app's refresh notice (refresh|), when one is scheduled. */
+  refreshNoticeAt: number | null;
 }
 
 interface SuloProbePlugin {
@@ -52,6 +54,7 @@ export function IosProbeDev() {
             {s.keychainLeftAtFirstLaunch ? '. Keychain tersisa dari pemasangan sebelumnya.' : ''}
           </li>
           <li className={row}>Profil berlaku sampai: {s.profileExpiresAt === null ? 'tidak terbaca (simulator?)' : time(s.profileExpiresAt)}</li>
+          <li className={row}>Pengingat segarkan: {s.refreshNoticeAt === null || s.refreshNoticeAt === undefined ? 'tidak dijadwalkan' : time(s.refreshNoticeAt)}</li>
           <li className={row}>
             Notifikasi uji menunggu: {s.pending.length === 0 ? 'tidak ada' : s.pending.map((p) => `${p.id} ${time(p.at)}`).join(', ')}
           </li>

@@ -5,7 +5,6 @@
 // every value is the same prefs field the extension uses.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { CALENDAR_NOTIFY_KINDS } from '@sulo/core/calendar/notify-settings';
 import { formatClock } from '@sulo/core/format/time';
 import { LANGUAGE_NAMES } from '@sulo/core/i18n';
@@ -38,6 +37,7 @@ type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickna
 import { SignOutSheet } from './SignOutSheet';
 import { Group, Row, ValueRow } from './settings-rows';
 import { WatchSettings } from './WatchSettings';
+import { mobileOs } from '@sulo/core/i18n/os';
 import { NeosiaSettings } from './neosia/NeosiaSettings';
 import { SipakamaseSettings } from './sipakamase/SipakamaseSettings';
 export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut: () => void; section?: string | null }) {
@@ -168,7 +168,7 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
         <ValueRow label={r.at} value={hour(rem.morning.atMin)} disabled={!rem.morning.enabled} onPress={() => setPicker('morning')} />
         <ValueRow label={r.snoozeMorning} value={hour(rem.snoozeMorningMin)} onPress={() => setPicker('snooze')} />
         {/* iPhone only: the day before the app needs a refresh from the laptop (ios-refresh.ts). */}
-        {Capacitor.getPlatform() === 'ios' && (
+        {mobileOs() === 'ios' && (
           <Row label={w.iphone.refreshSwitch} help={w.iphone.refreshHelp}>
             <Toggle
               checked={prefs.refreshReminder}

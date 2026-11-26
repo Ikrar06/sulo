@@ -65,6 +65,9 @@ export async function seedDemo(store: KeyValueStore, now: UnixSeconds): Promise<
   if (release === 'available' || release === 'required') {
     const config = (data['global:remoteConfig'] ?? { enabled: true, minIntervalMinutes: 30, message: '', fetchedAt: now, okAt: now }) as Record<string, unknown>;
     data['global:remoteConfig'] = { ...config, mobile: { ...((config.mobile as object) ?? {}), release: { versionCode: 90100, versionName: '9.1.0', url: 'https://github.com/Ikrar06/sulo/releases/download/v9.1.0/sulo-9.1.0-android.apk', sha256: '3f1c9a0e5b7d24c86e19af03b25d7c4e8a96f10d2bc35e47a8f9061d2c4b7e5a', minVersionCode: release === 'required' ? 90100 : 0, notes: { id: 'Sulo sekarang terhubung ke Sipakamase: progres MKPK, kegiatan yang belum dikonversi, dan pengingat klaim nilai. Kabar SIKOLA juga sampai lebih cepat.', en: 'Sulo now connects to Sipakamase: MKPK progress, activities not yet converted and reminders to claim grades. SIKOLA news arrives faster too.' } } } };
+    // The iPhone reads only its own section (mobile.ios.release): the same release as an .ipa (web preview: ?os=ios).
+    const android = data['global:remoteConfig'] as { mobile: { release: Record<string, unknown> } };
+    data['global:remoteConfig'] = { ...android, mobile: { ...android.mobile, ios: { release: { ...android.mobile.release, url: 'https://github.com/Ikrar06/sulo/releases/download/v9.1.0/sulo-9.1.0-ios.ipa', size: 1_300_000 } } } };
   }
   // ?neosia=<stage> (src/fake/neosia.ts): NEOSIA connected, except for the invite.
   const neosia = params.get('neosia');

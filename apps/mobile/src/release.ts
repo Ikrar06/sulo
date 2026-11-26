@@ -5,11 +5,11 @@
 
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { parseIosRelease, parseRelease, readDismissal, releaseNotice, RELEASE_DISMISS_KEY, versionCodeOf, type ReleaseDismissal, type ReleaseInfo, type ReleaseNotice } from '@sulo/core/remote/release';
-import { Capacitor } from '@capacitor/core';
 
 /** Each platform reads only its own section: the iPhone mobile.ios.release, Android mobile.release. */
-const parse = (mobile: unknown): ReleaseInfo | null => (Capacitor.getPlatform() === 'ios' ? parseIosRelease(mobile) : parseRelease(mobile));
+const parse = (mobile: unknown): ReleaseInfo | null => (mobileOs() === 'ios' ? parseIosRelease(mobile) : parseRelease(mobile));
 import type { KeyValueStore, UnixSeconds } from '@sulo/core/types';
+import { mobileOs } from '@sulo/core/i18n/os';
 
 /** This build's versionCode (the same number Gradle wrote into the APK). */
 export const INSTALLED_CODE = versionCodeOf(__SULO_VERSION__) ?? 0;

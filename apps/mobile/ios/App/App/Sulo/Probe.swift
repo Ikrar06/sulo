@@ -134,12 +134,16 @@ enum Probe {
 
     static func status(completion: @escaping ([String: Any]) -> Void) {
         UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            let pending: [[String: Any]] = requests.filter { $0.identifier.hasPrefix(notificationPrefix) }.map { request in
-                var at: Any = NSNull()
-                if let trigger = request.trigger as? UNCalendarNotificationTrigger, let next = trigger.nextTriggerDate() { at = Int(next.timeIntervalSince1970) }
-                if let trigger = request.trigger as? UNTimeIntervalNotificationTrigger, let next = trigger.nextTriggerDate() { at = Int(next.timeIntervalSince1970) }
-                return ["id": String(request.identifier.dropFirst(notificationPrefix.count)), "at": at]
+            func nextAt(_ request: UNNotificationRequest) -> Any {
+                let next = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() ?? (request.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate()
+                return next.map { Int($0.timeIntervalSince1970) } ?? NSNull()
             }
+            let pending: [[String: Any]] = requests.filter { $0.identifier.hasPrefix(notificationPrefix) }.map { request in
+                ["id": String(request.identifier.dropFirst(notificationPrefix.count)), "at": nextAt(request)]
+            }
+            // The app's "Sulo perlu disegarkan besok" notice (uji-iphone.md D): its time only, never its text.
+            let refresh = requests.first { (($0.content.userInfo["cap_extra"] as? [String: Any])?["suloId"] as? String)?.hasPrefix("refresh|") == true }
+            let refreshAt: Any = refresh.map(nextAt) ?? NSNull()
             DispatchQueue.main.async {
                 let marker = readJSON("install.json") ?? [:]
                 let background = readJSON("background.json") ?? [:]
@@ -162,6 +166,7 @@ enum Probe {
                     "backgroundTotal": background["total"] ?? 0,
                     "backgroundSubmitError": background["lastSubmitError"] ?? NSNull(),
                     "pending": pending,
+                    "refreshNoticeAt": refreshAt,
                 ])
             }
         }
