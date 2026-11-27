@@ -68,6 +68,10 @@ const LANGS = ['en', 'id'];
 const LOOKS = CI ? [['light', 'full']] : [['light', 'full'], ['dark', 'lite']];
 // WebKit cannot be given safe areas, so none are assumed there.
 const SAFE = ENGINE === 'webkit' ? { top: 0, bottom: 0 } : IOS ? { top: 59, bottom: 34 } : { top: 48, bottom: 24 };
+// What must stay clear: the bars themselves. On an iPhone that is the home indicator (5 pt, 8 pt above the
+// edge) with a margin, 21 pt, not its whole 34 pt inset: the tab bar sits just above the indicator there
+// (styles.css --m-bar-inset), as iOS's own tab bars do.
+const KEEP = ENGINE === 'webkit' ? SAFE : IOS ? { top: 59, bottom: 21 } : SAFE;
 const TOUCH = 44;
 const PORT = Number(arg('port', '5195'));
 const DIST = resolve(ROOT, arg('dist', '.output/layout-mobile-web'));
@@ -327,7 +331,7 @@ async function checkState(page, state, look, lang) {
         // measure themselves (the greeting, the onboarding scenes, the mascot's place) are told to measure again.
         await page.evaluate(() => window.dispatchEvent(new Event('resize')));
         await page.waitForTimeout(250);
-        const found = await page.evaluate(FIND, { safe: SAFE, touch: TOUCH });
+        const found = await page.evaluate(FIND, { safe: KEEP, touch: TOUCH });
         checks += 1;
         for (const f of found) results.push({ state, lang, theme, tier, w, h, scale: s, ...f });
         const key = `${state}|${s}`;
@@ -438,6 +442,8 @@ const MAIN = [
 const one = (name, run) => [[name, async (c) => (await c.enter(), run ? run(c) : c.check(name))]];
 const STATES = [
   [{ query: '?neosia=all' }, [['masuk', (c) => c.enter()], ['beranda neosia', (c) => c.check('beranda-neosia')], ['jadwal', async (c) => (await c.go('#jadwal'), c.check('jadwal'))], ['nilai tersembunyi', async (c) => (await c.go('#nilai'), c.check('nilai-tersembunyi'))]]],
+  // Grades shown (synthetic): the stat cards, the chart, the per-semester list with the newest open, the simulation.
+  [{ query: '?neosia=all&grades=1' }, [['masuk', (c) => c.enter()], ['nilai', async (c) => (await c.go('#nilai'), c.check('nilai'))]]],
   [{ query: '?demo=aman' }, one('beranda-aman')],
   [{ query: '?demo=kosong' }, [...one('beranda-kosong'), ['tugas kosong', async (c) => (await c.go('#tugas'), c.check('tugas-kosong'))], ['kabar kosong', async (c) => (await c.go('#kabar'), c.check('kabar-kosong'))]]],
   [{ query: '?session=expired' }, one('perlu-masuk-lagi')],

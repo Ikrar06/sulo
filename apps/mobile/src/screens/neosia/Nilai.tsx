@@ -5,7 +5,7 @@
 // estimates (the official GPA is NEOSIA's); "Bisa diperbaiki" lists, it
 // never recommends. Never in a notification, an export or a bug report.
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { formatAgo } from '@sulo/core/format/time';
 import { yAxisRange } from '@sulo/core/grades/axis';
 import { GRADE_LETTERS } from '@sulo/core/grades/scale';
@@ -15,6 +15,7 @@ import { dataOf, DEFAULT_SKS_TARGET, profile } from '@sulo/core/neosia/view';
 import type { Projected } from '@sulo/core/neosia/project';
 import { Card, EmptyCard, SectionHead, StatCard } from '@sulo/ui/mobile/cards';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
+import { ChevronDownIcon } from '@sulo/ui/icons';
 import { Sheet, SheetOptions } from '@sulo/ui/mobile/sheet';
 import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Private, usePrivacy } from '@sulo/ui/private';
@@ -63,6 +64,58 @@ function IpsChart({ points, label }: { points: { label: string; ips: number }[];
   );
 }
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/**
+ * One semester's courses (the dashboard's Nilai has the same list): its order and name, credits and IPS, and
+ * each course with its code, credits and letter. Opens in place like Bantuan's answers; a row that does not
+ * count toward the GPA is dimmed and says so to screen readers.
+ */
+function SemesterCard({ title, sub, summary, rows, open, onToggle }: { title: string; sub: string | null; summary: string; rows: readonly TranscriptRow[]; open: boolean; onToggle: () => void }) {
+  const { locale } = useI18n();
+  const t = neosiaWords(locale).nilai;
+  const panel = useId();
+  return (
+    <section className="m-card rounded-card">
+      <button type="button" aria-expanded={open} aria-controls={panel} onClick={onToggle} className="flex w-full items-center gap-3 rounded-card p-4 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
+        <span className="min-w-0 flex-1">
+          <span className="block text-m15 font-semibold">{title}</span>
+          {sub && <span className="block text-m12 text-muted-foreground">{sub}</span>}
+        </span>
+        <span className="shrink-0 text-m12 text-muted-foreground tabular-nums">
+          <Private>{summary}</Private>
+        </span>
+        <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-m-inset">
+          <ChevronDownIcon className={`size-4 transition-transform duration-200 ease-out motion-reduce:transition-none ${open ? 'rotate-180' : ''}`} />
+        </span>
+      </button>
+      {/* The list eases open by animating the grid row from 0fr to 1fr. */}
+      <div id={panel} role="region" aria-label={title} aria-hidden={!open} className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+        <div className="overflow-hidden">
+          <ul className="px-4 pb-3" inert={!open}>
+            {rows.map((r) => (
+              <li key={r.key} className={`flex items-center gap-3 py-2 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line ${r.used ? '' : 'opacity-60'}`}>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 block text-m13">
+                    <Private>{r.name}</Private>
+                  </span>
+                  <span className="block text-m12 text-muted-foreground tabular-nums">
+                    {[r.code, `${r.sks} ${t.sks}`, r.transfer ? t.transfer : null, r.manual ? t.manual : null].filter(Boolean).join(' · ')}
+                    {!r.used && <span className="sr-only">, {t.notCounted}</span>}
+                  </span>
+                </span>
+                <span className="flex h-8 min-w-11 shrink-0 items-center justify-center rounded-lg bg-m-inset px-2 text-m13 font-semibold tabular-nums">
+                  <Private>{r.letter ?? '–'}</Private>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const { locale, m } = useI18n();
   const n = neosiaWords(locale);
@@ -78,6 +131,8 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const [includeC, setIncludeC] = useState(false);
   const [sim, setSim] = useState<Record<string, string>>({});
   const [picking, setPicking] = useState<TranscriptRow | null>(null);
+  // The newest semester starts open (undefined); then one open at a time, or none.
+  const [openSemester, setOpenSemester] = useState<string | null | undefined>(undefined);
 
   const rows = useMemo(() => readTranscript(grades ? (dataOf(grades, 'getTranskripMahasiswa') as Projected) : null), [grades]);
   const semesters = useMemo(() => readSemesters(grades ? (dataOf(grades, 'mahasiswa/semester') as Projected) : null), [grades]);
@@ -132,6 +187,25 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
           <p className="text-m12 text-muted-foreground">{t.chartNote(yAxisRange(points.map((x) => x.ips)).min > 0 ? yAxisRange(points.map((x) => x.ips)).min.toFixed(2) : null)}</p>
         </Card>
       )}
+
+      <section aria-labelledby="semester-title" className="space-y-2">
+        <SectionHead id="semester-title" title={t.perSemester} />
+        {groups.map((g) => {
+          const l = label(g.semester);
+          const open = (openSemester === undefined ? groups[0]?.semester : openSemester) === g.semester;
+          return (
+            <SemesterCard
+              key={g.semester}
+              title={g.semester === '-' ? t.semesterUnknown : t.semesterOrdinal(l.index)}
+              sub={g.semester !== '-' && l.jenis && l.tahunAjaran ? `${capitalize(l.jenis)} ${l.tahunAjaran}` : null}
+              summary={t.semesterSummary(g.sks, hide || g.ips === null ? MASK : g.ips.toFixed(2))}
+              rows={g.rows}
+              open={open}
+              onToggle={() => setOpenSemester(open ? null : g.semester)}
+            />
+          );
+        })}
+      </section>
 
       <section aria-labelledby="sim-title">
         <SectionHead id="sim-title" title={t.sim} />
