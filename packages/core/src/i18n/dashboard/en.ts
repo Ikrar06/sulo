@@ -291,6 +291,7 @@ export const dashEn: DashMessages = {
       apple: 'Apple/other',
       iphone: 'iPhone Calendar',
       note: 'Google Calendar will ask you to confirm. Subscriptions can only be added in Google Calendar on the web. After that they also show up on your phone.',
+      noteIphone: 'The iPhone’s Calendar asks before it subscribes, then keeps it up to date. Google Calendar asks too, and its subscriptions can only be added on its web version.',
     },
     expiredTitle: 'The academic calendar data is out of date',
     expiredBody: (date) => `Sulo's calendar was valid until ${date}, and next year's calendar is not available yet. The dates below are old. Check the Unhas website until Sulo is updated.`,

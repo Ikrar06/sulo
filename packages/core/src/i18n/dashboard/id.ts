@@ -296,6 +296,8 @@ export const dashId = {
       /** The phone, on an iPhone only: its own Calendar subscribes to the webcal link (1.1.0). */
       iphone: 'Kalender iPhone',
       note: 'Google Kalender akan meminta konfirmasi. Langganan hanya bisa ditambahkan dari Google Kalender versi web, setelah itu muncul juga di HP.',
+      /** The phone on an iPhone, with its own Calendar beside Google's. */
+      noteIphone: 'Kalender iPhone menanyakan dulu sebelum berlangganan, lalu memperbaruinya sendiri. Google Kalender juga meminta konfirmasi, dan langganannya hanya bisa ditambahkan dari versi webnya.',
     },
     expiredTitle: 'Data kalender akademik sudah lewat',
     expiredBody: (date: string) => `Kalender yang Sulo punya berlaku sampai ${date}, dan kalender tahun ajaran berikutnya belum ada. Tanggal di bawah adalah tanggal lama. Cek situs Unhas sampai Sulo diperbarui.`,

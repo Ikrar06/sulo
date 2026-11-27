@@ -48,10 +48,15 @@ body {
   color: var(--text);
   font-size: calc(15px * var(--m-tz));
   line-height: calc(20px * var(--m-tz));
-  /* Clear of the status bar and notch (edge-to-edge on Android 15+); the
-     tab bar adds the gesture bar's inset itself. */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
   -webkit-tap-highlight-color: transparent;
+}
+/* Clear of the status bar and notch (edge-to-edge on Android 15+); the tab bar adds the gesture bar's inset itself.
+   A sheet (Radix Dialog) locks the page while it is open, and the lock (react-remove-scroll-bar) rewrites the body's
+   padding to its margins, 0, with body[data-scroll-locked]: the header slid under the clock until the sheet closed
+   (owner's iPhone, 27 Nov 2026; every sheet, on Android 15+ too). The second selector is one step more specific. */
+body,
+html body[data-scroll-locked] {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
 
 /* The dashboard's variables (category colors, accent text) without its

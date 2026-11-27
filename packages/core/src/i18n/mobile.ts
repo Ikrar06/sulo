@@ -173,6 +173,8 @@ const id = {
   release: {
     title: 'Versi baru tersedia',
     version: (v: string) => `Sulo ${v}`,
+    /** The site's "Yang baru di Sulo" page (links.ts whatsNewPage). */
+    whatsNew: 'Lihat yang baru',
     download: 'Unduh',
     later: 'Nanti',
     sha: 'SHA-256',
@@ -446,6 +448,7 @@ const en: MobileWords = {
   release: {
     title: 'New version available',
     version: (v: string) => `Sulo ${v}`,
+    whatsNew: 'See what’s new',
     download: 'Download',
     later: 'Later',
     sha: 'SHA-256',

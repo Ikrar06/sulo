@@ -306,6 +306,11 @@ const FIND = ({ safe, touch }) => {
       if (under(r)) say('tertutup-bilah', el, `kontrol y ${Math.round(r.top)}-${Math.round(r.bottom)}`);
     }
   }
+  // The app starts below the status bar whether a sheet is open or not. The page's top padding is that clearance,
+  // and a sheet's scroll lock once rewrote it to 0: the screen behind slid under the clock (27 Nov 2026).
+  const appRoot = document.getElementById('root');
+  const rootTop = appRoot ? appRoot.getBoundingClientRect().top : safe.top;
+  if (rootTop < safe.top - 0.5) say('tertutup-bilah', null, `layar mulai di y ${Math.round(rootTop)} (bilah ${safe.top})`);
   if (vw > 0 && document.body.getBoundingClientRect().width > vw + 1) say('gulir-samping', null, 'body lebih lebar dari layar');
   return found;
 };
@@ -438,6 +443,7 @@ const MAIN = [
   ['sheet aksi', async (c) => (await c.btn(c.t.mobile.app.moreActions, true).click(), await c.page.waitForTimeout(450), await c.check('sheet-aksi-tugas'), c.closeSheet())],
   ['sheet suara', async (c) => (await c.go('#pengaturan'), await c.page.getByRole('button', { name: c.starts(c.t.mobile.notifySound.label) }).click(), await c.page.waitForTimeout(450), await c.check('sheet-suara'), c.closeSheet())],
   ['sheet keluar', async (c) => (await c.page.getByRole('button', { name: c.starts(c.t.mobile.settings.signOutDelete) }).click(), await c.page.waitForTimeout(450), await c.check('sheet-keluar'), c.closeSheet())],
+  ['sheet tugas baru', async (c) => (await c.go('#tugas'), await c.btn(c.t.dash.tugas.ownAdd, true).click(), await c.page.waitForTimeout(450), await c.check('sheet-tugas-baru'), c.closeSheet())],
 ];
 const one = (name, run) => [[name, async (c) => (await c.enter(), run ? run(c) : c.check(name))]];
 const STATES = [

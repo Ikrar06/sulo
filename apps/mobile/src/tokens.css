@@ -144,6 +144,11 @@
 /* 44: an input is its own touch target (no hit area can be added around it). */
 [data-slot="input"] { height: 44px; border-radius: var(--radius-ctl); background: var(--m-inset); border-color: transparent; }
 .m-search[data-slot="input"] { height: 44px; }
+/* iOS draws a date field at its own size: 22 pt past the sheet's edge, 54 pt tall, the date centered (owner's
+   iPhone, 27 Nov 2026; measured in the simulator's WebKit). Without the native look it takes the field's width
+   and height, as the title above it does; tapping it still opens iOS's date picker. */
+:root[data-os="ios"] input[type="datetime-local"][data-slot="input"] { -webkit-appearance: none; appearance: none; display: block; text-align: left; }
+:root[data-os="ios"] input[type="datetime-local"][data-slot="input"]::-webkit-date-and-time-value { margin: 0; text-align: left; }
 [data-slot="button"], [data-slot="select-trigger"], [data-slot="task-action"] { height: 40px; border-radius: 9999px; }
 [data-slot="checkbox"] { width: 20px; height: 20px; }
 [data-slot="select-item"] { min-height: 44px; }

@@ -15,7 +15,7 @@ import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { dismissRelease, releaseState, showChecksum } from '../release';
-import { iosUpdateGuide } from '@sulo/core/links';
+import { iosUpdateGuide, whatsNewPage } from '@sulo/core/links';
 import type { IosReleaseInfo } from '@sulo/core/remote/release';
 import { SuloSession } from '../session';
 
@@ -91,6 +91,10 @@ export function ReleaseCard({ notice, onDismiss }: { notice: ReleaseNotice; onDi
         <p className="text-m13 text-muted-foreground tabular-nums">{t.version(r.versionName)}</p>
       </div>
       {r.notes && <p className="text-m13">{locale === 'en' ? r.notes.en : r.notes.id}</p>}
+      {/* The whole story, with pictures, on the site's "Yang baru" page: a link, opened by the tap only. */}
+      <button type="button" onClick={() => actions.openExternal(whatsNewPage(locale))} className="m-hit rounded text-m13 font-medium text-foreground underline underline-offset-2 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+        {t.whatsNew}
+      </button>
       {/* A required update in its grace period (1.1.0): its date, and no "Nanti". */}
       {notice.requiredFrom !== undefined && (
         <p className="text-m13 font-medium">{t.requiredOn(new Date(notice.requiredFrom * 1000).toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', { day: 'numeric', month: 'long' }))}</p>

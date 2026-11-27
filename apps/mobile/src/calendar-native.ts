@@ -18,7 +18,9 @@ const SuloCalendar = registerPlugin<SuloCalendarPlugin>('SuloCalendar');
 /** Whether there is a device calendar to add to (the app, not the web preview). */
 export const hasDeviceCalendar = (): boolean => Capacitor.isNativePlatform();
 
-export const isIphone = (): boolean => Capacitor.getPlatform() === 'ios';
+/** The iPhone; in pnpm mobile:web's fake mode also its ?os=ios preview (main.tsx sets data-os), to see what it shows. */
+export const isIphone = (): boolean =>
+  Capacitor.getPlatform() === 'ios' || (__SULO_WEB_FAKE__ && typeof document !== 'undefined' && document.documentElement.dataset.os === 'ios');
 
 export async function addToDeviceCalendar(event: TaskEvent): Promise<AddResult> {
   try {

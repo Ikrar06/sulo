@@ -22,7 +22,7 @@ import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { SourceFooter, useRange, useWeekText, WeekBar } from '@sulo/ui/dashboard/CalendarParts';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
+import { CalendarPlusIcon, ChevronLeftIcon, ChevronRightIcon, ExternalIcon } from '@sulo/ui/icons';
 import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, Chip, EmptyCard, SectionHead, Tile } from '@sulo/ui/mobile/cards';
 import { IconButton, PillButton, Segmented } from '@sulo/ui/mobile/controls';
@@ -111,14 +111,15 @@ export function KalenderScreen() {
                 <Card className="flex h-full flex-col">
                   <p className="text-m15 font-semibold">{feed.name}</p>
                   <p className="mt-1 line-clamp-3 text-m13 text-muted-foreground">{feed.desc}</p>
-                  {/* On an iPhone its own Calendar first (iOS asks before subscribing), then Google's. */}
-                  <div className="mt-auto flex flex-wrap gap-2 pt-3">
+                  {/* On an iPhone its own Calendar first (iOS asks before subscribing), then Google's in the browser:
+                      each as wide as the card, one under the other, its icon saying where it leads. */}
+                  <div className="mt-auto grid gap-2 pt-3">
                     {isIphone() && (
-                      <PillButton small onPress={() => actions.openExternal(appleUrl(feedUrl(id)))}>
+                      <PillButton small full icon={CalendarPlusIcon} onPress={() => actions.openExternal(appleUrl(feedUrl(id)))}>
                         {k.subscribe.iphone}
                       </PillButton>
                     )}
-                    <PillButton small onPress={() => actions.openExternal(googleSubscribeUrl(feedUrl(id)))}>
+                    <PillButton small full icon={ExternalIcon} onPress={() => actions.openExternal(googleSubscribeUrl(feedUrl(id)))}>
                       {k.subscribe.google}
                     </PillButton>
                   </div>
@@ -127,7 +128,7 @@ export function KalenderScreen() {
             );
           })}
         </ul>
-        <p className="mt-2 text-m12 font-normal text-muted-foreground">{k.subscribe.note}</p>
+        <p className="mt-2 text-m12 font-normal text-muted-foreground">{isIphone() ? k.subscribe.noteIphone : k.subscribe.note}</p>
       </section>
       <div className="[&_*]:!text-m12">
         <SourceFooter calendar={calendar} d={d} />

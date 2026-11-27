@@ -64,6 +64,11 @@ export const NEOSIA_MATAKULIAH = 'https://neosia.unhas.ac.id/matakuliah';
 /** Sulo's own site (the landing page and its guides). */
 export const SULO_SITE = 'https://sulo.ikrar.dev';
 
+/** "Yang baru di Sulo" on the site: what each version brought (1.1.0), in the app's language. */
+export function whatsNewPage(locale: 'id' | 'en'): string {
+  return `${SULO_SITE}${locale === 'en' ? '/en' : ''}/yang-baru/`;
+}
+
 /** The iPhone guide's "Memperbarui Sulo" part, in the app's language (owner's decision of 26 Nov 2026, C3). */
 export function iosUpdateGuide(locale: 'id' | 'en'): string {
   return `${SULO_SITE}${locale === 'en' ? '/en' : ''}/pasang/iphone#perbarui`;
