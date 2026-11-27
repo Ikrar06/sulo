@@ -14,6 +14,7 @@ import { addOwnTask, isOwnTask, removeOwnTask, updateOwnTask, type OwnTask } fro
 import { Button } from '@sulo/ui/ui/button';
 import { PlusIcon } from '@sulo/ui/dashboard-icons';
 import { OwnTaskDialog } from '../OwnTaskDialog';
+import { HeaderTools } from '../header-tools';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
@@ -65,6 +66,13 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
 
   return (
     <div className="space-y-4">
+      {/* An action, so it sits in the header with the other pill buttons; the row below is only filters. */}
+      <HeaderTools>
+        <Button variant="outline" onClick={() => setForm('new')}>
+          <PlusIcon className="size-4" />
+          {t.ownAdd}
+        </Button>
+      </HeaderTools>
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-60 flex-1">
           <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -83,10 +91,6 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
             ))}
           </SelectContent>
         </Select>
-        <Button variant="outline" onClick={() => setForm('new')}>
-          <PlusIcon className="size-4" />
-          {t.ownAdd}
-        </Button>
         <Select value={filter.status} onValueChange={(v) => setFilter({ ...filter, status: v as TaskStatusFilter })}>
           <SelectTrigger className="w-60" aria-label={t.status}>
             <SelectValue />

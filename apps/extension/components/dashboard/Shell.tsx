@@ -1,10 +1,11 @@
-import type { ComponentType, ReactNode, SVGProps } from 'react';
+import { useState, type ComponentType, type ReactNode, type SVGProps } from 'react';
 import { browser } from 'wxt/browser';
 import { useI18n } from '@sulo/ui/i18n';
 import { RefreshIcon } from '@sulo/ui/icons';
 import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@sulo/ui/ui/button';
 import { useQuietRefresh } from '@/components/quiet-refresh';
+import { HeaderToolsSlot } from './header-tools';
 import { formatAgo } from '@sulo/core/format/time';
 import { PAGES, routeHash, type Page } from '@sulo/core/dashboard/routes';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
@@ -84,6 +85,7 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
   const { m, locale } = useI18n();
   const nw = neosiaWords(locale);
   const quiet = useQuietRefresh(onRefresh ?? (async () => false));
+  const [toolsSlot, setToolsSlot] = useState<HTMLElement | null>(null);
   const updated = syncing ? d.common.updating : quiet.upToDate ? m.popup.upToDate : lastSyncAt ? m.popup.updatedAgo(formatAgo(lastSyncAt, now, m)) : m.popup.neverUpdated;
   return (
     <div className="db-layout">
@@ -131,6 +133,8 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
         <header className="db-header">
           <h1 className="font-heading text-[20px] leading-8">{d.nav[page]}</h1>
           <div className="flex items-center gap-3">
+          {/* The page's own actions (header-tools.tsx), before Perbarui. */}
+          <span ref={setToolsSlot} className="contents" />
           {onRefresh && (
             <div className="flex items-center gap-3">
               {showUpdated && (
@@ -159,7 +163,9 @@ export function DashboardShell({ page, d, unseen, lastSyncAt, now, syncing, onRe
             )}
           </div>
         </header>
-        <div className="db-content">{children}</div>
+        <div className="db-content">
+          <HeaderToolsSlot.Provider value={toolsSlot}>{children}</HeaderToolsSlot.Provider>
+        </div>
       </main>
     </div>
   );
