@@ -22,11 +22,22 @@ export interface WhatsNewEntry {
 export type WhatsNewPlatform = 'extension' | 'android' | 'ios';
 
 /**
- * 1.1.0 (notice version 2). Ordered as they show: the biggest change first, at most three per platform. Task
- * grades and own tasks reach everyone; the MKPK card needs no entry (it shows itself to NEOSIA users), and
- * Sipakamase has Ringkasan's own invite on the extension, where the third place goes to the watch switch.
+ * 1.1.0 (notice version 2). Ordered as they show: the most requested first (owner, 27 Nov 2026: Sipakamase, with
+ * the iPhone app, which needs no entry inside an app already installed), at most three per platform. Task grades
+ * reach everyone; own tasks on the phone (the dashboard's header shows "Tambah tugas" itself), and the watch
+ * switch on the extension, where it is off until turned on. The MKPK card shows itself to NEOSIA users.
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
+  {
+    noticeVersion: 2,
+    id: 'sipakamase',
+    title: { id: 'Sulo terhubung ke Sipakamase', en: 'Sulo connects to Sipakamase' },
+    body: {
+      id: 'Kegiatan MKPK yang belum dikonversi, nilai yang belum masuk NEOSIA, dan pengingat sebelum batas nilai. Sulo hanya membaca.',
+      en: 'MKPK activities not yet converted, grades not yet in NEOSIA, and reminders before the grade deadline. Sulo only reads.',
+    },
+    action: 'sipakamase',
+  },
   {
     noticeVersion: 2,
     id: 'nilai-tugas',
@@ -44,6 +55,8 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
       id: 'Tugas dari dosen yang tidak ada di SIKOLA, misalnya presentasi, bisa kamu catat, dan Sulo ikut mengingatkan tenggatnya.',
       en: 'Note down work your lecturer gave outside SIKOLA, such as a presentation, and Sulo reminds you of it too.',
     },
+    // The extension has "Tambah tugas" in its dashboard's header; its third place goes to the watch switch.
+    platforms: ['android', 'ios'],
   },
   {
     noticeVersion: 2,
@@ -56,17 +69,6 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     action: 'watch',
     // The phone already had it; its 1.1.0 change (a light check on opening) needs no entry.
     platforms: ['extension'],
-  },
-  {
-    noticeVersion: 2,
-    id: 'sipakamase',
-    title: { id: 'Sulo terhubung ke Sipakamase', en: 'Sulo connects to Sipakamase' },
-    body: {
-      id: 'Kegiatan MKPK yang belum dikonversi, nilai yang belum masuk NEOSIA, dan pengingat sebelum batas nilai. Sulo hanya membaca.',
-      en: 'MKPK activities not yet converted, grades not yet in NEOSIA, and reminders before the grade deadline. Sulo only reads.',
-    },
-    action: 'sipakamase',
-    platforms: ['android', 'ios'],
   },
 ];
 
