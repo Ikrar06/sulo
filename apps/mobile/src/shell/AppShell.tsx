@@ -350,10 +350,12 @@ export function AppShell(props: ShellProps) {
           ) : (
             <>
               <div className="relative flex min-w-0 flex-1 items-center self-stretch">
-                {/* 26 px on the buttons' line, shrinking in place toward 18 as the finger moves (transform only). */}
-                {bigTitle && <h1 className="m-title-big min-w-0 truncate text-m26 whitespace-nowrap">{title}</h1>}
+                {/* 26 px on the buttons' line, shrinking in place toward 18 as the finger moves (transform only).
+                    Both titles span the whole row and are made anew for each screen: as a transformed layer that took
+                    its text's width, a shorter title left the longer one's end painted on the iPhone ("Calendarce"). */}
+                {bigTitle && <h1 key={`big:${title}`} className="m-title-big min-w-0 flex-1 truncate text-m26 whitespace-nowrap">{title}</h1>}
                 {/* The bar's own 18 px name: Ringkasan's, fading in near the end of its greeting; others' under reduced motion. */}
-                <p aria-hidden="true" className={`m-title-small absolute top-1/2 left-0 max-w-full truncate text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
+                <p key={`small:${title}`} aria-hidden="true" className={`m-title-small absolute inset-x-0 top-1/2 truncate text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
                   {title}
                 </p>
                 {ringkasan && <h1 className="sr-only">{title}</h1>}
