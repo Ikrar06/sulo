@@ -131,11 +131,11 @@ export interface WatchTiming extends CheckTiming {
 }
 
 /** The worker's last checks and session ends (times, durations, sizes, outcome codes). */
-export async function readWatchStatus(): Promise<{ timings: WatchTiming[]; sessionEnds: { at: number; sinceLastOkSec: number | null; heldBack: boolean }[]; plannedAt: number; queued: number }> {
-  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0 };
+export async function readWatchStatus(): Promise<{ timings: WatchTiming[]; sessionEnds: { at: number; sinceLastOkSec: number | null; heldBack: boolean }[]; plannedAt: number; queued: number; backgroundRefresh: string | null }> {
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0, backgroundRefresh: null };
   const s = await SuloSession.watchStatus().catch(() => null);
-  if (!s) return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0 };
-  return { timings: JSON.parse(s.timings) as WatchTiming[], sessionEnds: JSON.parse(s.sessionEnds), plannedAt: s.plannedAt, queued: s.queued };
+  if (!s) return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0, backgroundRefresh: null };
+  return { timings: JSON.parse(s.timings) as WatchTiming[], sessionEnds: JSON.parse(s.sessionEnds), plannedAt: s.plannedAt, queued: s.queued, backgroundRefresh: s.backgroundRefresh ?? null };
 }
 
 /**

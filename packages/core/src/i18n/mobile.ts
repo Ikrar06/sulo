@@ -576,9 +576,9 @@ const IPHONE_ID = iphone(id, {
     remoteOff: 'Penjagaan sesi sedang dimatikan sementara.',
     lockOfferTitle: 'Mau kunci Sulo dengan Face ID?',
     lockOfferBody: 'Sesi SIKOLA-mu dijaga di iPhone ini. Kunci aplikasi meminta Face ID, Touch ID, atau kode iPhone setiap Sulo dibuka.',
-    sleepTitle: 'iPhone jarang memberi Sulo waktu di latar belakang',
-    sleepBody: 'Buka Sulo sesekali supaya datanya tetap baru.',
-    sleepOpen: 'Buka Pengaturan iPhone',
+    sleepTitle: 'iPhone tidak memberi Sulo waktu di latar belakang',
+    sleepBody: 'Jaga sesi SIKOLA tidak bisa jalan. Buka pengaturan Sulo di iPhone, lalu nyalakan penyegaran di latar belakang. Mode Daya Rendah juga mematikannya.',
+    sleepOpen: 'Buka pengaturan Sulo',
   },
 });
 
@@ -592,9 +592,9 @@ const IPHONE_EN = iphone(en, {
     remoteOff: 'Keeping the session is paused for now.',
     lockOfferTitle: 'Lock Sulo with Face ID?',
     lockOfferBody: 'Your SIKOLA session is kept on this iPhone. The app lock asks for Face ID, Touch ID or your iPhone passcode every time Sulo opens.',
-    sleepTitle: 'The iPhone rarely gives Sulo time in the background',
-    sleepBody: 'Open Sulo now and then to keep its data fresh.',
-    sleepOpen: 'Open iPhone Settings',
+    sleepTitle: 'The iPhone gives Sulo no time in the background',
+    sleepBody: 'Keep the SIKOLA session cannot run. Open Sulo’s settings on the iPhone and turn on background refresh. Low Power Mode also turns it off.',
+    sleepOpen: 'Open Sulo’s settings',
   },
 });
 

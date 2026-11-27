@@ -93,7 +93,8 @@ export interface SuloSessionPlugin {
   /** The worker's queued answers, each a JSON string, handed over once. */
   watchTake(): Promise<{ answers: string[]; fullSync: boolean }>;
   /** Timings and session ends as JSON strings, the next planned check, the queue length. */
-  watchStatus(): Promise<{ timings: string; sessionEnds: string; plannedAt: number; queued: number }>;
+  /** backgroundRefresh: iOS only, whether Background App Refresh lets Sulo run ("available", "denied", "restricted"). */
+  watchStatus(): Promise<{ timings: string; sessionEnds: string; plannedAt: number; queued: number; backgroundRefresh?: string }>;
   /** A tapped background notification's id, once. */
   watchTakeOpen(): Promise<{ id: string | null }>;
   /** Debug build only (refused otherwise): one background check now, through the same work. */
