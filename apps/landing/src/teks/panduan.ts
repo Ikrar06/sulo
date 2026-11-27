@@ -142,7 +142,7 @@ export const panduan = {
       unduh: 'Unduh .ipa',
       langkah: [
         { judul: 'Unduh Sulo di laptop', isi: 'Tekan tombol di bawah dari laptop. Berkasnya berakhiran .ipa dan tersimpan di folder unduhan.' },
-        { judul: 'Pasang Sideloadly', isi: 'Unduh Sideloadly dari sideloadly.io dan pasang. Di Windows, pasang dulu iTunes dan iCloud versi dari situs Apple, bukan dari Microsoft Store. Di Mac, biarkan aplikasi Mail terbuka selama memasang.' },
+        { judul: 'Pasang Sideloadly', isi: 'Unduh Sideloadly dari sideloadly.io dan pasang. Di Windows, pasang dulu iTunes dan iCloud versi dari situs Apple, bukan dari Microsoft Store. Di Mac, biarkan aplikasi Mail terbuka selama memasang. Saat pertama dibuka di Mac, macOS menahannya karena Sideloadly tidak ditandatangani pengembangnya: tekan Done, buka System Settings, Privacy & Security, lalu Open Anyway di bagian Security, dan sekali lagi Open Anyway.' },
         { judul: 'Sambungkan iPhone', isi: 'Colok iPhone ke laptop dengan kabel dan buka kuncinya. Saat iPhone bertanya, ketuk Percayai lalu masukkan kode iPhone.' },
         { judul: 'Pasang lewat Sideloadly', isi: 'Seret berkas .ipa ke jendela Sideloadly, isi Apple ID-mu, lalu tekan Start. Kata sandi dan kode verifikasi Apple diketik di Sideloadly dan, menurut Sideloadly, hanya dikirim ke Apple. Sulo tidak pernah melihatnya. Kalau ragu, pakai Apple ID terpisah khusus untuk ini.' },
         { judul: 'Izinkan di iPhone', isi: 'Buka Pengaturan, Umum, VPN & Manajemen Perangkat, pilih Apple ID-mu, lalu Percayai. Setelah itu buka Pengaturan, Privasi & Keamanan, nyalakan Mode Pengembang, dan mulai ulang iPhone saat diminta.' },
@@ -153,6 +153,7 @@ export const panduan = {
         { t: 'Sideloadly bilang sudah ada 3 aplikasi', j: 'Apple ID gratis hanya boleh memasang 3 aplikasi seperti ini sekaligus. Hapus satu yang tidak dipakai, lalu pasang lagi.' },
         { t: 'Mode Pengembang tidak ada di Pengaturan', j: 'Pilihan itu baru muncul setelah Sulo terpasang sekali lewat Sideloadly. Pasang dulu, lalu buka Pengaturan, Privasi & Keamanan lagi.' },
         { t: 'Sulo tidak bisa dibuka setelah seminggu', j: 'Masa 7 harinya habis. Pasang lagi lewat Sideloadly dengan Apple ID yang sama. Datamu tetap ada.' },
+        { t: 'Mac tidak mau membuka Sideloadly', j: 'macOS menulis bahwa Apple tidak bisa memastikan Sideloadly bebas malware, karena pengembangnya tidak menandatangani aplikasi itu. Kalau kamu mengunduhnya sendiri dari sideloadly.io, tekan Done, buka System Settings, Privacy & Security, gulir ke bagian Security, tekan Open Anyway di baris Sideloadly, lalu Open Anyway sekali lagi dan masukkan kata sandi Mac.' },
         { t: 'Notifikasi tidak muncul', j: 'Izinkan notifikasi untuk Sulo di Pengaturan, Notifikasi, lalu periksa mode Fokus.' },
         { t: 'Sideloadly tidak bisa dipakai', j: 'AltStore (altstore.io) adalah alat lain yang juga memasang berkas .ipa dari laptop dengan Apple ID-mu. Langkahnya berbeda dari panduan ini, dan Sulo yang dipasang lewat alat lain bisa terhitung sebagai aplikasi baru.' },
       ],
@@ -326,7 +327,7 @@ export const panduan = {
       unduh: 'Download the .ipa',
       langkah: [
         { judul: 'Download Sulo on your laptop', isi: 'Press the button below on your laptop. The file ends in .ipa and goes to your downloads folder.' },
-        { judul: 'Install Sideloadly', isi: 'Download Sideloadly from sideloadly.io and install it. On Windows, first install iTunes and iCloud from Apple’s website, not from the Microsoft Store. On a Mac, keep the Mail app open while installing.' },
+        { judul: 'Install Sideloadly', isi: 'Download Sideloadly from sideloadly.io and install it. On Windows, first install iTunes and iCloud from Apple’s website, not from the Microsoft Store. On a Mac, keep the Mail app open while installing. The first time it opens on a Mac, macOS holds it back because Sideloadly is not signed by its developer: press Done, open System Settings, Privacy & Security, then Open Anyway in the Security section, and Open Anyway once more.' },
         { judul: 'Connect your iPhone', isi: 'Plug the iPhone into the laptop with a cable and unlock it. When the iPhone asks, tap Trust and enter its passcode.' },
         { judul: 'Install with Sideloadly', isi: 'Drag the .ipa file onto Sideloadly’s window, enter your Apple ID, then press Start. Your Apple password and verification code are typed into Sideloadly and, according to Sideloadly, only sent to Apple. Sulo never sees them. If you are unsure, use a separate Apple ID just for this.' },
         { judul: 'Allow it on your iPhone', isi: 'Open Settings, General, VPN & Device Management, choose your Apple ID, then Trust. Then open Settings, Privacy & Security, turn on Developer Mode, and restart the iPhone when asked.' },
@@ -337,6 +338,7 @@ export const panduan = {
         { t: 'Sideloadly says there are already 3 apps', j: 'A free Apple ID can only have 3 apps like this installed at once. Remove one you do not use, then install again.' },
         { t: 'Developer Mode is not in Settings', j: 'It appears only after Sulo is installed once with Sideloadly. Install first, then open Settings, Privacy & Security again.' },
         { t: 'Sulo does not open after a week', j: 'Its 7 days ran out. Install it again with Sideloadly and the same Apple ID. Your data stays.' },
+        { t: 'My Mac will not open Sideloadly', j: 'macOS says Apple could not verify Sideloadly is free of malware, because its developer does not sign the app. If you downloaded it yourself from sideloadly.io, press Done, open System Settings, Privacy & Security, scroll to the Security section, press Open Anyway on the Sideloadly line, then Open Anyway once more and enter your Mac password.' },
         { t: 'Notifications do not show', j: 'Allow notifications for Sulo in Settings, Notifications, then check your Focus mode.' },
         { t: 'Sideloadly does not work for me', j: 'AltStore (altstore.io) is another tool that also installs an .ipa from a laptop with your Apple ID. Its steps differ from this guide, and Sulo installed with another tool may count as a new app.' },
       ],

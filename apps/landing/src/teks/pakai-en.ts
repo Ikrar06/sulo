@@ -35,7 +35,7 @@ export const pakaiEn: KataPakai = {
       ],
       gambar: [
         { jenis: 'dasbor', nama: 'ringkasan', ket: "The extension on a laptop: Sulo's dashboard, the Overview page." },
-        { jenis: 'hp', nama: 'ringkasan', ket: 'The Android app: the Overview screen.' },
+        { jenis: 'hp', nama: 'ringkasan', ket: 'The phone app: the Overview screen.' },
       ],
     },
     sumber: {
@@ -71,7 +71,7 @@ export const pakaiEn: KataPakai = {
         ],
       },
       android: {
-        nama: 'In the Android app',
+        nama: 'In the phone app',
         langkah: [
           'Open Sulo and tap Sign in to SIKOLA.',
           "SIKOLA's sign-in page opens inside the app. Sign in as usual: you type your password on SIKOLA's page, not in Sulo.",
@@ -97,7 +97,7 @@ export const pakaiEn: KataPakai = {
         ],
       },
       android: {
-        nama: 'In the Android app',
+        nama: 'In the phone app',
         langkah: [
           'On Overview, tap Connect on the NEOSIA invitation. Or go to More, Settings, NEOSIA.',
           "Tap Sign in to NEOSIA and sign in on NEOSIA's own page. Once is usually enough.",
@@ -111,7 +111,7 @@ export const pakaiEn: KataPakai = {
       judul: 'Each feature, explained',
       isi: 'The same features, in different layouts. Pick the one you use.',
       ekstensi: { nama: 'The extension on a laptop', isi: 'Popup, dashboard, tasks, attendance, updates, calendar, reminders and NEOSIA.' },
-      android: { nama: 'The Android app', isi: 'Overview, tasks, calendar, attendance, watching for new tasks, reminders and NEOSIA.' },
+      android: { nama: 'The Android and iPhone app', isi: 'Overview, tasks, calendar, attendance, watching for new tasks, reminders and NEOSIA.' },
     },
   },
   ekstensi: {
@@ -161,7 +161,9 @@ export const pakaiEn: KataPakai = {
         ],
         bisa: [
           'Search for a task or a course, and filter by course.',
-          'Filter by status: Not done, Marked as done, Probably handed in, or Course not followed.',
+          'Filter by status: Not done, Graded, Marked as done, Probably handed in, Long past due, Course not followed, or All.',
+          'See which tasks are graded on SIKOLA. A graded task is marked as done on its own, and its number stays hidden until you choose Show grades.',
+          'Add your own task with Add a task at the top right, for work from your lecturer that is not on SIKOLA.',
           'Split a task into small steps and tick them off one by one.',
           'Write a note for yourself.',
           'Set a personal due date for a task SIKOLA gives no due date, so you are still reminded.',
@@ -312,7 +314,8 @@ export const pakaiEn: KataPakai = {
           'On its own about every 3 hours, while the browser is open and the laptop is in use.',
           'Shortly after the browser opens.',
           'When you click Update in the popup or the dashboard.',
-          'Just opening the popup or the dashboard does not check SIKOLA. What you see is the data from the last check.',
+          'Just opening the popup or the dashboard does not check for new tasks. What you see is the data from the last check.',
+          'Opening the Tasks page reads the grades pages of the courses you follow, at most once every 10 minutes.',
           'Never from 00:00 to 06:00, and not while the laptop is idle.',
         ],
         catatan: 'Sulo does not keep your SIKOLA session alive. When the session ends, Sulo tells you once, and updates on its own as soon as you sign in to SIKOLA again.',
@@ -331,10 +334,10 @@ export const pakaiEn: KataPakai = {
     ],
   },
   android: {
-    nama: 'Android',
-    judul: 'The Android app guide.',
-    kenapa: "Everything you can do in Sulo's Android app, from Overview to NEOSIA.",
-    deskripsi: "The full guide to Sulo's Android app: overview, tasks, academic calendar, attendance, latest updates, watching for new tasks, reminders and NEOSIA.",
+    nama: 'Android and iPhone',
+    judul: 'The phone app guide.',
+    kenapa: "Everything you can do in Sulo's app for Android and iPhone, from Overview to NEOSIA. What differs on iPhone is marked in its section.",
+    deskripsi: "The full guide to Sulo's app for Android and iPhone: overview, tasks, academic calendar, attendance, latest updates, watching for new tasks, reminders and NEOSIA.",
     bagian: [
       {
         id: 'ringkasan',
@@ -348,18 +351,20 @@ export const pakaiEn: KataPakai = {
           'Read three numbers: overdue tasks, deadlines this week, and days left until finals.',
           'See the next tasks and what is due in the next 7 days.',
           'See your average attendance and the next academic calendar event.',
-          'Pull the screen down to update, at most once every 2 minutes.',
+          'Pull the screen down to update, at most once every 5 minutes.',
         ],
-        gambar: [{ jenis: 'hp', nama: 'ringkasan', ket: "Overview in the Android app: the task due soonest and this week's three numbers." }],
+        gambar: [{ jenis: 'hp', nama: 'ringkasan', ket: "Overview in the phone app: the task due soonest and this week's three numbers." }],
       },
       {
         id: 'tugas',
         judul: 'Tasks',
         isi: ['Every task from the courses you follow, grouped by day. Tap a task to open its details.'],
         bisa: [
-          'Filter with the buttons on top: All, Overdue, Today, This week or Done.',
+          'Filter with the buttons on top: All, Overdue, Today and This week for what is not done yet; Done, Graded and Long past due for the history.',
           'Search for a task or a course.',
-          'Tap the circle on the right of a task to mark it as done.',
+          'Tap the circle on the right of a task to mark it as done. A task graded on SIKOLA shows Graded in that circle’s place.',
+          'Tap Show grades to see the numbers. They are hidden by default.',
+          'Tap the + button on top to add your own task, such as a presentation that is not on SIKOLA.',
           'In the details: split the task into small steps and write a note.',
           'In the details: set a personal due date for a task SIKOLA gives no due date.',
           'From the three-dot button: Open on SIKOLA, Add to Google Calendar, or Snooze reminder.',
@@ -429,6 +434,7 @@ export const pakaiEn: KataPakai = {
       {
         id: 'pantau',
         judul: 'Watch for new tasks',
+        iphone: 'The iPhone has no such watch: it gives apps like Sulo no fixed time in the background. New tasks show when Sulo is opened, and deadline reminders still come from the latest data.',
         isi: [
           'Turn it on under More, Settings, the Notifications section. Sulo then checks SIKOLA in the background, about every 20 minutes by day and 110 minutes at night, and tells you about a new task, a moved deadline, a grade, a forum post or a new material.',
           'While it is on, your SIKOLA session stays active on this phone, so you are rarely asked to sign in again. That is why Sulo offers the app lock.',
@@ -445,6 +451,7 @@ export const pakaiEn: KataPakai = {
       {
         id: 'pengingat',
         judul: 'Deadline reminders',
+        iphone: 'On iPhone, reminders are scheduled for the next 7 days from the latest data, so open Sulo now and then. If they do not show, check Sulo’s notification permission and your Focus mode.',
         isi: ['Notifications on your phone before a deadline. They are scheduled on this phone for the next 7 days, so open Sulo now and then to keep them current.'],
         bisa: [
           'Choose when to be reminded, from 3 days to 1 hour before the deadline.',
@@ -480,6 +487,7 @@ export const pakaiEn: KataPakai = {
       {
         id: 'keamanan',
         judul: 'Lock, privacy and data',
+        iphone: 'On iPhone, the SIKOLA session is kept in the Keychain, and the app lock uses Face ID or the iPhone passcode. Choose Sign out and delete data before deleting the app, as the iPhone keeps Keychain items after an app is deleted.',
         isi: ['Your SIKOLA session is stored encrypted with a key in the Android Keystore, and never leaves this phone.'],
         bisa: [
           "App lock: asks for your fingerprint or the phone's screen lock each time Sulo opens.",
@@ -492,6 +500,7 @@ export const pakaiEn: KataPakai = {
       {
         id: 'versi',
         judul: 'Updating the app',
+        iphone: 'On iPhone, a new version is installed from a laptop with Sideloadly, as the first time. With a free Apple ID, Sulo also needs a refresh every 7 days, and Sulo tells you the day before.',
         isi: ['Sulo is not on Google Play yet, so a new version is installed from an APK file. Sulo tells you when there is one, and never downloads it by itself.'],
         bisa: [
           'When "New version available" shows, tap Download. The phone\'s browser opens the download.',
@@ -503,6 +512,7 @@ export const pakaiEn: KataPakai = {
       {
         id: 'masalah',
         judul: 'When something looks off',
+        iphone: 'On iPhone, a Sulo that will not open has usually run out of its 7 days. Refresh it with Sideloadly on your laptop, with the same Apple ID; your data stays.',
         isi: ['The full answers are under More, Help. These are asked most.'],
         bisa: [
           'A task is missing: check that its course is followed under More, Courses.',

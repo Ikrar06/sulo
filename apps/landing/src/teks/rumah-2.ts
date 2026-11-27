@@ -23,7 +23,7 @@ export const rumah2 = {
       lakukan: {
         judul: 'Yang Sulo lakukan',
         isi: [
-          'Membaca tugas, tenggat, dan presensi dari akun SIKOLA-mu sendiri, lewat login yang sudah ada.',
+          'Membaca tugas, tenggat, nilai tugas, dan presensi dari akun SIKOLA-mu sendiri, lewat login yang sudah ada.',
           'Menyimpan semuanya di perangkatmu.',
           'Mengecek SIKOLA secukupnya, dengan batas harian.',
         ],
@@ -37,6 +37,7 @@ export const rumah2 = {
         isi: [
           { host: 'sikola-v2.unhas.ac.id', ket: 'Data akunmu sendiri, hanya dibaca.' },
           { host: 'ikrar06.github.io', ket: 'Kalender akademik, pengaturan jarak jauh, dan info versi baru. Tanpa data apa pun tentangmu.' },
+          { host: 'sipakamase.unhas.ac.id', ket: 'Pilihan, mati sampai kamu nyalakan. Lima halaman MKPK-mu, hanya dibaca.' },
         ],
         neosia: 'Sulo tidak pernah mengirim permintaan ke NEOSIA. Kalau kamu menghubungkan NEOSIA, Sulo hanya membaca halaman NEOSIA yang kamu buka sendiri.',
       },
@@ -51,6 +52,7 @@ export const rumah2 = {
           { nama: 'Status pemakaian', ket: 'Tidak mengecek SIKOLA saat laptop tidak dipakai.' },
           { nama: 'sikola-v2.unhas.ac.id', ket: 'Membaca data akunmu sendiri, tanpa kata sandi.' },
           { nama: 'NEOSIA, pilihan', ket: 'Hanya diminta saat kamu menghubungkan NEOSIA, dicabut saat kamu memutuskannya.' },
+          { nama: 'Sipakamase, pilihan', ket: 'Hanya diminta saat kamu menghubungkan Sipakamase, dicabut saat kamu memutuskannya.' },
         ],
         daftarAndroid: [
           { nama: 'Internet', ket: 'Membaca SIKOLA dan repo data publik Sulo.' },
@@ -80,7 +82,7 @@ export const rumah2 = {
       intro: 'Gratis. Pilih perangkat yang sedang kamu pegang.',
       ekstensi: { judul: 'Ekstensi untuk Chrome dan Edge', waktu: 'Sekitar 3 menit', manual: 'Sementara dipasang manual sambil menunggu Chrome Web Store. Nanti cukup pasang ulang dari toko.', manualDi: (b: string) => `Di ${b} masih dipasang manual, sekitar 3 menit.` },
       android: { judul: 'Aplikasi Android', waktu: 'Sekitar 2 menit', syarat: 'Android 8 ke atas', qr: 'Pindai dengan HP untuk membuka panduannya.' },
-      iphone: { judul: 'iPhone', isi: 'Dipasang dari laptop lewat Sideloadly, dengan Apple ID-mu. Dengan Apple ID gratis, disegarkan tiap 7 hari.', tautan: 'Lihat panduan iPhone' },
+      iphone: { judul: 'Aplikasi iPhone', waktu: 'Sekitar 10 menit', syarat: 'iOS 16.4 ke atas', isi: 'Dipasang dari laptop lewat Sideloadly, dengan Apple ID-mu. Dengan Apple ID gratis, disegarkan tiap 7 hari.', tautan: 'Lihat panduan iPhone', unduh: 'Unduh .ipa', tanya: 'Kenapa tidak di App Store?' },
       versi: (v: string) => `Versi ${v}`,
       panduanEkstensi: 'Lihat panduan ekstensi',
       panduanAndroid: 'Lihat panduan Android',
@@ -140,7 +142,7 @@ export const rumah2 = {
       lakukan: {
         judul: 'What Sulo does',
         isi: [
-          'Reads tasks, deadlines and attendance from your own SIKOLA account, through the login you already have.',
+          'Reads tasks, deadlines, task grades and attendance from your own SIKOLA account, through the login you already have.',
           'Keeps all of it on your device.',
           'Checks SIKOLA sparingly, within a daily limit.',
         ],
@@ -154,6 +156,7 @@ export const rumah2 = {
         isi: [
           { host: 'sikola-v2.unhas.ac.id', ket: 'Your own account, read only.' },
           { host: 'ikrar06.github.io', ket: 'The academic calendar, remote settings and news of a new version. Nothing about you.' },
+          { host: 'sipakamase.unhas.ac.id', ket: 'Optional, off until you turn it on. Five pages of your MKPK data, read only.' },
         ],
         neosia: 'Sulo never sends a request to NEOSIA. If you connect NEOSIA, Sulo only reads the NEOSIA pages you open yourself.',
       },
@@ -168,6 +171,7 @@ export const rumah2 = {
           { nama: 'Idle state', ket: 'Skips checking SIKOLA while the laptop is not in use.' },
           { nama: 'sikola-v2.unhas.ac.id', ket: 'Reads your own account, with no password.' },
           { nama: 'NEOSIA, optional', ket: 'Asked for only when you connect NEOSIA, removed when you disconnect it.' },
+          { nama: 'Sipakamase, optional', ket: 'Asked for only when you connect Sipakamase, removed when you disconnect it.' },
         ],
         daftarAndroid: [
           { nama: 'Internet', ket: "Reads SIKOLA and Sulo's public data repository." },
@@ -197,7 +201,7 @@ export const rumah2 = {
       intro: 'Free. Pick the device you are holding.',
       ekstensi: { judul: 'Extension for Chrome and Edge', waktu: 'About 3 minutes', manual: 'Installed by hand for now, while it waits for the Chrome Web Store. Later you just install it again from the store.', manualDi: (b: string) => `In ${b} it is still installed by hand, about 3 minutes.` },
       android: { judul: 'Android app', waktu: 'About 2 minutes', syarat: 'Android 8 or later', qr: 'Scan it with your phone to open the guide.' },
-      iphone: { judul: 'iPhone', isi: 'Installed from a laptop with Sideloadly, with your Apple ID. With a free Apple ID, refreshed every 7 days.', tautan: 'See the iPhone guide' },
+      iphone: { judul: 'iPhone app', waktu: 'About 10 minutes', syarat: 'iOS 16.4 or later', isi: 'Installed from a laptop with Sideloadly, with your Apple ID. With a free Apple ID, refreshed every 7 days.', tautan: 'See the iPhone guide', unduh: 'Download the .ipa', tanya: 'Why not the App Store?' },
       versi: (v: string) => `Version ${v}`,
       panduanEkstensi: 'See the extension guide',
       panduanAndroid: 'See the Android guide',

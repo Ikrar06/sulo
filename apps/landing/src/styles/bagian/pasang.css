@@ -1,10 +1,10 @@
-/* Install: two cards of one build and a slim row for iPhone, on the plain page (no gradient here, brief 4.1).
-   The visitor's own device comes first. */
+/* Install: three equal cards of one build (extension, Android, iPhone), on the plain page (no gradient here,
+   brief 4.1). The visitor's own device comes first. One row on a laptop; one column below 64em, where three
+   side by side would squeeze the drawings and two would leave the third alone under them. */
 .pasang-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  max-width: 60rem;
   margin-inline: auto;
 }
 .pasang-kartu {
@@ -32,13 +32,23 @@
 .pasang-gambar-hp {
   flex: none;
 }
+/* Both phones drawn alike and a little narrower than in the guides: three cards share the row, and the Android
+   one makes room for its QR code. */
+.pasang-gambar .il-hp {
+  width: 188px;
+  padding: 6px;
+  border-radius: 28px;
+}
+.pasang-gambar .il-hp-layar {
+  border-radius: 22px;
+  font-size: 11.5px;
+}
 .pasang-isi {
   display: grid;
   gap: 12px;
   padding: 20px 12px 0;
 }
-.pasang-kartu h3,
-.pasang-iphone h3 {
+.pasang-kartu h3 {
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -71,7 +81,7 @@
   line-height: 1.55;
   text-wrap: pretty;
 }
-/* The button and its links sit at the card's foot, level across the two cards. */
+/* The button and its links sit at the card's foot, level across the three cards. */
 .pasang-aksi {
   display: grid;
   gap: 10px;
@@ -105,7 +115,7 @@
   display: grid;
   justify-items: center;
   gap: 8px;
-  max-width: 9.5rem;
+  max-width: 7rem;
   padding-bottom: 20px;
   text-align: center;
 }
@@ -123,42 +133,15 @@
   line-height: 1.4;
   text-wrap: balance;
 }
-/* iPhone: one slim row, honest and short. */
-.pasang-iphone {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 24px;
-  min-width: 0;
-  padding: 20px 24px;
-  border-radius: 24px;
-  border: 1px solid var(--garis);
-}
-.pasang-iphone > div {
-  flex: 1 1 16rem;
-  min-width: 0;
-}
-.pasang-iphone h3 {
-  font-size: 1.0625rem;
-}
-.pasang-iphone p {
-  margin: 4px 0 0;
-  color: var(--abu);
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  text-wrap: pretty;
-}
-
 /* The visitor's device first (one line of script sets data-perangkat; nothing is sent). */
 html[data-perangkat="android"] [data-pasang="android"],
 html[data-perangkat="ios"] [data-pasang="iphone"] {
   order: -1;
 }
-/* The other device's download stays, quietly: the loud button is the visitor's own. */
-html[data-perangkat="android"] [data-pasang="ekstensi"] .tombol--utama,
-html:is([data-perangkat="chrome"], [data-perangkat="edge"], [data-perangkat="lain"]) [data-pasang="android"] .tombol--utama {
+/* The other devices' downloads stay, quietly: the loud button is the visitor's own. */
+html[data-perangkat="android"] :is([data-pasang="ekstensi"], [data-pasang="iphone"]) .tombol--utama,
+html:is([data-perangkat="chrome"], [data-perangkat="edge"], [data-perangkat="lain"]) :is([data-pasang="android"], [data-pasang="iphone"]) .tombol--utama,
+html[data-perangkat="ios"] :is([data-pasang="ekstensi"], [data-pasang="android"]) .tombol--utama {
   background: var(--m-inset);
   color: var(--tinta);
 }
@@ -167,16 +150,39 @@ html[data-perangkat="android"] .pasang-qr,
 html[data-perangkat="ios"] .pasang-qr {
   display: none;
 }
-@media (max-width: 63.9375em) {
+/* Beside the phone only where the card is wide enough for both (the grid at its full width). */
+@media (max-width: 79.9375em) {
   .pasang-qr {
     display: none;
   }
 }
-@media (max-width: 47.9375em) {
+@media (max-width: 63.9375em) {
   .pasang-grid {
     grid-template-columns: minmax(0, 1fr);
+    max-width: 50rem;
   }
-  .pasang-iphone {
-    padding: 18px 20px;
+}
+/* A tablet or a narrow window: each card lies on its side, the drawing on the left and the words beside it,
+   the same for all three (one column of upright cards would make the section three screens long). */
+@media (min-width: 40em) and (max-width: 63.9375em) {
+  .pasang-kartu {
+    display: grid;
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: 8px;
+  }
+  /* The drawing fills the card's height without setting it (the words do): a phone is taller than the words. */
+  .pasang-gambar {
+    grid-row: 1 / span 2;
+    height: auto;
+    min-height: 220px;
+    padding: 20px 16px 0;
+    contain: size;
+  }
+  .pasang-isi {
+    padding: 12px 12px 0;
+  }
+  .pasang-aksi {
+    padding: 16px 12px 4px;
   }
 }

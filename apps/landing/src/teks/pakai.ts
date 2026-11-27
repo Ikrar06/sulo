@@ -22,6 +22,8 @@ export interface BagianPakai {
   gambar?: readonly GambarPakai[];
   /** One note that matters, in a quiet box. */
   catatan?: string;
+  /** The phone guide only (one guide for Android and iPhone, 1.1.0): what differs on the iPhone, in its own box. */
+  iphone?: string;
 }
 
 export interface HalamanPakai {
@@ -97,7 +99,7 @@ export const pakaiId: KataPakai = {
       ],
       gambar: [
         { jenis: 'dasbor', nama: 'ringkasan', ket: 'Ekstensi di laptop: dashboard Sulo, halaman Ringkasan.' },
-        { jenis: 'hp', nama: 'ringkasan', ket: 'Aplikasi Android: layar Ringkasan.' },
+        { jenis: 'hp', nama: 'ringkasan', ket: 'Aplikasi HP: layar Ringkasan.' },
       ],
     },
     sumber: {
@@ -133,7 +135,7 @@ export const pakaiId: KataPakai = {
         ],
       },
       android: {
-        nama: 'Di aplikasi Android',
+        nama: 'Di aplikasi HP',
         langkah: [
           'Buka Sulo, lalu ketuk Masuk ke SIKOLA.',
           'Halaman login SIKOLA terbuka di dalam aplikasi. Masuk seperti biasa: password-mu diketik di halaman SIKOLA, bukan di Sulo.',
@@ -159,7 +161,7 @@ export const pakaiId: KataPakai = {
         ],
       },
       android: {
-        nama: 'Di aplikasi Android',
+        nama: 'Di aplikasi HP',
         langkah: [
           'Di Ringkasan, ketuk Hubungkan pada ajakan NEOSIA. Bisa juga dari Lainnya, Pengaturan, NEOSIA.',
           'Ketuk Masuk NEOSIA, lalu masuk di halaman NEOSIA sendiri. Biasanya cukup sekali.',
@@ -173,7 +175,7 @@ export const pakaiId: KataPakai = {
       judul: 'Panduan tiap fitur',
       isi: 'Fiturnya sama, tata letaknya berbeda. Pilih yang kamu pakai.',
       ekstensi: { nama: 'Ekstensi di laptop', isi: 'Popup, dashboard, tugas, presensi, kabar, kalender, pengingat, dan NEOSIA.' },
-      android: { nama: 'Aplikasi Android', isi: 'Ringkasan, tugas, kalender, presensi, pantau tugas baru, pengingat, dan NEOSIA.' },
+      android: { nama: 'Aplikasi Android dan iPhone', isi: 'Ringkasan, tugas, kalender, presensi, pantau tugas baru, pengingat, dan NEOSIA.' },
     },
   },
   ekstensi: {
@@ -223,7 +225,9 @@ export const pakaiId: KataPakai = {
         ],
         bisa: [
           'Mencari tugas atau mata kuliah, dan menyaring menurut mata kuliah.',
-          'Menyaring menurut status: Belum selesai, Ditandai selesai, Mungkin sudah dikumpulkan, atau Mata kuliah tidak dipantau.',
+          'Menyaring menurut status: Belum selesai, Sudah dinilai, Ditandai selesai, Mungkin sudah dikumpulkan, Sudah lama lewat, Mata kuliah tidak dipantau, atau Semua.',
+          'Melihat tugas yang sudah dinilai di SIKOLA. Tugas yang dinilai otomatis ditandai selesai, dan angkanya tersembunyi sampai kamu memilih Tampilkan nilai.',
+          'Menambah tugas sendiri lewat Tambah tugas di kanan atas, untuk tugas dari dosen yang tidak ada di SIKOLA.',
           'Memecah tugas jadi langkah kecil dan mencentangnya satu per satu.',
           'Menulis catatan untuk dirimu sendiri.',
           'Memasang tenggat pribadi untuk tugas yang tidak diberi tenggat di SIKOLA, supaya tetap diingatkan.',
@@ -380,7 +384,8 @@ export const pakaiId: KataPakai = {
           'Otomatis kira-kira tiap 3 jam, selama browser terbuka dan laptop sedang dipakai.',
           'Sebentar setelah browser dibuka.',
           'Saat kamu mengeklik Perbarui di popup atau dashboard.',
-          'Membuka popup atau dashboard saja tidak mengecek SIKOLA. Yang tampil adalah data dari pengecekan terakhir.',
+          'Membuka popup atau dashboard tidak mengecek tugas baru. Yang tampil adalah data dari pengecekan terakhir.',
+          'Membuka halaman Tugas membaca halaman nilai mata kuliah yang dipantau, paling sering sekali tiap 10 menit.',
           'Tidak mengecek pukul 00.00 sampai 06.00, dan tidak saat laptop tidak dipakai.',
         ],
         catatan: 'Sulo tidak menjaga sesi SIKOLA tetap hidup. Kalau sesinya habis, Sulo memberi tahu sekali, dan memperbarui sendiri begitu kamu masuk lagi di SIKOLA.',
@@ -399,10 +404,10 @@ export const pakaiId: KataPakai = {
     ],
   },
   android: {
-    nama: 'Android',
-    judul: 'Panduan aplikasi Android.',
-    kenapa: 'Semua yang bisa kamu lakukan di aplikasi Sulo untuk Android, dari Ringkasan sampai NEOSIA.',
-    deskripsi: 'Panduan lengkap aplikasi Android Sulo: ringkasan, tugas, kalender akademik, presensi, kabar terbaru, pantau tugas baru, pengingat, dan NEOSIA.',
+    nama: 'Android dan iPhone',
+    judul: 'Panduan aplikasi HP.',
+    kenapa: 'Semua yang bisa kamu lakukan di aplikasi Sulo untuk Android dan iPhone, dari Ringkasan sampai NEOSIA. Yang berbeda di iPhone ditandai di bagiannya.',
+    deskripsi: 'Panduan lengkap aplikasi Sulo untuk Android dan iPhone: ringkasan, tugas, kalender akademik, presensi, kabar terbaru, pantau tugas baru, pengingat, dan NEOSIA.',
     bagian: [
       {
         id: 'ringkasan',
@@ -416,18 +421,20 @@ export const pakaiId: KataPakai = {
           'Membaca tiga angka: tugas terlambat, tenggat minggu ini, dan berapa hari lagi ke UAS.',
           'Melihat tugas berikutnya dan tenggat 7 hari ke depan.',
           'Melihat rata-rata presensi dan kegiatan kalender akademik berikutnya.',
-          'Menarik layar ke bawah untuk memperbarui, paling cepat 2 menit sekali.',
+          'Menarik layar ke bawah untuk memperbarui, paling cepat 5 menit sekali.',
         ],
-        gambar: [{ jenis: 'hp', nama: 'ringkasan', ket: 'Ringkasan di aplikasi Android: tugas terdekat dan tiga angka minggu ini.' }],
+        gambar: [{ jenis: 'hp', nama: 'ringkasan', ket: 'Ringkasan di aplikasi HP: tugas terdekat dan tiga angka minggu ini.' }],
       },
       {
         id: 'tugas',
         judul: 'Tugas',
         isi: ['Semua tugas dari mata kuliah yang kamu pantau, dikelompokkan menurut hari. Ketuk sebuah tugas untuk membuka rinciannya.'],
         bisa: [
-          'Menyaring dengan tombol di atas: Semua, Terlambat, Hari ini, Minggu ini, atau Selesai.',
+          'Menyaring dengan tombol di atas: Semua, Terlambat, Hari ini, dan Minggu ini untuk yang belum selesai; Selesai, Dinilai, dan Sudah lama lewat untuk riwayatnya.',
           'Mencari tugas atau mata kuliah.',
-          'Mengetuk lingkaran di kanan tugas untuk menandainya selesai.',
+          'Mengetuk lingkaran di kanan tugas untuk menandainya selesai. Tugas yang sudah dinilai di SIKOLA menampilkan Dinilai di tempat lingkaran itu.',
+          'Mengetuk Tampilkan nilai untuk melihat angkanya. Bawaannya tersembunyi.',
+          'Mengetuk tombol + di atas untuk menambah tugas sendiri, misalnya presentasi yang tidak ada di SIKOLA.',
           'Di rincian: memecah tugas jadi langkah kecil dan menulis catatan.',
           'Di rincian: memasang tenggat pribadi untuk tugas yang tidak diberi tenggat di SIKOLA.',
           'Dari tombol tiga titik: Buka di SIKOLA, Tambah ke Google Kalender, atau Tunda pengingat.',
@@ -504,6 +511,7 @@ export const pakaiId: KataPakai = {
       {
         id: 'pantau',
         judul: 'Pantau tugas baru',
+        iphone: 'Di iPhone tidak ada pemantauan ini: iPhone tidak memberi aplikasi seperti Sulo waktu tetap di latar belakang. Tugas baru terlihat saat Sulo dibuka, dan pengingat tenggat tetap muncul dari data terakhir.',
         isi: [
           'Nyalakan di Lainnya, Pengaturan, bagian Notifikasi. Sulo lalu mengecek SIKOLA di latar belakang, sekitar tiap 20 menit siang hari dan 110 menit malam hari, dan memberi tahu saat ada tugas baru, tenggat berubah, nilai, kabar forum, atau materi baru.',
           'Selama menyala, sesi SIKOLA-mu tetap aktif di HP ini, jadi kamu jarang diminta masuk lagi. Karena itu Sulo menawarkan kunci aplikasi.',
@@ -520,6 +528,7 @@ export const pakaiId: KataPakai = {
       {
         id: 'pengingat',
         judul: 'Pengingat tenggat',
+        iphone: 'Di iPhone, pengingat dijadwalkan untuk 7 hari ke depan dari data terakhir, jadi buka Sulo sesekali. Kalau tidak muncul, cek izin notifikasi Sulo dan mode Fokus.',
         isi: ['Notifikasi di HP sebelum tenggat. Jadwalnya dibuat di HP ini untuk 7 hari ke depan, jadi buka Sulo sesekali supaya ikut terbaru.'],
         bisa: [
           'Memilih kapan diingatkan, dari 3 hari sampai 1 jam sebelum tenggat.',
@@ -555,6 +564,7 @@ export const pakaiId: KataPakai = {
       {
         id: 'keamanan',
         judul: 'Kunci, privasi, dan data',
+        iphone: 'Di iPhone, sesi SIKOLA disimpan di Keychain, dan kunci aplikasi memakai Face ID atau kode iPhone. Pilih Keluar dan hapus data sebelum menghapus aplikasinya, karena iPhone menyimpan isi Keychain setelah aplikasi dihapus.',
         isi: ['Sesi SIKOLA-mu disimpan terenkripsi dengan kunci di Android Keystore, dan tidak pernah keluar dari HP ini.'],
         bisa: [
           'Kunci aplikasi: meminta sidik jari atau kunci layar HP setiap Sulo dibuka.',
@@ -567,6 +577,7 @@ export const pakaiId: KataPakai = {
       {
         id: 'versi',
         judul: 'Memperbarui aplikasi',
+        iphone: 'Di iPhone, versi baru dipasang dari laptop lewat Sideloadly, seperti saat pertama memasang. Dengan Apple ID gratis, Sulo juga perlu disegarkan tiap 7 hari, dan Sulo memberi tahu sehari sebelumnya.',
         isi: ['Sulo belum ada di Play Store, jadi versi baru dipasang dari berkas APK. Sulo memberi tahu saat ada, dan tidak pernah mengunduhnya sendiri.'],
         bisa: [
           'Saat muncul "Versi baru tersedia", ketuk Unduh. Browser HP membuka unduhannya.',
@@ -578,6 +589,7 @@ export const pakaiId: KataPakai = {
       {
         id: 'masalah',
         judul: 'Kalau ada yang janggal',
+        iphone: 'Di iPhone, Sulo yang tidak mau dibuka biasanya masa 7 harinya habis. Segarkan lewat Sideloadly di laptop dengan Apple ID yang sama; datamu tidak hilang.',
         isi: ['Jawaban lengkapnya ada di Lainnya, Bantuan. Ini yang paling sering ditanyakan.'],
         bisa: [
           'Tugas tidak muncul: cek apakah mata kuliahnya dipantau di Lainnya, Mata kuliah.',
