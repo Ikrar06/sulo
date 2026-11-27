@@ -280,7 +280,7 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
 
       <Sheet open={bug !== null} onOpenChange={(o) => !o && setBug(null)} title={t.bugReport.title}>
         <p className="text-m13 text-muted-foreground">{t.bugReport.body}</p>
-        <pre className="mt-3 max-h-64 overflow-auto rounded-ctl bg-m-inset p-3 text-m12 font-normal whitespace-pre-wrap">{bug}</pre>
+        <pre className="m-pilih mt-3 max-h-64 overflow-auto rounded-ctl bg-m-inset p-3 text-m12 font-normal whitespace-pre-wrap">{bug}</pre>
         <div className="mt-4">
           <PillButton
             kind="primary"
