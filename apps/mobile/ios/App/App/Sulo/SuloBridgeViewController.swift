@@ -8,13 +8,22 @@ import UIKit
 /// page up to show the field instead, which pushed the onboarding's top off the screen (owner's iPhone, 27 Nov
 /// 2026). Here the web view takes the space above the keyboard, as on Android, and the page itself never
 /// scrolls: every screen scrolls inside its own area.
+///
+/// WebKit still scrolls the page to reveal a field the moment it is focused, before this view's resize lands (its
+/// own keyboard observer runs first): for two or three frames the whole screen jumped up, the open sheet's title
+/// off the top, then back (owner's iPhone and the simulator's recording, 27 Nov 2026). The page's offset is held
+/// at zero as it changes, so that scroll never reaches the screen.
 class SuloBridgeViewController: CAPBridgeViewController {
     private var keyboardOverlap: CGFloat = 0
+    private var offsetHold: NSKeyValueObservation?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         webView?.scrollView.isScrollEnabled = false
         webView?.scrollView.bounces = false
+        offsetHold = webView?.scrollView.observe(\.contentOffset, options: [.new]) { scrollView, _ in
+            if scrollView.contentOffset != .zero { scrollView.contentOffset = .zero }
+        }
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(keyboardWillChange(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         center.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
