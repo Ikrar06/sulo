@@ -163,7 +163,9 @@ export function AppShell(props: ShellProps) {
       }),
     [],
   );
-  useEdgeBack(scroller, document.documentElement.dataset.os === 'ios' && nav.stack.length > 0, swipeBack);
+  // Read safely: the landing page draws this shell on a server, with no document.
+  const onIphone = typeof document !== 'undefined' && document.documentElement.dataset.os === 'ios';
+  useEdgeBack(scroller, onIphone && nav.stack.length > 0, swipeBack);
 
   useEffect(() => {
     const on = () => setOnline(navigator.onLine);
