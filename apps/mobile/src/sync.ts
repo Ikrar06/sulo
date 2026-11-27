@@ -81,7 +81,7 @@ export function taskGrade(platform: Platform, cmid: number, again: boolean): Pro
 function fakeGrade(now: UnixSeconds): Promise<TaskGradeOutcome> {
   const pick = new URLSearchParams(location.search).get('grade');
   const grade: AssignGrade =
-    pick === 'none' ? { kind: 'not_graded' } : pick === 'hidden' ? { kind: 'not_shown' } : pick === 'unknown' ? { kind: 'unknown' } : { kind: 'graded', text: '85,50 / 100,00', got: 85.5, max: 100 };
+    pick === 'none' ? { kind: 'not_graded' } : pick === 'hidden' ? { kind: 'not_shown' } : pick === 'unknown' ? { kind: 'unknown' } : { kind: 'graded', text: '85,50 / 100,00', got: 85.5, max: 100, letter: null };
   return new Promise((resolve) => setTimeout(() => resolve({ status: 'ok', grade, fetchedAt: now, cached: false }), pick === 'slow' ? 60_000 : 500));
 }
 

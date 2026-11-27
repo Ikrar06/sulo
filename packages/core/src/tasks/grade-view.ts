@@ -42,11 +42,11 @@ export type GradeLine =
   | { kind: 'expired' }
   | { kind: 'wait' };
 
-/** Points as "85 / 100" in the reader's number format; any other grade as the page wrote it. */
+/** A number grade in the reader's number format ("85,5 / 100", "90 (A)"); any other grade as the page wrote it. */
 export function formatGrade(grade: Extract<AssignGrade, { kind: 'graded' }>, intlLocale: string): string {
-  if (grade.got === null || grade.max === null) return grade.text;
+  if (grade.got === null) return grade.text;
   const n = new Intl.NumberFormat(intlLocale, { maximumFractionDigits: 2 });
-  return `${n.format(grade.got)} / ${n.format(grade.max)}`;
+  return `${n.format(grade.got)}${grade.max !== null ? ` / ${n.format(grade.max)}` : ''}${grade.letter ? ` (${grade.letter})` : ''}`;
 }
 
 export function gradeLine(outcome: TaskGradeOutcome, intlLocale: string): GradeLine {

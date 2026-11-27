@@ -29,11 +29,18 @@ describe('a task grade from the assignment page', () => {
   it.each(['en', 'id'] as const)('reads points in %s, never the grader or the comment', (lang) => {
     const html = page({ lang, graded: true, grade: lang === 'en' ? '85.00 / 100.00' : '85,00 / 100,00', grader: true, comment: 'Bagus sekali' });
     const grade = parseAssignGrade(html);
-    expect(grade).toEqual({ kind: 'graded', text: lang === 'en' ? '85.00 / 100.00' : '85,00 / 100,00', got: 85, max: 100 });
+    expect(grade).toEqual({ kind: 'graded', text: lang === 'en' ? '85.00 / 100.00' : '85,00 / 100,00', got: 85, max: 100, letter: null });
     expect(JSON.stringify(grade)).not.toMatch(/Dosen|Bagus|user\/view/);
   });
+  it('reads SIKOLA\'s number with its letter, "90.00 (A)", even when the status cell says not graded', () => {
+    // As on a real SIKOLA page (27 Nov 2026): an assignment with nothing to submit online, graded through the
+    // gradebook, so "Grading status" still reads "Not graded" while the feedback box has the grade.
+    const html = page({ graded: false, grade: '90.00 (A)' });
+    expect(parseAssignGrade(html)).toEqual({ kind: 'graded', text: '90.00 (A)', got: 90, max: null, letter: 'A' });
+    expect(parseAssignGrade(page({ graded: true, grade: '85.00 / 100.00 (B+)' }))).toEqual({ kind: 'graded', text: '85.00 / 100.00 (B+)', got: 85, max: 100, letter: 'B+' });
+  });
   it('keeps a scale or letter grade as the page writes it', () => {
-    expect(parseAssignGrade(page({ lang: 'id', graded: true, grade: 'Sangat baik' }))).toEqual({ kind: 'graded', text: 'Sangat baik', got: null, max: null });
+    expect(parseAssignGrade(page({ lang: 'id', graded: true, grade: 'Sangat baik' }))).toEqual({ kind: 'graded', text: 'Sangat baik', got: null, max: null, letter: null });
     expect(parseAssignGrade(page({ graded: true, grade: 'A' }))).toMatchObject({ kind: 'graded', text: 'A' });
   });
   it('reads "not graded" from the status cell in any language', () => {
@@ -53,7 +60,7 @@ describe('a task grade from the assignment page', () => {
     expect(parseAssignGrade('<html><body><div id="region-main">Quiz</div></body></html>')).toEqual({ kind: 'unknown' });
   });
   it('does not turn a number with a thousands mark into a guess', () => {
-    expect(parseAssignGrade(page({ graded: true, grade: '1.000,00 / 1.000,00' }))).toEqual({ kind: 'graded', text: '1.000,00 / 1.000,00', got: null, max: null });
+    expect(parseAssignGrade(page({ graded: true, grade: '1.000,00 / 1.000,00' }))).toEqual({ kind: 'graded', text: '1.000,00 / 1.000,00', got: null, max: null, letter: null });
   });
 });
 
@@ -103,10 +110,11 @@ describe('what the "Nilai" part shows', () => {
   });
   it('writes points in the reader\'s number format', async () => {
     const { gradeLine } = await import('@sulo/core/tasks/grade-view');
-    const ok = { status: 'ok' as const, grade: { kind: 'graded' as const, text: '85,50 / 100,00', got: 85.5, max: 100 }, fetchedAt: NOW, cached: false };
+    const ok = { status: 'ok' as const, grade: { kind: 'graded' as const, text: '85,50 / 100,00', got: 85.5, max: 100, letter: null }, fetchedAt: NOW, cached: false };
     expect(gradeLine(ok, 'id-ID')).toEqual({ kind: 'value', text: '85,5 / 100', fetchedAt: NOW });
     expect(gradeLine(ok, 'en-US')).toEqual({ kind: 'value', text: '85.5 / 100', fetchedAt: NOW });
-    expect(gradeLine({ ...ok, grade: { kind: 'graded', text: 'Sangat baik', got: null, max: null } }, 'id-ID')).toMatchObject({ text: 'Sangat baik' });
+    expect(gradeLine({ ...ok, grade: { kind: 'graded', text: '90.00 (A)', got: 90, max: null, letter: 'A' } }, 'id-ID')).toMatchObject({ text: '90 (A)' });
+    expect(gradeLine({ ...ok, grade: { kind: 'graded', text: 'Sangat baik', got: null, max: null, letter: null } }, 'id-ID')).toMatchObject({ text: 'Sangat baik' });
   });
   it('names an ended session, a wait, and everything else as a failure with SIKOLA\'s page', async () => {
     const { gradeLine } = await import('@sulo/core/tasks/grade-view');

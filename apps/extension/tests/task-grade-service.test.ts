@@ -47,7 +47,7 @@ function setup(answer: () => PageOutcome = () => ({ kind: 'ok', html: gradedPage
 describe('"Lihat nilai": one page, only when asked', () => {
   it('reads the assignment page once, then shows the kept answer for 24 hours', async () => {
     const { calls, deps, store, later } = setup();
-    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'ok', grade: { kind: 'graded', text: '85,00 / 100,00', got: 85, max: 100 }, fetchedAt: NOW, cached: false });
+    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'ok', grade: { kind: 'graded', text: '85,00 / 100,00', got: 85, max: 100, letter: null }, fetchedAt: NOW, cached: false });
     expect(calls).toEqual([{ path: '/mod/assign/view.php?id=70', options: { source: 'assign' } }]);
     later(23 * 3600);
     expect(await taskGradeForCurrent(deps, 70, false)).toMatchObject({ status: 'ok', cached: true, fetchedAt: NOW });

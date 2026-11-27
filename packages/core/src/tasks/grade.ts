@@ -33,8 +33,11 @@ export function isReadOnlyAssignUrl(pathAndQuery: string): boolean {
 }
 
 export type AssignGrade =
-  /** The grade as the page shows it; got and max when it is points ("85,00 / 100,00"). */
-  | { kind: 'graded'; text: string; got: number | null; max: number | null }
+  /**
+   * The grade as the page shows it; got (and max, and the letter) when it is a number: "85,00 / 100,00",
+   * "90.00 (A)" (SIKOLA, 27 Nov 2026) or "85.00 / 100.00 (A)". A scale word stays text only.
+   */
+  | { kind: 'graded'; text: string; got: number | null; max: number | null; letter: string | null }
   | { kind: 'not_graded' }
   /** Graded, but the page shows no grade (hidden from students, or not released yet). */
   | { kind: 'not_shown' }
@@ -65,12 +68,16 @@ function number(raw: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function points(value: string): { got: number | null; max: number | null } {
-  const m = /^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/.exec(value);
-  if (!m) return { got: null, max: null };
+const NONE = { got: null, max: null, letter: null };
+
+/** "85.00 / 100.00", "90.00 (A)", "85.00 / 100.00 (B+)": the numbers and the letter; nulls for anything else. */
+function points(value: string): { got: number | null; max: number | null; letter: string | null } {
+  const m = /^(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+(?:[.,]\d+)?))?(?:\s*\(([A-Za-z]{1,2}[+-]?)\))?$/.exec(value);
+  if (!m) return NONE;
   const got = number(m[1]!);
-  const max = number(m[2]!);
-  return got !== null && max !== null ? { got, max } : { got: null, max: null };
+  const max = m[2] === undefined ? null : number(m[2]);
+  if (got === null || (m[2] !== undefined && max === null)) return NONE;
+  return { got, max, letter: m[3] ?? null };
 }
 
 /** The feedback table's rows as [label, value cell html]; null when the page has no feedback box. */
