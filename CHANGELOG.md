@@ -36,6 +36,7 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 - In the first-run guide, when SIKOLA asks Sulo to pause, the guide says so and when it can try again, instead of failing again and again.
 - The phone shows no scrollbars, rows that scroll sideways only scroll sideways, and a long press no longer selects the app's own text.
 - A sheet on the phone rises before the keyboard: its fields wait for a tap (the nickname and course name too), so opening one no longer makes the screen jump.
+- The phone's GPA simulation keeps the estimate in view and its courses in a drawer, closed at first, as on the dashboard: Grades is no longer a whole transcript long. Every course can be simulated (the list stopped at 40).
 
 ### Fixed
 
