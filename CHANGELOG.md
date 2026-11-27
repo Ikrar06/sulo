@@ -35,11 +35,13 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 - "Add a task" sits in the dashboard's header.
 - In the first-run guide, when SIKOLA asks Sulo to pause, the guide says so and when it can try again, instead of failing again and again.
 - The phone shows no scrollbars, rows that scroll sideways only scroll sideways, and a long press no longer selects the app's own text.
+- A sheet on the phone rises before the keyboard: its fields wait for a tap (the nickname and course name too), so opening one no longer makes the screen jump.
 
 ### Fixed
 
 - The phone's background check now refuses a remote config whose extension switch is broken, like the app does, and a failed config read no longer drops the extension's settings.
 - On iPhone, going from a screen with a longer title to one with a shorter title no longer leaves the end of the old title painted ("Calendarce").
+- While a sheet is open, the screen behind it no longer slides under the status bar (Android 15 and later, and iPhone).
 
 ## [1.0.0] - 2026-11-25
 
