@@ -37,6 +37,7 @@ import { WeekCard } from './WeekCard';
 import { useSyncUi } from '../shell/SyncStatusLine';
 import { KrsReadinessCard, NeosiaSetupCard, StudiCard, TodayClassCard } from './neosia/RingkasanNeosia';
 import { MkpkCard } from './neosia/MkpkCard';
+import { SipakamaseInviteCard } from './sipakamase/SipakamaseInvite';
 import { ReleaseCard, useReleaseNotice } from './ReleaseNotice';
 import { URGENCY_TEXT } from './Tugas';
 
@@ -160,9 +161,10 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
         )}
       </div>
 
-      {/* NEOSIA (M8d): connect, the checklist, or a calm line; then Kesiapan KRS in its window. */}
+      {/* NEOSIA (M8d): connect, the checklist, or a calm line; then Sipakamase's invite (1.1.0), and Kesiapan KRS in its window. */}
       <ReleaseCard notice={release.notice} onDismiss={() => void release.dismiss()} />
       <NeosiaSetupCard />
+      <SipakamaseInviteCard />
       <KrsReadinessCard />
 
       <div className="grid grid-cols-3 gap-3">

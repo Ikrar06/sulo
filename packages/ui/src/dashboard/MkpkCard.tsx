@@ -31,7 +31,8 @@ interface Props {
   onLoad: (choice: MkpkLoadChoice) => void;
   now: number;
   /** Sipakamase (1.1.0): its summary and reminders when connected; `onConnect` opens its consent when not. */
-  sipakamase?: { summary: SipakamaseSummary; reminders: MkpkReminder[]; onConnect: () => void } | null;
+  /** `invited`: the overview's "Hubungkan Sipakamase" line is on screen, so the card's own quiet link waits. */
+  sipakamase?: { summary: SipakamaseSummary; reminders: MkpkReminder[]; onConnect: () => void; invited?: boolean } | null;
 }
 
 export function MkpkCard({ snapshots, transcript, load, onLoad, now, sipakamase = null }: Props) {
@@ -54,7 +55,7 @@ export function MkpkCard({ snapshots, transcript, load, onLoad, now, sipakamase 
   const link = 'rounded text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-ring';
 
   return (
-    <Card title={w.title}>
+    <Card id="mkpk" title={w.title}>
       {p.transcriptAt === null ? (
         <p className="text-[14px] text-muted-foreground">{w.noTranscript}</p>
       ) : (
@@ -166,6 +167,7 @@ const SHOWN_REMINDERS = 2;
 function SipakamasePart({ part, sw, text, allReminders, onAll }: { part: NonNullable<Props['sipakamase']>; sw: SipakamaseWords; text: (sks: number) => string; allReminders: boolean; onAll: () => void }) {
   const { summary, reminders, onConnect } = part;
   if (!summary.connected) {
+    if (part.invited) return null;
     return (
       <p className="mt-3 border-t border-border pt-3 text-[14px] text-muted-foreground">
         {sw.card.invite}{' '}

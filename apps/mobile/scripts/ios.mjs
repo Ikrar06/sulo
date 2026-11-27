@@ -228,7 +228,7 @@ function log() {
 }
 
 /** The Swift files with no UIKit and no network, tested on the Mac (ios/SuloTests/main.swift). */
-const PURE = ['SikolaRules.swift', 'FileStore.swift', 'NeosiaRules.swift', 'SipakamaseRules.swift'];
+const PURE = ['SikolaRules.swift', 'FileStore.swift', 'NeosiaRules.swift', 'SipakamaseRules.swift', 'CalendarRules.swift'];
 
 function test() {
   const work = mkdtempSync(join(tmpdir(), 'sulo-swift-test-'));

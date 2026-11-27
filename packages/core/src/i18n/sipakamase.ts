@@ -13,6 +13,8 @@ const id = {
   connect: 'Hubungkan',
   connectAgain: 'Hubungkan lagi',
   connectCta: 'Hubungkan Sipakamase',
+  /** The overview's card while the module is off (sipakamase/invite.ts). */
+  invite: 'Hubungkan Sipakamase untuk melihat kegiatan MKPK yang belum dikonversi, dan yang sudah lulus tapi belum masuk NEOSIA.',
   offline: 'Tidak ada koneksi. Coba lagi nanti.',
   notSignedIn: 'Kamu belum masuk ke Sipakamase, jadi belum terhubung.',
   signInAgain: 'Masuk lagi',
@@ -78,6 +80,7 @@ const en: SipakamaseWords = {
   connect: 'Connect',
   connectAgain: 'Connect again',
   connectCta: 'Connect Sipakamase',
+  invite: 'Connect Sipakamase to see MKPK activities not yet converted, and passed ones not yet in NEOSIA.',
   offline: 'No connection. Try again later.',
   notSignedIn: 'You did not sign in to Sipakamase, so it is not connected.',
   signInAgain: 'Sign in again',

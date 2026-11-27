@@ -34,6 +34,8 @@ public class MainActivity extends BridgeActivity {
         // M8d: the NEOSIA screen (debug builds only in B0).
         registerPlugin(SuloNeosiaPlugin.class);
         registerPlugin(dev.ikrar.sulo.sipakamase.SuloSipakamasePlugin.class);
+        // 1.1.0: a task into the phone's own calendar app (its insert screen, no permission).
+        registerPlugin(dev.ikrar.sulo.calendar.SuloCalendarPlugin.class);
         // The launch screen (res/values/styles.xml): kept until the first frame, then gone without a flash.
         webReady = false;
         final long shownAt = android.os.SystemClock.uptimeMillis();

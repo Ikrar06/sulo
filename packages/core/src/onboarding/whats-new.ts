@@ -21,25 +21,28 @@ export interface WhatsNewEntry {
 /** The surfaces Sulo runs on: the iPhone joins in 1.1.0 (B3). */
 export type WhatsNewPlatform = 'extension' | 'android' | 'ios';
 
-/** 1.1.0 (notice version 2). Ordered as they show: the biggest change first. */
+/**
+ * 1.1.0 (notice version 2). Ordered as they show: the biggest change first, at most three per platform. Task
+ * grades and own tasks reach everyone; the MKPK card needs no entry (it shows itself to NEOSIA users), and
+ * Sipakamase has Ringkasan's own invite on the extension, where the third place goes to the watch switch.
+ */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
     noticeVersion: 2,
-    id: 'sipakamase',
-    title: { id: 'Sulo terhubung ke Sipakamase', en: 'Sulo connects to Sipakamase' },
+    id: 'nilai-tugas',
+    title: { id: 'Nilai tugas dari SIKOLA', en: 'Task grades from SIKOLA' },
     body: {
-      id: 'Kegiatan MKPK yang belum dikonversi, nilai yang belum masuk NEOSIA, dan pengingat sebelum batas nilai. Sulo hanya membaca.',
-      en: 'MKPK activities not yet converted, grades not yet in NEOSIA, and reminders before the grade deadline. Sulo only reads.',
+      id: 'Tugas yang sudah dinilai ditandai selesai sendiri, dan angkanya tersembunyi sampai kamu memilih Tampilkan nilai.',
+      en: 'Graded tasks are marked as done on their own, and the numbers stay hidden until you choose Show grades.',
     },
-    action: 'sipakamase',
   },
   {
     noticeVersion: 2,
-    id: 'mkpk-card',
-    title: { id: 'Progres MKPK di dashboard', en: 'MKPK progress on the dashboard' },
+    id: 'tugas-sendiri',
+    title: { id: 'Tambah tugas sendiri', en: 'Add your own tasks' },
     body: {
-      id: 'SKS MKPK di transkrip dan KRS-mu, dan MKPK yang ditawarkan prodimu, dari data NEOSIA.',
-      en: 'MKPK credits on your transcript and KRS, and the MKPK courses your program offers, from NEOSIA.',
+      id: 'Tugas dari dosen yang tidak ada di SIKOLA, misalnya presentasi, bisa kamu catat, dan Sulo ikut mengingatkan tenggatnya.',
+      en: 'Note down work your lecturer gave outside SIKOLA, such as a presentation, and Sulo reminds you of it too.',
     },
   },
   {
@@ -53,6 +56,17 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     action: 'watch',
     // The phone already had it; its 1.1.0 change (a light check on opening) needs no entry.
     platforms: ['extension'],
+  },
+  {
+    noticeVersion: 2,
+    id: 'sipakamase',
+    title: { id: 'Sulo terhubung ke Sipakamase', en: 'Sulo connects to Sipakamase' },
+    body: {
+      id: 'Kegiatan MKPK yang belum dikonversi, nilai yang belum masuk NEOSIA, dan pengingat sebelum batas nilai. Sulo hanya membaca.',
+      en: 'MKPK activities not yet converted, grades not yet in NEOSIA, and reminders before the grade deadline. Sulo only reads.',
+    },
+    action: 'sipakamase',
+    platforms: ['android', 'ios'],
   },
 ];
 

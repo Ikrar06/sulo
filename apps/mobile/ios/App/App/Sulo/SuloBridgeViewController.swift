@@ -63,5 +63,6 @@ class SuloBridgeViewController: CAPBridgeViewController {
         #endif
         bridge?.registerPluginInstance(SuloNeosiaPlugin())
         bridge?.registerPluginInstance(SuloSipakamasePlugin())
+        bridge?.registerPluginInstance(SuloCalendarPlugin())
     }
 }

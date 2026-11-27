@@ -24,6 +24,25 @@ html, body, #root { height: 100%; }
 :root[data-os="ios"] #root { overflow-y: auto; overscroll-behavior: contain; }
 /* Sizes are the tokens' own: no browser font boosting (text autosizing), only the app's text zoom. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Like any phone app, a long press selects nothing on the screen itself, the tab bar and buttons included
+   (owner, 27 Nov 2026), and shows no link preview. Fields stay selectable and editable, and text that is there
+   to be copied (the bug report's info) opts back in with .m-pilih. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input,
+textarea,
+[contenteditable="true"],
+.m-pilih {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+/* Like any phone app: nothing shows a scrollbar (owner, 27 Nov 2026); scrolling itself is unchanged. */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
 body {
   background: var(--m-screen);
   color: var(--text);
@@ -114,11 +133,14 @@ body {
 @keyframes m-snack {
   from { opacity: 0; transform: translateY(8px); }
 }
-/* Carousels snap card by card. */
+/* Carousels snap card by card, and move on one axis only (owner, 27 Nov 2026): overflow-x alone lets the row
+   scroll up and down by the few pixels its content is taller; a vertical swipe on it now scrolls the page. */
 .m-carousel {
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 16px;
   scrollbar-width: none;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
 }
 .m-carousel > * { scroll-snap-align: start; }
 .m-carousel::-webkit-scrollbar { display: none; }

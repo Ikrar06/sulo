@@ -56,12 +56,16 @@ describe("what's new", () => {
     expect(pendingWhatsNew([], 0, true)).toEqual([]);
   });
 
-  it('1.1.0 has at most three entries, each in both languages, newer than notice version 1', async () => {
+  it('1.1.0 shows at most three entries on each platform, each in both languages, newer than notice version 1', async () => {
     const { WHATS_NEW } = await import('@sulo/core/onboarding/whats-new');
     const { NOTICE_VERSION } = await import('@sulo/core/storage');
     const current = WHATS_NEW.filter((e) => e.noticeVersion === NOTICE_VERSION);
     expect(current.length).toBeGreaterThan(0);
-    expect(current.length).toBeLessThanOrEqual(3);
+    for (const platform of ['extension', 'android', 'ios'] as const) {
+      const shown = pendingWhatsNew(WHATS_NEW, NOTICE_VERSION - 1, true, platform);
+      expect(shown.length).toBeGreaterThan(0);
+      expect(shown.length).toBeLessThanOrEqual(3);
+    }
     for (const e of current) for (const t of [e.title, e.body]) expect(t.id && t.en).toBeTruthy();
   });
 });

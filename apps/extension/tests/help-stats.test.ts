@@ -10,6 +10,7 @@ describe('help content', () => {
       'aman',
       'password',
       'tugas-tidak-muncul',
+      'nilai-tugas',
       'tidak-diperbarui',
       'masuk-lagi',
       'pengingat',

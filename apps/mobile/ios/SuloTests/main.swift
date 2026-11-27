@@ -199,5 +199,22 @@ check(SipakamaseKeep.after(pr, state: KS(), index: 0, now: 77, today: "d", login
 var ok9 = KS(); ok9.okAt = 9
 check(SipakamaseKeep.after(pr, state: ok9, index: 0, now: 77, today: "d", login: true, ok: false).okAt == 9, "a login page leaves the good read")
 
+// CalendarEventInput: one task for iOS's add-event sheet (the same event as core format/task-event.ts)
+let taskURL = "https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=123"
+let ev = CalendarEventInput(title: "Laporan (Mekanika Fluida)", startAt: 1_800_000_000 - 1800, endAt: 1_800_000_000, notes: "Tugas Mekanika Fluida di SIKOLA.\n\(taskURL)", url: taskURL)
+check(ev != nil, "a task event is accepted")
+check(ev?.url?.absoluteString == taskURL, "keeps the task's SIKOLA link")
+check(ev?.end.timeIntervalSince1970 == 1_800_000_000, "ends at the due time")
+check(CalendarEventInput(title: "  ", startAt: 1, endAt: 2, notes: "", url: nil) == nil, "no empty title")
+check(CalendarEventInput(title: "a", startAt: 10, endAt: 5, notes: "", url: nil) == nil, "never ends before it starts")
+check(CalendarEventInput(title: "a", startAt: 10, endAt: 10 + 2 * 86_400, notes: "", url: nil) == nil, "not two days long")
+check(CalendarEventInput(title: "a", startAt: nil, endAt: 5, notes: "", url: nil) == nil, "needs a start")
+check(CalendarEventInput(title: String(repeating: "x", count: 401), startAt: 1, endAt: 2, notes: "", url: nil) == nil, "title not too long")
+check(CalendarEventInput.taskLink("\(taskURL)&sesskey=abc") == nil, "no other parameter")
+check(CalendarEventInput.taskLink("http://sikola-v2.unhas.ac.id/mod/assign/view.php?id=1") == nil, "https only")
+check(CalendarEventInput.taskLink("https://evil.test/mod/assign/view.php?id=1") == nil, "SIKOLA only")
+check(CalendarEventInput.taskLink("https://sikola-v2.unhas.ac.id/login/index.php?id=1") == nil, "a task page only")
+check(CalendarEventInput(title: "a", startAt: 1, endAt: 2, notes: "", url: "javascript:alert(1)")?.url == nil, "a bad link is dropped, the event stays")
+
 print("ios-test: \(count - failures) dari \(count) lolos")
 exit(failures == 0 ? 0 : 1)

@@ -18,12 +18,14 @@ import { AcademicCard, nextForSummary, SummaryLine } from '@sulo/ui/dashboard/Ov
 import { timeZone } from '../data';
 import { Card, CardLink } from '@sulo/ui/card';
 import type { PageProps } from '../types';
-import { KrsReadinessCard, NeosiaInvite, NextClassLine, StudiCard, SurveyLine, TodayClasses } from '@sulo/ui/dashboard/NeosiaParts';
+import { KrsReadinessCard, NeosiaInvite, NextClassLine, SipakamaseInvite, StudiCard, SurveyLine, TodayClasses } from '@sulo/ui/dashboard/NeosiaParts';
 import { classMeetings, krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@sulo/core/neosia/view';
 import { linkedMeetings } from '@sulo/core/neosia/linked';
 import { holidayRanges } from '@sulo/core/neosia/schedule';
 import { classesToday, nextClass } from '@sulo/core/neosia/today';
 import { dismissInvite, showInvite } from '@sulo/core/neosia/invite';
+import { dismissSipakamaseInvite, mkpkCardShown, showSipakamaseInvite } from '@sulo/core/sipakamase/invite';
+import { completion, sourceStatuses } from '@sulo/core/neosia/sources';
 import { local } from '../data';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { attendanceSummary } from '@sulo/core/presensi/service';
@@ -91,10 +93,20 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const consent = useNeosiaConnect(actions);
   const sipConnect = useSipakamaseConnect(actions);
   const sip = data.sipakamase;
+  const mkpk = mkpkProgress(snapshots, data.neosia.mkpk);
+  // Sipakamase not connected: its own line under NEOSIA's, once NEOSIA is set up and the MKPK card shows.
+  const sipInvite = showSipakamaseInvite({
+    moduleOn: sip.module.enabled,
+    mkpkCardShown: mkpkCardShown({ neosiaOn, applies: mkpk.applies, load: data.prefs.mkpkLoad }),
+    neosiaSetupDone: completion(sourceStatuses(snapshots)).complete,
+    dismissedAt: sip.invite.dismissedAt,
+    now: data.now,
+  });
   const mkpkSip = {
     summary: summarizeSipakamase(sip.data, sip.connection),
-    reminders: mkpkReminders(sip.data, mkpkProgress(snapshots, data.neosia.mkpk)),
+    reminders: mkpkReminders(sip.data, mkpk),
     onConnect: sipConnect.start,
+    invited: sipInvite,
   };
   // Attendance average over monitored courses, from the stored recap (no request).
   const attendance = useMemo(() => attendanceSummary(user.presensi?.recap?.rows, user.courses), [user.presensi, user.courses]);
@@ -120,6 +132,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
       {/* Module off: the invite. Module on: the checklist until the required pages came in. Never both. */}
       {!neosiaOn && invite && <NeosiaInvite onConnect={consent.start} onLater={() => void dismissInvite(local, data.now, data.today)} />}
       {neosiaOn && <NeosiaOverviewChecklist snapshots={snapshots} now={data.now} />}
+      {sipInvite && <SipakamaseInvite onConnect={sipConnect.start} onLater={() => void dismissSipakamaseInvite(local, data.now)} />}
       {consent.dialog}
       {sipConnect.dialog}
       {surveyOpen && <SurveyLine />}

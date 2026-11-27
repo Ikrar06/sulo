@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { formatAgo } from '@sulo/core/format/time';
 import { neosiaWords, type NeosiaWords } from '@sulo/core/i18n/neosia';
+import { sipakamaseWords } from '@sulo/core/i18n/sipakamase';
 import { neosiaUrl } from '@sulo/core/links';
 import { advisorName, profile, type ItemState, type KrsWindow, type ReadinessItem } from '@sulo/core/neosia/view';
 import type { Snapshots } from '@sulo/core/neosia/store';
@@ -289,14 +290,26 @@ function NeosiaStudi({ snapshots, sksTarget, attendance, shown, setShown }: { sn
 export function NeosiaInvite({ onConnect, onLater }: { onConnect: () => void; onLater: () => void }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).invite;
+  return <InviteLine name="NEOSIA" text={w.text} connect={w.connect} later={w.later} onConnect={onConnect} onLater={onLater} />;
+}
+
+/** The overview's "Hubungkan Sipakamase" line (1.1.0, core sipakamase/invite.ts decides when), NEOSIA's twin. */
+export function SipakamaseInvite({ onConnect, onLater }: { onConnect: () => void; onLater: () => void }) {
+  const { locale } = useI18n();
+  const w = sipakamaseWords(locale);
+  return <InviteLine name={w.name} text={w.invite} connect={w.connect} later={w.later} onConnect={onConnect} onLater={onLater} />;
+}
+
+/** One optional source not connected yet: what it adds, "Hubungkan", and an ✕ for "Nanti saja". */
+function InviteLine({ name, text, connect, later, onConnect, onLater }: { name: string; text: string; connect: string; later: string; onConnect: () => void; onLater: () => void }) {
   return (
-    <section className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3" aria-label="NEOSIA">
+    <section className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3" aria-label={name}>
       <InfoCircleIcon className="size-4 shrink-0 text-muted-foreground" />
-      <p className="min-w-0 flex-1 text-[14px]">{w.text}</p>
+      <p className="min-w-0 flex-1 text-[14px]">{text}</p>
       <Button variant="outline" onClick={onConnect}>
-        {w.connect}
+        {connect}
       </Button>
-      <Button variant="ghost" size="icon" aria-label={w.later} title={w.later} onClick={onLater}>
+      <Button variant="ghost" size="icon" aria-label={later} title={later} onClick={onLater}>
         <XIcon className="size-4" />
       </Button>
     </section>

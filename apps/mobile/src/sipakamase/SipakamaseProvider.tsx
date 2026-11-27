@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { readConnection, type Connection, OFF } from '@sulo/core/sipakamase/connection';
 import { readSipakamaseModule } from '@sulo/core/sipakamase/module';
 import { readSipakamaseData, type SipakamaseData } from '@sulo/core/sipakamase/store';
+import { dismissSipakamaseInvite, readSipakamaseInvite } from '@sulo/core/sipakamase/invite';
 import type { RefreshResult } from '@sulo/core/sipakamase/run';
 import type { Platform } from '@sulo/core/platform';
 import { onboardingWords } from '@sulo/core/i18n/mobile-onboarding';
@@ -22,6 +23,9 @@ export interface SipakamaseState {
   data: SipakamaseData | null;
   /** Opens the consent sheet; "Hubungkan" there signs in. */
   ask: () => void;
+  /** When Ringkasan's invite was put off with "Nanti saja" (core sipakamase/invite.ts); undefined until read. */
+  inviteDismissedAt: number | null | undefined;
+  laterInvite: () => Promise<void>;
   signIn: () => Promise<ConnectResult>;
   refresh: () => Promise<RefreshResult>;
   disconnect: () => Promise<void>;
@@ -36,6 +40,8 @@ const NOT_CONNECTED: SipakamaseState = {
   connection: OFF,
   data: null,
   ask: () => undefined,
+  inviteDismissedAt: undefined,
+  laterInvite: async () => undefined,
   signIn: async () => 'closed',
   refresh: async () => ({ kind: 'off' }),
   disconnect: async () => undefined,
@@ -51,6 +57,11 @@ export function SipakamaseProvider({ platform, children }: { platform: Platform;
   const [connection, setConnection] = useState<Connection>(OFF);
   const [data, setData] = useState<SipakamaseData | null>(null);
   const [consent, setConsent] = useState(false);
+  // The invite's "Nanti saja" is not Sipakamase data: kept in the plain store, like NEOSIA's.
+  const [inviteDismissedAt, setInviteDismissedAt] = useState<number | null | undefined>(undefined);
+  useEffect(() => {
+    void readSipakamaseInvite(platform.store).then((s) => setInviteDismissedAt(s.dismissedAt));
+  }, [platform]);
 
   const reload = useCallback(async () => {
     const module = await readSipakamaseModule(store);
@@ -79,6 +90,12 @@ export function SipakamaseProvider({ platform, children }: { platform: Platform;
     connection,
     data,
     ask: () => setConsent(true),
+    inviteDismissedAt,
+    laterInvite: async () => {
+      const now = platform.clock.now();
+      await dismissSipakamaseInvite(platform.store, now);
+      setInviteDismissedAt(now);
+    },
     signIn: async () => {
       const r = await signInAgain(platform, words);
       await reload();

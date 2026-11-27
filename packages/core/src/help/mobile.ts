@@ -193,6 +193,20 @@ const PHONE: FaqEntry[] = [
     ],
   },
   {
+    id: 'nilai-tugas-hp',
+    q: { id: 'Dari mana nilai tugas di tab Tugas?', en: 'Where do the task grades in Tasks come from?' },
+    a: [
+      {
+        id: 'Dari halaman nilai tiap mata kuliah yang dipantau di SIKOLA. Sulo membacanya saat kamu membuka Tugas (paling sering sekali tiap 10 menit) dan saat memperbarui. Yang dibaca hanya nilai, tidak pernah komentar dosen.',
+        en: 'From the grades page of each course you follow on SIKOLA. Sulo reads it when you open Tasks (at most once every 10 minutes) and when it updates. It reads the grade only, never the lecturer’s comments.',
+      },
+      {
+        id: 'Tugas yang sudah dinilai otomatis ditandai selesai, termasuk tugas lama yang tidak ada di kalender SIKOLA; lihat di saringan Selesai dan Dinilai. Angkanya tersembunyi sampai kamu mengetuk Tampilkan nilai, dan tidak pernah masuk notifikasi.',
+        en: 'A graded task is marked as done on its own, old ones missing from the SIKOLA calendar included; see the Done and Graded filters. The numbers stay hidden until you tap Show grades, and never appear in notifications.',
+      },
+    ],
+  },
+  {
     id: 'sikola-berubah-hp',
     q: { id: 'Bagaimana kalau SIKOLA berubah?', en: 'What if SIKOLA changes?' },
     a: [
@@ -289,7 +303,7 @@ export const MOBILE_FAQ_TOPICS = [
   { id: 'privasi', title: { id: 'Keamanan dan privasi', en: 'Security and privacy' }, entries: ['aman-hp', 'akun-lain-hp', 'hapus-data-hp'] },
   { id: 'pembaruan', title: { id: 'Pembaruan data', en: 'Updating data' }, entries: ['kapan-diperbarui', 'seberapa-cepat-hp', 'masuk-lagi-hp', 'masuk-lagi-pemantauan-hp', 'sikola-berubah-hp', 'kabar-lama'] },
   { id: 'pengingat', title: { id: 'Pengingat', en: 'Reminders' }, entries: ['pengingat-hp', 'baterai-hp', 'pemantauan-dijeda-hp', 'email-sikola-hp'] },
-  { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp'] },
+  { id: 'tugas', title: { id: 'Mata kuliah dan tugas', en: 'Courses and tasks' }, entries: ['mata-kuliah-hp', 'tugas-tidak-muncul-hp', 'nilai-tugas-hp'] },
   { id: 'presensi', title: { id: 'Presensi', en: 'Attendance' }, entries: ['presensi-diperbarui'] },
   { id: 'neosia', title: { id: 'Jadwal dan nilai dari NEOSIA', en: 'Schedule and grades from NEOSIA' }, entries: ['neosia-hp', 'nilai-tersembunyi-hp', 'sesi-neosia-hp'] },
   { id: 'mkpk', title: { id: 'MKPK dan Sipakamase', en: 'MKPK and Sipakamase' }, entries: ['mkpk-belum-lulus', 'sipakamase-aman'] },

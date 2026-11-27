@@ -73,6 +73,7 @@ export async function seedDemo(store: KeyValueStore, now: UnixSeconds): Promise<
   const neosia = params.get('neosia');
   if (neosia !== null && neosia !== 'invite') data['global:neosia'] = { enabled: true, changedAt: now - 86_400 };
   // Sipakamase connected with it (1.1.0); its data comes from the fake native store (src/fake/sipakamase.ts).
-  if (neosia !== null && neosia !== 'invite') data['global:sipakamase'] = { enabled: true, changedAt: now - 3 * 86_400 };
+  // ?sipakamase=off keeps it off, for Ringkasan's "Hubungkan Sipakamase" card.
+  if (neosia !== null && neosia !== 'invite' && params.get('sipakamase') !== 'off') data['global:sipakamase'] = { enabled: true, changedAt: now - 3 * 86_400 };
   for (const [key, value] of Object.entries(data)) await store.set(key, value);
 }
