@@ -153,7 +153,7 @@ function Bar({ percent }: { percent: number }) {
   const masked = usePrivacy();
   return (
     <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-m-inset" aria-hidden="true">
-      {!masked && <span className="block h-full rounded-full bg-foreground" style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />}
+      {!masked && <span className="m-fill-grow block h-full rounded-full bg-foreground" style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />}
     </span>
   );
 }

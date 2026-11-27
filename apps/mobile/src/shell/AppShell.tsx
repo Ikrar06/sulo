@@ -7,7 +7,7 @@
 // screen. Updating happens only when the user asks (pull, Perbarui) or opens
 // the app after 15 minutes (App.tsx); after Perbarui a short snackbar.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { formatAgo } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
@@ -19,7 +19,7 @@ import { BellIcon, RefreshIcon } from '@sulo/ui/icons';
 import { IconButton } from '@sulo/ui/mobile/controls';
 import { closeTopSheet } from '@sulo/ui/mobile/sheet-motion';
 import { useToast } from '@sulo/ui/ui/toast';
-import { back as goBack, current, open, parseScreen, START, tapTab, type NavState, type Screen, type Tab } from './nav';
+import { back as goBack, current, motionBetween, open, parseScreen, START, tapTab, type NavState, type Screen, type Tab } from './nav';
 import { opensSignIn, screenForNotification } from './notify-route';
 import { SuloSession } from '../session';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
@@ -220,6 +220,13 @@ export function AppShell(props: ShellProps) {
   const top = current(nav);
   const screenKey = `${top.name}/${top.detail ?? ''}`;
   const isDetail = nav.stack.length > 0;
+  // The screen before this one, for the direction of the change (nav.ts motionBetween); set after each commit.
+  // Above the early return below: hooks run in the same order on every render.
+  const shownNav = useRef(nav);
+  useEffect(() => {
+    shownNav.current = nav;
+  }, [nav]);
+  const motion = motionBetween(shownNav.current, nav);
   const writeHead = useCallback(() => {
     const el = scroller.current;
     const h = head.current;
@@ -362,7 +369,7 @@ export function AppShell(props: ShellProps) {
           <span aria-hidden="true" className="m-fade-top pointer-events-none absolute inset-x-0 top-full h-5" />
         </header>
         <PullToRefresh disabled={!dataScreen || props.expired || props.readOnly === true || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
-          <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(var(--m-bar-h)+36px+var(--m-bar-inset))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''} ${syncUi.phase === 'done' ? 'm-data-in' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
+          <ScreenFrame key={`${top.name}/${top.detail ?? ''}`} motion={motion} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(var(--m-bar-h)+36px+var(--m-bar-inset))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${syncUi.phase === 'done' ? 'm-data-in' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
       {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
             <LineSlot>
             {props.readOnly ? (
@@ -395,7 +402,7 @@ export function AppShell(props: ShellProps) {
                 </TaskDateProvider>
               </ScreenRefreshProvider>
             </ScreenHeaderProvider>
-          </div>
+          </ScreenFrame>
         </PullToRefresh>
       </main>
       {/* Above the floating tab bar: a 32 px fade, then the screen color solid beside and below the bar. */}
@@ -404,4 +411,13 @@ export function AppShell(props: ShellProps) {
     </div>
     </SyncUiContext.Provider>
   );
+}
+
+/**
+ * The screen's box. Its motion (m-push, m-pop) is fixed when it mounts, so a later render, a sync or a status
+ * line, never takes the class away halfway and cuts the slide.
+ */
+function ScreenFrame({ motion, className, children }: { motion: 'push' | 'pop' | null; className: string; children: ReactNode }) {
+  const [enter] = useState(motion);
+  return <div className={`${className}${enter ? ` m-${enter}` : ''}`}>{children}</div>;
 }

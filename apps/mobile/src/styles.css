@@ -59,13 +59,20 @@ body {
   box-shadow: 0 0 0 1px var(--m-card-edge), var(--m-card-shadow);
 }
 
-/* Entering a detail slides in from the right (220 ms, ease-out); switching
-   tabs has no motion. */
+/* Entering a detail slides in from the right (220 ms, ease-out); closing it
+   brings the screen below in from the left, the same distance and time
+   (shell/nav.ts motionBetween). Switching tabs has no motion. */
 .m-push {
   animation: m-push 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes m-push {
   from { opacity: 0.6; transform: translateX(24px); }
+}
+.m-pop {
+  animation: m-pop 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes m-pop {
+  from { opacity: 0.6; transform: translateX(-24px); }
 }
 /* Bottom sheets rise in 240 ms and leave in 200 ms with a smooth ease-in
    (packages/ui/src/mobile/sheet.tsx). Only the sheet's transform and the
@@ -116,7 +123,7 @@ body {
 .m-carousel > * { scroll-snap-align: start; }
 .m-carousel::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .m-push, .sulo-toast { animation: none !important; }
+  .m-push, .m-pop, .sulo-toast { animation: none !important; }
   /* Sheets: no sliding, opacity only, 120 ms (beats the global 0.01 ms). */
   .m-sheet[data-state], .m-scrim[data-state] { transform: none !important; }
   .m-sheet[data-state="open"], .m-scrim[data-state="open"] { animation: m-fade-in 120ms linear !important; animation-duration: 120ms !important; }
@@ -189,7 +196,19 @@ body {
 /* Ringkasan's 7-day bars grow once: 240 ms ease-out, 20 ms apart. */
 .m-bar-grow { transform-origin: bottom; animation: m-bar-grow 240ms ease-out both; animation-delay: calc(var(--i, 0) * 20ms); }
 @keyframes m-bar-grow { from { transform: scaleY(0); } }
-@media (prefers-reduced-motion: reduce) { .m-bar-grow { animation: none; } }
+/* The same for a level bar (attendance, the MKPK card): its fill grows from the left once, as the screen opens. */
+.m-fill-grow { transform-origin: left; animation: m-fill-grow 240ms ease-out both; }
+@keyframes m-fill-grow { from { transform: scaleX(0); } }
+/* A check circle the finger just ticked lands with the onboarding's small spring (controls.tsx); never on
+   a list that merely shows done tasks. */
+.m-check-pop { animation: m-check-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes m-check-pop { from { transform: scale(0.8); } }
+/* The segmented control's card glides to the chosen option, as the system's own does. */
+.m-seg-thumb { transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .m-bar-grow, .m-fill-grow, .m-check-pop { animation: none; }
+  .m-seg-thumb { transition: none; }
+}
 
 /* Onboarding (M8c.2, onboarding/). Transform and opacity only; nothing
    starts from scale(0); no blur. */
@@ -278,12 +297,14 @@ body {
 :root[data-perf="lite"] .m-fade-top { background: var(--m-line); height: 1px; }
 :root[data-perf="lite"] .m-fade-bottom { background: linear-gradient(to top, var(--m-screen) calc(100% - 32px), var(--m-line) calc(100% - 32px), var(--m-line) calc(100% - 31px), transparent calc(100% - 31px)); } /* lint-ui-allow: hard stops only, a solid band under a 1 px edge (no fade) */
 :root[data-perf="lite"] .m-press, :root[data-perf="lite"] .m-press-host { transition-duration: 80ms; }
-:root[data-perf="lite"] .m-push { animation-duration: 176ms; }
+:root[data-perf="lite"] .m-push, :root[data-perf="lite"] .m-pop { animation-duration: 176ms; }
 :root[data-perf="lite"] .m-sheet[data-state="open"], :root[data-perf="lite"] .m-scrim[data-state="open"] { animation-duration: 192ms; }
 :root[data-perf="lite"] .m-sheet[data-state="closed"], :root[data-perf="lite"] .m-scrim[data-state="closed"] { animation-duration: calc(var(--m-sheet-dur, 200ms) * 0.8); }
 :root[data-perf="lite"] .sulo-toast { animation-duration: 120ms; }
 :root[data-perf="lite"] .m-mascot-enter { animation-duration: 256ms; }
-:root[data-perf="lite"] .m-bar-grow { animation-duration: 192ms; }
+:root[data-perf="lite"] .m-bar-grow, :root[data-perf="lite"] .m-fill-grow { animation-duration: 192ms; }
+:root[data-perf="lite"] .m-check-pop { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-seg-thumb { transition-duration: 160ms; }
 :root[data-perf="lite"] .onb-press, :root[data-perf="lite"] .onb-row { transition-duration: 224ms; }
 :root[data-perf="lite"] .onb-letter { animation-duration: 256ms; }
 :root[data-perf="lite"] .onb-in-fwd [data-onb-content], :root[data-perf="lite"] .onb-in-back [data-onb-content] { animation-duration: 208ms; animation-delay: 88ms; }

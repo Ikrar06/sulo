@@ -64,7 +64,7 @@ export function MkpkCard() {
           </p>
           {fill !== null && (
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-m-inset" role="img" aria-label={w.scale(scale!)}>
-              {!masked && <div className="h-full rounded-full bg-foreground" style={{ width: `${fill}%` }} />}
+              {!masked && <div className="m-fill-grow h-full rounded-full bg-foreground" style={{ width: `${fill}%` }} />}
             </div>
           )}
         </div>

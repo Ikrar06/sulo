@@ -3,7 +3,7 @@
 // target of at least 44 (m-hit), focus rings for keyboards only.
 
 import { Switch as SwitchPrimitive } from 'radix-ui';
-import type { ComponentType, ReactNode, SVGProps } from 'react';
+import { useEffect, useState, type ComponentType, type ReactNode, type SVGProps } from 'react';
 import { XIcon } from '../dashboard-icons';
 import { ChevronDownIcon } from '../icons';
 
@@ -60,6 +60,18 @@ export function CheckCircle({ checked, onChange, label, size = 'md', still = fal
       <path d="M5 12.5 10 17 19 7.5" />
     </svg>
   );
+  // Set by the finger only, so a list that opens with done tasks stays still (styles.css m-check-pop).
+  const [pop, setPop] = useState(false);
+  // The tap shows at once: the saved state arrives a moment later (a storage round trip) and takes over;
+  // if it never does (the write failed), the circle goes back to what is saved after 2 seconds.
+  const [tapped, setTapped] = useState<boolean | null>(null);
+  useEffect(() => setTapped(null), [checked]);
+  useEffect(() => {
+    if (tapped === null) return;
+    const timer = window.setTimeout(() => setTapped(null), 2000);
+    return () => window.clearTimeout(timer);
+  }, [tapped]);
+  const on = tapped ?? checked;
   // A picture of the circle (the onboarding's scenes): the same look, not a control.
   if (still)
     return (
@@ -72,13 +84,16 @@ export function CheckCircle({ checked, onChange, label, size = 'md', still = fal
       type="button"
       role="checkbox"
       data-own-press=""
-      aria-checked={checked}
+      aria-checked={on}
       aria-label={label}
       onClick={(e) => {
         e.stopPropagation();
-        onChange(!checked);
+        setTapped(!on);
+        setPop(!on);
+        onChange(!on);
       }}
-      className={`m-hit m-hit-x inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
+      onAnimationEnd={() => setPop(false)}
+      className={`${pop && on ? 'm-check-pop ' : ''}m-hit m-hit-x inline-flex ${size === 'sm' ? 'size-[22px]' : 'size-7'} shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 motion-reduce:transition-none ${on ? 'border-foreground bg-foreground text-bg' : 'border-muted-foreground text-transparent'} ${ring}`}
     >
       <svg viewBox="0 0 24 24" className={size === 'sm' ? 'size-3' : 'size-4'} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M5 12.5 10 17 19 7.5" />
@@ -89,10 +104,18 @@ export function CheckCircle({ checked, onChange, label, size = 'md', still = fal
 
 /** Pill segmented control (36). */
 export function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: readonly { value: T; label: ReactNode }[]; onChange: (v: T) => void; label: string }) {
+  const n = Math.max(1, options.length);
+  const at = Math.max(0, options.findIndex((o) => o.value === value));
   return (
-    <div role="group" aria-label={label} className="grid h-9 grid-flow-col auto-cols-fr gap-1 rounded-full bg-m-inset p-1">
+    <div role="group" aria-label={label} className="relative grid h-9 grid-flow-col auto-cols-fr gap-1 rounded-full bg-m-inset p-1">
+      {/* One card under the chosen option, moved by transform (m-seg-thumb): each step is its own width plus the 4 px gap. */}
+      <span
+        aria-hidden="true"
+        className="m-card m-seg-thumb pointer-events-none absolute inset-y-1 left-1 rounded-full"
+        style={{ width: `calc((100% - 8px - ${(n - 1) * 4}px) / ${n})`, transform: `translateX(calc(${at} * (100% + 4px)))` }}
+      />
       {options.map((o) => (
-        <button key={o.value} type="button" aria-pressed={value === o.value} onClick={() => onChange(o.value)} className={`m-hit rounded-full text-m13 ${ring} ${value === o.value ? 'm-card font-medium text-foreground' : 'text-muted-foreground'}`}>
+        <button key={o.value} type="button" aria-pressed={value === o.value} onClick={() => onChange(o.value)} className={`m-hit relative rounded-full text-m13 ${ring} ${value === o.value ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
           {o.label}
         </button>
       ))}
