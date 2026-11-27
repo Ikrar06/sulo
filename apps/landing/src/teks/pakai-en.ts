@@ -500,7 +500,7 @@ export const pakaiEn: KataPakai = {
       {
         id: 'versi',
         judul: 'Updating the app',
-        iphone: 'On iPhone, a new version is installed from a laptop with Sideloadly, as the first time. With a free Apple ID, Sulo also needs a refresh every 7 days, and Sulo tells you the day before.',
+        iphone: 'On iPhone, a new version is installed from a laptop with Sideloadly, as the first time. Sideloadly renews a free Apple ID’s 7 days by itself while your laptop is on and the iPhone shares its Wi-Fi.',
         isi: ['Sulo is not on Google Play yet, so a new version is installed from an APK file. Sulo tells you when there is one, and never downloads it by itself.'],
         bisa: [
           'When "New version available" shows, tap Download. The phone\'s browser opens the download.',
@@ -512,7 +512,7 @@ export const pakaiEn: KataPakai = {
       {
         id: 'masalah',
         judul: 'When something looks off',
-        iphone: 'On iPhone, a Sulo that will not open has usually run out of its 7 days. Refresh it with Sideloadly on your laptop, with the same Apple ID; your data stays.',
+        iphone: 'On iPhone, a Sulo that will not open has usually run out of its 7 days before Sideloadly could refresh it. Install it again with Sideloadly on your laptop, with the same Apple ID; your data stays.',
         isi: ['The full answers are under More, Help. These are asked most.'],
         bisa: [
           'A task is missing: check that its course is followed under More, Courses.',

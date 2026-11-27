@@ -577,7 +577,7 @@ export const pakaiId: KataPakai = {
       {
         id: 'versi',
         judul: 'Memperbarui aplikasi',
-        iphone: 'Di iPhone, versi baru dipasang dari laptop lewat Sideloadly, seperti saat pertama memasang. Dengan Apple ID gratis, Sulo juga perlu disegarkan tiap 7 hari, dan Sulo memberi tahu sehari sebelumnya.',
+        iphone: 'Di iPhone, versi baru dipasang dari laptop lewat Sideloadly, seperti saat pertama memasang. Masa 7 hari Apple ID gratis diperpanjang Sideloadly sendiri selama laptopmu menyala dan iPhone di WiFi yang sama.',
         isi: ['Sulo belum ada di Play Store, jadi versi baru dipasang dari berkas APK. Sulo memberi tahu saat ada, dan tidak pernah mengunduhnya sendiri.'],
         bisa: [
           'Saat muncul "Versi baru tersedia", ketuk Unduh. Browser HP membuka unduhannya.',
@@ -589,7 +589,7 @@ export const pakaiId: KataPakai = {
       {
         id: 'masalah',
         judul: 'Kalau ada yang janggal',
-        iphone: 'Di iPhone, Sulo yang tidak mau dibuka biasanya masa 7 harinya habis. Segarkan lewat Sideloadly di laptop dengan Apple ID yang sama; datamu tidak hilang.',
+        iphone: 'Di iPhone, Sulo yang tidak mau dibuka biasanya masa 7 harinya habis sebelum Sideloadly sempat menyegarkannya. Pasang lagi lewat Sideloadly di laptop dengan Apple ID yang sama; datamu tidak hilang.',
         isi: ['Jawaban lengkapnya ada di Lainnya, Bantuan. Ini yang paling sering ditanyakan.'],
         bisa: [
           'Tugas tidak muncul: cek apakah mata kuliahnya dipantau di Lainnya, Mata kuliah.',
