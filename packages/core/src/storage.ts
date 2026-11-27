@@ -88,6 +88,8 @@ export interface UserData {
   taskGrades: TaskGrades;
   /** "Lihat nilai" reads of each course's grade report, by course id (tasks/grade-service.ts). */
   gradeReads: GradeReads;
+  /** The last automatic grade read (tasks/grade-sweep.ts), for its 5-minute gap. */
+  gradeSweep: { at: UnixSeconds | null };
 }
 
 export interface RadarMeta {
@@ -135,6 +137,7 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   ownTasks: [],
   taskGrades: {},
   gradeReads: {},
+  gradeSweep: { at: null },
 };
 
 export const userKey = (userId: UserId, name: keyof UserData) => `u:${userId}:${name}`;

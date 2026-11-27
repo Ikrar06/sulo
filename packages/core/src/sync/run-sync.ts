@@ -30,6 +30,7 @@ import {
 import { applyRadarResults, planRadarCalls, type RadarMode } from '../radar/sync-step';
 import { activeCourseIds } from '../courses/active-score';
 import { readPresensi, refreshRecap } from '../presensi/service';
+import { gradeSweep, SWEEP_MAX_SYNC } from '../tasks/grade-sweep';
 import { PRESENSI_CACHE_SEC } from '../presensi/rules';
 import { recordFailure } from '../moodle/backoff';
 import { planBatch, type BatchPlan } from './plan-batch';
@@ -384,6 +385,9 @@ export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origi
   if (options.recap && deps.client && deps.trigger && mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) {
     const recap = await autoRecap(deps as SyncDeps, userId, courses, now, knownUser !== userId).catch(() => 'failed' as const);
     stage(deps, 'attendance', recap);
+    // Task grades (owner's rule of 27 Nov 2026): one followed course's grade report per sync, the one read longest
+    // ago and not within 24 hours, with room left in the limits (tasks/grade-sweep.ts). Never fails the sync.
+    await gradeSweep({ client: deps.client, store: deps.store, clock: deps.clock }, { max: SWEEP_MAX_SYNC });
   }
 
   if (broken.length > 0) return { status: 'parser_broken', where: broken.join(', ') };

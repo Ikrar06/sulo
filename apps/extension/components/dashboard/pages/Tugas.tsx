@@ -10,13 +10,14 @@ import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
-import { addOwnTask, isOwnTask, NO_COURSE, removeOwnTask, updateOwnTask, type OwnTask } from '@sulo/core/tasks/own';
+import { addOwnTask, isOwnTask, removeOwnTask, updateOwnTask, type OwnTask } from '@sulo/core/tasks/own';
 import { Button } from '@sulo/ui/ui/button';
 import { EyeIcon, EyeOffIcon, PlusIcon } from '@sulo/ui/dashboard-icons';
 import { OwnTaskDialog } from '../OwnTaskDialog';
 import { HeaderTools } from '../header-tools';
 import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
-import { gradeBadge, historyGroups, showsGradeCard, type GradeBadge } from '@sulo/core/tasks/grade-view';
+import { gradeBadge, showsGradeCard, type GradeBadge } from '@sulo/core/tasks/grade-view';
+import type { SweepResult } from '@sulo/core/tasks/grade-sweep';
 import type { CourseGradeOutcome } from '@sulo/core/tasks/grade-service';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
@@ -32,9 +33,10 @@ import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { useFlip } from '@/lib/ui/flip';
 import type { PageProps } from '../types';
 
-// "Belum selesai" first and by default; "Sudah dinilai" next, then the finished kinds (1.1.0). Those list in
-// course groups, each with "Lihat nilai" (one page for all its tasks); a read grade takes the due time's place on
-// the right, its number shown only with "Tampilkan nilai" (prefs.gradesShown, off by default).
+// "Belum selesai" first and by default; "Sudah dinilai" next, then the finished kinds (1.1.0): one list, newest
+// first (the course filter narrows it, with "Lihat nilai" for that course). Opening the page reads a few courses'
+// grade reports not read in a day (tasks/grade-sweep.ts, owner's exception of 27 Nov 2026); a read grade takes the
+// due time's place on the right, its number shown only with "Tampilkan nilai" (prefs.gradesShown, off by default).
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'graded', 'done', 'submitted', 'past', 'inactive', 'all'];
 
 
@@ -69,7 +71,23 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const history = isHistoryStatus(filter.status);
   const view = { gradesShown: data.prefs.gradesShown, privacyMode: data.prefs.privacyMode };
   const anyGrade = shown.some((i) => i.gradeRead !== null);
-  // "Lihat nilai" per course: busy while its page loads, then one line.
+  // History newest first.
+  const listed = history ? [...shown].sort((a, b) => (b.task.dueAt ?? 0) - (a.task.dueAt ?? 0)) : shown;
+  // Opening Tugas checks a few courses' grades (not read in a day); what it marks done is said once.
+  const [swept, setSwept] = useState(0);
+  useEffect(() => {
+    let live = true;
+    void actions.send({ type: 'grades/sweep' }).then((r) => {
+      if (live) setSwept((r as SweepResult | null)?.markedDone ?? 0);
+    });
+    return () => {
+      live = false;
+    };
+    // Once per opening of the page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const sweepLine = swept > 0 ? t.gradesSwept(swept) : null;
+  // "Lihat nilai" for the course picked in the filter: busy while its page loads, then one line.
   const [courseRead, setCourseRead] = useState<Record<number, { busy: boolean; line: string | null }>>({});
   const readCourse = async (courseId: number) => {
     setCourseRead((s) => ({ ...s, [courseId]: { busy: true, line: s[courseId]?.line ?? null } }));
@@ -86,6 +104,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
               : t.gradeFailed;
     setCourseRead((s) => ({ ...s, [courseId]: { busy: false, line } }));
   };
+  const picked = filter.courseId !== null ? courseRead[filter.courseId] : undefined;
   // "Tambah tugas" and "Ubah tugas" (tasks/own.ts): null closed, 'new' adding, a task changing it.
   const [form, setForm] = useState<OwnTask | 'new' | null>(null);
   const editing = form !== null && form !== 'new' ? form : null;
@@ -135,16 +154,26 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
         <p className="text-[12px] text-muted-foreground" role="status">
           {t.count(shown.length)}
           {history && anyGrade && !view.gradesShown ? ` · ${t.gradesHidden}` : ''}
+          {picked && picked.busy ? ` · ${t.gradeLoading}` : picked?.line ? ` · ${picked.line}` : ''}
+          {sweepLine ? ` · ${sweepLine}` : ''}
         </p>
-        {history && anyGrade && (
-          <Button variant="outline" onClick={() => void actions.setPrefs({ gradesShown: !view.gradesShown })}>
-            {view.gradesShown ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
-            {view.gradesShown ? t.gradesHide : t.gradesShow}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* A course picked in the finished lists: its grades now (one page for all its tasks). */}
+          {history && filter.courseId !== null && (
+            <Button variant="outline" disabled={picked?.busy} onClick={() => void readCourse(filter.courseId!)}>
+              {t.gradeSee}
+            </Button>
+          )}
+          {history && anyGrade && (
+            <Button variant="outline" onClick={() => void actions.setPrefs({ gradesShown: !view.gradesShown })}>
+              {view.gradesShown ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+              {view.gradesShown ? t.gradesHide : t.gradesShow}
+            </Button>
+          )}
+        </div>
       </div>
 
-      {shown.length === 0 && !history ? (
+      {shown.length === 0 ? (
         allClear ? (
           // The list just emptied: celebrate once, then the happy idle mascot (the only one on this page).
           <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-5 py-8 text-center">
@@ -156,25 +185,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
         )
       ) : (
         <ul ref={listRef} className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
-          {(history
-            ? // Every followed course, so one Sulo knows no finished task of yet can still bring its graded ones in.
-              // (only the chosen one when a course is picked).
-              historyGroups(shown, courses.filter((c) => filter.courseId === null || c.id === filter.courseId).map((c) => ({ id: c.id, name: courseAlias(c) })), filter.query.trim() === '')
-            : [{ courseId: 0, label: '', items: shown }]
-          ).flatMap((g) => [
-            ...(history
-              ? [
-                  <CourseHeader
-                    key={`course-${g.courseId}`}
-                    label={g.label}
-                    readable={g.courseId !== NO_COURSE}
-                    state={courseRead[g.courseId]}
-                    onRead={() => void readCourse(g.courseId)}
-                    t={t}
-                  />,
-                ]
-              : []),
-            ...g.items.map((item) => (
+          {listed.map((item) => (
             <TaskRowItem
               key={item.task.eventId}
               item={item}
@@ -214,8 +225,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                 />
               }
             />
-            )),
-          ])}
+          ))}
         </ul>
       )}
       <OwnTaskDialog
@@ -242,27 +252,6 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
         }
       />
     </div>
-  );
-}
-
-/** A course's heading in the history: its name, "Lihat nilai" when it has a task to read, and the line that follows. */
-function CourseHeader({ label, readable, state, onRead, t }: { label: string; readable: boolean; state: { busy: boolean; line: string | null } | undefined; onRead: () => void; t: PageProps['d']['tugas'] }) {
-  return (
-    <li className="bg-background/60 px-4 py-2">
-      <div className="flex min-h-8 items-center justify-between gap-3">
-        <h2 className="min-w-0 truncate text-[12px] font-semibold text-muted-foreground">{label}</h2>
-        {readable && (
-          <Button variant="outline" disabled={state?.busy} onClick={onRead}>
-            {t.gradeSee}
-          </Button>
-        )}
-      </div>
-      {(state?.busy || state?.line) && (
-        <p role="status" className="mt-1 text-[12px] text-muted-foreground">
-          {state.busy ? t.gradeLoading : state.line}
-        </p>
-      )}
-    </li>
   );
 }
 

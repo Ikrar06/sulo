@@ -24,8 +24,8 @@ const PHONE: FaqEntry[] = [
     q: { id: 'Kapan data di Sulo diperbarui?', en: 'When does Sulo update its data?' },
     a: [
       {
-        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Paling cepat 2 menit sekali. Kalau "Pantau tugas baru" menyala, Sulo juga mengecek berkala di latar belakang (sekitar tiap 20 menit siang hari, tiap 110 menit malam hari).',
-        en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. Updates are at least 2 minutes apart. With "Watch for new tasks" on, Sulo also checks regularly in the background (about every 20 minutes by day, every 110 minutes at night).',
+        id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Paling cepat 5 menit sekali. Kalau "Pantau tugas baru" menyala, Sulo juga mengecek berkala di latar belakang (sekitar tiap 20 menit siang hari, tiap 110 menit malam hari).',
+        en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. Updates are at least 5 minutes apart. With "Watch for new tasks" on, Sulo also checks regularly in the background (about every 20 minutes by day, every 110 minutes at night).',
       },
     ],
   },
@@ -220,8 +220,8 @@ const IPHONE_ANSWERS: Record<string, FaqEntry['a']> = {
   ],
   'kapan-diperbarui': [
     {
-      id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Paling cepat 2 menit sekali. Di iPhone tidak ada pemantauan tugas baru di latar belakang.',
-      en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. At most once every 2 minutes. On iPhone there is no watching for new tasks in the background.',
+      id: 'Saat kamu membuka aplikasi dan datanya lebih tua dari 15 menit, saat kamu menarik layar ke bawah, atau saat kamu mengetuk Perbarui. Paling cepat 5 menit sekali. Di iPhone tidak ada pemantauan tugas baru di latar belakang.',
+      en: 'When you open the app and the data is older than 15 minutes, when you pull the screen down, or when you tap Update. At most once every 5 minutes. On iPhone there is no watching for new tasks in the background.',
     },
   ],
   'seberapa-cepat-hp': [

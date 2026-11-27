@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { matchesStatus } from '@sulo/core/dashboard/tasks';
 import { courseReportPath, isReadOnlyCourseReportUrl, parseCourseReport } from '@sulo/core/tasks/course-grades';
-import { byCourse, gradeBadge, historyGroups } from '@sulo/core/tasks/grade-view';
+import { gradeBadge } from '@sulo/core/tasks/grade-view';
 
 // Moodle 4.x's user report (gradereport_user): a category row, assignment rows, a quiz, the course total. The
 // grade cell may carry screen-reader words; the feedback cell has a lecturer's comment that must never come out.
@@ -44,16 +44,6 @@ describe('grades in the lists', () => {
     expect(gradeBadge(read, { gradesShown: false, privacyMode: false }, 'id-ID')).toEqual({ kind: 'hidden' });
     expect(gradeBadge(read, { gradesShown: true, privacyMode: false }, 'id-ID')).toEqual({ kind: 'value', text: '90 (A)' });
     expect(gradeBadge(read, { gradesShown: true, privacyMode: true }, 'id-ID')).toEqual({ kind: 'masked' });
-  });
-  it('groups the history by course, the newest first', () => {
-    const t = (courseId: number, dueAt: number) => ({ task: { courseId, dueAt } });
-    expect(byCourse([t(1, 10), t(2, 30), t(1, 20)]).map((g) => [g.courseId, g.items.map((i) => i.task.dueAt)])).toEqual([[2, [30]], [1, [20, 10]]]);
-  });
-  it('lists every followed course in the history, the ones with tasks first, none while searching', () => {
-    const t = (courseId: number, dueAt: number, courseName: string) => ({ task: { courseId, dueAt }, courseName });
-    const followed = [{ id: 3, name: 'Statistika' }, { id: 1, name: 'Hidrologi' }, { id: 2, name: 'Fisika' }];
-    expect(historyGroups([t(1, 10, 'Hidrologi')], followed, true).map((g) => [g.courseId, g.label, g.items.length])).toEqual([[1, 'Hidrologi', 1], [2, 'Fisika', 0], [3, 'Statistika', 0]]);
-    expect(historyGroups([t(1, 10, 'Hidrologi')], followed, false).map((g) => g.courseId)).toEqual([1]);
   });
   it('"Sudah dinilai" is any status Sulo knows was graded', () => {
     expect(matchesStatus({ status: 'pending', graded: true }, 'graded')).toBe(true);

@@ -208,6 +208,8 @@ describe("automatic recap in syncs (owner's rule of 18 Nov 2026)", () => {
     return JSON.stringify(st);
   };
   /** Answers every batch from fixtures; pages: the recap (or a failure). */
+  // Attendance pages only: a sync also reads one course's grade report (tasks/grade-sweep.ts, its own tests).
+  const isAttendance = (p: string) => p.startsWith('/mod/attendance/');
   function syncClient(opts: { attendanceInState?: boolean; recapFails?: boolean } = {}) {
     const pages: string[] = [];
     const stateCalls: number[] = [];
@@ -256,8 +258,15 @@ describe("automatic recap in syncs (owner's rule of 18 Nov 2026)", () => {
     const store = memoryStore();
     const { client, pages } = syncClient();
     for (const [h, t] of [[0, 'onboarding'], [4, 'background'], [26, 'manual'], [30, 'startup']] as const) await sync(client, store, h, t);
-    expect(pages.every((p) => p.includes('mode=1'))).toBe(true);
+    expect(pages.filter(isAttendance).every((p) => p.includes('mode=1'))).toBe(true);
     expect(pages.some((p) => p.includes('view=5'))).toBe(false);
+  });
+
+  it('a sync reads at most one course\'s grade report besides (owner\'s rule of 27 Nov 2026)', async () => {
+    const store = memoryStore();
+    const { client, pages } = syncClient();
+    await sync(client, store, 0, 'onboarding');
+    expect(pages.filter((p) => p.startsWith('/grade/report/user/')).length).toBeLessThanOrEqual(1);
   });
 
   it('saver mode skips the automatic recap', async () => {
@@ -275,7 +284,7 @@ describe("automatic recap in syncs (owner's rule of 18 Nov 2026)", () => {
     const { client, pages } = syncClient({ recapFails: true });
     const outcome = await sync(client, store, 0, 'onboarding');
     expect(outcome.status).toBe('ok');
-    expect(pages).toHaveLength(1);
+    expect(pages.filter(isAttendance)).toHaveLength(1);
     expect((await readPresensi(store, 1)).recap).toBeNull();
   });
 
@@ -285,11 +294,11 @@ describe("automatic recap in syncs (owner's rule of 18 Nov 2026)", () => {
     await sync(client, store, 0, 'onboarding');
     // The radar follow-up stores the structures (no attendance there); then 1 probe at most.
     const firstSyncStates = stateCalls.length;
-    expect(pages).toEqual([]);
+    expect(pages.filter(isAttendance)).toEqual([]);
     await sync(client, store, 25);
     expect(stateCalls.length - firstSyncStates).toBeLessThanOrEqual(4);
     // No probe outside the first sync: the radar's own turn is the only source of structures.
-    expect(pages).toEqual([]);
+    expect(pages.filter(isAttendance)).toEqual([]);
   });
 });
 

@@ -42,6 +42,7 @@ import { runMkpkNotices } from '@sulo/core/mkpk/notices-run';
 import { ONBOARDING_STAGES_KEY, type OnboardingStages } from '@sulo/core/onboarding/stages';
 import { recordSeenCmid, refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
 import { courseGradesForCurrent, taskGradeForCurrent } from '@sulo/core/tasks/grade-service';
+import { gradeSweep, SWEEP_MAX_OPEN } from '@sulo/core/tasks/grade-sweep';
 import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@sulo/core/sync/relogin';
 import { setDone, setSnooze } from '@sulo/core/tasks/local-state';
 import { messagesFor, resolveLocale } from '@sulo/core/i18n';
@@ -555,6 +556,8 @@ export default defineBackground(() => {
         return taskGradeForCurrent({ client, store: local, clock }, message.cmid, message.again);
       case 'course/grades':
         return courseGradesForCurrent({ client, store: local, clock }, message.courseId, message.again);
+      case 'grades/sweep':
+        return gradeSweep({ client, store: local, clock }, { max: SWEEP_MAX_OPEN });
       case 'neosia/enable':
         return enableModule(neosia);
       case 'neosia/disable':

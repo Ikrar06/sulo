@@ -1,21 +1,18 @@
 // Tugas (M8c.1, cards). Header: the name, a round search button (opens the
 // field) and Perbarui. Pill chips filter: Semua, Terlambat (n), Hari ini,
 // Minggu ini (all unfinished, by default), then the history (1.1.0): Selesai
-// (marked done or handed in on SIKOLA), Dinilai, Sudah lama lewat. The history
-// is in course groups, each with "Lihat nilai" (one page for all its tasks,
-// tasks/grade-service.ts); a read grade stands in a card's circle place, its
-// number shown only with "Tampilkan nilai" (prefs.gradesShown, off by default),
-// and the screen is kept out of screenshots while numbers are on it. Then the overview's groups (core groupTaskList), each
+// (marked done or handed in on SIKOLA), Dinilai, Sudah lama lewat: one list,
+// newest first. Opening Tugas reads a few courses' grade reports not read in a
+// day (tasks/grade-sweep.ts, owner's exception of 27 Nov 2026); a read grade
+// stands in a card's circle place, its number shown only with "Tampilkan
+// nilai" (prefs.gradesShown, off by default), and the screen is kept out of
+// screenshots while numbers are on it. Then the overview's groups (core groupTaskList), each
 // task one card: the course chip and the time left in its urgency color,
 // the title (two lines), the date and a 28 px check circle. Marking one done
 // fills the circle, strikes the title and offers Urungkan for 5 seconds.
 
-import { useMemo, useState } from 'react';
-import { gradeBadge, historyGroups } from '@sulo/core/tasks/grade-view';
-import { activeCourseIds } from '@sulo/core/courses/active-score';
-import { courseAlias } from '@sulo/core/courses/display-name';
-import { NO_COURSE } from '@sulo/core/tasks/own';
-import type { CourseGradeOutcome } from '@sulo/core/tasks/grade-service';
+import { useEffect, useMemo, useState } from 'react';
+import { gradeBadge } from '@sulo/core/tasks/grade-view';
 import { groupTaskList, type OverviewGroupKey } from '@sulo/core/dashboard/overview';
 import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, isFinishedItem, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
@@ -41,7 +38,7 @@ import { HeaderTools } from '../shell/screen-header';
 import { useTaskDate } from '../shell/task-date';
 import { LongList } from './LongList';
 import { useSecureScreen } from '../neosia/secure-screen';
-import { courseGrades } from '../sync';
+import { sweepGrades } from '../sync';
 import { OwnTaskSheet } from './OwnTaskSheet';
 
 export const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
@@ -54,16 +51,7 @@ const isHistory = (f: Filter): f is HistoryFilter => f === 'done' || f === 'grad
 /** The history chips: what each keeps. Handed in on SIKOLA counts as done; "Dinilai" is any status. */
 const inHistory = (i: TaskItem, f: HistoryFilter): boolean => (f === 'graded' ? i.graded : f === 'past' ? i.status === 'past' : i.status === 'done' || i.status === 'submitted');
 
-type Row = { kind: 'head'; key: string; label: string } | { kind: 'course'; key: string; courseId: number; label: string; readable: boolean } | { kind: 'task'; item: TaskItem };
-
-/** One line under a course heading after its "Lihat nilai". */
-function courseLine(o: CourseGradeOutcome, t: ReturnType<typeof mobileDash>['tugas']): string {
-  if (o.status === 'ok') return t.courseGradesResult(o.graded, o.markedDone.length);
-  if (o.status === 'cooldown') return t.gradeWait;
-  if (o.status === 'failed' && o.reason === 'REPORT_UNREADABLE') return t.gradeReportUnreadable;
-  if (o.status === 'failed' && (o.reason === 'SESSION_EXPIRED' || o.reason === 'login_required')) return t.gradeExpired;
-  return t.gradeFailed;
-}
+type Row = { kind: 'head'; key: string; label: string } | { kind: 'task'; item: TaskItem };
 
 export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   const { m, locale } = useI18n();
@@ -90,28 +78,19 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
     const matching = filterTasks(items, { ...DEFAULT_TASK_FILTER, status: 'all', query })
       .filter((i) => (history ? inHistory(i, history) : i.status === 'pending') || done.lingering.has(i.task.eventId))
       .filter((i) => date === null || (i.task.dueAt !== null && localParts(i.task.dueAt, timeZone).dateKey === date));
-    // History reads newest first, in course groups (each with its "Lihat nilai"); every followed course is there,
-    // so one Sulo knows no finished task of yet can still bring its graded ones in (not while searching).
-    if (history) {
-      const active = activeCourseIds(user.courses);
-      const followed = user.courses.filter((c) => active.has(c.id)).map((c) => ({ id: c.id, name: courseAlias(c) }));
-      return historyGroups(matching, followed, query.trim() === '' && date === null).map((g) => ({ key: `course-${g.courseId}` as unknown as OverviewGroupKey, courseId: g.courseId, label: g.label, rows: g.items }));
-    }
-    return groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
-  }, [items, query, filter, done.lingering, now, date, user.courses]);
+    // History reads newest first, in one list (undated ones, known from a grade report, last).
+    return history
+      ? [{ key: 'next' as OverviewGroupKey, rows: [...matching].sort((a, b) => (b.task.dueAt ?? 0) - (a.task.dueAt ?? 0)) }]
+      : groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
+  }, [items, query, filter, done.lingering, now, date]);
   const overdueCount = groups.find((g) => g.key === 'overdue')?.rows.length ?? 0;
   const keep = isHistory(filter) ? null : GROUPS[filter];
   const rows = useMemo<Row[]>(
     () =>
       groups
         .filter((g) => keep === null || keep.includes(g.key))
-        .flatMap((g): Row[] => [
-          ...('courseId' in g
-            ? [{ kind: 'course' as const, key: `c-${g.key}`, courseId: g.courseId as number, label: g.label as string, readable: g.courseId !== NO_COURSE }]
-            : [{ kind: 'head' as const, key: `h-${g.key}`, label: d.ringkasan.groups[g.key] }]),
-          ...g.rows.map((item) => ({ kind: 'task' as const, item })),
-        ]),
-    [groups, keep, filter, d, now],
+        .flatMap((g): Row[] => [...(isHistory(filter) ? [] : [{ kind: 'head' as const, key: `h-${g.key}`, label: d.ringkasan.groups[g.key] }]), ...g.rows.map((item) => ({ kind: 'task' as const, item }))]),
+    [groups, keep, filter, d],
   );
   const taskCount = rows.filter((r) => r.kind === 'task').length;
   const allClear = !isHistory(filter) && counts.pending === 0 && query.trim() === '' && date === null;
@@ -119,13 +98,19 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   const view = { gradesShown: data!.prefs.gradesShown, privacyMode: data!.prefs.privacyMode };
   const anyGrade = rows.some((r) => r.kind === 'task' && r.item.gradeRead !== null);
   useSecureScreen(anyGrade && view.gradesShown && !view.privacyMode);
-  // "Lihat nilai" per course: busy while its page loads, then one line.
-  const [courseRead, setCourseRead] = useState<Record<number, { busy: boolean; line: string | null }>>({});
-  const readCourse = async (courseId: number) => {
-    setCourseRead((s) => ({ ...s, [courseId]: { busy: true, line: s[courseId]?.line ?? null } }));
-    const outcome = await courseGrades(platform, courseId, true).catch((): CourseGradeOutcome => ({ status: 'failed', reason: 'ERROR' }));
-    setCourseRead((s) => ({ ...s, [courseId]: { busy: false, line: courseLine(outcome, t) } }));
-  };
+  // Opening Tugas checks a few courses' grades (not read in a day); what it marks done is said once.
+  // Once per opening (the words come at render: an effect on them would start again and lose the answer).
+  const [swept, setSwept] = useState(0);
+  useEffect(() => {
+    let live = true;
+    void sweepGrades(platform)
+      .then((r) => live && setSwept(r.markedDone))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [platform]);
+  const sweepLine = swept > 0 ? t.gradesSwept(swept) : null;
   const chips: { value: Filter; label: string }[] = [
     { value: 'all', label: w.app.all },
     { value: 'overdue', label: overdueCount > 0 ? `${d.ringkasan.groups.overdue} (${overdueCount})` : d.ringkasan.groups.overdue },
@@ -164,6 +149,11 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
       <p className="sr-only" role="status">
         {t.count(taskCount)}
       </p>
+      {sweepLine && (
+        <p role="status" className="m-data-in text-m13 text-muted-foreground">
+          {sweepLine}
+        </p>
+      )}
       {isHistory(filter) && anyGrade && (
         <div className="flex items-center justify-between gap-3">
           <p className="text-m13 text-muted-foreground">{view.gradesShown ? '' : t.gradesHidden}</p>
@@ -172,7 +162,7 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
           </PillButton>
         </div>
       )}
-      {taskCount === 0 && !(isHistory(filter) && rows.length > 0) ? (
+      {taskCount === 0 ? (
         <EmptyCard mascot={allClear ? <SuloMascot mood="neutral" size={48} /> : undefined} text={allClear ? t.allClear : t.empty} />
       ) : (
         <LongList
@@ -183,8 +173,6 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
           render={(r) =>
             r.kind === 'head' ? (
               <h2 className="pt-3 pb-0 text-m13 font-semibold text-muted-foreground [li:first-child>&]:pt-0">{r.label}</h2>
-            ) : r.kind === 'course' ? (
-              <CourseHead label={r.label} readable={r.readable} state={courseRead[r.courseId]} onRead={() => void readCourse(r.courseId)} seeLabel={t.gradeSee} loadingLabel={t.gradeLoading} />
             ) : (
               <TaskCard
                 item={r.item}
@@ -212,27 +200,6 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
           setAdding(false);
         }}
       />
-    </div>
-  );
-}
-
-/** A course's heading in the history: its name, "Lihat nilai" when it has a task to read, and the line that follows. */
-function CourseHead({ label, readable, state, onRead, seeLabel, loadingLabel }: { label: string; readable: boolean; state: { busy: boolean; line: string | null } | undefined; onRead: () => void; seeLabel: string; loadingLabel: string }) {
-  return (
-    <div className="pt-3 [li:first-child>&]:pt-0">
-      <div className="flex min-h-8 items-center justify-between gap-3">
-        <h2 className="min-w-0 truncate text-m13 font-semibold text-muted-foreground">{label}</h2>
-        {readable && (
-          <PillButton small disabled={state?.busy} onPress={onRead}>
-            {seeLabel}
-          </PillButton>
-        )}
-      </div>
-      {(state?.busy || state?.line) && (
-        <p role="status" className="m-data-in mt-1 text-m12 text-muted-foreground">
-          {state.busy ? loadingLabel : state.line}
-        </p>
-      )}
     </div>
   );
 }
