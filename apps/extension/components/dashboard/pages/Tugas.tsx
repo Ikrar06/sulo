@@ -34,8 +34,8 @@ import { useFlip } from '@/lib/ui/flip';
 import type { PageProps } from '../types';
 
 // "Belum selesai" first and by default; "Sudah dinilai" next, then the finished kinds (1.1.0): one list, newest
-// first (the course filter narrows it, with "Lihat nilai" for that course). Opening the page reads a few courses'
-// grade reports not read in a day (tasks/grade-sweep.ts, owner's exception of 27 Nov 2026); a read grade takes the
+// first (the course filter narrows it, with "Lihat nilai" for that course). Opening the page reads every followed course's
+// grade report not read in the last hour (tasks/grade-sweep.ts, owner's exception of 27 Nov 2026); a read grade takes the
 // due time's place on the right, its number shown only with "Tampilkan nilai" (prefs.gradesShown, off by default).
 const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'graded', 'done', 'submitted', 'past', 'inactive', 'all'];
 

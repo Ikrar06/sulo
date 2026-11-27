@@ -2,8 +2,8 @@
 // field) and Perbarui. Pill chips filter: Semua, Terlambat (n), Hari ini,
 // Minggu ini (all unfinished, by default), then the history (1.1.0): Selesai
 // (marked done or handed in on SIKOLA), Dinilai, Sudah lama lewat: one list,
-// newest first. Opening Tugas reads a few courses' grade reports not read in a
-// day (tasks/grade-sweep.ts, owner's exception of 27 Nov 2026); a read grade
+// newest first. Opening Tugas reads every followed course's grade report not read
+// in the last hour (tasks/grade-sweep.ts, owner's exception of 27 Nov 2026); a read grade
 // stands in a card's circle place, its number shown only with "Tampilkan
 // nilai" (prefs.gradesShown, off by default), and the screen is kept out of
 // screenshots while numbers are on it. Then the overview's groups (core groupTaskList), each
