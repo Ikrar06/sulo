@@ -12,12 +12,12 @@
 
 import { ACCOUNT_PENDING_KEY, newPending } from '../account/pending';
 import type { MoodleClient } from '../moodle/client';
-import { HTML_ON_DEMAND_TTL_H } from '../moodle/limits';
+import { HTML_ON_DEMAND_TTL_H, SIKOLA_ORIGIN } from '../moodle/limits';
 import { readSession } from '../moodle/session';
 import { pageUserId } from '../presensi/page-user';
 import { currentUser, readUser, writeUserIfCurrent } from '../storage';
-import type { Clock, KeyValueStore, Task, UnixSeconds, UserId } from '../types';
-import { courseReportPath, parseCourseReport } from './course-grades';
+import type { Clock, CourseId, KeyValueStore, Task, UnixSeconds, UserId } from '../types';
+import { courseReportPath, parseCourseReport, type ReportItem } from './course-grades';
 import { assignViewPath, parseAssignGrade, type AssignGrade } from './grade';
 import { showsGradeCard } from './grade-view';
 import { getTaskState, setDone } from './local-state';
@@ -110,6 +110,35 @@ async function ownPage(deps: TaskGradeDeps, userId: UserId, path: string, now: U
   return { html: page.html };
 }
 
+/**
+ * The report's graded assignments no task of this account has: added as past tasks known from the report (no due
+ * date; never one that is not graded, which Sulo cannot tell handed in or not). Returns the added ones.
+ */
+async function addFromReport(store: KeyValueStore, userId: UserId, courseId: number, items: ReadonlyMap<number, ReportItem>, now: UnixSeconds): Promise<Task[]> {
+  const tasks = await readUser(store, userId, 'tasks');
+  const known = new Set(tasks.flatMap((t) => (t.cmId === null ? [] : [t.cmId])));
+  const added: Task[] = [...items]
+    .filter(([cmid, item]) => !known.has(cmid) && item.grade.kind === 'graded')
+    .map(([cmid, item]) => ({
+      // Negative and from the cmid: never a SIKOLA event id, never an added task's (tasks/own.ts, far lower).
+      eventId: -cmid,
+      cmId: cmid,
+      courseId: courseId as CourseId,
+      name: item.name || `#${cmid}`,
+      module: 'assign',
+      dueAt: null,
+      url: `${SIKOLA_ORIGIN}${assignViewPath(cmid)}`,
+      overdue: false,
+      firstSeenAt: now,
+      lastSeenAt: now,
+      missingSince: now,
+      pastWindow: true,
+      fromReport: true,
+    }));
+  if (added.length > 0) await writeUserIfCurrent(store, userId, 'tasks', [...tasks, ...added]);
+  return added;
+}
+
 const failure = (e: unknown): PageProblem => ({ status: 'failed', reason: e instanceof Error ? e.name : 'ERROR' });
 
 /**
@@ -120,9 +149,10 @@ export async function courseGradesForCurrent(deps: TaskGradeDeps, courseId: numb
   const userId = await currentUser(deps.store);
   if (userId === null) return { status: 'failed', reason: 'NO_ACCOUNT' };
   const now = deps.clock.now();
+  // Only one of the student's own courses (its report lists assignments Sulo may not know yet).
+  const courses = await readUser(deps.store, userId, 'courses');
+  if (!Number.isSafeInteger(courseId) || courseId <= 0 || !courses.some((c) => c.id === courseId)) return { status: 'failed', reason: 'NOT_A_COURSE' };
   const ours = (await gradableTasks(deps.store, userId, now)).filter((t) => t.courseId === courseId && t.cmId !== null);
-  // Only a course of the student's own with an assignment to look at.
-  if (!Number.isSafeInteger(courseId) || courseId <= 0 || ours.length === 0) return { status: 'failed', reason: 'NOT_A_COURSE' };
   const reads = (await readUser(deps.store, userId, 'gradeReads')) ?? {};
   const read = reads[String(courseId)];
   const grades = (await readUser(deps.store, userId, 'taskGrades')) ?? {};
@@ -143,11 +173,14 @@ export async function courseGradesForCurrent(deps: TaskGradeDeps, courseId: numb
       await saveRead({ fetchedAt: null, requestAt: now, unreadable: true });
       return { status: 'failed', reason: 'REPORT_UNREADABLE' };
     }
+    // A graded assignment Sulo never saw in SIKOLA's calendar joins the history (tasks/from-calendar.ts keeps it).
+    const added = await addFromReport(deps.store, userId, courseId, report.grades, now);
+    const all = [...ours, ...added];
     // Every assignment of ours the report lists; one it leaves out keeps what was known.
-    const answers = new Map(ours.flatMap((t) => (report.grades.has(t.cmId!) ? [[t.cmId!, { fetchedAt: now, requestAt: now, grade: report.grades.get(t.cmId!)! }] as const] : [])));
+    const answers = new Map(all.flatMap((t) => (report.grades.has(t.cmId!) ? [[t.cmId!, { fetchedAt: now, requestAt: now, grade: report.grades.get(t.cmId!)!.grade }] as const] : [])));
     const marked = await saveAnswers(deps.store, userId, answers);
     await saveRead({ fetchedAt: now, requestAt: now });
-    const graded = ours.filter((t) => answers.get(t.cmId!)?.grade.kind === 'graded' || (!answers.has(t.cmId!) && grades[String(t.cmId)]?.grade?.kind === 'graded')).length;
+    const graded = all.filter((t) => answers.get(t.cmId!)?.grade.kind === 'graded' || (!answers.has(t.cmId!) && grades[String(t.cmId)]?.grade?.kind === 'graded')).length;
     return { status: 'ok', fetchedAt: now, cached: false, graded, markedDone: [...marked] };
   } catch (e) {
     return failure(e);

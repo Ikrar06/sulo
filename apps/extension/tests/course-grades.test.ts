@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { matchesStatus } from '@sulo/core/dashboard/tasks';
 import { courseReportPath, isReadOnlyCourseReportUrl, parseCourseReport } from '@sulo/core/tasks/course-grades';
-import { byCourse, gradeBadge } from '@sulo/core/tasks/grade-view';
+import { byCourse, gradeBadge, historyGroups } from '@sulo/core/tasks/grade-view';
 
 // Moodle 4.x's user report (gradereport_user): a category row, assignment rows, a quiz, the course total. The
 // grade cell may carry screen-reader words; the feedback cell has a lecturer's comment that must never come out.
@@ -20,8 +20,8 @@ describe('a course\'s grade report', () => {
     expect(report.kind).toBe('ok');
     if (report.kind !== 'ok') return;
     expect([...report.grades]).toEqual([
-      [301, { kind: 'graded', text: '90,00 (A)', got: 90, max: null, letter: 'A' }],
-      [302, { kind: 'not_graded' }],
+      [301, { name: 'Sub CPMK 1', grade: { kind: 'graded', text: '90,00 (A)', got: 90, max: null, letter: 'A' } }],
+      [302, { name: 'Tugas 2', grade: { kind: 'not_graded' } }],
     ]);
     expect(JSON.stringify([...report.grades])).not.toMatch(/Bagus|Dosen|Nilai:/);
   });
@@ -49,10 +49,28 @@ describe('grades in the lists', () => {
     const t = (courseId: number, dueAt: number) => ({ task: { courseId, dueAt } });
     expect(byCourse([t(1, 10), t(2, 30), t(1, 20)]).map((g) => [g.courseId, g.items.map((i) => i.task.dueAt)])).toEqual([[2, [30]], [1, [20, 10]]]);
   });
+  it('lists every followed course in the history, the ones with tasks first, none while searching', () => {
+    const t = (courseId: number, dueAt: number, courseName: string) => ({ task: { courseId, dueAt }, courseName });
+    const followed = [{ id: 3, name: 'Statistika' }, { id: 1, name: 'Hidrologi' }, { id: 2, name: 'Fisika' }];
+    expect(historyGroups([t(1, 10, 'Hidrologi')], followed, true).map((g) => [g.courseId, g.label, g.items.length])).toEqual([[1, 'Hidrologi', 1], [2, 'Fisika', 0], [3, 'Statistika', 0]]);
+    expect(historyGroups([t(1, 10, 'Hidrologi')], followed, false).map((g) => g.courseId)).toEqual([1]);
+  });
   it('"Sudah dinilai" is any status Sulo knows was graded', () => {
     expect(matchesStatus({ status: 'pending', graded: true }, 'graded')).toBe(true);
     expect(matchesStatus({ status: 'done', graded: false }, 'graded')).toBe(false);
     expect(matchesStatus({ status: 'past', graded: false }, 'past')).toBe(true);
     expect(matchesStatus({ status: 'past', graded: false }, 'all')).toBe(true);
+  });
+});
+
+describe('finished tasks', () => {
+  it('are done, handed in, long past or graded: no countdown and nothing to add to a calendar', async () => {
+    const { isFinishedItem } = await import('@sulo/core/dashboard/tasks');
+    const graded = { kind: 'graded' as const, text: '90', got: 90, max: null, letter: null };
+    expect(isFinishedItem({ status: 'pending', gradeRead: null })).toBe(false);
+    expect(isFinishedItem({ status: 'inactive', gradeRead: null })).toBe(false);
+    for (const status of ['done', 'submitted', 'past'] as const) expect(isFinishedItem({ status, gradeRead: null })).toBe(true);
+    // Graded but unticked by the student: still finished.
+    expect(isFinishedItem({ status: 'pending', gradeRead: graded })).toBe(true);
   });
 });

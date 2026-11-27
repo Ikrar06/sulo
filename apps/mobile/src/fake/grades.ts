@@ -1,7 +1,8 @@
 // pnpm mobile:web only: "Lihat nilai" against made-up SIKOLA pages, so the demo runs the real path (the
 // client's allowlist, the account check, the parsers, the saving and the auto-done) with nothing leaving the
 // browser. A course's grade report lists its assignments: past ones graded "8x,00 (A)", every third one not
-// graded yet. ?grade=unknown answers with a page Sulo does not recognize; ?grade=slow never answers.
+// graded yet, and two earlier ones Sulo never saw in the calendar (they join the history, graded).
+// ?grade=unknown answers with a page Sulo does not recognize; ?grade=slow never answers.
 
 import { isAllowedPage } from '@sulo/core/moodle/calls';
 import type { MoodleClient, PageOutcome } from '@sulo/core/moodle/client';
@@ -31,7 +32,10 @@ export function fakeGradesClient(store: KeyValueStore): MoodleClient {
         .filter((t) => t.courseId === id && t.module === 'assign' && t.cmId !== null)
         .map((t) => `<tr><th class="level2 column-itemname"><a class="gradeitemheader" href="https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=${t.cmId}">${t.name}</a></th><td class="level2 column-weight">10,00 %</td><td class="level2 column-grade">${gradeFor(t.eventId)}</td><td class="level2 column-range">0–100</td><td class="level2 column-feedback">&nbsp;</td></tr>`)
         .join('');
-      return { kind: 'ok', html: `${navbar(userId)}<div id="region-main"><table class="generaltable boxaligncenter user-grade"><thead><tr><th class="header column-itemname">Item</th><th class="header column-grade">Grade</th></tr></thead><tbody>${rows}</tbody></table></div>` };
+      const earlier = [1, 2]
+        .map((i) => `<tr><th class="level2 column-itemname"><a class="gradeitemheader" href="https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=${800_000 + id * 10 + i}">Tugas pekan ${i}</a></th><td class="level2 column-grade">${87 + i},00 (A)</td></tr>`)
+        .join('');
+      return { kind: 'ok', html: `${navbar(userId)}<div id="region-main"><table class="generaltable boxaligncenter user-grade"><thead><tr><th class="header column-itemname">Item</th><th class="header column-grade">Grade</th></tr></thead><tbody>${earlier}${rows}</tbody></table></div>` };
     }
     if (url.pathname === ASSIGN_PATH) {
       const task = tasks.find((t) => t.cmId === id);

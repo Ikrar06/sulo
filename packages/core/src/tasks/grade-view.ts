@@ -59,6 +59,22 @@ export function byCourse<T extends { task: Pick<Task, 'courseId' | 'dueAt'> }>(i
   return [...groups].map(([courseId, list]) => ({ courseId, items: list }));
 }
 
+/**
+ * The history's course groups: the courses with tasks (newest first), then every other followed course, empty,
+ * so its "Lihat nilai" can bring in graded assignments Sulo never saw in SIKOLA's calendar.
+ */
+export function historyGroups<T extends { task: Pick<Task, 'courseId' | 'dueAt'>; courseName: string }>(
+  items: readonly T[],
+  followed: readonly { id: number; name: string }[],
+  withEmpty: boolean,
+): { courseId: number; label: string; items: T[] }[] {
+  const groups = byCourse(items).map((g) => ({ courseId: g.courseId, label: g.items[0]!.courseName, items: g.items }));
+  if (!withEmpty) return groups;
+  const shown = new Set(groups.map((g) => g.courseId));
+  const rest = followed.filter((c) => !shown.has(c.id)).sort((a, b) => a.name.localeCompare(b.name, 'id'));
+  return [...groups, ...rest.map((c) => ({ courseId: c.id, label: c.name, items: [] as T[] }))];
+}
+
 /** A SIKOLA assignment Sulo knows was graded (the "Sudah dinilai" filter). */
 export function isGraded(task: Task, graded: ReadonlySet<number>): boolean {
   return task.module === 'assign' && task.cmId !== null && graded.has(task.cmId);

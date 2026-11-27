@@ -146,6 +146,7 @@ export const dashId = {
     gradesHidden: 'Nilai disembunyikan.',
     courseGradesResult: (graded: number, marked: number) =>
       graded === 0 ? 'Belum ada tugas yang dinilai.' : `${graded} tugas sudah dinilai${marked > 0 ? `, ${marked} baru ditandai selesai` : ''}.`,
+    fromReport: 'Dari halaman nilai mata kuliah',
     gradeReportUnreadable: 'Halaman nilai mata kuliah ini tidak terbaca. Lihat nilainya dari rincian tugas.',
     steps: 'Langkah',
     stepsHelp: 'Pecah tugas jadi langkah kecil. Hanya tersimpan di browsermu.',

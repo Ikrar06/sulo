@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { TaskItem } from '@sulo/core/dashboard/tasks';
+import { isFinishedItem, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { formatClock, formatDue } from '@sulo/core/format/time';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
@@ -54,7 +54,8 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
   const [note, setNote] = useState(item.state.note);
   const [noteSaved, setNoteSaved] = useState(false);
   const own = isOwnTask(item.task);
-  const undated = !own && (item.task.dueAt === null || item.personalDue);
+  // Known only from its course's grade report (finished, no due date): nothing to set a due date for.
+  const undated = !own && !item.task.fromReport && (item.task.dueAt === null || item.personalDue);
   const current = item.personalDue && item.task.dueAt !== null ? localParts(item.task.dueAt, timeZone) : null;
   const [due, setDue] = useState(current ? `${current.dateKey}T${String(Math.floor(current.minuteOfDay / 60)).padStart(2, '0')}:${String(current.minuteOfDay % 60).padStart(2, '0')}` : '');
 
@@ -190,7 +191,8 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
             {d.common.openInSikola}
           </a>
         )}
-        {item.task.dueAt !== null && (
+        {/* A finished task has nothing left to put in a calendar. */}
+        {item.task.dueAt !== null && !isFinishedItem(item) && (
           <button type="button" className={action} data-slot="task-action" onClick={() => actions.onAddToCalendar(item)}>
             <CalendarPlusIcon className="size-4" />
             {t.addToCalendar}

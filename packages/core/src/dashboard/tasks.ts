@@ -71,6 +71,12 @@ export function matchesStatus(item: Pick<TaskItem, 'status' | 'graded'>, status:
   return status === 'all' || (status === 'graded' ? item.graded : item.status === status);
 }
 
+/**
+ * A finished task: marked done, handed in on SIKOLA, long past or graded. No countdown, and nothing to add to a
+ * calendar any more (owner, 27 Nov 2026).
+ */
+export const isFinishedItem = (i: Pick<TaskItem, 'status' | 'gradeRead'>): boolean => i.status === 'done' || i.status === 'submitted' || i.status === 'past' || i.gradeRead !== null;
+
 /** The status filters that list finished tasks (in course groups, with "Lihat nilai"). */
 export const isHistoryStatus = (status: TaskStatusFilter): boolean => status === 'graded' || status === 'done' || status === 'submitted' || status === 'past';
 

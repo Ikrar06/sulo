@@ -5,18 +5,18 @@ import { Input } from '@sulo/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
-import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, isHistoryStatus, matchesStatus, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
+import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, isFinishedItem, isHistoryStatus, matchesStatus, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
-import { addOwnTask, isOwnTask, removeOwnTask, updateOwnTask, type OwnTask } from '@sulo/core/tasks/own';
+import { addOwnTask, isOwnTask, NO_COURSE, removeOwnTask, updateOwnTask, type OwnTask } from '@sulo/core/tasks/own';
 import { Button } from '@sulo/ui/ui/button';
 import { EyeIcon, EyeOffIcon, PlusIcon } from '@sulo/ui/dashboard-icons';
 import { OwnTaskDialog } from '../OwnTaskDialog';
 import { HeaderTools } from '../header-tools';
 import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
-import { byCourse, gradeBadge, showsGradeCard, type GradeBadge } from '@sulo/core/tasks/grade-view';
+import { gradeBadge, historyGroups, showsGradeCard, type GradeBadge } from '@sulo/core/tasks/grade-view';
 import type { CourseGradeOutcome } from '@sulo/core/tasks/grade-service';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
@@ -144,7 +144,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
         )}
       </div>
 
-      {shown.length === 0 ? (
+      {shown.length === 0 && !history ? (
         allClear ? (
           // The list just emptied: celebrate once, then the happy idle mascot (the only one on this page).
           <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-5 py-8 text-center">
@@ -156,13 +156,18 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
         )
       ) : (
         <ul ref={listRef} className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
-          {(history ? byCourse(shown) : [{ courseId: 0, items: shown }]).flatMap((g) => [
+          {(history
+            ? // Every followed course, so one Sulo knows no finished task of yet can still bring its graded ones in.
+              // (only the chosen one when a course is picked).
+              historyGroups(shown, courses.filter((c) => filter.courseId === null || c.id === filter.courseId).map((c) => ({ id: c.id, name: courseAlias(c) })), filter.query.trim() === '')
+            : [{ courseId: 0, label: '', items: shown }]
+          ).flatMap((g) => [
             ...(history
               ? [
                   <CourseHeader
                     key={`course-${g.courseId}`}
-                    label={g.items[0]!.courseName}
-                    readable={g.items.some((i) => showsGradeCard(i.task, i.status === 'done', data.now))}
+                    label={g.label}
+                    readable={g.courseId !== NO_COURSE}
                     state={courseRead[g.courseId]}
                     onRead={() => void readCourse(g.courseId)}
                     t={t}
@@ -276,7 +281,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
   const t = d.tugas;
   const due = item.task.dueAt;
   // A finished task (done, handed in, long past or graded) has no time left to count: its date, quiet.
-  const finished = item.status === 'done' || item.status === 'submitted' || item.status === 'past' || item.gradeRead !== null;
+  const finished = isFinishedItem(item);
   const urgency = item.status === 'pending' ? urgencyOf(due, now) : 'normal';
   const steps = item.state.steps;
   const panelId = `task-panel-${item.task.eventId}`;

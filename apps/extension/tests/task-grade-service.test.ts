@@ -28,6 +28,7 @@ function setup(answer: (path: string) => PageOutcome, session = 'OK') {
   const store = memoryStore({
     [CURRENT_USER_KEY]: 5,
     [userKey(5, 'tasks')]: tasks,
+    [userKey(5, 'courses')]: [{ id: 1 }, { id: 2 }, { id: 4 }],
     [SESSION_KEY]: { state: session, userId: 5, checkedAt: NOW },
   });
   const calls: { path: string; options?: RequestOptions }[] = [];
@@ -76,10 +77,21 @@ describe('"Lihat nilai": one page per course', () => {
     expect(await courseGradesForCurrent(deps, 1, true)).toMatchObject({ status: 'ok', markedDone: [] });
     expect(await done(7)).toBe(false);
   });
-  it('only a course of the student\'s own with an assignment to look at', async () => {
+  it('brings in a graded assignment Sulo never saw in the calendar, never an ungraded one', async () => {
+    // Course 4: no task known (handed in before Sulo looked, or nothing to submit online).
+    const { deps, store, done } = setup(() => ({ kind: 'ok', html: report(row(401, '90.00 (A)') + row(402, '-')) }));
+    expect(await courseGradesForCurrent(deps, 4, false)).toMatchObject({ status: 'ok', graded: 1, markedDone: [401] });
+    const added = ((await store.get(userKey(5, 'tasks'))) as Task[]).filter((t) => t.fromReport);
+    expect(added).toEqual([
+      { eventId: -401, cmId: 401, courseId: 4, name: 'Tugas', module: 'assign', dueAt: null, url: 'https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=401', overdue: false, firstSeenAt: NOW, lastSeenAt: NOW, missingSince: NOW, pastWindow: true, fromReport: true },
+    ]);
+    expect(await done(-401)).toBe(true);
+    // Its detail reads the kept answer.
+    expect(await taskGradeForCurrent(deps, 401, false)).toMatchObject({ status: 'ok', grade: { got: 90, letter: 'A' }, cached: true });
+  });
+  it('only one of the student\'s own courses', async () => {
     const { calls, deps } = setup(graded);
-    // Course 2 has only a task not due yet; 3 is not the student's.
-    for (const id of [2, 3, 0, -1]) expect(await courseGradesForCurrent(deps, id, false)).toEqual({ status: 'failed', reason: 'NOT_A_COURSE' });
+    for (const id of [3, 0, -1]) expect(await courseGradesForCurrent(deps, id, false)).toEqual({ status: 'failed', reason: 'NOT_A_COURSE' });
     // A quiz, a task not due yet, no task.
     for (const cmid of [80, 72, 99, 0, 1.5]) expect(await taskGradeForCurrent(deps, cmid, false)).toEqual({ status: 'failed', reason: 'NOT_A_TASK' });
     expect(calls).toHaveLength(0);

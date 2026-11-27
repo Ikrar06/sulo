@@ -88,6 +88,15 @@ describe('tasks from the calendar', () => {
     expect(mergeTasks([handedIn], [], NOW, 14)).toEqual([handedIn]);
   });
 
+  it('an assignment known only from its grade report gives way to its calendar event', () => {
+    const reported = task(-301, null, { cmId: 301, missingSince: NOW - DAY, pastWindow: true, fromReport: true });
+    const merged = mergeTasks([reported], [{ ...events()[0]! }], NOW, 14);
+    expect(merged.filter((t) => t.cmId === 301)).toHaveLength(1);
+    expect(merged.some((t) => t.fromReport)).toBe(false);
+    // Without its event it stays, as a past task.
+    expect(mergeTasks([reported], [], NOW, 14)).toEqual([reported]);
+  });
+
   it('a past task back in the calendar (a new due date) is active again', () => {
     const past = task(301, NOW - 20 * DAY, { missingSince: NOW - DAY, pastWindow: true });
     const [back] = mergeTasks([past], [{ ...events()[0]!, id: 301 }], NOW, 14);

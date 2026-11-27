@@ -6,7 +6,7 @@
 // bar is hidden here. Everything writes through core (tasks/local-state).
 
 import { useId, useMemo, useState } from 'react';
-import { buildTaskItems } from '@sulo/core/dashboard/tasks';
+import { buildTaskItems, isFinishedItem } from '@sulo/core/dashboard/tasks';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { formatClock, formatDue, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
@@ -56,7 +56,8 @@ export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) =
   const tone = due === null || item.status !== 'pending' ? '' : URGENCY_TEXT[urgencyOf(due, now)];
   // A task the student added (tasks/own.ts): its due date is set in its own form, its menu edits or deletes it.
   const own = isOwnTask(item.task) ? (data!.user!.ownTasks.find((o) => o.id === item.task.eventId) ?? null) : null;
-  const undated = own === null && (due === null || item.personalDue);
+  // Known only from its course's grade report (finished, no due date): nothing to set a due date for.
+  const undated = own === null && !item.task.fromReport && (due === null || item.personalDue);
   const snoozed = item.state.snoozedUntil !== null && item.state.snoozedUntil > now ? item.state.snoozedUntil : null;
   const tomorrow = zonedToUnix(addDays(localParts(now, timeZone).dateKey, 1), data!.prefs.reminders.snoozeMorningMin, timeZone);
   const snoozeOptions: [string, UnixSeconds][] = [
@@ -71,8 +72,8 @@ export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) =
       <Card>
         <Chip color={courseTint(item.courseColor)}>{item.courseName}</Chip>
         <h2 className={`mt-3 text-m18 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{item.task.name}</h2>
-        <FitLine size="text-m22" text={lines === null ? t.noDue : lines.primary} className={`mt-3 font-semibold tabular-nums ${tone}`}>
-          {lines === null ? t.noDue : lines.primary}
+        <FitLine size="text-m22" text={lines === null ? (item.task.fromReport ? t.fromReport : t.noDue) : lines.primary} className={`mt-3 font-semibold tabular-nums ${tone}`}>
+          {lines === null ? (item.task.fromReport ? t.fromReport : t.noDue) : lines.primary}
         </FitLine>
         {lines?.secondary && <p className="text-m13 text-muted-foreground tabular-nums">{lines.secondary}</p>}
         {snoozed && <p className="mt-2 text-m13 text-muted-foreground">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
@@ -172,7 +173,8 @@ export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) =
             ...(own
               ? [{ label: t.ownEdit, icon: PencilIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setEditing(true))) }]
               : [{ label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) }]),
-            ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due, url: item.task.url }, m.popup.row.calendarDetails))) }] : []),
+            // A finished task has nothing left to put in a calendar.
+            ...(due !== null && !isFinishedItem(item) ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due, url: item.task.url }, m.popup.row.calendarDetails))) }] : []),
             ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setSnoozeOpen(true))) }] : []),
           ]}
         />

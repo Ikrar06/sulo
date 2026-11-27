@@ -83,10 +83,12 @@ export function mergeTasks(
   const prevById = new Map(previous.map((t) => [t.eventId, t]));
   const fresh = events.map((e) => taskFromEvent(e, now, prevById.get(e.id)));
   const freshIds = new Set(fresh.map((t) => t.eventId));
+  // An assignment known only from its grade report gives way to its own calendar event (one task, not two).
+  const freshCmIds = new Set(fresh.flatMap((t) => (t.cmId === null ? [] : [t.cmId])));
   const start = windowStart(now, lookbackDays);
 
   const missing = previous
-    .filter((t) => !freshIds.has(t.eventId))
+    .filter((t) => !freshIds.has(t.eventId) && !(t.fromReport && t.cmId !== null && freshCmIds.has(t.cmId)))
     .map((t): Task => {
       // Already gone: as it was (probably submitted, or past).
       if (t.missingSince !== null) return t;

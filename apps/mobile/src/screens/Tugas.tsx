@@ -11,10 +11,13 @@
 // fills the circle, strikes the title and offers Urungkan for 5 seconds.
 
 import { useMemo, useState } from 'react';
-import { byCourse, gradeBadge, showsGradeCard } from '@sulo/core/tasks/grade-view';
+import { gradeBadge, historyGroups } from '@sulo/core/tasks/grade-view';
+import { activeCourseIds } from '@sulo/core/courses/active-score';
+import { courseAlias } from '@sulo/core/courses/display-name';
+import { NO_COURSE } from '@sulo/core/tasks/own';
 import type { CourseGradeOutcome } from '@sulo/core/tasks/grade-service';
 import { groupTaskList, type OverviewGroupKey } from '@sulo/core/dashboard/overview';
-import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskItem } from '@sulo/core/dashboard/tasks';
+import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, isFinishedItem, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { localParts } from '@sulo/core/reminders/zoned';
@@ -87,11 +90,15 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
     const matching = filterTasks(items, { ...DEFAULT_TASK_FILTER, status: 'all', query })
       .filter((i) => (history ? inHistory(i, history) : i.status === 'pending') || done.lingering.has(i.task.eventId))
       .filter((i) => date === null || (i.task.dueAt !== null && localParts(i.task.dueAt, timeZone).dateKey === date));
-    // History reads newest first, in course groups (each with its "Lihat nilai").
-    return history
-      ? byCourse(matching).map((g) => ({ key: `course-${g.courseId}` as unknown as OverviewGroupKey, courseId: g.courseId, rows: g.items }))
-      : groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
-  }, [items, query, filter, done.lingering, now, date]);
+    // History reads newest first, in course groups (each with its "Lihat nilai"); every followed course is there,
+    // so one Sulo knows no finished task of yet can still bring its graded ones in (not while searching).
+    if (history) {
+      const active = activeCourseIds(user.courses);
+      const followed = user.courses.filter((c) => active.has(c.id)).map((c) => ({ id: c.id, name: courseAlias(c) }));
+      return historyGroups(matching, followed, query.trim() === '' && date === null).map((g) => ({ key: `course-${g.courseId}` as unknown as OverviewGroupKey, courseId: g.courseId, label: g.label, rows: g.items }));
+    }
+    return groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
+  }, [items, query, filter, done.lingering, now, date, user.courses]);
   const overdueCount = groups.find((g) => g.key === 'overdue')?.rows.length ?? 0;
   const keep = isHistory(filter) ? null : GROUPS[filter];
   const rows = useMemo<Row[]>(
@@ -99,8 +106,8 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
       groups
         .filter((g) => keep === null || keep.includes(g.key))
         .flatMap((g): Row[] => [
-          ...(isHistory(filter)
-            ? [{ kind: 'course' as const, key: `c-${g.key}`, courseId: g.rows[0]!.task.courseId, label: g.rows[0]!.courseName, readable: g.rows.some((i) => showsGradeCard(i.task, i.status === 'done', now)) }]
+          ...('courseId' in g
+            ? [{ kind: 'course' as const, key: `c-${g.key}`, courseId: g.courseId as number, label: g.label as string, readable: g.courseId !== NO_COURSE }]
             : [{ kind: 'head' as const, key: `h-${g.key}`, label: d.ringkasan.groups[g.key] }]),
           ...g.rows.map((item) => ({ kind: 'task' as const, item })),
         ]),
@@ -165,7 +172,7 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
           </PillButton>
         </div>
       )}
-      {taskCount === 0 ? (
+      {taskCount === 0 && !(isHistory(filter) && rows.length > 0) ? (
         <EmptyCard mascot={allClear ? <SuloMascot mood="neutral" size={48} /> : undefined} text={allClear ? t.allClear : t.empty} />
       ) : (
         <LongList
@@ -234,8 +241,9 @@ function TaskCard({ item, now, dueFormat, collapsing, onOpen, onDone, labels: t,
   const due = item.task.dueAt;
   const isDone = item.status === 'done';
   // A finished task (done, handed in, long past or graded) has no time left to count: its date, quiet.
-  const finished = isDone || item.status === 'submitted' || item.status === 'past' || item.gradeRead !== null;
-  const relative = due === null ? t.noDue : finished ? formatShortDate(due, timeZone, m) : taskDueLines(due, now, timeZone, m, locale, dueFormat === 'countdown' ? 'countdown' : 'remaining').primary;
+  const finished = isFinishedItem(item);
+  // Known only from its course's grade report: no due date to show.
+  const relative = due === null ? (item.task.fromReport ? '' : t.noDue) : finished ? formatShortDate(due, timeZone, m) : taskDueLines(due, now, timeZone, m, locale, dueFormat === 'countdown' ? 'countdown' : 'remaining').primary;
   const tone = due === null || finished ? 'text-muted-foreground' : URGENCY_TEXT[urgencyOf(due, now)];
   return (
     <div className={collapsing ? 'db-collapse' : undefined}>

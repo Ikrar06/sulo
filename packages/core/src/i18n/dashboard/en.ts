@@ -144,6 +144,7 @@ export const dashEn: DashMessages = {
     gradesHidden: 'Grades are hidden.',
     courseGradesResult: (graded: number, marked: number) =>
       graded === 0 ? 'No task is graded yet.' : `${graded === 1 ? '1 task' : `${graded} tasks`} graded${marked > 0 ? `, ${marked} just marked as done` : ''}.`,
+    fromReport: 'From the course grade page',
     gradeReportUnreadable: "This course's grade page could not be read. See the grades from each task's details.",
     steps: 'Steps',
     stepsHelp: 'Break the task into small steps. Kept only in your browser.',
