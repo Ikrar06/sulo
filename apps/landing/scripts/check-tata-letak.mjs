@@ -344,6 +344,19 @@ for (const [jenis, viewports] of [['hp', saring(HP)], ['laptop', saring(LEBAR)]]
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
       await page.setViewportSize({ width: viewports[0][0], height: viewports[0][1] });
       await cdp.send('Page.setFontSizes', { fontSizes: { standard: 16, fixed: 13 } });
+      // Nothing scrolls the page by itself while it loads: an app screen's own scrollIntoView, run inside its frame,
+      // once carried /yang-baru/ down to its graded task (27 Nov 2026). Once per page, at the widest size (where
+      // every frame loads at once), before this check scrolls the page itself for its lazy parts.
+      if (theme === THEMES[0]) {
+        const [bw, bh] = viewports.reduce((a, b) => (b[0] > a[0] ? b : a));
+        await page.setViewportSize({ width: bw, height: bh });
+        await page.goto(`${site.url}${path}`, { waitUntil: 'load' });
+        await page.waitForLoadState('networkidle').catch(() => {});
+        await page.waitForTimeout(1500);
+        const y = await page.evaluate(() => scrollY);
+        if (y > 0) temuan.push({ path, w: bw, h: bh, s: 1, theme, kind: 'gulir-sendiri', text: '', detail: `tergulir sendiri ke y ${Math.round(y)} saat dimuat`, y: 0 });
+        await page.setViewportSize({ width: viewports[0][0], height: viewports[0][1] });
+      }
       await page.goto(`${site.url}${path}`, { waitUntil: 'load' });
       // Every answer open (the stricter layout: a closed one shows only its question), every lazy picture and frame in, then back to the top.
       await page.evaluate(async () => {
