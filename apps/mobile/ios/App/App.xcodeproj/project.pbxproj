@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4F680D8DCDF49C7103D6A6C8 /* SuloCalendarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9411B42C8F217A87E651D1D /* SuloCalendarPlugin.swift */; };
+		3246FC43CA0878B6C44A27D7 /* CalendarRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB360A2AC32A2D57B92AAFCB /* CalendarRules.swift */; };
 		36160C3E78679885ECDE1058 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9FC6AB958B0D214130160348 /* InfoPlist.strings */; };
 		14EFADF9806DCB6A88563881 /* ScreenGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FD61DE4C4A200FFA535257 /* ScreenGuard.swift */; };
 		9040CB9FC9DFCE1A2C889AF8 /* SipakamaseRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */; };
@@ -43,6 +45,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F9411B42C8F217A87E651D1D /* SuloCalendarPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/SuloCalendarPlugin.swift; sourceTree = "<group>"; };
+		CB360A2AC32A2D57B92AAFCB /* CalendarRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/CalendarRules.swift; sourceTree = "<group>"; };
 		A3E9A3761298037FB6EF6F50 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		FE77C4159453C3CA40CA23D4 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		08FD61DE4C4A200FFA535257 /* ScreenGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sulo/ScreenGuard.swift; sourceTree = "<group>"; };
@@ -113,6 +117,8 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				F9411B42C8F217A87E651D1D /* SuloCalendarPlugin.swift */,
+				CB360A2AC32A2D57B92AAFCB /* CalendarRules.swift */,
 				9FC6AB958B0D214130160348 /* InfoPlist.strings */,
 				08FD61DE4C4A200FFA535257 /* ScreenGuard.swift */,
 				A0F2B1008CF3A7795A9A62E8 /* SipakamaseRules.swift */,
@@ -237,6 +243,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4F680D8DCDF49C7103D6A6C8 /* SuloCalendarPlugin.swift in Sources */,
+				3246FC43CA0878B6C44A27D7 /* CalendarRules.swift in Sources */,
 				14EFADF9806DCB6A88563881 /* ScreenGuard.swift in Sources */,
 				9040CB9FC9DFCE1A2C889AF8 /* SipakamaseRules.swift in Sources */,
 				946F4A9B75CAD8DBA104823D /* NeosiaScreen.swift in Sources */,

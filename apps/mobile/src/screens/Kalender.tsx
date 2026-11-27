@@ -14,7 +14,7 @@ import { calendarEvents, CALENDAR_GROUPS, eventsOnDay, holidayDays, type CalEven
 import { FEED_IDS, feedUrl } from '@sulo/core/calendar/feeds';
 import { monthGrid, shiftMonth } from '@sulo/core/calendar/month';
 import { calendarStatus } from '@sulo/core/calendar/status';
-import { googleSubscribeUrl } from '@sulo/core/calendar/subscribe-links';
+import { appleUrl, googleSubscribeUrl } from '@sulo/core/calendar/subscribe-links';
 import { nextImportant } from '@sulo/core/calendar/upcoming';
 import { buildTaskItems } from '@sulo/core/dashboard/tasks';
 import { formatClock } from '@sulo/core/format/time';
@@ -28,6 +28,7 @@ import { Card, Chip, EmptyCard, SectionHead, Tile } from '@sulo/ui/mobile/cards'
 import { IconButton, PillButton, Segmented } from '@sulo/ui/mobile/controls';
 import { courseTint, tintBg, type TintColor } from '@sulo/ui/mobile/tint';
 import { timeZone, useMobileData } from '../shell/data';
+import { isIphone } from '../calendar-native';
 
 type View = 'list' | 'month';
 const catTint = (g: CalendarGroup): TintColor => `cat-${g}`;
@@ -110,7 +111,13 @@ export function KalenderScreen() {
                 <Card className="flex h-full flex-col">
                   <p className="text-m15 font-semibold">{feed.name}</p>
                   <p className="mt-1 line-clamp-3 text-m13 text-muted-foreground">{feed.desc}</p>
-                  <div className="mt-auto pt-3">
+                  {/* On an iPhone its own Calendar first (iOS asks before subscribing), then Google's. */}
+                  <div className="mt-auto flex flex-wrap gap-2 pt-3">
+                    {isIphone() && (
+                      <PillButton small onPress={() => actions.openExternal(appleUrl(feedUrl(id)))}>
+                        {k.subscribe.iphone}
+                      </PillButton>
+                    )}
                     <PillButton small onPress={() => actions.openExternal(googleSubscribeUrl(feedUrl(id)))}>
                       {k.subscribe.google}
                     </PillButton>

@@ -11,7 +11,7 @@ import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
 import { STEP_MAX } from '@sulo/core/tasks/local-state';
 import type { UnixSeconds } from '@sulo/core/types';
-import { PencilIcon, PlusIcon, XIcon } from '../dashboard-icons';
+import { CalendarIcon, PencilIcon, PlusIcon, XIcon } from '../dashboard-icons';
 import { isOwnTask } from '@sulo/core/tasks/own';
 import { formatAgo } from '@sulo/core/format/time';
 import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
@@ -22,6 +22,8 @@ import { useTaskGrade } from './task-grade';
 export interface TaskDetailActions {
   onOpen: (url: string) => void;
   onAddToCalendar: (item: TaskItem) => void;
+  /** The same event as an .ics file, for the laptop's own calendar app (Mac Calendar, Outlook). */
+  onAddToCalendarFile?: (item: TaskItem) => void;
   onSnooze: (until: UnixSeconds | null) => void;
   onCustomDue: (at: UnixSeconds | null) => void;
   onAddStep: (text: string) => void;
@@ -196,6 +198,12 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
           <button type="button" className={action} data-slot="task-action" onClick={() => actions.onAddToCalendar(item)}>
             <CalendarPlusIcon className="size-4" />
             {t.addToCalendar}
+          </button>
+        )}
+        {item.task.dueAt !== null && !isFinishedItem(item) && actions.onAddToCalendarFile && (
+          <button type="button" className={action} data-slot="task-action" title={t.addToCalendarFileHelp} onClick={() => actions.onAddToCalendarFile?.(item)}>
+            <CalendarIcon className="size-4" />
+            {t.addToCalendarFile}
           </button>
         )}
         {canSnooze && (

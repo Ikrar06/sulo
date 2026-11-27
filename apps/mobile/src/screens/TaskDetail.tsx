@@ -8,6 +8,7 @@
 import { useId, useMemo, useState } from 'react';
 import { buildTaskItems, isFinishedItem } from '@sulo/core/dashboard/tasks';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
+import { taskEvent } from '@sulo/core/format/task-event';
 import { formatClock, formatDue, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
@@ -23,6 +24,8 @@ import { Card, Chip } from '@sulo/ui/mobile/cards';
 import { CheckCircle, IconButton, PillButton } from '@sulo/ui/mobile/controls';
 import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { Sheet, SheetMenu, afterSheetClosed } from '@sulo/ui/mobile/sheet';
+import { useToast } from '@sulo/ui/ui/toast';
+import { addToDeviceCalendar, hasDeviceCalendar, isIphone } from '../calendar-native';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
 import { timeZone, useMobileData } from '../shell/data';
@@ -48,6 +51,7 @@ export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) =
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const ids = { note: useId(), due: useId() };
+  const toast = useToast();
   if (!item) return <p className="py-8 text-center text-m13 text-muted-foreground">{t.empty}</p>;
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
   const due = item.task.dueAt;
@@ -66,6 +70,24 @@ export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) =
     [m.popup.row.snoozeMorning(formatClock(tomorrow, timeZone, m)), tomorrow],
   ];
   const doneSteps = item.state.steps.filter((s) => s.done).length;
+  // The calendar (1.1.0): the phone's own first (iOS's add-event sheet, Android's calendar app), then Google's link
+  // on the iPhone, where Google Calendar is often the app in use; Android's own app is usually Google's already.
+  // Without a device calendar (the web preview), Google's link alone. One event for all (core task-event.ts).
+  const calendarItems = (dueAt: UnixSeconds) => {
+    const input = { name: item.task.name, courseName: item.courseName, dueAt, url: item.task.url };
+    const google = () => actions.openExternal(taskCalendarUrl(input, m.popup.row.calendarDetails));
+    const googleItem = { label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), google()) };
+    if (!hasDeviceCalendar()) return [googleItem];
+    const addOwn = () =>
+      void addToDeviceCalendar(taskEvent(input, m.popup.row.calendarDetails)).then((result) => {
+        if (result === 'saved') toast.show({ message: w.app.calendarAdded, duration: 2500 });
+        else if (result === 'denied') toast.show({ message: w.app.calendarDenied, duration: 5000 });
+        // No calendar app on this Android phone: Google's link instead.
+        else if (result === 'unavailable') google();
+      });
+    const deviceItem = { label: isIphone() ? w.app.calendarIphone : w.app.calendarPhone, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(addOwn)) };
+    return isIphone() ? [deviceItem, googleItem] : [deviceItem];
+  };
 
   return (
     <div className="space-y-3 pb-20">{/* lint-ui-allow: room for the bar stuck to the bottom */}
@@ -174,7 +196,7 @@ export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) =
               ? [{ label: t.ownEdit, icon: PencilIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setEditing(true))) }]
               : [{ label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) }]),
             // A finished task has nothing left to put in a calendar.
-            ...(due !== null && !isFinishedItem(item) ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due, url: item.task.url }, m.popup.row.calendarDetails))) }] : []),
+            ...(due !== null && !isFinishedItem(item) ? calendarItems(due) : []),
             ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setSnoozeOpen(true))) }] : []),
           ]}
         />

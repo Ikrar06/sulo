@@ -86,6 +86,13 @@ export const IPHONE_PRIVACY_SECTIONS: Section[] = [
           en: 'Everything is in the app’s private storage on this iPhone, which other apps cannot read. Sulo’s files, the data of NEOSIA’s pages opened inside Sulo included, are excluded from iCloud and computer backups. All a backup still holds is two flags without data (whether a session is connected, and whether an update waits for the app to open) and the Keychain items, which only work on this iPhone.',
         },
       },
+      {
+        kind: 'p',
+        text: {
+          id: 'Tambah ke Kalender iPhone memakai lembar tambah-acara bawaan iOS: kamu yang menyimpannya, dan acaranya ada di Kalender, bukan di Sulo. Sulo tidak membaca kalendermu. Di iOS 17 ke atas tidak ada izin yang diminta; di iOS 16, iPhone meminta izin Kalender sekali, saat pertama dipakai.',
+          en: 'Add to iPhone Calendar uses iOS’s own add-event sheet: you save it, and the event lives in Calendar, not in Sulo. Sulo never reads your calendar. iOS 17 and later ask for no permission; on iOS 16 the iPhone asks for Calendar access once, the first time.',
+        },
+      },
     ],
   },
   {

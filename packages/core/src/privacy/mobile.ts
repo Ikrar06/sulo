@@ -87,6 +87,13 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           en: 'Everything is in the app’s private storage on this phone, which other apps cannot read. Android backup and transfer to another phone are turned off for Sulo, so the data never goes into a cloud backup.',
         },
       },
+      {
+        kind: 'p',
+        text: {
+          id: 'Tambah ke kalender HP membuka layar acara baru di aplikasi kalender HP-mu, dan kamu yang menyimpannya di sana. Sulo tidak membaca atau menulis kalender sendiri, dan tidak meminta izin Kalender.',
+          en: 'Add to the phone’s calendar opens the new-event screen of your calendar app, and you save it there. Sulo neither reads nor writes the calendar itself, and asks for no calendar permission.',
+        },
+      },
     ],
   },
   {

@@ -9,6 +9,7 @@ import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, isFini
 import { countdownLabel } from '@sulo/core/format/countdown';
 import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
+import { taskEvent, taskIcs, taskIcsName } from '@sulo/core/format/task-event';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
 import { addOwnTask, isOwnTask, removeOwnTask, updateOwnTask, type OwnTask } from '@sulo/core/tasks/own';
 import { Button } from '@sulo/ui/ui/button';
@@ -66,6 +67,18 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const active = activeCourseIds(user.courses);
   const courses = user.courses.filter((c) => active.has(c.id)).sort((a, b) => courseAlias(a).localeCompare(courseAlias(b), 'id'));
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
+  // "Kalender lain (.ics)": the task as one event in a file the laptop's calendar app opens (Mac Calendar, Outlook),
+  // the same event as Google's link (core task-event.ts). Made here and saved by the browser; nothing is sent.
+  const downloadIcs = (i: TaskItem, dueAt: number) => {
+    const input = { name: i.task.name, courseName: i.courseName, dueAt, url: i.task.url };
+    const ics = taskIcs(taskEvent(input, m.popup.row.calendarDetails), `tugas-${i.task.eventId}@sulo`, data.now);
+    const href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = taskIcsName(i.task);
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(href), 1000);
+  };
   const listRef = useRef<HTMLUListElement>(null);
   useFlip(listRef);
   const history = isHistoryStatus(filter.status);
@@ -210,6 +223,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onAddToCalendar: (i) =>
                       i.task.dueAt !== null &&
                       actions.openTab(taskCalendarUrl({ name: i.task.name, courseName: i.courseName, dueAt: i.task.dueAt, url: i.task.url }, m.popup.row.calendarDetails)),
+                    onAddToCalendarFile: (i) => i.task.dueAt !== null && downloadIcs(i, i.task.dueAt),
                     onSnooze: (until) => state((s) => setSnooze(s, item.task.eventId, until)),
                     onCustomDue: (at) => state((s) => setCustomDue(s, item.task.eventId, at)),
                     onAddStep: (text) => state((s) => addStep(s, item.task.eventId, text, crypto.randomUUID())),

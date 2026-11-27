@@ -105,6 +105,9 @@ export const dashId = {
     snoozed: (until: string) => `Pengingat ditunda sampai ${until}`,
     cancelSnooze: 'Batalkan tunda',
     addToCalendar: 'Tambah ke Google Kalender',
+    /** An .ics file for the laptop's own calendar app (1.1.0, core format/task-event.ts). */
+    addToCalendarFile: 'Kalender lain (.ics)',
+    addToCalendarFileHelp: 'Unduh berkas yang terbuka di Kalender Mac, Outlook, atau aplikasi kalender lain.',
     details: 'Rincian',
     customDue: 'Tenggat pribadi',
     customDueHelp: 'SIKOLA tidak memberi tenggat untuk tugas ini. Tenggat pribadi hanya disimpan di browsermu dan dipakai untuk pengingat.',
@@ -290,6 +293,8 @@ export const dashId = {
       google: 'Google Kalender',
       outlook: 'Outlook',
       apple: 'Apple/lainnya',
+      /** The phone, on an iPhone only: its own Calendar subscribes to the webcal link (1.1.0). */
+      iphone: 'Kalender iPhone',
       note: 'Google Kalender akan meminta konfirmasi. Langganan hanya bisa ditambahkan dari Google Kalender versi web, setelah itu muncul juga di HP.',
     },
     expiredTitle: 'Data kalender akademik sudah lewat',
