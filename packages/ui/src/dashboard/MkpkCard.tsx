@@ -55,7 +55,7 @@ export function MkpkCard({ snapshots, transcript, load, onLoad, now, sipakamase 
   const link = 'rounded text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-ring';
 
   return (
-    <Card title={w.title}>
+    <Card id="mkpk" title={w.title}>
       {p.transcriptAt === null ? (
         <p className="text-[14px] text-muted-foreground">{w.noTranscript}</p>
       ) : (
