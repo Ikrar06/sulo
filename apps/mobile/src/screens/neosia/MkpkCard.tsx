@@ -21,6 +21,7 @@ import { lastReadAt } from '@sulo/core/sipakamase/store';
 import { useSipakamase } from '../../sipakamase/SipakamaseProvider';
 import { useMobileData } from '../../shell/data';
 import { useNeosia } from '../../neosia/NeosiaProvider';
+import { useSipakamaseInvite } from '../sipakamase/SipakamaseInvite';
 
 export function MkpkCard() {
   const { locale, m } = useI18n();
@@ -32,6 +33,8 @@ export function MkpkCard() {
   const [choosing, setChoosing] = useState(false);
   const [allReminders, setAllReminders] = useState(false);
   const sip = useSipakamase();
+  // Ringkasan's own "Hubungkan Sipakamase" card is up: this card's quiet link waits.
+  const invited = useSipakamaseInvite();
   const sw = sipakamaseWords(locale);
   const load = data!.prefs.mkpkLoad;
   if (!neo.enabled || load === 'none') return null;
@@ -113,7 +116,7 @@ export function MkpkCard() {
 
       {sip.enabled ? (
         <SipakamaseRows summary={summarizeSipakamase(sip.data, sip.connection)} reminders={mkpkReminders(sip.data, p)} text={text} all={allReminders} onAll={() => setAllReminders(true)} />
-      ) : (
+      ) : invited ? null : (
         <p className="mt-3 border-t border-m-line pt-3 text-m13 text-muted-foreground">
           {sw.card.invite}{' '}
           <button type="button" onClick={sip.ask} className={`m-hit rounded text-foreground underline underline-offset-2 ${ring}`}>
