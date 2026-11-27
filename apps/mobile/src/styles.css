@@ -117,11 +117,14 @@ body {
 @keyframes m-snack {
   from { opacity: 0; transform: translateY(8px); }
 }
-/* Carousels snap card by card. */
+/* Carousels snap card by card, and move on one axis only (owner, 27 Nov 2026): overflow-x alone lets the row
+   scroll up and down by the few pixels its content is taller; a vertical swipe on it now scrolls the page. */
 .m-carousel {
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 16px;
   scrollbar-width: none;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
 }
 .m-carousel > * { scroll-snap-align: start; }
 .m-carousel::-webkit-scrollbar { display: none; }
