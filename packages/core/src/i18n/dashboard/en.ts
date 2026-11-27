@@ -125,7 +125,7 @@ export const dashEn: DashMessages = {
     ownAdded: 'Task added',
     grade: 'Grade',
     gradeSee: 'See grade',
-    gradeHelp: "From the course's grades page on SIKOLA. Sulo checks it when Tugas opens and when it updates.",
+    gradeHelp: "From the course's grades page on SIKOLA. Sulo checks it when you open Tasks and when it updates.",
     gradeLoading: 'Opening the grades page…',
     gradeNone: 'Not graded yet.',
     gradeNotShown: 'Graded, but SIKOLA does not show the grade yet.',

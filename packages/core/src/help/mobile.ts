@@ -194,11 +194,11 @@ const PHONE: FaqEntry[] = [
   },
   {
     id: 'nilai-tugas-hp',
-    q: { id: 'Dari mana nilai tugas di tab Tugas?', en: 'Where do the task grades in Tugas come from?' },
+    q: { id: 'Dari mana nilai tugas di tab Tugas?', en: 'Where do the task grades in Tasks come from?' },
     a: [
       {
         id: 'Dari halaman nilai tiap mata kuliah yang dipantau di SIKOLA. Sulo membacanya saat kamu membuka Tugas (paling sering sekali tiap 10 menit) dan saat memperbarui. Yang dibaca hanya nilai, tidak pernah komentar dosen.',
-        en: 'From the grades page of each course you follow on SIKOLA. Sulo reads it when you open Tugas (at most once every 10 minutes) and when it updates. It reads the grade only, never the lecturer’s comments.',
+        en: 'From the grades page of each course you follow on SIKOLA. Sulo reads it when you open Tasks (at most once every 10 minutes) and when it updates. It reads the grade only, never the lecturer’s comments.',
       },
       {
         id: 'Tugas yang sudah dinilai otomatis ditandai selesai, termasuk tugas lama yang tidak ada di kalender SIKOLA; lihat di saringan Selesai dan Dinilai. Angkanya tersembunyi sampai kamu mengetuk Tampilkan nilai, dan tidak pernah masuk notifikasi.',

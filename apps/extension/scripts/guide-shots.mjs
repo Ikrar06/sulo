@@ -163,9 +163,9 @@ const STEPS = [
       await moveTo(p, p.locator('li').first(), 800);
       await p.waitForTimeout(700);
       await click(p, p.getByRole('button', { name: re('Perbarui sekarang', 'Update now') }), 1200);
-      await click(p, p.getByRole('button', { name: re('Pengaturan', 'Settings') }), 500);
-      await moveTo(p, p.getByRole('menuitem', { name: re('Buka dashboard', 'Open dashboard') }));
-      await p.waitForTimeout(900);
+      // The dashboard row under the list (1.1.0; it was only in the ⚙ menu).
+      await moveTo(p, p.getByRole('button', { name: re('Buka dashboard', 'Open dashboard') }));
+      await p.waitForTimeout(1100);
     },
   },
   {
