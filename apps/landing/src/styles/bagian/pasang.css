@@ -133,6 +133,17 @@
   line-height: 1.4;
   text-wrap: balance;
 }
+/* Under the cards: what this version brought (the "Yang baru" page). */
+.pasang-baru {
+  margin: 24px 0 0;
+  text-align: center;
+}
+.pasang-baru .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 /* The visitor's device first (one line of script sets data-perangkat; nothing is sent). */
 html[data-perangkat="android"] [data-pasang="android"],
 html[data-perangkat="ios"] [data-pasang="iphone"] {

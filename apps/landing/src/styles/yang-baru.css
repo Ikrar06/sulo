@@ -1,0 +1,223 @@
+/* "Yang baru di Sulo" (baru/YangBaru.astro): the user guide's page (pakai.css) with the version on its own card,
+   the devices each feature reaches as quiet chips, and the iPhone's add-event sheet drawn in the guides' style. */
+.baru-versi {
+  margin-top: 32px;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+}
+.baru-versi h2 {
+  margin: 6px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  line-height: 1.2;
+}
+.baru-versi-teks > p:last-child {
+  margin: 8px 0 0;
+  max-width: 44rem;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.baru-versi-cap {
+  display: inline-flex;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--m-inset);
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+/* Where this version runs: the card's other half on a wide screen, under its words on a narrow one. */
+.baru-versi-untuk {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--garis);
+}
+.baru-versi-untuk > p {
+  margin: 0 0 10px;
+  color: var(--abu);
+  font-size: 0.875rem;
+}
+.baru-versi-untuk dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+.baru-versi-untuk dl div {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 2px 12px;
+}
+.baru-versi-untuk dt {
+  font-weight: 600;
+}
+.baru-versi-untuk dd {
+  margin: 0;
+  color: var(--abu);
+}
+@media (min-width: 64em) {
+  .baru-versi {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: center;
+    gap: 48px;
+    padding: 28px 32px;
+  }
+  .baru-versi-untuk {
+    margin-top: 0;
+    padding: 0 0 0 32px;
+    border-top: 0;
+    border-left: 1px solid var(--garis);
+  }
+}
+
+/* The version's most requested features (the iPhone app, Sipakamase): first, each on its own card with a whole
+   border in a soft brand tone (never one edge) and a larger title, no label needed (owner, 27 Nov 2026). The
+   guide's own rule between sections gives way to the card's edge. */
+.pakai-bagian.baru-sorot {
+  margin-top: 32px;
+  padding: 32px;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 55%, var(--garis));
+  border-radius: 24px;
+  background: var(--kartu);
+}
+.pakai-bagian.baru-sorot h2 {
+  font-size: clamp(1.75rem, 1.45rem + 1vw, 2.25rem);
+}
+.pakai-bagian.baru-sorot + .pakai-bagian.baru-sorot {
+  margin-top: 16px;
+}
+.pakai-bagian.baru-sorot + .pakai-bagian:not(.baru-sorot) {
+  margin-top: 24px;
+  border-top: 0;
+}
+@media (max-width: 47.9375em) {
+  .pakai-bagian.baru-sorot {
+    padding: 20px;
+  }
+}
+
+/* A feature with its screen below it: the title and devices across the top, then its words and what it brings
+   side by side from the same line (owner, 27 Nov 2026: under a title in the left column alone, the words started
+   far below the points), each at a reading length. A phone or the drawing beside it keeps one column. */
+@media (min-width: 64em) {
+  .baru .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks:has(> .baru-judul) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas: "judul judul" "isi poin" "tautan tautan";
+  }
+  .baru .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks:has(> .baru-judul) > .baru-judul {
+    grid-area: judul;
+  }
+  .baru .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks:has(> .baru-judul) > .pakai-kepala {
+    grid-area: isi;
+  }
+  .baru .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks:has(> .baru-judul) > .pakai-bisa {
+    grid-area: poin;
+    margin-top: 14px;
+  }
+  .baru .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks:has(> .baru-judul) > .baru-tautan {
+    grid-area: tautan;
+  }
+}
+
+/* The devices a feature reaches, never joined by a separator character. */
+.baru-perangkat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.baru-perangkat li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--m-inset);
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.baru-tautan {
+  margin: 16px 0 0;
+}
+.baru-tautan .tautan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.baru-tanggal {
+  color: var(--abu);
+  font-size: 0.9375rem;
+}
+/* How to update, one device a row: its name, then what to do. */
+.baru-cara {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0 0;
+  max-width: 44rem;
+}
+.baru-cara div {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 4px 16px;
+}
+.baru-cara dt {
+  font-weight: 600;
+}
+.baru-cara dd {
+  margin: 0;
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+@media (max-width: 30em) {
+  .baru-cara div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The iPhone's own add-event sheet, filled with one task: plain rows on the phone's light screen. */
+.baru-ilustrasi {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+.il-acara {
+  display: grid;
+  gap: 10px;
+  align-self: stretch;
+}
+.il-acara-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0 0 4px;
+}
+.il-acara-tambah {
+  font-weight: 700;
+}
+.il-acara-kotak {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+}
+.il-acara-kotak .il-baris > span:first-child {
+  flex: none;
+}
+.il-acara-kotak .il-baris > span:last-child {
+  text-align: right;
+}
+div.il-acara-kotak {
+  display: grid;
+  gap: 8px;
+}
+.il-acara-judul {
+  font-weight: 600;
+}

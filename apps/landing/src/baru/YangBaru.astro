@@ -1,0 +1,195 @@
+---
+// "Yang baru di Sulo" (/yang-baru/, 1.1.0): what each version changed, newest first, from teks/yang-baru.ts.
+// The user guide's frame (breadcrumb, title, a list of the page's parts that stays in view, then the parts),
+// each feature with the devices that get it, its words, what you can do, and the apps' own screen with sample
+// data (pakai/Layar.astro) or, for the iPhone's own add-event sheet that no app screen shows, a drawing in the
+// guides' style. Then the smaller changes, what Sulo now reads, how to update, and the version before.
+import { MASUKAN, PRIVASI_APLIKASI, pathPakai, pathPasang, pathRumah, pathYangBaru, rilisGithub } from '../data/alamat';
+import { yangBaru, type FiturBaru, type PerangkatBaru } from '../teks/yang-baru';
+import { pakai } from '../teks/pakai-semua';
+import type { Bahasa } from '../teks';
+import Dasar from '../tata/Dasar.astro';
+import Kaki from '../bagian/Kaki.astro';
+import Nav from '../komponen/Nav.astro';
+import Layar from '../pakai/Layar.astro';
+import Hp from '../ilustrasi/Hp.astro';
+import { ChevronRightIcon } from '@sulo/ui/icons';
+import { version as VERSI } from '../../../mobile/package.json';
+import '../styles/bagian/umum.css';
+import '../styles/panduan.css';
+import '../styles/pakai.css';
+import '../styles/yang-baru.css';
+
+interface Props {
+  bahasa: Bahasa;
+}
+const { bahasa } = Astro.props;
+const t = yangBaru[bahasa];
+const p = pakai[bahasa];
+const path = pathYangBaru(bahasa);
+const URUT: readonly PerangkatBaru[] = ['ekstensi', 'android', 'iphone'];
+const tautan = (ke: NonNullable<FiturBaru['tautan']>['ke']) => (ke === 'pasang-iphone' ? pathPasang(bahasa, 'iphone') : ke === 'panduan-hp' ? pathPakai(bahasa, 'android') : PRIVASI_APLIKASI[bahasa]);
+// One upright picture (a phone screen, the drawing) sits beside its words on a wide screen; a dashboard goes below.
+const samping = (f: FiturBaru) => f.ilustrasi !== undefined || f.gambar?.jenis === 'hp';
+const daftar = [...[...t.fitur.filter((f) => f.sorot), ...t.fitur.filter((f) => !f.sorot)].map((f) => ({ id: f.id, judul: f.judul })), { id: t.kecil.id, judul: t.kecil.judul }, { id: t.dibaca.id, judul: t.dibaca.judul }, { id: t.perbarui.id, judul: t.perbarui.judul }, { id: t.sebelumnya.id, judul: t.sebelumnya.judul }];
+const k = t.kalender;
+const fitur = [...t.fitur.filter((f) => f.sorot), ...t.fitur.filter((f) => !f.sorot)];
+---
+<Dasar bahasa={bahasa} judul={`${t.judul.replace(/\.$/, '')}, Sulo`} deskripsi={t.deskripsi} path={path}>
+  <Nav bahasa={bahasa} path={path} />
+  <main class="panduan pakai baru" id="isi">
+    <div class="isi pakai-isi">
+      <nav class="remah" aria-label={p.remah}>
+        <ol role="list">
+          <li><a href={pathRumah(bahasa)}>{p.beranda}</a><ChevronRightIcon className="remah-panah" /></li>
+          <li aria-current="page">{t.remah}</li>
+        </ol>
+      </nav>
+      <header class="panduan-kepala">
+        <div class="panduan-kepala-teks">
+          <h1>{t.judul}</h1>
+          <p>{t.kenapa}</p>
+        </div>
+      </header>
+
+      <section class="baru-versi" aria-labelledby="judul-versi">
+        <div class="baru-versi-teks">
+          <p class="baru-versi-cap">{t.belumTerbit}</p>
+          <h2 id="judul-versi">{t.versi(VERSI)}</h2>
+          <p>{t.ringkas}</p>
+        </div>
+        <div class="baru-versi-untuk">
+          <p>{t.tersedia.judul}</p>
+          <dl>
+            {URUT.map((x) => (
+              <div>
+                <dt>{t.perangkat[x]}</dt>
+                <dd>{t.tersedia.ket[x]}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      <div class="pakai-badan">
+        <nav class="pakai-daftar" aria-labelledby="judul-daftar">
+          <p class="pakai-daftar-judul" id="judul-daftar">{t.isiHalaman}</p>
+          <ol role="list">
+            {daftar.map((b) => <li><a href={`#${b.id}`}>{b.judul}</a></li>)}
+          </ol>
+        </nav>
+        <div class="pakai-bagian-semua">
+          {fitur.map((f) => (
+            <section class:list={['pakai-bagian', { 'pakai-bagian--samping': samping(f), 'baru-sorot': f.sorot }]} id={f.id} aria-labelledby={`judul-${f.id}`}>
+              <div class="pakai-teks">
+                <div class="baru-judul">
+                  <h2 id={`judul-${f.id}`}>{f.judul}</h2>
+                  <ul class="baru-perangkat" role="list" aria-label={t.untuk}>
+                    {URUT.filter((x) => f.perangkat.includes(x)).map((x) => <li>{t.perangkat[x]}</li>)}
+                  </ul>
+                </div>
+                <div class="pakai-kepala">
+                  {f.isi.map((x) => <p>{x}</p>)}
+                </div>
+                {f.poin && (
+                  <ul class="pakai-bisa">
+                    {f.poin.map((x) => <li>{x}</li>)}
+                  </ul>
+                )}
+                {f.tautan && <p class="baru-tautan"><a class="tautan" href={tautan(f.tautan.ke)}>{f.tautan.teks}</a></p>}
+              </div>
+              {f.gambar && (
+                <div class:list={['pakai-gambar', `pakai-gambar--${f.gambar.jenis}`]}>
+                  <Layar gambar={f.gambar} bahasa={bahasa} />
+                </div>
+              )}
+              {f.ilustrasi === 'kalender' && (
+                <div class="pakai-gambar pakai-gambar--hp">
+                  <figure class="baru-ilustrasi" role="img" aria-label={`${k.judul}: ${k.tugas}, ${k.waktuMulai}`}>
+                    <Hp atas>
+                      <div class="il-acara">
+                        <p class="il-acara-kepala"><span>{k.batal}</span><strong>{k.judul}</strong><span class="il-acara-tambah">{k.tambah}</span></p>
+                        <p class="il-acara-kotak il-acara-judul">{k.tugas}</p>
+                        <div class="il-acara-kotak">
+                          <p class="il-baris"><span>{k.mulai}</span><span class="il-redup">{k.waktuMulai}</span></p>
+                          <p class="il-baris"><span>{k.selesai}</span><span class="il-redup">{k.waktuSelesai}</span></p>
+                        </div>
+                        <p class="il-acara-kotak il-redup">{k.catatan}<br />sikola-v2.unhas.ac.id</p>
+                      </div>
+                    </Hp>
+                  </figure>
+                </div>
+              )}
+            </section>
+          ))}
+
+          <section class="pakai-bagian" id={t.kecil.id} aria-labelledby="judul-kecil">
+            <div class="pakai-teks">
+              <div class="pakai-kepala"><h2 id="judul-kecil">{t.kecil.judul}</h2></div>
+              <ul class="pakai-bisa">{t.kecil.daftar.map((x) => <li>{x}</li>)}</ul>
+            </div>
+          </section>
+
+          <section class="pakai-bagian baru-dibaca" id={t.dibaca.id} aria-labelledby="judul-dibaca">
+            <div class="pakai-teks">
+              <div class="pakai-kepala">
+                <h2 id="judul-dibaca">{t.dibaca.judul}</h2>
+                <p>{t.dibaca.isi}</p>
+              </div>
+              <ul class="pakai-bisa">{t.dibaca.daftar.map((x) => <li>{x}</li>)}</ul>
+              <p class="baru-tautan"><a class="tautan" href={PRIVASI_APLIKASI[bahasa]}>{t.dibaca.tautan}</a></p>
+            </div>
+          </section>
+
+          <section class="pakai-bagian" id={t.perbarui.id} aria-labelledby="judul-perbarui">
+            <div class="pakai-teks">
+              <div class="pakai-kepala">
+                <h2 id="judul-perbarui">{t.perbarui.judul}</h2>
+                <p>{t.perbarui.isi}</p>
+              </div>
+              <dl class="baru-cara">
+                {URUT.map((x) => (
+                  <div>
+                    <dt>{t.perangkat[x]}</dt>
+                    <dd>{t.perbarui.cara[x]}{x === 'iphone' && <> <a class="tautan" href={pathPasang(bahasa, 'iphone')}>{t.perbarui.panduanIphone}</a></>}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </section>
+
+          <section class="pakai-bagian" id={t.sebelumnya.id} aria-labelledby="judul-sebelumnya">
+            <div class="pakai-teks">
+              <div class="pakai-kepala">
+                <h2 id="judul-sebelumnya">{t.sebelumnya.judul}</h2>
+                <p class="baru-tanggal">{t.sebelumnya.tanggal}</p>
+                <p>{t.sebelumnya.isi}</p>
+              </div>
+              <ul class="pakai-bisa">{t.sebelumnya.daftar.map((x) => <li>{x}</li>)}</ul>
+            </div>
+          </section>
+
+          <p class="pakai-contoh">{t.dataContoh}</p>
+          <section class="pakai-akhir" aria-label={t.teknis}>
+            <div>
+              <ul role="list">
+                <li><a class="tautan" href={rilisGithub(VERSI)} target="_blank" rel="noopener noreferrer">{t.teknis}</a></li>
+                <li><a class="tautan" href={pathPakai(bahasa)}>{p.indeks.judul.replace(/\.$/, '')}</a></li>
+              </ul>
+            </div>
+            <div>
+              <h2>{p.bantuanTitle}</h2>
+              <p>{p.bantuanIsi}</p>
+              <a class="tautan" href={MASUKAN} target="_blank" rel="noopener noreferrer">{p.kirimMasukan}</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+  <Kaki bahasa={bahasa} path={path} />
+</Dasar>
+
+<script>
+  import '../hidup/pakai';
+</script>

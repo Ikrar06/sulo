@@ -4,8 +4,12 @@
 // dist/_headers. SITE_URL sets the address; nothing is written in for it.
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import { extensionAlias, gantiData } from './src/layar/ganti/plugin.mjs';
+
+/** The apps' own version (the phone app's package.json, the same as the extension's): screens never show an old one. */
+const VERSI = JSON.parse(readFileSync(new URL('../mobile/package.json', import.meta.url), 'utf8')).version;
 
 export default defineConfig({
   site: process.env.SITE_URL ?? 'http://localhost:4321',
@@ -20,8 +24,8 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss(), gantiData()],
     resolve: { alias: [extensionAlias] },
-    // The apps' build-time constants; the landing page shows version 1.0.0.
-    define: { __SULO_VERSION__: JSON.stringify('1.0.0'), __SULO_COMMIT__: JSON.stringify(''), __SULO_WEB_FAKE__: 'false', __SULO_DEV__: 'false' },
+    // The apps' build-time constants; the screens show the apps' own version.
+    define: { __SULO_VERSION__: JSON.stringify(VERSI), __SULO_COMMIT__: JSON.stringify(''), __SULO_WEB_FAKE__: 'false', __SULO_DEV__: 'false' },
     ssr: { noExternal: [/^@sulo\//, /^@capacitor\//, /^wxt/, 'radix-ui'] },
   },
 });

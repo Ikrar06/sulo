@@ -24,7 +24,8 @@
 // (brief 2: said as it is).
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
 import { alamatToko, berkas, NAMA_TOKO, type Browser } from '../data/unduhan';
-import { pathPasang } from '../data/alamat';
+import { pathPasang, pathYangBaru } from '../data/alamat';
+import { version as VERSI } from '../../../mobile/package.json';
 import { buatQr } from '../data/qr';
 import { alamatSitus } from '../data/situs';
 import { rumah2 } from '../teks/rumah-2';
@@ -169,6 +170,7 @@ const mulai = teks[bahasa].unduhMulai;
         </div>
       </article>
     </div>
+    <p class="pasang-baru"><a class="tautan" href={pathYangBaru(bahasa)}>{t.baru(VERSI)}</a></p>
   </div>
 </section>
 <script>

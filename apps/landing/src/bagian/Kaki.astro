@@ -5,7 +5,7 @@
 // maker's name in one small line. The tip jar sits among the other links, the
 // same weight as them (TETAP).
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
-import { LISENSI, MASUKAN, PEMBUAT, PROFIL, REPO, RILIS, TRAKTEER, pathLain, pathPakai, pathPasang, pathRumah } from '../data/alamat';
+import { LISENSI, MASUKAN, PEMBUAT, PROFIL, REPO, TRAKTEER, pathLain, pathPakai, pathPasang, pathRumah, pathYangBaru } from '../data/alamat';
 import { pakai } from '../teks/pakai-semua';
 import { rumah2 } from '../teks/rumah-2';
 import { teks, type Bahasa } from '../teks';
@@ -36,7 +36,7 @@ const kelompok = [
     judul: t.kelompok.proyek,
     tautan: [
       { href: REPO, teks: t.tautan.kode },
-      { href: RILIS, teks: t.tautan.rilis },
+      { href: pathYangBaru(bahasa), teks: t.tautan.rilis },
       { href: LISENSI, teks: t.tautan.lisensi },
     ],
   },

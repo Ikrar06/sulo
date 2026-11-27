@@ -90,6 +90,7 @@ export const rumah2 = {
       unduhZip: 'Unduh ekstensi',
       unduhApk: 'Unduh APK',
       peringatan: 'Ada peringatan saat memasang?',
+      baru: (v: string) => `Yang baru di Sulo ${v}`,
     },
     tanya: {
       judul: 'Tanya jawab',
@@ -118,7 +119,7 @@ export const rumah2 = {
       isi: 'Seperti obor, Sulo menyala tenang dan memberi tahu saat ada yang perlu kamu kerjakan.',
     },
     kaki: {
-      tautan: { pasang: 'Cara pasang', privasi: 'Privasi', kode: 'Kode sumber', lapor: 'Lapor masalah', rilis: 'Catatan rilis', lisensi: 'Lisensi', traktir: 'Traktir kopi' },
+      tautan: { pasang: 'Cara pasang', privasi: 'Privasi', kode: 'Kode sumber', lapor: 'Lapor masalah', rilis: 'Yang baru', lisensi: 'Lisensi', traktir: 'Traktir kopi' },
       tidakResmi: 'Sulo adalah aplikasi tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
       pembuat: (nama: string) => `${nama}, Teknik Informatika Unhas`,
       bahasa: 'Bahasa',
@@ -210,6 +211,7 @@ export const rumah2 = {
       unduhZip: 'Download the extension',
       unduhApk: 'Download the APK',
       peringatan: 'Seeing a warning when installing?',
+      baru: (v: string) => `What’s new in Sulo ${v}`,
     },
     tanya: {
       judul: 'Questions',
@@ -238,7 +240,7 @@ export const rumah2 = {
       isi: 'Like a torch, Sulo glows quietly and tells you when there is something you need to do.',
     },
     kaki: {
-      tautan: { pasang: 'How to install', privasi: 'Privacy', kode: 'Source code', lapor: 'Report a problem', rilis: 'Release notes', lisensi: 'License', traktir: 'Buy me a coffee' },
+      tautan: { pasang: 'How to install', privasi: 'Privacy', kode: 'Source code', lapor: 'Report a problem', rilis: 'What’s new', lisensi: 'License', traktir: 'Buy me a coffee' },
       tidakResmi: 'Sulo is an unofficial app and is not affiliated with Universitas Hasanuddin.',
       pembuat: (nama: string) => `${nama}, Informatics, Unhas`,
       bahasa: 'Language',
