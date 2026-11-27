@@ -259,7 +259,8 @@ export function FlyingMascotLayer({ spotKey, selector = '[data-mascot-spot="onbo
           play('tap');
         }}
       >
-        <SuloMascot mood={spec.mood} lookX={look?.x} lookY={look?.y} size={MASCOT_BASE} reaction={reaction} effects={false} />
+        {/* Room for the celebration's jumps: Safari clips them at the drawing's box otherwise. */}
+        <SuloMascot mood={spec.mood} lookX={look?.x} lookY={look?.y} size={MASCOT_BASE} reaction={reaction} effects={false} headroom={0.25} />
       </div>
     </DirectorContext.Provider>
   );
