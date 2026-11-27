@@ -8,7 +8,7 @@
 import { createMoodleClient, type MoodleClient } from '@sulo/core/moodle/client';
 import { refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
 import { courseGradesForCurrent, taskGradeForCurrent, type CourseGradeOutcome, type TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
-import { gradeSweep, SWEEP_MAX_OPEN, type SweepResult } from '@sulo/core/tasks/grade-sweep';
+import { gradeSweep, SWEEP_OPEN, type SweepResult } from '@sulo/core/tasks/grade-sweep';
 import { MANUAL_COOLDOWN_SEC, SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import { writeSession, readSession } from '@sulo/core/moodle/session';
 import { createSessionAgeLogger } from '@sulo/core/net/session-age';
@@ -85,7 +85,7 @@ export async function taskGrade(platform: Platform, cmid: number, again: boolean
 /** Tugas opened: the grade reports of the followed courses not read in a day, a few at a time (tasks/grade-sweep.ts). */
 export async function sweepGrades(platform: Platform): Promise<SweepResult> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return { read: 0, markedDone: 0 };
-  return gradeSweep({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, { max: SWEEP_MAX_OPEN });
+  return gradeSweep({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, SWEEP_OPEN);
 }
 
 /** "Lihat nilai" on a course (the dashboard's course filter): one page for all its assignments; only on a tap. */

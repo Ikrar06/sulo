@@ -77,15 +77,16 @@ describe('"Lihat nilai": one page per course', () => {
     expect(await courseGradesForCurrent(deps, 1, true)).toMatchObject({ status: 'ok', markedDone: [] });
     expect(await done(7)).toBe(false);
   });
-  it('brings in a graded assignment Sulo never saw in the calendar, never an ungraded one', async () => {
+  it('brings in every assignment Sulo never saw in the calendar: graded ones done, the rest probably handed in', async () => {
     // Course 4: no task known (handed in before Sulo looked, or nothing to submit online).
     const { deps, store, done } = setup(() => ({ kind: 'ok', html: report(row(401, '90.00 (A)') + row(402, '-')) }));
     expect(await courseGradesForCurrent(deps, 4, false)).toMatchObject({ status: 'ok', graded: 1, markedDone: [401] });
     const added = ((await store.get(userKey(5, 'tasks'))) as Task[]).filter((t) => t.fromReport);
-    expect(added).toEqual([
-      { eventId: -401, cmId: 401, courseId: 4, name: 'Tugas', module: 'assign', dueAt: null, url: 'https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=401', overdue: false, firstSeenAt: NOW, lastSeenAt: NOW, missingSince: NOW, pastWindow: true, fromReport: true },
-    ]);
+    const reported = (cmid: number) => ({ eventId: -cmid, cmId: cmid, courseId: 4, name: 'Tugas', module: 'assign', dueAt: null, url: `https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=${cmid}`, overdue: false, firstSeenAt: NOW, lastSeenAt: NOW, missingSince: NOW, fromReport: true });
+    expect(added).toEqual([reported(401), reported(402)]);
     expect(await done(-401)).toBe(true);
+    // Not graded yet: in the history as probably handed in, not marked done.
+    expect(await done(-402)).toBe(false);
     // Its detail reads the kept answer.
     expect(await taskGradeForCurrent(deps, 401, false)).toMatchObject({ status: 'ok', grade: { got: 90, letter: 'A' }, cached: true });
   });

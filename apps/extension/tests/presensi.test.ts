@@ -262,11 +262,13 @@ describe("automatic recap in syncs (owner's rule of 18 Nov 2026)", () => {
     expect(pages.some((p) => p.includes('view=5'))).toBe(false);
   });
 
-  it('a sync reads at most one course\'s grade report besides (owner\'s rule of 27 Nov 2026)', async () => {
+  it('the first sync reads every followed course\'s grade report besides, all at once (owner\'s rule of 27 Nov 2026)', async () => {
     const store = memoryStore();
     const { client, pages } = syncClient();
     await sync(client, store, 0, 'onboarding');
-    expect(pages.filter((p) => p.startsWith('/grade/report/user/')).length).toBeLessThanOrEqual(1);
+    const reports = pages.filter((p) => p.startsWith('/grade/report/user/'));
+    expect(new Set(reports).size).toBe(reports.length);
+    expect(reports.length).toBeGreaterThan(1);
   });
 
   it('saver mode skips the automatic recap', async () => {

@@ -155,9 +155,9 @@ export interface Task {
    */
   pastWindow?: true;
   /**
-   * Known only from its course's grade report (1.1.0, tasks/grade-service.ts): a graded assignment Sulo never saw
-   * in SIKOLA's calendar (handed in before Sulo looked, or nothing to submit online). No due date; kept with
-   * missingSince and pastWindow like a past task; a calendar event for the same assignment replaces it.
+   * Known only from its course's grade report (1.1.0, tasks/grade-service.ts): an assignment Sulo never saw in
+   * SIKOLA's calendar (handed in before Sulo looked, or nothing to submit online). No due date; kept with
+   * missingSince like a handed-in task; a calendar event for the same assignment replaces it.
    */
   fromReport?: true;
 }

@@ -111,14 +111,16 @@ async function ownPage(deps: TaskGradeDeps, userId: UserId, path: string, now: U
 }
 
 /**
- * The report's graded assignments no task of this account has: added as past tasks known from the report (no due
- * date; never one that is not graded, which Sulo cannot tell handed in or not). Returns the added ones.
+ * The report's assignments no task of this account has (owner, 27 Nov 2026: all tasks, not only graded ones):
+ * added as tasks known from the report, gone from SIKOLA's list (no due date). A graded one is marked done by the
+ * answers that follow; one not graded yet reads "Mungkin sudah dikumpulkan", which is what Sulo can say of it.
+ * Returns the added ones.
  */
 async function addFromReport(store: KeyValueStore, userId: UserId, courseId: number, items: ReadonlyMap<number, ReportItem>, now: UnixSeconds): Promise<Task[]> {
   const tasks = await readUser(store, userId, 'tasks');
   const known = new Set(tasks.flatMap((t) => (t.cmId === null ? [] : [t.cmId])));
   const added: Task[] = [...items]
-    .filter(([cmid, item]) => !known.has(cmid) && item.grade.kind === 'graded')
+    .filter(([cmid, item]) => !known.has(cmid) && item.grade.kind !== 'unknown')
     .map(([cmid, item]) => ({
       // Negative and from the cmid: never a SIKOLA event id, never an added task's (tasks/own.ts, far lower).
       eventId: -cmid,
@@ -132,7 +134,6 @@ async function addFromReport(store: KeyValueStore, userId: UserId, courseId: num
       firstSeenAt: now,
       lastSeenAt: now,
       missingSince: now,
-      pastWindow: true,
       fromReport: true,
     }));
   if (added.length > 0) await writeUserIfCurrent(store, userId, 'tasks', [...tasks, ...added]);
@@ -173,7 +174,7 @@ export async function courseGradesForCurrent(deps: TaskGradeDeps, courseId: numb
       await saveRead({ fetchedAt: null, requestAt: now, unreadable: true });
       return { status: 'failed', reason: 'REPORT_UNREADABLE' };
     }
-    // A graded assignment Sulo never saw in SIKOLA's calendar joins the history (tasks/from-calendar.ts keeps it).
+    // An assignment Sulo never saw in SIKOLA's calendar joins the history (tasks/from-calendar.ts keeps it).
     const added = await addFromReport(deps.store, userId, courseId, report.grades, now);
     const all = [...ours, ...added];
     // Every assignment of ours the report lists; one it leaves out keeps what was known.
