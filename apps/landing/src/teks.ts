@@ -30,9 +30,9 @@ export const teks = {
     // One line under the buttons, for the visitor's device.
     catatan: {
       tanpaJs: 'Untuk Chrome, Edge, dan Android 8 ke atas.',
-      android: 'Belum di Play Store. Pasangnya sekitar 2 menit.',
-      chrome: 'Belum di Chrome Web Store. Pasang manual, sekitar 3 menit.',
-      edge: 'Belum di Edge Add-ons. Pasang manual, sekitar 3 menit.',
+      android: 'Belum ada di Play Store, tetapi memasangnya cuma sekitar 2 menit.',
+      chrome: 'Belum ada di Chrome Web Store, jadi dipasang manual. Sekitar 3 menit.',
+      edge: 'Belum ada di Edge Add-ons, jadi dipasang manual. Sekitar 3 menit.',
       toko: (toko: string) => `Dipasang dari ${toko}.`,
       lain: 'Sulo berjalan di Chrome dan Edge.',
       ios: 'Dipasang dari laptop lewat Sideloadly, sekitar 10 menit.',

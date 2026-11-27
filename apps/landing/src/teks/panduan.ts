@@ -101,7 +101,7 @@ export const panduan = {
         ],
         jujur: (b: string) => [
           { t: 'Izin apa yang diminta?', j: `Saat memasang, ${b} menyebut Sulo bisa membaca dan mengubah datamu di sikola-v2.unhas.ac.id, dan menampilkan notifikasi. Itu kalimat baku browser untuk izin ke satu situs. Sulo hanya membaca.` },
-          { t: 'Sudah pasang versi manual?', j: 'Hapus versi manual di halaman Ekstensi setelah memasang dari toko, supaya tidak ada dua Sulo yang berjalan. Tanda selesai dan pengaturan tidak ikut pindah, tetapi tugas dan jadwal diambil ulang dari SIKOLA.' },
+          { t: 'Sudah memasang versi manual sebelumnya?', j: 'Hapus versi manual di halaman Ekstensi setelah memasang dari toko, supaya tidak ada dua Sulo yang berjalan. Tanda selesai dan pengaturan tidak ikut pindah, tetapi tugas dan jadwal diambil ulang dari SIKOLA.' },
         ],
         perbarui: (b: string) => `${b} memperbarui Sulo dengan sendirinya. Tidak ada yang perlu kamu lakukan.`,
         hapus: 'Klik kanan ikon Sulo di bilah alat, lalu pilih hapus. Data Sulo di browser itu ikut terhapus, dan data di SIKOLA tidak tersentuh.',
@@ -111,10 +111,10 @@ export const panduan = {
         },
       },
       jujur: [
-        { t: 'Kenapa manual?', j: 'Karena Sulo belum ada di toko ekstensi browser ini. Setelah ada, kamu cukup memasang dari sana.' },
-        { t: 'Mode developer aman dinyalakan?', j: 'Aman untuk ini. Browser bisa menampilkan pengingat soal ekstensi mode developer, dan itu wajar untuk ekstensi yang dipasang manual.' },
-        { t: 'Apakah memperbarui diri sendiri?', j: 'Tidak. Versi manual diperbarui dengan cara di bawah.' },
-        { t: 'Nanti saat Sulo ada di toko?', j: 'Pasang dari toko, lalu hapus versi manual. Tanda selesai dan pengaturan tidak ikut pindah, tetapi tugas dan jadwal diambil ulang dari SIKOLA.' },
+        { t: 'Kenapa harus dipasang manual?', j: 'Karena Sulo belum ada di toko ekstensi browser ini. Setelah ada, kamu cukup memasang dari sana.' },
+        { t: 'Apakah Mode developer aman dinyalakan?', j: 'Ya, aman. Browser bisa menampilkan pengingat soal ekstensi mode developer, dan itu wajar untuk ekstensi yang dipasang manual.' },
+        { t: 'Apakah versi manual bisa memperbarui diri sendiri?', j: 'Sayangnya tidak. Versi manual diperbarui dengan cara di bawah ini.' },
+        { t: 'Bagaimana nanti saat Sulo sudah ada di toko?', j: 'Pasang dari toko, lalu hapus versi manual. Tanda selesai dan pengaturan tidak ikut pindah, tetapi tugas dan jadwal diambil ulang dari SIKOLA.' },
       ],
       masalah: [
         { t: 'Tombol Muat yang belum dibuka tidak ada', j: 'Mode developer belum menyala. Nyalakan dulu sakelarnya.' },
@@ -152,7 +152,7 @@ export const panduan = {
         { t: 'iPhone tidak terlihat di Sideloadly', j: 'Pakai kabel yang bisa memindahkan data, buka kunci iPhone, dan ketuk Percayai. Di Windows, pastikan iTunes yang terpasang versi dari situs Apple, bukan dari Microsoft Store.' },
         { t: 'Sideloadly bilang sudah ada 3 aplikasi', j: 'Apple ID gratis hanya boleh memasang 3 aplikasi seperti ini sekaligus. Hapus satu yang tidak dipakai, lalu pasang lagi.' },
         { t: 'Mode Pengembang tidak ada di Pengaturan', j: 'Pilihan itu baru muncul setelah Sulo terpasang sekali lewat Sideloadly. Pasang dulu, lalu buka Pengaturan, Privasi & Keamanan lagi.' },
-        { t: 'Sulo tidak bisa dibuka setelah seminggu', j: 'Masa 7 harinya habis. Pasang lagi lewat Sideloadly dengan Apple ID yang sama. Datamu tetap ada.' },
+        { t: 'Sulo tidak bisa dibuka setelah seminggu', j: 'Biasanya karena masa 7 harinya sudah habis. Pasang lagi lewat Sideloadly dengan Apple ID yang sama. Datamu tetap ada.' },
         { t: 'Mac tidak mau membuka Sideloadly', j: 'macOS menulis bahwa Apple tidak bisa memastikan Sideloadly bebas malware, karena pengembangnya tidak menandatangani aplikasi itu. Kalau kamu mengunduhnya sendiri dari sideloadly.io, tekan Done, buka System Settings, Privacy & Security, gulir ke bagian Security, tekan Open Anyway di baris Sideloadly, lalu Open Anyway sekali lagi dan masukkan kata sandi Mac.' },
         { t: 'Notifikasi tidak muncul', j: 'Izinkan notifikasi untuk Sulo di Pengaturan, Notifikasi, lalu periksa mode Fokus.' },
         { t: 'Sideloadly tidak bisa dipakai', j: 'AltStore (altstore.io) adalah alat lain yang juga memasang berkas .ipa dari laptop dengan Apple ID-mu. Langkahnya berbeda dari panduan ini, dan Sulo yang dipasang lewat alat lain bisa terhitung sebagai aplikasi baru.' },

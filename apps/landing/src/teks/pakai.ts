@@ -108,8 +108,8 @@ export const pakaiId: KataPakai = {
       daftar: [
         { nama: 'SIKOLA', label: 'Wajib', isi: 'Inti Sulo. Terhubung lewat sesi SIKOLA-mu, tanpa password.', dapat: ['Tugas dan tenggatnya', 'Materi, tugas, dan pengumuman baru', 'Perubahan tenggat', 'Rekap dan rincian presensi'] },
         { nama: 'Kalender akademik Unhas', label: 'Otomatis', isi: 'Dari kalender resmi (SK Rektor). Tidak perlu masuk ke mana pun.', dapat: ['Jadwal KRS dan pembayaran UKT', 'Masa kuliah, UTS, dan UAS', 'Libur nasional dan libur semester', 'Wisuda dan KKN'] },
-        { nama: 'NEOSIA', label: 'Opsional', isi: 'Mati sampai kamu nyalakan. Sulo hanya membaca halaman NEOSIA yang kamu buka sendiri.', dapat: ['Jadwal kuliah mingguan', 'Kesiapan KRS', 'Nilai, IPS, dan IPK', 'SKS lulus dan sisa masa studi'] },
-        { nama: 'Sipakamase', label: 'Opsional', isi: 'Mati sampai kamu hubungkan. Kamu masuk di Sipakamase sendiri; Sulo hanya membaca lima halaman MKPK-mu.', dapat: ['SKS kegiatan MKPK yang belum dikonversi', 'MKPK lulus yang belum masuk NEOSIA', 'Pengingat sebelum batas penginputan nilai', 'Kabar saat status kegiatan berubah'] },
+        { nama: 'NEOSIA', label: 'Opsional', isi: 'Baru aktif kalau kamu nyalakan. Sulo hanya membaca halaman NEOSIA yang kamu buka sendiri.', dapat: ['Jadwal kuliah mingguan', 'Kesiapan KRS', 'Nilai, IPS, dan IPK', 'SKS lulus dan sisa masa studi'] },
+        { nama: 'Sipakamase', label: 'Opsional', isi: 'Baru aktif kalau kamu hubungkan. Kamu masuk di Sipakamase sendiri; Sulo hanya membaca lima halaman MKPK-mu.', dapat: ['SKS kegiatan MKPK yang belum dikonversi', 'MKPK lulus yang belum masuk NEOSIA', 'Pengingat sebelum batas penginputan nilai', 'Kabar saat status kegiatan berubah'] },
       ],
     },
     tidak: {
@@ -148,7 +148,7 @@ export const pakaiId: KataPakai = {
     neosia: {
       judul: 'Menghubungkan NEOSIA',
       isi: [
-        'Tambahan, mati sampai kamu nyalakan. Isinya jadwal kuliah, kesiapan KRS, dan nilai.',
+        'Tambahan, baru aktif kalau kamu nyalakan. Isinya jadwal kuliah, kesiapan KRS, dan nilai.',
         'Sulo tidak pernah menghubungi NEOSIA. Ia hanya menyalin dari halaman NEOSIA yang sedang kamu buka, dan membuang data pribadi seperti NIM, alamat, kontak, dan nominal pembayaran.',
       ],
       ekstensi: {
@@ -323,7 +323,7 @@ export const pakaiId: KataPakai = {
         id: 'neosia',
         judul: 'NEOSIA: jadwal, KRS, nilai',
         isi: [
-          'Tambahan, mati sampai kamu nyalakan di Pengaturan, bagian NEOSIA. Setelah terhubung, menu di kiri bertambah Jadwal dan Nilai.',
+          'Tambahan, baru aktif kalau kamu nyalakan di Pengaturan, bagian NEOSIA. Setelah terhubung, menu di kiri bertambah Jadwal dan Nilai.',
           'Datanya masuk saat kamu membuka halaman NEOSIA sendiri: Beranda, Kartu Hasil Studi, dan KRS. Untuk memperbarui, buka lagi halaman itu.',
         ],
         bisa: [
@@ -543,7 +543,7 @@ export const pakaiId: KataPakai = {
         id: 'neosia',
         judul: 'NEOSIA: jadwal, KRS, nilai',
         isi: [
-          'Tambahan, mati sampai kamu nyalakan. Setelah terhubung, Ringkasan bertambah Kesiapan KRS, dan Lainnya bertambah Jadwal dan Nilai.',
+          'Tambahan, baru aktif kalau kamu nyalakan. Setelah terhubung, Ringkasan bertambah Kesiapan KRS, dan Lainnya bertambah Jadwal dan Nilai.',
           'Datanya masuk saat kamu membuka halaman NEOSIA lewat Sulo, dan disimpan terenkripsi di HP ini.',
         ],
         bisa: [
