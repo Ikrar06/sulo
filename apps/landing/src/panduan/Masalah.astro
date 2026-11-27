@@ -4,6 +4,7 @@
 // to report what the list does not cover.
 import { ChevronDownIcon } from '@sulo/ui/icons';
 import { MASUKAN } from '../data/alamat';
+import Tautkan from '../komponen/Tautkan.astro';
 import '../styles/bagian/tanya.css';
 
 interface Props {
@@ -23,7 +24,7 @@ const { judul, daftar, lapor } = Astro.props;
           <span>{m.t}</span>
           <ChevronDownIcon className="tanya-panah" />
         </summary>
-        <div class="tanya-jawab"><p>{m.j}</p></div>
+        <div class="tanya-jawab"><p><Tautkan teks={m.j} /></p></div>
       </details>
     ))}
   </div>

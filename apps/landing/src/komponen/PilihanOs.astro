@@ -1,0 +1,39 @@
+---
+// One step done two ways, Windows and Mac, behind a two-button switch (owner, 27 Nov 2026: the Sideloadly step
+// read as a wall of text). The visitor's own system opens first, read from the browser alone, nothing sent
+// (hidup/pilihan-os.ts). Without script both lists show, one under the other, each under its name.
+import Tautkan from './Tautkan.astro';
+import '../styles/pilihan-os.css';
+
+interface Props {
+  /** Unique on the page: the panels' ids. */
+  id: string;
+  label: string;
+  nama: { windows: string; mac: string };
+  windows: readonly string[];
+  mac: readonly string[];
+}
+const { id, label, nama, windows, mac } = Astro.props;
+const panel = [
+  { os: 'windows', nama: nama.windows, langkah: windows },
+  { os: 'mac', nama: nama.mac, langkah: mac },
+] as const;
+---
+<div class="pilihan-os" data-pilihan-os>
+  <div class="pilihan-os-saklar" role="tablist" aria-label={label} hidden>
+    {panel.map((p, i) => (
+      <button type="button" role="tab" id={`${id}-tab-${p.os}`} aria-controls={`${id}-${p.os}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-os={p.os}>
+        {p.nama}
+      </button>
+    ))}
+  </div>
+  {panel.map((p) => (
+    <div class="pilihan-os-isi" id={`${id}-${p.os}`} data-os={p.os}>
+      <p class="pilihan-os-nama">{p.nama}</p>
+      <ol role="list">{p.langkah.map((l) => <li><p><Tautkan teks={l} /></p></li>)}</ol>
+    </div>
+  ))}
+</div>
+<script>
+  import '../hidup/pilihan-os';
+</script>

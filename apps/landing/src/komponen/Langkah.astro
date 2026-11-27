@@ -1,8 +1,10 @@
 ---
 // One numbered step of a guide: its number, the title, one or two sentences,
-// an optional button (slot "tombol"), and its drawn illustration beside it
+// an optional button (slot "tombol"), more under the words when a step needs it
+// (slot "lebih", such as the Windows and Mac switch), and its drawn illustration beside it
 // on a wide screen (slot "gambar", described in words by `alt`). On a wide
 // screen the numbers hang on a rail (langkah-rel) down to the next step.
+import Tautkan from './Tautkan.astro';
 interface Props {
   nomor: number;
   judul: string;
@@ -18,7 +20,8 @@ const { nomor, judul, isi, alt, label } = Astro.props;
     <span class="langkah-rel" aria-hidden="true"><span class="langkah-rel-isi"></span></span>
     <p class="langkah-nomor" aria-hidden="true">{nomor}</p>
     <h2><span class="sr-only">{label} {nomor}: </span>{judul}</h2>
-    <p>{isi}</p>
+    <p><Tautkan teks={isi} /></p>
+    {Astro.slots.has('lebih') && <slot name="lebih" />}
     {Astro.slots.has('tombol') && <div class="langkah-tombol"><slot name="tombol" /></div>}
   </div>
   <figure class="langkah-gambar" role="img" aria-label={alt}>

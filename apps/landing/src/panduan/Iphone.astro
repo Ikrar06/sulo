@@ -20,6 +20,8 @@ import TataPanduan from '../komponen/TataPanduan.astro';
 import Masalah from './Masalah.astro';
 import Periksa from './Periksa.astro';
 import { BerkasIkon } from '../komponen/ikon';
+import PilihanOs from '../komponen/PilihanOs.astro';
+import { CheckIcon } from '@sulo/ui/icons';
 
 interface Props {
   bahasa: Bahasa;
@@ -32,7 +34,7 @@ const ipa = berkas('iphone', bahasa);
 const nama = ipa.versi ? `sulo-${ipa.versi}-ios.ipa` : 'sulo-ios.ipa';
 const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
 ---
-<TataPanduan bahasa={bahasa} perangkat="iphone" judul={i.judul} kenapa={i.kenapa} deskripsi={i.kenapa} ringkas={{ waktu: i.waktu, butuh: i.butuh, penting: i.penting }}>
+<TataPanduan bahasa={bahasa} perangkat="iphone" judul={i.judul} kenapa={i.kenapa} deskripsi={i.kenapa} ringkas={{ waktu: i.waktu, butuh: i.butuh, penting: i.penting, pentingTautan: { teks: i.segarkanTautan, href: '#segarkan' } }}>
   <p class="panduan-penting panduan-dihp" data-untuk="ios">{i.diHp}</p>
   <ol class="langkah-daftar" role="list">
     <Langkah nomor={1} judul={i.langkah[0].judul} isi={i.langkah[0].isi} alt={i.ilustrasi.unduh} label={t.umum.langkah}>
@@ -54,6 +56,7 @@ const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
     </Langkah>
 
     <Langkah nomor={2} judul={i.langkah[1].judul} isi={i.langkah[1].isi} alt={i.ilustrasi.sideloadly} label={t.umum.langkah}>
+      <PilihanOs slot="lebih" id="os-sideloadly" label={i.os.label} nama={i.os} windows={i.os.sideloadly.windows} mac={i.os.sideloadly.mac} />
       <Jendela slot="gambar" alamat="sideloadly.io">
         <div class="il-kartu il-kartu--jendela">
           <p class="il-judul">Sideloadly</p>
@@ -112,12 +115,26 @@ const host = alamatSitus(Astro.site)?.replace(/^https?:\/\//, '') ?? '';
   </ol>
   <p class="panduan-catatan">{t.umum.ilustrasi}</p>
 
+  <section class="panduan-syarat" id="segarkan" aria-labelledby="judul-segarkan">
+    <h2 id="judul-segarkan">{i.segarkanJudul}</h2>
+    <p class="panduan-teks">{i.segarkanIntro}</p>
+    <ol class="panduan-syarat-daftar" role="list">
+      {i.segarkanSyarat.map((x) => (
+        <li>
+          <span class="panduan-syarat-tanda" aria-hidden="true"><CheckIcon /></span>
+          <div>
+            <h3>{x.judul}</h3>
+            <p>{x.isi}</p>
+            {'wifi' in x && <PilihanOs id="os-wifi" label={i.os.label} nama={i.os} windows={i.os.wifi.windows} mac={i.os.wifi.mac} />}
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="panduan-penting">{i.segarkanGagal}</p>
+  </section>
+
   <Masalah judul={t.umum.masalah} daftar={i.masalah} lapor={{ tanya: t.umum.masihGagal, tautan: t.umum.lapor }} />
 
-  <section class="panduan-bagian" id="segarkan">
-    <h2>{i.segarkanJudul}</h2>
-    <p class="panduan-teks">{i.segarkan}</p>
-  </section>
 
   <section class="panduan-dua">
     <div id="perbarui">
