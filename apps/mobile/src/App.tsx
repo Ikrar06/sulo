@@ -523,7 +523,7 @@ function Shell(props: Parameters<typeof AppShell>[0]) {
   const { data } = useMobileData();
   return (
     <PrivacyProvider value={data?.prefs.privacyMode ?? false}>
-      <ToastProvider viewportClassName="bottom-[calc(72px+var(--m-bar-inset))]">
+      <ToastProvider viewportClassName="bottom-[calc(var(--m-bar-h)+20px+var(--m-bar-inset))]">
         <AppShell {...props} />
       </ToastProvider>
     </PrivacyProvider>

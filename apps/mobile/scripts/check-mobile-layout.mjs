@@ -68,9 +68,10 @@ const LANGS = ['en', 'id'];
 const LOOKS = CI ? [['light', 'full']] : [['light', 'full'], ['dark', 'lite']];
 // WebKit cannot be given safe areas, so none are assumed there.
 const SAFE = ENGINE === 'webkit' ? { top: 0, bottom: 0 } : IOS ? { top: 59, bottom: 34 } : { top: 48, bottom: 24 };
-// What must stay clear: the bars themselves (on an iPhone the whole 34 pt home indicator area, as Apple's
-// guidelines ask; the tab bar sits 4 pt above it, styles.css --m-bar-inset).
-const KEEP = SAFE;
+// What must stay clear: the bars themselves. On an iPhone that is the home indicator (5 pt, 8 pt above the
+// edge) with a margin, 21 pt, not its whole 34 pt area: iOS 26's own tab bars float down to 21 pt from the
+// edge, and Sulo's matches them (styles.css --m-bar-*).
+const KEEP = ENGINE === 'webkit' ? SAFE : IOS ? { top: 59, bottom: 21 } : SAFE;
 const TOUCH = 44;
 const PORT = Number(arg('port', '5195'));
 const DIST = resolve(ROOT, arg('dist', '.output/layout-mobile-web'));

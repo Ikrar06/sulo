@@ -11,12 +11,13 @@
 @source "../../../packages/core/src";
 
 html, body, #root { height: 100%; }
-/* What the tab bar keeps clear at the bottom: the gesture bar's inset (Android). On an iPhone the 34 pt home
-   indicator area belongs to the system (Apple's guidelines: no fixed control in it); the bar sits right on top
-   of it with a 4 pt gap instead of Android's 12 (owner, 27 Nov 2026: 46 pt from the edge looked too high).
+/* The tab bar: its height, its side margins, and what it keeps clear at the bottom (it sits 12 px above that).
+   Android: 64 dp tall, Material 3 Expressive's flexible navigation bar, over the gesture bar's inset. iPhone: as
+   iOS 26's own floating tab bars, measured on the owner's iPhone in Claude, WhatsApp and Instagram (27 Nov 2026):
+   62 pt tall, 21 pt from the sides and 21 pt above the screen's edge, into the home indicator's area as theirs.
    data-os is set at start (main.tsx). */
-:root { --m-bar-inset: env(safe-area-inset-bottom); }
-:root[data-os="ios"] { --m-bar-inset: max(0px, calc(env(safe-area-inset-bottom) - 8px)); }
+:root { --m-bar-h: 64px; --m-bar-side: 16px; --m-bar-inset: env(safe-area-inset-bottom); }
+:root[data-os="ios"] { --m-bar-h: 62px; --m-bar-side: 21px; --m-bar-inset: max(0px, calc(env(safe-area-inset-bottom) - 25px)); }
 /* iPhone: the page itself never scrolls (SuloBridgeViewController: the keyboard must not lift it), so the root
    scrolls the screens that are taller than the phone and do not scroll inside (the debug and Diagnostik screens,
    the lock and update screens at large text sizes). */
