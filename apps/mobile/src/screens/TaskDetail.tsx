@@ -143,7 +143,7 @@ export function TaskScreen({ eventId }: { eventId: number }) {
       </Card>
 
       {/* The bar stuck to the bottom (the tab bar is hidden on details). */}
-      <div className="fixed inset-x-0 z-30 px-4" style={{ bottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+      <div className="fixed inset-x-0 z-30 px-4" style={{ bottom: 'calc(12px + var(--m-bar-inset))' }}>
         <div className="m-card mx-auto flex max-w-md items-center gap-2 rounded-full p-2">
           <div className="min-w-0 flex-1">
             <PillButton kind="primary" full onPress={() => (isDone ? done.unmark(item.task.eventId) : done.mark(item.task.eventId))}>

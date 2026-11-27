@@ -43,7 +43,7 @@ export function TabBar({ active, overdue, onSelect, label, labels, overdueLabel 
     window.setTimeout(() => setTip(null), held.current ? 900 : 0);
   };
   return (
-    <nav aria-label={label} className="pointer-events-none fixed inset-x-0 z-30 px-4" style={{ bottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+    <nav aria-label={label} className="pointer-events-none fixed inset-x-0 z-30 px-4" style={{ bottom: 'calc(12px + var(--m-bar-inset))' }}>
       <div role="tablist" aria-label={label} className="m-card pointer-events-auto mx-auto flex h-[52px] max-w-md items-center justify-around rounded-full px-2">
         {TABS.map((tab) => {
           const on = tab === active;

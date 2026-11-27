@@ -192,7 +192,7 @@ export function Sheet({ open: wanted, onOpenChange, title, children }: { open: b
             aria-describedby={undefined}
             // Focus goes back to what opened the sheet only once it is gone (Radix does it on unmount).
             className="m-sheet fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto overscroll-contain rounded-t-[24px] bg-m-card px-4 pt-2 outline-none"
-            style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}
+            style={{ paddingBottom: 'calc(16px + var(--m-bar-inset, env(safe-area-inset-bottom)))' }}
             // React events bubble through portals: a drag here must not reach the screen behind (pull to refresh).
             onTouchStart={stop}
             onTouchMove={stop}
