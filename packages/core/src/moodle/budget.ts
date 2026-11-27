@@ -50,8 +50,12 @@ export async function reserveRequest(
   if (current.used >= limit) return false;
   if (calls > 0 && (current.calls ?? 0) + calls > callLimit) return false;
   if (current.pausedUntil !== undefined && now < current.pausedUntil) return false;
+  // Grade pages (source 'assign', owner's rule of 27 Nov 2026) are bounded by their own rules (tasks/grade-sweep.ts:
+  // one sweep every 10 minutes, every course at most once in it, the day's budget): outside the loop guard's count,
+  // so one sync can read every course without pausing Sulo. A pause already in force still stops them.
+  const guarded = source !== 'assign';
   const recent = (current.recent ?? []).filter((t) => now - t < LOOP_GUARD.windowSec);
-  if (recent.length >= LOOP_GUARD.posts) {
+  if (guarded && recent.length >= LOOP_GUARD.posts) {
     await store.set<BudgetState>(BUDGET_KEY, { ...current, recent, pausedUntil: now + LOOP_GUARD.pauseSec });
     return false;
   }
@@ -62,7 +66,7 @@ export async function reserveRequest(
     bySource,
     withCourseList: (current.withCourseList ?? 0) + (withCourseList ? 1 : 0),
     ...(calls > 0 || current.calls !== undefined ? { calls: (current.calls ?? 0) + calls } : {}),
-    recent: [...recent, now],
+    recent: guarded ? [...recent, now] : recent,
   };
   await store.set<BudgetState>(BUDGET_KEY, next);
   return true;

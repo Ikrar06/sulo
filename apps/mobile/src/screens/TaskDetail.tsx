@@ -6,7 +6,7 @@
 // bar is hidden here. Everything writes through core (tasks/local-state).
 
 import { useId, useMemo, useState } from 'react';
-import { buildTaskItems } from '@sulo/core/dashboard/tasks';
+import { buildTaskItems, isFinishedItem } from '@sulo/core/dashboard/tasks';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { formatClock, formatDue, taskDueLines } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
@@ -14,8 +14,9 @@ import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, STEP_MAX, toggleStep } from '@sulo/core/tasks/local-state';
 import type { UnixSeconds } from '@sulo/core/types';
+import { isOwnTask, removeOwnTask, updateOwnTask } from '@sulo/core/tasks/own';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
-import { ClockIcon, MoreIcon, PlusIcon, XIcon } from '@sulo/ui/dashboard-icons';
+import { ClockIcon, MoreIcon, PencilIcon, PlusIcon, XIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { CalendarPlusIcon, ExternalIcon } from '@sulo/ui/icons';
 import { Card, Chip } from '@sulo/ui/mobile/cards';
@@ -25,22 +26,27 @@ import { Sheet, SheetMenu, afterSheetClosed } from '@sulo/ui/mobile/sheet';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { Input } from '@sulo/ui/ui/input';
 import { timeZone, useMobileData } from '../shell/data';
+import type { Screen } from '../shell/nav';
+import { OwnTaskSheet } from './OwnTaskSheet';
+import { TaskGradeCard } from './TaskGradeCard';
+import { showsGradeCard } from '@sulo/core/tasks/grade-view';
 import { URGENCY_TEXT } from './Tugas';
 
-export function TaskScreen({ eventId }: { eventId: number }) {
+export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) => void }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
   const w = mobileWords(locale);
   const t = d.tugas;
   const { data, actions, platform } = useMobileData();
   const now = data!.now;
-  const item = useMemo(() => buildTaskItems(data!.user!).find((i) => i.task.eventId === eventId) ?? null, [data, eventId]);
+  const item = useMemo(() => buildTaskItems(data!.user!, t.own).find((i) => i.task.eventId === eventId) ?? null, [data, eventId, t.own]);
   const done = useDoneUndo(actions, d, data!.today, platform.store);
   const [step, setStep] = useState('');
   const [note, setNoteText] = useState(item?.state.note ?? '');
   const [noteSaved, setNoteSaved] = useState(false);
   const [snoozeOpen, setSnoozeOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const ids = { note: useId(), due: useId() };
   if (!item) return <p className="py-8 text-center text-m13 text-muted-foreground">{t.empty}</p>;
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
@@ -48,7 +54,10 @@ export function TaskScreen({ eventId }: { eventId: number }) {
   const isDone = item.status === 'done';
   const lines = due === null ? null : taskDueLines(due, now, timeZone, m, locale, 'both');
   const tone = due === null || item.status !== 'pending' ? '' : URGENCY_TEXT[urgencyOf(due, now)];
-  const undated = due === null || item.personalDue;
+  // A task the student added (tasks/own.ts): its due date is set in its own form, its menu edits or deletes it.
+  const own = isOwnTask(item.task) ? (data!.user!.ownTasks.find((o) => o.id === item.task.eventId) ?? null) : null;
+  // Known only from its course's grade report (finished, no due date): nothing to set a due date for.
+  const undated = own === null && !item.task.fromReport && (due === null || item.personalDue);
   const snoozed = item.state.snoozedUntil !== null && item.state.snoozedUntil > now ? item.state.snoozedUntil : null;
   const tomorrow = zonedToUnix(addDays(localParts(now, timeZone).dateKey, 1), data!.prefs.reminders.snoozeMorningMin, timeZone);
   const snoozeOptions: [string, UnixSeconds][] = [
@@ -63,12 +72,15 @@ export function TaskScreen({ eventId }: { eventId: number }) {
       <Card>
         <Chip color={courseTint(item.courseColor)}>{item.courseName}</Chip>
         <h2 className={`mt-3 text-m18 ${isDone ? 'text-muted-foreground line-through' : ''}`}>{item.task.name}</h2>
-        <FitLine size="text-m22" text={lines === null ? t.noDue : lines.primary} className={`mt-3 font-semibold tabular-nums ${tone}`}>
-          {lines === null ? t.noDue : lines.primary}
+        <FitLine size="text-m22" text={lines === null ? (item.task.fromReport ? t.fromReport : t.noDue) : lines.primary} className={`mt-3 font-semibold tabular-nums ${tone}`}>
+          {lines === null ? (item.task.fromReport ? t.fromReport : t.noDue) : lines.primary}
         </FitLine>
         {lines?.secondary && <p className="text-m13 text-muted-foreground tabular-nums">{lines.secondary}</p>}
         {snoozed && <p className="mt-2 text-m13 text-muted-foreground">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
       </Card>
+
+      {/* "Lihat nilai": an assignment past due, handed in or done (tasks/grade-view.ts). */}
+      {showsGradeCard(item.task, isDone, now) && item.task.cmId !== null && <TaskGradeCard key={item.task.cmId} task={{ ...item.task, cmId: item.task.cmId }} />}
 
       {undated && (
         <Card>
@@ -143,7 +155,7 @@ export function TaskScreen({ eventId }: { eventId: number }) {
       </Card>
 
       {/* The bar stuck to the bottom (the tab bar is hidden on details). */}
-      <div className="fixed inset-x-0 z-30 px-4" style={{ bottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+      <div className="fixed inset-x-0 z-30 px-4" style={{ bottom: 'calc(12px + var(--m-bar-inset))' }}>
         <div className="m-card mx-auto flex max-w-md items-center gap-2 rounded-full p-2">
           <div className="min-w-0 flex-1">
             <PillButton kind="primary" full onPress={() => (isDone ? done.unmark(item.task.eventId) : done.mark(item.task.eventId))}>
@@ -158,12 +170,36 @@ export function TaskScreen({ eventId }: { eventId: number }) {
       <Sheet open={menuOpen} onOpenChange={setMenuOpen} title={w.app.moreActions}>
         <SheetMenu
           items={[
-            { label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) },
-            ...(due !== null ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due, url: item.task.url }, m.popup.row.calendarDetails))) }] : []),
+            ...(own
+              ? [{ label: t.ownEdit, icon: PencilIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setEditing(true))) }]
+              : [{ label: d.common.openInSikola, icon: ExternalIcon, onPress: () => (setMenuOpen(false), actions.openExternal(item.task.url)) }]),
+            // A finished task has nothing left to put in a calendar.
+            ...(due !== null && !isFinishedItem(item) ? [{ label: t.addToCalendar, icon: CalendarPlusIcon, onPress: () => (setMenuOpen(false), actions.openExternal(taskCalendarUrl({ name: item.task.name, courseName: item.courseName, dueAt: due, url: item.task.url }, m.popup.row.calendarDetails))) }] : []),
             ...(due !== null && item.status === 'pending' ? [{ label: w.app.snoozeMenu, icon: ClockIcon, onPress: () => (setMenuOpen(false), afterSheetClosed(() => setSnoozeOpen(true))) }] : []),
           ]}
         />
       </Sheet>
+
+      {own && (
+        <OwnTaskSheet
+          open={editing}
+          onOpenChange={setEditing}
+          editing={own}
+          courses={data!.user!.courses}
+          onSave={(input) => {
+            void actions.updateUser('ownTasks', (list) => updateOwnTask(list, own.id, input));
+            setEditing(false);
+          }}
+          onRemove={() => {
+            // The task, then its steps and note; back to the list.
+            void actions.updateUser('ownTasks', (list) => removeOwnTask(list, own.id)).then(() =>
+              actions.updateUser('taskState', (map) => Object.fromEntries(Object.entries(map).filter(([key]) => key !== String(own.id)))),
+            );
+            setEditing(false);
+            go({ name: 'tugas', detail: null });
+          }}
+        />
+      )}
 
       <Sheet open={snoozeOpen} onOpenChange={setSnoozeOpen} title={w.app.snoozeMenu}>
         <div className="space-y-2">

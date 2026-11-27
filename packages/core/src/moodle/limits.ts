@@ -34,8 +34,11 @@ export const ACTIVE_RESERVE = { posts: DAILY_BUDGET - WATCH_STOP.posts, calls: D
 export const SAVER_MIN_GAP_MIN = 60;
 /** Loop guard: more than `posts` POSTs within `windowSec` pauses every request for `pauseSec`, silently. */
 export const LOOP_GUARD = { posts: 10, windowSec: 5 * 60, pauseSec: 30 * 60 } as const;
-/** "Perbarui" within this long after a successful sync sends nothing and says "Sudah terbaru". */
-export const MANUAL_COOLDOWN_SEC = 120;
+/**
+ * "Perbarui" within this long after a successful sync sends nothing and says "Sudah terbaru" (5 minutes since
+ * 27 Nov 2026, owner: no spamming the button; it was 2).
+ */
+export const MANUAL_COOLDOWN_SEC = 300;
 /** Automatic syncs check the structure of at most this many courses, in turns. */
 export const RADAR_AUTO_MAX = 4;
 export const BACKGROUND_INTERVAL_MIN = 180;

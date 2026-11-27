@@ -7,6 +7,8 @@
 
 import { createMoodleClient, type MoodleClient } from '@sulo/core/moodle/client';
 import { refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
+import { courseGradesForCurrent, taskGradeForCurrent, type CourseGradeOutcome, type TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
+import { gradeSweep, SWEEP_OPEN, type SweepResult } from '@sulo/core/tasks/grade-sweep';
 import { MANUAL_COOLDOWN_SEC, SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import { writeSession, readSession } from '@sulo/core/moodle/session';
 import { createSessionAgeLogger } from '@sulo/core/net/session-age';
@@ -66,6 +68,30 @@ export function refreshPresensi(platform: Platform, target: 'recap' | 'detail', 
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve({ status: 'failed', reason: 'offline' });
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return refreshPresensiForCurrent({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock, timeZone }, target, courseId, force);
+}
+
+/** The client for "Lihat nilai": SIKOLA through SuloSession, or the made-up pages of pnpm mobile:web. */
+async function gradesClient(platform: Platform): Promise<MoodleClient> {
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return (await import('./fake/grades')).fakeGradesClient(platform.store);
+  return sikolaClient(platform, { userInitiated: true });
+}
+
+/** "Lihat nilai" on a task: its course's grade report, or its own page (tasks/grade-service.ts); only on a tap. */
+export async function taskGrade(platform: Platform, cmid: number, again: boolean): Promise<TaskGradeOutcome> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'failed', reason: 'offline' };
+  return taskGradeForCurrent({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, cmid, again);
+}
+
+/** Tugas opened: the grade reports of the followed courses not read in a day, a few at a time (tasks/grade-sweep.ts). */
+export async function sweepGrades(platform: Platform): Promise<SweepResult> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { read: 0, markedDone: 0 };
+  return gradeSweep({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, SWEEP_OPEN);
+}
+
+/** "Lihat nilai" on a course (the dashboard's course filter): one page for all its assignments; only on a tap. */
+export async function courseGrades(platform: Platform, courseId: number, again: boolean): Promise<CourseGradeOutcome> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'failed', reason: 'offline' };
+  return courseGradesForCurrent({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, courseId, again);
 }
 
 /** After a successful sign-in: forget "expired" and fetch right away. */

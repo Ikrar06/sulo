@@ -198,8 +198,18 @@ export function Nickname({ w, progress, line1, initial, onNext, onSkip, onBack }
     // The field takes the focus once the screen has arrived: the keyboard
     // resizes the page, and that must not happen in the middle of the slide.
     const focus = window.setTimeout(() => input.current?.focus({ preventScroll: true }), STEP_IN_MS);
-    // The keyboard takes half the screen: the field stays in view when the stage shrinks.
-    const show = () => input.current?.scrollIntoView({ block: 'nearest' });
+    // The keyboard takes half the screen: the field stays in view when the stage shrinks. Once the size has
+    // settled (an iPhone shrinks the page in steps, and one step was short enough to scroll the title away):
+    // back to the top when everything fits, else only as far as the field needs.
+    let settle = 0;
+    const show = () => {
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        const box = input.current?.closest<HTMLElement>('[data-onb-content]');
+        if (box && box.scrollHeight <= box.clientHeight + 1) box.scrollTop = 0;
+        else input.current?.scrollIntoView({ block: 'nearest' });
+      }, 180);
+    };
     window.visualViewport?.addEventListener('resize', show);
     window.addEventListener('resize', show);
     // Eyes on the field.
@@ -207,6 +217,7 @@ export function Nickname({ w, progress, line1, initial, onNext, onSkip, onBack }
     return () => {
       window.clearTimeout(id);
       window.clearTimeout(focus);
+      window.clearTimeout(settle);
       window.visualViewport?.removeEventListener('resize', show);
       window.removeEventListener('resize', show);
       mascot.lookAt(null);

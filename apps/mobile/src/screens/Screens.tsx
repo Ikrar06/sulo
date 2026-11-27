@@ -57,7 +57,7 @@ export function Screens({ screen, go, onSignedOut }: { screen: Screen; go: (s: S
   if (!data.user) return <NoDataSkeleton screen={screen.name} label={mobileWords(locale).connected.sync.updating} />;
   switch (screen.name) {
     case 'tugas':
-      return screen.detail !== null ? <TaskScreen eventId={Number(screen.detail)} /> : <TugasScreen go={go} />;
+      return screen.detail !== null ? <TaskScreen eventId={Number(screen.detail)} go={go} /> : <TugasScreen go={go} />;
     case 'kalender':
       return <KalenderScreen />;
     case 'presensi':

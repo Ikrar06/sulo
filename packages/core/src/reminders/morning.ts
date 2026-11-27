@@ -16,6 +16,7 @@ import { applyPersonalDue } from '../tasks/personal-due';
 import type { CourseId, KeyValueStore, Task, UnixSeconds } from '../types';
 import type { NotificationView } from './text';
 import { localParts } from './zoned';
+import { followsTask, withOwnTasks } from '../tasks/own';
 
 export interface MorningCounts {
   overdue: number;
@@ -35,7 +36,7 @@ export interface MorningClass {
 
 /** Pending tasks Sulo reminds about, overdue ones included. */
 export function pendingForMorning(tasks: readonly Task[], taskState: TaskStateMap, active: ReadonlySet<CourseId>): Task[] {
-  return tasks.filter((t) => t.dueAt !== null && t.missingSince === null && active.has(t.courseId) && !getTaskState(taskState, t.eventId).doneManually);
+  return tasks.filter((t) => t.dueAt !== null && t.missingSince === null && followsTask(active, t) && !getTaskState(taskState, t.eventId).doneManually);
 }
 
 /** The counts for the morning at `now`, or null when there is nothing to say. */
@@ -71,7 +72,9 @@ export async function previewMorning(store: KeyValueStore, now: UnixSeconds, tim
   const enabled = prefs.reminders.enabled && prefs.reminders.morning.enabled;
   const userId = await currentUser(store);
   if (userId === null) return { view: null, enabled };
-  const [tasks, taskState, courses, calendar] = await Promise.all([readUser(store, userId, 'tasks'), readUser(store, userId, 'taskState'), readUser(store, userId, 'courses'), readCalendar(store)]);
+  const [sikola, own, taskState, courses, calendar] = await Promise.all([readUser(store, userId, 'tasks'), readUser(store, userId, 'ownTasks'), readUser(store, userId, 'taskState'), readUser(store, userId, 'courses'), readCalendar(store)]);
+  // The tasks the student added count as well (tasks/own.ts).
+  const tasks = withOwnTasks(sikola, own);
   const pending = pendingForMorning(applyPersonalDue(tasks, taskState).tasks, taskState, activeCourseIds(courses));
   const counts = morningCounts(now, timeZone, pending, calendar.kegiatan);
   return { view: counts ? morningFullView(counts, messagesFor(resolveLocale(prefs.locale, uiLanguage))) : null, enabled };

@@ -30,6 +30,7 @@ import {
 import { applyRadarResults, planRadarCalls, type RadarMode } from '../radar/sync-step';
 import { activeCourseIds } from '../courses/active-score';
 import { readPresensi, refreshRecap } from '../presensi/service';
+import { gradeSweep, SWEEP_SYNC } from '../tasks/grade-sweep';
 import { PRESENSI_CACHE_SEC } from '../presensi/rules';
 import { recordFailure } from '../moodle/backoff';
 import { planBatch, type BatchPlan } from './plan-batch';
@@ -295,7 +296,9 @@ export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origi
   const calendar = parseCall('core_calendar_get_action_events_by_timesort', calendarResult ?? missing);
   if (calendar.ok) {
     calendarMerged = true;
-    tasks = mergeTasks(previousTasks, calendar.data.events, now, CALENDAR_LOOKBACK_DAYS);
+    // Gone tasks stay until their course ends (from-calendar.ts keepUntil): the stored courses' end dates.
+    const courseEnds = new Map((await readUser(deps.store, userId, 'courses')).map((c) => [c.id, c.enddate > 0 ? c.enddate : null] as const));
+    tasks = mergeTasks(previousTasks, calendar.data.events, now, CALENDAR_LOOKBACK_DAYS, courseEnds);
     await writeUser(deps.store, userId, 'tasks', tasks);
     const state = await readUser(deps.store, userId, 'taskState');
     await writeUser(deps.store, userId, 'taskState', pruneTaskState(state, new Set(tasks.map((t) => t.eventId))));
@@ -382,6 +385,9 @@ export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origi
   if (options.recap && deps.client && deps.trigger && mode !== 'saver' && (followUp === 'ok' || followUp === 'skipped')) {
     const recap = await autoRecap(deps as SyncDeps, userId, courses, now, knownUser !== userId).catch(() => 'failed' as const);
     stage(deps, 'attendance', recap);
+    // Task grades (owner's rule of 27 Nov 2026): every followed course's grade report not read in 6 hours, all at
+    // once (the first sync reads them all; tasks/grade-sweep.ts). Never fails the sync.
+    await gradeSweep({ client: deps.client, store: deps.store, clock: deps.clock }, SWEEP_SYNC);
   }
 
   if (broken.length > 0) return { status: 'parser_broken', where: broken.join(', ') };

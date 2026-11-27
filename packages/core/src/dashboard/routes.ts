@@ -8,7 +8,7 @@ export type Page = (typeof PAGES)[number];
 export const NEOSIA_PAGES: ReadonlySet<Page> = new Set(['jadwal', 'nilai']);
 
 /** Pages with names, grades or credits: only these show the privacy mode button. */
-export const SENSITIVE_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'presensi', 'jadwal', 'nilai']);
+export const SENSITIVE_PAGES: ReadonlySet<Page> = new Set(['ringkasan', 'tugas', 'presensi', 'jadwal', 'nilai']);
 
 export interface Route {
   page: Page;

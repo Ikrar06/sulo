@@ -5,6 +5,8 @@
 import { EMPTY_PRESENSI, type PresensiData } from './presensi/types';
 import type { TaskStateMap } from './tasks/local-state';
 import type { ChangeLogEntry, CourseId, CourseRecord, CourseSnapshot, KeyValueStore, SyncOutcome, Task, UnixSeconds, UserId } from './types';
+import { withOwnTasks, type OwnTask } from './tasks/own';
+import type { GradeReads, TaskGrades } from './tasks/grade-service';
 
 export const CURRENT_USER_KEY = 'global:currentUser';
 export const NOTICE_KEY = 'global:notice';
@@ -80,6 +82,14 @@ export interface UserData {
   radar: RadarMeta;
   /** Attendance (M7.3): monitored courses only, fetched when the Presensi page is opened. */
   presensi: PresensiData;
+  /** Tasks the student added (tasks/own.ts): never synced, joined to `tasks` only in views and reminders. */
+  ownTasks: OwnTask[];
+  /** "Lihat nilai" answers by cmid (tasks/grade-service.ts): read on the student's tap, kept 24 hours, never sent or copied. */
+  taskGrades: TaskGrades;
+  /** "Lihat nilai" reads of each course's grade report, by course id (tasks/grade-service.ts). */
+  gradeReads: GradeReads;
+  /** The last automatic grade read (tasks/grade-sweep.ts), for its 5-minute gap. */
+  gradeSweep: { at: UnixSeconds | null };
 }
 
 export interface RadarMeta {
@@ -124,6 +134,10 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   snapshots: {},
   radar: { stateCheckedAt: {}, notificationsLastId: null, calendarBaseline: false },
   presensi: EMPTY_PRESENSI,
+  ownTasks: [],
+  taskGrades: {},
+  gradeReads: {},
+  gradeSweep: { at: null },
 };
 
 export const userKey = (userId: UserId, name: keyof UserData) => `u:${userId}:${name}`;
@@ -184,10 +198,14 @@ export async function writeUser<K extends keyof UserData>(
   await store.set(userKey(userId, name), value);
 }
 
-/** Reads every user key at once, with defaults, for building views. */
+/**
+ * Reads every user key at once, with defaults, for building views. `tasks` here holds SIKOLA's tasks and
+ * the ones the student added (tasks/own.ts); sync and Radar read `tasks` alone, through readUser.
+ */
 export async function readAllUser(store: KeyValueStore, userId: UserId): Promise<UserData> {
   const entries = await Promise.all(
     (Object.keys(DEFAULTS) as (keyof UserData)[]).map(async (name) => [name, await readUser(store, userId, name)] as const),
   );
-  return Object.fromEntries(entries) as unknown as UserData;
+  const data = Object.fromEntries(entries) as unknown as UserData;
+  return { ...data, tasks: withOwnTasks(data.tasks, data.ownTasks) };
 }

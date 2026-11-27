@@ -5,11 +5,20 @@ import { Input } from '@sulo/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
-import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
+import { buildTaskItems, countByStatus, DEFAULT_TASK_FILTER, filterTasks, isFinishedItem, isHistoryStatus, matchesStatus, type TaskFilter, type TaskItem, type TaskStatusFilter } from '@sulo/core/dashboard/tasks';
 import { countdownLabel } from '@sulo/core/format/countdown';
-import { taskDueLines } from '@sulo/core/format/time';
+import { formatShortDate, taskDueLines } from '@sulo/core/format/time';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
+import { addOwnTask, isOwnTask, removeOwnTask, updateOwnTask, type OwnTask } from '@sulo/core/tasks/own';
+import { Button } from '@sulo/ui/ui/button';
+import { EyeIcon, EyeOffIcon, PlusIcon } from '@sulo/ui/dashboard-icons';
+import { OwnTaskDialog } from '../OwnTaskDialog';
+import { HeaderTools } from '../header-tools';
+import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
+import { gradeBadge, showsGradeCard, type GradeBadge } from '@sulo/core/tasks/grade-view';
+import type { SweepResult } from '@sulo/core/tasks/grade-sweep';
+import type { CourseGradeOutcome } from '@sulo/core/tasks/grade-service';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
@@ -24,14 +33,18 @@ import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { useFlip } from '@/lib/ui/flip';
 import type { PageProps } from '../types';
 
-const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'done', 'submitted', 'inactive', 'all'];
+// "Belum selesai" first and by default; "Sudah dinilai" next, then the finished kinds (1.1.0): one list, newest
+// first (the course filter narrows it, with "Lihat nilai" for that course). Opening the page reads a few courses'
+// grade reports not read in a day (tasks/grade-sweep.ts, owner's exception of 27 Nov 2026); a read grade takes the
+// due time's place on the right, its number shown only with "Tampilkan nilai" (prefs.gradesShown, off by default).
+const STATUS_FILTERS: readonly TaskStatusFilter[] = ['pending', 'graded', 'done', 'submitted', 'past', 'inactive', 'all'];
 
 
 export function TugasPage({ d, data, actions, route }: PageProps) {
   const { m } = useI18n();
   const t = d.tugas;
   const user = data.user!;
-  const items = useMemo(() => buildTaskItems(user), [user]);
+  const items = useMemo(() => buildTaskItems(user, t.own), [user, t.own]);
   const counts = useMemo(() => countByStatus(items), [items]);
   const [filter, setFilter] = useState<TaskFilter>(DEFAULT_TASK_FILTER);
   const linked = route.detail !== null ? Number(route.detail) : null;
@@ -47,7 +60,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
 
   const done = useDoneUndo(actions, d, data.today, local);
   // Rows just marked done stay in place for the undo window, whatever the filter.
-  const passes = (i: TaskItem) => filter.status === 'all' || i.status === filter.status;
+  const passes = (i: TaskItem) => matchesStatus(i, filter.status);
   const shown = filterTasks(items, { ...filter, status: 'all' }).filter((i) => passes(i) || done.lingering.has(i.task.eventId));
   const allClear = filter.status === 'pending' && counts.pending === 0 && filter.courseId === null && filter.query.trim() === '';
   const active = activeCourseIds(user.courses);
@@ -55,9 +68,56 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
   const listRef = useRef<HTMLUListElement>(null);
   useFlip(listRef);
+  const history = isHistoryStatus(filter.status);
+  const view = { gradesShown: data.prefs.gradesShown, privacyMode: data.prefs.privacyMode };
+  const anyGrade = shown.some((i) => i.gradeRead !== null);
+  // History newest first.
+  const listed = history ? [...shown].sort((a, b) => (b.task.dueAt ?? 0) - (a.task.dueAt ?? 0)) : shown;
+  // Opening Tugas checks a few courses' grades (not read in a day); what it marks done is said once.
+  const [swept, setSwept] = useState(0);
+  useEffect(() => {
+    let live = true;
+    void actions.send({ type: 'grades/sweep' }).then((r) => {
+      if (live) setSwept((r as SweepResult | null)?.markedDone ?? 0);
+    });
+    return () => {
+      live = false;
+    };
+    // Once per opening of the page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const sweepLine = swept > 0 ? t.gradesSwept(swept) : null;
+  // "Lihat nilai" for the course picked in the filter: busy while its page loads, then one line.
+  const [courseRead, setCourseRead] = useState<Record<number, { busy: boolean; line: string | null }>>({});
+  const readCourse = async (courseId: number) => {
+    setCourseRead((s) => ({ ...s, [courseId]: { busy: true, line: s[courseId]?.line ?? null } }));
+    const o = ((await actions.send({ type: 'course/grades', courseId, again: true })) as CourseGradeOutcome | null) ?? { status: 'failed' as const, reason: 'NO_ANSWER' };
+    const line =
+      o.status === 'ok'
+        ? t.courseGradesResult(o.graded, o.markedDone.length)
+        : o.status === 'cooldown'
+          ? t.gradeWait
+          : o.status === 'failed' && o.reason === 'REPORT_UNREADABLE'
+            ? t.gradeReportUnreadable
+            : o.status === 'failed' && (o.reason === 'SESSION_EXPIRED' || o.reason === 'login_required')
+              ? t.gradeExpired
+              : t.gradeFailed;
+    setCourseRead((s) => ({ ...s, [courseId]: { busy: false, line } }));
+  };
+  const picked = filter.courseId !== null ? courseRead[filter.courseId] : undefined;
+  // "Tambah tugas" and "Ubah tugas" (tasks/own.ts): null closed, 'new' adding, a task changing it.
+  const [form, setForm] = useState<OwnTask | 'new' | null>(null);
+  const editing = form !== null && form !== 'new' ? form : null;
 
   return (
     <div className="space-y-4">
+      {/* An action, so it sits in the header with the other pill buttons; the row below is only filters. */}
+      <HeaderTools>
+        <Button variant="outline" onClick={() => setForm('new')}>
+          <PlusIcon className="size-4" />
+          {t.ownAdd}
+        </Button>
+      </HeaderTools>
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-60 flex-1">
           <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -90,9 +150,28 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
           </SelectContent>
         </Select>
       </div>
-      <p className="text-[12px] text-muted-foreground" role="status">
-        {t.count(shown.length)}
-      </p>
+      <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
+        <p className="text-[12px] text-muted-foreground" role="status">
+          {t.count(shown.length)}
+          {history && anyGrade && !view.gradesShown ? ` · ${t.gradesHidden}` : ''}
+          {picked && picked.busy ? ` · ${t.gradeLoading}` : picked?.line ? ` · ${picked.line}` : ''}
+          {sweepLine ? ` · ${sweepLine}` : ''}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* A course picked in the finished lists: its grades now (one page for all its tasks). */}
+          {history && filter.courseId !== null && (
+            <Button variant="outline" disabled={picked?.busy} onClick={() => void readCourse(filter.courseId!)}>
+              {t.gradeSee}
+            </Button>
+          )}
+          {history && anyGrade && (
+            <Button variant="outline" onClick={() => void actions.setPrefs({ gradesShown: !view.gradesShown })}>
+              {view.gradesShown ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+              {view.gradesShown ? t.gradesHide : t.gradesShow}
+            </Button>
+          )}
+        </div>
+      </div>
 
       {shown.length === 0 ? (
         allClear ? (
@@ -106,7 +185,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
         )
       ) : (
         <ul ref={listRef} className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
-          {shown.map((item) => (
+          {listed.map((item) => (
             <TaskRowItem
               key={item.task.eventId}
               item={item}
@@ -118,6 +197,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
               now={data.now}
               dueFormat={data.prefs.dueFormat}
               onOpenTab={actions.openTab}
+              grade={gradeBadge(item.gradeRead, view, m.intl)}
               details={
                 <TaskDetails
                   item={item}
@@ -136,6 +216,11 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onToggleStep: (id) => state((s) => toggleStep(s, item.task.eventId, id)),
                     onRemoveStep: (id) => state((s) => removeStep(s, item.task.eventId, id)),
                     onNote: (note) => state((s) => setNote(s, item.task.eventId, note)),
+                    ...(isOwnTask(item.task) ? { onEditOwn: () => setForm(user.ownTasks.find((o) => o.id === item.task.eventId) ?? null) } : {}),
+                    // "Lihat nilai", for an assignment past due, handed in or done: the service worker reads its page.
+                    ...(showsGradeCard(item.task, item.status === 'done', data.now)
+                      ? { onGrade: async (cmid: number, again: boolean) => ((await actions.send({ type: 'task/grade', cmid, again })) as TaskGradeOutcome | null) ?? { status: 'failed' as const, reason: 'NO_ANSWER' } }
+                      : {}),
                   }}
                 />
               }
@@ -143,14 +228,49 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
           ))}
         </ul>
       )}
+      <OwnTaskDialog
+        open={form !== null}
+        onOpenChange={(o) => !o && setForm(null)}
+        editing={editing}
+        courses={user.courses}
+        t={t}
+        cancelLabel={d.common.cancel}
+        onSave={(input) => {
+          void actions.updateUser('ownTasks', (list) => (editing ? updateOwnTask(list, editing.id, input) : addOwnTask(list, input, data.now)));
+          setForm(null);
+        }}
+        onRemove={
+          editing
+            ? () => {
+                // The task, then its steps and note.
+                void actions.updateUser('ownTasks', (list) => removeOwnTask(list, editing.id)).then(() =>
+                  actions.updateUser('taskState', (map) => Object.fromEntries(Object.entries(map).filter(([key]) => key !== String(editing.id)))),
+                );
+                setForm(null);
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }
 
-function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, onOpenTab, details, collapsing = false }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; onOpenTab: (url: string) => void; details: ReactNode; collapsing?: boolean }) {
+/** A read grade on the right of a row, as tall as the due time's first line; "Dinilai" while hidden, a mask in privacy mode. */
+function RowGrade({ grade, t }: { grade: GradeBadge; t: PageProps['d']['tugas'] }) {
+  const text = grade.kind === 'value' ? grade.text : grade.kind === 'masked' ? '•••' : t.gradedBadge;
+  return (
+    <span role="img" aria-label={grade.kind === 'value' ? t.gradeValueLabel(grade.text) : t.gradedBadge} className={`inline-flex h-6 items-center rounded-full bg-muted px-2 whitespace-nowrap select-none ${grade.kind === 'value' ? 'text-[14px] font-semibold text-foreground' : 'text-[12px] font-medium text-muted-foreground'} ${grade.kind === 'masked' ? 'tracking-widest' : ''}`}>
+      {text}
+    </span>
+  );
+}
+
+function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, onOpenTab, details, collapsing = false, grade = null }: { item: TaskItem; expanded: boolean; onToggleOpen: () => void; onDone: (done: boolean) => void; d: PageProps['d']; now: number; dueFormat: PageProps['data']['prefs']['dueFormat']; onOpenTab: (url: string) => void; details: ReactNode; collapsing?: boolean; grade?: GradeBadge | null }) {
   const { m, locale } = useI18n();
   const t = d.tugas;
   const due = item.task.dueAt;
+  // A finished task (done, handed in, long past or graded) has no time left to count: its date, quiet.
+  const finished = isFinishedItem(item);
   const urgency = item.status === 'pending' ? urgencyOf(due, now) : 'normal';
   const steps = item.state.steps;
   const panelId = `task-panel-${item.task.eventId}`;
@@ -175,8 +295,15 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
           </span>
         </button>
         <span className="relative min-w-7 shrink-0 text-right text-[14px] leading-6 tabular-nums">
-          {due === null ? (
+          {grade ? (
+            <>
+              <RowGrade grade={grade} t={t} />
+              {due !== null && <span className="block text-[12px] leading-normal text-muted-foreground">{formatShortDate(due, timeZone, m)}</span>}
+            </>
+          ) : due === null ? (
             <span className="text-muted-foreground">{t.noDue}</span>
+          ) : finished ? (
+            <span className="text-muted-foreground">{formatShortDate(due, timeZone, m)}</span>
           ) : (
             <>
               <span className={`block ${FADES_FOR_CALENDAR}`}>
@@ -187,7 +314,7 @@ function TaskRowItem({ item, expanded, onToggleOpen, onDone, d, now, dueFormat, 
           )}
         </span>
         {/* Over the due time, centred on the row, 8 px left of the details chevron. */}
-        {due !== null && (
+        {due !== null && !finished && (
           <span className="absolute top-1/2 right-[52px] -translate-y-1/2">
             <CalendarHoverButton name={item.task.name} courseName={item.courseName} dueAt={due} url={item.task.url} onOpen={onOpenTab} />
           </span>

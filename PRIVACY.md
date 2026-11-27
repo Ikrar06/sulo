@@ -16,6 +16,7 @@ Sulo uses the SIKOLA session that already exists in your browser to read your ow
 - assignments and their due dates, including quiz deadlines
 - the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks
 - your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts
+- the grade page of each course you follow (or a task's own page, when that page cannot be read): when you open the Tasks page (at most once every 10 minutes, each course at most once an hour), when Sulo updates (each course at most every 6 hours), and when you choose See grade; only each task's grade, never lecturer comments, the grader's name, weights or files
 
 Sulo only reads. It never submits work, never marks anything as read, never changes data on SIKOLA, never reads quiz content, and never reads other students' data.
 
@@ -23,9 +24,11 @@ Sulo only reads. It never submits work, never marks anything as read, never chan
 
 Everything is stored locally in your browser (chrome.storage) on your own device:
 
-- courses, assignments and due dates
+- courses, assignments and due dates, and the tasks you add yourself (the title, course and due date you type)
 - your attendance recap from SIKOLA, updated automatically at most once a day, and the per-session details, fetched only when you open them (for the courses you follow: sessions recorded, points, percentage, status, and remarks)
 - the last seen structure of each course and the "Latest updates" log (at most 200 entries)
+- finished and past-due tasks, until their course ends for the semester, so you can still look back at them and their grades
+- task grades you looked at with See grade, while the task is in Sulo; fetched again from SIKOLA at most once a day unless you choose Check again; never sent, copied or shown in a notification
 - your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself
 - a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself
 - local usage counters, which never leave your device unless you export them yourself

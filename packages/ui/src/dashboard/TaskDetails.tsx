@@ -5,13 +5,19 @@ import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { TaskItem } from '@sulo/core/dashboard/tasks';
+import { isFinishedItem, type TaskItem } from '@sulo/core/dashboard/tasks';
 import { formatClock, formatDue } from '@sulo/core/format/time';
 import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
 import { STEP_MAX } from '@sulo/core/tasks/local-state';
 import type { UnixSeconds } from '@sulo/core/types';
-import { PlusIcon, XIcon } from '../dashboard-icons';
+import { PencilIcon, PlusIcon, XIcon } from '../dashboard-icons';
+import { isOwnTask } from '@sulo/core/tasks/own';
+import { formatAgo } from '@sulo/core/format/time';
+import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
+import { gradeLine } from '@sulo/core/tasks/grade-view';
+import { Private } from '../private';
+import { useTaskGrade } from './task-grade';
 
 export interface TaskDetailActions {
   onOpen: (url: string) => void;
@@ -22,6 +28,13 @@ export interface TaskDetailActions {
   onToggleStep: (stepId: string) => void;
   onRemoveStep: (stepId: string) => void;
   onNote: (note: string) => void;
+  /** A task the student added (tasks/own.ts): its form, in place of SIKOLA's page. */
+  onEditOwn?: () => void;
+  /**
+   * "Lihat nilai" (tasks/grade-service.ts): one read of the assignment page, only when asked. The page passes it
+   * only for an assignment handed in and graded on SIKOLA (tasks/grade-view.ts showsGradeCard).
+   */
+  onGrade?: (cmid: number, again: boolean) => Promise<TaskGradeOutcome>;
 }
 
 // Every control in the action row is 36 px high.
@@ -40,7 +53,9 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
   const [step, setStep] = useState('');
   const [note, setNote] = useState(item.state.note);
   const [noteSaved, setNoteSaved] = useState(false);
-  const undated = item.task.dueAt === null || item.personalDue;
+  const own = isOwnTask(item.task);
+  // Known only from its course's grade report (finished, no due date): nothing to set a due date for.
+  const undated = !own && !item.task.fromReport && (item.task.dueAt === null || item.personalDue);
   const current = item.personalDue && item.task.dueAt !== null ? localParts(item.task.dueAt, timeZone) : null;
   const [due, setDue] = useState(current ? `${current.dateKey}T${String(Math.floor(current.minuteOfDay / 60)).padStart(2, '0')}:${String(current.minuteOfDay % 60).padStart(2, '0')}` : '');
 
@@ -63,6 +78,10 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
     // Indented to the task title (row padding 16 + checkbox 16 + gap 12 = 44 px), not to the checkbox.
     <div className={inset ? "space-y-4 border-t border-border pt-3 pr-4 pb-4 pl-11" : "space-y-4 p-4"}>{/* lint-ui-allow: 44 px aligns with the title text */}
       {snoozed && <p className="text-[14px]">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
+
+      {actions.onGrade && item.task.cmId !== null && (
+        <GradeSection key={item.task.cmId} cmid={item.task.cmId} url={item.task.url} now={now} d={d} onGrade={actions.onGrade} />
+      )}
 
       {undated && (
         <div className="space-y-2">
@@ -159,11 +178,21 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-        <a className={action} data-slot="task-action" href={item.task.url} target="_blank" rel="noopener noreferrer">
-          <ExternalIcon className="size-4" />
-          {d.common.openInSikola}
-        </a>
-        {item.task.dueAt !== null && (
+        {own ? (
+          actions.onEditOwn && (
+            <button type="button" className={action} data-slot="task-action" onClick={actions.onEditOwn}>
+              <PencilIcon className="size-4" />
+              {t.ownEdit}
+            </button>
+          )
+        ) : (
+          <a className={action} data-slot="task-action" href={item.task.url} target="_blank" rel="noopener noreferrer">
+            <ExternalIcon className="size-4" />
+            {d.common.openInSikola}
+          </a>
+        )}
+        {/* A finished task has nothing left to put in a calendar. */}
+        {item.task.dueAt !== null && !isFinishedItem(item) && (
           <button type="button" className={action} data-slot="task-action" onClick={() => actions.onAddToCalendar(item)}>
             <CalendarPlusIcon className="size-4" />
             {t.addToCalendar}
@@ -187,6 +216,75 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
           <Button variant="ghost" className="h-9" onClick={() => actions.onSnooze(null)}>
             {t.cancelSnooze}
           </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * "Nilai": hidden until "Lihat nilai", then the answer (masked in privacy mode), checked when, and SIKOLA's
+ * own page where Sulo could not read it. Collapsing the task hides it again.
+ */
+function GradeSection({ cmid, url, now, d, onGrade }: { cmid: number; url: string; now: UnixSeconds; d: DashMessages; onGrade: NonNullable<TaskDetailActions['onGrade']> }) {
+  const { m } = useI18n();
+  const t = d.tugas;
+  const grade = useTaskGrade((again) => onGrade(cmid, again));
+  const s = grade.state;
+  const line = s.phase === 'shown' ? gradeLine(s.outcome, m.intl) : null;
+  const checkedAt = line && 'fetchedAt' in line ? line.fetchedAt : null;
+  const message =
+    line === null || line.kind === 'value'
+      ? null
+      : { none: t.gradeNone, not_shown: t.gradeNotShown, unknown: t.gradeUnknown, failed: t.gradeFailed, expired: t.gradeExpired, wait: t.gradeWait }[line.kind];
+  const offerSikola = line !== null && (line.kind === 'unknown' || line.kind === 'failed' || line.kind === 'not_shown');
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-[14px] font-semibold">{t.grade}</p>
+        {checkedAt !== null && <span className="text-[12px] text-muted-foreground">{t.gradeChecked(formatAgo(checkedAt, now, m))}</span>}
+      </div>
+      {s.phase === 'hidden' && <p className="text-[12px] text-muted-foreground">{t.gradeHelp}</p>}
+      {s.phase === 'loading' && (
+        <p role="status" className="text-[12px] text-muted-foreground">
+          {t.gradeLoading}
+        </p>
+      )}
+      {line?.kind === 'value' && (
+        <p className="text-[20px] font-semibold tabular-nums">
+          <Private>{line.text}</Private>
+        </p>
+      )}
+      {message && (
+        <p role="status" className="text-[14px] text-muted-foreground">
+          {message}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        {s.phase !== 'shown' ? (
+          <Button variant="outline" className="h-9" disabled={s.phase === 'loading'} onClick={grade.see}>
+            {t.gradeSee}
+          </Button>
+        ) : (
+          <>
+            {line?.kind !== 'expired' && line?.kind !== 'wait' && line?.kind !== 'unknown' && (
+              <Button variant="outline" className="h-9" onClick={grade.again}>
+                {t.gradeAgain}
+              </Button>
+            )}
+            {offerSikola && (
+              // A pill like its neighbours in this row (the action row below keeps its own shape).
+              <Button variant="outline" className="h-9" asChild>
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                  <ExternalIcon className="size-4" />
+                  {d.common.openInSikola}
+                </a>
+              </Button>
+            )}
+            <Button variant="ghost" className="h-9" onClick={grade.hide}>
+              {t.gradeHide}
+            </Button>
+          </>
         )}
       </div>
     </div>

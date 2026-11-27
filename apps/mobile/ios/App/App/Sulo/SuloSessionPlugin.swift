@@ -358,7 +358,24 @@ public class SuloSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
     @objc func watchTake(_ call: CAPPluginCall) { call.resolve(["answers": [String](), "fullSync": false]) }
-    @objc func watchStatus(_ call: CAPPluginCall) { SikolaLock.queue.async { call.resolve(Keeper.status()) } }
+    /// The keeper's notes, and whether iOS lets Sulo run in the background at all (Background App Refresh
+    /// on for Sulo and for the phone, Low Power Mode off): read on the main thread, as UIKit asks.
+    @objc func watchStatus(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let refresh: String
+            switch UIApplication.shared.backgroundRefreshStatus {
+            case .available: refresh = "available"
+            case .denied: refresh = "denied"
+            case .restricted: refresh = "restricted"
+            @unknown default: refresh = "unknown"
+            }
+            SikolaLock.queue.async {
+                var status = Keeper.status()
+                status["backgroundRefresh"] = refresh
+                call.resolve(status)
+            }
+        }
+    }
     @objc func watchTakeOpen(_ call: CAPPluginCall) { call.resolve(["id": NSNull()]) }
     @objc func watchRunNow(_ call: CAPPluginCall) { call.reject("not available") }
     @objc func watchSimulate(_ call: CAPPluginCall) { call.reject("not available") }

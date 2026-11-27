@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseCall } from '@sulo/core/moodle/schemas';
-import { MISSING_RETENTION_DAYS, mergeTasks, taskFromEvent, upcomingCourseIds } from '@sulo/core/tasks/from-calendar';
+import { KEEP_MAX_DAYS, keepUntil, mergeTasks, SEMESTER_FALLBACK_DAYS, SEMESTER_GRACE_DAYS, taskFromEvent, upcomingCourseIds } from '@sulo/core/tasks/from-calendar';
 import { badgeCount, groupTasks, pendingTasks, urgencyOf } from '@sulo/core/tasks/group';
 import { getTaskState, pruneTaskState, setDone, setSnooze } from '@sulo/core/tasks/local-state';
 import type { Task } from '@sulo/core/types';
@@ -63,13 +63,45 @@ describe('tasks from the calendar', () => {
     expect(kept).toEqual([task(999, NOW + DAY, { missingSince: NOW })]);
   });
 
-  it(`forgets probably-submitted tasks after ${MISSING_RETENTION_DAYS} days`, () => {
-    const old = task(999, NOW + DAY, { missingSince: NOW - (MISSING_RETENTION_DAYS + 1) * DAY });
-    expect(mergeTasks([old], [], NOW, 14)).toEqual([]);
+  it('keeps a gone task until its course ends, plus a grace for late grades', () => {
+    const gone = task(999, NOW - 60 * DAY, { missingSince: NOW - 55 * DAY });
+    const ends = (at: number | null) => new Map([[401, at]]);
+    // The course ends in a month: kept, long after the old 14 days.
+    expect(mergeTasks([gone], [], NOW, 14, ends(NOW + 30 * DAY))).toEqual([gone]);
+    // Ended more than the grace ago: dropped.
+    expect(mergeTasks([gone], [], NOW, 14, ends(NOW - (SEMESTER_GRACE_DAYS + 1) * DAY))).toEqual([]);
+    expect(mergeTasks([gone], [], NOW, 14, ends(NOW - (SEMESTER_GRACE_DAYS - 1) * DAY))).toEqual([gone]);
   });
 
-  it('drops tasks that only fell out of the requested window', () => {
-    expect(mergeTasks([task(999, NOW - 20 * DAY)], [], NOW, 14)).toEqual([]);
+  it(`without a course end, keeps it ${SEMESTER_FALLBACK_DAYS} days after its due date, never more than ${KEEP_MAX_DAYS}`, () => {
+    const due = NOW - 100 * DAY;
+    expect(keepUntil({ dueAt: due, missingSince: NOW, firstSeenAt: due }, null)).toBe(due + SEMESTER_FALLBACK_DAYS * DAY);
+    // A course end years away (a wrong date) is capped.
+    expect(keepUntil({ dueAt: due, missingSince: NOW, firstSeenAt: due }, NOW + 900 * DAY)).toBe(due + KEEP_MAX_DAYS * DAY);
+    expect(mergeTasks([task(999, NOW - (SEMESTER_FALLBACK_DAYS + 1) * DAY, { missingSince: NOW - DAY })], [], NOW, 14)).toEqual([]);
+  });
+
+  it('keeps a task that only fell out of the requested window as past, not probably submitted', () => {
+    expect(mergeTasks([task(999, NOW - 20 * DAY)], [], NOW, 14)).toEqual([task(999, NOW - 20 * DAY, { missingSince: NOW, pastWindow: true })]);
+    // Gone while still inside the window (handed in): it stays "probably submitted" after its date leaves it.
+    const handedIn = task(998, NOW - 20 * DAY, { missingSince: NOW - 10 * DAY });
+    expect(mergeTasks([handedIn], [], NOW, 14)).toEqual([handedIn]);
+  });
+
+  it('an assignment known only from its grade report gives way to its calendar event', () => {
+    const reported = task(-301, null, { cmId: 301, missingSince: NOW - DAY, pastWindow: true, fromReport: true });
+    const merged = mergeTasks([reported], [{ ...events()[0]! }], NOW, 14);
+    expect(merged.filter((t) => t.cmId === 301)).toHaveLength(1);
+    expect(merged.some((t) => t.fromReport)).toBe(false);
+    // Without its event it stays, as a past task.
+    expect(mergeTasks([reported], [], NOW, 14)).toEqual([reported]);
+  });
+
+  it('a past task back in the calendar (a new due date) is active again', () => {
+    const past = task(301, NOW - 20 * DAY, { missingSince: NOW - DAY, pastWindow: true });
+    const [back] = mergeTasks([past], [{ ...events()[0]!, id: 301 }], NOW, 14);
+    expect(back?.missingSince).toBeNull();
+    expect(back?.pastWindow).toBeUndefined();
   });
 
   it('lists courses with upcoming deadlines', () => {

@@ -37,11 +37,16 @@ export function WatchSettings({ lock, lockAvailable, onLockOn, after }: { lock: 
   const [remote, setRemote] = useState<KeepAliveConfig | null>(null);
   const [offer, setOffer] = useState(false);
   const [timings, setTimings] = useState<WatchTiming[]>([]);
+  // iOS: Background App Refresh off for Sulo, for the phone, or by Low Power Mode (null elsewhere).
+  const [refreshOff, setRefreshOff] = useState(false);
 
   useEffect(() => {
     void readWatch(platform).then(setWatch);
     void readKeepAlive(platform).then(setRemote);
-    void readWatchStatus().then((s) => setTimings(s.timings));
+    void readWatchStatus().then((s) => {
+      setTimings(s.timings);
+      setRefreshOff(s.backgroundRefresh === 'denied' || s.backgroundRefresh === 'restricted');
+    });
   }, [platform]);
 
   const remoteOff = remote !== null && !remote.enabled;
@@ -63,7 +68,8 @@ export function WatchSettings({ lock, lockAvailable, onLockOn, after }: { lock: 
     onLockOn();
   };
   const lastOk = [...timings].reverse().find((x) => x.outcome === 'ok')?.ranAt ?? null;
-  const showSleepHelp = watch.enabled && !remoteOff && !watch.sleepHelpDismissed && sleepHelpDue(timings.filter((x) => x.plannedAt > 0));
+  // Android: the phone held the last checks back. iPhone: iOS lets no background time at all (the keeper cannot run).
+  const showSleepHelp = watch.enabled && !remoteOff && !watch.sleepHelpDismissed && (refreshOff || sleepHelpDue(timings.filter((x) => x.plannedAt > 0)));
   const status = lastOk !== null ? k.lastCheck(formatAgo(lastOk, data!.now, m)) : k.noCheck;
 
   return (

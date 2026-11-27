@@ -15,6 +15,8 @@ import { isBackingOff, readBackoff } from './backoff';
 import { reserveRequest } from './budget';
 import { calls, isAllowedFunction, isAllowedPage, type MoodleCall } from './calls';
 import { ATTENDANCE_PATH, isReadOnlyAttendanceUrl } from '../presensi/urls';
+import { ASSIGN_PATH, isReadOnlyAssignUrl } from '../tasks/grade';
+import { COURSE_REPORT_PATH, isReadOnlyCourseReportUrl } from '../tasks/course-grades';
 import { DAILY_BUDGET, DAILY_CALL_BUDGET, SEND_NOSESSIONUPDATE } from './limits';
 import { batchResponseSchema, topLevelErrorSchema } from './schemas';
 import { readSession, writeSession } from './session';
@@ -206,6 +208,10 @@ async function executePage(deps: ResolvedDeps, pathAndQuery: string, options: Re
   if (!url || !isAllowedPage(url.pathname)) return refused('NOT_ALLOWLISTED');
   // Attendance: the read-only student view only (never take, sessions.php or a form).
   if (url.pathname === ATTENDANCE_PATH && !isReadOnlyAttendanceUrl(`${url.pathname}${url.search}`)) return refused('NOT_ALLOWLISTED');
+  // An assignment: the student's view by id only (never an action, a form or a sesskey).
+  if (url.pathname === ASSIGN_PATH && !isReadOnlyAssignUrl(`${url.pathname}${url.search}`)) return refused('NOT_ALLOWLISTED');
+  // A course's grade report: the student's own, by course id only (never a userid or another report).
+  if (url.pathname === COURSE_REPORT_PATH && !isReadOnlyCourseReportUrl(`${url.pathname}${url.search}`)) return refused('NOT_ALLOWLISTED');
   const gate = await checkGates(deps);
   if (gate) return gate;
 

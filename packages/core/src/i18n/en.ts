@@ -76,6 +76,7 @@ export const en: Messages = {
       noDue: 'no due date',
     },
     row: {
+      ownTask: 'Your own task',
       doneShort: 'Done',
       undo: 'Undo',
       menu: (name) => `Options for ${name}`,

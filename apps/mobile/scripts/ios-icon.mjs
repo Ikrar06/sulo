@@ -3,7 +3,11 @@
 // page's apple-touch-icon,
 // the mascot (apps/landing/public/favicon.svg) on the light screen colour (#F1F1F4, android
 // res/values/ic_launcher_background.xml). iOS wants one 1024 x 1024 PNG with no transparency; it rounds the
-// corners itself. The launch screen: the mascot on the app's screen colour, light and dark (Android
+// corners itself. iOS 18 and later also take a dark and a tinted icon from the same set (AppIcon Contents.json
+// appearances): dark is the mascot on a transparent background, under which the system draws its own dark
+// backdrop, as for every dark icon on the home screen; tinted is the mascot in grays on black, which the
+// system colours with the chosen tint (the flame lightened so it takes most of the tint, the face black like
+// the backdrop, the eyes white). Older iOS shows the light icon. The launch screen: the mascot on the app's screen colour, light and dark (Android
 // res/values*/colors.xml sulo_screen, its splash). Rendered with the Playwright Chromium the layout checks
 // already use: nothing to install.
 //   node scripts/ios-icon.mjs
@@ -14,10 +18,17 @@ import { chromium } from 'playwright';
 const MOBILE = new URL('..', import.meta.url).pathname;
 const svg = readFileSync(join(MOBILE, '../landing/public/favicon.svg'), 'utf8');
 const BG = /<color name="ic_launcher_background">(#[0-9A-Fa-f]{6})<\/color>/.exec(readFileSync(join(MOBILE, 'android/app/src/main/res/values/ic_launcher_background.xml'), 'utf8'))[1];
-const OUT = join(MOBILE, 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png');
+const ICONSET = join(MOBILE, 'ios/App/App/Assets.xcassets/AppIcon.appiconset');
+const OUT = join(ICONSET, 'AppIcon-512@2x.png');
 
-const html = `<!doctype html><html><body style="margin:0"><div style="width:1024px;height:1024px;background:${BG};display:grid;place-items:center">
-<div style="width:680px;height:680px;display:grid;place-items:center">${svg.replace('<svg ', '<svg style="width:100%;height:100%" ')}</div></div></body></html>`;
+/** The mascot at 680 of 1024 on a background ('transparent' for the dark icon), with an optional CSS filter. */
+const iconHtml = (bg, filter = 'none') => `<!doctype html><html><body style="margin:0;background:transparent"><div style="width:1024px;height:1024px;background:${bg};display:grid;place-items:center">
+<div style="width:680px;height:680px;display:grid;place-items:center;filter:${filter}">${svg.replace('<svg ', '<svg style="width:100%;height:100%" ')}</div></div></body></html>`;
+const html = iconHtml(BG);
+const VARIANTS = [
+  { file: 'AppIcon-dark.png', appearance: 'dark', html: iconHtml('transparent'), transparent: true },
+  { file: 'AppIcon-tinted.png', appearance: 'tinted', html: iconHtml('#000000', 'grayscale(1) brightness(1.6)'), transparent: false },
+];
 const screen = (dir) => /<color name="sulo_screen">(#[0-9A-Fa-f]{6})<\/color>/.exec(readFileSync(join(MOBILE, `android/app/src/main/res/${dir}/colors.xml`), 'utf8'))[1];
 const SPLASH = join(MOBILE, 'ios/App/App/Assets.xcassets/Splash.imageset');
 const splashHtml = (bg) => `<!doctype html><html><body style="margin:0"><div style="width:2732px;height:2732px;background:${bg};display:grid;place-items:center">
@@ -29,6 +40,18 @@ try {
   await page.setContent(html);
   writeFileSync(OUT, await page.screenshot({ type: 'png', omitBackground: false }));
   console.log(`ios-icon: ${OUT} (1024 x 1024, latar ${BG})`);
+  for (const v of VARIANTS) {
+    await page.setContent(v.html);
+    writeFileSync(join(ICONSET, v.file), await page.screenshot({ type: 'png', omitBackground: v.transparent }));
+    console.log(`ios-icon: ${v.file} (${v.appearance})`);
+  }
+  writeFileSync(join(ICONSET, 'Contents.json'), JSON.stringify({
+    images: [
+      { filename: 'AppIcon-512@2x.png', idiom: 'universal', platform: 'ios', size: '1024x1024' },
+      ...VARIANTS.map((v) => ({ appearances: [{ appearance: 'luminosity', value: v.appearance }], filename: v.file, idiom: 'universal', platform: 'ios', size: '1024x1024' })),
+    ],
+    info: { author: 'xcode', version: 1 },
+  }, null, 2) + '\n');
   // The launch screen fills the screen (aspect fill): the mascot stays in the middle at about 130 points.
   for (const f of readdirSync(SPLASH)) if (f.endsWith('.png')) rmSync(join(SPLASH, f));
   const big = await browser.newPage({ viewport: { width: 2732, height: 2732 }, deviceScaleFactor: 1 });

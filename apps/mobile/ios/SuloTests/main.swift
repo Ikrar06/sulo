@@ -59,7 +59,17 @@ check(!SikolaRequest.sessionAnswered(#"[{"error":true,"exception":{"errorcode":"
 check(SikolaPage.allowedURL("/mod/attendance/view.php?id=197570&mode=1") == "\(base)/mod/attendance/view.php?id=197570&mode=1", "attendance mode=1")
 check(SikolaPage.allowedURL("/mod/attendance/view.php?id=197570&view=5") == "\(base)/mod/attendance/view.php?id=197570&view=5", "attendance view=5")
 check(SikolaPage.allowedURL("/mod/attendance/view.php?id=1") == "\(base)/mod/attendance/view.php?id=1", "attendance id only")
-for path in ["/my/", "/mod/attendance/take.php?id=1", "/mod/attendance/sessions.php?id=1", "/mod/assign/view.php?id=1", "/login/logout.php?sesskey=abc",
+check(SikolaPage.allowedURL("/mod/assign/view.php?id=70") == "\(base)/mod/assign/view.php?id=70", "assignment by id")
+check(SikolaPage.allowedURL("/grade/report/user/index.php?id=401") == "\(base)/grade/report/user/index.php?id=401", "course grade report by id")
+for path in ["/grade/report/user/index.php?id=401&userid=9", "/grade/report/user/index.php?id=401&sesskey=abc", "/grade/report/user/index.php?userid=9",
+             "/grade/report/user/index.php", "/grade/report/grader/index.php?id=401", "/grade/edit/tree/index.php?id=401"] {
+    check(SikolaPage.allowedURL(path) == nil, "refused: \(path)")
+}
+for path in ["/mod/assign/view.php?id=70&action=editsubmission", "/mod/assign/view.php?id=70&action=removesubmission&sesskey=abc", "/mod/assign/view.php?action=grading",
+             "/mod/assign/view.php?id=70&mode=1", "/mod/assign/view.php?id=70&id=71", "/mod/assign/view.php?id=abc", "/mod/assign/view.php", "/mod/assign/index.php?id=70"] {
+    check(SikolaPage.allowedURL(path) == nil, "refused: \(path)")
+}
+for path in ["/my/", "/mod/attendance/take.php?id=1", "/mod/attendance/sessions.php?id=1", "/mod/quiz/view.php?id=1", "/login/logout.php?sesskey=abc",
              "/mod/attendance/view.php", "/mod/attendance/view.php?", "https://example.com/mod/attendance/view.php?id=1", "//example.com/mod/attendance/view.php?id=1",
              "/mod/attendance/../../login/index.php?id=1", "/mod/attendance/view.php/../take.php?id=1",
              "/mod/attendance/view.php?id=1&sesskey=abc", "/mod/attendance/view.php?id=1&studentid=2", "/mod/attendance/view.php?id=1&mode=1&mode=2",

@@ -43,6 +43,8 @@ export type RequestSource =
   | 'sesskey'
   /** Attendance pages, only when the user opens the Presensi page (M7.3). */
   | 'attendance'
+  /** A task's assignment page, only when the user taps "Lihat nilai" (1.1.0). */
+  | 'assign'
   /** The user signed in to SIKOLA again after the session expired (M7.2): one sync. */
   | 'relogin';
 
@@ -147,6 +149,17 @@ export interface Task {
   lastSeenAt: UnixSeconds;
   /** Set when the task disappeared from the calendar: probably submitted. */
   missingSince: UnixSeconds | null;
+  /**
+   * With missingSince: it went because its due date left the calendar window before Sulo saw it handed in, so
+   * Sulo cannot tell whether it was ("past", not "probably submitted"). Kept for the semester (1.1.0).
+   */
+  pastWindow?: true;
+  /**
+   * Known only from its course's grade report (1.1.0, tasks/grade-service.ts): an assignment Sulo never saw in
+   * SIKOLA's calendar (handed in before Sulo looked, or nothing to submit online). No due date; kept with
+   * missingSince like a handed-in task; a calendar event for the same assignment replaces it.
+   */
+  fromReport?: true;
 }
 
 export interface TaskLocalState {

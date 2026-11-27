@@ -22,6 +22,7 @@ import type { AccountPending } from '../account/pending';
 import type { CalendarHighlight } from '../calendar/highlight-key';
 import { countdownOf, type Countdown } from '../calendar/countdown';
 import { accountStatus, decidePopupScreen, setupStatus, type PopupScreen } from '../account/state';
+import { followsTask, isOwnTask } from '../tasks/own';
 
 export type MascotState = 'idle' | 'syncing' | 'all-done' | 'celebrate' | 'urgent' | 'sleepy' | 'stale' | 'dizzy' | 'onboarding';
 
@@ -218,7 +219,7 @@ export function buildPopupView(input: PopupInput): PopupView {
     return {
       eventId: t.eventId,
       name: t.name,
-      courseName: course ? courseAlias(course) : '',
+      courseName: course ? courseAlias(course) : isOwnTask(t) ? m.popup.row.ownTask : '',
       courseColor: colors.get(t.courseId) ?? 1,
       url: t.url,
       urgency: urgencyOf(t.dueAt, now),
@@ -263,8 +264,9 @@ export function buildPopupView(input: PopupInput): PopupView {
     lastSyncAt,
     groups,
     pendingCount: pending.length,
-    inactiveCourseTaskCount: tasks.filter((t) => t.missingSince === null && !active.has(t.courseId)).length,
-    probablySubmittedCount: tasks.filter((t) => t.missingSince !== null).length,
+    inactiveCourseTaskCount: tasks.filter((t) => t.missingSince === null && !followsTask(active, t)).length,
+    // Past tasks (their due date left the window first) are not "probably submitted": Sulo cannot tell.
+    probablySubmittedCount: tasks.filter((t) => t.missingSince !== null && !t.pastWindow).length,
     reviewSuggestedCount: user?.onboarding.reviewSuggested.length ?? 0,
     copyItems: pending.map((task) => {
       const course = byId.get(task.courseId);

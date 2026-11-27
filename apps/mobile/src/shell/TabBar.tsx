@@ -24,8 +24,6 @@ const ICONS: Record<Tab, { line: IconType; selected: IconType }> = {
 
 /** Hold this long for the name tooltip. */
 const LONG_PRESS_MS = 450;
-/** The bar's height plus its gap to the bottom: content keeps this clear (plus 24). */
-export const TAB_BAR_SPACE = 52 + 12;
 
 export function TabBar({ active, overdue, onSelect, label, labels, overdueLabel }: { active: Tab; overdue: number; onSelect: (tab: Tab) => void; label: string; labels: Record<Tab, string>; overdueLabel: (n: number) => string }) {
   const [tip, setTip] = useState<Tab | null>(null);
@@ -43,8 +41,9 @@ export function TabBar({ active, overdue, onSelect, label, labels, overdueLabel 
     window.setTimeout(() => setTip(null), held.current ? 900 : 0);
   };
   return (
-    <nav aria-label={label} className="pointer-events-none fixed inset-x-0 z-30 px-4" style={{ bottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
-      <div role="tablist" aria-label={label} className="m-card pointer-events-auto mx-auto flex h-[52px] max-w-md items-center justify-around rounded-full px-2">
+    // Height and margins per platform (styles.css --m-bar-*); content keeps the bar's height plus 36 px clear.
+    <nav aria-label={label} className="pointer-events-none fixed inset-x-0 z-30" style={{ bottom: 'calc(12px + var(--m-bar-inset))', paddingInline: 'var(--m-bar-side)' }}>
+      <div role="tablist" aria-label={label} className="m-card pointer-events-auto mx-auto flex max-w-md items-center justify-around rounded-full px-2" style={{ height: 'var(--m-bar-h)' }}>
         {TABS.map((tab) => {
           const on = tab === active;
           const Icon = on ? ICONS[tab].selected : ICONS[tab].line;
