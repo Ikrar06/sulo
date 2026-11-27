@@ -11,11 +11,16 @@
 @source "../../../packages/core/src";
 
 html, body, #root { height: 100%; }
-/* What the tab bar keeps clear at the bottom: the gesture bar's inset (Android). An iPhone's 34 pt inset is
-   mostly empty space under a 5 pt home indicator; there the bar sits just above the indicator, as iOS's own
-   tab bars do (owner, 27 Nov 2026: the bar sat too high). data-os is set at start (main.tsx). */
+/* What the tab bar keeps clear at the bottom: the gesture bar's inset (Android). On an iPhone the 34 pt home
+   indicator area belongs to the system (Apple's guidelines: no fixed control in it); the bar sits right on top
+   of it with a 4 pt gap instead of Android's 12 (owner, 27 Nov 2026: 46 pt from the edge looked too high).
+   data-os is set at start (main.tsx). */
 :root { --m-bar-inset: env(safe-area-inset-bottom); }
-:root[data-os="ios"] { --m-bar-inset: max(0px, calc(env(safe-area-inset-bottom) - 22px)); }
+:root[data-os="ios"] { --m-bar-inset: max(0px, calc(env(safe-area-inset-bottom) - 8px)); }
+/* iPhone: the page itself never scrolls (SuloBridgeViewController: the keyboard must not lift it), so the root
+   scrolls the screens that are taller than the phone and do not scroll inside (the debug and Diagnostik screens,
+   the lock and update screens at large text sizes). */
+:root[data-os="ios"] #root { overflow-y: auto; overscroll-behavior: contain; }
 /* Sizes are the tokens' own: no browser font boosting (text autosizing), only the app's text zoom. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {

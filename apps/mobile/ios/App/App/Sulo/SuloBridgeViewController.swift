@@ -38,8 +38,17 @@ class SuloBridgeViewController: CAPBridgeViewController {
         fitAboveKeyboard()
     }
 
+    /// The app's screen color (packages/ui palette --layer-screen), light or dark as the phone: what shows in the
+    /// see-through rounded edges of iOS 26's keyboard once the web view stops at its top (it was black).
+    private static let screen = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 11 / 255, green: 11 / 255, blue: 14 / 255, alpha: 1)
+            : UIColor(red: 241 / 255, green: 241 / 255, blue: 244 / 255, alpha: 1)
+    }
+
     private func fitAboveKeyboard() {
         guard let webView, let window = view.window else { return }
+        window.backgroundColor = Self.screen
         let height = window.bounds.height - keyboardOverlap
         if webView.frame.height != height { webView.frame = CGRect(x: 0, y: 0, width: window.bounds.width, height: height) }
         webView.scrollView.contentOffset = .zero
