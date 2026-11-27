@@ -168,7 +168,7 @@ export const pakaiEn: KataPakai = {
           'Write a note for yourself.',
           'Set a personal due date for a task SIKOLA gives no due date, so you are still reminded.',
           'Snooze the reminder for 1 hour, 3 hours or until tomorrow morning.',
-          'Open the task on SIKOLA, or add it to Google Calendar.',
+          'Open the task on SIKOLA, add it to Google Calendar, or download it as an .ics file for Mac Calendar and Outlook.',
           'Mark it as done, and undo that after a wrong click.',
         ],
         gambar: [
@@ -367,7 +367,7 @@ export const pakaiEn: KataPakai = {
           'Tap the + button on top to add your own task, such as a presentation that is not on SIKOLA.',
           'In the details: split the task into small steps and write a note.',
           'In the details: set a personal due date for a task SIKOLA gives no due date.',
-          'From the three-dot button: Open on SIKOLA, Add to Google Calendar, or Snooze reminder.',
+          'From the three-dot button: Open on SIKOLA, Add to the phone’s calendar (on iPhone, Google Calendar too), or Snooze reminder.',
         ],
         gambar: [
           { jenis: 'hp', nama: 'tugas', ket: 'The Tasks tab: filters on top, tasks grouped by day.' },
@@ -384,7 +384,7 @@ export const pakaiEn: KataPakai = {
           'Switch between the List and Month views.',
           'Tap a category to filter: Academic, Exams, Administration, Holidays and more.',
           'Tap the bell icon to choose which dates remind you: KRS, tuition, midterms, finals and other deadlines.',
-          'Add a public calendar to Google Calendar from the "Add to your calendar" section.',
+          'Add a public calendar to Google Calendar, or on iPhone to its own Calendar too, from the "Add to your calendar" section.',
         ],
         gambar: [{ jenis: 'hp', nama: 'kalender', ket: 'The Calendar tab: the countdown to finals and the list of events.' }],
       },

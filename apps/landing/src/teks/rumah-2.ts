@@ -66,6 +66,7 @@ export const rumah2 = {
           { nama: 'Notifikasi', ket: 'Pengingat tenggat dan kabar terbaru.' },
           { nama: 'Waktu di latar belakang', ket: 'Untuk Jaga sesi SIKOLA, kalau kamu menyalakannya. iPhone yang menentukan kapan.' },
           { nama: 'Face ID, pilihan', ket: 'Kunci aplikasi, kalau kamu menyalakannya.' },
+          { nama: 'Kalender, pilihan', ket: 'Hanya di iOS 16, saat kamu menambah tugas ke Kalender iPhone. iOS 17 ke atas tidak memintanya.' },
         ],
       },
       hapus: {
@@ -185,6 +186,7 @@ export const rumah2 = {
           { nama: 'Notifications', ket: 'Deadline reminders and Kabar terbaru.' },
           { nama: 'Background time', ket: 'For Keep the SIKOLA session, if you turn it on. The iPhone decides when.' },
           { nama: 'Face ID, optional', ket: 'The app lock, if you turn it on.' },
+          { nama: 'Calendars, optional', ket: 'Only on iOS 16, when you add a task to the iPhone’s Calendar. iOS 17 and later do not ask.' },
         ],
       },
       hapus: {

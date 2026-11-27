@@ -232,7 +232,7 @@ export const pakaiId: KataPakai = {
           'Menulis catatan untuk dirimu sendiri.',
           'Memasang tenggat pribadi untuk tugas yang tidak diberi tenggat di SIKOLA, supaya tetap diingatkan.',
           'Menunda pengingat 1 jam, 3 jam, atau sampai besok pagi.',
-          'Membuka tugas di SIKOLA, atau menambahkannya ke Google Kalender.',
+          'Membuka tugas di SIKOLA, menambahkannya ke Google Kalender, atau mengunduhnya sebagai berkas .ics untuk Kalender Mac dan Outlook.',
           'Menandai selesai, dan mengurungkannya kalau salah klik.',
         ],
         gambar: [
@@ -437,7 +437,7 @@ export const pakaiId: KataPakai = {
           'Mengetuk tombol + di atas untuk menambah tugas sendiri, misalnya presentasi yang tidak ada di SIKOLA.',
           'Di rincian: memecah tugas jadi langkah kecil dan menulis catatan.',
           'Di rincian: memasang tenggat pribadi untuk tugas yang tidak diberi tenggat di SIKOLA.',
-          'Dari tombol tiga titik: Buka di SIKOLA, Tambah ke Google Kalender, atau Tunda pengingat.',
+          'Dari tombol tiga titik: Buka di SIKOLA, Tambah ke kalender HP (di iPhone juga Google Kalender), atau Tunda pengingat.',
         ],
         gambar: [
           { jenis: 'hp', nama: 'tugas', ket: 'Tab Tugas: saringan di atas, tugas dikelompokkan per hari.' },
@@ -454,7 +454,7 @@ export const pakaiId: KataPakai = {
           'Berpindah antara tampilan Daftar dan Bulan.',
           'Mengetuk kategori untuk menyaring: Akademik, Ujian, Administrasi, Libur, dan lainnya.',
           'Mengetuk ikon lonceng untuk memilih tanggal yang diingatkan: KRS, UKT, UTS, UAS, dan batas lainnya.',
-          'Menambahkan kalender umum ke Google Kalender dari bagian "Tambahkan ke kalendermu".',
+          'Menambahkan kalender umum ke Google Kalender, atau di iPhone juga ke Kalender iPhone, dari bagian "Tambahkan ke kalendermu".',
         ],
         gambar: [{ jenis: 'hp', nama: 'kalender', ket: 'Tab Kalender: hitung mundur ke UAS dan daftar kegiatan.' }],
       },
