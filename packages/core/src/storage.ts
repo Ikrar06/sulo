@@ -6,6 +6,7 @@ import { EMPTY_PRESENSI, type PresensiData } from './presensi/types';
 import type { TaskStateMap } from './tasks/local-state';
 import type { ChangeLogEntry, CourseId, CourseRecord, CourseSnapshot, KeyValueStore, SyncOutcome, Task, UnixSeconds, UserId } from './types';
 import { withOwnTasks, type OwnTask } from './tasks/own';
+import type { TaskGrades } from './tasks/grade-service';
 
 export const CURRENT_USER_KEY = 'global:currentUser';
 export const NOTICE_KEY = 'global:notice';
@@ -83,6 +84,8 @@ export interface UserData {
   presensi: PresensiData;
   /** Tasks the student added (tasks/own.ts): never synced, joined to `tasks` only in views and reminders. */
   ownTasks: OwnTask[];
+  /** "Lihat nilai" answers by cmid (tasks/grade-service.ts): read on the student's tap, kept 24 hours, never sent or copied. */
+  taskGrades: TaskGrades;
 }
 
 export interface RadarMeta {
@@ -128,6 +131,7 @@ export const DEFAULTS: { [K in keyof UserData]: UserData[K] } = {
   radar: { stateCheckedAt: {}, notificationsLastId: null, calendarBaseline: false },
   presensi: EMPTY_PRESENSI,
   ownTasks: [],
+  taskGrades: {},
 };
 
 export const userKey = (userId: UserId, name: keyof UserData) => `u:${userId}:${name}`;

@@ -7,6 +7,8 @@
 
 import { createMoodleClient, type MoodleClient } from '@sulo/core/moodle/client';
 import { refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
+import type { AssignGrade } from '@sulo/core/tasks/grade';
+import { taskGradeForCurrent, type TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
 import { MANUAL_COOLDOWN_SEC, SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import { writeSession, readSession } from '@sulo/core/moodle/session';
 import { createSessionAgeLogger } from '@sulo/core/net/session-age';
@@ -66,6 +68,21 @@ export function refreshPresensi(platform: Platform, target: 'recap' | 'detail', 
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve({ status: 'failed', reason: 'offline' });
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return refreshPresensiForCurrent({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock, timeZone }, target, courseId, force);
+}
+
+/** "Lihat nilai" on a task: one GET of its assignment page, only on the student's tap (tasks/grade-service.ts). */
+export function taskGrade(platform: Platform, cmid: number, again: boolean): Promise<TaskGradeOutcome> {
+  // pnpm mobile:web: a synthetic answer, never a request (?grade=none|hidden|unknown|slow picks another one).
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return fakeGrade(platform.clock.now());
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve({ status: 'failed', reason: 'offline' });
+  return taskGradeForCurrent({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock }, cmid, again);
+}
+
+function fakeGrade(now: UnixSeconds): Promise<TaskGradeOutcome> {
+  const pick = new URLSearchParams(location.search).get('grade');
+  const grade: AssignGrade =
+    pick === 'none' ? { kind: 'not_graded' } : pick === 'hidden' ? { kind: 'not_shown' } : pick === 'unknown' ? { kind: 'unknown' } : { kind: 'graded', text: '85,50 / 100,00', got: 85.5, max: 100 };
+  return new Promise((resolve) => setTimeout(() => resolve({ status: 'ok', grade, fetchedAt: now, cached: false }), pick === 'slow' ? 60_000 : 500));
 }
 
 /** After a successful sign-in: forget "expired" and fetch right away. */

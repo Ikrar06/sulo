@@ -108,7 +108,17 @@ describe('fetchPage', () => {
     expect(call?.init?.redirect).toBe('manual');
   });
 
-  it.each(['/login/logout.php', '/mod/quiz/view.php?id=1', 'https://example.test/my/', '/my/index.php'])(
+  it.each([
+    '/login/logout.php',
+    '/mod/quiz/view.php?id=1',
+    'https://example.test/my/',
+    '/my/index.php',
+    // An assignment only by its id: never an action, a form or a sesskey.
+    '/mod/assign/view.php?id=5&action=editsubmission',
+    '/mod/assign/view.php?id=5&sesskey=abc',
+    '/mod/assign/view.php?action=grading',
+    '/mod/assign/view.php?id=x',
+  ])(
     'refuses %s',
     async (path) => {
       const { client, fetch } = setup();

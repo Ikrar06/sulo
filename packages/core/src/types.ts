@@ -43,6 +43,8 @@ export type RequestSource =
   | 'sesskey'
   /** Attendance pages, only when the user opens the Presensi page (M7.3). */
   | 'attendance'
+  /** A task's assignment page, only when the user taps "Lihat nilai" (1.1.0). */
+  | 'assign'
   /** The user signed in to SIKOLA again after the session expired (M7.2): one sync. */
   | 'relogin';
 

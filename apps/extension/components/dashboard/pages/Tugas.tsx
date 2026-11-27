@@ -15,6 +15,7 @@ import { Button } from '@sulo/ui/ui/button';
 import { PlusIcon } from '@sulo/ui/dashboard-icons';
 import { OwnTaskDialog } from '../OwnTaskDialog';
 import { HeaderTools } from '../header-tools';
+import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
@@ -152,6 +153,8 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onRemoveStep: (id) => state((s) => removeStep(s, item.task.eventId, id)),
                     onNote: (note) => state((s) => setNote(s, item.task.eventId, note)),
                     ...(isOwnTask(item.task) ? { onEditOwn: () => setForm(user.ownTasks.find((o) => o.id === item.task.eventId) ?? null) } : {}),
+                    // "Lihat nilai": the service worker reads the assignment page (tasks/grade-service.ts).
+                    onGrade: async (cmid, again) => ((await actions.send({ type: 'task/grade', cmid, again })) as TaskGradeOutcome | null) ?? { status: 'failed', reason: 'NO_ANSWER' },
                   }}
                 />
               }

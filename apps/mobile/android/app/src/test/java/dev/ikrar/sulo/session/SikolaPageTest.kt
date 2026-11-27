@@ -17,12 +17,27 @@ class SikolaPageTest {
     }
 
     @Test
+    fun anAssignmentByItsIdOnly() {
+        assertEquals("$base/mod/assign/view.php?id=70", SikolaPage.allowedUrl("/mod/assign/view.php?id=70"))
+        for (path in listOf(
+            "/mod/assign/view.php?id=70&action=editsubmission",
+            "/mod/assign/view.php?id=70&action=removesubmission&sesskey=abc",
+            "/mod/assign/view.php?action=grading",
+            "/mod/assign/view.php?id=70&mode=1",
+            "/mod/assign/view.php?id=70&id=71",
+            "/mod/assign/view.php?id=abc",
+            "/mod/assign/view.php",
+            "/mod/assign/index.php?id=70",
+        )) assertNull(path, SikolaPage.allowedUrl(path))
+    }
+
+    @Test
     fun otherPagesAreRefused() {
         for (path in listOf(
             "/my/",
             "/mod/attendance/take.php?id=1",
             "/mod/attendance/sessions.php?id=1",
-            "/mod/assign/view.php?id=1",
+            "/mod/quiz/view.php?id=1",
             "/login/logout.php?sesskey=abc",
             "/mod/attendance/view.php",
             "/mod/attendance/view.php?",

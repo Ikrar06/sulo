@@ -52,6 +52,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           { id: 'Daftar mata kuliah, termasuk nama dan warna yang kamu pilih.', en: 'Your course list, including the names and colors you choose.' },
           { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Latest updates (activity names and kinds, not their content).' },
           { id: 'Rekap presensi untuk mata kuliah yang dipantau, dan rincian per pertemuan yang kamu buka.', en: 'The attendance recap for the courses you follow, and the per-session details you open.' },
+          { id: 'Nilai tugas yang kamu lihat lewat Lihat nilai, selama 24 jam. Tidak pernah dikirim, disalin, atau muncul di notifikasi.', en: 'Task grades you looked at with See grade, for 24 hours. Never sent, copied or shown in a notification.' },
           { id: 'Pengaturan, dan sesi SIKOLA.', en: 'Your settings, and the SIKOLA session.' },
           {
             id: 'Catatan sesi: kapan sesi SIKOLA, Sipakamase, dan NEOSIA berakhir, berapa menit setelah masuk dan setelah aktivitas terakhir. Tanpa isi cookie atau token. Dipakai untuk mengatur jarak penjaga sesi dan ditampilkan di layar Diagnostik. Tidak pernah dikirim, terhapus saat Keluar.',
@@ -145,8 +146,8 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Karena tindakanmu: setelah masuk, saat membuka aplikasi kalau data lebih tua dari 15 menit, tarik untuk memperbarui, atau tombol Perbarui. Ditambah pemantauan latar belakang kalau kamu menyalakannya (bagian berikut). Rekap presensi diperbarui paling sering sekali sehari saat aplikasi dibuka, tidak pernah di latar belakang; rincian per pertemuan diambil saat kamu membukanya. Pengingat dijadwalkan di HP dari data terakhir.',
-          en: 'Because of something you do: after signing in, when you open the app and the data is older than 15 minutes, pull to update, or the Update button. Plus background watching if you turn it on (next section). The attendance recap updates at most once a day when the app is opened, never in the background; per-session details are fetched when you open them. Reminders are scheduled on the phone from the latest data.',
+          id: 'Karena tindakanmu: setelah masuk, saat membuka aplikasi kalau data lebih tua dari 15 menit, tarik untuk memperbarui, atau tombol Perbarui. Ditambah pemantauan latar belakang kalau kamu menyalakannya (bagian berikut). Rekap presensi diperbarui paling sering sekali sehari saat aplikasi dibuka, tidak pernah di latar belakang; rincian per pertemuan diambil saat kamu membukanya. Nilai sebuah tugas diambil dari halamannya hanya saat kamu memilih Lihat nilai. Pengingat dijadwalkan di HP dari data terakhir.',
+          en: 'Because of something you do: after signing in, when you open the app and the data is older than 15 minutes, pull to update, or the Update button. Plus background watching if you turn it on (next section). The attendance recap updates at most once a day when the app is opened, never in the background; per-session details are fetched when you open them. A task’s grade is read from its page only when you choose See grade. Reminders are scheduled on the phone from the latest data.',
         },
       },
     ],

@@ -16,6 +16,7 @@ Sulo uses the SIKOLA session that already exists in your browser to read your ow
 - assignments and their due dates, including quiz deadlines
 - the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks
 - your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts
+- a task's page, only when you choose See grade: its grading status and grade, never the grader's name, comments or files
 
 Sulo only reads. It never submits work, never marks anything as read, never changes data on SIKOLA, never reads quiz content, and never reads other students' data.
 
@@ -26,6 +27,7 @@ Everything is stored locally in your browser (chrome.storage) on your own device
 - courses, assignments and due dates, and the tasks you add yourself (the title, course and due date you type)
 - your attendance recap from SIKOLA, updated automatically at most once a day, and the per-session details, fetched only when you open them (for the courses you follow: sessions recorded, points, percentage, status, and remarks)
 - the last seen structure of each course and the "Latest updates" log (at most 200 entries)
+- task grades you looked at with See grade, kept for 24 hours so they are not fetched again; never sent, copied or shown in a notification
 - your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself
 - a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself
 - local usage counters, which never leave your device unless you export them yourself

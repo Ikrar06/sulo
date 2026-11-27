@@ -126,18 +126,27 @@ enum SikolaRequest {
 
 enum SikolaPage {
     static let attendancePath = "/mod/attendance/view.php"
+    /** An assignment's student view ("Lihat nilai", 1.1.0): its id and nothing else. */
+    static let assignPath = "/mod/assign/view.php"
     private static let attendanceKeys: Set<String> = ["id", "mode", "view"]
+    private static let assignKeys: Set<String> = ["id"]
     private static let number = try! NSRegularExpression(pattern: "^[0-9]{1,10}$")
 
     /** The full URL for an allowlisted page path ("/mod/attendance/view.php?id=1&mode=1"), or nil. */
     static func allowedURL(_ path: String) -> String? {
         if path.count > 200 || path.contains("#") || path.contains("%") || path.contains("\\") { return nil }
         let parts = path.components(separatedBy: "?")
-        guard parts.count == 2, parts[0] == attendancePath else { return nil }
+        guard parts.count == 2 else { return nil }
+        let allowed: Set<String>
+        switch parts[0] {
+        case attendancePath: allowed = attendanceKeys
+        case assignPath: allowed = assignKeys
+        default: return nil
+        }
         let pairs = parts[1].components(separatedBy: "&").map { $0.components(separatedBy: "=") }
         guard pairs.allSatisfy({ $0.count == 2 }) else { return nil }
         let keys = pairs.map { $0[0] }
-        guard Set(keys).count == keys.count, Set(keys).isSubset(of: attendanceKeys), keys.contains("id") else { return nil }
+        guard Set(keys).count == keys.count, Set(keys).isSubset(of: allowed), keys.contains("id") else { return nil }
         guard pairs.allSatisfy({ number.firstMatch(in: $0[1], range: NSRange($0[1].startIndex..., in: $0[1])) != nil }) else { return nil }
         return "\(Sikola.origin)\(path)"
     }

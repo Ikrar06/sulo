@@ -30,6 +30,8 @@ export const messageSchema = z.discriminatedUnion('type', [
   /** Content script: the user opened an attendance page on SIKOLA; its cmid (from the URL only). */
   z.object({ type: z.literal('presensi/seenCmid'), cmid: z.number().int().positive().max(1_000_000_000) }),
   z.object({ type: z.literal('presensi/refresh'), target: z.enum(['recap', 'detail']), courseId: z.number().int().positive().optional(), force: z.boolean() }),
+  /** "Lihat nilai" on one task, only from the user (tasks/grade-service.ts): its cmid, and `again` for "Cek lagi". */
+  z.object({ type: z.literal('task/grade'), cmid: z.number().int().positive().max(1_000_000_000), again: z.boolean() }),
   /** The dashboard got the NEOSIA permissions in the consent dialog: register the scripts. */
   /** "Pantau tugas baru" switched in the setup, the settings or "Yang baru di Sulo". */
   z.object({ type: z.literal('watch/set'), enabled: z.boolean() }),
