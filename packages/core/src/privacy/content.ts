@@ -162,7 +162,7 @@ export const PRIVACY_SECTIONS: Section[] = [
           { id: 'tugas dan tenggatnya, termasuk tenggat kuis', en: 'assignments and their due dates, including quiz deadlines' },
           { id: 'susunan tiap mata kuliah yang dipantau (bagian dan aktivitas), beberapa kali sehari, untuk mengetahui materi dan tugas baru', en: 'the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks' },
           { id: '20 notifikasi SIKOLA terbarumu, untuk mengetahui nilai, feedback, dan kabar forum baru', en: 'your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts' },
-          { id: 'halaman sebuah tugas, hanya saat kamu memilih Lihat nilai: status penilaian dan nilainya, tanpa nama penilai, komentar, atau berkas', en: "a task's page, only when you choose See grade: its grading status and grade, never the grader's name, comments or files" },
+          { id: 'halaman nilai sebuah mata kuliah (atau halaman tugasnya, kalau halaman nilai itu tidak terbaca), hanya saat kamu memilih Lihat nilai: nilai tiap tugas saja, tanpa komentar dosen, nama penilai, bobot, atau berkas', en: "a course's grade page (or the task's own page, when that page cannot be read), only when you choose See grade: each task's grade only, never lecturer comments, the grader's name, weights or files" },
         ],
       },
       {

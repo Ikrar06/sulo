@@ -59,7 +59,11 @@ const decode = (s: string) =>
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#0?39;|&apos;/g, "'");
-const text = (html: string) => decode(html.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+// Screen-reader-only spans carry words for people, not the value ("Grade: ", "Overridden").
+const HIDDEN = /<(span|div)\b[^>]*class="[^"]*\b(sr-only|visually-hidden|accesshide)\b[^"]*"[^>]*>[\s\S]*?<\/\1>/gi;
+/** A cell's visible words, one space apart. */
+export const cellText = (html: string) => decode(html.replace(HIDDEN, ' ').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+const text = cellText;
 
 /** "85,00" or "85.00" as a number; null for anything with both separators (a thousands mark would be a guess). */
 function number(raw: string): number | null {
@@ -78,6 +82,14 @@ function points(value: string): { got: number | null; max: number | null; letter
   const max = m[2] === undefined ? null : number(m[2]);
   if (got === null || (m[2] !== undefined && max === null)) return NONE;
   return { got, max, letter: m[3] ?? null };
+}
+
+/** A grade cell as a grade: "-" or empty is not graded, a number keeps its parts, too long is unknown. */
+export function gradeFromCell(cellHtml: string): AssignGrade {
+  const value = cellText(cellHtml);
+  if (value === '' || value === '-' || value === '–') return { kind: 'not_graded' };
+  if (value.length > MAX_GRADE_TEXT) return { kind: 'unknown' };
+  return { kind: 'graded', text: value, ...points(value) };
 }
 
 /** The feedback table's rows as [label, value cell html]; null when the page has no feedback box. */
@@ -106,10 +118,10 @@ export function parseAssignGrade(html: string): AssignGrade {
       return { kind: 'unknown' };
     }
     const cell = row[1];
-    const value = text(cell);
-    if (/<img\b/i.test(cell) || value.length > MAX_GRADE_TEXT) return { kind: 'unknown' };
-    if (value === '' || value === '-') return { kind: 'not_shown' };
-    return { kind: 'graded', text: value, ...points(value) };
+    if (/<img\b/i.test(cell)) return { kind: 'unknown' };
+    // On the assignment page an empty grade row means graded but not shown to the student.
+    const value = gradeFromCell(cell);
+    return value.kind === 'not_graded' ? { kind: 'not_shown' } : value;
   }
   if (status) return status[1] ? { kind: 'not_graded' } : { kind: 'not_shown' };
   return { kind: 'unknown' };

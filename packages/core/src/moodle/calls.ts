@@ -34,6 +34,8 @@ export const ALLOWED_PAGES = [
   '/mod/attendance/view.php',
   '/mod/assign/view.php',
   '/grade/report/overview/index.php',
+  // One course's own grade report, for "Lihat nilai" (1.1.0, tasks/course-grades.ts): its id only.
+  '/grade/report/user/index.php',
 ] as const;
 
 export function isAllowedPage(pathname: string): boolean {

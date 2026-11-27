@@ -41,7 +41,7 @@ import { runSync, type SyncStage } from '@sulo/core/sync/run-sync';
 import { runMkpkNotices } from '@sulo/core/mkpk/notices-run';
 import { ONBOARDING_STAGES_KEY, type OnboardingStages } from '@sulo/core/onboarding/stages';
 import { recordSeenCmid, refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
-import { taskGradeForCurrent } from '@sulo/core/tasks/grade-service';
+import { courseGradesForCurrent, taskGradeForCurrent } from '@sulo/core/tasks/grade-service';
 import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@sulo/core/sync/relogin';
 import { setDone, setSnooze } from '@sulo/core/tasks/local-state';
 import { messagesFor, resolveLocale } from '@sulo/core/i18n';
@@ -553,6 +553,8 @@ export default defineBackground(() => {
       // "Lihat nilai": one GET of the assignment page, only on the user's tap, through the same client.
       case 'task/grade':
         return taskGradeForCurrent({ client, store: local, clock }, message.cmid, message.again);
+      case 'course/grades':
+        return courseGradesForCurrent({ client, store: local, clock }, message.courseId, message.again);
       case 'neosia/enable':
         return enableModule(neosia);
       case 'neosia/disable':

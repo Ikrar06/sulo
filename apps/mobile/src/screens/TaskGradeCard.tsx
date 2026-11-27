@@ -1,7 +1,8 @@
 // "Nilai" in a task's details (1.1.0, from a user's suggestion): hidden until "Lihat nilai" is tapped, then
-// one read of the assignment page on SIKOLA (sync.ts taskGrade, core tasks/grade-service.ts), kept a day.
-// Leaving the task hides it again. Masked in privacy mode like every grade. When Sulo cannot read it, the
-// card says so and offers SIKOLA's own page.
+// one read on SIKOLA (its course's grade report, sync.ts taskGrade, core tasks/grade-service.ts). Leaving the
+// task hides it again. Masked in privacy mode like every grade, and the screen is kept out of screenshots while
+// the number is on it. A first grade marks the task done (core), and the card says so. When Sulo cannot read
+// it, the card says so and offers SIKOLA's own page.
 
 import { formatAgo } from '@sulo/core/format/time';
 import { mobileDash } from '@sulo/core/i18n/mobile';
@@ -14,6 +15,7 @@ import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
 import { Private } from '@sulo/ui/private';
 import { useMobileData } from '../shell/data';
+import { useSecureScreen } from '../neosia/secure-screen';
 import { taskGrade } from '../sync';
 
 export function TaskGradeCard({ task }: { task: Task & { cmId: number } }) {
@@ -29,6 +31,8 @@ export function TaskGradeCard({ task }: { task: Task & { cmId: number } }) {
     line === null || line.kind === 'value'
       ? null
       : { none: t.gradeNone, not_shown: t.gradeNotShown, unknown: t.gradeUnknown, failed: t.gradeFailed, expired: t.gradeExpired, wait: t.gradeWait }[line.kind];
+  useSecureScreen(line?.kind === 'value' && !data!.prefs.privacyMode);
+  const markedDone = s.phase === 'shown' && s.outcome.status === 'ok' && s.outcome.markedDone;
   // Where Sulo could not give the answer, SIKOLA's own page can.
   const offerSikola = line !== null && (line.kind === 'unknown' || line.kind === 'failed' || line.kind === 'not_shown');
 
@@ -52,6 +56,11 @@ export function TaskGradeCard({ task }: { task: Task & { cmId: number } }) {
       {message && (
         <p role="status" className="m-data-in mt-1 text-m13 text-muted-foreground">
           {message}
+        </p>
+      )}
+      {markedDone && (
+        <p role="status" className="m-data-in mt-1 text-m13 text-muted-foreground">
+          {t.gradeMarkedDone}
         </p>
       )}
       <div className="mt-3 flex flex-wrap gap-2">

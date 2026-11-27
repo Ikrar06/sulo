@@ -137,6 +137,16 @@ export const dashId = {
     gradeChecked: (ago: string) => `Dicek ${ago}`,
     gradeAgain: 'Cek lagi',
     gradeHide: 'Sembunyikan',
+    gradeMarkedDone: 'Sudah dinilai, jadi ditandai selesai.',
+    /** The lists (1.1.0): a read grade in the done circle's place, and one switch for showing the numbers. */
+    gradedBadge: 'Dinilai',
+    gradeValueLabel: (grade: string) => `Nilai ${grade}`,
+    gradesShow: 'Tampilkan nilai',
+    gradesHide: 'Sembunyikan nilai',
+    gradesHidden: 'Nilai disembunyikan.',
+    courseGradesResult: (graded: number, marked: number) =>
+      graded === 0 ? 'Belum ada tugas yang dinilai.' : `${graded} tugas sudah dinilai${marked > 0 ? `, ${marked} baru ditandai selesai` : ''}.`,
+    gradeReportUnreadable: 'Halaman nilai mata kuliah ini tidak terbaca. Lihat nilainya dari rincian tugas.',
     steps: 'Langkah',
     stepsHelp: 'Pecah tugas jadi langkah kecil. Hanya tersimpan di browsermu.',
     addStep: 'Tambah langkah',

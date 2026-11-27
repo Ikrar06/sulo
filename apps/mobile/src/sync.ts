@@ -7,8 +7,7 @@
 
 import { createMoodleClient, type MoodleClient } from '@sulo/core/moodle/client';
 import { refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
-import type { AssignGrade } from '@sulo/core/tasks/grade';
-import { taskGradeForCurrent, type TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
+import { courseGradesForCurrent, taskGradeForCurrent, type CourseGradeOutcome, type TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
 import { MANUAL_COOLDOWN_SEC, SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import { writeSession, readSession } from '@sulo/core/moodle/session';
 import { createSessionAgeLogger } from '@sulo/core/net/session-age';
@@ -70,19 +69,22 @@ export function refreshPresensi(platform: Platform, target: 'recap' | 'detail', 
   return refreshPresensiForCurrent({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock, timeZone }, target, courseId, force);
 }
 
-/** "Lihat nilai" on a task: one GET of its assignment page, only on the student's tap (tasks/grade-service.ts). */
-export function taskGrade(platform: Platform, cmid: number, again: boolean): Promise<TaskGradeOutcome> {
-  // pnpm mobile:web: a synthetic answer, never a request (?grade=none|hidden|unknown|slow picks another one).
-  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return fakeGrade(platform.clock.now());
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve({ status: 'failed', reason: 'offline' });
-  return taskGradeForCurrent({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock }, cmid, again);
+/** The client for "Lihat nilai": SIKOLA through SuloSession, or the made-up pages of pnpm mobile:web. */
+async function gradesClient(platform: Platform): Promise<MoodleClient> {
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return (await import('./fake/grades')).fakeGradesClient(platform.store);
+  return sikolaClient(platform, { userInitiated: true });
 }
 
-function fakeGrade(now: UnixSeconds): Promise<TaskGradeOutcome> {
-  const pick = new URLSearchParams(location.search).get('grade');
-  const grade: AssignGrade =
-    pick === 'none' ? { kind: 'not_graded' } : pick === 'hidden' ? { kind: 'not_shown' } : pick === 'unknown' ? { kind: 'unknown' } : { kind: 'graded', text: '85,50 / 100,00', got: 85.5, max: 100, letter: null };
-  return new Promise((resolve) => setTimeout(() => resolve({ status: 'ok', grade, fetchedAt: now, cached: false }), pick === 'slow' ? 60_000 : 500));
+/** "Lihat nilai" on a task: its course's grade report, or its own page (tasks/grade-service.ts); only on a tap. */
+export async function taskGrade(platform: Platform, cmid: number, again: boolean): Promise<TaskGradeOutcome> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'failed', reason: 'offline' };
+  return taskGradeForCurrent({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, cmid, again);
+}
+
+/** "Lihat nilai" on a course (the history lists): one page for all its assignments; only on a tap. */
+export async function courseGrades(platform: Platform, courseId: number, again: boolean): Promise<CourseGradeOutcome> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'failed', reason: 'offline' };
+  return courseGradesForCurrent({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, courseId, again);
 }
 
 /** After a successful sign-in: forget "expired" and fetch right away. */

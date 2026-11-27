@@ -118,6 +118,10 @@ describe('fetchPage', () => {
     '/mod/assign/view.php?id=5&sesskey=abc',
     '/mod/assign/view.php?action=grading',
     '/mod/assign/view.php?id=x',
+    // A course's grade report: its own, by id only.
+    '/grade/report/user/index.php?id=401&userid=9',
+    '/grade/report/user/index.php?userid=9',
+    '/grade/report/grader/index.php?id=401',
   ])(
     'refuses %s',
     async (path) => {

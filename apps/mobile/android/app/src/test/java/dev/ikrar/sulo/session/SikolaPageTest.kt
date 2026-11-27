@@ -32,6 +32,19 @@ class SikolaPageTest {
     }
 
     @Test
+    fun aCourseGradeReportByItsIdOnly() {
+        assertEquals("$base/grade/report/user/index.php?id=401", SikolaPage.allowedUrl("/grade/report/user/index.php?id=401"))
+        for (path in listOf(
+            "/grade/report/user/index.php?id=401&userid=9",
+            "/grade/report/user/index.php?id=401&sesskey=abc",
+            "/grade/report/user/index.php?userid=9",
+            "/grade/report/user/index.php",
+            "/grade/report/grader/index.php?id=401",
+            "/grade/edit/tree/index.php?id=401",
+        )) assertNull(path, SikolaPage.allowedUrl(path))
+    }
+
+    @Test
     fun otherPagesAreRefused() {
         for (path in listOf(
             "/my/",

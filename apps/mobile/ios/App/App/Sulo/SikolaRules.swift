@@ -128,6 +128,8 @@ enum SikolaPage {
     static let attendancePath = "/mod/attendance/view.php"
     /** An assignment's student view ("Lihat nilai", 1.1.0): its id and nothing else. */
     static let assignPath = "/mod/assign/view.php"
+    /** One course's own grade report ("Lihat nilai", 1.1.0): its id and nothing else (never a userid). */
+    static let courseReportPath = "/grade/report/user/index.php"
     private static let attendanceKeys: Set<String> = ["id", "mode", "view"]
     private static let assignKeys: Set<String> = ["id"]
     private static let number = try! NSRegularExpression(pattern: "^[0-9]{1,10}$")
@@ -140,7 +142,7 @@ enum SikolaPage {
         let allowed: Set<String>
         switch parts[0] {
         case attendancePath: allowed = attendanceKeys
-        case assignPath: allowed = assignKeys
+        case assignPath, courseReportPath: allowed = assignKeys
         default: return nil
         }
         let pairs = parts[1].components(separatedBy: "&").map { $0.components(separatedBy: "=") }

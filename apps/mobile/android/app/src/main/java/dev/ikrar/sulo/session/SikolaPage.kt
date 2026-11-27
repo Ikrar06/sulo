@@ -4,13 +4,14 @@ package dev.ikrar.sulo.session
  * HTML pages from SIKOLA (pure rules, no android.* here; unit-tested).
  * Only the attendance pages may be fetched for JavaScript, with id, mode
  * and view as the only parameters, all numbers; and an assignment's student
- * view ("Lihat nilai", 1.1.0) with its id and nothing else. /my/ is read natively for
+ * view and one course's own grade report ("Lihat nilai", 1.1.0), each with its id and nothing else. /my/ is read natively for
  * the sesskey and never handed over. Before a page goes to JavaScript its
  * head, scripts, styles and forms are removed, and so is every sesskey.
  */
 object SikolaPage {
     const val ATTENDANCE_PATH = "/mod/attendance/view.php"
     const val ASSIGN_PATH = "/mod/assign/view.php"
+    const val COURSE_REPORT_PATH = "/grade/report/user/index.php"
     private val ATTENDANCE_KEYS = setOf("id", "mode", "view")
     private val ASSIGN_KEYS = setOf("id")
     private val NUMBER = Regex("^[0-9]{1,10}$")
@@ -23,6 +24,7 @@ object SikolaPage {
         val allowed = when (parts[0]) {
             ATTENDANCE_PATH -> ATTENDANCE_KEYS
             ASSIGN_PATH -> ASSIGN_KEYS
+            COURSE_REPORT_PATH -> ASSIGN_KEYS
             else -> return null
         }
         val pairs = parts[1].split('&').map { it.split('=') }

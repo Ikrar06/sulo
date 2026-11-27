@@ -35,6 +35,30 @@ export function showsGradeCard(task: Task, done: boolean, now: UnixSeconds): boo
   return task.module === 'assign' && task.cmId !== null && (done || task.missingSince !== null || (task.dueAt !== null && task.dueAt <= now));
 }
 
+/**
+ * What a list row shows in place of its done circle (owner's decision, 27 Nov 2026): nothing (the circle) until a
+ * grade was read; then a neutral "Dinilai" while grades are hidden ("Tampilkan nilai" off, the default), the
+ * value once shown, a mask in privacy mode.
+ */
+export type GradeBadge = { kind: 'hidden' } | { kind: 'masked' } | { kind: 'value'; text: string };
+
+export function gradeBadge(read: Extract<AssignGrade, { kind: 'graded' }> | null, view: { gradesShown: boolean; privacyMode: boolean }, intlLocale: string): GradeBadge | null {
+  if (read === null) return null;
+  if (view.privacyMode) return { kind: 'masked' };
+  return view.gradesShown ? { kind: 'value', text: formatGrade(read, intlLocale) } : { kind: 'hidden' };
+}
+
+/** A history list in course groups (newest first inside), the course whose latest task is newest first. */
+export function byCourse<T extends { task: Pick<Task, 'courseId' | 'dueAt'> }>(items: readonly T[]): { courseId: number; items: T[] }[] {
+  const groups = new Map<number, T[]>();
+  for (const item of [...items].sort((a, b) => (b.task.dueAt ?? 0) - (a.task.dueAt ?? 0))) {
+    const list = groups.get(item.task.courseId);
+    if (list) list.push(item);
+    else groups.set(item.task.courseId, [item]);
+  }
+  return [...groups].map(([courseId, list]) => ({ courseId, items: list }));
+}
+
 /** A SIKOLA assignment Sulo knows was graded (the "Sudah dinilai" filter). */
 export function isGraded(task: Task, graded: ReadonlySet<number>): boolean {
   return task.module === 'assign' && task.cmId !== null && graded.has(task.cmId);

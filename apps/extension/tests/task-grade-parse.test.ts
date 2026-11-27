@@ -123,7 +123,7 @@ describe('what the "Nilai" part shows', () => {
   });
   it('writes points in the reader\'s number format', async () => {
     const { gradeLine } = await import('@sulo/core/tasks/grade-view');
-    const ok = { status: 'ok' as const, grade: { kind: 'graded' as const, text: '85,50 / 100,00', got: 85.5, max: 100, letter: null }, fetchedAt: NOW, cached: false };
+    const ok = { status: 'ok' as const, grade: { kind: 'graded' as const, text: '85,50 / 100,00', got: 85.5, max: 100, letter: null }, fetchedAt: NOW, cached: false, markedDone: false };
     expect(gradeLine(ok, 'id-ID')).toEqual({ kind: 'value', text: '85,5 / 100', fetchedAt: NOW });
     expect(gradeLine(ok, 'en-US')).toEqual({ kind: 'value', text: '85.5 / 100', fetchedAt: NOW });
     expect(gradeLine({ ...ok, grade: { kind: 'graded', text: '90.00 (A)', got: 90, max: null, letter: 'A' } }, 'id-ID')).toMatchObject({ text: '90 (A)' });
@@ -136,6 +136,6 @@ describe('what the "Nilai" part shows', () => {
     expect(gradeLine({ status: 'cooldown', retryAt: NOW }, 'id-ID')).toEqual({ kind: 'wait' });
     expect(gradeLine({ status: 'failed', reason: 'BUDGET_EXHAUSTED' }, 'id-ID')).toEqual({ kind: 'failed' });
     expect(gradeLine({ status: 'account_mismatch' }, 'id-ID')).toEqual({ kind: 'failed' });
-    expect(gradeLine({ status: 'ok', grade: { kind: 'unknown' }, fetchedAt: NOW, cached: true }, 'id-ID')).toEqual({ kind: 'unknown' });
+    expect(gradeLine({ status: 'ok', grade: { kind: 'unknown' }, fetchedAt: NOW, cached: true, markedDone: false }, 'id-ID')).toEqual({ kind: 'unknown' });
   });
 });

@@ -3,32 +3,31 @@ import { ACCOUNT_PENDING_KEY } from '@sulo/core/account/pending';
 import type { MoodleClient, PageOutcome, RequestOptions } from '@sulo/core/moodle/client';
 import { SESSION_KEY } from '@sulo/core/moodle/session';
 import { CURRENT_USER_KEY, userKey } from '@sulo/core/storage';
-import { pruneGrades, TASK_GRADES_MAX, taskGradeForCurrent, type TaskGrades } from '@sulo/core/tasks/grade-service';
-import type { ChangeLogEntry, CourseId, Task } from '@sulo/core/types';
+import { courseGradesForCurrent, pruneGrades, TASK_GRADES_MAX, taskGradeForCurrent, type TaskGrades } from '@sulo/core/tasks/grade-service';
+import { getTaskState } from '@sulo/core/tasks/local-state';
+import type { CourseId, Task } from '@sulo/core/types';
 import { memoryStore } from './helpers';
 
 const NOW = Date.UTC(2026, 10, 27, 2, 0) / 1000;
-// Past due, so "Lihat nilai" applies (tasks/grade-view.ts).
-const task: Task = {
-  eventId: 7, cmId: 70, courseId: 1 as CourseId, name: 'Laporan praktikum', module: 'assign', dueAt: NOW - 3600, url: 'https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=70',
-  overdue: false, firstSeenAt: 0, lastSeenAt: 0, missingSince: NOW - 86_400,
-};
-const quiz: Task = { ...task, eventId: 8, cmId: 80, module: 'quiz' };
-// Not due yet and still on SIKOLA's list: no grade can exist.
-const upcoming: Task = { ...task, eventId: 9, cmId: 90, missingSince: null, dueAt: NOW + 3600 };
-const gradeNews = (cmid: number): ChangeLogEntry => ({
-  id: `n${cmid}`, at: NOW - 3600, notify: true, seen: false, opens: 0,
-  change: { kind: 'grade_feedback', courseId: 1 as CourseId, notification: { id: cmid, subject: 'x', component: 'mod_assign', eventtype: 'assign_notification', timecreated: NOW - 3600, read: false, contexturl: `https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=${cmid}` } },
+const H = 3600;
+const assign = (eventId: number, cmId: number, extra: Partial<Task> = {}): Task => ({
+  eventId, cmId, courseId: 1 as CourseId, name: `Tugas ${eventId}`, module: 'assign', dueAt: NOW - H, url: `https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=${cmId}`,
+  overdue: false, firstSeenAt: 0, lastSeenAt: 0, missingSince: null, ...extra,
 });
-const gradedPage = (userid = 5) =>
-  `<div class="popover-region" data-userid="${userid}"></div><div id="region-main"><table><tr><th>Grading status</th><td class="submissiongraded cell c1">Graded</td></tr></table>
-<div class="box py-3 boxaligncenter feedbacktable"><table class="generaltable"><tbody><tr><th class="cell c0" scope="row">Nilai</th><td class="cell c1 lastcol">85,00 / 100,00</td></tr></tbody></table></div></div>`;
+// Course 1: two past assignments and one not due yet; a quiz; course 2 has only a future one.
+const tasks: Task[] = [assign(7, 70), assign(8, 71), assign(9, 72, { dueAt: NOW + H }), { ...assign(10, 80), module: 'quiz' }, assign(11, 90, { courseId: 2 as CourseId, dueAt: NOW + H })];
 
-function setup(answer: () => PageOutcome = () => ({ kind: 'ok', html: gradedPage() }), session = 'OK') {
+const navbar = (userid: number) => `<div class="popover-region" data-userid="${userid}"></div>`;
+const report = (rows: string, userid = 5) =>
+  `${navbar(userid)}<div id="region-main"><table class="generaltable boxaligncenter user-grade"><tbody>${rows}</tbody></table></div>`;
+const row = (cmid: number, grade: string) =>
+  `<tr><th class="level2 column-itemname"><a class="gradeitemheader" href="https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=${cmid}">Tugas</a></th><td class="level2 column-grade">${grade}</td><td class="level2 column-feedback">Bagus, Pak Dosen</td></tr>`;
+const assignPage = (grade: string) => `${navbar(5)}<div id="region-main"><div class="box feedbacktable"><table class="generaltable"><tr><th>Grade</th><td>${grade}</td></tr></table></div></div>`;
+
+function setup(answer: (path: string) => PageOutcome, session = 'OK') {
   const store = memoryStore({
     [CURRENT_USER_KEY]: 5,
-    [userKey(5, 'tasks')]: [task, quiz, upcoming],
-    [userKey(5, 'changes')]: [gradeNews(70), gradeNews(80), gradeNews(90)],
+    [userKey(5, 'tasks')]: tasks,
     [SESSION_KEY]: { state: session, userId: 5, checkedAt: NOW },
   });
   const calls: { path: string; options?: RequestOptions }[] = [];
@@ -36,61 +35,82 @@ function setup(answer: () => PageOutcome = () => ({ kind: 'ok', html: gradedPage
     callBatch: async () => ({ kind: 'network_error' }),
     fetchPage: async (path, options) => {
       calls.push({ path, options });
-      return answer();
+      return answer(path);
     },
   };
   let now = NOW;
   const deps = { client, store, clock: { now: () => now, localDate: () => '2026-11-27', localHour: () => 10 } };
-  return { store, calls, deps, later: (s: number) => void (now += s) };
+  const done = async (eventId: number) => getTaskState((await store.get(userKey(5, 'taskState'))) ?? {}, eventId).doneManually;
+  return { store, calls, deps, done, later: (s: number) => void (now += s) };
 }
 
-describe('"Lihat nilai": one page, only when asked', () => {
-  it('reads the assignment page once, then shows the kept answer for 24 hours', async () => {
-    const { calls, deps, store, later } = setup();
-    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'ok', grade: { kind: 'graded', text: '85,00 / 100,00', got: 85, max: 100, letter: null }, fetchedAt: NOW, cached: false });
-    expect(calls).toEqual([{ path: '/mod/assign/view.php?id=70', options: { source: 'assign' } }]);
-    later(23 * 3600);
-    expect(await taskGradeForCurrent(deps, 70, false)).toMatchObject({ status: 'ok', cached: true, fetchedAt: NOW });
+const graded = (): PageOutcome => ({ kind: 'ok', html: report(row(70, '90,00 (A)') + row(71, '-')) });
+
+describe('"Lihat nilai": one page per course', () => {
+  it('a task\'s "Lihat nilai" reads its course\'s report once, for every assignment of that course', async () => {
+    const { calls, deps, store, done } = setup(graded);
+    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'ok', grade: { kind: 'graded', text: '90,00 (A)', got: 90, max: null, letter: 'A' }, fetchedAt: NOW, cached: false, markedDone: true });
+    expect(calls).toEqual([{ path: '/grade/report/user/index.php?id=1', options: { source: 'assign' } }]);
+    // The other assignment came with the same page: no request for it.
+    expect(await taskGradeForCurrent(deps, 71, false)).toMatchObject({ status: 'ok', grade: { kind: 'not_graded' }, cached: true });
     expect(calls).toHaveLength(1);
-    expect(store.dump()[userKey(5, 'taskGrades')]).toMatchObject({ '70': { fetchedAt: NOW, requestAt: NOW } });
+    // The graded one is finished: marked done; the other is not.
+    expect(await done(7)).toBe(true);
+    expect(await done(8)).toBe(false);
+    // Nothing of the feedback column is kept.
+    expect(JSON.stringify(store.dump())).not.toMatch(/Bagus|Dosen/);
   });
-  it('asks again only after 2 minutes', async () => {
-    const { calls, deps, later } = setup();
-    await taskGradeForCurrent(deps, 70, false);
+  it('the course heading reads the same page; again within 2 minutes waits, within a day shows what it has', async () => {
+    const { calls, deps, later } = setup(graded);
+    expect(await courseGradesForCurrent(deps, 1, false)).toEqual({ status: 'ok', fetchedAt: NOW, cached: false, graded: 1, markedDone: [70] });
     later(60);
-    expect(await taskGradeForCurrent(deps, 70, true)).toEqual({ status: 'cooldown', retryAt: NOW + 120 });
-    later(61);
-    expect(await taskGradeForCurrent(deps, 70, true)).toMatchObject({ status: 'ok', cached: false });
-    expect(calls).toHaveLength(2);
+    expect(await courseGradesForCurrent(deps, 1, true)).toEqual({ status: 'cooldown', retryAt: NOW + 120 });
+    expect(await courseGradesForCurrent(deps, 1, false)).toMatchObject({ status: 'ok', cached: true, graded: 1, markedDone: [] });
+    expect(calls).toHaveLength(1);
   });
-  it('only for the student\'s own SIKOLA assignments past due, handed in or done', async () => {
-    const { calls, deps } = setup();
-    // 80 a quiz, 90 not due yet, 99 no task.
-    for (const cmid of [80, 90, 99, 0, -1, 1.5]) expect(await taskGradeForCurrent(deps, cmid, false)).toEqual({ status: 'failed', reason: 'NOT_A_TASK' });
+  it('never marks again a task the student unmarked after its grade was read', async () => {
+    const { deps, store, done, later } = setup(graded);
+    await courseGradesForCurrent(deps, 1, false);
+    await store.set(userKey(5, 'taskState'), {});
+    later(3 * 60);
+    expect(await courseGradesForCurrent(deps, 1, true)).toMatchObject({ status: 'ok', markedDone: [] });
+    expect(await done(7)).toBe(false);
+  });
+  it('only a course of the student\'s own with an assignment to look at', async () => {
+    const { calls, deps } = setup(graded);
+    // Course 2 has only a task not due yet; 3 is not the student's.
+    for (const id of [2, 3, 0, -1]) expect(await courseGradesForCurrent(deps, id, false)).toEqual({ status: 'failed', reason: 'NOT_A_COURSE' });
+    // A quiz, a task not due yet, no task.
+    for (const cmid of [80, 72, 99, 0, 1.5]) expect(await taskGradeForCurrent(deps, cmid, false)).toEqual({ status: 'failed', reason: 'NOT_A_TASK' });
     expect(calls).toHaveLength(0);
   });
-  it('never with an ended session', async () => {
-    const { calls, deps } = setup(undefined, 'EXPIRED');
-    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'failed', reason: 'SESSION_EXPIRED' });
-    expect(calls).toHaveLength(0);
+  it('a report Sulo cannot read: said once, then the task reads its own page on the next tap', async () => {
+    const { calls, deps, later } = setup((path) => (path.startsWith('/grade/') ? { kind: 'ok', html: `${navbar(5)}<p>Laporan dimatikan</p>` } : { kind: 'ok', html: assignPage('88,00') }));
+    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'failed', reason: 'REPORT_UNREADABLE' });
+    later(10);
+    expect(await taskGradeForCurrent(deps, 70, true)).toMatchObject({ status: 'ok', grade: { kind: 'graded', got: 88 }, markedDone: true });
+    expect(calls.map((c) => c.path)).toEqual(['/grade/report/user/index.php?id=1', '/mod/assign/view.php?id=70']);
+    expect(await courseGradesForCurrent(deps, 1, true)).toEqual({ status: 'failed', reason: 'REPORT_UNREADABLE' });
   });
   it('stores nothing from a page that answers for another account', async () => {
-    const { deps, store } = setup(() => ({ kind: 'ok', html: gradedPage(6) }));
-    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'account_mismatch' });
+    const { deps, store } = setup(() => ({ kind: 'ok', html: report(row(70, '90,00'), 6) }));
+    expect(await courseGradesForCurrent(deps, 1, false)).toEqual({ status: 'account_mismatch' });
     expect(store.dump()[ACCOUNT_PENDING_KEY]).toMatchObject({ userId: 6 });
-    expect(store.dump()[userKey(5, 'taskGrades')]).toEqual({ '70': { fetchedAt: null, grade: null, requestAt: NOW } });
+    expect(store.dump()[userKey(5, 'taskGrades')]).toBeUndefined();
   });
-  it('a refusal or failure is an outcome, and still counts for the wait', async () => {
-    const { deps, store } = setup(() => ({ kind: 'refused', reason: 'BUDGET_EXHAUSTED' }));
-    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'failed', reason: 'BUDGET_EXHAUSTED' });
-    expect(await taskGradeForCurrent(deps, 70, false)).toEqual({ status: 'cooldown', retryAt: NOW + 120 });
-    expect(store.dump()[userKey(5, 'taskGrades')]).toEqual({ '70': { fetchedAt: null, grade: null, requestAt: NOW } });
+  it('never with an ended session; a refusal is an outcome that still counts for the wait', async () => {
+    const ended = setup(graded, 'EXPIRED');
+    expect(await courseGradesForCurrent(ended.deps, 1, false)).toEqual({ status: 'failed', reason: 'SESSION_EXPIRED' });
+    expect(ended.calls).toHaveLength(0);
+    const refused = setup(() => ({ kind: 'refused', reason: 'BUDGET_EXHAUSTED' }));
+    expect(await courseGradesForCurrent(refused.deps, 1, false)).toEqual({ status: 'failed', reason: 'BUDGET_EXHAUSTED' });
+    expect(await courseGradesForCurrent(refused.deps, 1, false)).toEqual({ status: 'cooldown', retryAt: NOW + 120 });
   });
-  it(`keeps the newest ${TASK_GRADES_MAX} answers`, () => {
+  it(`keeps the newest ${TASK_GRADES_MAX} answers, only for tasks still kept`, () => {
     const many: TaskGrades = Object.fromEntries(Array.from({ length: TASK_GRADES_MAX + 5 }, (_, i) => [String(i + 1), { fetchedAt: i, requestAt: i, grade: null }]));
     const kept = pruneGrades(many);
     expect(Object.keys(kept)).toHaveLength(TASK_GRADES_MAX);
     expect(kept['1']).toBeUndefined();
-    expect(kept[String(TASK_GRADES_MAX + 5)]).toBeDefined();
+    expect(Object.keys(pruneGrades(many, new Set([3, 4])))).toEqual(['3', '4']);
   });
 });

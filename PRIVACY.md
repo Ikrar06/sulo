@@ -16,7 +16,7 @@ Sulo uses the SIKOLA session that already exists in your browser to read your ow
 - assignments and their due dates, including quiz deadlines
 - the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks
 - your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts
-- a task's page, only when you choose See grade: its grading status and grade, never the grader's name, comments or files
+- a course's grade page (or the task's own page, when that page cannot be read), only when you choose See grade: each task's grade only, never lecturer comments, the grader's name, weights or files
 
 Sulo only reads. It never submits work, never marks anything as read, never changes data on SIKOLA, never reads quiz content, and never reads other students' data.
 

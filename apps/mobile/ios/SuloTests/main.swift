@@ -60,6 +60,11 @@ check(SikolaPage.allowedURL("/mod/attendance/view.php?id=197570&mode=1") == "\(b
 check(SikolaPage.allowedURL("/mod/attendance/view.php?id=197570&view=5") == "\(base)/mod/attendance/view.php?id=197570&view=5", "attendance view=5")
 check(SikolaPage.allowedURL("/mod/attendance/view.php?id=1") == "\(base)/mod/attendance/view.php?id=1", "attendance id only")
 check(SikolaPage.allowedURL("/mod/assign/view.php?id=70") == "\(base)/mod/assign/view.php?id=70", "assignment by id")
+check(SikolaPage.allowedURL("/grade/report/user/index.php?id=401") == "\(base)/grade/report/user/index.php?id=401", "course grade report by id")
+for path in ["/grade/report/user/index.php?id=401&userid=9", "/grade/report/user/index.php?id=401&sesskey=abc", "/grade/report/user/index.php?userid=9",
+             "/grade/report/user/index.php", "/grade/report/grader/index.php?id=401", "/grade/edit/tree/index.php?id=401"] {
+    check(SikolaPage.allowedURL(path) == nil, "refused: \(path)")
+}
 for path in ["/mod/assign/view.php?id=70&action=editsubmission", "/mod/assign/view.php?id=70&action=removesubmission&sesskey=abc", "/mod/assign/view.php?action=grading",
              "/mod/assign/view.php?id=70&mode=1", "/mod/assign/view.php?id=70&id=71", "/mod/assign/view.php?id=abc", "/mod/assign/view.php", "/mod/assign/index.php?id=70"] {
     check(SikolaPage.allowedURL(path) == nil, "refused: \(path)")
