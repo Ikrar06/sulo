@@ -24,6 +24,9 @@ html, body, #root { height: 100%; }
 :root[data-os="ios"] #root { overflow-y: auto; overscroll-behavior: contain; }
 /* Sizes are the tokens' own: no browser font boosting (text autosizing), only the app's text zoom. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Like any phone app: nothing shows a scrollbar (owner, 27 Nov 2026); scrolling itself is unchanged. */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
 body {
   background: var(--m-screen);
   color: var(--text);
