@@ -52,7 +52,8 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           { id: 'Daftar mata kuliah, termasuk nama dan warna yang kamu pilih.', en: 'Your course list, including the names and colors you choose.' },
           { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Latest updates (activity names and kinds, not their content).' },
           { id: 'Rekap presensi untuk mata kuliah yang dipantau, dan rincian per pertemuan yang kamu buka.', en: 'The attendance recap for the courses you follow, and the per-session details you open.' },
-          { id: 'Nilai tugas yang kamu lihat lewat Lihat nilai, selama 24 jam. Tidak pernah dikirim, disalin, atau muncul di notifikasi.', en: 'Task grades you looked at with See grade, for 24 hours. Never sent, copied or shown in a notification.' },
+          { id: 'Tugas yang sudah selesai atau lewat tenggat, sampai akhir semester mata kuliahnya.', en: 'Finished and past-due tasks, until their course ends for the semester.' },
+          { id: 'Nilai tugas yang kamu lihat lewat Lihat nilai, selama tugasnya ada di Sulo. Tidak pernah dikirim, disalin, atau muncul di notifikasi.', en: 'Task grades you looked at with See grade, while the task is in Sulo. Never sent, copied or shown in a notification.' },
           { id: 'Pengaturan, dan sesi SIKOLA.', en: 'Your settings, and the SIKOLA session.' },
           {
             id: 'Catatan sesi: kapan sesi SIKOLA, Sipakamase, dan NEOSIA berakhir, berapa menit setelah masuk dan setelah aktivitas terakhir. Tanpa isi cookie atau token. Dipakai untuk mengatur jarak penjaga sesi dan ditampilkan di layar Diagnostik. Tidak pernah dikirim, terhapus saat Keluar.',

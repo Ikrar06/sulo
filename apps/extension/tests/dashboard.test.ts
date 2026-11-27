@@ -73,7 +73,21 @@ describe('task list', () => {
 
   it('gives each task a status', () => {
     expect(Object.fromEntries(items.map((i) => [i.task.eventId, i.status]))).toEqual({ 10: 'pending', 11: 'pending', 12: 'inactive', 13: 'submitted', 14: 'done' });
-    expect(countByStatus(items)).toEqual({ pending: 2, done: 1, submitted: 1, inactive: 1 });
+    expect(countByStatus(items)).toEqual({ pending: 2, done: 1, submitted: 1, past: 0, inactive: 1, graded: 0 });
+  });
+
+  it('keeps "past" apart from "probably handed in", and filters what Sulo knows was graded', () => {
+    const more = buildTaskItems({
+      ...user,
+      tasks: [...user.tasks, task(15, 1, NOW - 30 * 24 * H, { cmId: 70, missingSince: NOW, pastWindow: true }), task(16, 1, NOW - H, { cmId: 71 })],
+      taskGrades: { '71': { fetchedAt: NOW, requestAt: NOW, grade: { kind: 'graded', text: '90.00 (A)', got: 90, max: null, letter: 'A' } } },
+    });
+    expect(more.find((i) => i.task.eventId === 15)?.status).toBe('past');
+    expect(countByStatus(more)).toMatchObject({ submitted: 1, past: 1, graded: 1 });
+    // "Sudah dinilai" whatever the status (16 is still pending on SIKOLA's list).
+    expect(filterTasks(more, { ...DEFAULT_TASK_FILTER, status: 'graded' }).map((i) => i.task.eventId)).toEqual([16]);
+    // The default list never shows past ones.
+    expect(filterTasks(more, DEFAULT_TASK_FILTER).map((i) => i.task.eventId)).not.toContain(15);
   });
 
   it('filters by status, course and search (name, course or note), dated first', () => {

@@ -1,8 +1,9 @@
 // "Lihat nilai" (1.1.0): one GET of a task's assignment page, only when the student taps it, through the
-// same client as everything else (allowlist, budget, queue, backoff). The answer is kept per account for 24
-// hours (HTML_ON_DEMAND_TTL_H), so a second look asks nothing; asking again is possible after 2 minutes.
-// Only for one of the student's own SIKOLA assignments that was handed in and then graded there (a grade or
-// feedback notification about it, tasks/grade-view.ts), checked here too. A page that answers for another
+// same client as everything else (allowlist, budget, queue, backoff). The answer is kept per account while its
+// task is kept (the "Sudah dinilai" filter, at most TASK_GRADES_MAX); a look within 24 hours of the last read
+// (HTML_ON_DEMAND_TTL_H) asks nothing, and "Cek lagi" asks again after 2 minutes at the soonest.
+// Only for one of the student's own SIKOLA assignments past its due time, gone from SIKOLA's list or marked done
+// (tasks/grade-view.ts showsGradeCard), checked here too. A page that answers for another
 // account is never stored (the same check as attendance). The grade stays on this device: never in a
 // notification, a copied list, a calendar file or a bug report.
 
@@ -14,12 +15,13 @@ import { pageUserId } from '../presensi/page-user';
 import { currentUser, readUser, writeUserIfCurrent } from '../storage';
 import type { Clock, KeyValueStore, UnixSeconds, UserId } from '../types';
 import { assignViewPath, parseAssignGrade, type AssignGrade } from './grade';
-import { gradedCmIds, showsGradeCard } from './grade-view';
+import { getTaskState } from './local-state';
+import { showsGradeCard } from './grade-view';
 
 export const TASK_GRADE_CACHE_SEC = HTML_ON_DEMAND_TTL_H * 3600;
 export const TASK_GRADE_COOLDOWN_SEC = 120;
-/** Answers kept per account, newest first. */
-export const TASK_GRADES_MAX = 50;
+/** Answers kept per account, newest first (a semester's assignments). */
+export const TASK_GRADES_MAX = 200;
 
 export interface TaskGradeEntry {
   /** When the page was last read; null while every request so far failed. */
@@ -46,10 +48,10 @@ export interface TaskGradeDeps {
   clock: Clock;
 }
 
-/** Only the newest TASK_GRADES_MAX answers, by their last request. */
-export function pruneGrades(grades: TaskGrades): TaskGrades {
-  const entries = Object.entries(grades);
-  if (entries.length <= TASK_GRADES_MAX) return grades;
+/** Only answers for tasks still kept (`cmids`, when given), the newest TASK_GRADES_MAX by their last request. */
+export function pruneGrades(grades: TaskGrades, cmids?: ReadonlySet<number>): TaskGrades {
+  const entries = Object.entries(grades).filter(([cmid]) => !cmids || cmids.has(Number(cmid)));
+  if (entries.length <= TASK_GRADES_MAX) return Object.fromEntries(entries);
   return Object.fromEntries(entries.sort((a, b) => b[1].requestAt - a[1].requestAt).slice(0, TASK_GRADES_MAX));
 }
 
@@ -61,7 +63,9 @@ export function freshGrade(entry: TaskGradeEntry | undefined, now: UnixSeconds):
 
 async function save(store: KeyValueStore, userId: UserId, key: string, entry: TaskGradeEntry): Promise<void> {
   const grades = (await readUser(store, userId, 'taskGrades')) ?? {};
-  await writeUserIfCurrent(store, userId, 'taskGrades', pruneGrades({ ...grades, [key]: entry }));
+  // A task dropped at the end of its semester takes its grade with it.
+  const kept = new Set((await readUser(store, userId, 'tasks')).flatMap((t) => (t.cmId === null ? [] : [t.cmId])));
+  await writeUserIfCurrent(store, userId, 'taskGrades', pruneGrades({ ...grades, [key]: entry }, kept));
 }
 
 /**
@@ -73,9 +77,9 @@ export async function taskGradeForCurrent(deps: TaskGradeDeps, cmid: number, aga
   const userId = await currentUser(deps.store);
   if (userId === null) return { status: 'failed', reason: 'NO_ACCOUNT' };
   const tasks = await readUser(deps.store, userId, 'tasks');
-  const graded = gradedCmIds(await readUser(deps.store, userId, 'changes'));
-  if (!tasks.some((t) => t.cmId === cmid && showsGradeCard(t, graded))) return { status: 'failed', reason: 'NOT_A_TASK' };
+  const taskState = await readUser(deps.store, userId, 'taskState');
   const now = deps.clock.now();
+  if (!tasks.some((t) => t.cmId === cmid && showsGradeCard(t, getTaskState(taskState, t.eventId).doneManually, now))) return { status: 'failed', reason: 'NOT_A_TASK' };
   const key = String(cmid);
   const entry = ((await readUser(deps.store, userId, 'taskGrades')) ?? {})[key];
   const fresh = freshGrade(entry, now);

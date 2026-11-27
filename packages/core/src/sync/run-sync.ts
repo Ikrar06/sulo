@@ -295,7 +295,9 @@ export async function applyBatch(deps: Pick<SyncDeps, 'store' | 'clock' | 'origi
   const calendar = parseCall('core_calendar_get_action_events_by_timesort', calendarResult ?? missing);
   if (calendar.ok) {
     calendarMerged = true;
-    tasks = mergeTasks(previousTasks, calendar.data.events, now, CALENDAR_LOOKBACK_DAYS);
+    // Gone tasks stay until their course ends (from-calendar.ts keepUntil): the stored courses' end dates.
+    const courseEnds = new Map((await readUser(deps.store, userId, 'courses')).map((c) => [c.id, c.enddate > 0 ? c.enddate : null] as const));
+    tasks = mergeTasks(previousTasks, calendar.data.events, now, CALENDAR_LOOKBACK_DAYS, courseEnds);
     await writeUser(deps.store, userId, 'tasks', tasks);
     const state = await readUser(deps.store, userId, 'taskState');
     await writeUser(deps.store, userId, 'taskState', pruneTaskState(state, new Set(tasks.map((t) => t.eventId))));

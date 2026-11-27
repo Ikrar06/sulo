@@ -4,8 +4,22 @@ import type { CourseId, Task, UnixSeconds } from '../types';
 type CalendarEvent = FunctionData<'core_calendar_get_action_events_by_timesort'>['events'][number];
 
 const DAY = 86_400;
-/** Tasks missing from the calendar are kept this long as "probably submitted". */
-export const MISSING_RETENTION_DAYS = 14;
+/**
+ * A task no longer in SIKOLA's calendar stays until its course ends, plus this long for grades given at the end
+ * of the semester (owner's decision, 27 Nov 2026), so "Lihat nilai" and the finished filters keep it.
+ */
+export const SEMESTER_GRACE_DAYS = 30;
+/** Without a usable course end date: this long after the due date (or after the task went missing). */
+export const SEMESTER_FALLBACK_DAYS = 180;
+/** Never longer than this after the due date, whatever the course end says. */
+export const KEEP_MAX_DAYS = 240;
+
+/** Until when a task that left SIKOLA's calendar is kept. `courseEnd`: the course's end date, null when unset. */
+export function keepUntil(task: Pick<Task, 'dueAt' | 'missingSince' | 'firstSeenAt'>, courseEnd: UnixSeconds | null): UnixSeconds {
+  const base = task.dueAt ?? task.missingSince ?? task.firstSeenAt;
+  const fromCourse = courseEnd !== null && courseEnd > base ? courseEnd + SEMESTER_GRACE_DAYS * DAY : null;
+  return Math.min(base + KEEP_MAX_DAYS * DAY, fromCourse ?? base + SEMESTER_FALLBACK_DAYS * DAY);
+}
 
 function cmIdFromUrl(url: string): number | null {
   try {
@@ -53,16 +67,18 @@ export const windowStart = (now: UnixSeconds, lookbackDays: number) => now - loo
 
 /**
  * Merges a fresh calendar result into the stored tasks.
- * - Present in the calendar: updated.
- * - Missing but due inside the requested window: kept as "probably
- *   submitted" (missingSince) for MISSING_RETENTION_DAYS, never deleted at once.
- * - Missing because it fell out of the window (due before its start): dropped.
+ * - Present in the calendar: updated (and active again, whatever it was).
+ * - Missing but due inside the requested window: "probably submitted" (missingSince).
+ * - Missing because its due date left the window first: "past" (missingSince and pastWindow), since Sulo
+ *   cannot tell whether it was handed in.
+ * - Either is kept until keepUntil (the course's end plus a grace, for late grades), never deleted at once.
  */
 export function mergeTasks(
   previous: readonly Task[],
   events: readonly CalendarEvent[],
   now: UnixSeconds,
   lookbackDays: number,
+  courseEnds: ReadonlyMap<CourseId, UnixSeconds | null> = new Map(),
 ): Task[] {
   const prevById = new Map(previous.map((t) => [t.eventId, t]));
   const fresh = events.map((e) => taskFromEvent(e, now, prevById.get(e.id)));
@@ -71,9 +87,12 @@ export function mergeTasks(
 
   const missing = previous
     .filter((t) => !freshIds.has(t.eventId))
-    .filter((t) => t.dueAt === null || t.dueAt >= start)
-    .map((t) => (t.missingSince === null ? { ...t, missingSince: now } : t))
-    .filter((t) => now - (t.missingSince ?? now) <= MISSING_RETENTION_DAYS * DAY);
+    .map((t): Task => {
+      // Already gone: as it was (probably submitted, or past).
+      if (t.missingSince !== null) return t;
+      return t.dueAt !== null && t.dueAt < start ? { ...t, missingSince: now, pastWindow: true } : { ...t, missingSince: now };
+    })
+    .filter((t) => now <= keepUntil(t, courseEnds.get(t.courseId) ?? null));
 
   return [...fresh, ...missing];
 }

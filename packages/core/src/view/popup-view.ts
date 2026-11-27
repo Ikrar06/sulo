@@ -265,7 +265,8 @@ export function buildPopupView(input: PopupInput): PopupView {
     groups,
     pendingCount: pending.length,
     inactiveCourseTaskCount: tasks.filter((t) => t.missingSince === null && !followsTask(active, t)).length,
-    probablySubmittedCount: tasks.filter((t) => t.missingSince !== null).length,
+    // Past tasks (their due date left the window first) are not "probably submitted": Sulo cannot tell.
+    probablySubmittedCount: tasks.filter((t) => t.missingSince !== null && !t.pastWindow).length,
     reviewSuggestedCount: user?.onboarding.reviewSuggested.length ?? 0,
     copyItems: pending.map((task) => {
       const course = byId.get(task.courseId);

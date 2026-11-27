@@ -87,6 +87,8 @@ export const dashEn: DashMessages = {
       pending: 'Not done',
       done: 'Marked as done',
       submitted: 'Probably handed in',
+      past: 'Long past due',
+      graded: 'Graded',
       inactive: 'Course not followed',
     },
     empty: 'No tasks match.',

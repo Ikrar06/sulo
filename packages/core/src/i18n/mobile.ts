@@ -129,6 +129,9 @@ const id = {
     lowest: 'Terendah',
     pending: 'Belum selesai',
     done: 'Selesai',
+    /** Tugas chips (1.1.0): known graded, and gone from SIKOLA's window without a sign it was handed in. */
+    graded: 'Dinilai',
+    past: 'Sudah lama lewat',
     sessions: (n: number, got: number | null, max: number | null) => (got !== null && max !== null ? `${n} sesi · ${got}/${max} poin` : `${n} sesi`),
   },
   notify: {
@@ -398,6 +401,8 @@ const en: MobileWords = {
     lowest: 'Lowest',
     pending: 'To do',
     done: 'Done',
+    graded: 'Graded',
+    past: 'Long past due',
     sessions: (n: number, got: number | null, max: number | null) => `${n === 1 ? '1 session' : `${n} sessions`}${got !== null && max !== null ? ` · ${got}/${max} points` : ''}`,
   },
   notify: {

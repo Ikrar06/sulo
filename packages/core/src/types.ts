@@ -149,6 +149,11 @@ export interface Task {
   lastSeenAt: UnixSeconds;
   /** Set when the task disappeared from the calendar: probably submitted. */
   missingSince: UnixSeconds | null;
+  /**
+   * With missingSince: it went because its due date left the calendar window before Sulo saw it handed in, so
+   * Sulo cannot tell whether it was ("past", not "probably submitted"). Kept for the semester (1.1.0).
+   */
+  pastWindow?: true;
 }
 
 export interface TaskLocalState {

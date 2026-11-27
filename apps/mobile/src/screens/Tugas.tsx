@@ -1,6 +1,7 @@
 // Tugas (M8c.1, cards). Header: the name, a round search button (opens the
 // field) and Perbarui. Pill chips filter: Semua, Terlambat (n), Hari ini,
-// Minggu ini, Selesai. Then the overview's groups (core groupTaskList), each
+// Minggu ini (all unfinished, by default), then the history (1.1.0): Selesai
+// (marked done or handed in on SIKOLA), Dinilai, Sudah lama lewat. Then the overview's groups (core groupTaskList), each
 // task one card: the course chip and the time left in its urgency color,
 // the title (two lines), the date and a 28 px check circle. Marking one done
 // fills the circle, strikes the title and offers Urungkan for 5 seconds.
@@ -34,9 +35,13 @@ import { OwnTaskSheet } from './OwnTaskSheet';
 
 export const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
 
-type Filter = 'all' | 'overdue' | 'today' | 'week' | 'done';
+type HistoryFilter = 'done' | 'graded' | 'past';
+type Filter = 'all' | 'overdue' | 'today' | 'week' | HistoryFilter;
 /** Which overview groups each chip keeps ("Minggu ini" is today through the next seven days). */
-const GROUPS: Record<Exclude<Filter, 'done'>, readonly OverviewGroupKey[] | null> = { all: null, overdue: ['overdue'], today: ['today'], week: ['today', 'tomorrow', 'week'] };
+const GROUPS: Record<Exclude<Filter, HistoryFilter>, readonly OverviewGroupKey[] | null> = { all: null, overdue: ['overdue'], today: ['today'], week: ['today', 'tomorrow', 'week'] };
+const isHistory = (f: Filter): f is HistoryFilter => f === 'done' || f === 'graded' || f === 'past';
+/** The history chips: what each keeps. Handed in on SIKOLA counts as done; "Dinilai" is any status. */
+const inHistory = (i: TaskItem, f: HistoryFilter): boolean => (f === 'graded' ? i.graded : f === 'past' ? i.status === 'past' : i.status === 'done' || i.status === 'submitted');
 
 type Row = { kind: 'head'; key: string; label: string } | { kind: 'task'; item: TaskItem };
 
@@ -61,29 +66,34 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   const dateLabel = date ? formatDateKey(date, m.intl, { weekday: 'short', day: 'numeric', month: 'short' }) : '';
 
   const groups = useMemo(() => {
-    const status = filter === 'done' ? 'done' : 'pending';
+    const history = isHistory(filter) ? filter : null;
     const matching = filterTasks(items, { ...DEFAULT_TASK_FILTER, status: 'all', query })
-      .filter((i) => i.status === status || done.lingering.has(i.task.eventId))
+      .filter((i) => (history ? inHistory(i, history) : i.status === 'pending') || done.lingering.has(i.task.eventId))
       .filter((i) => date === null || (i.task.dueAt !== null && localParts(i.task.dueAt, timeZone).dateKey === date));
-    return status === 'done' ? [{ key: 'next' as OverviewGroupKey, rows: matching }] : groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
+    // History reads newest first, in one list.
+    return history
+      ? [{ key: 'next' as OverviewGroupKey, rows: [...matching].sort((a, b) => (b.task.dueAt ?? 0) - (a.task.dueAt ?? 0)) }]
+      : groupTaskList(matching.map((i) => ({ ...i, dueAt: i.task.dueAt })), now, timeZone);
   }, [items, query, filter, done.lingering, now, date]);
   const overdueCount = groups.find((g) => g.key === 'overdue')?.rows.length ?? 0;
-  const keep = filter === 'done' ? null : GROUPS[filter];
+  const keep = isHistory(filter) ? null : GROUPS[filter];
   const rows = useMemo<Row[]>(
     () =>
       groups
         .filter((g) => keep === null || keep.includes(g.key))
-        .flatMap((g): Row[] => [...(filter === 'done' ? [] : [{ kind: 'head' as const, key: `h-${g.key}`, label: d.ringkasan.groups[g.key] }]), ...g.rows.map((item) => ({ kind: 'task' as const, item }))]),
+        .flatMap((g): Row[] => [...(isHistory(filter) ? [] : [{ kind: 'head' as const, key: `h-${g.key}`, label: d.ringkasan.groups[g.key] }]), ...g.rows.map((item) => ({ kind: 'task' as const, item }))]),
     [groups, keep, filter, d],
   );
   const taskCount = rows.filter((r) => r.kind === 'task').length;
-  const allClear = filter !== 'done' && counts.pending === 0 && query.trim() === '' && date === null;
+  const allClear = !isHistory(filter) && counts.pending === 0 && query.trim() === '' && date === null;
   const chips: { value: Filter; label: string }[] = [
     { value: 'all', label: w.app.all },
     { value: 'overdue', label: overdueCount > 0 ? `${d.ringkasan.groups.overdue} (${overdueCount})` : d.ringkasan.groups.overdue },
     { value: 'today', label: d.ringkasan.groups.today },
     { value: 'week', label: d.ringkasan.groups.week },
     { value: 'done', label: w.app.done },
+    { value: 'graded', label: w.app.graded },
+    { value: 'past', label: w.app.past },
   ];
 
   return (
@@ -132,7 +142,7 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
                 dueFormat={data!.prefs.dueFormat}
                 collapsing={done.collapsing.has(r.item.task.eventId)}
                 onOpen={() => go({ name: 'tugas', detail: String(r.item.task.eventId) })}
-                onDone={(v) => (v ? done.mark(r.item.task.eventId, filter !== 'done' && counts.pending === 1) : done.unmark(r.item.task.eventId))}
+                onDone={(v) => (v ? done.mark(r.item.task.eventId, !isHistory(filter) && counts.pending === 1) : done.unmark(r.item.task.eventId))}
                 labels={t}
                 m={m}
                 locale={locale}

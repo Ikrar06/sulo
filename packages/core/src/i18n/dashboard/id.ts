@@ -88,6 +88,8 @@ export const dashId = {
       pending: 'Belum selesai',
       done: 'Ditandai selesai',
       submitted: 'Mungkin sudah dikumpulkan',
+      past: 'Sudah lama lewat',
+      graded: 'Sudah dinilai',
       inactive: 'Mata kuliah tidak dipantau',
     },
     empty: 'Tidak ada tugas yang cocok.',
