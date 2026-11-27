@@ -20,6 +20,7 @@ import { IconButton } from '@sulo/ui/mobile/controls';
 import { closeTopSheet } from '@sulo/ui/mobile/sheet-motion';
 import { useToast } from '@sulo/ui/ui/toast';
 import { back as goBack, current, motionBetween, open, parseScreen, START, tapTab, type NavState, type Screen, type Tab } from './nav';
+import { useEdgeBack } from './edge-back';
 import { opensSignIn, screenForNotification } from './notify-route';
 import { SuloSession } from '../session';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
@@ -152,6 +153,17 @@ export function AppShell(props: ShellProps) {
     });
     return () => void handle.then((h) => h.remove());
   }, []);
+
+  // The iPhone's swipe from the left edge on a detail screen (edge-back.ts); Android has the system's own.
+  const swipeBack = useCallback(
+    () =>
+      setNav((s) => {
+        const next = goBack(s);
+        return next === 'exit' ? s : next;
+      }),
+    [],
+  );
+  useEdgeBack(scroller, document.documentElement.dataset.os === 'ios' && nav.stack.length > 0, swipeBack);
 
   useEffect(() => {
     const on = () => setOnline(navigator.onLine);
