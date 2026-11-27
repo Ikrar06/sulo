@@ -78,12 +78,13 @@ function SemesterCard({ title, sub, summary, rows, open, onToggle }: { title: st
   return (
     <section className="m-card rounded-card">
       <button type="button" aria-expanded={open} aria-controls={panel} onClick={onToggle} className="flex w-full items-center gap-3 rounded-card p-4 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
+        {/* Credits and IPS under the name, not beside it: at large text sizes they wrap instead of pushing the arrow out. */}
         <span className="min-w-0 flex-1">
           <span className="block text-m15 font-semibold">{title}</span>
           {sub && <span className="block text-m12 text-muted-foreground">{sub}</span>}
-        </span>
-        <span className="shrink-0 text-m12 text-muted-foreground tabular-nums">
-          <Private>{summary}</Private>
+          <span className="block text-m12 text-muted-foreground tabular-nums">
+            <Private>{summary}</Private>
+          </span>
         </span>
         <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-m-inset">
           <ChevronDownIcon className={`size-4 transition-transform duration-200 ease-out motion-reduce:transition-none ${open ? 'rotate-180' : ''}`} />
@@ -225,7 +226,7 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
               .slice(0, 40)
               .map((r) => (
                 <li key={r.key}>
-                  <button type="button" onClick={() => setPicking(r)} className="m-press -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-1 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                  <button type="button" onClick={() => setPicking(r)} className="m-press -mx-2 flex min-h-11 w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-1 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
                     <span className="min-w-0 flex-1 truncate text-m13">
                       <Private>{r.name}</Private>
                     </span>
