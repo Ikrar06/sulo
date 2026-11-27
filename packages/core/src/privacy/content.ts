@@ -186,7 +186,7 @@ export const PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'ul',
         items: [
-          { id: 'mata kuliah, tugas, dan tenggat', en: 'courses, assignments and due dates' },
+          { id: 'mata kuliah, tugas, dan tenggat, serta tugas yang kamu tambahkan sendiri (judul, mata kuliah, dan tenggat yang kamu isi)', en: 'courses, assignments and due dates, and the tasks you add yourself (the title, course and due date you type)' },
           { id: 'rekap presensi dari SIKOLA, diperbarui otomatis paling sering sekali sehari, dan rincian per pertemuan yang diambil hanya saat kamu membukanya (untuk mata kuliah yang dipantau: sesi tercatat, poin, persentase, status, dan keterangan)', en: 'your attendance recap from SIKOLA, updated automatically at most once a day, and the per-session details, fetched only when you open them (for the courses you follow: sessions recorded, points, percentage, status, and remarks)' },
           { id: 'susunan mata kuliah terakhir yang terlihat dan log "Kabar terbaru" (paling banyak 200 entri)', en: 'the last seen structure of each course and the "Latest updates" log (at most 200 entries)' },
           { id: 'pilihanmu: mata kuliah yang dipantau, tugas yang ditandai selesai, nama tampilan dan warna mata kuliah, serta nama panggilan yang kamu isi sendiri', en: 'your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself' },

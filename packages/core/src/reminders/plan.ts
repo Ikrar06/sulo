@@ -14,6 +14,7 @@ import { lastStage, type ReminderSettings } from './settings';
 import { morningCounts, pendingForMorning, type MorningCounts } from './morning';
 import { classesToday } from '../neosia/today';
 import { addDays, inWindow, localParts, nextLocalTime, windowEnd, zonedToUnix } from './zoned';
+import { followsTask } from '../tasks/own';
 
 /** The morning summary is skipped when the browser opens more than this after its time. */
 export const MORNING_GRACE = 3 * 3600;
@@ -269,7 +270,7 @@ export function remindable(input: Pick<PlanInput, 'tasks' | 'taskState' | 'activ
       t.dueAt !== null &&
       t.dueAt > input.now &&
       t.missingSince === null &&
-      input.activeCourseIds.has(t.courseId) &&
+      followsTask(input.activeCourseIds, t) &&
       !getTaskState(input.taskState, t.eventId).doneManually,
   );
 }

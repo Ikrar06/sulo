@@ -2,6 +2,7 @@ import { calendarDaysBetween } from '../format/time';
 import type { CourseId, Task, UnixSeconds } from '../types';
 import type { TaskStateMap } from './local-state';
 import { getTaskState } from './local-state';
+import { followsTask } from './own';
 
 export type TaskGroupKey = 'overdue' | 'soon' | 'week' | 'later' | 'undated';
 
@@ -18,7 +19,7 @@ export function pendingTasks(
   activeCourseIds: ReadonlySet<CourseId>,
 ): Task[] {
   return tasks.filter(
-    (t) => t.missingSince === null && activeCourseIds.has(t.courseId) && !getTaskState(state, t.eventId).doneManually,
+    (t) => t.missingSince === null && followsTask(activeCourseIds, t) && !getTaskState(state, t.eventId).doneManually,
   );
 }
 

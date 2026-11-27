@@ -57,7 +57,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const done = useDoneUndo(actions, d, data.today, local);
   const rowsRef = useRef<HTMLDivElement>(null);
   useFlip(rowsRef);
-  const allItems = useMemo(() => buildTaskItems(user), [user]);
+  const allItems = useMemo(() => buildTaskItems(user, d.tugas.own), [user, d.tugas.own]);
   // Pending tasks, plus the ones just marked done (they stay in place for the undo window).
   const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);
   const rows = useMemo<Row[]>(() => pendingItems.map((i) => ({ ...i, dueAt: i.task.dueAt })), [pendingItems]);

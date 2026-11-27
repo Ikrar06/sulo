@@ -48,7 +48,7 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'ul',
         items: [
-          { id: 'Tugas dan tenggat dari SIKOLA, serta catatan, langkah, dan tenggat pribadi yang kamu tambahkan sendiri.', en: 'Tasks and deadlines from SIKOLA, and the notes, steps and personal deadlines you add yourself.' },
+          { id: 'Tugas dan tenggat dari SIKOLA, tugas yang kamu tambahkan sendiri, serta catatan, langkah, dan tenggat pribadi yang kamu isi.', en: 'Tasks and deadlines from SIKOLA, the tasks you add yourself, and the notes, steps and personal deadlines you add.' },
           { id: 'Daftar mata kuliah, termasuk nama dan warna yang kamu pilih.', en: 'Your course list, including the names and colors you choose.' },
           { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Latest updates (activity names and kinds, not their content).' },
           { id: 'Rekap presensi untuk mata kuliah yang dipantau, dan rincian per pertemuan yang kamu buka.', en: 'The attendance recap for the courses you follow, and the per-session details you open.' },

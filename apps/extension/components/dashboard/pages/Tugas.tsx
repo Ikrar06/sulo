@@ -10,6 +10,10 @@ import { countdownLabel } from '@sulo/core/format/countdown';
 import { taskDueLines } from '@sulo/core/format/time';
 import { taskCalendarUrl } from '@sulo/core/format/gcal';
 import { addStep, removeStep, setCustomDue, setNote, setSnooze, toggleStep } from '@sulo/core/tasks/local-state';
+import { addOwnTask, isOwnTask, removeOwnTask, updateOwnTask, type OwnTask } from '@sulo/core/tasks/own';
+import { Button } from '@sulo/ui/ui/button';
+import { PlusIcon } from '@sulo/ui/dashboard-icons';
+import { OwnTaskDialog } from '../OwnTaskDialog';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
@@ -31,7 +35,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const { m } = useI18n();
   const t = d.tugas;
   const user = data.user!;
-  const items = useMemo(() => buildTaskItems(user), [user]);
+  const items = useMemo(() => buildTaskItems(user, t.own), [user, t.own]);
   const counts = useMemo(() => countByStatus(items), [items]);
   const [filter, setFilter] = useState<TaskFilter>(DEFAULT_TASK_FILTER);
   const linked = route.detail !== null ? Number(route.detail) : null;
@@ -55,6 +59,9 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
   const listRef = useRef<HTMLUListElement>(null);
   useFlip(listRef);
+  // "Tambah tugas" and "Ubah tugas" (tasks/own.ts): null closed, 'new' adding, a task changing it.
+  const [form, setForm] = useState<OwnTask | 'new' | null>(null);
+  const editing = form !== null && form !== 'new' ? form : null;
 
   return (
     <div className="space-y-4">
@@ -76,6 +83,10 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
             ))}
           </SelectContent>
         </Select>
+        <Button variant="outline" onClick={() => setForm('new')}>
+          <PlusIcon className="size-4" />
+          {t.ownAdd}
+        </Button>
         <Select value={filter.status} onValueChange={(v) => setFilter({ ...filter, status: v as TaskStatusFilter })}>
           <SelectTrigger className="w-60" aria-label={t.status}>
             <SelectValue />
@@ -136,6 +147,7 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onToggleStep: (id) => state((s) => toggleStep(s, item.task.eventId, id)),
                     onRemoveStep: (id) => state((s) => removeStep(s, item.task.eventId, id)),
                     onNote: (note) => state((s) => setNote(s, item.task.eventId, note)),
+                    ...(isOwnTask(item.task) ? { onEditOwn: () => setForm(user.ownTasks.find((o) => o.id === item.task.eventId) ?? null) } : {}),
                   }}
                 />
               }
@@ -143,6 +155,29 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
           ))}
         </ul>
       )}
+      <OwnTaskDialog
+        open={form !== null}
+        onOpenChange={(o) => !o && setForm(null)}
+        editing={editing}
+        courses={user.courses}
+        t={t}
+        cancelLabel={d.common.cancel}
+        onSave={(input) => {
+          void actions.updateUser('ownTasks', (list) => (editing ? updateOwnTask(list, editing.id, input) : addOwnTask(list, input, data.now)));
+          setForm(null);
+        }}
+        onRemove={
+          editing
+            ? () => {
+                // The task, then its steps and note.
+                void actions.updateUser('ownTasks', (list) => removeOwnTask(list, editing.id)).then(() =>
+                  actions.updateUser('taskState', (map) => Object.fromEntries(Object.entries(map).filter(([key]) => key !== String(editing.id)))),
+                );
+                setForm(null);
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }

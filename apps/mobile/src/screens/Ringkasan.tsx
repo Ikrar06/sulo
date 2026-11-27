@@ -62,7 +62,7 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   const done = useDoneUndo(actions, d, today, platform.store);
   const [cheer, setCheer] = useState(0);
   const [celebrate, setCelebrate] = useState(0);
-  const items = useMemo(() => buildTaskItems(user), [user]);
+  const items = useMemo(() => buildTaskItems(user, mobileDash(locale).tugas.own), [user, locale]);
   const pendingOnly = useMemo(() => items.filter((i) => i.status === 'pending'), [items]);
   // Plus the ones just marked done (they stay for the undo window).
   const pending = useMemo(() => items.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [items, done.lingering]);

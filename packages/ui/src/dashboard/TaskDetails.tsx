@@ -11,7 +11,8 @@ import type { DashMessages } from '@sulo/core/i18n/dashboard';
 import { addDays, localParts, zonedToUnix } from '@sulo/core/reminders/zoned';
 import { STEP_MAX } from '@sulo/core/tasks/local-state';
 import type { UnixSeconds } from '@sulo/core/types';
-import { PlusIcon, XIcon } from '../dashboard-icons';
+import { PencilIcon, PlusIcon, XIcon } from '../dashboard-icons';
+import { isOwnTask } from '@sulo/core/tasks/own';
 
 export interface TaskDetailActions {
   onOpen: (url: string) => void;
@@ -22,6 +23,8 @@ export interface TaskDetailActions {
   onToggleStep: (stepId: string) => void;
   onRemoveStep: (stepId: string) => void;
   onNote: (note: string) => void;
+  /** A task the student added (tasks/own.ts): its form, in place of SIKOLA's page. */
+  onEditOwn?: () => void;
 }
 
 // Every control in the action row is 36 px high.
@@ -40,7 +43,8 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
   const [step, setStep] = useState('');
   const [note, setNote] = useState(item.state.note);
   const [noteSaved, setNoteSaved] = useState(false);
-  const undated = item.task.dueAt === null || item.personalDue;
+  const own = isOwnTask(item.task);
+  const undated = !own && (item.task.dueAt === null || item.personalDue);
   const current = item.personalDue && item.task.dueAt !== null ? localParts(item.task.dueAt, timeZone) : null;
   const [due, setDue] = useState(current ? `${current.dateKey}T${String(Math.floor(current.minuteOfDay / 60)).padStart(2, '0')}:${String(current.minuteOfDay % 60).padStart(2, '0')}` : '');
 
@@ -159,10 +163,19 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-        <a className={action} data-slot="task-action" href={item.task.url} target="_blank" rel="noopener noreferrer">
-          <ExternalIcon className="size-4" />
-          {d.common.openInSikola}
-        </a>
+        {own ? (
+          actions.onEditOwn && (
+            <button type="button" className={action} data-slot="task-action" onClick={actions.onEditOwn}>
+              <PencilIcon className="size-4" />
+              {t.ownEdit}
+            </button>
+          )
+        ) : (
+          <a className={action} data-slot="task-action" href={item.task.url} target="_blank" rel="noopener noreferrer">
+            <ExternalIcon className="size-4" />
+            {d.common.openInSikola}
+          </a>
+        )}
         {item.task.dueAt !== null && (
           <button type="button" className={action} data-slot="task-action" onClick={() => actions.onAddToCalendar(item)}>
             <CalendarPlusIcon className="size-4" />

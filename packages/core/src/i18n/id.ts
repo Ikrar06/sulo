@@ -78,6 +78,8 @@ export const id = {
       noDue: 'tanpa tenggat',
     },
     row: {
+      /** A task the student added without a course (tasks/own.ts), where a course name goes. */
+      ownTask: 'Tugas sendiri',
       doneShort: 'Selesai',
       undo: 'Urungkan',
       menu: (name: string) => `Pilihan untuk ${name}`,

@@ -49,7 +49,7 @@ export function KalenderScreen() {
   const tasks = useMemo<TaskForCalendar[]>(
     () =>
       data!.user
-        ? buildTaskItems(data!.user)
+        ? buildTaskItems(data!.user, mobileDash(locale).tugas.own)
             .filter((i) => i.status === 'pending' && i.task.dueAt !== null)
             .map((i) => ({ eventId: i.task.eventId, name: i.task.name, courseName: i.courseName, courseColor: i.courseColor, dueAt: i.task.dueAt!, dateKey: localParts(i.task.dueAt!, timeZone).dateKey }))
         : [],

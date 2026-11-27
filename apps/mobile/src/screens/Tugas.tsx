@@ -17,6 +17,8 @@ import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
 import { XIcon } from '@sulo/ui/dashboard-icons';
 import { useI18n } from '@sulo/ui/i18n';
 import { SearchIcon } from '@sulo/ui/icons';
+import { PlusIcon } from '@sulo/ui/dashboard-icons';
+import { addOwnTask } from '@sulo/core/tasks/own';
 import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, Chip, EmptyCard } from '@sulo/ui/mobile/cards';
 import { CheckCircle, IconButton } from '@sulo/ui/mobile/controls';
@@ -28,6 +30,7 @@ import type { Screen } from '../shell/nav';
 import { HeaderTools } from '../shell/screen-header';
 import { useTaskDate } from '../shell/task-date';
 import { LongList } from './LongList';
+import { OwnTaskSheet } from './OwnTaskSheet';
 
 export const URGENCY_TEXT = { overdue: 'text-urgency-overdue', day: 'text-urgency-soon', threeDays: 'text-urgency-week', normal: 'text-muted-foreground' } as const;
 
@@ -45,11 +48,13 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   const { data, actions, platform } = useMobileData();
   const user = data!.user!;
   const now = data!.now;
-  const items = useMemo(() => buildTaskItems(user), [user]);
+  const items = useMemo(() => buildTaskItems(user, t.own), [user, t.own]);
   const counts = useMemo(() => countByStatus(items), [items]);
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
+  // "Tambah tugas": work from a lecturer that SIKOLA does not have (tasks/own.ts).
+  const [adding, setAdding] = useState(false);
   const done = useDoneUndo(actions, d, data!.today, platform.store);
   // A day tapped on Ringkasan's 7-day card: a temporary, removable filter.
   const { date, setDate } = useTaskDate();
@@ -84,6 +89,7 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
   return (
     <div className="space-y-3">
       <HeaderTools>
+        <IconButton icon={PlusIcon} label={t.ownAdd} onPress={() => setAdding(true)} />
         <IconButton icon={searching ? XIcon : SearchIcon} label={searching ? w.app.closeSearch : w.app.search} onPress={() => (searching ? (setSearching(false), setQuery('')) : setSearching(true))} />
       </HeaderTools>
       {searching && (
@@ -135,6 +141,16 @@ export function TugasScreen({ go }: { go: (s: Screen) => void }) {
           }
         />
       )}
+      <OwnTaskSheet
+        open={adding}
+        onOpenChange={setAdding}
+        editing={null}
+        courses={user.courses}
+        onSave={(input) => {
+          void actions.updateUser('ownTasks', (list) => addOwnTask(list, input, platform.clock.now()));
+          setAdding(false);
+        }}
+      />
     </div>
   );
 }

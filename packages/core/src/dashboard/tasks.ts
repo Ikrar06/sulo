@@ -8,6 +8,7 @@ import type { UserData } from '../storage';
 import { getTaskState } from '../tasks/local-state';
 import { applyPersonalDue } from '../tasks/personal-due';
 import type { CourseId, Task, TaskLocalState } from '../types';
+import { followsTask, isOwnTask } from '../tasks/own';
 
 /** pending: waiting; done: marked done; submitted: gone from the SIKOLA calendar (probably handed in); inactive: course not active. */
 export type TaskStatus = 'pending' | 'done' | 'submitted' | 'inactive';
@@ -23,16 +24,18 @@ export interface TaskItem {
   courseColor: number;
 }
 
-export function buildTaskItems(user: Pick<UserData, 'tasks' | 'taskState' | 'courses'>): TaskItem[] {
+/** `ownLabel`: the name shown for a task the student added without a course ("Tugas sendiri"), from the caller's words. */
+export function buildTaskItems(user: Pick<UserData, 'tasks' | 'taskState' | 'courses'>, ownLabel = ''): TaskItem[] {
   const active = activeCourseIds(user.courses);
   const colors = assignCourseColors(user.courses.filter((c) => active.has(c.id)));
   const byId = new Map(user.courses.map((c) => [c.id, c]));
   const { tasks, personal } = applyPersonalDue(user.tasks, user.taskState);
   return tasks.map((task) => {
     const state = getTaskState(user.taskState, task.eventId);
-    const status: TaskStatus = state.doneManually ? 'done' : task.missingSince !== null ? 'submitted' : !active.has(task.courseId) ? 'inactive' : 'pending';
+    // An added task (tasks/own.ts) is never "inactive": the student added it on purpose.
+    const status: TaskStatus = state.doneManually ? 'done' : task.missingSince !== null ? 'submitted' : !followsTask(active, task) ? 'inactive' : 'pending';
     const course = byId.get(task.courseId);
-    return { task, status, personalDue: personal.has(task.eventId), state, courseName: course ? courseAlias(course) : '', courseColor: colors.get(task.courseId) ?? 1 };
+    return { task, status, personalDue: personal.has(task.eventId), state, courseName: course ? courseAlias(course) : isOwnTask(task) ? ownLabel : '', courseColor: colors.get(task.courseId) ?? 1 };
   });
 }
 

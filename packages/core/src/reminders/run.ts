@@ -27,6 +27,7 @@ import { readCourseMap } from '../neosia/course-map';
 import { holidayRanges } from '../neosia/schedule';
 import { neosiaNudges } from '../neosia/nudges';
 import { noticeView, type NotificationView } from './text';
+import { isOwnTask, withOwnTasks } from '../tasks/own';
 
 /** Recorded keys are kept this long, then pruned. */
 const KEEP_SENT = 30 * 86_400;
@@ -87,10 +88,11 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   // Another account is signed in: the stored account's reminders stay silent
   // until the user decides (lib/account/pending.ts).
   if (await readPending(store)) return { nextAt: null, shown: 0 };
-  const [prefs, session, tasks, taskState, courses, notified, changes, calendar, neosia] = await Promise.all([
+  const [prefs, session, sikolaTasks, ownTasks, taskState, courses, notified, changes, calendar, neosia] = await Promise.all([
     readPrefs(store),
     readSession(store),
     readUser(store, userId, 'tasks'),
+    readUser(store, userId, 'ownTasks'),
     readUser(store, userId, 'taskState'),
     readUser(store, userId, 'courses'),
     readUser(store, userId, 'notified'),
@@ -98,6 +100,8 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     readCalendar(store),
     readModuleState(store),
   ]);
+  // The tasks the student added get the same reminders (tasks/own.ts).
+  const tasks = withOwnTasks(sikolaTasks, ownTasks);
   // NEOSIA's KRS windows (module on, KRS reminders on): closing reminders H-3 and H-1 for each.
   const snapshots = neosia.enabled ? await readSnapshots(store) : {};
   const windows = neosia.enabled && prefs.calendar.krs ? krsWindows(snapshots) : [];
@@ -139,7 +143,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   const byId = new Map(courses.map((c) => [c.id, c]));
   const courseName = (t: Task) => {
     const c = byId.get(t.courseId);
-    return c ? courseAlias(c) : '';
+    return c ? courseAlias(c) : isOwnTask(t) ? m.popup.row.ownTask : '';
   };
 
   const courseNameById = (id: number | null) => {
