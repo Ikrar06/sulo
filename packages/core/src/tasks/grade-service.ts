@@ -1,7 +1,8 @@
 // "Lihat nilai" (1.1.0): one GET of a task's assignment page, only when the student taps it, through the
 // same client as everything else (allowlist, budget, queue, backoff). The answer is kept per account for 24
 // hours (HTML_ON_DEMAND_TTL_H), so a second look asks nothing; asking again is possible after 2 minutes.
-// Only for an assignment that is one of the student's own tasks from SIKOLA. A page that answers for another
+// Only for one of the student's own SIKOLA assignments that was handed in and then graded there (a grade or
+// feedback notification about it, tasks/grade-view.ts), checked here too. A page that answers for another
 // account is never stored (the same check as attendance). The grade stays on this device: never in a
 // notification, a copied list, a calendar file or a bug report.
 
@@ -13,6 +14,7 @@ import { pageUserId } from '../presensi/page-user';
 import { currentUser, readUser, writeUserIfCurrent } from '../storage';
 import type { Clock, KeyValueStore, UnixSeconds, UserId } from '../types';
 import { assignViewPath, parseAssignGrade, type AssignGrade } from './grade';
+import { gradedCmIds, showsGradeCard } from './grade-view';
 
 export const TASK_GRADE_CACHE_SEC = HTML_ON_DEMAND_TTL_H * 3600;
 export const TASK_GRADE_COOLDOWN_SEC = 120;
@@ -71,7 +73,8 @@ export async function taskGradeForCurrent(deps: TaskGradeDeps, cmid: number, aga
   const userId = await currentUser(deps.store);
   if (userId === null) return { status: 'failed', reason: 'NO_ACCOUNT' };
   const tasks = await readUser(deps.store, userId, 'tasks');
-  if (!tasks.some((t) => t.cmId === cmid && t.module === 'assign')) return { status: 'failed', reason: 'NOT_A_TASK' };
+  const graded = gradedCmIds(await readUser(deps.store, userId, 'changes'));
+  if (!tasks.some((t) => t.cmId === cmid && showsGradeCard(t, graded))) return { status: 'failed', reason: 'NOT_A_TASK' };
   const now = deps.clock.now();
   const key = String(cmid);
   const entry = ((await readUser(deps.store, userId, 'taskGrades')) ?? {})[key];

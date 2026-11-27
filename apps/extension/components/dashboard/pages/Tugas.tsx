@@ -16,6 +16,7 @@ import { PlusIcon } from '@sulo/ui/dashboard-icons';
 import { OwnTaskDialog } from '../OwnTaskDialog';
 import { HeaderTools } from '../header-tools';
 import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
+import { gradedCmIds, showsGradeCard } from '@sulo/core/tasks/grade-view';
 import { urgencyOf } from '@sulo/core/tasks/group';
 import { local, timeZone } from '../data';
 import { useDoneUndo } from '@sulo/ui/dashboard/done-undo';
@@ -59,6 +60,8 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
   const active = activeCourseIds(user.courses);
   const courses = user.courses.filter((c) => active.has(c.id)).sort((a, b) => courseAlias(a).localeCompare(courseAlias(b), 'id'));
   const state = (fn: Parameters<typeof actions.updateUser<'taskState'>>[1]) => void actions.updateUser('taskState', fn);
+  // Assignments SIKOLA sent a grade or feedback notification about (Kabar terbaru): where "Lihat nilai" shows.
+  const graded = useMemo(() => gradedCmIds(user.changes), [user.changes]);
   const listRef = useRef<HTMLUListElement>(null);
   useFlip(listRef);
   // "Tambah tugas" and "Ubah tugas" (tasks/own.ts): null closed, 'new' adding, a task changing it.
@@ -153,8 +156,10 @@ export function TugasPage({ d, data, actions, route }: PageProps) {
                     onRemoveStep: (id) => state((s) => removeStep(s, item.task.eventId, id)),
                     onNote: (note) => state((s) => setNote(s, item.task.eventId, note)),
                     ...(isOwnTask(item.task) ? { onEditOwn: () => setForm(user.ownTasks.find((o) => o.id === item.task.eventId) ?? null) } : {}),
-                    // "Lihat nilai": the service worker reads the assignment page (tasks/grade-service.ts).
-                    onGrade: async (cmid, again) => ((await actions.send({ type: 'task/grade', cmid, again })) as TaskGradeOutcome | null) ?? { status: 'failed', reason: 'NO_ANSWER' },
+                    // "Lihat nilai", for an assignment handed in and graded on SIKOLA: the service worker reads its page.
+                    ...(showsGradeCard(item.task, graded)
+                      ? { onGrade: async (cmid: number, again: boolean) => ((await actions.send({ type: 'task/grade', cmid, again })) as TaskGradeOutcome | null) ?? { status: 'failed' as const, reason: 'NO_ANSWER' } }
+                      : {}),
                   }}
                 />
               }

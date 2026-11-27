@@ -1,15 +1,35 @@
 // What the "Nilai" part of a task's details shows (1.1.0), for the phone and the dashboard alike. Pure.
 
-import type { Task, UnixSeconds } from '../types';
-import type { AssignGrade } from './grade';
+import type { ChangeLogEntry, Task, UnixSeconds } from '../types';
+import { ASSIGN_PATH, type AssignGrade } from './grade';
 import type { TaskGradeOutcome } from './grade-service';
 
 /**
- * Only an assignment from SIKOLA that is done or past its due time: before that a grade cannot exist yet, so
- * the button would only spend a request.
+ * The assignments SIKOLA has sent a grade or feedback notification about (Kabar terbaru, radar/notifications.ts):
+ * their cmids, from the kept link to the assignment's page. No request: only what Sulo already logged.
  */
-export function showsGradeCard(task: Task, done: boolean, now: UnixSeconds): boolean {
-  return task.module === 'assign' && task.cmId !== null && (done || (task.dueAt !== null && task.dueAt <= now));
+export function gradedCmIds(changes: readonly ChangeLogEntry[]): Set<number> {
+  const out = new Set<number>();
+  for (const entry of changes) {
+    if (entry.change.kind !== 'grade_feedback' || !entry.change.notification.contexturl) continue;
+    try {
+      const url = new URL(entry.change.notification.contexturl);
+      const id = url.searchParams.get('id');
+      if (url.pathname === ASSIGN_PATH && id !== null && /^\d{1,10}$/.test(id)) out.add(Number(id));
+    } catch {
+      // A link that does not parse names no task.
+    }
+  }
+  return out;
+}
+
+/**
+ * "Lihat nilai" only for an assignment the student handed in on SIKOLA (it left SIKOLA's to-do list:
+ * missingSince) that SIKOLA then sent a grade or feedback notification about. Anything else has no grade to
+ * show yet, so the button would only spend a request.
+ */
+export function showsGradeCard(task: Task, graded: ReadonlySet<number>): boolean {
+  return task.module === 'assign' && task.cmId !== null && task.missingSince !== null && graded.has(task.cmId);
 }
 
 export type GradeLine =

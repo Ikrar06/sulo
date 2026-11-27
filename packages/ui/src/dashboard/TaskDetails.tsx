@@ -15,7 +15,7 @@ import { PencilIcon, PlusIcon, XIcon } from '../dashboard-icons';
 import { isOwnTask } from '@sulo/core/tasks/own';
 import { formatAgo } from '@sulo/core/format/time';
 import type { TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
-import { gradeLine, showsGradeCard } from '@sulo/core/tasks/grade-view';
+import { gradeLine } from '@sulo/core/tasks/grade-view';
 import { Private } from '../private';
 import { useTaskGrade } from './task-grade';
 
@@ -30,7 +30,10 @@ export interface TaskDetailActions {
   onNote: (note: string) => void;
   /** A task the student added (tasks/own.ts): its form, in place of SIKOLA's page. */
   onEditOwn?: () => void;
-  /** "Lihat nilai" (tasks/grade-service.ts): one read of the assignment page, only when asked. */
+  /**
+   * "Lihat nilai" (tasks/grade-service.ts): one read of the assignment page, only when asked. The page passes it
+   * only for an assignment handed in and graded on SIKOLA (tasks/grade-view.ts showsGradeCard).
+   */
   onGrade?: (cmid: number, again: boolean) => Promise<TaskGradeOutcome>;
 }
 
@@ -75,7 +78,7 @@ export function TaskDetails({ item, d, now, timeZone, snoozeMorningMin, actions,
     <div className={inset ? "space-y-4 border-t border-border pt-3 pr-4 pb-4 pl-11" : "space-y-4 p-4"}>{/* lint-ui-allow: 44 px aligns with the title text */}
       {snoozed && <p className="text-[14px]">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
 
-      {actions.onGrade && item.task.cmId !== null && showsGradeCard(item.task, item.status === 'done', now) && (
+      {actions.onGrade && item.task.cmId !== null && (
         <GradeSection key={item.task.cmId} cmid={item.task.cmId} url={item.task.url} now={now} d={d} onGrade={actions.onGrade} />
       )}
 

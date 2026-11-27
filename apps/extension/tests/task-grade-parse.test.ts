@@ -80,14 +80,26 @@ describe('the assignment page address', () => {
 describe('what the "Nilai" part shows', () => {
   const NOW = 1_800_000_000;
   const base = { eventId: 7, cmId: 70, courseId: 1 as import('@sulo/core/types').CourseId, name: 'Laporan', module: 'assign', dueAt: NOW - 60, url: '', overdue: false, firstSeenAt: 0, lastSeenAt: 0, missingSince: null };
-  it('only for a SIKOLA assignment that is done or past due', async () => {
-    const { showsGradeCard } = await import('@sulo/core/tasks/grade-view');
-    expect(showsGradeCard(base, false, NOW)).toBe(true);
-    expect(showsGradeCard({ ...base, dueAt: NOW + 3600 }, false, NOW)).toBe(false);
-    expect(showsGradeCard({ ...base, dueAt: NOW + 3600 }, true, NOW)).toBe(true);
-    expect(showsGradeCard({ ...base, module: 'quiz' }, true, NOW)).toBe(false);
-    expect(showsGradeCard({ ...base, module: 'own', cmId: null }, true, NOW)).toBe(false);
-    expect(showsGradeCard({ ...base, dueAt: null }, false, NOW)).toBe(false);
+  it('only for an assignment handed in and graded on SIKOLA', async () => {
+    const { gradedCmIds, showsGradeCard } = await import('@sulo/core/tasks/grade-view');
+    const news = (kind: 'grade_feedback' | 'forum', contexturl: string | null) => ({
+      id: 'x', at: NOW, notify: true, seen: false, opens: 0,
+      change: { kind, courseId: null, notification: { id: 1, subject: 'x', component: 'mod_assign', eventtype: 'assign_notification', timecreated: NOW, read: false, contexturl } },
+    });
+    const graded = gradedCmIds([
+      news('grade_feedback', 'https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=70'),
+      news('grade_feedback', 'https://sikola-v2.unhas.ac.id/mod/quiz/view.php?id=71'),
+      news('forum', 'https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=72'),
+      news('grade_feedback', null),
+    ]);
+    expect([...graded]).toEqual([70]);
+    const handedIn = { ...base, missingSince: NOW - 60 };
+    expect(showsGradeCard(handedIn, graded)).toBe(true);
+    // Still on SIKOLA's to-do list (not handed in), even if marked done in Sulo.
+    expect(showsGradeCard(base, graded)).toBe(false);
+    // Handed in, no grade or feedback news yet.
+    expect(showsGradeCard({ ...handedIn, cmId: 73 }, graded)).toBe(false);
+    expect(showsGradeCard({ ...handedIn, module: 'quiz' }, graded)).toBe(false);
   });
   it('writes points in the reader\'s number format', async () => {
     const { gradeLine } = await import('@sulo/core/tasks/grade-view');

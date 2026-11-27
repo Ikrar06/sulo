@@ -4,15 +4,22 @@ import type { MoodleClient, PageOutcome, RequestOptions } from '@sulo/core/moodl
 import { SESSION_KEY } from '@sulo/core/moodle/session';
 import { CURRENT_USER_KEY, userKey } from '@sulo/core/storage';
 import { pruneGrades, TASK_GRADES_MAX, taskGradeForCurrent, type TaskGrades } from '@sulo/core/tasks/grade-service';
-import type { CourseId, Task } from '@sulo/core/types';
+import type { ChangeLogEntry, CourseId, Task } from '@sulo/core/types';
 import { memoryStore } from './helpers';
 
 const NOW = Date.UTC(2026, 10, 27, 2, 0) / 1000;
+// Handed in (gone from SIKOLA's to-do list) and graded (SIKOLA's notification links to its page).
 const task: Task = {
   eventId: 7, cmId: 70, courseId: 1 as CourseId, name: 'Laporan praktikum', module: 'assign', dueAt: NOW - 3600, url: 'https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=70',
-  overdue: false, firstSeenAt: 0, lastSeenAt: 0, missingSince: null,
+  overdue: false, firstSeenAt: 0, lastSeenAt: 0, missingSince: NOW - 86_400,
 };
 const quiz: Task = { ...task, eventId: 8, cmId: 80, module: 'quiz' };
+const notSubmitted: Task = { ...task, eventId: 9, cmId: 90, missingSince: null };
+const notGraded: Task = { ...task, eventId: 10, cmId: 100 };
+const gradeNews = (cmid: number): ChangeLogEntry => ({
+  id: `n${cmid}`, at: NOW - 3600, notify: true, seen: false, opens: 0,
+  change: { kind: 'grade_feedback', courseId: 1 as CourseId, notification: { id: cmid, subject: 'x', component: 'mod_assign', eventtype: 'assign_notification', timecreated: NOW - 3600, read: false, contexturl: `https://sikola-v2.unhas.ac.id/mod/assign/view.php?id=${cmid}` } },
+});
 const gradedPage = (userid = 5) =>
   `<div class="popover-region" data-userid="${userid}"></div><div id="region-main"><table><tr><th>Grading status</th><td class="submissiongraded cell c1">Graded</td></tr></table>
 <div class="box py-3 boxaligncenter feedbacktable"><table class="generaltable"><tbody><tr><th class="cell c0" scope="row">Nilai</th><td class="cell c1 lastcol">85,00 / 100,00</td></tr></tbody></table></div></div>`;
@@ -20,7 +27,8 @@ const gradedPage = (userid = 5) =>
 function setup(answer: () => PageOutcome = () => ({ kind: 'ok', html: gradedPage() }), session = 'OK') {
   const store = memoryStore({
     [CURRENT_USER_KEY]: 5,
-    [userKey(5, 'tasks')]: [task, quiz],
+    [userKey(5, 'tasks')]: [task, quiz, notSubmitted, notGraded],
+    [userKey(5, 'changes')]: [gradeNews(70), gradeNews(80), gradeNews(90)],
     [SESSION_KEY]: { state: session, userId: 5, checkedAt: NOW },
   });
   const calls: { path: string; options?: RequestOptions }[] = [];
@@ -55,9 +63,10 @@ describe('"Lihat nilai": one page, only when asked', () => {
     expect(await taskGradeForCurrent(deps, 70, true)).toMatchObject({ status: 'ok', cached: false });
     expect(calls).toHaveLength(2);
   });
-  it('only for the student\'s own SIKOLA assignments', async () => {
+  it('only for the student\'s own SIKOLA assignments, handed in and graded there', async () => {
     const { calls, deps } = setup();
-    for (const cmid of [80, 99, 0, -1, 1.5]) expect(await taskGradeForCurrent(deps, cmid, false)).toEqual({ status: 'failed', reason: 'NOT_A_TASK' });
+    // 80 a quiz, 90 not handed in, 100 handed in without a grade notification, 99 no task.
+    for (const cmid of [80, 90, 100, 99, 0, -1, 1.5]) expect(await taskGradeForCurrent(deps, cmid, false)).toEqual({ status: 'failed', reason: 'NOT_A_TASK' });
     expect(calls).toHaveLength(0);
   });
   it('never with an ended session', async () => {

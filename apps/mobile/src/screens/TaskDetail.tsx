@@ -29,7 +29,7 @@ import { timeZone, useMobileData } from '../shell/data';
 import type { Screen } from '../shell/nav';
 import { OwnTaskSheet } from './OwnTaskSheet';
 import { TaskGradeCard } from './TaskGradeCard';
-import { showsGradeCard } from '@sulo/core/tasks/grade-view';
+import { gradedCmIds, showsGradeCard } from '@sulo/core/tasks/grade-view';
 import { URGENCY_TEXT } from './Tugas';
 
 export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) => void }) {
@@ -78,8 +78,8 @@ export function TaskScreen({ eventId, go }: { eventId: number; go: (s: Screen) =
         {snoozed && <p className="mt-2 text-m13 text-muted-foreground">{t.snoozed(formatDue(snoozed, locale, timeZone))}</p>}
       </Card>
 
-      {/* "Lihat nilai": an assignment that is done or past due (tasks/grade-view.ts). */}
-      {showsGradeCard(item.task, isDone, now) && item.task.cmId !== null && <TaskGradeCard key={item.task.cmId} task={{ ...item.task, cmId: item.task.cmId }} />}
+      {/* "Lihat nilai": handed in on SIKOLA and graded there (tasks/grade-view.ts). */}
+      {showsGradeCard(item.task, gradedCmIds(data!.user!.changes)) && item.task.cmId !== null && <TaskGradeCard key={item.task.cmId} task={{ ...item.task, cmId: item.task.cmId }} />}
 
       {undated && (
         <Card>
