@@ -176,6 +176,8 @@ const SHOWN_REMINDERS = 2;
 function SipakamaseRows({ summary, reminders, text, all, onAll }: { summary: SipakamaseSummary; reminders: MkpkReminder[]; text: (sks: number) => string; all: boolean; onAll: () => void }) {
   const { locale } = useI18n();
   const sw = sipakamaseWords(locale);
+  // The card's own unit ("SKS", or "credits" in English), as on the rows above these.
+  const { sksValue } = neosiaWords(locale).mkpk;
   const named = reminders.filter((r) => r.kind !== 'd');
   const shown = all ? named : named.slice(0, SHOWN_REMINDERS);
   const problem = summary.state === 'needs_login' ? sw.card.needsLogin : summary.state === 'broken' ? sw.card.broken : null;
@@ -183,7 +185,7 @@ function SipakamaseRows({ summary, reminders, text, all, onAll }: { summary: Sip
     <div className="flex min-h-11 items-center justify-between gap-3 border-t border-m-line">
       <span className="text-m13 text-muted-foreground">{label}</span>
       <span className="text-m15 tabular-nums">
-        <Private>{`${text(sks)} SKS`}</Private>
+        <Private>{sksValue(text(sks))}</Private>
       </span>
     </div>
   );
