@@ -20,7 +20,8 @@
 //     and the main button (brief 9.5), and, up to text at 1.3 times, the
 //     mascot, the chips and the sentence too (the owner, 24 Nov) (layar-pertama),
 //   - two mascots, or two warm lights, can be on one screen at once (brief 2
-//     and 4.1, TETAP) (dua-maskot, dua-cahaya).
+//     and 4.1, TETAP) (dua-maskot, dua-cahaya),
+//   - the Windows and Mac switch of a guide stands in two rows where one fits (saklar-terbungkus).
 //
 // Motion reduced (the still layout every motion starts from and ends on); no
 // network but the local server. Shots of failures: <out>/<page>-<w>x<h>-<scale>-<theme>.png
@@ -263,6 +264,13 @@ const FIND = ({ touch, sentuh, rumah, hp, pertamaPenuh }) => {
     }
   }
 
+  // A two-button switch (Windows and Mac) stands in one row wherever its column has the room for both.
+  for (const saklar of document.querySelectorAll('.pilihan-os-saklar')) {
+    if (!shown(saklar)) continue;
+    const tombol = [...saklar.querySelectorAll('button')].map((t) => t.getBoundingClientRect());
+    const muat = tombol.reduce((a, r) => a + r.width, 0) + 4 * (tombol.length - 1) + 8 <= saklar.parentElement.clientWidth;
+    if (muat && tombol.some((r) => Math.abs(r.top - tombol[0].top) > 1)) say('saklar-terbungkus', saklar, 'tombolnya bertumpuk padahal muat sebaris');
+  }
   // The home page's first screen on a phone.
   if (rumah && hp && scrollY === 0) {
     const pertama = (sel) => [...document.querySelectorAll(sel)].find(shown) ?? null;

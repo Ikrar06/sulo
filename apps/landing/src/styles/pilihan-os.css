@@ -19,7 +19,9 @@
 }
 .pilihan-os-saklar button {
   min-height: 44px;
-  min-width: min(6.5rem, 100%);
+  /* A length, not a share of the switch: a percentage here is left out when the switch works out its own width, so
+     it came out too narrow for the two buttons and they stood one over the other. */
+  min-width: 6.5rem;
   padding: 0 18px;
   border: 0;
   border-radius: 999px;
