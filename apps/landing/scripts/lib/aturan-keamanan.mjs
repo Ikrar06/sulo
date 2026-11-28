@@ -11,7 +11,8 @@ export const CSP_DASAR = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'none'",
+  // This site only: Vercel Web Analytics sends each visit to /_vercel/insights/view here (live site only).
+  "connect-src 'self'",
   "frame-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

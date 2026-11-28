@@ -88,6 +88,12 @@ describe('CSP halaman', () => {
   it('tidak ada alamat lain di kebijakan', () => {
     expect(cspDengan([sha('a')], [sha('b')])).not.toMatch(/https?:/);
   });
+  // Vercel Web Analytics' script (tata/Dasar.astro, the live site only) sends each visit to /_vercel/insights/view
+  // on this site, with fetch. With connect-src 'none' every visit was refused and none was counted (28 Nov 2026).
+  it('kunjungan bisa dikirim ke situs ini sendiri, dan hanya ke situs ini', () => {
+    expect(cspDengan([sha('a')])).toContain("connect-src 'self'");
+    expect(cspDengan([sha('a')])).not.toMatch(/connect-src[^;]*(https?:|\*)/);
+  });
 });
 
 describe('CSP header', () => {
