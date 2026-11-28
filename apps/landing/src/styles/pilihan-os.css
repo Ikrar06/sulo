@@ -19,9 +19,10 @@
 }
 .pilihan-os-saklar button {
   min-height: 44px;
-  /* A length, not a share of the switch: a percentage here is left out when the switch works out its own width, so
-     it came out too narrow for the two buttons and they stood one over the other. */
-  min-width: 6.5rem;
+  /* Both buttons as wide as the longer name. Never a share of the switch itself: a percentage is left out when the
+     switch works out its own width, so it came out too narrow and the two stood one over the other. Half the
+     screen's width is the cap instead, for a small phone at twice the text size. */
+  min-width: min(6.5rem, 50vw);
   padding: 0 18px;
   border: 0;
   border-radius: 999px;
