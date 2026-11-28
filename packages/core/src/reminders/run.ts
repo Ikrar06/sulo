@@ -27,6 +27,7 @@ import { readCourseMap } from '../neosia/course-map';
 import { holidayRanges } from '../neosia/schedule';
 import { neosiaNudges } from '../neosia/nudges';
 import { noticeView, type NotificationView } from './text';
+import { isOwnTask, withOwnTasks } from '../tasks/own';
 
 /** Recorded keys are kept this long, then pruned. */
 const KEEP_SENT = 30 * 86_400;
@@ -46,11 +47,16 @@ export interface CycleDeps {
   morningStyle?: 'classic' | 'full';
   /** The phone only: the full summary also lists today's classes from NEOSIA's schedule (names and times). */
   morningClasses?: boolean;
+  /** The phone only: "Masuk lagi" in the morning summary instead of a notice of its own (plan.ts). */
+  sessionInMorning?: boolean;
+  relogin?: readonly string[];
 }
 
 /** Notification ids carry what a click needs: "task|eventId|key", "summary|…", "morning|…", "session|…". */
 export function notificationId(notice: Notice): string {
   if (notice.kind === 'task') return `task|${notice.task.eventId}|${notice.key}`;
+  // A morning summary that offers "Masuk lagi": a tap opens the sign-in, like the session notice.
+  if (notice.kind === 'morning' && notice.relogin && notice.relogin.length > 0) return `session|${notice.key}`;
   // A single update carries its log entry id, so a click can open its page.
   if (notice.kind === 'changes' && notice.entries.length === 1) return `changes|${notice.entries[0]!.id}`;
   // Several updates for one course: a click opens "Kabar terbaru" filtered to that course.
@@ -82,10 +88,11 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   // Another account is signed in: the stored account's reminders stay silent
   // until the user decides (lib/account/pending.ts).
   if (await readPending(store)) return { nextAt: null, shown: 0 };
-  const [prefs, session, tasks, taskState, courses, notified, changes, calendar, neosia] = await Promise.all([
+  const [prefs, session, sikolaTasks, ownTasks, taskState, courses, notified, changes, calendar, neosia] = await Promise.all([
     readPrefs(store),
     readSession(store),
     readUser(store, userId, 'tasks'),
+    readUser(store, userId, 'ownTasks'),
     readUser(store, userId, 'taskState'),
     readUser(store, userId, 'courses'),
     readUser(store, userId, 'notified'),
@@ -93,6 +100,8 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     readCalendar(store),
     readModuleState(store),
   ]);
+  // The tasks the student added get the same reminders (tasks/own.ts).
+  const tasks = withOwnTasks(sikolaTasks, ownTasks);
   // NEOSIA's KRS windows (module on, KRS reminders on): closing reminders H-3 and H-1 for each.
   const snapshots = neosia.enabled ? await readSnapshots(store) : {};
   const windows = neosia.enabled && prefs.calendar.krs ? krsWindows(snapshots) : [];
@@ -115,6 +124,8 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
     calendar: { events: calendar.kegiatan, settings: prefs.calendar, source: calendar.sumber.sk.replace(/^Keputusan Rektor/, 'SK Rektor') },
     krsWindows: windows,
     morningStyle: deps.morningStyle,
+    sessionInMorning: deps.sessionInMorning,
+    relogin: deps.relogin,
     classes,
     nudges: neosia.enabled ? neosiaNudges(calendar.kegiatan, prefs.calendar) : [],
   });
@@ -132,7 +143,7 @@ export async function runNotifyCycle(deps: CycleDeps): Promise<{ nextAt: UnixSec
   const byId = new Map(courses.map((c) => [c.id, c]));
   const courseName = (t: Task) => {
     const c = byId.get(t.courseId);
-    return c ? courseAlias(c) : '';
+    return c ? courseAlias(c) : isOwnTask(t) ? m.popup.row.ownTask : '';
   };
 
   const courseNameById = (id: number | null) => {

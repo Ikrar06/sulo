@@ -91,7 +91,7 @@ export function Frame({ topLeft, topRight, children, hint, primary, primarySlot,
       <div data-onb-content="" className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
         {children}
       </div>
-      <div data-onb-chrome="" className="shrink-0 pb-[calc(16px+env(safe-area-inset-bottom))]">
+      <div data-onb-chrome="" className="shrink-0 pb-[calc(16px+var(--m-bar-inset))]">
         {/* At least 20 px; taller content (the intro's dots with their 20 px above and below) grows upward, never moving the button. */}
         <div className="flex min-h-5 items-center justify-center text-m12 text-muted-foreground">{hint}</div>
         {primary ? (

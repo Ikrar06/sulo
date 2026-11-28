@@ -76,6 +76,7 @@ export const en: Messages = {
       noDue: 'no due date',
     },
     row: {
+      ownTask: 'Your own task',
       doneShort: 'Done',
       undo: 'Undo',
       menu: (name) => `Options for ${name}`,
@@ -176,6 +177,7 @@ export const en: Messages = {
       check: 'Check notifications',
       test: 'Send a test notification',
       testSent: 'Test notification sent.',
+      notShowing: 'Notifications not showing?',
       testHelp: "If it doesn't show up, turn on notifications for Chrome in your computer's system settings.",
       macSteps: 'macOS: System Settings > Notifications > Google Chrome > Allow notifications.',
       winSteps: 'Windows: Settings > System > Notifications > turn on for Google Chrome.',
@@ -253,6 +255,8 @@ export const en: Messages = {
     sessionTitle: "Your tasks can't be updated",
     sessionRepeatTitle: "Your tasks haven't been updated since yesterday",
     sessionBody: 'Sign in to SIKOLA again so Sulo can update your tasks.',
+    morningRelogin: (sources: readonly string[]) =>
+      `Sign in to ${sources.length > 1 ? `${sources.slice(0, -1).join(', ')} and ${sources[sources.length - 1]}` : sources[0]} again so Sulo can update.`,
     reloginTitle: 'Your tasks are updated',
     reloginBody: 'Sulo updated them once you signed in to SIKOLA again.',
     snoozeButton: 'Snooze 1 hour',

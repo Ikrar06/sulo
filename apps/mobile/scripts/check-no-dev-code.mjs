@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// A release build of the Android app carries no debug-only code: not the
+// A release build of the phone app (Android and iPhone) carries no debug-only code: not the
 // debug screen, not its notification tests, not the web build's measuring
 // hooks. Scans the built web bundle (dist/) for their marks and fails when
 // one is there. Run after `vite build` in the release workflow.

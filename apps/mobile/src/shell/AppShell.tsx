@@ -7,7 +7,7 @@
 // screen. Updating happens only when the user asks (pull, Perbarui) or opens
 // the app after 15 minutes (App.tsx); after Perbarui a short snackbar.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { formatAgo } from '@sulo/core/format/time';
 import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
@@ -19,7 +19,8 @@ import { BellIcon, RefreshIcon } from '@sulo/ui/icons';
 import { IconButton } from '@sulo/ui/mobile/controls';
 import { closeTopSheet } from '@sulo/ui/mobile/sheet-motion';
 import { useToast } from '@sulo/ui/ui/toast';
-import { back as goBack, current, open, parseScreen, START, tapTab, type NavState, type Screen, type Tab } from './nav';
+import { back as goBack, current, motionBetween, open, parseScreen, START, tapTab, type NavState, type Screen, type Tab } from './nav';
+import { useEdgeBack } from './edge-back';
 import { opensSignIn, screenForNotification } from './notify-route';
 import { SuloSession } from '../session';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
@@ -27,13 +28,16 @@ import { useMobileData } from './data';
 import { PullToRefresh } from './PullToRefresh';
 import { ScreenHeaderProvider } from './screen-header';
 import { ScreenRefreshProvider } from './screen-refresh';
-import { TabBar, TAB_BAR_SPACE } from './TabBar';
+import { TabBar } from './TabBar';
 import { TaskDateProvider } from './task-date';
 import { effectiveScroll, HEAD_P_RANGE, HEAD_Q_RANGE, HEAD_S_RANGE, headProgress, useCssScrollTimeline } from './head-progress';
 import { Screens } from '../screens/Screens';
 import { REFRESHED_EVENT } from '../events';
 import { LineSlot, SyncStatusLine, SyncUiContext } from './SyncStatusLine';
 import { IDLE, type SyncUi } from './sync-status';
+import { useSipakamase } from '../sipakamase/SipakamaseProvider';
+import { useNeosiaIfAny } from '../neosia/NeosiaProvider';
+import { endedSources } from '../relogin';
 
 /** The data's age shows under the header only past an hour. */
 export const STALE_SHOWN_SEC = 3600;
@@ -66,8 +70,13 @@ export interface ShellProps {
   lastSyncAt: number | null;
   /** Runs Perbarui; resolves with the line to show (empty: updated). */
   onRefresh: () => Promise<string>;
-  onSignIn: () => void;
+  /** SIKOLA's sign-in; resolves once it closed (signed in or not). */
+  onSignIn: () => Promise<void> | void;
   onSignedOut: () => void;
+  /** iPhone, "Lihat data terakhir" (read-only.ts): the kept data only, no refresh, one line that stays. */
+  readOnly?: boolean;
+  /** Opens the guide's "Memperbarui Sulo" part. */
+  onUpdateHelp?: () => void;
   /** Set once by App when a reminder was tapped while the app was closed. */
   initialScreen?: Screen | null;
 }
@@ -145,6 +154,19 @@ export function AppShell(props: ShellProps) {
     return () => void handle.then((h) => h.remove());
   }, []);
 
+  // The iPhone's swipe from the left edge on a detail screen (edge-back.ts); Android has the system's own.
+  const swipeBack = useCallback(
+    () =>
+      setNav((s) => {
+        const next = goBack(s);
+        return next === 'exit' ? s : next;
+      }),
+    [],
+  );
+  // Read safely: the landing page draws this shell on a server, with no document.
+  const onIphone = typeof document !== 'undefined' && document.documentElement.dataset.os === 'ios';
+  useEdgeBack(scroller, onIphone && nav.stack.length > 0, swipeBack);
+
   useEffect(() => {
     const on = () => setOnline(navigator.onLine);
     window.addEventListener('online', on);
@@ -167,7 +189,17 @@ export function AppShell(props: ShellProps) {
   // A reminder tapped while the app runs.
   // "Masuk lagi" opens SIKOLA's sign-in; after it, the sync runs and background watching starts again (App.signIn).
   const onSignIn = props.onSignIn;
-  const openNotice = useCallback((id: string) => (opensSignIn(id) ? onSignIn() : go(screenForNotification(id))), [go, onSignIn]);
+  // "Masuk lagi" from a notification: every source whose session ended, one sign-in page after another
+  // (owner's decision of 26 Nov 2026); each is the source's own page, the system's password autofill untouched.
+  const sipakamase = useSipakamase();
+  const neosia = useNeosiaIfAny();
+  const reloginAll = useCallback(async () => {
+    const ended = await endedSources(platform).catch(() => [] as string[]);
+    if (props.expired) await onSignIn();
+    if (ended.includes('Sipakamase')) await sipakamase.signIn();
+    if (ended.includes('NEOSIA') && neosia) await neosia.open('login');
+  }, [platform, props.expired, onSignIn, sipakamase, neosia]);
+  const openNotice = useCallback((id: string) => (opensSignIn(id) ? void reloginAll() : go(screenForNotification(id))), [go, reloginAll]);
   useEffect(() => platform.notifier.onClick(openNotice), [platform, openNotice]);
   // A background-watching notification tapped (posted natively): its id waits in the worker's store.
   useEffect(() => {
@@ -202,6 +234,13 @@ export function AppShell(props: ShellProps) {
   const top = current(nav);
   const screenKey = `${top.name}/${top.detail ?? ''}`;
   const isDetail = nav.stack.length > 0;
+  // The screen before this one, for the direction of the change (nav.ts motionBetween); set after each commit.
+  // Above the early return below: hooks run in the same order on every render.
+  const shownNav = useRef(nav);
+  useEffect(() => {
+    shownNav.current = nav;
+  }, [nav]);
+  const motion = motionBetween(shownNav.current, nav);
   const writeHead = useCallback(() => {
     const el = scroller.current;
     const h = head.current;
@@ -288,7 +327,7 @@ export function AppShell(props: ShellProps) {
   const actions = (
     <>
       {top.name === 'kalender' && <IconButton icon={BellIcon} label={d.kalender.notifyAria} href={routeHash('pengaturan', 'kalender')} />}
-      {dataScreen && !props.expired && paused === null && <IconButton icon={RefreshIcon} label={props.busy ? w.connected.refreshing : w.connected.refresh} onPress={() => void refresh()} disabled={props.busy} spinning={props.busy} />}
+      {dataScreen && !props.expired && !props.readOnly && paused === null && <IconButton icon={RefreshIcon} label={props.busy ? w.connected.refreshing : w.connected.refresh} onPress={() => void refresh()} disabled={props.busy} spinning={props.busy} />}
     </>
   );
   const ringkasan = top.name === 'ringkasan';
@@ -325,10 +364,12 @@ export function AppShell(props: ShellProps) {
           ) : (
             <>
               <div className="relative flex min-w-0 flex-1 items-center self-stretch">
-                {/* 26 px on the buttons' line, shrinking in place toward 18 as the finger moves (transform only). */}
-                {bigTitle && <h1 className="m-title-big min-w-0 truncate text-m26 whitespace-nowrap">{title}</h1>}
+                {/* 26 px on the buttons' line, shrinking in place toward 18 as the finger moves (transform only).
+                    Both titles span the whole row and are made anew for each screen: as a transformed layer that took
+                    its text's width, a shorter title left the longer one's end painted on the iPhone ("Calendarce"). */}
+                {bigTitle && <h1 key={`big:${title}`} className="m-title-big min-w-0 flex-1 truncate text-m26 whitespace-nowrap">{title}</h1>}
                 {/* The bar's own 18 px name: Ringkasan's, fading in near the end of its greeting; others' under reduced motion. */}
-                <p aria-hidden="true" className={`m-title-small absolute top-1/2 left-0 max-w-full truncate text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
+                <p key={`small:${title}`} aria-hidden="true" className={`m-title-small absolute inset-x-0 top-1/2 truncate text-m18 whitespace-nowrap ${ringkasan ? 'm-title-small-q' : ''}`}>
                   {title}
                 </p>
                 {ringkasan && <h1 className="sr-only">{title}</h1>}
@@ -343,11 +384,17 @@ export function AppShell(props: ShellProps) {
           {/* Scroll-edge fade just under the bar, its opacity tied to the scroll. */}
           <span aria-hidden="true" className="m-fade-top pointer-events-none absolute inset-x-0 top-full h-5" />
         </header>
-        <PullToRefresh disabled={!dataScreen || props.expired || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
-          <div key={`${top.name}/${top.detail ?? ''}`} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(88px+env(safe-area-inset-bottom))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${detail ? 'm-push' : ''} ${syncUi.phase === 'done' ? 'm-data-in' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
+        <PullToRefresh disabled={!dataScreen || props.expired || props.readOnly === true || props.busy || paused !== null} onRefresh={() => void refresh()} labels={{ pull: w.app.pull, release: w.app.release }} scroller={scroller}>
+          <ScreenFrame key={`${top.name}/${top.detail ?? ''}`} motion={motion} className={`mx-auto max-w-2xl px-4 pt-1 ${showTabs ? 'pb-[calc(var(--m-bar-h)+36px+var(--m-bar-inset))]' : 'pb-[calc(24px+env(safe-area-inset-bottom))]'} ${syncUi.phase === 'done' ? 'm-data-in' : ''}`}>{/* lint-ui-allow: the floating tab bar's height (64) plus 24, over the safe area */}
       {/* The session line is the sign-in button itself (one calm line, the words of the hard rule); offline and stale are plain status. */}
             <LineSlot>
-            {syncUi.phase !== 'idle' ? (
+            {props.readOnly ? (
+              <button type="button" onClick={props.onUpdateHelp} className="m-hit m-press mb-3 flex min-h-9 items-center rounded-2xl bg-m-inset px-4 py-2 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                <span role="status" className="min-w-0">
+                  {w.iphone.readOnlyBar} <span className="font-medium underline underline-offset-2">{w.iphone.howToUpdate}</span>
+                </span>
+              </button>
+            ) : syncUi.phase !== 'idle' ? (
               <SyncStatusLine ui={syncUi} w={w} onRetry={props.onRetry ?? (() => void refresh())} />
             ) : notice === 'expired' ? (
               <button type="button" disabled={props.busy} onClick={props.onSignIn} className="m-hit m-press mb-3 flex min-h-9 items-center rounded-2xl bg-m-inset px-4 py-2 text-left text-m13 outline-none focus-ring:ring-2 focus-ring:ring-focus disabled:opacity-50">
@@ -371,13 +418,22 @@ export function AppShell(props: ShellProps) {
                 </TaskDateProvider>
               </ScreenRefreshProvider>
             </ScreenHeaderProvider>
-          </div>
+          </ScreenFrame>
         </PullToRefresh>
       </main>
       {/* Above the floating tab bar: a 32 px fade, then the screen color solid beside and below the bar. */}
-      {showTabs && <div aria-hidden="true" className="m-fade-bottom pointer-events-none fixed inset-x-0 bottom-0 z-20" style={{ height: `calc(${TAB_BAR_SPACE + 32}px + env(safe-area-inset-bottom))` }} />}
+      {showTabs && <div aria-hidden="true" className="m-fade-bottom pointer-events-none fixed inset-x-0 bottom-0 z-20" style={{ height: 'calc(var(--m-bar-h) + 44px + var(--m-bar-inset))' }} />}
       {showTabs && <TabBar active={nav.tab} overdue={overdue} onSelect={onTab} label={w.app.tabsLabel} labels={{ ...d.nav, lainnya: w.app.lainnya }} overdueLabel={w.app.overdue} />}
     </div>
     </SyncUiContext.Provider>
   );
+}
+
+/**
+ * The screen's box. Its motion (m-push, m-pop) is fixed when it mounts, so a later render, a sync or a status
+ * line, never takes the class away halfway and cuts the slide.
+ */
+function ScreenFrame({ motion, className, children }: { motion: 'push' | 'pop' | null; className: string; children: ReactNode }) {
+  const [enter] = useState(motion);
+  return <div className={`${className}${enter ? ` m-${enter}` : ''}`}>{children}</div>;
 }

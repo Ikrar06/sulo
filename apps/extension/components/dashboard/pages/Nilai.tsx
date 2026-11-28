@@ -35,12 +35,14 @@ const HIDDEN = '••••';
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 const LOW = new Set(['D', 'E']);
 
-export function NilaiPage({ data }: PageProps) {
+export function NilaiPage({ data, actions }: PageProps) {
   const { m, locale } = useI18n();
   const w = neosiaWords(locale);
   const n = w.nilai;
   const masked = usePrivacy();
-  const [shown, setShown] = useState(false);
+  // One remembered choice for every grade (prefs.gradesShown, hidden by default), shared with the Studi card.
+  const shown = data.prefs.gradesShown;
+  const setShown = (gradesShown: boolean) => void actions.setPrefs({ gradesShown });
   const snapshots = data.neosia.snapshots;
   const rows = useMemo(() => readTranscript(snapshots.getTranskripMahasiswa?.data), [snapshots]);
   const semesters = useMemo(() => readSemesters(snapshots['mahasiswa/semester']?.data), [snapshots]);
@@ -54,7 +56,7 @@ export function NilaiPage({ data }: PageProps) {
     return (
       <div className="space-y-4">
         <div className="flex justify-end">
-          <RefreshButton label={w.refresh.grades} />
+          <RefreshButton label={w.refresh.grades} actions={actions} />
         </div>
         <NeosiaChecklist snapshots={snapshots} now={data.now} highlight="khs" />
       </div>
@@ -94,7 +96,7 @@ export function NilaiPage({ data }: PageProps) {
           <Button variant="outline" aria-pressed={shown} onClick={() => setShown(!shown)}>
             {shown ? n.hide : n.show}
           </Button>
-          <RefreshButton label={w.refresh.grades} />
+          <RefreshButton label={w.refresh.grades} actions={actions} />
         </div>
       </div>
       {/* A transcript older than 30 days: when it is from, and how to update it. */}
@@ -161,12 +163,11 @@ function DevTranscript({ rows, semesters }: { rows: readonly TranscriptRow[]; se
 }
 
 /** "Perbarui dari NEOSIA": opens the NEOSIA KHS page in a new tab on the user's click. */
-function RefreshButton({ label }: { label: string }) {
+/** "Perbarui dari NEOSIA": the KHS page in a new tab, which closes by itself once its data came in. */
+function RefreshButton({ label, actions }: { label: string; actions: PageProps['actions'] }) {
   return (
-    <Button variant="outline" asChild>
-      <a href={NEOSIA_KHS} target="_blank" rel="noopener noreferrer">
-        {label}
-      </a>
+    <Button variant="outline" onClick={() => void actions.send({ type: 'neosia/refresh', page: 'khs' })}>
+      {label}
     </Button>
   );
 }

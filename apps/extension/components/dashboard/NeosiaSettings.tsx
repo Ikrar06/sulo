@@ -7,6 +7,8 @@ import { useI18n } from '@sulo/ui/i18n';
 import { Button } from '@sulo/ui/ui/button';
 import { Switch } from '@sulo/ui/ui/switch';
 import { Input } from '@sulo/ui/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
+import { parseLoadChoice } from '@sulo/core/mkpk/load';
 import { DEFAULT_SKS_TARGET, SKS_TARGET_MAX, SKS_TARGET_MIN } from '@sulo/core/neosia/view';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@sulo/ui/ui/alert-dialog';
 import { formatAgo } from '@sulo/core/format/time';
@@ -24,6 +26,8 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
   const switchId = useId();
   const privacyId = useId();
   const targetId = useId();
+  const loadId = useId();
+  const mk = w.mkpk;
   const [target, setTarget] = useState(String(data.prefs.sksTarget));
   const saveTarget = () => {
     const n = Number(target);
@@ -102,6 +106,29 @@ export function NeosiaSettings({ data, actions }: { data: DashboardData; actions
               onBlur={saveTarget}
               onKeyDown={(e) => e.key === 'Enter' && saveTarget()}
             />
+          </div>
+          {/* The MKPK card's load: changed here, and the card hidden by "no MKPK" comes back from here. */}
+          <div className="flex flex-wrap items-start justify-between gap-4 border-t border-border pt-4">
+            <div className="min-w-0">
+              <p id={loadId} className="text-[14px] leading-6 font-semibold">
+                {mk.settingsRow}
+              </p>
+              <p className="max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{mk.settingsHelp}</p>
+            </div>
+            <Select
+              value={data.prefs.mkpkLoad === null ? 'unset' : String(data.prefs.mkpkLoad)}
+              onValueChange={(v) => void actions.setPrefs({ mkpkLoad: parseLoadChoice(v === 'none' ? 'none' : Number(v)) })}
+            >
+              <SelectTrigger aria-labelledby={loadId} className="w-64">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unset">{mk.settingsUnset}</SelectItem>
+                <SelectItem value="20">{mk.choice[20]}</SelectItem>
+                <SelectItem value="10">{mk.choice[10]}</SelectItem>
+                <SelectItem value="none">{mk.choice.none}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )}

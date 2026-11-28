@@ -43,6 +43,14 @@ export interface SuloMascotProps {
   /** Accessible label; decorative when left out. */
   label?: string;
   className?: string;
+  /**
+   * Room above the drawing for its jumps, as a share of its size (0.25 for a celebration's tallest hop).
+   * Safari (WebKit) clips an SVG's moving parts at the SVG's own box whatever its overflow says, which cut
+   * the mascot's head off mid-jump on an iPhone (owner, 27 Nov 2026). The box grows upward by this much and
+   * a negative margin takes it back, so the mascot's size and place do not change; the added room takes no
+   * taps.
+   */
+  headroom?: number;
 }
 
 export interface SuloMascotHandle {
@@ -99,7 +107,7 @@ const ZS = 3;
 const ORBIT = 3;
 
 export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function SuloMascot(
-  { mood, size = 48, lookX, lookY, followCursor = false, motion, reaction = null, effects, grounded = false, label, className },
+  { mood, size = 48, lookX, lookY, followCursor = false, motion, reaction = null, effects, grounded = false, label, className, headroom = 0 },
   ref,
 ) {
   const scope = useContext(MascotScopeContext);
@@ -207,13 +215,18 @@ export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function
   const gaze = still ? { x: (lookX ?? spec.look.x) * GLANCE.x, y: (lookY ?? spec.look.y) * GLANCE.y } : null;
   const [g0, g1] = GRADIENTS;
   const cssSize = typeof size === 'number' ? `${size}px` : size;
+  // The jump room: viewBox units added above, the box as much taller, the same back as a negative margin.
+  const room = Math.max(0, headroom) * VIEW_BOX.height;
+  const boxStyle: CSSProperties = room > 0
+    ? { width: cssSize, height: `calc(${cssSize} * ${1 + headroom})`, marginTop: `calc(${cssSize} * ${-headroom})`, pointerEvents: 'none' }
+    : { width: cssSize, height: cssSize };
   const classes = ['sm', `is-${mood}`, `sm-${still ? 'off' : mode}`, className].filter(Boolean).join(' ');
 
   return (
     <svg
       ref={svg}
-      viewBox={`${VIEW_BOX.x} ${VIEW_BOX.y} ${VIEW_BOX.width} ${VIEW_BOX.height}`}
-      style={{ width: cssSize, height: cssSize } as CSSProperties}
+      viewBox={`${VIEW_BOX.x} ${VIEW_BOX.y - room} ${VIEW_BOX.width} ${VIEW_BOX.height + room}`}
+      style={boxStyle}
       className={classes}
       role={label ? 'img' : undefined}
       aria-label={label}
@@ -231,7 +244,7 @@ export const SuloMascot = forwardRef<SuloMascotHandle, SuloMascotProps>(function
         </linearGradient>
       </defs>
       {grounded && <ellipse ref={shadow} className="sm-shadow" cx={245} cy={520} rx={112} ry={11} />}
-      <g ref={root} className="sm-root">
+      <g ref={root} className="sm-root" style={room > 0 ? { pointerEvents: 'visiblePainted' } : undefined}>
         {/* Back flame, front flame, face: one body. Every move bends all three by the same rule (warp.ts). */}
         <path ref={back} className="sm-back" d={body.back} fill={`url(#${id}-g0)`} />
         <path ref={front} className="sm-front" d={body.front} fill={`url(#${id}-g1)`} />

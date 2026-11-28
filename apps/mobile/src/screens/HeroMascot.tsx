@@ -93,7 +93,8 @@ export function HeroMascot({ mood, cheer, celebrate, label, sync, pending }: { m
       }}
     >
       <div className="m-mascot-pull">
-        <SuloMascot mood={moodFor(mood.state, mood.alert)} size={104} reaction={reaction} />
+        {/* Room for the all-clear jump: Safari clips it at the drawing's box otherwise. */}
+        <SuloMascot mood={moodFor(mood.state, mood.alert)} size={104} reaction={reaction} headroom={0.25} />
       </div>
     </div>
   );

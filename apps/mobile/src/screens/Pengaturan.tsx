@@ -37,7 +37,9 @@ type Picker = 'quietStart' | 'quietEnd' | 'morning' | 'snooze' | 'due' | 'nickna
 import { SignOutSheet } from './SignOutSheet';
 import { Group, Row, ValueRow } from './settings-rows';
 import { WatchSettings } from './WatchSettings';
+import { mobileOs } from '@sulo/core/i18n/os';
 import { NeosiaSettings } from './neosia/NeosiaSettings';
+import { SipakamaseSettings } from './sipakamase/SipakamaseSettings';
 export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut: () => void; section?: string | null }) {
   const { m, locale } = useI18n();
   const d = mobileDash(locale);
@@ -165,6 +167,16 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
         </Row>
         <ValueRow label={r.at} value={hour(rem.morning.atMin)} disabled={!rem.morning.enabled} onPress={() => setPicker('morning')} />
         <ValueRow label={r.snoozeMorning} value={hour(rem.snoozeMorningMin)} onPress={() => setPicker('snooze')} />
+        {/* iPhone only: the day before the app needs a refresh from the laptop (ios-refresh.ts). */}
+        {mobileOs() === 'ios' && (
+          <Row label={w.iphone.refreshSwitch} help={w.iphone.refreshHelp}>
+            <Toggle
+              checked={prefs.refreshReminder}
+              label={w.iphone.refreshSwitch}
+              onChange={(v) => void actions.setPrefs({ refreshReminder: v }).then(() => scheduleReminders(platform))}
+            />
+          </Row>
+        )}
       </Group>
 
       <Group title={t.sections.kalender} help={t.calendarHelp}>
@@ -193,7 +205,8 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
         </Row>
       </Group>
 
-      <NeosiaSettings scrollTo={section === 'neosia'} />
+      <NeosiaSettings scrollTo={section === 'neosia'} lock={lock} lockAvailable={lockAvailable} onLockOn={() => setLock(true)} />
+      <SipakamaseSettings />
 
       <Group title={w.connected.lock}>
         <Row label={w.connected.lock} help={lockAvailable ? w.connected.lockHelp : w.connected.lockUnavailable}>
@@ -267,7 +280,7 @@ export function PengaturanScreen({ onSignedOut, section = null }: { onSignedOut:
 
       <Sheet open={bug !== null} onOpenChange={(o) => !o && setBug(null)} title={t.bugReport.title}>
         <p className="text-m13 text-muted-foreground">{t.bugReport.body}</p>
-        <pre className="mt-3 max-h-64 overflow-auto rounded-ctl bg-m-inset p-3 text-m12 font-normal whitespace-pre-wrap">{bug}</pre>
+        <pre className="m-pilih mt-3 max-h-64 overflow-auto rounded-ctl bg-m-inset p-3 text-m12 font-normal whitespace-pre-wrap">{bug}</pre>
         <div className="mt-4">
           <PillButton
             kind="primary"

@@ -5,6 +5,8 @@ import { WipeDialog } from '@/components/popup/WipeDialog';
 import { RemindersPanel } from '@sulo/ui/reminders/RemindersPanel';
 import { DocLayout } from '@sulo/ui/ui/doc-layout';
 import { SwitchRow } from '@sulo/ui/ui/switch-row';
+import { watchWords } from '@sulo/core/i18n/watch';
+import { WatchSwitch } from '../../WatchSwitch';
 import { Button } from '@sulo/ui/ui/button';
 import { Input } from '@sulo/ui/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@sulo/ui/ui/select';
@@ -14,8 +16,10 @@ import { DUE_FORMATS, NICKNAME_MAX, normalizeNickname, THEMES, type DueFormat, t
 import { UPDATE_CATEGORIES } from '@sulo/core/radar/settings';
 import { local, timeZone } from '../data';
 import { Card } from '@sulo/ui/card';
+import { ChevronDownIcon } from '@sulo/ui/icons';
 import { BugReport } from '@sulo/ui/dashboard/BugReport';
 import { NeosiaSettings } from '../NeosiaSettings';
+import { SipakamaseSettings } from '../SipakamaseSettings';
 import type { PageProps } from '../types';
 
 /** Development builds only: the branch is false in production, so the module is never bundled. */
@@ -26,7 +30,7 @@ const UsageStats = import.meta.env.MODE === 'development' ? lazy(() => import('.
 const RadarDiagnosis = import.meta.env.MODE !== 'production' ? lazy(() => import('../RadarDiagnosis')) : null;
 
 /** Sections reachable as #pengaturan/<id> (notifications and the popup link here). */
-const SECTIONS = ['tampilan', 'tentangKamu', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'data', 'laporan', 'hapus'] as const;
+const SECTIONS = ['tampilan', 'tentangKamu', 'pantau', 'notifikasi', 'pengingat', 'kabar', 'kalender', 'neosia', 'sipakamase', 'data', 'laporan', 'hapus'] as const;
 
 function Field({ label, help, children }: { label: string; help?: string; children: (id: string) => ReactNode }) {
   const id = useId();
@@ -45,7 +49,7 @@ function Field({ label, help, children }: { label: string; help?: string; childr
 }
 
 export function PengaturanPage({ d, data, actions, route }: PageProps) {
-  const { m } = useI18n();
+  const { m, locale } = useI18n();
   const t = d.pengaturan;
   const prefs = data.prefs;
   const [nickname, setNickname] = useState(prefs.nickname);
@@ -59,7 +63,7 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
   }, [route.detail]);
 
   // The sections on the right, as on Bantuan (DocLayout's scrollspy, core's pure getActiveSection). Delete stays last.
-  const toc = SECTIONS.map((id) => ({ id: `set-${id}`, label: id === 'neosia' ? 'NEOSIA' : id === 'laporan' ? t.bugReport.cardTitle : t.sections[id] }));
+  const toc = SECTIONS.map((id) => ({ id: `set-${id}`, label: id === 'neosia' ? 'NEOSIA' : id === 'sipakamase' ? 'Sipakamase' : id === 'pantau' ? watchWords(locale).title : id === 'laporan' ? t.bugReport.cardTitle : t.sections[id] }));
 
   return (
     <DocLayout toc={toc} tocLabel={d.bantuan.onThisPage} hashFor={(id) => `pengaturan/${id.slice(4)}`}>
@@ -152,6 +156,11 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
         </Field>
       </Card>
 
+      {/* "Pantau tugas baru" (1.1.0): off until the user turns it on; the setup offers it to new installs. */}
+      <Card id="set-pantau" title={watchWords(locale).title}>
+        <WatchSwitch settings />
+      </Card>
+
       {/* One test for every kind of notification (tasks, updates, calendar): they share one path. */}
       <Card id="set-notifikasi" title={t.sections.notifikasi}>
         <div className="flex flex-wrap items-center gap-3">
@@ -170,12 +179,19 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
             </span>
           )}
         </div>
-        <p className="mt-3 max-w-[68ch] text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.testHelp}</p>
-        <ul className="mt-1 space-y-1 text-[12px] leading-normal text-muted-foreground">
-          <li>{m.popup.reminders.macSteps}</li>
-          <li>{m.popup.reminders.winSteps}</li>
-        </ul>
-        <p className="mt-2 text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.sessionNote}</p>
+        <p className="mt-3 text-[12px] leading-normal text-muted-foreground">{m.popup.reminders.sessionNote}</p>
+        {/* The system steps only for whoever needs them. */}
+        <details className="group mt-2">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded text-[12px] text-muted-foreground outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus [&::-webkit-details-marker]:hidden">
+            {m.popup.reminders.notShowing}
+            <ChevronDownIcon className="size-3.5 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+          </summary>
+          <div className="mt-2 max-w-[68ch] space-y-1 text-[12px] leading-normal text-muted-foreground">
+            <p>{m.popup.reminders.testHelp}</p>
+            <p>{m.popup.reminders.macSteps}</p>
+            <p>{m.popup.reminders.winSteps}</p>
+          </div>
+        </details>
       </Card>
 
       {/* The panel's sections use the dashboard padding (--panel-px: 20) so they line up with the card title. */}
@@ -212,6 +228,10 @@ export function PengaturanPage({ d, data, actions, route }: PageProps) {
 
       <Card id="set-neosia" title="NEOSIA">
         <NeosiaSettings data={data} actions={actions} />
+      </Card>
+
+      <Card id="set-sipakamase" title="Sipakamase">
+        <SipakamaseSettings data={data} actions={actions} />
       </Card>
 
       <Card id="set-data" title={t.sections.data}>

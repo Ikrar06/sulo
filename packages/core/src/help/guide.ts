@@ -45,15 +45,15 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     points: [
       { id: 'Tugas yang paling dekat tenggatnya ada di atas.', en: 'The tasks due soonest are at the top.' },
       { id: 'Perbarui mengecek SIKOLA sekarang. Kalau baru saja diperbarui, tombolnya cukup bilang "Sudah terbaru".', en: 'Update checks SIKOLA now. Right after an update it just says "Up to date".' },
-      { id: 'Pengaturan, lalu Buka dashboard.', en: 'Settings, then Open dashboard.' },
+      { id: 'Buka dashboard ada di bawah daftar.', en: 'Open dashboard sits just below the list.' },
     ],
   },
   {
     id: 'tugas',
     title: { id: 'Atur satu tugas', en: 'Work on one task' },
     body: {
-      id: 'Di halaman Tugas, buka rincian sebuah tugas untuk memecahnya jadi langkah, menulis catatan, atau menunda pengingatnya.',
-      en: 'On the Tasks page, open a task to split it into steps, write a note, or snooze its reminder.',
+      id: 'Di halaman Tugas, buka rincian sebuah tugas untuk memecahnya jadi langkah, menulis catatan, atau menunda pengingatnya. Tugas dari dosen yang tidak ada di SIKOLA bisa kamu tambahkan lewat Tambah tugas di kanan atas.',
+      en: 'On the Tasks page, open a task to split it into steps, write a note, or snooze its reminder. A task from your lecturer that is not on SIKOLA can be added with Add a task at the top right.',
     },
     clip: 'tugas',
     size: { width: 1200, height: 812 },

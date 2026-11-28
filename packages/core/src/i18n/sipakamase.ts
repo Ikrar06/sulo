@@ -1,0 +1,155 @@
+// Interface text for the Sipakamase module (1.1.0), Indonesian and English
+// (docs/mkpk/RENCANA-RINCI.md E). The consent itself lives in
+// privacy/content.ts, shared with the privacy page.
+
+import type { Locale } from './index';
+import type { ConnState } from '../sipakamase/connection';
+import { mobileOs } from './os';
+
+const id = {
+  name: 'Sipakamase',
+  settingsTitle: 'Sipakamase',
+  settingsHelp: 'Kegiatan MKPK, SKS yang dikonversi, dan mata kuliah yang lulus, dari Sipakamase.',
+  connect: 'Hubungkan',
+  connectAgain: 'Hubungkan lagi',
+  connectCta: 'Hubungkan Sipakamase',
+  /** The overview's card while the module is off (sipakamase/invite.ts). */
+  invite: 'Hubungkan Sipakamase untuk melihat kegiatan MKPK yang belum dikonversi, dan yang sudah lulus tapi belum masuk NEOSIA.',
+  offline: 'Tidak ada koneksi. Coba lagi nanti.',
+  notSignedIn: 'Kamu belum masuk ke Sipakamase, jadi belum terhubung.',
+  signInAgain: 'Masuk lagi',
+  phoneOff: 'Kapan saja, lewat Pengaturan lalu "Putuskan". Semua data dan sesi Sipakamase di HP ini langsung terhapus.',
+  phoneHelp: 'Kegiatan MKPK, SKS yang dikonversi, dan mata kuliah yang lulus. Sesi Sipakamase dijaga selama ada yang ditunggu.',
+  later: 'Nanti saja',
+  cancel: 'Batal',
+  disconnect: 'Putuskan',
+  refresh: 'Perbarui sekarang',
+  refreshing: 'Memperbarui',
+  openSite: 'Buka Sipakamase',
+  chromeNext: 'Setelah ini Chrome meminta izin membuka halaman sipakamase.unhas.ac.id.',
+  afterConnect: 'Lalu masuk di tab Sipakamase yang terbuka. Sulo mulai membaca begitu kamu masuk.',
+  denied: 'Izinnya belum diberikan, jadi Sipakamase belum terhubung.',
+  failed: 'Sipakamase belum bisa dihubungkan. Coba lagi.',
+  wait: (time: string) => `Bisa diperbarui lagi pukul ${time}.`,
+  updated: (when: string) => `Diperbarui ${when}.`,
+  state: {
+    off: 'Belum terhubung.',
+    needs_login: 'Masuk lagi ke Sipakamase untuk memperbarui.',
+    live: 'Terhubung dan dijaga.',
+    resting: 'Tidak ada yang ditunggu di Sipakamase.',
+    paused_idle: 'Sulo berhenti menjaga koneksi ini karena 7 hari tidak dibuka.',
+    paused_remote: 'Pembaruan Sipakamase sedang dihentikan pengelola Sulo.',
+    broken: 'Sipakamase berubah, data MKPK belum bisa dibaca.',
+  } satisfies Record<ConnState, string>,
+  browserClosed: 'Sesi Sipakamase di browser hilang saat browser ditutup. Setelah itu kamu diminta masuk lagi.',
+  disconnectConfirm: 'Putuskan Sipakamase? Data MKPK dari Sipakamase dihapus dan izinnya dicabut.',
+  card: {
+    notInNeosia: (sks: string) => `${sks} SKS lulus, belum masuk NEOSIA`,
+    unconverted: (sks: string) => `${sks} SKS kegiatan belum dikonversi`,
+    invite: 'Hubungkan Sipakamase untuk melihat kegiatan yang belum dikonversi.',
+    source: (when: string) => `Dari Sipakamase, ${when}.`,
+    needsLogin: 'Masuk lagi ke Sipakamase untuk memperbarui.',
+    broken: 'Sipakamase berubah, data MKPK belum bisa dibaca.',
+    notInNeosiaLabel: 'Lulus, belum di NEOSIA',
+    unconvertedLabel: 'Kegiatan belum dikonversi',
+    reminders: {
+      a: (name: string) => `${name} ada di KRS-mu, tetapi belum lulus di Sipakamase.`,
+      b: (name: string) => `${name} sudah lulus. Klaim nilainya supaya masuk NEOSIA.`,
+      c: (name: string) => `${name} sudah lulus, tetapi tidak ada di KRS-mu. Klaim hanya untuk mata kuliah yang diprogramkan.`,
+      d: (sks: string, n: number) => `${sks} SKS dari ${n} kegiatan belum dikonversi.`,
+      e: (name: string) => `${name} belum punya pendamping, jadi belum bisa diproses.`,
+    },
+    more: (n: number) => `${n} pengingat lainnya`,
+  },
+  notice: {
+    title: 'MKPK',
+    a: (name: string, days: number) => (days === 0 ? `${name} belum lulus di Sipakamase. Batas penginputan nilai hari ini.` : `${name} belum lulus di Sipakamase. Batas penginputan nilai ${days} hari lagi.`),
+    c: (name: string) => `KRS dibuka. ${name} sudah lulus di Sipakamase dan bisa diprogramkan.`,
+    news: (name: string, to: string) => `Kegiatanmu di Sipakamase berubah: ${name} sekarang ${to}.`,
+  },
+  remindersSwitch: 'Pengingat MKPK',
+  remindersHelp: 'Notifikasi untuk MKPK yang belum lulus menjelang batas nilai, yang bisa diprogramkan saat KRS dibuka, dan perubahan status kegiatan.',
+};
+
+export type SipakamaseWords = typeof id;
+
+const en: SipakamaseWords = {
+  name: 'Sipakamase',
+  settingsTitle: 'Sipakamase',
+  settingsHelp: 'MKPK activities, converted credits and passed courses, from Sipakamase.',
+  connect: 'Connect',
+  connectAgain: 'Connect again',
+  connectCta: 'Connect Sipakamase',
+  invite: 'Connect Sipakamase to see MKPK activities not yet converted, and passed ones not yet in NEOSIA.',
+  offline: 'No connection. Try again later.',
+  notSignedIn: 'You did not sign in to Sipakamase, so it is not connected.',
+  signInAgain: 'Sign in again',
+  phoneOff: 'Any time, in Settings with "Disconnect". All Sipakamase data and its session on this phone are deleted at once.',
+  phoneHelp: 'MKPK activities, converted credits and passed courses. The Sipakamase session is kept while something is pending.',
+  later: 'Not now',
+  cancel: 'Cancel',
+  disconnect: 'Disconnect',
+  refresh: 'Update now',
+  refreshing: 'Updating',
+  openSite: 'Open Sipakamase',
+  chromeNext: 'Next, Chrome asks for permission to open sipakamase.unhas.ac.id pages.',
+  afterConnect: 'Then sign in on the Sipakamase tab that opens. Sulo starts reading once you are signed in.',
+  denied: 'The permission was not given, so Sipakamase is not connected.',
+  failed: 'Sipakamase could not be connected. Try again.',
+  wait: (time: string) => `You can update again at ${time}.`,
+  updated: (when: string) => `Updated ${when}.`,
+  state: {
+    off: 'Not connected.',
+    needs_login: 'Sign in to Sipakamase again to update.',
+    live: 'Connected and kept signed in.',
+    resting: 'Nothing pending in Sipakamase.',
+    paused_idle: 'Sulo stopped keeping this connection because it was not opened for 7 days.',
+    paused_remote: 'Sipakamase updates are paused by Sulo’s maintainer.',
+    broken: 'Sipakamase has changed, so MKPK data cannot be read yet.',
+  },
+  browserClosed: 'The browser drops the Sipakamase session when it closes. After that you are asked to sign in again.',
+  disconnectConfirm: 'Disconnect Sipakamase? MKPK data from Sipakamase is deleted and the permission removed.',
+  card: {
+    notInNeosia: (sks: string) => `${sks} credits passed, not yet in NEOSIA`,
+    unconverted: (sks: string) => `${sks} activity credits not yet converted`,
+    invite: 'Connect Sipakamase to see activities not yet converted.',
+    source: (when: string) => `From Sipakamase, ${when}.`,
+    needsLogin: 'Sign in to Sipakamase again to update.',
+    broken: 'Sipakamase has changed, so MKPK data cannot be read yet.',
+    notInNeosiaLabel: 'Passed, not in NEOSIA',
+    unconvertedLabel: 'Activities not converted',
+    reminders: {
+      a: (name: string) => `${name} is in your KRS but not passed in Sipakamase yet.`,
+      b: (name: string) => `${name} is passed. Claim its grade so it reaches NEOSIA.`,
+      c: (name: string) => `${name} is passed but not in your KRS. Only programmed courses can be claimed.`,
+      d: (sks: string, n: number) => (n === 1 ? `${sks} credits from 1 activity not converted yet.` : `${sks} credits from ${n} activities not converted yet.`),
+      e: (name: string) => `${name} has no companion yet, so it cannot be processed.`,
+    },
+    more: (n: number) => (n === 1 ? '1 more reminder' : `${n} more reminders`),
+  },
+  notice: {
+    title: 'MKPK',
+    a: (name: string, days: number) => (days === 0 ? `${name} is not passed in Sipakamase yet. Grade entry closes today.` : `${name} is not passed in Sipakamase yet. Grade entry closes in ${days} days.`),
+    c: (name: string) => `KRS is open. ${name} is passed in Sipakamase and can be programmed.`,
+    news: (name: string, to: string) => `Your Sipakamase activity changed: ${name} is now ${to}.`,
+  },
+  remindersSwitch: 'MKPK reminders',
+  remindersHelp: 'Notifications for MKPK courses not passed near the grade deadline, courses you can program when KRS opens, and activity status changes.',
+};
+
+/** The iPhone keeps the session only when iOS gives the keeper time (B3): nothing promised. */
+const IPHONE_ID: SipakamaseWords = {
+  ...id,
+  phoneHelp: 'Kegiatan MKPK, SKS yang dikonversi, dan mata kuliah yang lulus. Diperbarui saat Sulo dibuka.',
+  state: { ...id.state, live: 'Terhubung, diperbarui saat Sulo dibuka.' },
+};
+const IPHONE_EN: SipakamaseWords = {
+  ...en,
+  phoneHelp: 'MKPK activities, converted credits and passed courses. Updated when you open Sulo.',
+  state: { ...en.state, live: 'Connected, updated when you open Sulo.' },
+};
+
+export function sipakamaseWords(locale: Locale): SipakamaseWords {
+  if (mobileOs() === 'ios') return locale === 'en' ? IPHONE_EN : IPHONE_ID;
+  return locale === 'en' ? en : id;
+}

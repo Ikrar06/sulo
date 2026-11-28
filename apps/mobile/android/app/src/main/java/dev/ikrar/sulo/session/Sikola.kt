@@ -46,9 +46,9 @@ object SikolaText {
         data class Replaced(val value: String) : SessionCookie()
     }
 
-    /** Reads the MoodleSession among Set-Cookie headers, against the value the request sent. */
-    fun sessionCookie(setCookies: List<String>?, sent: String): SessionCookie {
-        val line = setCookies?.lastOrNull { it.trim().startsWith("${Sikola.SESSION_COOKIE}=") } ?: return SessionCookie.Absent
+    /** Reads the session cookie (MoodleSession, or Sipakamase's `session`) among Set-Cookie headers, against the value the request sent. */
+    fun sessionCookie(setCookies: List<String>?, sent: String, name: String = Sikola.SESSION_COOKIE): SessionCookie {
+        val line = setCookies?.lastOrNull { it.trim().startsWith("$name=") } ?: return SessionCookie.Absent
         val value = line.trim().substringAfter('=').substringBefore(';').trim()
         val attrs = line.lowercase()
         val past = Regex("max-age=(-?\\d+)").find(attrs)?.groupValues?.get(1)?.toLongOrNull()?.let { it <= 0 } == true

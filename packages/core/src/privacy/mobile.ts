@@ -3,9 +3,9 @@
 // Same shape as privacy/content.ts so the same renderer shows it. Keep it
 // true to the app: when the app starts contacting anything new, say so here.
 
-import type { Block, Section, Text } from './content';
+import { SIPAKAMASE_CONSENT, type Block, type Section, type Text } from './content.ts';
 
-export const MOBILE_PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
+export const MOBILE_PRIVACY_UPDATED: Text = { id: '27 November 2026', en: '27 November 2026' };
 
 /** The three points shown first, each restating a section below (no new claim). */
 export const MOBILE_PRIVACY_SUMMARY: readonly { icon: 'key' | 'shield' | 'eye'; title: Text; body: Text }[] = [
@@ -48,11 +48,17 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'ul',
         items: [
-          { id: 'Tugas dan tenggat dari SIKOLA, serta catatan, langkah, dan tenggat pribadi yang kamu tambahkan sendiri.', en: 'Tasks and deadlines from SIKOLA, and the notes, steps and personal deadlines you add yourself.' },
+          { id: 'Tugas dan tenggat dari SIKOLA, tugas yang kamu tambahkan sendiri, serta catatan, langkah, dan tenggat pribadi yang kamu isi.', en: 'Tasks and deadlines from SIKOLA, the tasks you add yourself, and the notes, steps and personal deadlines you add.' },
           { id: 'Daftar mata kuliah, termasuk nama dan warna yang kamu pilih.', en: 'Your course list, including the names and colors you choose.' },
           { id: 'Struktur mata kuliah untuk Kabar terbaru (nama dan jenis kegiatan, tanpa isinya).', en: 'Course structures for Latest updates (activity names and kinds, not their content).' },
           { id: 'Rekap presensi untuk mata kuliah yang dipantau, dan rincian per pertemuan yang kamu buka.', en: 'The attendance recap for the courses you follow, and the per-session details you open.' },
+          { id: 'Tugas yang sudah selesai atau lewat tenggat, sampai akhir semester mata kuliahnya.', en: 'Finished and past-due tasks, until their course ends for the semester.' },
+          { id: 'Nilai tugas yang kamu lihat lewat Lihat nilai, selama tugasnya ada di Sulo. Tidak pernah dikirim, disalin, atau muncul di notifikasi.', en: 'Task grades you looked at with See grade, while the task is in Sulo. Never sent, copied or shown in a notification.' },
           { id: 'Pengaturan, dan sesi SIKOLA.', en: 'Your settings, and the SIKOLA session.' },
+          {
+            id: 'Catatan sesi: kapan sesi SIKOLA, Sipakamase, dan NEOSIA berakhir, berapa menit setelah masuk dan setelah aktivitas terakhir. Tanpa isi cookie atau token. Dipakai untuk mengatur jarak penjaga sesi dan ditampilkan di layar Diagnostik. Tidak pernah dikirim, terhapus saat Keluar.',
+            en: 'Session notes: when the SIKOLA, Sipakamase and NEOSIA sessions ended, and how many minutes after signing in and after the last activity. No cookie or token content. Used to pace the session keepers and shown on the Diagnostik screen. Never sent, deleted when you sign out.',
+          },
         ],
       },
       {
@@ -79,6 +85,13 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
         text: {
           id: 'Semuanya di penyimpanan pribadi aplikasi di HP ini, yang tidak bisa dibaca aplikasi lain. Cadangan Android dan pemindahan data ke HP lain dimatikan untuk Sulo, jadi datanya tidak ikut ke cadangan cloud.',
           en: 'Everything is in the app’s private storage on this phone, which other apps cannot read. Android backup and transfer to another phone are turned off for Sulo, so the data never goes into a cloud backup.',
+        },
+      },
+      {
+        kind: 'p',
+        text: {
+          id: 'Tambah ke kalender HP membuka layar acara baru di aplikasi kalender HP-mu, dan kamu yang menyimpannya di sana. Sulo tidak membaca atau menulis kalender sendiri, dan tidak meminta izin Kalender.',
+          en: 'Add to the phone’s calendar opens the new-event screen of your calendar app, and you save it there. Sulo neither reads nor writes the calendar itself, and asks for no calendar permission.',
         },
       },
     ],
@@ -112,8 +125,12 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
             en: 'ikrar06.github.io: Sulo’s public data repository, for two data files only: the remote settings (including whether the developer has turned watching off) and the latest academic calendar. The calendar is read at most once a day, plus when you open the app and the last read is over 6 hours old. The remote settings are read at most every 6 hours, by the app when you open it or by background watching if it is on. The request carries no cookie and nothing that identifies you.',
           },
           {
-            id: 'neosia.unhas.ac.id (hanya kalau kamu menghubungkan NEOSIA): halaman NEOSIA terbuka di dalam Sulo hanya saat kamu mengetuknya, dan halaman itu memuat datanya sendiri. Sulo tidak pernah mengirim permintaan ke NEOSIA.',
-            en: 'neosia.unhas.ac.id (only if you connect NEOSIA): NEOSIA’s pages open inside Sulo only when you tap them, and those pages load their own data. Sulo never sends a request to NEOSIA.',
+            id: 'neosia.unhas.ac.id (hanya kalau kamu menghubungkan NEOSIA): halaman NEOSIA terbuka di dalam Sulo saat kamu mengetuknya, atau, kalau kamu menyalakan "Perbarui NEOSIA otomatis", saat kamu membuka Sulo dan sudah waktunya (sekali sehari di masa KRS dan masa nilai, sekali seminggu di luar itu). Halaman itu memuat datanya sendiri. Sulo tidak pernah mengirim permintaan ke NEOSIA.',
+            en: 'neosia.unhas.ac.id (only if you connect NEOSIA): NEOSIA’s pages open inside Sulo when you tap them, or, if you turn on "Update NEOSIA automatically", when you open Sulo and a visit is due (once a day during KRS and grade periods, once a week otherwise). Those pages load their own data. Sulo never sends a request to NEOSIA.',
+          },
+          {
+            id: 'sipakamase.unhas.ac.id (hanya kalau kamu menghubungkan Sipakamase): masuk di halaman Sipakamase sendiri, lalu GET ke lima halaman MKPK-mu yang hanya-baca. Alamat yang mengubah data ditolak sebelum dikirim. Permintaan menyebut dirinya Sulo dan versinya.',
+            en: 'sipakamase.unhas.ac.id (only if you connect Sipakamase): you sign in on Sipakamase’s own page, then Sulo makes GET requests to five read-only pages of your MKPK data. Addresses that change data are refused before they are sent. Requests name themselves as Sulo and its version.',
           },
           {
             id: 'Pengaturan jarak jauh yang sama juga memberi tahu kalau ada versi baru Sulo. Tombol Unduh membuka halaman rilis di github.com lewat browser; Sulo tidak mengunduh atau memasang apa pun sendiri. Untuk perbaikan keamanan, versi lama bisa diminta memperbarui dulu: selama itu Sulo tidak mengecek SIKOLA, dan datamu tetap ada.',
@@ -137,8 +154,8 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
       {
         kind: 'p',
         text: {
-          id: 'Karena tindakanmu: setelah masuk, saat membuka aplikasi kalau data lebih tua dari 15 menit, tarik untuk memperbarui, atau tombol Perbarui. Ditambah pemantauan latar belakang kalau kamu menyalakannya (bagian berikut). Rekap presensi diperbarui paling sering sekali sehari saat aplikasi dibuka, tidak pernah di latar belakang; rincian per pertemuan diambil saat kamu membukanya. Pengingat dijadwalkan di HP dari data terakhir.',
-          en: 'Because of something you do: after signing in, when you open the app and the data is older than 15 minutes, pull to update, or the Update button. Plus background watching if you turn it on (next section). The attendance recap updates at most once a day when the app is opened, never in the background; per-session details are fetched when you open them. Reminders are scheduled on the phone from the latest data.',
+          id: 'Karena tindakanmu: setelah masuk, saat membuka aplikasi kalau data lebih tua dari 15 menit, tarik untuk memperbarui, atau tombol Perbarui. Ditambah pemantauan latar belakang kalau kamu menyalakannya (bagian berikut). Rekap presensi diperbarui paling sering sekali sehari saat aplikasi dibuka, tidak pernah di latar belakang; rincian per pertemuan diambil saat kamu membukanya. Nilai tugas diambil dari halaman nilai tiap mata kuliah yang dipantau saat kamu membuka Tugas (paling sering sekali tiap 10 menit, tiap mata kuliah paling sering sejam sekali), saat Sulo memperbarui (tiap mata kuliah paling sering 6 jam sekali), dan saat kamu memilih Lihat nilai; tanpa komentar dosen. Pengingat dijadwalkan di HP dari data terakhir.',
+          en: 'Because of something you do: after signing in, when you open the app and the data is older than 15 minutes, pull to update, or the Update button. Plus background watching if you turn it on (next section). The attendance recap updates at most once a day when the app is opened, never in the background; per-session details are fetched when you open them. Task grades are read from the grade page of each course you follow when you open Tasks (at most once every 10 minutes, each course at most once an hour), when Sulo updates (each course at most every 6 hours), and when you choose See grade; never lecturer comments. Reminders are scheduled on the phone from the latest data.',
         },
       },
     ],
@@ -187,6 +204,32 @@ export const MOBILE_PRIVACY_SECTIONS: Section[] = [
           { id: 'Dari halaman yang kamu buka, Sulo menyimpan jadwal kuliah, kelas, status KRS, nama PA, status bayar (lunas atau belum), nilai huruf, IPS, IPK, SKS, masa studi, masa KRS (tanggal buka dan tutup), dan status survei. NIM, NIK, alamat, tanggal lahir, kontak, nilai angka, dan nominal pembayaran dibuang sebelum disimpan. Tautan survei tidak pernah dibaca.', en: 'From the pages you open, Sulo keeps the class schedule, classes, KRS status, your advisor’s name, payment status (paid or not), letter grades, semester and cumulative GPA, credits, study period, the KRS window and the survey status. Student number, national ID number, address, birth date, contacts, numeric scores and payment amounts are dropped before anything is stored. The survey link is never read.' },
           { id: 'Semua data NEOSIA disimpan terenkripsi dengan kunci Android Keystore tersendiri, terpisah dari sesi SIKOLA. Nilai dan IPK tersembunyi secara bawaan, hanya dibuka saat layar Nilai atau kartu Studi menampilkannya, dan tidak pernah masuk notifikasi, ekspor, atau info laporan bug.', en: 'All NEOSIA data is stored encrypted with an Android Keystore key of its own, separate from the SIKOLA session. Grades and GPA are hidden by default, opened only while the Grades screen or the Studies card shows them, and never go into notifications, exports or the bug report info.' },
           { id: 'Selama nilai atau IPK tampil di layar, layar Sulo tidak bisa direkam atau ditangkap aplikasi lain, dan pratinjaunya di daftar aplikasi terbaru kosong.', en: 'While grades or the GPA are on screen, other apps cannot record or capture Sulo’s screen, and its preview in the recent-apps list is blank.' },
+        ],
+      },
+    ],
+  },
+  {
+    heading: { id: 'Sipakamase (pilihan)', en: 'Sipakamase (optional)' },
+    blocks: [
+      { kind: 'p', text: SIPAKAMASE_CONSENT.how },
+      { kind: 'ul', items: [...SIPAKAMASE_CONSENT.kept] },
+      { kind: 'p', text: SIPAKAMASE_CONSENT.droppedTitle },
+      { kind: 'ul', items: [...SIPAKAMASE_CONSENT.dropped] },
+      {
+        kind: 'ul',
+        items: [
+          {
+            id: 'Cookie sesi Sipakamase disimpan terenkripsi dengan kunci Android Keystore tersendiri, tidak pernah keluar dari HP, dan tidak pernah sampai ke JavaScript. Data MKPK-nya di berkas terenkripsi tersendiri per akun.',
+            en: 'The Sipakamase session cookie is kept encrypted with an Android Keystore key of its own, never leaves the phone and never reaches JavaScript. Its MKPK data is in an encrypted file of its own, per account.',
+          },
+          {
+            id: 'Penjagaan sesi di latar belakang hanya ikut cek "Pantau tugas baru" yang sudah membangunkan HP, tanpa bangun tambahan. Isi halaman yang diambil di latar belakang tidak disimpan; datamu diperbarui saat kamu membuka Sulo.',
+            en: 'Keeping the session in the background only rides the "Watch for new tasks" check that already wakes the phone, with no wake of its own. Pages fetched in the background are not kept; your data updates when you open Sulo.',
+          },
+          {
+            id: 'Kapan saja, lewat Pengaturan lalu "Putuskan". Semua data dan sesi Sipakamase di HP ini langsung terhapus.',
+            en: 'Any time, in Settings with "Disconnect". All Sipakamase data and its session on this phone are deleted at once.',
+          },
         ],
       },
     ],

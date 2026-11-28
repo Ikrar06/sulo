@@ -36,6 +36,8 @@ import { HeroMascot } from './HeroMascot';
 import { WeekCard } from './WeekCard';
 import { useSyncUi } from '../shell/SyncStatusLine';
 import { KrsReadinessCard, NeosiaSetupCard, StudiCard, TodayClassCard } from './neosia/RingkasanNeosia';
+import { MkpkCard } from './neosia/MkpkCard';
+import { SipakamaseInviteCard } from './sipakamase/SipakamaseInvite';
 import { ReleaseCard, useReleaseNotice } from './ReleaseNotice';
 import { URGENCY_TEXT } from './Tugas';
 
@@ -61,7 +63,7 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
   const done = useDoneUndo(actions, d, today, platform.store);
   const [cheer, setCheer] = useState(0);
   const [celebrate, setCelebrate] = useState(0);
-  const items = useMemo(() => buildTaskItems(user), [user]);
+  const items = useMemo(() => buildTaskItems(user, mobileDash(locale).tugas.own), [user, locale]);
   const pendingOnly = useMemo(() => items.filter((i) => i.status === 'pending'), [items]);
   // Plus the ones just marked done (they stay for the undo window).
   const pending = useMemo(() => items.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [items, done.lingering]);
@@ -159,9 +161,10 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
         )}
       </div>
 
-      {/* NEOSIA (M8d): connect, the checklist, or a calm line; then Kesiapan KRS in its window. */}
+      {/* NEOSIA (M8d): connect, the checklist, or a calm line; then Sipakamase's invite (1.1.0), and Kesiapan KRS in its window. */}
       <ReleaseCard notice={release.notice} onDismiss={() => void release.dismiss()} />
       <NeosiaSetupCard />
+      <SipakamaseInviteCard />
       <KrsReadinessCard />
 
       <div className="grid grid-cols-3 gap-3">
@@ -259,6 +262,9 @@ export function RingkasanScreen({ go }: { go: (s: Screen) => void }) {
           <StudiCard go={go} />
         </div>
       </section>
+
+      {/* NEOSIA connected and a Kurikulum 2023 student: MKPK progress. */}
+      <MkpkCard />
 
       <WeekCard
         bars={bars}

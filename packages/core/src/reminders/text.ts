@@ -64,14 +64,15 @@ export function noticeView(
     }
     case 'summary':
       return { title: n.summaryTitle(notice.count), message: n.summaryBody(shorten(notice.nearest.name), left(notice.nearest)), icon: 'idle', buttons: [] };
-    case 'morning':
-      if (notice.full) return morningFullView(notice.full, ctx.m);
-      return {
-        title: n.morningTitle,
-        message: n.morningBody(notice.today, notice.week, shorten(notice.nearest.name), left(notice.nearest)),
-        icon: 'idle',
-        buttons: [],
-      };
+    case 'morning': {
+      const view = notice.full
+        ? morningFullView(notice.full, ctx.m)
+        : notice.week > 0
+          ? { title: n.morningTitle, message: n.morningBody(notice.today, notice.week, shorten(notice.nearest.name), left(notice.nearest)), icon: 'idle' as const, buttons: [] }
+          : { title: n.morningFullTitle, message: '', icon: 'idle' as const, buttons: [] };
+      if (!notice.relogin || notice.relogin.length === 0) return view;
+      return { ...view, message: [view.message, n.morningRelogin(notice.relogin)].filter(Boolean).join(' ') };
+    }
     case 'session':
       return { title: notice.repeat ? n.sessionRepeatTitle : n.sessionTitle, message: n.sessionBody, icon: 'sleepy', buttons: [] };
     case 'changes':

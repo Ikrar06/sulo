@@ -37,6 +37,8 @@ export function demoNeosia(now = Math.floor(Date.now() / 1000)) {
           kelas('23D01110202', 'PERENCANAAN WILAYAH', 'A', 3, [[2, '10:10:00', '12:40:00', R('R203', 'Ruang Kuliah 203')]], 'Dosen Contoh Dua'),
           kelas('23U01110303', 'ETIKA PROFESI DAN KOMUNIKASI BMI', 'C', 2, [[3, '13:00:00', '14:40:00', R('R105', 'Ruang Kuliah 105')]], 'Dosen Contoh Tiga'),
           kelas('23D01110505', 'HIDROLOGI TERAPAN', 'A', 3, [[5, '07:50:00', '08:40:00', R('RS1', 'Ruang Sidang Lt.1')]], 'Dosen Contoh Empat'),
+          // An MKPK course (Kurikulum 2023, code 23U02…): no meetings, the work happens outside class.
+          kelas('23U02132304', 'Magang/Praktek Kerja', 'MKPK', 4, [], 'Dosen Contoh Enam'),
         ],
       },
     },
@@ -50,11 +52,11 @@ export function demoNeosia(now = Math.floor(Date.now() / 1000)) {
     max_sks: {
       max_sks: 24,
       limits: { total: 24, face_to_face: 24, non_face_to_face: 0 },
-      current_sks: { total: 11, face_to_face: 11, non_face_to_face: 0, available: 13 },
+      current_sks: { total: 15, face_to_face: 11, non_face_to_face: 4, available: 9 },
       context: { student_level: 'S1', current_semester: 5, rules_applied: ['ips'] },
     },
-    // GPA and credits match the transcript below (Sulo's own count gives 2.95 and 27).
-    dashboard: { indeks_prestasi: { ipk: 2.95, jumlah_sks_dilulusi: 27 }, masa_studi: { maksimal: 14, sisa: 10 }, pembayaran: { sudah_bayar: true } },
+    // GPA and credits match the transcript below (Sulo's own count gives 3.06 and 31).
+    dashboard: { indeks_prestasi: { ipk: 3.06, jumlah_sks_dilulusi: 31 }, masa_studi: { maksimal: 14, sisa: 10 }, pembayaran: { sudah_bayar: true } },
     'prodi_semester/active': { activeProdiSemester: { is_active: true, semester: { kode: '20262', jenis: 'Genap', tahun: 2026, tahun_ajaran: '2026/2027', is_active: true } } },
     getTranskripMahasiswa: {
       transkrip: [
@@ -69,8 +71,11 @@ export function demoNeosia(now = Math.floor(Date.now() / 1000)) {
         { kode_mata_kuliah: '23D01110033', nama_mata_kuliah: 'GAMBAR TEKNIK', sks: 2, nilai_huruf: 'A-', id_semester: 49, is_used: true, is_alih_kredit: false, is_manual: false, is_locked: true },
         { kode_mata_kuliah: '23D01110041', nama_mata_kuliah: 'MEKANIKA TANAH', sks: 3, nilai_huruf: 'B+', id_semester: 50, is_used: true, is_alih_kredit: false, is_manual: false, is_locked: true },
         { kode_mata_kuliah: '23D01110042', nama_mata_kuliah: 'ETIKA PROFESI', sks: 2, nilai_huruf: 'C+', id_semester: 50, is_used: true, is_alih_kredit: false, is_manual: false, is_locked: true },
+        // Two MKPK courses passed through Sipakamase.
+        { kode_mata_kuliah: '23U02130202', nama_mata_kuliah: 'Manajemen Kegiatan', sks: 2, nilai_huruf: 'A', id_semester: 50, is_used: true, is_alih_kredit: false, is_manual: false, is_locked: true },
+        { kode_mata_kuliah: '23U02131102', nama_mata_kuliah: 'Kepemimpinan Inovatif', sks: 2, nilai_huruf: 'B+', id_semester: 50, is_used: true, is_alih_kredit: false, is_manual: false, is_locked: true },
       ],
-      current_indeks_prestasi: { semester_tahun_ajaran: '2024/2025 Genap', indeks_prestasi_semester: 3.1, indeks_prestasi_kumulatif: 2.95, jumlah_sks: 27 },
+      current_indeks_prestasi: { semester_tahun_ajaran: '2024/2025 Genap', indeks_prestasi_semester: 3.39, indeks_prestasi_kumulatif: 3.06, jumlah_sks: 31 },
     },
     // Transcript rows point to semesters by their internal id (47 to 50), mapped through semesters[].id.
     'mahasiswa/semester': {
@@ -81,7 +86,21 @@ export function demoNeosia(now = Math.floor(Date.now() / 1000)) {
         { id: 50, kode: '20242', jenis: 'Genap', tahun: 2024, tahun_ajaran: '2024/2025', is_active: false },
       ],
     },
-    'indeks_prestasi/current': { currentIndeksPrestasi: { semester_tahun_ajaran: '2024/2025 Genap', indeks_prestasi_semester: 3.1, indeks_prestasi_kumulatif: 2.95, jumlah_sks: 27 } },
+    'indeks_prestasi/current': { currentIndeksPrestasi: { semester_tahun_ajaran: '2024/2025 Genap', indeks_prestasi_semester: 3.39, indeks_prestasi_kumulatif: 3.06, jumlah_sks: 31 } },
+    // Classes on offer this semester (made-up), with the MKPK courses the program offers.
+    kelas_kuliah_tersedia: {
+      semesters: {
+        6: [
+          kelas('23D01110606', 'STRUKTUR BETON', 'A', 3, [[2, '07:30:00', '10:00:00', R('R204', 'Ruang Kuliah 204')]], 'Dosen Contoh Tujuh'),
+          kelas('23U02131202', 'Pengambilan Keputusan', 'MKPK', 2, [], 'Dosen Contoh Delapan'),
+          kelas('23U02130502', 'Komunikasi Digital', 'MKPK', 2, [], 'Dosen Contoh Delapan'),
+        ],
+        7: [
+          kelas('23U02132304', 'Magang/Praktek Kerja', 'MKPK', 4, [], 'Dosen Contoh Enam'),
+          kelas('23U02131801', 'Pengembangan Talenta', 'MKPK', 1, [], 'Dosen Contoh Delapan'),
+        ],
+      },
+    },
     check_survey_status: { is_filled: false },
     getCurrentPenasihatAkademik: { currentPenasihatAkademik: { dosen: { nama: 'Dr. Dosen Contoh Lima, S.T., M.T.' } } },
   };

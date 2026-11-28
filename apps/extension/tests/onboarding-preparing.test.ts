@@ -19,4 +19,12 @@ describe('preparingRows', () => {
     const ok = (stage: 'tasks' | 'courses' | 'attendance') => ({ stage, result: 'ok' as const });
     expect(preparingRows([ok('tasks'), ok('courses'), ok('attendance')], false)).toEqual({ connected: 'done', tasks: 'done', courses: 'done', attendance: 'done' });
   });
+  it('ticks "Terhubung ke SIKOLA" only once SIKOLA answered', () => {
+    // The request limits refused the first request: a pause, so nothing is ticked and nothing is marked failed.
+    expect(preparingRows([{ stage: 'tasks', result: 'failed' }], false, 'waiting')).toEqual({ connected: 'waiting', tasks: 'waiting', courses: 'waiting', attendance: 'waiting' });
+    // Offline: not connected, the rest waits.
+    expect(preparingRows([{ stage: 'tasks', result: 'failed' }], true, 'failed')).toEqual({ connected: 'failed', tasks: 'waiting', courses: 'waiting', attendance: 'waiting' });
+    // A stage that ended well proves the connection, whatever stopped the setup later.
+    expect(preparingRows([{ stage: 'tasks', result: 'ok' }], false, 'waiting')).toMatchObject({ connected: 'done', tasks: 'done' });
+  });
 });

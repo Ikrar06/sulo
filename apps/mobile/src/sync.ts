@@ -7,6 +7,8 @@
 
 import { createMoodleClient, type MoodleClient } from '@sulo/core/moodle/client';
 import { refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
+import { courseGradesForCurrent, taskGradeForCurrent, type CourseGradeOutcome, type TaskGradeOutcome } from '@sulo/core/tasks/grade-service';
+import { gradeSweep, SWEEP_OPEN, type SweepResult } from '@sulo/core/tasks/grade-sweep';
 import { MANUAL_COOLDOWN_SEC, SIKOLA_ORIGIN } from '@sulo/core/moodle/limits';
 import { writeSession, readSession } from '@sulo/core/moodle/session';
 import { createSessionAgeLogger } from '@sulo/core/net/session-age';
@@ -19,8 +21,10 @@ import { SuloSession } from './session';
 import { recordTimeRemaining } from './dev-log';
 import { updateRequired } from './release';
 
-/** Opening the app syncs when the data is older than this. */
+/** Opening the app syncs fully when the data is older than this. */
 export const RESUME_STALE_SEC = 15 * 60;
+/** Between this and RESUME_STALE_SEC, opening the app runs one light check instead (1.1.0). */
+export const RESUME_CHECK_SEC = 5 * 60;
 
 /** SIKOLA through SuloSession, with the core client's budget, queue and backoff. */
 export function sikolaClient(platform: Platform, options: { userInitiated: boolean; dev?: boolean; dailyBudget?: number }): MoodleClient {
@@ -35,7 +39,8 @@ export function sikolaClient(platform: Platform, options: { userInitiated: boole
     getSesskey: async () => NATIVE_SESSKEY,
     noSessionUpdate: !options.userInitiated,
     ...(options.dailyBudget !== undefined ? { dailyBudget: options.dailyBudget } : {}),
-    sessionAge: options.dev ? createSessionAgeLogger(store) : undefined,
+    // Every build since 26 Nov 2026 (owner's decision, docs/ios/PENJAGA-SESI.md A2): the Diagnostik screen shows it.
+    sessionAge: createSessionAgeLogger(store),
     // One login answer is never enough: a second, separate ask after 2 to 5 seconds must agree.
     confirmLogin: { wait: () => new Promise((resolve) => setTimeout(resolve, confirmDelayMs())) },
     // Only then does the vault end the session (the one place that decides; native SuloSession.endSession).
@@ -63,6 +68,30 @@ export function refreshPresensi(platform: Platform, target: 'recap' | 'detail', 
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve({ status: 'failed', reason: 'offline' });
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return refreshPresensiForCurrent({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock, timeZone }, target, courseId, force);
+}
+
+/** The client for "Lihat nilai": SIKOLA through SuloSession, or the made-up pages of pnpm mobile:web. */
+async function gradesClient(platform: Platform): Promise<MoodleClient> {
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return (await import('./fake/grades')).fakeGradesClient(platform.store);
+  return sikolaClient(platform, { userInitiated: true });
+}
+
+/** "Lihat nilai" on a task: its course's grade report, or its own page (tasks/grade-service.ts); only on a tap. */
+export async function taskGrade(platform: Platform, cmid: number, again: boolean): Promise<TaskGradeOutcome> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'failed', reason: 'offline' };
+  return taskGradeForCurrent({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, cmid, again);
+}
+
+/** Tugas opened: the grade reports of the followed courses not read in a day, a few at a time (tasks/grade-sweep.ts). */
+export async function sweepGrades(platform: Platform): Promise<SweepResult> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { read: 0, markedDone: 0 };
+  return gradeSweep({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, SWEEP_OPEN);
+}
+
+/** "Lihat nilai" on a course (the dashboard's course filter): one page for all its assignments; only on a tap. */
+export async function courseGrades(platform: Platform, courseId: number, again: boolean): Promise<CourseGradeOutcome> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'failed', reason: 'offline' };
+  return courseGradesForCurrent({ client: await gradesClient(platform), store: platform.store, clock: platform.clock }, courseId, again);
 }
 
 /** After a successful sign-in: forget "expired" and fetch right away. */
@@ -93,6 +122,23 @@ export async function manualFresh(platform: Platform): Promise<boolean> {
 /** Back in the foreground: sync only when the data is older than 15 minutes. */
 export function resumeNeedsSync(last: UnixSeconds | null, now: UnixSeconds): boolean {
   return last === null || now - last >= RESUME_STALE_SEC;
+}
+
+/**
+ * Back in the foreground with data from 5 to 15 minutes ago: one light
+ * check (session, calendar, notifications; core's trigger "popup", the
+ * opening of the app), so news found since then shows without a full sync.
+ * The screen is already on, so it wakes nothing that was asleep.
+ */
+export function resumeNeedsCheck(last: UnixSeconds | null, now: UnixSeconds): boolean {
+  return last !== null && now - last >= RESUME_CHECK_SEC && now - last < RESUME_STALE_SEC;
+}
+
+/** The light check when the app opens: the user's own activity, like a sync on open. */
+export async function checkNow(platform: Platform): Promise<SyncOutcome> {
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return { status: 'skipped', reason: 'FRESH' };
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'offline' };
+  return runSync({ client: sikolaClient(platform, { userInitiated: true }), store: platform.store, clock: platform.clock, trigger: 'popup' });
 }
 
 /**

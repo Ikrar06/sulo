@@ -165,9 +165,9 @@ describe('runSync', () => {
       expect(await runSync({ client: fakeClient(), store: memoryStore(), clock: fixedClock('2026-09-22', 2, NOW), trigger: 'relogin' })).not.toEqual({ status: 'skipped', reason: 'QUIET_HOURS' });
     });
 
-    it('"Perbarui" within 2 minutes of a good sync sends nothing; after that it runs', async () => {
-      expect(await after('manual', 1)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
-      expect((await after('manual', 2)).requests).toBe(1);
+    it('"Perbarui" within 5 minutes of a good sync sends nothing; after that it runs (owner: no spamming it)', async () => {
+      expect(await after('manual', 4)).toEqual({ outcome: { status: 'skipped', reason: 'FRESH' }, requests: 0 });
+      expect((await after('manual', 5)).requests).toBe(1);
     });
 
     it('sync modes: "Perbarui" is full; automatic syncs save from 80 POSTs a day', () => {

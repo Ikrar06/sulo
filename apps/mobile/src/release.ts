@@ -4,8 +4,12 @@
 // version this bundle was built with.
 
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
-import { parseRelease, readDismissal, releaseNotice, RELEASE_DISMISS_KEY, versionCodeOf, type ReleaseDismissal, type ReleaseInfo, type ReleaseNotice } from '@sulo/core/remote/release';
+import { parseIosRelease, parseRelease, readDismissal, releaseNotice, RELEASE_DISMISS_KEY, versionCodeOf, type ReleaseDismissal, type ReleaseInfo, type ReleaseNotice } from '@sulo/core/remote/release';
+
+/** Each platform reads only its own section: the iPhone mobile.ios.release, Android mobile.release. */
+const parse = (mobile: unknown): ReleaseInfo | null => (mobileOs() === 'ios' ? parseIosRelease(mobile) : parseRelease(mobile));
 import type { KeyValueStore, UnixSeconds } from '@sulo/core/types';
+import { mobileOs } from '@sulo/core/i18n/os';
 
 /** This build's versionCode (the same number Gradle wrote into the APK). */
 export const INSTALLED_CODE = versionCodeOf(__SULO_VERSION__) ?? 0;
@@ -19,7 +23,7 @@ export const showChecksum = (installed = INSTALLED_CODE, debug = __SULO_DEV__): 
 
 export async function releaseState(store: KeyValueStore, now: UnixSeconds, installed = INSTALLED_CODE): Promise<ReleaseNotice> {
   const config = await readRemoteConfig(store);
-  return releaseNotice(parseRelease(config.mobile), installed, readDismissal(await store.get(RELEASE_DISMISS_KEY)), now);
+  return releaseNotice(parse(config.mobile), installed, readDismissal(await store.get(RELEASE_DISMISS_KEY)), now);
 }
 
 /** True while this version is below a required update: the SIKOLA client refuses every request. */
@@ -34,6 +38,6 @@ export async function dismissRelease(store: KeyValueStore, versionCode: number, 
 
 /** A newer version from the config, whatever was closed (Tentang's row); null when up to date or none. */
 export async function newerRelease(store: KeyValueStore, installed = INSTALLED_CODE): Promise<ReleaseInfo | null> {
-  const r = parseRelease((await readRemoteConfig(store)).mobile);
+  const r = parse((await readRemoteConfig(store)).mobile);
   return r !== null && r.versionCode > installed ? r : null;
 }

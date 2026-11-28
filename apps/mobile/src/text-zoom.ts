@@ -21,3 +21,16 @@ export function applyTextZoom(doc: Document = document): number {
   if (zoom !== 1) doc.documentElement.style.setProperty('--m-zoom', String(zoom));
   return zoom;
 }
+
+/**
+ * iPhone: WKWebView does not scale text with the phone's text size, so the native side reads it
+ * (SuloSession.textScale, clamped like Android's textZoom) and the page applies it as the web preview does:
+ * --m-tz scales every text-m* size, --m-zoom the layout's thresholds (src/tokens.css). Again on each return.
+ */
+export async function applyIosTextScale(read: () => Promise<{ scale: number }>, doc: Document = document): Promise<number> {
+  const { scale } = await read().catch(() => ({ scale: 1 }));
+  const value = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  doc.documentElement.style.setProperty('--m-tz', String(value));
+  doc.documentElement.style.setProperty('--m-zoom', String(value));
+  return value;
+}

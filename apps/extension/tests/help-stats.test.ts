@@ -10,6 +10,7 @@ describe('help content', () => {
       'aman',
       'password',
       'tugas-tidak-muncul',
+      'nilai-tugas',
       'tidak-diperbarui',
       'masuk-lagi',
       'pengingat',
@@ -27,6 +28,8 @@ describe('help content', () => {
       'tidak-disimpan',
       'ipk-nilai',
       'buka-neosia',
+      'mkpk-belum-lulus',
+      'sipakamase-aman',
     ]);
     for (const text of [...FAQ.flatMap((f) => [f.q, ...f.a]), ...HOW_IT_WORKS.flatMap((s) => [s.heading, ...s.paragraphs])]) {
       expect(text.id.trim()).not.toBe('');

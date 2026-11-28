@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { afterFailure, BACKOFF_KEY, jitteredDelaySeconds } from '@sulo/core/moodle/backoff';
 import { DOMAINS, domainOf } from '@sulo/core/net/domains';
+import { KNOWN_MUTATING_PATHS, READ_PATHS, SIPAKAMASE_ORIGIN } from '@sulo/core/sipakamase/allowlist';
 import { appendRequestLog, REQUEST_LOG_MAX } from '@sulo/core/net/request-log';
 import { createScheduler, type RequestLogEntry } from '@sulo/core/net/scheduler';
 import { fakeFetch, fixedClock, jsonResponse, memoryStore } from './helpers';
@@ -19,10 +20,13 @@ function setup(respond: () => Response = () => jsonResponse({}), random?: () => 
 }
 
 describe('domains', () => {
-  it('knows exactly three domains and matches origins exactly', () => {
+  it('knows exactly four domains and matches origins exactly', () => {
     expect(domainOf(SIKOLA)).toBe('sikola');
     expect(domainOf(DATA)).toBe('sulo-data');
     expect(domainOf('https://api.neosia.unhas.ac.id/x')).toBe('neosia');
+    expect(domainOf('https://sipakamase.unhas.ac.id/cklaim/content')).toBe('sipakamase');
+    expect(domainOf('https://sipakamase.unhas.ac.id.evil.test/')).toBeNull();
+    expect(Object.keys(DOMAINS)).toHaveLength(4);
     expect(domainOf('https://sikola-v2.unhas.ac.id.evil.test/')).toBeNull();
     expect(domainOf('http://sikola-v2.unhas.ac.id/')).toBeNull();
     expect(domainOf('not a url')).toBeNull();
@@ -148,5 +152,48 @@ describe('request log (dev and tester builds)', () => {
     const scheduler = createScheduler({ fetch: fakeFetch(() => jsonResponse({})), store, clock: fixedClock() });
     await scheduler.request('sikola', SIKOLA, {}, { trigger: 'test' });
     expect(store.dump()['global:requestLog']).toBeUndefined();
+  });
+});
+
+describe('Sipakamase: read-only paths only (1.1.0)', () => {
+  const at = (path: string) => `${SIPAKAMASE_ORIGIN}${path}`;
+  const withCredentials = (url: string) => {
+    const u = new URL(url);
+    u.username = 'u';
+    u.password = 'p';
+    return u.href;
+  };
+
+  it('sends a plain GET to each of the five fragments, with the session cookie and no cache, never following a redirect', async () => {
+    const { scheduler, fetch } = setup(() => new Response('<table></table>', { status: 200 }));
+    for (const path of READ_PATHS) expect((await scheduler.request('sipakamase', at(path), { method: 'GET' }, { trigger: 'test' })).kind).toBe('response');
+    expect(fetch.calls).toHaveLength(5);
+    expect(fetch.calls[0]!.init).toMatchObject({ credentials: 'include', redirect: 'manual', cache: 'no-store' });
+  });
+
+  it('refuses every address that changes data or ends the session, without calling fetch', async () => {
+    const { scheduler, fetch } = setup();
+    for (const path of KNOWN_MUTATING_PATHS) {
+      expect(await scheduler.request('sipakamase', at(path), { method: 'GET' }, { trigger: 'test' })).toEqual({ kind: 'refused', reason: 'NOT_ALLOWLISTED' });
+    }
+    expect(fetch.calls).toHaveLength(0);
+  });
+
+  it('refuses a query, a fragment, a trailing slash, another method or a body on an allowed path', async () => {
+    const { scheduler, fetch } = setup();
+    const path = READ_PATHS[0];
+    for (const [url, init] of [
+      [at(`${path}?x=1`), { method: 'GET' }],
+      [at(`${path}#a`), { method: 'GET' }],
+      [at(`${path}/`), { method: 'GET' }],
+      [at(`${path}/x.y`), { method: 'GET' }],
+      [at(path.toUpperCase()), { method: 'GET' }],
+      [at(path), { method: 'POST' }],
+      [at(path), { method: 'GET', body: 'a=1' }],
+      [withCredentials(at(path)), { method: 'GET' }],
+    ] as [string, RequestInit][]) {
+      expect(await scheduler.request('sipakamase', url, init, { trigger: 'test' })).toEqual({ kind: 'refused', reason: 'NOT_ALLOWLISTED' });
+    }
+    expect(fetch.calls).toHaveLength(0);
   });
 });

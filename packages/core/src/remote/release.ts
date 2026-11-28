@@ -21,6 +21,11 @@ export interface ReleaseInfo {
   sha256: string;
   /** 0 when absent; never above versionCode. */
   minVersionCode: number;
+  /**
+   * When minVersionCode starts to apply (unix seconds; 1.1.0, owner's rule:
+   * the card first, required 3 days later). Null: at once.
+   */
+  requiredFrom: UnixSeconds | null;
   notes: { id: string; en: string } | null;
 }
 
@@ -54,6 +59,8 @@ export function parseRelease(mobile: unknown): ReleaseInfo | null {
   if (typeof r.sha256 !== 'string' || !SHA256.test(r.sha256)) return null;
   const min = r.minVersionCode === undefined ? 0 : r.minVersionCode;
   if (!(min === 0 || isCode(min)) || (min as number) > r.versionCode) return null;
+  if (r.requiredFrom !== undefined && !isCode(r.requiredFrom)) return null;
+  const requiredFrom = r.requiredFrom === undefined ? null : (r.requiredFrom as number);
   let notes: ReleaseInfo['notes'] = null;
   if (r.notes !== undefined) {
     if (!isObject(r.notes) || typeof r.notes.id !== 'string' || typeof r.notes.en !== 'string') return null;
@@ -62,7 +69,37 @@ export function parseRelease(mobile: unknown): ReleaseInfo | null {
     if (id === '' || en === '' || id.length > NOTES_MAX || en.length > NOTES_MAX) return null;
     notes = { id, en };
   }
-  return { versionCode: r.versionCode, versionName: r.versionName, url: r.url, sha256: r.sha256.toLowerCase(), minVersionCode: min as number, notes };
+  return { versionCode: r.versionCode, versionName: r.versionName, url: r.url, sha256: r.sha256.toLowerCase(), minVersionCode: min as number, requiredFrom, notes };
+}
+
+/** The iPhone's file: an .ipa asset of one of the owner's GitHub releases. */
+export const IOS_RELEASE_URL = /^https:\/\/github\.com\/Ikrar06\/[A-Za-z0-9_-][A-Za-z0-9._-]*\/releases\/download\/[A-Za-z0-9_-][A-Za-z0-9._-]*\/[A-Za-z0-9_-][A-Za-z0-9._-]*\.ipa$/;
+
+export interface IosReleaseInfo extends ReleaseInfo {
+  /** The .ipa's size in bytes, for the guide's download button. */
+  size: number;
+  /**
+   * "Lihat data terakhir" on the required-update screen (owner's decision of 26 Nov 2026, C2): the old data
+   * read-only, with no request anywhere. False for a heavy security fix: then only the guide is offered.
+   */
+  readOnlyAllowed: boolean;
+}
+
+/**
+ * mobile.ios.release (the iPhone, kept apart from Android's mobile.release), read as strictly: any field
+ * missing, of the wrong type, or a URL that is not one of the owner's GitHub release .ipa assets makes it
+ * absent. Same versionCode rule as Android (CFBundleVersion). Pure.
+ */
+export function parseIosRelease(mobile: unknown): IosReleaseInfo | null {
+  if (!isObject(mobile) || !isObject(mobile.ios) || !isObject(mobile.ios.release)) return null;
+  const r = mobile.ios.release;
+  if (typeof r.url !== 'string' || !IOS_RELEASE_URL.test(r.url)) return null;
+  if (!isCode(r.size)) return null;
+  if (r.readOnlyAllowed !== undefined && typeof r.readOnlyAllowed !== 'boolean') return null;
+  // The rest is Android's own rules, on a copy whose url passes them.
+  const base = parseRelease({ release: { ...r, url: 'https://github.com/Ikrar06/sulo/releases/download/v0.0.0/x.apk' } });
+  if (base === null) return null;
+  return { ...base, url: r.url, size: r.size as number, readOnlyAllowed: r.readOnlyAllowed !== false };
 }
 
 export interface ReleaseDismissal {
@@ -70,7 +107,7 @@ export interface ReleaseDismissal {
   at: UnixSeconds;
 }
 
-export type ReleaseNotice = { kind: 'none' } | { kind: 'available'; release: ReleaseInfo } | { kind: 'required'; release: ReleaseInfo };
+export type ReleaseNotice = { kind: 'none' } | { kind: 'available'; release: ReleaseInfo; requiredFrom?: UnixSeconds } | { kind: 'required'; release: ReleaseInfo };
 
 /**
  * What to show for the installed versionCode: "required" below
@@ -79,7 +116,11 @@ export type ReleaseNotice = { kind: 'none' } | { kind: 'available'; release: Rel
  */
 export function releaseNotice(release: ReleaseInfo | null, installed: number, dismissed: ReleaseDismissal | null, now: UnixSeconds): ReleaseNotice {
   if (release === null || release.versionCode <= installed) return { kind: 'none' };
-  if (installed < release.minVersionCode) return { kind: 'required', release };
+  if (installed < release.minVersionCode) {
+    // Before its date a required update is only the card, which cannot be closed away (it says when it becomes required).
+    if (release.requiredFrom !== null && now < release.requiredFrom) return { kind: 'available', release, requiredFrom: release.requiredFrom };
+    return { kind: 'required', release };
+  }
   if (dismissed && dismissed.versionCode === release.versionCode && now - dismissed.at < RELEASE_RESHOW_SEC) return { kind: 'none' };
   return { kind: 'available', release };
 }

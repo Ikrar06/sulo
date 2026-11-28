@@ -4,6 +4,7 @@
 // bottom sheets (`sheets`). The intro's sample data is synthetic.
 
 import type { Locale } from './index';
+import { mobileOs } from './os';
 
 /** Checked by the text-budget test: every title and supporting line listed here. */
 export const TITLE_MAX = 28;
@@ -107,7 +108,7 @@ const id = {
   },
   sheets: {
     why: ['Kamu masuk di halaman SIKOLA asli. Sulo tidak pernah melihat password-mu.', 'Sesi SIKOLA disimpan terenkripsi di HP ini.', 'Tanpa server Sulo, iklan, atau pelacakan.'],
-    watch: 'Sulo mengecek SIKOLA berkala di latar belakang supaya kamu cepat tahu ada tugas baru. Sesi SIKOLA ikut tetap aktif. Bisa dimatikan kapan saja di Pengaturan.',
+    watch: 'Sulo mengecek SIKOLA di latar belakang dan memberi tahu kalau ada tugas baru. Sesi SIKOLA ikut tetap aktif. Matikan kapan saja di Pengaturan.',
   },
   unofficial: 'Tidak resmi dan tidak berafiliasi dengan Universitas Hasanuddin.',
 };
@@ -210,14 +211,32 @@ const en: Words = {
   },
   sheets: {
     why: ['You sign in on the real SIKOLA page. Sulo never sees your password.', 'Your SIKOLA session is stored encrypted on this phone.', 'No Sulo server, no ads, no tracking.'],
-    watch: 'Sulo checks SIKOLA regularly in the background so you hear about new tasks quickly. This also keeps your SIKOLA session active. You can turn it off anytime in Settings.',
+    watch: 'Sulo checks SIKOLA in the background and tells you about new tasks. This also keeps your SIKOLA session active. Turn it off anytime in Settings.',
   },
   unofficial: 'Unofficial. Not affiliated with Universitas Hasanuddin.',
 };
 
 export type OnboardingWords = Words;
 
-export const onboardingWords = (locale: Locale): OnboardingWords => (locale === 'en' ? en : id);
+/** The iPhone's watch step (B3): its keeper only keeps the session, when iOS gives it time; no new-task watching. */
+function iphone(w: Words, t: { watchTitle: string; watchBody: string; sheet: string }): Words {
+  return { ...w, reminders: { ...w.reminders, watchTitle: t.watchTitle, watchBody: t.watchBody }, sheets: { ...w.sheets, watch: t.sheet } };
+}
+
+const IPHONE_ID = iphone(id, {
+  watchTitle: 'Jaga sesi SIKOLA',
+  watchBody: 'Sulo menjaga sesi SIKOLA saat iPhone memberi waktu.',
+  sheet: 'Saat iPhone memberi Sulo waktu di latar belakang, Sulo mengecek sesi SIKOLA supaya tidak cepat habis. iPhone yang menentukan kapan, jadi tidak dijamin. Tugas baru terlihat saat kamu membuka Sulo. Matikan kapan saja di Pengaturan.',
+});
+
+const IPHONE_EN = iphone(en, {
+  watchTitle: 'Keep the SIKOLA session',
+  watchBody: 'Sulo keeps your session when the iPhone allows.',
+  sheet: 'When the iPhone gives Sulo time in the background, Sulo checks the SIKOLA session so it does not end early. The iPhone decides when, so it is not promised. New tasks show when you open Sulo. Turn it off anytime in Settings.',
+});
+
+export const onboardingWords = (locale: Locale): OnboardingWords =>
+  mobileOs() === 'ios' ? (locale === 'en' ? IPHONE_EN : IPHONE_ID) : locale === 'en' ? en : id;
 
 /** Every title and supporting line, for the budget test. */
 export function budgetedTexts(w: OnboardingWords): { titles: string[]; supports: string[] } {

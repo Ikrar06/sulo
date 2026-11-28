@@ -30,6 +30,9 @@ export const REPO_URL = '';
 /** "Traktir kopi" (Trakteer). */
 export const TRAKTEER_URL = 'https://teer.id/krar';
 
+/** Unhas's own page on MKPK (load per cluster, rules, rubric): a plain link that opens a new tab. */
+export const MKPK_INFO_URL = 'https://www.unhas.ac.id/mkpk/?lang=id';
+
 export type CreatorLinkId = 'instagram' | 'linkedin' | 'github' | 'web';
 
 /** "Dibuat oleh": the maintainer's public profiles. Empty URLs are hidden. */
@@ -57,3 +60,16 @@ export const NEOSIA_TRANSKRIP = 'https://neosia.unhas.ac.id/transkrip-nilai';
 export const NEOSIA_KRS = 'https://neosia.unhas.ac.id/kartu-rencana-studi';
 export const NEOSIA_KHS = 'https://neosia.unhas.ac.id/kartu-hasil-studi';
 export const NEOSIA_MATAKULIAH = 'https://neosia.unhas.ac.id/matakuliah';
+
+/** Sulo's own site (the landing page and its guides). */
+export const SULO_SITE = 'https://sulo.ikrar.dev';
+
+/** "Yang baru di Sulo" on the site: what each version brought (1.1.0), in the app's language. */
+export function whatsNewPage(locale: 'id' | 'en'): string {
+  return `${SULO_SITE}${locale === 'en' ? '/en' : ''}/yang-baru/`;
+}
+
+/** The iPhone guide's "Memperbarui Sulo" part, in the app's language (owner's decision of 26 Nov 2026, C3). */
+export function iosUpdateGuide(locale: 'id' | 'en'): string {
+  return `${SULO_SITE}${locale === 'en' ? '/en' : ''}/pasang/iphone#perbarui`;
+}

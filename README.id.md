@@ -13,7 +13,7 @@
 
 <p align="center"><a href="README.md">English</a></p>
 
-Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akademik Unhas di satu tempat, lalu mengingatkanmu sebelum tenggatnya lewat. Bentuknya ekstensi browser (Chrome dan Edge) dan aplikasi Android.
+Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akademik Unhas di satu tempat, lalu mengingatkanmu sebelum tenggatnya lewat. Bentuknya ekstensi browser (Chrome dan Edge), aplikasi Android, dan aplikasi iPhone.
 
 **Bukan aplikasi resmi Unhas.** Sulo proyek mandiri, tidak berafiliasi dengan dan tidak didukung oleh Universitas Hasanuddin. "Sulo" berarti obor dalam bahasa Bugis dan Makassar.
 
@@ -25,7 +25,7 @@ Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akadem
     <img alt="Dashboard Sulo di laptop dengan tugas hari ini, kalender akademik, dan beban 14 hari ke depan, di samping aplikasi HP Sulo yang menampilkan tenggat terdekat, 3 jam lagi. Data contoh." src="docs-publik/hero-light.id.png" width="88%">
   </picture>
   <br>
-  <sub>Dashboard ekstensi dan aplikasi Android, dengan data contoh. Bingkai ponsel hanya ilustrasi: aplikasi HP Sulo untuk Android.</sub>
+  <sub>Dashboard ekstensi dan aplikasi HP, dengan data contoh. Bingkai ponsel hanya ilustrasi.</sub>
 </p>
 
 ## Daftar isi
@@ -48,7 +48,9 @@ Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akadem
 - **Kalender akademik Unhas** berdampingan dengan tenggatmu. Kalender publiknya bisa ditambahkan ke Google Kalender (dan dari ekstensi juga ke Outlook atau Apple Calendar).
 - **Hanya mata kuliah yang kamu pantau**, masing-masing dengan nama tampilan dan warna pilihanmu.
 - **Opsional: NEOSIA.** Jadwal kuliah, status KRS, dan nilai, dibaca dari halaman NEOSIA yang kamu buka sendiri. Mati sampai kamu menyalakannya. Nilai tersembunyi sampai kamu memilih menampilkannya.
-- **Di Android:** hal yang sama di HP-mu, ditambah pilihan kunci aplikasi dan pilihan mengecek tugas baru di latar belakang.
+- **Opsional: Sipakamase.** Progres MKPK dalam satu kartu: SKS kegiatan yang belum dikonversi, mata kuliah lulus yang belum masuk NEOSIA, dan pengingat sebelum batas penginputan nilai. Sulo hanya membaca, dan kamu masuk di halaman Sipakamase sendiri. Mati sampai kamu menghubungkannya.
+- **Pantau tugas baru** (pilihan): ekstensi mengecek SIKOLA tiap 15 menit selama komputermu dipakai dan tiap kali kamu membukanya; aplikasi Android mengecek di latar belakang. Di iPhone, tugas baru terlihat saat Sulo dibuka.
+- **Di Android dan iPhone:** hal yang sama di HP-mu, ditambah pilihan kunci aplikasi.
 - Tema terang dan gelap, bahasa Indonesia dan Inggris.
 
 ## Cara kerjanya
@@ -56,25 +58,25 @@ Sulo mengumpulkan tugas, tenggat, dan presensi dari SIKOLA serta kalender akadem
 Sulo membaca apa yang bisa kamu baca sendiri di SIKOLA, lalu menyusunnya supaya tidak ada yang terlewat.
 
 - **Di browser**, Sulo memakai login SIKOLA yang sudah ada di browsermu (sesi). Masuk ke SIKOLA seperti biasa, dan Sulo langsung mengenalinya. Tidak ada akun Sulo.
-- **Di Android**, kamu masuk di halaman SIKOLA sendiri di dalam aplikasi. Yang disimpan Sulo sesinya, bukan password-nya.
+- **Di HP** (Android atau iPhone), kamu masuk di halaman SIKOLA sendiri di dalam aplikasi. Yang disimpan Sulo sesinya, bukan password-nya.
 - **Semuanya disimpan di perangkatmu.** Tidak ada server Sulo yang menampungnya.
-- **Sulo hanya membaca.** Sulo tidak bisa mengumpulkan tugas, mengisi presensi, atau mengubah apa pun di SIKOLA maupun NEOSIA.
+- **Sulo hanya membaca.** Sulo tidak bisa mengumpulkan tugas, mengisi presensi, atau mengubah apa pun di SIKOLA, NEOSIA, maupun Sipakamase.
 
 Saat SIKOLA mengeluarkanmu, Sulo tetap menampilkan data terakhir dan memintamu masuk lagi. Sulo tidak pernah masuk atas namamu.
 
 ## Privasi
 
 - **Tanpa password.** Sulo tidak pernah meminta, membaca, atau menyimpan username dan password-mu.
-- **Hanya membaca.** Tidak mengumpulkan tugas, tidak menandai sudah dibaca, tidak mengisi presensi, tidak mengisi KRS. Sulo tidak mengirim permintaan apa pun ke NEOSIA: Sulo hanya mencatat apa yang dimuat halaman NEOSIA sendiri saat kamu membukanya.
-- **Datamu tetap di perangkatmu.** Tanpa server Sulo, tanpa analitik, tanpa iklan. Di Android, sesi SIKOLA dienkripsi dengan kunci di Android Keystore dan tidak ikut cadangan perangkat.
-- **Hanya dua tujuan.** Sulo terhubung ke SIKOLA, dan ke repo data publiknya sendiri untuk satu berkas pengaturan kecil serta kalender akademik. Permintaan itu tidak membawa apa pun tentangmu. Tautan lain (Google Kalender, PDF kalender resmi, formulir masukan) baru terbuka di browser saat kamu mengekliknya.
+- **Hanya membaca.** Tidak mengumpulkan tugas, tidak menandai sudah dibaca, tidak mengisi presensi, tidak mengisi KRS, tidak mengonversi atau mengklaim. Sulo tidak mengirim permintaan apa pun ke NEOSIA: Sulo hanya mencatat apa yang dimuat halaman NEOSIA sendiri. Di Sipakamase, Sulo membaca lima halaman MKPK-mu yang tetap, tidak lebih.
+- **Datamu tetap di perangkatmu.** Tanpa server Sulo, tanpa analitik, tanpa iklan. Di Android, sesi SIKOLA dienkripsi dengan kunci di Android Keystore dan tidak ikut cadangan perangkat. Di iPhone, sesi disimpan di Keychain khusus iPhone itu, dan berkas Sulo tidak ikut cadangan iCloud maupun komputer.
+- **Hanya tujuan yang perlu.** Sulo terhubung ke SIKOLA, ke repo data publiknya sendiri untuk satu berkas pengaturan kecil serta kalender akademik, dan ke Sipakamase hanya kalau kamu menghubungkannya. Permintaan itu tidak membawa apa pun tentangmu. Tautan lain (Google Kalender, PDF kalender resmi, formulir masukan) hanya terbuka di tab baru saat kamu mengekliknya.
 - **Hal sensitif tersembunyi sejak awal.** Nilai dan IPK tidak pernah muncul di notifikasi, ekspor, maupun daftar yang disalin.
 
-Kebijakan lengkap ekstensi ada di [PRIVACY.md](PRIVACY.md) (Inggris). Halaman publiknya mencakup ekstensi dan aplikasi Android, dalam bahasa [Indonesia](https://ikrar06.github.io/sulo-data/privasi.html) dan [Inggris](https://ikrar06.github.io/sulo-data/privacy.html).
+Kebijakan lengkap ekstensi ada di [PRIVACY.md](PRIVACY.md) (Inggris). Halaman publiknya mencakup ekstensi, aplikasi Android, dan aplikasi iPhone, dalam bahasa [Indonesia](https://ikrar06.github.io/sulo-data/privasi.html) dan [Inggris](https://ikrar06.github.io/sulo-data/privacy.html).
 
 ## Cara pasang
 
-Versi 1.0.0 sudah terbit. Cara termudah lewat [sulo.ikrar.dev](https://sulo.ikrar.dev): halaman itu memberi berkas yang cocok untuk perangkatmu dan menuntun tiap langkahnya. Berkasnya sendiri ada di halaman [Releases](https://github.com/Ikrar06/sulo/releases) repo ini, tidak di tempat lain.
+Versi 1.1.0 sudah terbit. Cara termudah lewat [sulo.ikrar.dev](https://sulo.ikrar.dev): halaman itu memberi berkas yang cocok untuk perangkatmu dan menuntun tiap langkahnya. Berkasnya sendiri ada di halaman [Releases](https://github.com/Ikrar06/sulo/releases) repo ini, tidak di tempat lain.
 
 **Ekstensi (Chrome dan Edge)**
 
@@ -102,6 +104,12 @@ Butuh Android 8.0 atau lebih baru dengan Android System WebView yang diperbarui 
 
 APK dengan sidik jari lain bukan dari proyek ini.
 
+**iPhone**
+
+Butuh iOS 16.4 atau lebih baru, laptop Windows atau Mac, dan Apple ID (yang gratis juga bisa). Sulo belum ada di App Store: kamu memasang `sulo-<versi>-ios.ipa` dari halaman rilis dengan [Sideloadly](https://sideloadly.io), yang menandatanganinya dengan Apple ID-mu. Kata sandi Apple ID diketik di Sideloadly, tidak pernah di Sulo. Dengan Apple ID gratis, pemasangannya berlaku 7 hari; Sulo mengingatkan sehari sebelumnya, dan memasang berkas yang sama lagi tidak menghapus datamu. Langkah demi langkah: [sulo.ikrar.dev/pasang/iphone](https://sulo.ikrar.dev/pasang/iphone).
+
+Berkas .ipa tidak ditandatangani (Sideloadly yang menandatanganinya di laptopmu) dan dibangun oleh workflow "iPhone rilis" di repo ini. Cocokkan SHA-256-nya dengan berkas `.sha256` di sebelahnya: `shasum -a 256 sulo-<versi>-ios.ipa`.
+
 ## Yang sering ditanyakan
 
 **Ini dari kampus?** Bukan. Sulo dibuat oleh satu mahasiswa Unhas di waktu luangnya. Tenggat, nilai, dan aturan yang berlaku tetap yang ada di SIKOLA, NEOSIA, dan dari dosen PA-mu.
@@ -110,11 +118,11 @@ APK dengan sidik jari lain bukan dari proyek ini.
 
 **Apakah Sulo melihat password-ku?** Tidak. Kamu masuk di halaman SIKOLA sendiri. Sulo hanya memakai sesi yang dihasilkan dari situ.
 
-**Kenapa aku diminta masuk lagi ke SIKOLA?** SIKOLA mengakhiri sesi setelah beberapa jam. Ekstensi browser tidak melakukan apa pun untuk menjaga sesi itu tetap hidup. Di Android, pembaruan yang kamu mulai sendiri dihitung sebagai aktivitas, sama seperti membuka SIKOLA; di latar belakang, sesi hanya dijaga kalau kamu menyalakan "Pantau tugas baru".
+**Kenapa aku diminta masuk lagi ke SIKOLA?** SIKOLA mengakhiri sesi setelah beberapa jam tanpa aktivitas. Kalau kamu menyalakan "Pantau tugas baru", cek berkalanya dihitung SIKOLA sebagai aktivitas, jadi sesimu tetap aktif (di ekstensi selama browser terbuka). Di iPhone, "Jaga sesi SIKOLA" melakukannya hanya saat iPhone memberinya waktu di latar belakang, jadi kamu bisa lebih sering diminta masuk. Tanpa itu, Sulo tidak menjaga sesi; pembaruan yang kamu mulai sendiri tetap dihitung sebagai aktivitas, sama seperti membuka SIKOLA.
 
 **Apakah Sulo membebani SIKOLA?** Sulo meminta satu hal dalam satu waktu, tidak pernah berbarengan, tetap di bawah batas harian, dan menahan diri saat SIKOLA lambat atau menolak. Pengelola bisa menjeda semua pemasangan dari jauh.
 
-**Bagaimana cara menghapus dataku?** Di ekstensi: Pengaturan, "Hapus data", lalu "Hapus semua data". Di Android: Lainnya, Pengaturan, "Keluar dan hapus data". Data di SIKOLA tidak tersentuh.
+**Bagaimana cara menghapus dataku?** Di ekstensi: Pengaturan, "Hapus data", lalu "Hapus semua data". Di HP: Lainnya, Pengaturan, "Keluar dan hapus data". Data di SIKOLA tidak tersentuh.
 
 **Kalau yang ditampilkan Sulo keliru?** Isinya bisa ketinggalan atau tidak lengkap. Cek SIKOLA, lalu [kabari kami](#melapor-masalah).
 
@@ -138,6 +146,8 @@ git config core.hooksPath .githooks   # memindai tiap commit dari data pribadi a
 | `pnpm lint` | Aturan UI, aturan core tanpa platform, dan pemindai data pribadi |
 | `pnpm mobile:web` | Antarmuka aplikasi Android di browser desktop, dengan akun demo sintetis |
 | `pnpm mobile:apk:debug` | APK debug |
+| `pnpm --filter @sulo/mobile ios:sim` | Aplikasi iPhone di simulator iOS, dengan data sintetis (macOS dan Xcode) |
+| `pnpm --filter @sulo/mobile ios:ipa --data=rilis` | .ipa rilis tanpa tanda tangan, diperiksa `scripts/ios-verify.mjs` |
 | `pnpm shots:audit --out <folder>` | Tangkapan semua layar dan keadaan, dari data sintetis |
 
 `pnpm mobile:web` cara tercepat untuk melihat-lihat: tidak butuh akun SIKOLA dan tidak mengirim permintaan apa pun ke SIKOLA. Untuk ekstensi, `pnpm dev` menambah halaman pratinjau (`preview.html`) yang menampilkan popup dan panduan pertama dari data sintetis serupa.
@@ -151,12 +161,14 @@ packages/core/     logika bersama, tanpa API browser atau DOM: klien SIKOLA, pem
                    pengingat, kalender, presensi, pembacaan NEOSIA, dan semua teks (i18n)
 packages/ui/       komponen React bersama, ikon, dan maskot
 apps/extension/    ekstensi browser (WXT, Manifest V3): popup, dashboard, onboarding
-apps/mobile/       aplikasi Android (Capacitor) dan mode web-nya untuk pengembangan
+apps/mobile/       aplikasi HP (Capacitor) untuk Android dan iPhone, dan mode web-nya untuk pengembangan
 apps/mobile/android/  Kotlin native: layar login SIKOLA, penyimpanan sesi terenkripsi,
                    worker pemantauan latar belakang
+apps/mobile/ios/      Swift native: layar login dan penyimpanan sesi di Keychain,
+                   penjaga sesi yang dijalankan iOS saat iOS mau
 ```
 
-Teknologi: TypeScript, React, Tailwind CSS, Zod, dan Vitest, dengan WXT untuk ekstensi dan Capacitor untuk Android.
+Teknologi: TypeScript, React, Tailwind CSS, Zod, dan Vitest, dengan WXT untuk ekstensi dan Capacitor untuk Android dan iPhone.
 
 ### Aturan yang dipegang kodenya
 
@@ -177,6 +189,9 @@ Teknologi: TypeScript, React, Tailwind CSS, Zod, dan Vitest, dengan WXT untuk ek
 | Android | internet dan status jaringan | membaca SIKOLA dan repo data publik |
 | Android | notifikasi, mulai ulang, dan wake lock | pengingat dan pengecekan latar belakang, dijadwalkan lagi setelah HP dinyalakan ulang |
 | Android | biometrik | kunci aplikasi (opsional) |
+| iPhone | notifikasi | pengingat, diminta sekali saat pengenalan |
+| iPhone | refresh aplikasi di latar belakang (`BGTaskScheduler`) | "Jaga sesi SIKOLA", hanya kalau kamu menyalakannya; iOS yang menentukan kapan |
+| iPhone | Face ID | kunci aplikasi (opsional) |
 
 Daftar izin Android ditegakkan di tiap build rilis oleh `apps/mobile/scripts/check-permissions.mjs`.
 

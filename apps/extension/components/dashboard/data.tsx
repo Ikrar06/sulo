@@ -10,6 +10,7 @@ import type { SyncOutcome } from '@sulo/core/types';
 import { loadDashboardData, type DashboardData } from '@sulo/core/view/dashboard-data';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { applyTheme } from '@/lib/ui/theme';
+import { markOpened } from '@sulo/core/watch/idle';
 import { bumpUsage } from '@sulo/core/stats/usage';
 
 // The dashboard's data: everything comes from chrome.storage, re-read when
@@ -54,6 +55,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void reload();
     void bumpUsage(local, localParts(systemClock.now(), timeZone).dateKey, 'dashboardOpens');
+    // Opening the dashboard counts as opening Sulo (watch/idle.ts: 7 days without it pause the watch).
+    void markOpened(local, systemClock.now());
     // Coalesces bursts of storage writes (a sync writes several keys).
     const onChange = (_c: unknown, area: string) => {
       if (area !== 'local') return;

@@ -25,6 +25,17 @@ export const remoteParseCases: { name: string; status: number; body: string | nu
   { name: 'keepalive-not-object', status: 200, body: ka('off'), want: failed },
   { name: 'keepalive-array', status: 200, body: ka([]), want: failed },
   { name: 'mobile-not-object', status: 200, body: body({ ...base, mobile: 'x' }), want: failed },
+  // 1.1.0: one list of switches for every section (core remote/switches.ts).
+  { name: 'extension-switch-not-boolean', status: 200, body: body({ ...base, extension: { backgroundWatch: { enabled: 'no' } } }), want: failed },
+  { name: 'extension-not-object', status: 200, body: body({ ...base, extension: 1 }), want: failed },
+  { name: 'sipakamase-keep-not-boolean', status: 200, body: body({ ...base, sources: { sipakamase: { keep: 0 } } }), want: failed },
+  { name: 'sipakamase-enabled-null', status: 200, body: body({ ...base, sources: { sipakamase: { enabled: null } } }), want: failed },
+  { name: 'sipakamase-not-object', status: 200, body: body({ ...base, sources: { sipakamase: true } }), want: failed },
+  { name: 'neosia-visit-not-boolean', status: 200, body: body({ ...base, sources: { neosia: { scheduledVisit: 'yes' } } }), want: failed },
+  { name: 'sources-not-object', status: 200, body: body({ ...base, sources: [] }), want: failed },
+  { name: 'sources-switches-off', status: 200, body: body({ ...base, sources: { sipakamase: { enabled: false, keep: false }, neosia: { scheduledVisit: false } }, extension: { backgroundWatch: { enabled: false } } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: ON, sipakamaseKeep: false } } },
+  { name: 'sipakamase-keep-off-only', status: 200, body: body({ ...base, sources: { sipakamase: { keep: false } } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: ON, sipakamaseKeep: false } } },
+  { name: 'sipakamase-on', status: 200, body: body({ ...base, sources: { sipakamase: { enabled: true, keep: true, keepIntervalMinutes: 360 } } }), want: ok() },
   { name: 'missing-enabled', status: 200, body: body({ minIntervalMinutes: 30 }), want: failed },
   { name: 'missing-min-interval', status: 200, body: body({ enabled: true }), want: failed },
   { name: 'enabled-not-boolean', status: 200, body: body({ ...base, enabled: 'true' }), want: failed },
@@ -44,6 +55,10 @@ export const remoteParseCases: { name: string; status: number; body: string | nu
   { name: 'network-failure', status: 0, body: null, want: failed },
   // M8e E3: a valid mobile.release carries its minVersionCode to the worker; anything invalid in it is ignored (never a failed read).
   { name: 'release-with-min', status: 200, body: body({ ...base, mobile: { release: REL } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: ON, minVersionCode: 905 } } },
+  // 1.1.0: requiredFrom, the date a required update starts to apply (the card shows first).
+  { name: 'release-required-from', status: 200, body: body({ ...base, mobile: { release: { ...REL, requiredFrom: 1_795_000_000 } } }), want: { kind: 'ok', config: { globalEnabled: true, keepAlive: ON, minVersionCode: 905, minVersionFrom: 1_795_000_000 } } },
+  { name: 'release-required-from-without-min-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: 0, requiredFrom: 1_795_000_000 } } }), want: ok() },
+  { name: 'release-required-from-not-integer', status: 200, body: body({ ...base, mobile: { release: { ...REL, requiredFrom: '2026-12-01' } } }), want: ok() },
   { name: 'release-without-min', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: undefined } } }), want: ok() },
   { name: 'release-min-zero', status: 200, body: body({ ...base, mobile: { release: { ...REL, minVersionCode: 0 } } }), want: ok() },
   { name: 'release-url-elsewhere-ignored', status: 200, body: body({ ...base, mobile: { release: { ...REL, url: 'https://example.com/sulo.apk' } } }), want: ok() },
@@ -88,6 +103,8 @@ export const remoteDecideCases: { name: string; state: RemoteState; want: Remote
   // M8e E3: below a valid release's minVersionCode nothing goes to SIKOLA (the chain keeps reading the config).
   { name: 'update-required', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 904 }, want: hold('update_required') },
   { name: 'update-required-even-when-off', state: { ...state({ config: { ...cfg({}, false), minVersionCode: 905 } }), installedCode: 900 }, want: hold('update_required') },
+  { name: 'update-required-before-its-date-checks', state: { ...state({ config: { ...cfg({}), minVersionCode: 905, minVersionFrom: NOW + D } }), installedCode: 904 }, want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
+  { name: 'update-required-from-its-date', state: { ...state({ config: { ...cfg({}), minVersionCode: 905, minVersionFrom: NOW } }), installedCode: 904 }, want: hold('update_required') },
   { name: 'at-min-version-checks', state: { ...state({ config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 905 }, want: { action: 'check', schedule: { dayIntervalMin: 20, nightIntervalMin: 110, softDayIntervalMin: 40, radarEvery: 3 } } },
   { name: 'paused-before-update-required', state: { ...state({ lastAppAt: NOW - 8 * D, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: { action: 'paused' } },
   { name: 'stale-before-update-required', state: { ...state({ configOkAt: NOW - 72 * H, config: { ...cfg({}), minVersionCode: 905 } }), installedCode: 900 }, want: hold('stale_config') },

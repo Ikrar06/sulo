@@ -18,16 +18,22 @@ import { AcademicCard, nextForSummary, SummaryLine } from '@sulo/ui/dashboard/Ov
 import { timeZone } from '../data';
 import { Card, CardLink } from '@sulo/ui/card';
 import type { PageProps } from '../types';
-import { KrsReadinessCard, NeosiaInvite, NextClassLine, StudiCard, SurveyLine, TodayClasses } from '@sulo/ui/dashboard/NeosiaParts';
+import { KrsReadinessCard, NeosiaInvite, NextClassLine, SipakamaseInvite, StudiCard, SurveyLine, TodayClasses } from '@sulo/ui/dashboard/NeosiaParts';
 import { classMeetings, krsWindow, neosiaStatus, readiness, showKrsCard, surveyFilled } from '@sulo/core/neosia/view';
 import { linkedMeetings } from '@sulo/core/neosia/linked';
 import { holidayRanges } from '@sulo/core/neosia/schedule';
 import { classesToday, nextClass } from '@sulo/core/neosia/today';
 import { dismissInvite, showInvite } from '@sulo/core/neosia/invite';
+import { dismissSipakamaseInvite, mkpkCardShown, showSipakamaseInvite } from '@sulo/core/sipakamase/invite';
+import { completion, sourceStatuses } from '@sulo/core/neosia/sources';
 import { local } from '../data';
 import { courseAlias } from '@sulo/core/courses/display-name';
 import { attendanceSummary } from '@sulo/core/presensi/service';
 import { useNeosiaConnect } from '../neosia-connect';
+import { useSipakamaseConnect } from '../sipakamase-connect';
+import { summarizeSipakamase } from '@sulo/core/mkpk/sipakamase-summary';
+import { mkpkReminders } from '@sulo/core/mkpk/reminders';
+import { mkpkProgress } from '@sulo/core/mkpk/progress';
 import { Chip } from '@sulo/ui/mobile/cards';
 import { courseTint } from '@sulo/ui/mobile/tint';
 import { URGENCY_TEXT } from '@sulo/ui/urgency';
@@ -38,6 +44,7 @@ import { FitLine } from '@sulo/ui/mobile/fit-line';
 import { HeroMascot } from '../HeroMascot';
 import { useFlip } from '@/lib/ui/flip';
 import { NeosiaOverviewChecklist } from '../NeosiaChecklist';
+import { MkpkCard } from '@sulo/ui/dashboard/MkpkCard';
 
 const LEVELS = [1, 2, 3, 4] as const;
 
@@ -52,7 +59,7 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const done = useDoneUndo(actions, d, data.today, local);
   const rowsRef = useRef<HTMLDivElement>(null);
   useFlip(rowsRef);
-  const allItems = useMemo(() => buildTaskItems(user), [user]);
+  const allItems = useMemo(() => buildTaskItems(user, d.tugas.own), [user, d.tugas.own]);
   // Pending tasks, plus the ones just marked done (they stay in place for the undo window).
   const pendingItems = useMemo(() => allItems.filter((i) => i.status === 'pending' || done.lingering.has(i.task.eventId)), [allItems, done.lingering]);
   const rows = useMemo<Row[]>(() => pendingItems.map((i) => ({ ...i, dueAt: i.task.dueAt })), [pendingItems]);
@@ -84,6 +91,23 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
   const upcomingClass = today.length === 0 ? nextClass(meetings, data.today, minuteNow, holidays) : null;
   const summary = buildSummary({ overdue, dueThisWeek, next: nextForSummary(data.calendar, data.today, d), classesToday: today.length });
   const consent = useNeosiaConnect(actions);
+  const sipConnect = useSipakamaseConnect(actions);
+  const sip = data.sipakamase;
+  const mkpk = mkpkProgress(snapshots, data.neosia.mkpk);
+  // Sipakamase not connected: its own line under NEOSIA's, once NEOSIA is set up and the MKPK card shows.
+  const sipInvite = showSipakamaseInvite({
+    moduleOn: sip.module.enabled,
+    mkpkCardShown: mkpkCardShown({ neosiaOn, applies: mkpk.applies, load: data.prefs.mkpkLoad }),
+    neosiaSetupDone: completion(sourceStatuses(snapshots)).complete,
+    dismissedAt: sip.invite.dismissedAt,
+    now: data.now,
+  });
+  const mkpkSip = {
+    summary: summarizeSipakamase(sip.data, sip.connection),
+    reminders: mkpkReminders(sip.data, mkpk),
+    onConnect: sipConnect.start,
+    invited: sipInvite,
+  };
   // Attendance average over monitored courses, from the stored recap (no request).
   const attendance = useMemo(() => attendanceSummary(user.presensi?.recap?.rows, user.courses), [user.presensi, user.courses]);
   const invite = showInvite({ moduleOn: neosiaOn, dismissedAt: data.neosia.invite.dismissedAt, dismissedDay: data.neosia.invite.dismissedDay, now: data.now, today: data.today, krsWindows: calendarKrs });
@@ -108,7 +132,9 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
       {/* Module off: the invite. Module on: the checklist until the required pages came in. Never both. */}
       {!neosiaOn && invite && <NeosiaInvite onConnect={consent.start} onLater={() => void dismissInvite(local, data.now, data.today)} />}
       {neosiaOn && <NeosiaOverviewChecklist snapshots={snapshots} now={data.now} />}
+      {sipInvite && <SipakamaseInvite onConnect={sipConnect.start} onLater={() => void dismissSipakamaseInvite(local, data.now)} />}
       {consent.dialog}
+      {sipConnect.dialog}
       {surveyOpen && <SurveyLine />}
       {krsCard && <KrsReadinessCard items={readiness(snapshots, krsWin, data.today)} window={krsWin} seenAt={neosiaStatus(snapshots).lastSeenAt} now={data.now} />}
 
@@ -198,7 +224,8 @@ export function RingkasanPage({ d, data, actions }: PageProps) {
           <Card title={r.calendarTitle} action={<CardLink href={routeHash('kalender')}>{r.openCalendar}</CardLink>} className="flex flex-1 flex-col [&>div:last-child]:flex-1">
             <AcademicCard calendar={data.calendar} today={data.today} d={d} />
           </Card>
-          <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} neosiaOn={neosiaOn} attendance={attendance} />
+          <StudiCard snapshots={snapshots} sksTarget={data.prefs.sksTarget} neosiaOn={neosiaOn} attendance={attendance} gradesShown={data.prefs.gradesShown} onGradesShown={(gradesShown) => void actions.setPrefs({ gradesShown })} />
+          {neosiaOn && <MkpkCard snapshots={snapshots} transcript={data.neosia.mkpk} load={data.prefs.mkpkLoad} onLoad={(mkpkLoad) => void actions.setPrefs({ mkpkLoad })} now={data.now} sipakamase={mkpkSip} />}
         </div>
       </div>
 

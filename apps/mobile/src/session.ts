@@ -62,6 +62,12 @@ export interface SuloSessionPlugin {
   note(options: { e: string }): Promise<void>;
   /** The first frame is drawn: the launch screen may go. */
   ready(): Promise<void>;
+  /** iPhone: when the app's 7-day profile ends (from its own bundle), or null (the simulator, Android). */
+  profileExpiry(): Promise<{ at: number | null }>;
+  /** iPhone: the system share sheet for one of Sulo's own guide links (sulo.ikrar.dev only). */
+  share(options: { url: string; text: string }): Promise<{ shared: boolean }>;
+  /** iPhone: the phone's text size as a factor (0.85 to 1.3); WKWebView does not follow it on its own. */
+  textScale(): Promise<{ scale: number }>;
   /** Debug builds: the owner's one-off test budget for today (one background check may use it). */
   devTestBudget(options: { date: string }): Promise<void>;
   /** Debug builds: what happened to the session (times and event codes only, native Diag). */
@@ -87,7 +93,8 @@ export interface SuloSessionPlugin {
   /** The worker's queued answers, each a JSON string, handed over once. */
   watchTake(): Promise<{ answers: string[]; fullSync: boolean }>;
   /** Timings and session ends as JSON strings, the next planned check, the queue length. */
-  watchStatus(): Promise<{ timings: string; sessionEnds: string; plannedAt: number; queued: number }>;
+  /** backgroundRefresh: iOS only, whether Background App Refresh lets Sulo run ("available", "denied", "restricted"). */
+  watchStatus(): Promise<{ timings: string; sessionEnds: string; plannedAt: number; queued: number; backgroundRefresh?: string }>;
   /** A tapped background notification's id, once. */
   watchTakeOpen(): Promise<{ id: string | null }>;
   /** Debug build only (refused otherwise): one background check now, through the same work. */

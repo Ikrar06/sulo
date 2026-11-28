@@ -35,10 +35,15 @@
 //   [--widths=300,360] [--heights=640] [--scales=1,2]  a part of the matrix, for working on a finding
 //   --ci  a shorter matrix for CI: widths 300, 360, 412, 600; heights 640;
 //         scales 1, 1.3, 2; both languages; light/full.
+//   --ios  the iPhone app (B3): its words (?os=ios), iPhone widths 375-440 and heights 667-956, the
+//         Dynamic Island's safe areas (59 top, 34 bottom), and iOS's text sizes as the app applies them
+//         (--m-tz and --m-zoom together, 0.85 to 1.3, src/text-zoom.ts applyIosTextScale).
+//   --engine=webkit  Safari's engine instead of Chromium. WebKit has no safe-area override, so that
+//         check is off there (Chromium's --ios run has it); everything else is the same.
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 import { MOBILE, ROOT } from './env.mjs';
 import { loadWords } from './lib/words.mjs';
 import { SPECIAL, walk } from './onboarding-walk.mjs';
@@ -46,19 +51,27 @@ import { SPECIAL, walk } from './onboarding-walk.mjs';
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=').slice(1).join('=') ?? fallback;
 const has = (name) => process.argv.includes(`--${name}`);
 const CI = has('ci');
+const IOS = has('ios');
+const ENGINE = arg('engine', 'chromium');
+if (!['chromium', 'webkit'].includes(ENGINE)) throw new Error('--engine: chromium or webkit');
 const only = arg('only', null)?.split(',') ?? null;
 const out = resolve(process.env.INIT_CWD ?? process.cwd(), arg('out', join(ROOT, 'docs/uji-layout/sebelum')));
 const jsonOut = arg('json', null);
 
 const list = (name) => arg(name, null)?.split(',').map(Number) ?? null;
-const WIDTHS = list('widths') ?? (CI ? [300, 360, 412, 600] : [300, 320, 360, 384, 412, 430, 480, 600, 700]);
-const HEIGHTS = list('heights') ?? (CI ? [640] : [640, 915]);
-const SCALES = list('scales') ?? (CI ? [1, 1.3, 2] : [0.85, 1, 1.15, 1.3, 1.5, 2]);
+const WIDTHS = list('widths') ?? (IOS ? (CI ? [375, 393, 440] : [375, 390, 393, 402, 430, 440]) : CI ? [300, 360, 412, 600] : [300, 320, 360, 384, 412, 430, 480, 600, 700]);
+const HEIGHTS = list('heights') ?? (IOS ? (CI ? [852] : [667, 852, 956]) : CI ? [640] : [640, 915]);
+const SCALES = list('scales') ?? (IOS ? (CI ? [1, 1.3] : [0.85, 1, 1.15, 1.3]) : CI ? [1, 1.3, 2] : [0.85, 1, 1.15, 1.3, 1.5, 2]);
 const LANGS = ['en', 'id'];
 // Each value of each axis: light with the full tier, dark with the lite tier. Theme changes colours only and the
 // tier motion only, so a pairing covers both without doubling the run.
 const LOOKS = CI ? [['light', 'full']] : [['light', 'full'], ['dark', 'lite']];
-const SAFE = { top: 48, bottom: 24 };
+// WebKit cannot be given safe areas, so none are assumed there.
+const SAFE = ENGINE === 'webkit' ? { top: 0, bottom: 0 } : IOS ? { top: 59, bottom: 34 } : { top: 48, bottom: 24 };
+// What must stay clear: the bars themselves. On an iPhone that is the home indicator (5 pt, 8 pt above the
+// edge) with a margin, 21 pt, not its whole 34 pt area: iOS 26's own tab bars float down to 21 pt from the
+// edge, and Sulo's matches them (styles.css --m-bar-*).
+const KEEP = ENGINE === 'webkit' ? SAFE : IOS ? { top: 59, bottom: 21 } : SAFE;
 const TOUCH = 44;
 const PORT = Number(arg('port', '5195'));
 const DIST = resolve(ROOT, arg('dist', '.output/layout-mobile-web'));
@@ -70,17 +83,23 @@ if (!has('no-build')) {
   log('build web mode (production)');
   execFileSync('pnpm', ['exec', 'vite', 'build', '--mode', 'web', '--outDir', DIST, '--emptyOutDir', '--logLevel', 'warn'], { cwd: MOBILE, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, GITHUB_SHA: 'layout00' } });
 }
-const WORDS = await loadWords();
+const WORDS = await loadWords({ os: IOS ? 'ios' : 'android' });
 const server = spawn('pnpm', ['exec', 'vite', 'preview', '--mode', 'web', '--outDir', DIST, '--port', String(PORT), '--strictPort'], { cwd: MOBILE, stdio: ['ignore', 'pipe', 'inherit'], detached: true });
 await new Promise((ok) => server.stdout.on('data', (d) => String(d).includes(String(PORT)) && ok()));
-const browser = await chromium.launch({ channel: 'chromium', headless: true, args: [OFFLINE] });
+const browser = ENGINE === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ channel: 'chromium', headless: true, args: [OFFLINE] });
 
 /**
  * In the page: Android's text zoom. Every text size of the app is a text-m* token, calc(px * var(--m-tz)) for the
  * size and the line height (src/tokens.css; check-type-tokens.mjs keeps it so), which is the app's own way to
  * emulate the setting (web-shots.mjs). Components that measure their text see the scaled size, as on the phone.
  */
-const applyTextZoom = (f) => document.documentElement.style.setProperty('--m-tz', String(f));
+// iPhone: the app sets the layout's thresholds (--m-zoom) with the text size (applyIosTextScale); Android's WebView only zooms text.
+const applyTextZoom = IOS
+  ? (f) => {
+      document.documentElement.style.setProperty('--m-tz', String(f));
+      document.documentElement.style.setProperty('--m-zoom', String(f));
+    }
+  : (f) => document.documentElement.style.setProperty('--m-tz', String(f));
 
 /** In the page: the findings of the state as it stands. */
 const FIND = ({ safe, touch }) => {
@@ -287,6 +306,11 @@ const FIND = ({ safe, touch }) => {
       if (under(r)) say('tertutup-bilah', el, `kontrol y ${Math.round(r.top)}-${Math.round(r.bottom)}`);
     }
   }
+  // The app starts below the status bar whether a sheet is open or not. The page's top padding is that clearance,
+  // and a sheet's scroll lock once rewrote it to 0: the screen behind slid under the clock (27 Nov 2026).
+  const appRoot = document.getElementById('root');
+  const rootTop = appRoot ? appRoot.getBoundingClientRect().top : safe.top;
+  if (rootTop < safe.top - 0.5) say('tertutup-bilah', null, `layar mulai di y ${Math.round(rootTop)} (bilah ${safe.top})`);
   if (vw > 0 && document.body.getBoundingClientRect().width > vw + 1) say('gulir-samping', null, 'body lebih lebar dari layar');
   return found;
 };
@@ -312,7 +336,7 @@ async function checkState(page, state, look, lang) {
         // measure themselves (the greeting, the onboarding scenes, the mascot's place) are told to measure again.
         await page.evaluate(() => window.dispatchEvent(new Event('resize')));
         await page.waitForTimeout(250);
-        const found = await page.evaluate(FIND, { safe: SAFE, touch: TOUCH });
+        const found = await page.evaluate(FIND, { safe: KEEP, touch: TOUCH });
         checks += 1;
         for (const f of found) results.push({ state, lang, theme, tier, w, h, scale: s, ...f });
         const key = `${state}|${s}`;
@@ -344,9 +368,13 @@ async function session({ look, lang, query = '', finished = false }, steps) {
     if (document.head) add();
     else document.addEventListener('DOMContentLoaded', add, { once: true });
   });
+  // Offline but for the local build: Chromium by its resolver rules, WebKit here.
+  if (ENGINE === 'webkit') await context.route(/^(?!http:\/\/localhost[:/])/, (r) => r.abort());
   const page = await context.newPage();
-  const cdp = await context.newCDPSession(page);
-  await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: SAFE });
+  if (ENGINE === 'chromium') {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: SAFE });
+  }
   await page.clock.setFixedTime(NOW);
   const t = WORDS[lang];
   const btn = (name, exact = false) => page.getByRole('button', { name, exact }).first();
@@ -371,7 +399,15 @@ async function session({ look, lang, query = '', finished = false }, steps) {
   const check = (state) => checkState(page, state, look, lang);
   const c = { page, t, lang, btn, starts, go, closeSheet, enter, check };
   const sep = query.includes('?') ? '&' : '?';
-  await page.goto(`http://localhost:${PORT}/${query}${sep}lang=${lang}&perf=${tier}`);
+  // A long run (hours, in WebKit) can stall one load: it is tried once more, then the session counts as a
+  // failed step instead of ending the whole run and losing every result before it.
+  const url = `http://localhost:${PORT}/${query}${sep}lang=${lang}&perf=${tier}${IOS ? '&os=ios' : ''}`;
+  const loaded = await page.goto(url).then(() => true, () => page.goto(url).then(() => true, (e) => e));
+  if (loaded !== true) {
+    failedSteps.push(`${theme}/${tier} ${lang} ${steps.map(([n]) => n).join(', ')}: halaman tidak termuat (${String(loaded.message ?? loaded).split('\n')[0]})`);
+    await context.close();
+    return;
+  }
   for (const [name, run] of steps) {
     try {
       await run(c);
@@ -407,10 +443,13 @@ const MAIN = [
   ['sheet aksi', async (c) => (await c.btn(c.t.mobile.app.moreActions, true).click(), await c.page.waitForTimeout(450), await c.check('sheet-aksi-tugas'), c.closeSheet())],
   ['sheet suara', async (c) => (await c.go('#pengaturan'), await c.page.getByRole('button', { name: c.starts(c.t.mobile.notifySound.label) }).click(), await c.page.waitForTimeout(450), await c.check('sheet-suara'), c.closeSheet())],
   ['sheet keluar', async (c) => (await c.page.getByRole('button', { name: c.starts(c.t.mobile.settings.signOutDelete) }).click(), await c.page.waitForTimeout(450), await c.check('sheet-keluar'), c.closeSheet())],
+  ['sheet tugas baru', async (c) => (await c.go('#tugas'), await c.btn(c.t.dash.tugas.ownAdd, true).click(), await c.page.waitForTimeout(450), await c.check('sheet-tugas-baru'), c.closeSheet())],
 ];
 const one = (name, run) => [[name, async (c) => (await c.enter(), run ? run(c) : c.check(name))]];
 const STATES = [
   [{ query: '?neosia=all' }, [['masuk', (c) => c.enter()], ['beranda neosia', (c) => c.check('beranda-neosia')], ['jadwal', async (c) => (await c.go('#jadwal'), c.check('jadwal'))], ['nilai tersembunyi', async (c) => (await c.go('#nilai'), c.check('nilai-tersembunyi'))]]],
+  // Grades shown (synthetic): the stat cards, the chart, the per-semester list with the newest open, the simulation.
+  [{ query: '?neosia=all&grades=1' }, [['masuk', (c) => c.enter()], ['nilai', async (c) => (await c.go('#nilai'), c.check('nilai'))]]],
   [{ query: '?demo=aman' }, one('beranda-aman')],
   [{ query: '?demo=kosong' }, [...one('beranda-kosong'), ['tugas kosong', async (c) => (await c.go('#tugas'), c.check('tugas-kosong'))], ['kabar kosong', async (c) => (await c.go('#kabar'), c.check('kabar-kosong'))]]],
   [{ query: '?session=expired' }, one('perlu-masuk-lagi')],
@@ -439,6 +478,12 @@ const STATES = [
     await c.page.reload();
     await c.page.waitForTimeout(1500);
     await c.check('update-wajib');
+    // iPhone: "Lihat data terakhir", the old data read-only under its bar (C2).
+    if (IOS) {
+      await c.btn(c.t.mobile.iphone.readOnly, true).click();
+      await c.page.waitForTimeout(1500);
+      await c.check('update-wajib-baca-saja');
+    }
   }]]],
   ...['wait', 'fail'].map((m) => [{ query: `?lock=${m}`, lockOn: true }, [[`kunci ${m}`, async (c) => (await c.page.waitForTimeout(900), c.check(`kunci-${m}`))]]]),
   ...['invite', 'new', 'beranda'].map((s) => [{ query: `?neosia=${s}` }, one(`neosia-${s}`)]),

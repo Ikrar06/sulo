@@ -190,9 +190,16 @@ export function Sheet({ open: wanted, onOpenChange, title, children }: { open: b
             ref={setNode}
             forceMount
             aria-describedby={undefined}
+            // Focus lands on the sheet itself, never on its first field: a field focused while the sheet rose
+            // summoned the iPhone's keyboard mid-rise, the rise was lost and the screen jumped for a frame or three
+            // (owner's iPhone and the simulator's recording, 27 Nov 2026). The keyboard comes when a field is tapped.
+            onOpenAutoFocus={(e) => {
+              e.preventDefault();
+              (e.target as HTMLElement).focus({ preventScroll: true });
+            }}
             // Focus goes back to what opened the sheet only once it is gone (Radix does it on unmount).
             className="m-sheet fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto overscroll-contain rounded-t-[24px] bg-m-card px-4 pt-2 outline-none"
-            style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}
+            style={{ paddingBottom: 'calc(16px + var(--m-bar-inset, env(safe-area-inset-bottom)))' }}
             // React events bubble through portals: a drag here must not reach the screen behind (pull to refresh).
             onTouchStart={stop}
             onTouchMove={stop}
@@ -213,6 +220,7 @@ export function Sheet({ open: wanted, onOpenChange, title, children }: { open: b
  * A one-field form in a sheet (a nickname, a course name): its text is local
  * state, so typing re-renders only this form; "Selesai" hands the value over
  * at once (it is saved before anything else happens), then closes the sheet.
+ * The field waits for a tap, as in every sheet (see Sheet's onOpenAutoFocus).
  */
 export function SheetTextForm({ label, initial, maxLength, placeholder, help, submitLabel, onSave }: { label: string; initial: string; maxLength: number; placeholder?: string; help: string; submitLabel: string; onSave: (value: string) => void }) {
   const [value, setValue] = useState(initial);
@@ -226,7 +234,7 @@ export function SheetTextForm({ label, initial, maxLength, placeholder, help, su
         close();
       }}
     >
-      <Input autoFocus aria-label={label} maxLength={maxLength} placeholder={placeholder} value={value} onChange={(e) => setValue(e.target.value)} />
+      <Input aria-label={label} maxLength={maxLength} placeholder={placeholder} value={value} onChange={(e) => setValue(e.target.value)} />
       <p className="mt-2 text-m13 text-muted-foreground">{help}</p>
       <button type="submit" className="m-hit m-press mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-primary text-m15 text-primary-foreground outline-none focus-ring:ring-2 focus-ring:ring-focus">
         {submitLabel}

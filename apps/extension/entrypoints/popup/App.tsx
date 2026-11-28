@@ -205,7 +205,8 @@ export default function App({ startedAt }: { startedAt: number }) {
         dev={isDev ? { openMs, budgetLimit: DAILY_BUDGET, callLimit: DAILY_CALL_BUDGET, requestLog, onProbeSession: probeSession(m) } : null}
         onDone={(e) => void onDone(e)}
         onUndo={(e) => void onUndo(e)}
-        onOpenTask={(url) => void browser.tabs.create({ url })}
+        // A task the student added has no SIKOLA page: it opens on the dashboard's Tugas page instead.
+        onOpenTask={(url) => void browser.tabs.create({ url: url || browser.runtime.getURL('/dashboard.html#tugas') })}
         onAddToCalendar={onAddToCalendar}
         onRefresh={async () => {
           const outcome = (await send({ type: 'sync/request', trigger: 'manual' })) as SyncOutcome | null;

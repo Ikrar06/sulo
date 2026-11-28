@@ -2,13 +2,19 @@
 // extension's dashboard and the Android app's screens both use it. No
 // request: opening a screen never contacts SIKOLA.
 
+import { readConnection, type Connection } from '../sipakamase/connection';
+import { readKeeper, type KeeperState } from '../sipakamase/keeper';
+import { readSipakamaseModule, type SipakamaseModuleState } from '../sipakamase/module';
+import { readSipakamaseData, type SipakamaseData } from '../sipakamase/store';
+import { readSipakamaseInvite, type SipakamaseInviteState } from '../sipakamase/invite';
 import { readPending, type AccountPending } from '../account/pending';
 import { readCalendar } from '../calendar/remote';
 import type { CalendarFile } from '../calendar/schema';
 import { readCourseMap, type CourseMap } from '../neosia/course-map';
 import { readInvite, type InviteState } from '../neosia/invite';
 import { readModuleState, type NeosiaModuleState } from '../neosia/module';
-import { readSnapshots, type Snapshots } from '../neosia/store';
+import { readSnapshots, snapshotKey, type Snapshots } from '../neosia/store';
+import { readMkpkTranscript, type MkpkTranscript } from '../mkpk/transcript';
 import { readPrefs, type Prefs } from '../prefs';
 import { localParts } from '../reminders/zoned';
 import { currentUser, readAllUser, type UserData } from '../storage';
@@ -29,12 +35,14 @@ export interface DashboardData {
   /** Today's local date, YYYY-MM-DD. */
   today: string;
   /** The optional NEOSIA module: its state and the stored projections. */
-  neosia: { module: NeosiaModuleState; snapshots: Snapshots; courseMap: CourseMap; invite: InviteState };
+  neosia: { module: NeosiaModuleState; snapshots: Snapshots; courseMap: CourseMap; invite: InviteState; mkpk: MkpkTranscript | null };
+  /** The optional Sipakamase module (1.1.0): its connection and stored fragments; null data while off. */
+  sipakamase: { module: SipakamaseModuleState; connection: Connection; data: SipakamaseData | null; keeper: KeeperState; invite: SipakamaseInviteState };
 }
 
 export async function loadDashboardData(store: KeyValueStore, clock: Clock, timeZone: string, online: boolean): Promise<DashboardData> {
   const userId = await currentUser(store);
-  const [input, prefs, user, pending, calendar, module, snapshots, courseMap, invite] = await Promise.all([
+  const [input, prefs, user, pending, calendar, module, snapshots, courseMap, invite, mkpk, sipModule] = await Promise.all([
     loadPopupInput(store, clock, timeZone),
     readPrefs(store),
     userId === null ? Promise.resolve(null) : readAllUser(store, userId),
@@ -44,7 +52,10 @@ export async function loadDashboardData(store: KeyValueStore, clock: Clock, time
     readSnapshots(store),
     readCourseMap(store),
     readInvite(store),
+    readMkpkTranscript(store, snapshotKey('getTranskripMahasiswa')).catch(() => null),
+    readSipakamaseModule(store),
   ]);
+  const [connection, sipData, keeper, sipInvite] = await Promise.all([readConnection(store, sipModule.enabled), readSipakamaseData(store), readKeeper(store), readSipakamaseInvite(store)]);
   return {
     now: input.now,
     userId,
@@ -56,6 +67,7 @@ export async function loadDashboardData(store: KeyValueStore, clock: Clock, time
     calendar,
     today: localParts(input.now, timeZone).dateKey,
     // While the module is off nothing of it shows, even if a key were left behind.
-    neosia: { module, snapshots: module.enabled ? snapshots : {}, courseMap: module.enabled ? courseMap : {}, invite },
+    neosia: { module, snapshots: module.enabled ? snapshots : {}, courseMap: module.enabled ? courseMap : {}, invite, mkpk: module.enabled ? mkpk : null },
+    sipakamase: { module: sipModule, connection, data: sipModule.enabled ? sipData : null, keeper, invite: sipInvite },
   };
 }

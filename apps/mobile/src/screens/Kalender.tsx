@@ -14,7 +14,7 @@ import { calendarEvents, CALENDAR_GROUPS, eventsOnDay, holidayDays, type CalEven
 import { FEED_IDS, feedUrl } from '@sulo/core/calendar/feeds';
 import { monthGrid, shiftMonth } from '@sulo/core/calendar/month';
 import { calendarStatus } from '@sulo/core/calendar/status';
-import { googleSubscribeUrl } from '@sulo/core/calendar/subscribe-links';
+import { appleUrl, googleSubscribeUrl } from '@sulo/core/calendar/subscribe-links';
 import { nextImportant } from '@sulo/core/calendar/upcoming';
 import { buildTaskItems } from '@sulo/core/dashboard/tasks';
 import { formatClock } from '@sulo/core/format/time';
@@ -22,12 +22,13 @@ import { mobileDash, mobileWords } from '@sulo/core/i18n/mobile';
 import { localParts } from '@sulo/core/reminders/zoned';
 import { SourceFooter, useRange, useWeekText, WeekBar } from '@sulo/ui/dashboard/CalendarParts';
 import { useI18n } from '@sulo/ui/i18n';
-import { ChevronLeftIcon, ChevronRightIcon } from '@sulo/ui/icons';
+import { CalendarPlusIcon, ChevronLeftIcon, ChevronRightIcon, ExternalIcon } from '@sulo/ui/icons';
 import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
 import { Card, Chip, EmptyCard, SectionHead, Tile } from '@sulo/ui/mobile/cards';
 import { IconButton, PillButton, Segmented } from '@sulo/ui/mobile/controls';
 import { courseTint, tintBg, type TintColor } from '@sulo/ui/mobile/tint';
 import { timeZone, useMobileData } from '../shell/data';
+import { isIphone } from '../calendar-native';
 
 type View = 'list' | 'month';
 const catTint = (g: CalendarGroup): TintColor => `cat-${g}`;
@@ -49,7 +50,7 @@ export function KalenderScreen() {
   const tasks = useMemo<TaskForCalendar[]>(
     () =>
       data!.user
-        ? buildTaskItems(data!.user)
+        ? buildTaskItems(data!.user, mobileDash(locale).tugas.own)
             .filter((i) => i.status === 'pending' && i.task.dueAt !== null)
             .map((i) => ({ eventId: i.task.eventId, name: i.task.name, courseName: i.courseName, courseColor: i.courseColor, dueAt: i.task.dueAt!, dateKey: localParts(i.task.dueAt!, timeZone).dateKey }))
         : [],
@@ -110,8 +111,15 @@ export function KalenderScreen() {
                 <Card className="flex h-full flex-col">
                   <p className="text-m15 font-semibold">{feed.name}</p>
                   <p className="mt-1 line-clamp-3 text-m13 text-muted-foreground">{feed.desc}</p>
-                  <div className="mt-auto pt-3">
-                    <PillButton small onPress={() => actions.openExternal(googleSubscribeUrl(feedUrl(id)))}>
+                  {/* On an iPhone its own Calendar first (iOS asks before subscribing), then Google's in the browser:
+                      each as wide as the card, one under the other, its icon saying where it leads. */}
+                  <div className="mt-auto grid gap-2 pt-3">
+                    {isIphone() && (
+                      <PillButton small full icon={CalendarPlusIcon} onPress={() => actions.openExternal(appleUrl(feedUrl(id)))}>
+                        {k.subscribe.iphone}
+                      </PillButton>
+                    )}
+                    <PillButton small full icon={ExternalIcon} onPress={() => actions.openExternal(googleSubscribeUrl(feedUrl(id)))}>
                       {k.subscribe.google}
                     </PillButton>
                   </div>
@@ -120,7 +128,7 @@ export function KalenderScreen() {
             );
           })}
         </ul>
-        <p className="mt-2 text-m12 font-normal text-muted-foreground">{k.subscribe.note}</p>
+        <p className="mt-2 text-m12 font-normal text-muted-foreground">{isIphone() ? k.subscribe.noteIphone : k.subscribe.note}</p>
       </section>
       <div className="[&_*]:!text-m12">
         <SourceFooter calendar={calendar} d={d} />

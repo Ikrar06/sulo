@@ -129,6 +129,23 @@ export interface WatchPlan {
    * so the chosen sound has one source. Absent in plans written before it existed.
    */
   channels?: ChannelPlan;
+  /**
+   * Sipakamase's keeper (1.1.0), present only while something is waited for
+   * and the config lets it keep: the worker sends one rotating GET when due
+   * (Kotlin SipakamaseKeeper). Absent: nothing to keep.
+   */
+  sipakamase?: SipakamaseWatchPart;
+}
+
+export interface SipakamaseWatchPart {
+  keep: true;
+  intervalMin: number;
+  /** The next fragment in KEEP_ORDER (the app's own keeper's rotation). */
+  next: number;
+  /** The app's own automatic reads today (the daily limit counts both). */
+  usedToday: number;
+  date: string;
+  lastAutoAt: UnixSeconds;
 }
 
 export interface WatchPlanInput {
@@ -154,6 +171,7 @@ export interface WatchPlanInput {
   courseNames: Readonly<Record<string, string>>;
   templates: WatchTemplates;
   channels?: ChannelPlan;
+  sipakamase?: SipakamaseWatchPart;
 }
 
 export function buildWatchPlan(input: WatchPlanInput): WatchPlan {
@@ -201,5 +219,6 @@ export function buildWatchPlan(input: WatchPlanInput): WatchPlan {
     taskModules: [...TASK_MODULES],
     templates: input.templates,
     ...(input.channels ? { channels: input.channels } : {}),
+    ...(input.sipakamase ? { sipakamase: { ...input.sipakamase } } : {}),
   };
 }

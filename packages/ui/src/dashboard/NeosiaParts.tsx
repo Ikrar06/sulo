@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { formatDateKey } from '@sulo/core/calendar/countdown';
 import { formatAgo } from '@sulo/core/format/time';
 import { neosiaWords, type NeosiaWords } from '@sulo/core/i18n/neosia';
+import { sipakamaseWords } from '@sulo/core/i18n/sipakamase';
 import { neosiaUrl } from '@sulo/core/links';
 import { advisorName, profile, type ItemState, type KrsWindow, type ReadinessItem } from '@sulo/core/neosia/view';
 import type { Snapshots } from '@sulo/core/neosia/store';
@@ -27,39 +28,54 @@ export const STATE_ICON: Record<ItemState, ComponentType<SVGProps<SVGSVGElement>
   info: InfoCircleIcon,
   unknown: DashCircleIcon,
 };
-/** Line icons in status colors; no backgrounds, no colored edges. */
-export const STATE_CLASS: Record<ItemState, string> = {
-  ok: 'text-foreground',
-  action: 'text-urgency-soon',
-  info: 'text-muted-foreground',
-  unknown: 'text-muted-foreground',
-};
+/** In a row's value the month is short, so a range fits one line on a phone. */
+const shortDate = (key: string, m: Messages) => formatDateKey(key, m.intl, { day: 'numeric', month: 'short' });
 
-const date = (key: string, m: Messages) => formatDateKey(key, m.intl, { day: 'numeric', month: 'long' });
+export interface ItemRow {
+  label: string;
+  value: ReactNode;
+  /** One short line under the row, only where the value alone would hide a consequence. */
+  note: string | null;
+  /** The value is masked in privacy mode. */
+  private: boolean;
+}
 
-/** A readiness item as text (dates formatted, credits and the advisor masked in privacy mode); shared with Android. */
-export function itemText(item: ReadinessItem, w: NeosiaWords, m: Messages) {
-  const k = w.krs;
+/** A readiness item as a label and a short value (1.1.0); shared with Android. */
+export function itemRow(item: ReadinessItem, w: NeosiaWords, m: Messages): ItemRow {
+  const r = w.krs.rows;
+  const row = (label: string, value: string, note: string | null = null, priv = false): ItemRow => ({ label, value, note, private: priv });
   switch (item.id) {
-    case 'window':
-    {
-      if (!item.window || !item.phase) return k.window.unknown;
-      // NEOSIA's own caption ("Perubahan KRS"), shown as text only.
-      const caption = item.window.caption ?? k.window.defaultCaption;
-      return item.phase === 'before' ? k.window.before(caption, date(item.window.start, m), date(item.window.end, m)) : item.phase === 'open' ? k.window.open(caption, date(item.window.end, m)) : k.window.closed(caption, date(item.window.end, m));
+    case 'window': {
+      const label = item.window?.caption ?? w.krs.window.defaultCaption;
+      if (!item.window || !item.phase) return row(label, r.windowUnknown);
+      const end = shortDate(item.window.end, m);
+      return row(label, item.phase === 'before' ? r.windowBefore(shortDate(item.window.start, m), end) : item.phase === 'open' ? r.windowOpen(end) : r.windowClosed(end));
     }
     case 'payment':
-      return item.paid === null ? k.unknownItem : item.paid ? k.payment.ok : k.payment.action;
+      return row(r.payment, item.paid === null ? r.noData : item.paid ? r.paid : r.unpaid);
     case 'survey':
-      return item.filled === null ? k.surveyUnchecked : item.filled ? k.survey.ok : k.survey.action;
+      return row(r.survey, item.filled === null ? r.unchecked : item.filled ? r.filled : r.notFilled, item.filled === false ? r.surveyNote : null);
     case 'sks':
-      if (item.max === null) return k.sksMissing;
-      return <Private>{k.sks(item.available, item.max)}</Private>;
+      if (item.max === null) return row(r.sks, r.noData);
+      return row(r.sks, item.available === null ? r.sksMax(item.max) : r.sksLeft(item.available, item.max), null, true);
     case 'krs':
-      return item.status === null ? k.unknownItem : k.status[item.status];
+      return row(r.krs, item.status === null ? r.noData : r.status[item.status]);
     case 'advisor':
-      return <Private>{k.advisor(item.name)}</Private>;
+      return row(r.advisor, item.name, null, true);
   }
+}
+
+/** The value's look: action in the status color with its icon, done with a check, the rest plain or quiet. */
+export function RowValue({ item, row }: { item: ReadinessItem; row: ItemRow }) {
+  const { locale } = useI18n();
+  const Icon = item.state === 'ok' || item.state === 'action' ? STATE_ICON[item.state] : null;
+  const tone = item.state === 'action' ? 'text-urgency-soon' : item.state === 'unknown' ? 'text-muted-foreground' : '';
+  return (
+    <span className={`flex min-w-0 items-center justify-end gap-2 text-right ${tone}`}>
+      {Icon && <Icon role="img" aria-label={neosiaWords(locale).krs.states[item.state]} className="size-4 shrink-0" />}
+      <span className="min-w-0">{row.private ? <Private>{row.value}</Private> : row.value}</span>
+    </span>
+  );
 }
 
 /**
@@ -79,25 +95,29 @@ export function KrsReadinessCard({ items, window, seenAt, now }: { items: Readin
   const windowOpen = items.some((i) => i.id === 'window' && i.phase === 'open');
   return (
     <Card title={w.krs.title}>
-      <ul className="space-y-2">
+      {/* A grid of label over value: the card spans the page, so rows would leave the value far from its label. */}
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-[14px] lg:grid-cols-3">
         {items.map((item) => {
-          const Icon = STATE_ICON[item.state];
+          const row = itemRow(item, w, m);
           const link = readinessLink(item, windowOpen);
           return (
-            <li key={item.id} className="flex items-start gap-2 text-[14px] leading-6">
-              <Icon className={`mt-1 size-4 shrink-0 ${STATE_CLASS[item.state]}`} aria-label={w.krs.states[item.state]} role="img" aria-hidden={false} />
-              <span className="min-w-0 flex-1">{itemText(item, w, m)}</span>
-              {link && (
-                <a href={link.href} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded text-[14px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
-                  {link.label === 'surveyCheck' ? w.krs.surveyCheck : w.openInNeosia}
-                </a>
-              )}
-            </li>
+            <div key={item.id} className="min-w-0">
+              <dt className="text-[12px] text-muted-foreground">{row.label}</dt>
+              <dd className="mt-1 [&>span]:justify-start [&>span]:text-left">
+                <RowValue item={item} row={row} />
+                {row.note && <p className="mt-1 text-[12px] text-muted-foreground">{row.note}</p>}
+                {link && (
+                  <a href={link.href} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block rounded text-[12px] text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-ring:ring-2 focus-ring:ring-focus">
+                    {link.label === 'surveyCheck' ? w.krs.surveyCheck : w.openInNeosia}
+                  </a>
+                )}
+              </dd>
+            </div>
           );
         })}
-      </ul>
+      </dl>
       {/* High-risk data: always the source, its time and where to confirm (project rule 16). */}
-      <p className="mt-3 text-[12px] leading-normal text-muted-foreground">
+      <p className="mt-4 text-[12px] leading-normal text-muted-foreground">
         {window?.source === 'calendar' && seenAt === null ? w.krs.sourceCalendar : w.krs.source(seenAt === null ? '-' : formatAgo(seenAt, now, m))}
       </p>
     </Card>
@@ -178,7 +198,12 @@ function AttendanceLine({ summary }: { summary: AttendanceSummary | null }) {
  * Studies card. NEOSIA parts only while that module is on; the attendance
  * line whenever attendance data exists (it comes from SIKOLA).
  */
-export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = null }: { snapshots: Snapshots; sksTarget: number; neosiaOn?: boolean; attendance?: AttendanceSummary | null }) {
+/**
+ * `gradesShown` is the one remembered choice for every grade on the
+ * dashboard (prefs, hidden by default): "Tampilkan" here and on Nilai set
+ * the same preference, so grades show everywhere after one click.
+ */
+export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = null, gradesShown = false, onGradesShown }: { snapshots: Snapshots; sksTarget: number; neosiaOn?: boolean; attendance?: AttendanceSummary | null; gradesShown?: boolean; onGradesShown?: (shown: boolean) => void }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).studi;
   if (!neosiaOn) {
@@ -188,13 +213,12 @@ export function StudiCard({ snapshots, sksTarget, neosiaOn = true, attendance = 
       </Card>
     );
   }
-  return <NeosiaStudi snapshots={snapshots} sksTarget={sksTarget} attendance={attendance} />;
+  return <NeosiaStudi snapshots={snapshots} sksTarget={sksTarget} attendance={attendance} shown={gradesShown} setShown={(v) => onGradesShown?.(v)} />;
 }
 
-function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshots; sksTarget: number; attendance: AttendanceSummary | null }) {
+function NeosiaStudi({ snapshots, sksTarget, attendance, shown, setShown }: { snapshots: Snapshots; sksTarget: number; attendance: AttendanceSummary | null; shown: boolean; setShown: (shown: boolean) => void }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).studi;
-  const [shown, setShown] = useState(false);
   const masked = usePrivacy();
   const profileData = profile(snapshots);
   const advisor = advisorName(snapshots);
@@ -266,14 +290,26 @@ function NeosiaStudi({ snapshots, sksTarget, attendance }: { snapshots: Snapshot
 export function NeosiaInvite({ onConnect, onLater }: { onConnect: () => void; onLater: () => void }) {
   const { locale } = useI18n();
   const w = neosiaWords(locale).invite;
+  return <InviteLine name="NEOSIA" text={w.text} connect={w.connect} later={w.later} onConnect={onConnect} onLater={onLater} />;
+}
+
+/** The overview's "Hubungkan Sipakamase" line (1.1.0, core sipakamase/invite.ts decides when), NEOSIA's twin. */
+export function SipakamaseInvite({ onConnect, onLater }: { onConnect: () => void; onLater: () => void }) {
+  const { locale } = useI18n();
+  const w = sipakamaseWords(locale);
+  return <InviteLine name={w.name} text={w.invite} connect={w.connect} later={w.later} onConnect={onConnect} onLater={onLater} />;
+}
+
+/** One optional source not connected yet: what it adds, "Hubungkan", and an ✕ for "Nanti saja". */
+function InviteLine({ name, text, connect, later, onConnect, onLater }: { name: string; text: string; connect: string; later: string; onConnect: () => void; onLater: () => void }) {
   return (
-    <section className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3" aria-label="NEOSIA">
+    <section className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3" aria-label={name}>
       <InfoCircleIcon className="size-4 shrink-0 text-muted-foreground" />
-      <p className="min-w-0 flex-1 text-[14px]">{w.text}</p>
+      <p className="min-w-0 flex-1 text-[14px]">{text}</p>
       <Button variant="outline" onClick={onConnect}>
-        {w.connect}
+        {connect}
       </Button>
-      <Button variant="ghost" size="icon" aria-label={w.later} title={w.later} onClick={onLater}>
+      <Button variant="ghost" size="icon" aria-label={later} title={later} onClick={onLater}>
         <XIcon className="size-4" />
       </Button>
     </section>

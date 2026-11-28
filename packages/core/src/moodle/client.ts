@@ -15,6 +15,8 @@ import { isBackingOff, readBackoff } from './backoff';
 import { reserveRequest } from './budget';
 import { calls, isAllowedFunction, isAllowedPage, type MoodleCall } from './calls';
 import { ATTENDANCE_PATH, isReadOnlyAttendanceUrl } from '../presensi/urls';
+import { ASSIGN_PATH, isReadOnlyAssignUrl } from '../tasks/grade';
+import { COURSE_REPORT_PATH, isReadOnlyCourseReportUrl } from '../tasks/course-grades';
 import { DAILY_BUDGET, DAILY_CALL_BUDGET, SEND_NOSESSIONUPDATE } from './limits';
 import { batchResponseSchema, topLevelErrorSchema } from './schemas';
 import { readSession, writeSession } from './session';
@@ -32,8 +34,9 @@ export interface MoodleClientDeps {
   /** Adds nosessionupdate=true to batches; default SEND_NOSESSIONUPDATE. */
   noSessionUpdate?: boolean;
   /**
-   * Session age log (lib/net/session-age.ts), dev and tester builds only:
-   * told about outcomes after the fact. Never changes what is sent.
+   * Session age log (net/session-age.ts): the phone in every build (its
+   * Diagnostik screen), the extension in development builds. Told about
+   * outcomes after the fact; never changes what is sent.
    */
   sessionAge?: { success(now: number): Promise<void>; expired(now: number): Promise<void> };
   /**
@@ -78,6 +81,13 @@ export interface RequestOptions {
    * the mobile adaptor turns it into a native option and never sends it on.
    */
   freshConnection?: boolean;
+  /**
+   * Sends this batch without nosessionupdate, so SIKOLA counts it as
+   * activity: only the extension's "Pantau tugas baru" checks, while the
+   * user has it on (docs/ATURAN-REQUEST.md, rule 13). Everything else keeps
+   * the client's setting.
+   */
+  keepSession?: boolean;
 }
 
 /** The marker for RequestOptions.freshConnection, read by the mobile HTTP adaptor (never sent to SIKOLA). */
@@ -106,7 +116,7 @@ export async function callBatchOnceMore(client: MoodleClient, list: readonly Moo
   if (first.kind !== 'ok') return first;
   const missing = first.results.flatMap((r, i) => (!r.ok && r.errorcode === NOT_RUN_CODE ? [i] : []));
   if (missing.length === 0) return first;
-  const again = await client.callBatch([calls.sessionTimeRemaining(), ...missing.map((i) => list[i]!)], { source: options.source });
+  const again = await client.callBatch([calls.sessionTimeRemaining(), ...missing.map((i) => list[i]!)], { source: options.source, ...(options.keepSession ? { keepSession: true } : {}) });
   if (again.kind !== 'ok') return first;
   const merged = [...first.results];
   missing.forEach((i, k) => {
@@ -177,7 +187,7 @@ async function executeBatch(deps: ResolvedDeps, calls: readonly MoodleCall[], op
 
   const sent = await send(
     deps,
-    batchPath(sesskey, deps.noSessionUpdate),
+    batchPath(sesskey, options.keepSession ? false : deps.noSessionUpdate),
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(options.freshConnection ? { [FRESH_CONNECTION_HEADER]: '1' } : {}) },
@@ -198,6 +208,10 @@ async function executePage(deps: ResolvedDeps, pathAndQuery: string, options: Re
   if (!url || !isAllowedPage(url.pathname)) return refused('NOT_ALLOWLISTED');
   // Attendance: the read-only student view only (never take, sessions.php or a form).
   if (url.pathname === ATTENDANCE_PATH && !isReadOnlyAttendanceUrl(`${url.pathname}${url.search}`)) return refused('NOT_ALLOWLISTED');
+  // An assignment: the student's view by id only (never an action, a form or a sesskey).
+  if (url.pathname === ASSIGN_PATH && !isReadOnlyAssignUrl(`${url.pathname}${url.search}`)) return refused('NOT_ALLOWLISTED');
+  // A course's grade report: the student's own, by course id only (never a userid or another report).
+  if (url.pathname === COURSE_REPORT_PATH && !isReadOnlyCourseReportUrl(`${url.pathname}${url.search}`)) return refused('NOT_ALLOWLISTED');
   const gate = await checkGates(deps);
   if (gate) return gate;
 
@@ -238,7 +252,7 @@ async function askSessionOnly(deps: ResolvedDeps, options: RequestOptions): Prom
   const only = [calls.sessionTimeRemaining()];
   const sent = await send(
     deps,
-    batchPath(sesskey, deps.noSessionUpdate),
+    batchPath(sesskey, options.keepSession ? false : deps.noSessionUpdate),
     // A new connection: the second ask must not ride the first answer's connection (owner's rule, 20 Nov 2026).
     { method: 'POST', headers: { 'Content-Type': 'application/json', [FRESH_CONNECTION_HEADER]: '1' }, body: JSON.stringify(only.map((c, index) => ({ index, methodname: c.methodname, args: c.args }))) },
     options,

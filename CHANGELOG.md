@@ -4,6 +4,46 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-28
+
+### Added
+
+- **Task grades from SIKOLA.** Tasks shows which tasks are graded, and a graded task is marked as done on its own. The number shows only after "Show grades" (hidden by default, masked in privacy mode, never in a notification). Sulo reads the grades page of each course you follow, the grade column only and never the lecturer's comments, when you open Tasks (at most once every 10 minutes) and when it updates. Done, Graded and Long past due list the history, older assignments missing from the SIKOLA calendar included.
+- **Your own tasks.** Add work your lecturer gave outside SIKOLA, such as a presentation, with its course and due date; Sulo reminds you of it like a SIKOLA task. Kept on this device only.
+- **Add a task to your device's own calendar.** On iPhone, iOS's own add-event sheet (Calendar access is asked once on iOS 16 only; iOS 17 and later ask nothing); on Android, your calendar app's new-event screen, no permission; on the dashboard, an .ics file for Mac Calendar or Outlook beside Google Calendar. On iPhone the academic calendar subscribes to its own Calendar too.
+- **Sulo for iPhone.** Installed from a laptop with Sideloadly and your own Apple ID, on iOS 16.4 or later. With a free Apple ID the install lasts 7 days, and Sideloadly refreshes it by itself while your laptop is on and the iPhone is on its cable or the same Wi-Fi; if a refresh is missed, Sulo reminds you the day before. Swipe in from the left edge to go back. The same tasks, calendar, attendance, NEOSIA and Sipakamase as on Android. On iPhone new tasks show when you open Sulo, and "Keep the SIKOLA session" (optional) keeps your session only when the iPhone gives it time. The guide: [sulo.ikrar.dev/en/pasang/iphone](https://sulo.ikrar.dev/en/pasang/iphone).
+- **Sign in again, once for every source** (phone): when SIKOLA, NEOSIA or Sipakamase signed you out, the morning summary offers Sign in again, at most once a day and never as a separate repeating notification; one tap walks through each source.
+- **Sipakamase.** Connect Sipakamase (optional, off until you agree to it) and the MKPK card shows the activity credits not converted yet and the passed courses not yet in NEOSIA, with reminders: a course in your KRS not passed yet as the grade-entry deadline nears, a passed course you can program when KRS opens, an activity with no companion, a grade to claim. Changes to your activities' status arrive as news. Sulo only reads five fixed pages of your MKPK data; you sign in on Sipakamase's own page, and Sulo never fills in, deletes, converts or claims anything. While you are waiting for something, Sulo keeps the session alive with one read every 3 hours (on the phone only on the background check that already runs); when nothing is pending it stops. Once NEOSIA is set up and the MKPK card shows, the overview offers to connect it, so it no longer has to be found in Settings.
+- **MKPK card.** With NEOSIA connected: the MKPK credits on your transcript and in your KRS, the MKPK courses your program offers this semester, and your program's MKPK load (Sulo's estimate until you confirm it).
+- **Watch for new tasks in the extension** (optional): SIKOLA is checked every 15 minutes while your computer is in use and each time you open Sulo, so new tasks and updates arrive as notifications without pressing Update. Your SIKOLA session stays active in this browser while it is on.
+- **Update from NEOSIA closes itself.** The page opens, its data comes in, and the tab (extension) or screen (phone) closes by itself.
+- **Update NEOSIA automatically** (Android, optional): when you open Sulo and a visit is due (daily during KRS and grade periods, weekly otherwise), NEOSIA's Beranda loads out of sight; if NEOSIA asks you to sign in again, Sulo says so.
+- **What's new in Sulo** on the phone too, once after an update; for 1.1.0 it names task grades and your own tasks.
+- Small, purposeful motion: a detail slides in and back, the done circle pops, the week's bars grow once. Reduced motion and the light mode keep things still.
+- Dark and tinted app icons on iPhone, following the Home Screen's look.
+- A quick check when you open the phone app with data from 5 to 15 minutes ago.
+
+### Changed
+
+- The phone's session keepers time themselves from how long sessions really last on your phone. The notes behind it hold times only, never leave the phone, and show on the Diagnostik screen (seven taps on the version in About).
+- After 7 days without Sulo being opened, watching and session keeping stop with one notification; opening Sulo starts them again (Sipakamase asks to connect again).
+- One remembered choice shows grades on the dashboard: "Show" on the Studies card and on Grades now do the same thing.
+- Lighter screens: KRS readiness as short label and value rows, shorter help in Settings, notification system steps folded away, every button in the extension a pill like on the phone, and "Open dashboard" always visible in the popup.
+- A required Android update can be set to apply from a date, so the update card shows first.
+- Update by hand at most every 5 minutes (it was 2).
+- A finished task no longer offers to be added to a calendar.
+- "Add a task" sits in the dashboard's header.
+- In the first-run guide, when SIKOLA asks Sulo to pause, the guide says so and when it can try again, instead of failing again and again.
+- The phone shows no scrollbars, rows that scroll sideways only scroll sideways, and a long press no longer selects the app's own text.
+- A sheet on the phone rises before the keyboard: its fields wait for a tap (the nickname and course name too), so opening one no longer makes the screen jump.
+- The phone's GPA simulation keeps the estimate in view and its courses in a drawer, closed at first, as on the dashboard: Grades is no longer a whole transcript long. Every course can be simulated (the list stopped at 40).
+
+### Fixed
+
+- The phone's background check now refuses a remote config whose extension switch is broken, like the app does, and a failed config read no longer drops the extension's settings.
+- On iPhone, going from a screen with a longer title to one with a shorter title no longer leaves the end of the old title painted ("Calendarce").
+- While a sheet is open, the screen behind it no longer slides under the status bar (Android 15 and later, and iPhone).
+
 ## [1.0.0] - 2026-11-25
 
 The first public release. The extension and the Android app are the same as 0.9.1; what is new is that anyone can get them.

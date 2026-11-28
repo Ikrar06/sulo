@@ -60,14 +60,20 @@ export async function seedDemo(store: KeyValueStore, now: UnixSeconds): Promise<
   const prefs = (data['global:prefs'] ?? {}) as Record<string, unknown>;
   // ?grades=1: "Tampilkan nilai" on (NEOSIA screenshots).
   data['global:prefs'] = { ...prefs, locale: params.get('lang') ?? prefs.locale ?? 'auto', nickname: params.get('nick') ?? '', ...(params.get('grades') === '1' ? { gradesShown: true } : {}) };
-  // ?release=available|required: a newer version in the config (M8e E3), synthetic and far above this build.
+  // ?release=available|required: a newer version in the config (M8e E3), synthetic and far above any real build (9.1.0).
   const release = params.get('release');
   if (release === 'available' || release === 'required') {
     const config = (data['global:remoteConfig'] ?? { enabled: true, minIntervalMinutes: 30, message: '', fetchedAt: now, okAt: now }) as Record<string, unknown>;
-    data['global:remoteConfig'] = { ...config, mobile: { ...((config.mobile as object) ?? {}), release: { versionCode: 906, versionName: '0.9.6', url: 'https://github.com/Ikrar06/sulo/releases/download/v0.9.6/sulo-0.9.6-android.apk', sha256: '3f1c9a0e5b7d24c86e19af03b25d7c4e8a96f10d2bc35e47a8f9061d2c4b7e5a', minVersionCode: release === 'required' ? 905 : 0, notes: { id: 'Pengingat lebih tepat waktu dan perbaikan kecil.', en: 'Reminders on time more often, and small fixes.' } } } };
+    data['global:remoteConfig'] = { ...config, mobile: { ...((config.mobile as object) ?? {}), release: { versionCode: 90100, versionName: '9.1.0', url: 'https://github.com/Ikrar06/sulo/releases/download/v9.1.0/sulo-9.1.0-android.apk', sha256: '3f1c9a0e5b7d24c86e19af03b25d7c4e8a96f10d2bc35e47a8f9061d2c4b7e5a', minVersionCode: release === 'required' ? 90100 : 0, notes: { id: 'Sulo sekarang terhubung ke Sipakamase: progres MKPK, kegiatan yang belum dikonversi, dan pengingat klaim nilai. Kabar SIKOLA juga sampai lebih cepat.', en: 'Sulo now connects to Sipakamase: MKPK progress, activities not yet converted and reminders to claim grades. SIKOLA news arrives faster too.' } } } };
+    // The iPhone reads only its own section (mobile.ios.release): the same release as an .ipa (web preview: ?os=ios).
+    const android = data['global:remoteConfig'] as { mobile: { release: Record<string, unknown> } };
+    data['global:remoteConfig'] = { ...android, mobile: { ...android.mobile, ios: { release: { ...android.mobile.release, url: 'https://github.com/Ikrar06/sulo/releases/download/v9.1.0/sulo-9.1.0-ios.ipa', size: 1_300_000 } } } };
   }
   // ?neosia=<stage> (src/fake/neosia.ts): NEOSIA connected, except for the invite.
   const neosia = params.get('neosia');
   if (neosia !== null && neosia !== 'invite') data['global:neosia'] = { enabled: true, changedAt: now - 86_400 };
+  // Sipakamase connected with it (1.1.0); its data comes from the fake native store (src/fake/sipakamase.ts).
+  // ?sipakamase=off keeps it off, for Ringkasan's "Hubungkan Sipakamase" card.
+  if (neosia !== null && neosia !== 'invite' && params.get('sipakamase') !== 'off') data['global:sipakamase'] = { enabled: true, changedAt: now - 3 * 86_400 };
   for (const [key, value] of Object.entries(data)) await store.set(key, value);
 }

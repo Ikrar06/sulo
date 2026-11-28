@@ -1,0 +1,3 @@
+/* Sulo: the permission texts iOS shows, in English. */
+"NSFaceIDUsageDescription" = "Sulo uses Face ID to unlock the app, when you turn on the app lock.";
+"NSCalendarsUsageDescription" = "Sulo adds a task to the iPhone’s Calendar when you ask it to. Sulo never reads your calendar.";

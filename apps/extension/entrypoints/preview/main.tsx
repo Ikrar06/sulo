@@ -1,4 +1,6 @@
 import React, { useEffect, useState, type ReactNode } from 'react';
+import { WHATS_NEW } from '@sulo/core/onboarding/whats-new';
+import { NOTICE_VERSION } from '@sulo/core/storage';
 import ReactDOM from 'react-dom/client';
 import { MOODS, type Mood } from '@sulo/ui/mascot/moods';
 import { SuloMascot } from '@sulo/ui/mascot/SuloMascot';
@@ -238,11 +240,12 @@ function OnboardingPage({ step }: { step: number }) {
   );
 }
 
+// The real 1.1.0 entries; the one with the watch switch needs the service worker, so the preview leaves it out.
 function WhatsNewPage() {
   return (
     <OnboardingShell stepKey="whats-new">
       <StepWhatsNew
-        entries={[{ noticeVersion: 2, title: 'Contoh fitur baru', body: 'Isi singkat fitur baru, satu atau dua kalimat.' }]}
+        entries={WHATS_NEW.filter((e) => e.noticeVersion === NOTICE_VERSION && e.action === undefined)}
         noticeChanged
         onDone={() => {}}
       />

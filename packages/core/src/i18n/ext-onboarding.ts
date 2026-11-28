@@ -46,6 +46,13 @@ const id = {
     connected: 'Terhubung ke SIKOLA',
     rows: { tasks: 'Tugas', courses: 'Mata kuliah', attendance: 'Presensi', attendanceDone: 'Presensi siap' },
   },
+  /** The request limits stopped the setup before SIKOLA answered (moodle/budget.ts): a pause, not a failure. */
+  rest: {
+    line: 'Sulo berhenti sebentar supaya tidak membebani SIKOLA.',
+    shortStatus: (time: string) => `Bisa dicoba lagi pukul ${time}.`,
+    dayLine: 'Batas harian Sulo sudah tercapai.',
+    dayStatus: 'Lanjutkan besok. Tidak ada yang hilang.',
+  },
   why: 'Kenapa aman?',
   close: 'Tutup',
   privacyLink: 'Baca kebijakan privasi',
@@ -96,6 +103,12 @@ const en: ExtWords = {
     connected: 'Connected to SIKOLA',
     rows: { tasks: 'Tasks', courses: 'Courses', attendance: 'Attendance', attendanceDone: 'Attendance ready' },
   },
+  rest: {
+    line: 'Sulo is pausing so it does not overload SIKOLA.',
+    shortStatus: (time: string) => `You can try again at ${time}.`,
+    dayLine: "Sulo has reached today's limit.",
+    dayStatus: 'Continue tomorrow. Nothing is lost.',
+  },
   why: 'Why is this safe?',
   close: 'Close',
   privacyLink: 'Read the privacy policy',
@@ -123,6 +136,6 @@ export const extOnboardingWords = (locale: Locale): ExtOnboardingWords => ({ pho
 export function extBudgetedTexts({ phone, ext }: ExtOnboardingWords): { titles: string[]; supports: string[] } {
   return {
     titles: [phone.intro1.title, phone.intro2.title, ext.intro3.title, ext.connect.title, phone.preparing.title, phone.courses.title, phone.done.title],
-    supports: [phone.intro1.body, phone.intro2.body, ext.intro3.body, ext.connect.body, ext.connect.switchBody, ext.connect.checking, ext.connect.waiting, ext.connect.needLogin, ext.connect.connected, ext.done.noTasks, phone.courses.none, phone.courses.selected(11), ...Object.values(phone.preparing.stages), phone.preparing.failedTitle, phone.courses.body, ext.done.body],
+    supports: [phone.intro1.body, phone.intro2.body, ext.intro3.body, ext.connect.body, ext.connect.switchBody, ext.connect.checking, ext.connect.waiting, ext.connect.needLogin, ext.connect.connected, ext.done.noTasks, phone.courses.none, phone.courses.selected(11), ...Object.values(phone.preparing.stages), phone.preparing.failedTitle, phone.courses.body, ext.done.body, ext.rest.line, ext.rest.shortStatus('23.59'), ext.rest.dayLine, ext.rest.dayStatus],
   };
 }

@@ -9,7 +9,9 @@ import { parseRelease } from '@sulo/core/remote/release';
 import { readPending } from '@sulo/core/account/pending';
 import { activeCourseIds } from '@sulo/core/courses/active-score';
 import { courseAlias } from '@sulo/core/courses/display-name';
-import { resolveLocale } from '@sulo/core/i18n';
+import { messagesFor, resolveLocale } from '@sulo/core/i18n';
+import { Capacitor } from '@capacitor/core';
+import { isReadOnly } from './read-only';
 import { mobileWords } from '@sulo/core/i18n/mobile';
 import type { Platform } from '@sulo/core/platform';
 import { readPrefs } from '@sulo/core/prefs';
@@ -18,7 +20,15 @@ import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { REMOTE_CONFIG_URL } from '@sulo/core/moodle/limits';
 import { currentUser, readUser } from '@sulo/core/storage';
 import type { CheckTiming } from '@sulo/core/watch/sleep-help';
-import { buildWatchPlan } from '@sulo/core/watch/plan';
+import { buildWatchPlan, type SipakamaseWatchPart } from '@sulo/core/watch/plan';
+import type { RemoteConfig } from '@sulo/core/types';
+import { sourcesFrom } from '@sulo/core/remote/sources';
+import { keeperRuns, readConnection } from '@sulo/core/sipakamase/connection';
+import { ownReadsToday, readKeeper } from '@sulo/core/sipakamase/keeper';
+import { readSipakamaseModule } from '@sulo/core/sipakamase/module';
+import { keepPace, readSessionLog } from '@sulo/core/sipakamase/session-log';
+import { localParts } from '@sulo/core/reminders/zoned';
+import { sipakamaseStore } from './sipakamase/service';
 import { applyWatchAnswers, markChangesHandled, type WatchAnswer } from '@sulo/core/watch/queue';
 import { SuloSession } from './session';
 import { readWatch } from './watch';
@@ -37,7 +47,8 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
   const { store, clock } = platform;
   const userId = await currentUser(store);
   // No account, or another account waiting for the user's answer: no plan in force (never the previous account's for the new session).
-  if (userId === null || (await readPending(store)) !== null) return void (await SuloSession.watchApply({ plan: JSON.stringify({ enabled: false }) }).catch(() => undefined));
+  // "Lihat data terakhir" (read-only.ts): the keeper stops too.
+  if (userId === null || isReadOnly() || (await readPending(store)) !== null) return void (await SuloSession.watchApply({ plan: JSON.stringify({ enabled: false }) }).catch(() => undefined));
   const [channels, watch, config, prefs, session, tasks, courses, snapshots, radar, changes] = await Promise.all([
     // The same channel plan the app's own notifications use: the worker reads the chosen sound from here.
     readChannelPlan(store),
@@ -76,8 +87,24 @@ export async function applyWatchPlan(platform: Platform): Promise<void> {
     courseNames: Object.fromEntries(courses.map((c) => [String(c.id), courseAlias(c)])),
     templates: w.watch.templates,
     channels,
+    sipakamase: await sipakamaseWatchPart(platform, config, clock.now()),
   });
-  await SuloSession.watchApply({ plan: JSON.stringify(plan) }).catch(() => undefined);
+  // iPhone: the keeper (PENJAGA-SESI.md A3) only pings and offers "Masuk lagi"; it needs the words and the morning time.
+  const n = messagesFor(resolveLocale(prefs.locale, navigator.language));
+  const ios =
+    Capacitor.getPlatform() === 'ios'
+      ? {
+          ios: {
+            morningOn: prefs.reminders.enabled && prefs.reminders.morning.enabled,
+            morningAtMin: prefs.reminders.morning.atMin,
+            morningTitle: n.notify.morningFullTitle,
+            reloginLine: n.notify.morningRelogin(['SIKOLA']),
+            noticeTitle: n.notify.sessionTitle,
+            noticeBody: n.notify.sessionBody,
+          },
+        }
+      : {};
+  await SuloSession.watchApply({ plan: JSON.stringify({ ...plan, ...ios }) }).catch(() => undefined);
 }
 
 /**
@@ -104,9 +131,27 @@ export interface WatchTiming extends CheckTiming {
 }
 
 /** The worker's last checks and session ends (times, durations, sizes, outcome codes). */
-export async function readWatchStatus(): Promise<{ timings: WatchTiming[]; sessionEnds: { at: number; sinceLastOkSec: number | null; heldBack: boolean }[]; plannedAt: number; queued: number }> {
-  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0 };
+export async function readWatchStatus(): Promise<{ timings: WatchTiming[]; sessionEnds: { at: number; sinceLastOkSec: number | null; heldBack: boolean }[]; plannedAt: number; queued: number; backgroundRefresh: string | null }> {
+  if (__SULO_WEB_FAKE__ && import.meta.env.MODE === 'web') return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0, backgroundRefresh: null };
   const s = await SuloSession.watchStatus().catch(() => null);
-  if (!s) return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0 };
-  return { timings: JSON.parse(s.timings) as WatchTiming[], sessionEnds: JSON.parse(s.sessionEnds), plannedAt: s.plannedAt, queued: s.queued };
+  if (!s) return { timings: [], sessionEnds: [], plannedAt: 0, queued: 0, backgroundRefresh: null };
+  return { timings: JSON.parse(s.timings) as WatchTiming[], sessionEnds: JSON.parse(s.sessionEnds), plannedAt: s.plannedAt, queued: s.queued, backgroundRefresh: s.backgroundRefresh ?? null };
+}
+
+/**
+ * Sipakamase's part of the plan (1.1.0): present only while its module is on,
+ * something is waited for (connection live or broken) and the config lets it
+ * keep. The worker then rides its own wakes to keep the session.
+ */
+async function sipakamaseWatchPart(platform: Platform, config: RemoteConfig, now: number): Promise<SipakamaseWatchPart | undefined> {
+  const store = sipakamaseStore(platform);
+  if (!(await readSipakamaseModule(store)).enabled) return undefined;
+  const source = sourcesFrom(config).sipakamase;
+  const conn = await readConnection(store, true);
+  if (!source.enabled || !source.keep || !keeperRuns(conn.state)) return undefined;
+  const keeper = await readKeeper(store);
+  const today = localParts(now, Intl.DateTimeFormat().resolvedOptions().timeZone).dateKey;
+  // The worker keeps the same pace as the app: the measured session length, never faster than the config.
+  const pace = keepPace(await readSessionLog(store), source.keepIntervalMinutes);
+  return { keep: true, intervalMin: pace.intervalMin, next: keeper.next, usedToday: ownReadsToday(keeper, today), date: today, lastAutoAt: keeper.lastAutoAt ?? 0 };
 }

@@ -58,6 +58,18 @@ export interface Prefs {
   privacyMode: boolean;
   /** Credits to graduate, the scale of the overview's credits bar (NEOSIA, 100 to 200). */
   sksTarget: number;
+  /**
+   * The study program's MKPK load as the student confirmed or chose it: 20 or
+   * 10 credits, or 'none' (no MKPK in their curriculum: the card is hidden).
+   * Null until then; Sulo's estimate is never stored here unconfirmed.
+   */
+  mkpkLoad: 20 | 10 | 'none' | null;
+  /** "Pengingat MKPK" (1.1.0): notifications for MKPK courses near the grade deadline and in the KRS window, and Sipakamase news. */
+  mkpkReminders: boolean;
+  /** Android (1.1.0): "Perbarui NEOSIA otomatis", the hidden Beranda visit on opening the app; off until the user agrees. */
+  neosiaAutoVisit: boolean;
+  /** iPhone: one silent notification the day before the app's 7-day profile ends ("Sulo perlu disegarkan besok"); on by default. */
+  refreshReminder: boolean;
   /** Android (M8d): grades and GPA are shown only once turned on in Pengaturan; hidden by default. */
   gradesShown: boolean;
   /** Mobile: how much motion (perf/tier.ts); "auto" follows the detected tier. */
@@ -76,6 +88,10 @@ export const DEFAULT_PREFS: Prefs = {
   calendarFilter: DEFAULT_GROUP_FILTER,
   privacyMode: false,
   sksTarget: 144,
+  mkpkLoad: null,
+  mkpkReminders: true,
+  neosiaAutoVisit: false,
+  refreshReminder: true,
   gradesShown: false,
   animation: 'auto',
 };
@@ -93,6 +109,10 @@ const prefsSchema = z.object({
   calendarFilter: groupFilterSchema,
   privacyMode: z.boolean().catch(false),
   sksTarget: z.number().int().min(100).max(200).catch(144),
+  mkpkLoad: z.union([z.literal(20), z.literal(10), z.literal('none')]).nullable().catch(null),
+  mkpkReminders: z.boolean().catch(true),
+  neosiaAutoVisit: z.boolean().catch(false),
+  refreshReminder: z.boolean().catch(true),
   gradesShown: z.boolean().catch(false),
   animation: z.enum(['auto', 'full', 'lite']).catch('auto'),
 });

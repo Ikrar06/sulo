@@ -61,6 +61,8 @@ export async function planRadarCalls(
   now: UnixSeconds,
   mode: RadarMode = 'normal',
   tasks: readonly Task[] = [],
+  /** A light check (extension "Pantau tugas baru"): notifications every time. */
+  forceNotifications = false,
 ): Promise<RadarPlan> {
   if (userId === null) return EMPTY_RADAR_PLAN;
   const radar = await readUser(store, userId, 'radar');
@@ -76,7 +78,7 @@ export async function planRadarCalls(
           soon: coursesDueSoon(tasks, now),
           ...(mode === 'full' ? { all: true, maxPerBatch: MAX_STATE_CALLS_PER_BATCH } : {}),
         });
-  const withNotifications = notificationsDue(radar, now);
+  const withNotifications = forceNotifications || notificationsDue(radar, now);
   const notificationsLimit = radar.notificationsLastId === null || radar.notificationsWide ? NOTIFICATIONS_LIMIT : NOTIFICATIONS_LIMIT_SMALL;
   return radarPlanWith(userId, { courseIds, withNotifications, notificationsLimit });
 }

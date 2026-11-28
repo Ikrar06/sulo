@@ -37,12 +37,16 @@ export const HOW_IT_WORKS: HelpSection[] = [
     heading: { id: 'Kapan Sulo mengecek', en: 'When Sulo checks' },
     paragraphs: [
       {
-        id: 'Sulo mengecek kira-kira tiap 3 jam selama browser terbuka dan kamu sedang memakai laptop, sebentar setelah browser dibuka, dan saat kamu mengeklik "Perbarui". Pukul 00.00 sampai 06.00 Sulo tidak mengecek. Membuka popup atau dashboard tidak mengecek SIKOLA.',
-        en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It doesn’t check from 00:00 to 06:00. Opening the popup or the dashboard never checks SIKOLA.',
+        id: 'Sulo mengecek kira-kira tiap 3 jam selama browser terbuka dan kamu sedang memakai laptop, sebentar setelah browser dibuka, dan saat kamu mengeklik "Perbarui". Pukul 00.00 sampai 06.00 Sulo tidak mengecek. Membuka popup atau dashboard tidak mengecek tugas baru; halaman Tugas hanya membaca halaman nilai mata kuliah, paling sering sekali tiap 10 menit.',
+        en: 'Sulo checks about every 3 hours while the browser is open and you are using your laptop, shortly after the browser starts, and when you click "Update". It doesn’t check from 00:00 to 06:00. Opening the popup or the dashboard never checks for new tasks; the Tasks page only reads the courses’ grades pages, at most once every 10 minutes.',
       },
       {
         id: 'Sulo mengecek dengan hemat supaya tidak membebani SIKOLA, jadi kadang data baru muncul beberapa saat kemudian.',
         en: 'Sulo checks sparingly to go easy on SIKOLA, so new data sometimes shows up a little later.',
+      },
+      {
+        id: 'Kalau kamu menyalakan "Pantau tugas baru" di Pengaturan, Sulo mengecek tiap 15 menit selama komputermu dipakai dan saat kamu membuka popup (paling sering tiap 2 menit), lalu memberi tahu kalau ada tugas, tenggat, atau kabar baru. Selama itu sesi SIKOLA-mu tetap aktif di browser ini. Setelah 7 hari Sulo tidak dibuka, pantauan berhenti sampai kamu membukanya lagi.',
+        en: 'If you turn on "Watch for new tasks" in Settings, Sulo checks every 15 minutes while your computer is in use and when you open the popup (at most every 2 minutes), then tells you about new tasks, deadlines or updates. Meanwhile your SIKOLA session stays active in this browser. After 7 days without Sulo being opened, watching stops until you open it again.',
       },
     ],
   },
@@ -89,6 +93,20 @@ export const FAQ: FaqEntry[] = [
       {
         id: 'Biasanya karena salah satu ini: mata kuliahnya belum dipantau (dashboard, halaman Mata kuliah); tugasnya belum dibuka dosen atau tidak punya tenggat di kalender SIKOLA; tenggatnya lebih dari 90 hari lagi; atau kamu sudah menandainya selesai. Tugas yang sudah dikumpulkan bisa hilang dari kalender SIKOLA, dan Sulo menyebutnya "mungkin sudah dikumpulkan".',
         en: 'Usually one of these: the course isn’t followed (the dashboard’s Courses page); the lecturer hasn’t opened the task yet or it has no due date in the SIKOLA calendar; it is due more than 90 days away; or you marked it as done. Handed-in tasks can drop out of the SIKOLA calendar, and Sulo calls them "probably handed in".',
+      },
+    ],
+  },
+  {
+    id: 'nilai-tugas',
+    q: { id: 'Dari mana nilai tugas di halaman Tugas?', en: 'Where do the task grades on the Tasks page come from?' },
+    a: [
+      {
+        id: 'Dari halaman nilai tiap mata kuliah yang dipantau di SIKOLA. Sulo membacanya saat kamu membuka halaman Tugas (paling sering sekali tiap 10 menit) dan saat memperbarui. Yang dibaca hanya nilai, tidak pernah komentar dosen.',
+        en: 'From the grades page of each course you follow on SIKOLA. Sulo reads it when you open the Tasks page (at most once every 10 minutes) and when it updates. It reads the grade only, never the lecturer’s comments.',
+      },
+      {
+        id: 'Tugas yang sudah dinilai otomatis ditandai selesai, termasuk tugas lama yang tidak ada di kalender SIKOLA; semuanya ada di saringan Semua. Angkanya tersembunyi sampai kamu memilih Tampilkan nilai, dan tidak pernah masuk notifikasi.',
+        en: 'A graded task is marked as done on its own, old ones missing from the SIKOLA calendar included; they are all under the All filter. The numbers stay hidden until you choose Show grades, and never appear in notifications.',
       },
     ],
   },
@@ -275,6 +293,34 @@ export const FAQ: FaqEntry[] = [
       {
         id: 'Sulo tidak pernah menghubungi NEOSIA sendiri. Buka Beranda dan Kartu Hasil Studi sekali. Setelah itu cukup buka Kartu Hasil Studi setiap ada nilai baru, dan Beranda atau KRS di awal semester.',
         en: 'Sulo never contacts NEOSIA. Open the Home page and the study results card (KHS) once. After that, open the KHS whenever new grades are out, and Home or KRS at the start of each semester.',
+      },
+    ],
+  },
+  {
+    id: 'mkpk-belum-lulus',
+    q: { id: 'Apa artinya "belum lulus di Sipakamase"?', en: 'What does "not passed in Sipakamase yet" mean?' },
+    a: [
+      {
+        id: 'Mata kuliah MKPK itu ada di KRS-mu semester ini, tetapi Sipakamase belum mencatatnya lulus. Nilai MKPK berasal dari kegiatan yang dikonversi di Sipakamase lalu diklaim ke NEOSIA.',
+        en: 'That MKPK course is in your KRS this semester, but Sipakamase has not recorded it as passed. MKPK grades come from activities converted in Sipakamase and then claimed into NEOSIA.',
+      },
+      {
+        id: 'Menurut Peraturan Rektor Unhas Nomor 29/UN4.1/2023 Pasal 41, mata kuliah yang nilainya belum masuk sampai batas penginputan nilai bisa tercatat T (tunda). Aturan dan batasnya bisa berbeda tiap prodi: konfirmasi ke PA atau KPS.',
+        en: 'Under Unhas Rector Regulation No. 29/UN4.1/2023, Article 41, a course whose grade is not in by the grade-entry deadline can be recorded as T (deferred). Rules and dates can differ by program: confirm with your advisor or KPS.',
+      },
+    ],
+  },
+  {
+    id: 'sipakamase-aman',
+    q: { id: 'Apa yang dilakukan Sulo di Sipakamase?', en: 'What does Sulo do in Sipakamase?' },
+    a: [
+      {
+        id: 'Hanya membaca lima halaman MKPK-mu: kegiatan berjalan, riwayat, alokasi SKS, mata kuliah yang lulus, dan klaim. Sulo tidak mengisi, menghapus, mengonversi, atau mengklaim apa pun, dan tidak membaca NIM, kontak, nama dosen, obrolan, atau angka nilai.',
+        en: 'It only reads five pages of your MKPK data: activities in progress, history, credit allocation, passed courses and claims. Sulo never fills in, deletes, converts or claims anything, and never reads your student number, contacts, lecturer names, chats or numeric grades.',
+      },
+      {
+        id: 'Selama ada yang kamu tunggu, Sulo mengambil satu halaman tiap 3 jam supaya datamu terbaru dan kamu tidak diminta masuk terus. Kalau tidak ada yang ditunggu, Sulo berhenti sampai kamu membuka Sipakamase atau menekan Perbarui sekarang. Putuskan di Pengaturan menghapus semuanya.',
+        en: 'While you are waiting for something, Sulo reads one page every 3 hours so your data stays current and you are not asked to sign in again and again. When nothing is pending, it stops until you open Sipakamase or press Update now. Disconnect in Settings deletes everything.',
       },
     ],
   },

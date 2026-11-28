@@ -80,7 +80,7 @@ export function JadwalScreen() {
           </Card>
         );
       })}
-      <PillButton full onPress={() => void neo.open('krs')}>
+      <PillButton full onPress={() => void neo.refreshFrom('krs')}>
         {n.refresh.grades}
       </PillButton>
     </div>

@@ -17,6 +17,7 @@ import dev.ikrar.sulo.session.SikolaHttp
 import dev.ikrar.sulo.session.SikolaRequest
 import org.json.JSONArray
 import org.json.JSONObject
+import dev.ikrar.sulo.sipakamase.SipakamaseKeeper
 import java.util.Calendar
 
 /**
@@ -108,6 +109,8 @@ class WatchRun(private val context: Context) {
             }
             is WatchRemote.Decision.Check -> WatchRemote.withSchedule(stored, d)
         }
+        // Sipakamase's keeper (1.1.0) rides this wake: one GET when one is due, its page dropped. Never stops the SIKOLA check.
+        runCatching { SipakamaseKeeper(context).step(stored, chosenConfig(stored)?.sipakamaseKeep ?: true, now, today(), userAgent) }
         val budget = store.budget()
         val ctx = dayCtx(budget)
         // Debug builds, the owner's one-off test budget (20 Nov 2026): one "Jalankan cek sekarang" may go past today's limit.
@@ -195,10 +198,18 @@ class WatchRun(private val context: Context) {
         if (WatchRemote.readDue(readAt, now)) readConfig(url, now)
         val planOk = seed?.optLong("okAt", 0) ?: 0
         val workerOk = store.remoteOkAt()
+        val config = chosenConfig(plan)
+        return WatchRemote.decide(WatchRemote.State(now, plan.optLong("writtenAt", 0), maxOf(workerOk, planOk), config, BuildConfig.VERSION_CODE.toLong()))
+    }
+
+    /** The newest good config either side has (the worker's own read or the app's plan). */
+    private fun chosenConfig(plan: JSONObject): WatchRemote.Config? {
+        val seed = plan.optJSONObject("remote")
+        val planOk = seed?.optLong("okAt", 0) ?: 0
+        val workerOk = store.remoteOkAt()
         val fromPlan = WatchRemote.fromJson(seed?.optJSONObject("config"))
         val fromWorker = WatchRemote.fromJson(store.remoteConfig())
-        val config = if (workerOk >= planOk) fromWorker ?: fromPlan else fromPlan ?: fromWorker
-        return WatchRemote.decide(WatchRemote.State(now, plan.optLong("writtenAt", 0), maxOf(workerOk, planOk), config, BuildConfig.VERSION_CODE.toLong()))
+        return if (workerOk >= planOk) fromWorker ?: fromPlan else fromPlan ?: fromWorker
     }
 
     private fun readConfig(url: String, now: Long) {

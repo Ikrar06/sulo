@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-Last updated: 22 November 2026
+Last updated: 27 November 2026
 
 Sulo is an unofficial academic companion for Universitas Hasanuddin students. It is not affiliated with or endorsed by Universitas Hasanuddin.
 
@@ -16,6 +16,7 @@ Sulo uses the SIKOLA session that already exists in your browser to read your ow
 - assignments and their due dates, including quiz deadlines
 - the structure of each course you follow (sections and activities), a few times a day, to spot new materials and tasks
 - your 20 latest SIKOLA notifications, to spot new grades, feedback and forum posts
+- the grade page of each course you follow (or a task's own page, when that page cannot be read): when you open the Tasks page (at most once every 10 minutes, each course at most once an hour), when Sulo updates (each course at most every 6 hours), and when you choose See grade; only each task's grade, never lecturer comments, the grader's name, weights or files
 
 Sulo only reads. It never submits work, never marks anything as read, never changes data on SIKOLA, never reads quiz content, and never reads other students' data.
 
@@ -23,9 +24,11 @@ Sulo only reads. It never submits work, never marks anything as read, never chan
 
 Everything is stored locally in your browser (chrome.storage) on your own device:
 
-- courses, assignments and due dates
+- courses, assignments and due dates, and the tasks you add yourself (the title, course and due date you type)
 - your attendance recap from SIKOLA, updated automatically at most once a day, and the per-session details, fetched only when you open them (for the courses you follow: sessions recorded, points, percentage, status, and remarks)
 - the last seen structure of each course and the "Latest updates" log (at most 200 entries)
+- finished and past-due tasks, until their course ends for the semester, so you can still look back at them and their grades
+- task grades you looked at with See grade, while the task is in Sulo; fetched again from SIKOLA at most once a day unless you choose Check again; never sent, copied or shown in a notification
 - your choices: the courses you follow, tasks marked done, course display names and colors, and a nickname you type yourself
 - a technical log of the last 300 checks of SIKOLA: only the time, the function names and the status, with no content; never sent, and only included when you copy "info for a bug report" yourself
 - local usage counters, which never leave your device unless you export them yourself
@@ -46,10 +49,11 @@ Data is tied to your SIKOLA account, recognized by your SIKOLA user number (user
 
 ## Network requests
 
-Sulo makes requests to two places only:
+Sulo makes requests to these places only:
 
-1. SIKOLA (sikola-v2.unhas.ac.id), to read your own data. Sulo checks SIKOLA only as needed, one request at a time. A safety limit caps it at 150 requests a day. If Sulo reaches the limit, it stops checking until the next day. Sulo does not check on its own during quiet hours (00:00 to 06:00) or while your computer is idle.
+1. SIKOLA (sikola-v2.unhas.ac.id), to read your own data. Sulo checks SIKOLA only as needed, one request at a time. A safety limit caps it at 150 requests a day. If Sulo reaches the limit, it stops checking until the next day. Sulo does not check on its own during quiet hours (00:00 to 06:00) or while your computer is idle. If you turn on "Watch for new tasks", Sulo checks every 15 minutes while your computer is in use and when you open Sulo, and meanwhile your SIKOLA session stays active in this browser. After 7 days without Sulo being opened, watching stops until you open it again.
 2. Sulo's public data repository on GitHub Pages (ikrar06.github.io/sulo-data), to fetch a small configuration file and the academic calendar data. These requests carry no information about you (no cookies, extra headers or parameters) and are made at most once a day per file. As with any website, GitHub can see your IP address when a file is fetched.
+3. Sipakamase (sipakamase.unhas.ac.id), only if you connect it: GET requests to five read-only pages of your MKPK data, never any other address. See the Sipakamase module section.
 
 "Add to Google Calendar" in the task menu only opens a Google Calendar page in a new tab when you click it. That page is prefilled with the task name, course name, due time and a link to the task on SIKOLA. Sulo itself sends nothing to Google and needs no sign-in; you decide whether to save it in Google Calendar.
 
@@ -90,6 +94,36 @@ Any time, in Settings with "Disconnect and delete data". All NEOSIA data is dele
 - Grades and GPA never appear in notifications, exports, copied lists, calendar files or bug report info. A new-grade notification names the course only.
 - Privacy mode (in Settings, or the eye icon in the dashboard) masks names, grades, GPA, semester GPA, credits and attendance percentages on screen.
 - No automation: Sulo never fills in KRS, surveys or attendance, and never watches class capacity.
+
+## Sipakamase module (optional)
+
+Off by default. If you press "Connect" in Settings, Sulo first shows a consent screen with the text below; in the extension, Chrome then asks for its permission.
+
+Sulo reads your MKPK activities, the credits already converted and the courses you passed, so you see your progress in one place. You sign in on Sipakamase’s own page. Sulo never sees your password.
+
+How Sulo keeps it up to date
+
+- While you are waiting for something (an activity not processed yet, or a grade not in NEOSIA yet), Sulo reads one of your five MKPK pages every 3 hours. That keeps your data current and keeps you from being asked to sign in again and again. Meanwhile your Sipakamase session stays active on this device.
+- When nothing is waited for, Sulo stops reading until you open Sipakamase or press Update now.
+- Sulo only reads. It never fills in, deletes, converts or claims anything.
+
+What is never read
+
+- Your student number, email and phone number
+- The names of companions and verifiers
+- Chat messages and notifications
+- Numeric grades
+
+Disconnecting
+
+Any time, in Settings with "Disconnect". All Sipakamase data is deleted at once and the permission is removed.
+
+- What is kept, on this device only: per activity its semester, basis, kind, name, status, whether it has a companion and a score, its converted credits; passed MKPK courses with their credits and whether they reached NEOSIA; the codes and kinds of the courses in your KRS.
+- Sulo asks for five fixed addresses only, with GET, without parameters, and never follows a link from its pages. Addresses that change data (deleting an activity, converting, claiming, signing out) are refused before they are sent.
+- Extension: its permissions are optional ("scripting" and access to sipakamase.unhas.ac.id), asked for when connecting and removed when disconnecting. One small script on the activity, history, conversion and claim pages reads what you open yourself, without a request; the login page and the home page never get a script.
+- Android: you sign in on Sipakamase's own page in a screen without any script. Its session cookie is kept encrypted with an Android Keystore key of its own, never leaves the phone, and is deleted by Disconnect or Sign out. Keeping the session in the background only rides the "Watch for new tasks" check that already runs; the pages' content is not kept.
+- iPhone: you sign in on Sipakamase's own page in a screen without any script. Its session cookie is kept in the iPhone's Keychain, never leaves the iPhone, and is deleted by Disconnect or Sign out. Keeping the session in the background only rides "Keep the SIKOLA session" when the iPhone gives it time; the pages' content is not kept.
+- After 7 days without Sulo being opened, keeping stops and you are asked to connect again.
 
 ## Deleting your data
 

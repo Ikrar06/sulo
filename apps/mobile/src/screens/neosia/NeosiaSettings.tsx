@@ -10,20 +10,30 @@ import { mobileWords } from '@sulo/core/i18n/mobile';
 import { DEFAULT_SKS_TARGET } from '@sulo/core/neosia/view';
 import { useI18n } from '@sulo/ui/i18n';
 import { PillButton, Toggle } from '@sulo/ui/mobile/controls';
-import { Sheet, SheetTextForm } from '@sulo/ui/mobile/sheet';
+import { Sheet, SheetTextForm, afterSheetClosed } from '@sulo/ui/mobile/sheet';
+import { LOCK_KEY } from '../../account';
+import { SuloSession } from '../../session';
 import { useMobileData } from '../../shell/data';
 import { useNeosia } from '../../neosia/NeosiaProvider';
 import { Group, Row, ValueRow } from '../settings-rows';
 import { parseSksTarget } from '../../neosia/grade-guard';
 
-export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
+export function NeosiaSettings({ scrollTo, lock = true, lockAvailable = false, onLockOn }: { scrollTo: boolean; lock?: boolean; lockAvailable?: boolean; onLockOn?: () => void }) {
   const { locale } = useI18n();
   const n = neosiaWords(locale);
   const w = mobileWords(locale);
   const neo = useNeosia();
-  const { data, actions } = useMobileData();
+  const { data, actions, platform } = useMobileData();
   const prefs = data!.prefs;
-  const [sheet, setSheet] = useState<'sks' | 'disconnect' | null>(null);
+  const [sheet, setSheet] = useState<'sks' | 'mkpk' | 'disconnect' | 'visit' | 'lock' | null>(null);
+  // Turning on the scheduled visit: NEOSIA's grades and KRS stay on the phone, so the app lock is offered once (owner's decision of 26 Nov 2026).
+  const turnOnLock = async () => {
+    setSheet(null);
+    await new Promise<void>((r) => afterSheetClosed(r));
+    if (!(await SuloSession.unlock()).unlocked) return;
+    await platform.store.set(LOCK_KEY, true);
+    onLockOn?.();
+  };
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -41,13 +51,51 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
         <Row label={n.mobile.gradesShown}>
           <Toggle checked={prefs.gradesShown} label={n.mobile.gradesShown} onChange={(v) => void actions.setPrefs({ gradesShown: v })} />
         </Row>
+        {/* Off until agreed in its sheet; turning it off needs no sheet. */}
+        <Row label={n.mobile.autoVisit} help={n.mobile.autoVisitHelp}>
+          <Toggle checked={prefs.neosiaAutoVisit} label={n.mobile.autoVisit} onChange={(v) => (v ? setSheet('visit') : void actions.setPrefs({ neosiaAutoVisit: false }))} />
+        </Row>
         <ValueRow label={n.settings.sksTarget} value={String(target)} onPress={() => setSheet('sks')} />
+        <ValueRow label={n.mkpk.settingsRow} value={prefs.mkpkLoad === null ? n.mkpk.settingsUnset : n.mkpk.choice[prefs.mkpkLoad]} onPress={() => setSheet('mkpk')} />
         <button type="button" onClick={() => setSheet('disconnect')} className="m-hit flex min-h-12 w-full items-center text-left text-m15 text-urgency-overdue outline-none focus-ring:ring-2 focus-ring:ring-focus">
           {n.mobile.disconnect}
         </button>
       </Group>
 
-      <Sheet open={sheet !== null} onOpenChange={(o) => !o && setSheet(null)} title={sheet === 'sks' ? n.settings.sksTarget : n.settings.disconnectTitle}>
+      <Sheet open={sheet !== null} onOpenChange={(o) => !o && setSheet(null)} title={sheet === 'sks' ? n.settings.sksTarget : sheet === 'mkpk' ? n.mkpk.settingsRow : sheet === 'visit' ? n.mobile.autoVisit : sheet === 'lock' ? n.mobile.lockOfferTitle : n.settings.disconnectTitle}>
+        {sheet === 'visit' && (
+          <div className="space-y-4">
+            <ul className="list-disc space-y-2 pl-5 text-m13 text-muted-foreground">
+              {n.mobile.autoVisitConsent.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+            <PillButton
+              kind="primary"
+              full
+              onPress={() => {
+                void actions.setPrefs({ neosiaAutoVisit: true });
+                setSheet(!lock && lockAvailable ? 'lock' : null);
+              }}
+            >
+              {n.mobile.autoVisitOn}
+            </PillButton>
+            <PillButton full onPress={() => setSheet(null)}>
+              {n.mobile.autoVisitLater}
+            </PillButton>
+          </div>
+        )}
+        {sheet === 'lock' && (
+          <div className="space-y-4">
+            <p className="text-m15r text-muted-foreground">{n.mobile.lockOfferBody}</p>
+            <PillButton kind="primary" full onPress={() => void turnOnLock()}>
+              {n.mobile.lockOfferYes}
+            </PillButton>
+            <PillButton full onPress={() => setSheet(null)}>
+              {n.mobile.autoVisitLater}
+            </PillButton>
+          </div>
+        )}
         {sheet === 'sks' && (
           <SheetTextForm
             label={n.settings.sksTarget}
@@ -60,6 +108,24 @@ export function NeosiaSettings({ scrollTo }: { scrollTo: boolean }) {
               if (v !== null) void actions.setPrefs({ sksTarget: v });
             }}
           />
+        )}
+        {sheet === 'mkpk' && (
+          <div className="space-y-2">
+            <p className="text-m13 text-muted-foreground">{n.mkpk.settingsHelp}</p>
+            {([20, 10, 'none'] as const).map((choice) => (
+              <PillButton
+                key={String(choice)}
+                full
+                kind={prefs.mkpkLoad === choice ? 'primary' : 'secondary'}
+                onPress={() => {
+                  void actions.setPrefs({ mkpkLoad: choice });
+                  setSheet(null);
+                }}
+              >
+                {n.mkpk.choice[choice]}
+              </PillButton>
+            ))}
+          </div>
         )}
         {sheet === 'disconnect' && (
           <div className="space-y-4">

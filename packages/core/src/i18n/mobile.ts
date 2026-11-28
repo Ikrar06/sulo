@@ -2,6 +2,7 @@
 // (lib/i18n/glossary.md). Grades never appear here.
 
 import type { Locale } from './index';
+import { mobileOs } from './os';
 import { GREET_LINE1 } from './greet-line';
 import { dashFor, type DashMessages } from './dashboard';
 
@@ -110,6 +111,11 @@ const id = {
     closeSearch: 'Tutup pencarian',
     moreActions: 'Aksi lainnya',
     snoozeMenu: 'Tunda pengingat',
+    /** The phone's own calendar (1.1.0, calendar-native.ts). */
+    calendarIphone: 'Tambah ke Kalender iPhone',
+    calendarPhone: 'Tambah ke kalender HP',
+    calendarAdded: 'Ditambahkan ke Kalender.',
+    calendarDenied: 'Sulo belum diizinkan menambah ke Kalender. Izinkan di Pengaturan iPhone, Privasi & Keamanan, Kalender.',
     steps: 'Langkah',
     average: 'rata-rata',
     open: 'Buka',
@@ -128,6 +134,9 @@ const id = {
     lowest: 'Terendah',
     pending: 'Belum selesai',
     done: 'Selesai',
+    /** Tugas chips (1.1.0): known graded, and gone from SIKOLA's window without a sign it was handed in. */
+    graded: 'Dinilai',
+    past: 'Sudah lama lewat',
     sessions: (n: number, got: number | null, max: number | null) => (got !== null && max !== null ? `${n} sesi · ${got}/${max} poin` : `${n} sesi`),
   },
   notify: {
@@ -147,7 +156,7 @@ const id = {
   settings: {
     language: 'Bahasa',
     languageNote: 'Mengikuti bahasa HP.',
-    bugHelp: 'Kalau ada yang tidak beres, salin info ini lalu tempel di formulir masukan. Isinya versi aplikasi dan catatan teknis pengecekan terakhir, tanpa nama, NIM, sesi, atau isi tugas.',
+    bugHelp: 'Ada yang tidak beres? Salin info ini ke formulir masukan. Tanpa nama, NIM, sesi, atau isi tugas.',
     copied: 'Info disalin.',
     signOutDelete: 'Keluar dan hapus data',
     nicknameHelp: 'Opsional, maksimal 24 karakter. Hanya untuk menyapamu di Ringkasan, disimpan di HP ini.',
@@ -164,6 +173,8 @@ const id = {
   release: {
     title: 'Versi baru tersedia',
     version: (v: string) => `Sulo ${v}`,
+    /** The site's "Yang baru di Sulo" page (links.ts whatsNewPage). */
+    whatsNew: 'Lihat yang baru',
     download: 'Unduh',
     later: 'Nanti',
     sha: 'SHA-256',
@@ -174,6 +185,7 @@ const id = {
     requiredTitle: 'Sulo perlu diperbarui',
     requiredBody: 'Sulo berhenti mengecek SIKOLA sampai diperbarui.',
     requiredData: 'Datamu tetap ada di HP ini.',
+    requiredOn: (date: string) => `Wajib diperbarui mulai ${date}. Setelah itu Sulo berhenti mengecek SIKOLA sampai diperbarui.`,
   },
   /** Ringkasan's greeting (core dashboard/mobile-greeting.ts). [s] marks a casual line, only when nothing is overdue or due today. */
   greet: {
@@ -200,7 +212,7 @@ const id = {
   },
   watch: {
     title: 'Pantau tugas baru',
-    help: 'Sulo mengecek SIKOLA berkala, lebih sering di siang hari dan lebih jarang di malam hari, supaya kamu cepat tahu ada tugas atau kabar baru. Sesi SIKOLA-mu akan tetap aktif di HP ini.',
+    help: 'Sulo mengecek SIKOLA berkala dan memberi tahu kalau ada yang baru. Sesi SIKOLA-mu tetap aktif di HP ini.',
     lastCheck: (when: string) => `Cek terakhir ${when}`,
     noCheck: 'Belum ada cek',
     more: 'Selengkapnya',
@@ -214,7 +226,7 @@ const id = {
     sleepOpen: 'Buka pengaturan aplikasi',
     sleepDismiss: 'Tutup',
     emailTitle: 'Email dari SIKOLA',
-    emailBody: 'SIKOLA bisa mengirim email untuk tugas dan forum, sebagai pelengkap Sulo. Di SIKOLA: menu profil, Preferensi, Preferensi notifikasi, lalu nyalakan kolom Email. Sulo tidak mengubah pengaturan itu.',
+    emailBody: 'SIKOLA juga bisa mengirim email tugas dan forum. Nyalakan kolom Email di Preferensi notifikasi SIKOLA.',
     emailOpen: 'Buka preferensi SIKOLA',
     /** Texts the background worker fills in (core watch/plan.ts): {name}, {course}, {n}, {courses}. */
     templates: {
@@ -245,6 +257,51 @@ const id = {
     seconds: (n: number) => `${n} detik`,
     none: 'Belum ada catatan.',
     back: 'Kembali',
+  },
+  diag: {
+    title: 'Diagnostik',
+    intro: 'Catatan sesi di HP ini, dari pemakaian sehari-hari. Tidak pernah dikirim ke mana pun.',
+    none: 'Belum ada catatan.',
+    ended: (n: number) => `Sesi habis tercatat: ${n}`,
+    endLine: (when: string, idle: number, since: string) => `${when}: ${idle} menit sejak aktivitas terakhir, ${since} sejak masuk`,
+    minutes: (n: number) => `${n} menit`,
+    unknown: 'tidak diketahui',
+    checkGap: (min: number) => `Jarak cek latar terpanjang dalam 24 jam: ${min} menit`,
+    noChecks: 'Belum ada cek latar belakang dalam 24 jam.',
+    limitTitle: 'Uji batas SIKOLA',
+    limitHelp: 'Tekan Mulai, biarkan 10 menit tanpa membuka SIKOLA, lalu tekan Lanjutkan. Memakai 4 permintaan dari anggaran harian.',
+    limitStart: 'Mulai',
+    limitFinish: 'Lanjutkan',
+    limitWait: (time: string) => `Lanjutkan setelah pukul ${time}.`,
+    limitReadings: (a: number, b: number, c: number) => `Sisa sesi ${a} detik, lalu ${b}, dan ${c} setelah ping.`,
+    limitCounted: 'Ping dihitung aktivitas.',
+    limitNotCounted: 'Ping tidak dihitung aktivitas.',
+    limitFailed: 'Sisa sesi tidak terbaca. Pastikan Sulo masih masuk ke SIKOLA.',
+    pace: (min: number) => `Penjaga membaca tiap ${min} menit.`,
+    paceBasis: { config: 'Jarak bawaan.', ended: 'Dari sesi yang habis.', survived: 'Dari sesi yang bertahan.' },
+    tooSlow: 'Sesi Sipakamase lebih pendek dari jarak penjaga yang diizinkan.',
+    survived: (min: number) => `Sesi terlama yang tetap masuk: ${min} menit`,
+    cookie: (expires: boolean, maxAge: number | null) => (maxAge !== null ? `Cookie sesi berlaku ${maxAge} detik.` : expires ? 'Cookie sesi punya tanggal kedaluwarsa.' : 'Cookie sesi tanpa tanggal kedaluwarsa.'),
+    neosiaHours: (list: string) => `Umur sesi (jam): ${list}`,
+    back: 'Kembali',
+  },
+  /** Nilai's GPA simulation drawer, the phone only (here, not in neosia.ts, so the extension's bundle stays as it is). */
+  sim: {
+    edit: 'Ubah nilai mata kuliah',
+    changed: (count: number) => `${count} mata kuliah diubah`,
+  },
+  iphone: {
+    refreshTitle: 'Sulo perlu disegarkan besok',
+    refreshBody: 'Buka Sideloadly di laptopmu dengan iPhone tersambung, supaya Sulo tetap bisa dibuka setelah besok.',
+    refreshSwitch: 'Ingatkan sebelum perlu disegarkan',
+    refreshHelp: 'Satu notifikasi tanpa suara, sehari sebelum Sulo di iPhone ini perlu disegarkan lewat laptop.',
+    howToUpdate: 'Cara memperbarui',
+    sendToLaptop: 'Kirim tautan ke laptop',
+    shareTitle: 'Cara memperbarui Sulo di iPhone',
+    readOnly: 'Lihat data terakhir',
+    requiredBody: 'Versi ini tidak dipakai lagi untuk memperbarui data. Perbarui Sulo lewat laptop, dengan Sideloadly.',
+    versions: (installed: string, min: string) => `Terpasang ${installed}, minimal ${min}.`,
+    readOnlyBar: 'Sulo perlu diperbarui. Ini data terakhir yang tersimpan.',
   },
 };
 
@@ -340,6 +397,10 @@ const en: MobileWords = {
     closeSearch: 'Close search',
     moreActions: 'More actions',
     snoozeMenu: 'Snooze reminder',
+    calendarIphone: 'Add to iPhone Calendar',
+    calendarPhone: 'Add to the phone’s calendar',
+    calendarAdded: 'Added to Calendar.',
+    calendarDenied: 'Sulo may not add to Calendar yet. Allow it in iPhone Settings, Privacy & Security, Calendars.',
     steps: 'Steps',
     average: 'average',
     open: 'Open',
@@ -356,6 +417,8 @@ const en: MobileWords = {
     lowest: 'Lowest',
     pending: 'To do',
     done: 'Done',
+    graded: 'Graded',
+    past: 'Long past due',
     sessions: (n: number, got: number | null, max: number | null) => `${n === 1 ? '1 session' : `${n} sessions`}${got !== null && max !== null ? ` · ${got}/${max} points` : ''}`,
   },
   notify: {
@@ -374,7 +437,7 @@ const en: MobileWords = {
   settings: {
     language: 'Language',
     languageNote: "Follows the phone's language.",
-    bugHelp: "If something is wrong, copy this and paste it into the feedback form. It holds the app version and technical notes on the last check: no name, student number, session or task content.",
+    bugHelp: "Something wrong? Copy this into the feedback form. No name, student number, session or task content.",
     copied: 'Info copied.',
     signOutDelete: 'Sign out and delete data',
     nicknameHelp: 'Optional, up to 24 characters. Only used to greet you on Overview, kept on this phone.',
@@ -390,6 +453,7 @@ const en: MobileWords = {
   release: {
     title: 'New version available',
     version: (v: string) => `Sulo ${v}`,
+    whatsNew: 'See what’s new',
     download: 'Download',
     later: 'Later',
     sha: 'SHA-256',
@@ -400,6 +464,7 @@ const en: MobileWords = {
     requiredTitle: 'Sulo needs an update',
     requiredBody: 'Sulo stops checking SIKOLA until it is updated.',
     requiredData: 'Your data stays on this phone.',
+    requiredOn: (date: string) => `Required from ${date}. After that Sulo stops checking SIKOLA until it is updated.`,
   },
   greet: {
     line1: GREET_LINE1.en,
@@ -426,7 +491,7 @@ const en: MobileWords = {
   },
   watch: {
     title: 'Watch for new tasks',
-    help: 'Sulo checks SIKOLA regularly, more often by day and less often at night, so you hear about new tasks and updates quickly. Your SIKOLA session stays active on this phone.',
+    help: 'Sulo checks SIKOLA regularly and tells you when something is new. Your SIKOLA session stays active on this phone.',
     lastCheck: (when: string) => `Last check ${when}`,
     noCheck: 'No check yet',
     more: 'Learn more',
@@ -440,7 +505,7 @@ const en: MobileWords = {
     sleepOpen: 'Open app settings',
     sleepDismiss: 'Close',
     emailTitle: 'Email from SIKOLA',
-    emailBody: 'SIKOLA can email you about assignments and forums, alongside Sulo. On SIKOLA: the profile menu, Preferences, Notification preferences, then turn on the Email column. Sulo does not change those settings.',
+    emailBody: 'SIKOLA can also email you about assignments and forums. Turn on the Email column in SIKOLA’s notification preferences.',
     emailOpen: 'Open SIKOLA preferences',
     templates: {
       taskAdded: { title: 'New task: {name}', body: '{course}' },
@@ -471,11 +536,93 @@ const en: MobileWords = {
     none: 'Nothing recorded yet.',
     back: 'Back',
   },
+  diag: {
+    title: 'Diagnostics',
+    intro: 'Session notes on this phone, from everyday use. Never sent anywhere.',
+    none: 'Nothing recorded yet.',
+    ended: (n: number) => `Ended sessions recorded: ${n}`,
+    endLine: (when: string, idle: number, since: string) => `${when}: ${idle} minutes after the last activity, ${since} after signing in`,
+    minutes: (n: number) => `${n} minutes`,
+    unknown: 'unknown',
+    checkGap: (min: number) => `Longest gap between background checks in 24 hours: ${min} minutes`,
+    noChecks: 'No background check in the last 24 hours.',
+    limitTitle: 'SIKOLA limit test',
+    limitHelp: 'Press Start, leave SIKOLA alone for 10 minutes, then press Continue. Uses 4 requests from the daily budget.',
+    limitStart: 'Start',
+    limitFinish: 'Continue',
+    limitWait: (time: string) => `Continue after ${time}.`,
+    limitReadings: (a: number, b: number, c: number) => `Session time left ${a} seconds, then ${b}, and ${c} after the ping.`,
+    limitCounted: 'The ping counts as activity.',
+    limitNotCounted: 'The ping does not count as activity.',
+    limitFailed: 'The session time could not be read. Make sure Sulo is still signed in to SIKOLA.',
+    pace: (min: number) => `The keeper reads every ${min} minutes.`,
+    paceBasis: { config: 'Default pace.', ended: 'From sessions that ended.', survived: 'From sessions that lasted.' },
+    tooSlow: 'Sipakamase sessions are shorter than the keeper pace the rules allow.',
+    survived: (min: number) => `Longest session still signed in: ${min} minutes`,
+    cookie: (expires: boolean, maxAge: number | null) => (maxAge !== null ? `The session cookie lasts ${maxAge} seconds.` : expires ? 'The session cookie has an expiry date.' : 'The session cookie has no expiry date.'),
+    neosiaHours: (list: string) => `Session length (hours): ${list}`,
+    back: 'Back',
+  },
+  sim: {
+    edit: 'Change course grades',
+    changed: (count: number) => (count === 1 ? '1 course changed' : `${count} courses changed`),
+  },
+  iphone: {
+    refreshTitle: 'Sulo needs a refresh tomorrow',
+    refreshBody: 'Open Sideloadly on your laptop with this iPhone connected, so Sulo still opens after tomorrow.',
+    refreshSwitch: 'Remind me before it needs a refresh',
+    refreshHelp: 'One silent notification, the day before Sulo on this iPhone needs a refresh from your laptop.',
+    howToUpdate: 'How to update',
+    sendToLaptop: 'Send the link to my laptop',
+    shareTitle: 'How to update Sulo on iPhone',
+    readOnly: 'See the latest data',
+    requiredBody: 'This version no longer updates your data. Update Sulo from your laptop, with Sideloadly.',
+    versions: (installed: string, min: string) => `Installed ${installed}, at least ${min}.`,
+    readOnlyBar: 'Sulo needs an update. This is the latest data it kept.',
+  },
 };
 
 export function mobileWords(locale: Locale): MobileWords {
-  return locale === 'en' ? en : id;
+  const words = locale === 'en' ? en : id;
+  return mobileOs() === 'ios' ? (locale === 'en' ? IPHONE_EN : IPHONE_ID) : words;
 }
+
+/** The iPhone's wording where Android's names a fingerprint, the APK or background watching (B3). */
+function iphone(w: MobileWords, t: { lockHelp: string; lockUnavailable: string; version: (v: string) => string; watch: Partial<MobileWords['watch']> }): MobileWords {
+  return { ...w, connected: { ...w.connected, lockHelp: t.lockHelp, lockUnavailable: t.lockUnavailable }, about: { ...w.about, apkVersion: t.version }, watch: { ...w.watch, ...t.watch } };
+}
+
+const IPHONE_ID = iphone(id, {
+  lockHelp: 'Meminta Face ID, Touch ID, atau kode iPhone setiap Sulo dibuka.',
+  lockUnavailable: 'Pasang kode di iPhone dulu untuk memakai ini.',
+  version: (v) => `Versi ${v}`,
+  watch: {
+    title: 'Jaga sesi SIKOLA',
+    help: 'Saat iPhone memberi waktu, Sulo sesekali mengecek sesi SIKOLA di latar belakang supaya tidak cepat habis. iPhone yang menentukan kapan, jadi tidak dijamin. Tugas baru terlihat saat kamu membuka Sulo.',
+    remoteOff: 'Penjagaan sesi sedang dimatikan sementara.',
+    lockOfferTitle: 'Mau kunci Sulo dengan Face ID?',
+    lockOfferBody: 'Sesi SIKOLA-mu dijaga di iPhone ini. Kunci aplikasi meminta Face ID, Touch ID, atau kode iPhone setiap Sulo dibuka.',
+    sleepTitle: 'iPhone tidak memberi Sulo waktu di latar belakang',
+    sleepBody: 'Jaga sesi SIKOLA tidak bisa jalan. Buka pengaturan Sulo di iPhone, lalu nyalakan penyegaran di latar belakang. Mode Daya Rendah juga mematikannya.',
+    sleepOpen: 'Buka pengaturan Sulo',
+  },
+});
+
+const IPHONE_EN = iphone(en, {
+  lockHelp: 'Asks for Face ID, Touch ID or your iPhone passcode every time Sulo opens.',
+  lockUnavailable: 'Set a passcode on your iPhone first to use this.',
+  version: (v) => `Version ${v}`,
+  watch: {
+    title: 'Keep the SIKOLA session',
+    help: 'When the iPhone gives it time, Sulo now and then checks the SIKOLA session in the background so it does not end early. The iPhone decides when, so it is not guaranteed. New tasks show when you open Sulo.',
+    remoteOff: 'Keeping the session is paused for now.',
+    lockOfferTitle: 'Lock Sulo with Face ID?',
+    lockOfferBody: 'Your SIKOLA session is kept on this iPhone. The app lock asks for Face ID, Touch ID or your iPhone passcode every time Sulo opens.',
+    sleepTitle: 'The iPhone gives Sulo no time in the background',
+    sleepBody: 'Keep the SIKOLA session cannot run. Open Sulo’s settings on the iPhone and turn on background refresh. Low Power Mode also turns it off.',
+    sleepOpen: 'Open Sulo’s settings',
+  },
+});
 
 /**
  * The dashboard's words as the Android app shows them: where the extension

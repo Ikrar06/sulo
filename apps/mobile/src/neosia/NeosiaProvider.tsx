@@ -19,6 +19,15 @@ import { SuloNeosia, type NeosiaPage } from '../neosia-native';
 import { createNeosiaStore } from '../platform/neosia-store';
 import { ingestQueued } from './ingest';
 import { GRADE_ENDPOINTS, withoutGrades } from './grade-guard';
+import { readMkpkTranscript, type MkpkTranscript } from '@sulo/core/mkpk/transcript';
+import { VISIT_KEY, visitDue } from '@sulo/core/neosia/visit';
+import { noteNeosiaSession } from '@sulo/core/neosia/session-log';
+import { isReadOnly } from '../read-only';
+import { readPrefs } from '@sulo/core/prefs';
+import { readRemoteConfig } from '@sulo/core/remote/remote-config';
+import { sourcesFrom } from '@sulo/core/remote/sources';
+import { readCalendar } from '@sulo/core/calendar/remote';
+import { localParts } from '@sulo/core/reminders/zoned';
 
 /** NEOSIA's sign-in was seen (a page left its login), kept until a page lands on the login again; NEOSIA data, so wiped with it. */
 const SIGNED_IN_KEY = 'neosia:signedIn';
@@ -39,10 +48,14 @@ export interface NeosiaState {
   signedIn: boolean;
   /** NEOSIA classes linked by hand to SIKOLA courses (encrypted like the rest). */
   courseMap: CourseMap;
+  /** The MKPK card's summary of the transcript: passed MKPK credits and course-code letters, never a grade. */
+  mkpk: MkpkTranscript | null;
   enable: () => Promise<void>;
   disable: () => Promise<void>;
   /** Opens a NEOSIA page from a tap; its captures are stored when it closes. */
   open: (page: NeosiaPage | SourceId | 'login') => Promise<OpenResult>;
+  /** "Perbarui dari NEOSIA" (1.1.0): the page opens, its data comes in, the screen closes by itself. */
+  refreshFrom: (page: NeosiaPage | SourceId) => Promise<OpenResult>;
   /** The full snapshots with grades, for Nilai and the Studi card only. */
   loadGrades: () => Promise<Snapshots>;
   reload: () => Promise<void>;
@@ -55,6 +68,9 @@ export const useNeosia = (): NeosiaState => {
   return v;
 };
 
+/** The shell (the landing page renders it without NEOSIA): null when no provider is there. */
+export const useNeosiaIfAny = (): NeosiaState | null => useContext(NeosiaContext);
+
 export function NeosiaProvider({ platform, children }: { platform: Platform; children: ReactNode }) {
   const store = useMemo(() => createNeosiaStore(platform.store, SuloNeosia), [platform]);
   const [supported, setSupported] = useState<boolean | null>(null);
@@ -64,6 +80,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
   const [lastResult, setLastResult] = useState<OpenResult>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [courseMap, setCourseMap] = useState<CourseMap>({});
+  const [mkpk, setMkpk] = useState<MkpkTranscript | null>(null);
   const [signedInSeen, setSignedInSeen] = useState(false);
 
   const reload = useCallback(async () => {
@@ -72,6 +89,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
       setSnapshots({});
       setGradeKeys(new Set());
       setSignedInSeen(false);
+      setMkpk(null);
       return;
     }
     const keys = new Set(await store.keys(snapshotKey('' as EndpointId)));
@@ -90,6 +108,8 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
     setGradeKeys(grades);
     setSignedInSeen((await store.get<boolean>(SIGNED_IN_KEY)) === true);
     setCourseMap(await readCourseMap(store).catch(() => ({})));
+    // Made once from a transcript captured before the summary existed; the transcript itself is not kept here.
+    setMkpk(await readMkpkTranscript(store, snapshotKey('getTranskripMahasiswa')).catch(() => null));
   }, [platform, store]);
 
   useEffect(() => {
@@ -102,6 +122,42 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
       if (NEOSIA_MODULE_KEY in changes || CURRENT_USER_KEY in changes) void reload();
     });
   }, [platform, reload]);
+
+  // "Perbarui NEOSIA otomatis" (1.1.0): on opening the app, when a visit is due, Beranda in a hidden WebView.
+  useEffect(() => {
+    let running = false;
+    const maybeVisit = async () => {
+      if (running || document.visibilityState !== 'visible') return;
+      running = true;
+      try {
+        const [module, prefs, config, calendar, last] = await Promise.all([
+          readModuleState(platform.store),
+          readPrefs(platform.store),
+          readRemoteConfig(platform.store),
+          readCalendar(platform.store),
+          store.get<number>(VISIT_KEY),
+        ]);
+        const now = platform.clock.now();
+        const today = localParts(now, Intl.DateTimeFormat().resolvedOptions().timeZone).dateKey;
+        const due = visitDue({ consented: prefs.neosiaAutoVisit, configAllows: sourcesFrom(config).neosia.scheduledVisit, moduleOn: module.enabled, lastVisitAt: last ?? null, now, today, kegiatan: calendar.kegiatan });
+        if (!due || isReadOnly()) return;
+        await store.set(VISIT_KEY, now);
+        const { result } = await SuloNeosia.visit();
+        if (result === 'data' || result === 'needs_login') await noteNeosiaSession(store, { at: now, event: result === 'data' ? 'signed_in' : 'needs_login', via: 'visit' }).catch(() => undefined);
+        if (result === 'needs_login') {
+          setNeedsLogin(true);
+          await store.remove(SIGNED_IN_KEY).catch(() => undefined);
+        }
+        await ingestQueued({ take: () => SuloNeosia.takeCaptures(), store, now: () => platform.clock.now() });
+        await reload();
+      } finally {
+        running = false;
+      }
+    };
+    void maybeVisit();
+    document.addEventListener('visibilitychange', maybeVisit);
+    return () => document.removeEventListener('visibilitychange', maybeVisit);
+  }, [platform, store, reload]);
 
   // The checklist counts a grade source by its stored key; the grades themselves stay unread.
   const done = useMemo(() => {
@@ -128,9 +184,15 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
   }, [platform, reload]);
 
   const open = useCallback(
-    async (target: NeosiaPage | SourceId | 'login'): Promise<OpenResult> => {
+    async (target: NeosiaPage | SourceId | 'login', closeOnData = false): Promise<OpenResult> => {
+      // "Lihat data terakhir" (read-only.ts): NEOSIA's pages do not open either.
+      if (isReadOnly()) return 'closed';
       const page = (target in PAGE_OF ? PAGE_OF[target as SourceId] : target) as NeosiaPage;
-      const { result } = await SuloNeosia.open({ page, close: 'Tutup' });
+      const answer = (await SuloNeosia.open({ page, close: 'Tutup', ...(closeOnData ? { closeOnData: true } : {}) })).result;
+      // Data came in: the session was alive, like a sign-in seen.
+      const result: OpenResult = answer === 'data' ? 'signed_in' : answer;
+      // Debug and tester builds: how long NEOSIA sessions last (no request).
+      if (result === 'signed_in' || result === 'needs_login') await noteNeosiaSession(store, { at: platform.clock.now(), event: result, via: 'tap' }).catch(() => undefined);
       setLastResult(result);
       setNeedsLogin(result === 'needs_login');
       if (result === 'signed_in') await store.set(SIGNED_IN_KEY, true).catch(() => undefined);
@@ -154,7 +216,7 @@ export function NeosiaProvider({ platform, children }: { platform: Platform; chi
     return full;
   }, [snapshots, gradeKeys, store]);
 
-  const value: NeosiaState = { supported, enabled: module.enabled, snapshots, done, next, needsLogin, signedIn, courseMap, enable, disable, open, loadGrades, reload };
+  const value: NeosiaState = { supported, enabled: module.enabled, snapshots, done, next, needsLogin, signedIn, courseMap, mkpk, enable, disable, open: (t) => open(t), refreshFrom: (t) => open(t, true), loadGrades, reload };
   return <NeosiaContext.Provider value={value}>{children}</NeosiaContext.Provider>;
 }
 

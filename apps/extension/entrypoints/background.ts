@@ -38,19 +38,30 @@ import { bumpUsage } from '@sulo/core/stats/usage';
 import { ACCOUNT_PENDING_KEY, readPending, type AccountPending } from '@sulo/core/account/pending';
 import { useNewAccount, wipeAllData } from '@sulo/core/account/actions';
 import { runSync, type SyncStage } from '@sulo/core/sync/run-sync';
+import { runMkpkNotices } from '@sulo/core/mkpk/notices-run';
 import { ONBOARDING_STAGES_KEY, type OnboardingStages } from '@sulo/core/onboarding/stages';
 import { recordSeenCmid, refreshPresensiForCurrent, type PresensiOutcome } from '@sulo/core/presensi/service';
+import { courseGradesForCurrent, taskGradeForCurrent } from '@sulo/core/tasks/grade-service';
+import { gradeSweep, SWEEP_OPEN } from '@sulo/core/tasks/grade-sweep';
 import { announceRelogin, isSignedInSikolaPage, reloginStep, type ReloginEvent, type ReloginMarker } from '@sulo/core/sync/relogin';
 import { setDone, setSnooze } from '@sulo/core/tasks/local-state';
 import { messagesFor, resolveLocale } from '@sulo/core/i18n';
 import type { SyncOutcome, SyncTrigger } from '@sulo/core/types';
 import { loadPopupInput } from '@sulo/core/view/load';
 import { browserModuleDeps } from '@/src/platform/neosia';
+import { createSipakamaseService, SIPAKAMASE_ALARM } from '@/src/sipakamase';
+import { SIPAKAMASE_ORIGIN } from '@sulo/core/sipakamase/allowlist';
+import { SIPAKAMASE_NEWS_KEY } from '@sulo/core/sipakamase/store';
 import { disableModule, enableModule, reconcileModule } from '@sulo/core/neosia/module';
 import { NEOSIA_APP_ORIGIN } from '@sulo/core/neosia/allowlist';
 import { ingestCapture, pruneUnlistedSnapshots } from '@sulo/core/neosia/store';
+import { captureFrom, REFRESH_SETTLE_MS, startRefresh } from '@sulo/core/neosia/refresh-tab';
+import { NEOSIA_HOME, NEOSIA_KHS, NEOSIA_KRS } from '@sulo/core/links';
 import { recordGrades } from '@sulo/core/neosia/grades';
 import { buildPopupView } from '@sulo/core/view/popup-view';
+import { EXTENSION_WATCH_KEY, readExtensionWatch, setExtensionWatch, watchInForce } from '@sulo/core/watch/extension';
+import { IDLE_PAUSE_KEY, markOpened, pauseIfIdle, readIdlePause } from '@sulo/core/watch/idle';
+import { watchWords } from '@sulo/core/i18n/watch';
 
 const SESSKEY_KEY = 'sesskey';
 /** The one rolling alarm for every notification (docs/ARCHITECTURE.md section 9). */
@@ -61,6 +72,10 @@ const REMINDER_INPUTS = /^(u:\d+:(tasks|taskState|courses|changes)|global:(prefs
 const POPUP_PANEL_KEY = 'global:popupPanel';
 const SNOOZE_FROM_NOTIFICATION = 3600;
 const ONBOARDING_PAGE = '/onboarding.html';
+/** "Pantau tugas baru" (1.1.0): the periodic light check, only while it is on. */
+const WATCH_ALARM = 'watch';
+/** Where "Perbarui dari NEOSIA" goes, by what the page needs. */
+const NEOSIA_REFRESH_PAGES = { home: NEOSIA_HOME, khs: NEOSIA_KHS, krs: NEOSIA_KRS } as const;
 /** Catch-up syncs after the browser starts or the user returns: "catchup:startup", "catchup:idle". */
 const CATCHUP_ALARM_PREFIX = 'catchup:';
 const CATCHUP_TRIGGERS = new Set<SyncTrigger>(['startup', 'idle']);
@@ -113,6 +128,10 @@ export default defineBackground(() => {
   // ---------- NEOSIA module (optional, off by default) ----------
 
   const neosia = browserModuleDeps(local, () => clock.now());
+
+  // ---------- Sipakamase module (optional, off by default, 1.1.0) ----------
+
+  const sipakamase = createSipakamaseService({ store: local, scheduler, now: () => clock.now(), today: () => localParts(clock.now(), timeZone()).dateKey });
   // One reconcile at a time (startup and a permission change can coincide).
   let neosiaQueue: Promise<unknown> = Promise.resolve();
   const reconcileNeosia = () => {
@@ -170,6 +189,44 @@ export default defineBackground(() => {
     if (!(await browser.alarms.get(BADGE_ALARM))) {
       await browser.alarms.create(BADGE_ALARM, { periodInMinutes: BADGE_REFRESH_MIN });
     }
+    // "Pantau tugas baru": one alarm at the active interval while it is in force; idle and
+    // locked are decided when it fires (sync/run-sync.ts). Off or stopped remotely: no alarm.
+    const watch = watchInForce(await readExtensionWatch(local), config);
+    const watchAlarm = await browser.alarms.get(WATCH_ALARM);
+    // Not opened for 7 days: the watch rests until Sulo is opened again (watch/idle.ts).
+    if (!watch.on || (await readIdlePause(local)) !== null) {
+      if (watchAlarm) await browser.alarms.clear(WATCH_ALARM);
+    } else if (!watchAlarm || watchAlarm.periodInMinutes !== watch.config.activeIntervalMinutes) {
+      await browser.alarms.create(WATCH_ALARM, { delayInMinutes: watch.config.activeIntervalMinutes, periodInMinutes: watch.config.activeIntervalMinutes });
+    }
+  };
+
+  /** The intervals in force for the watch trigger. */
+  const watchIntervals = async () => {
+    const { config } = watchInForce(await readExtensionWatch(local), await readRemoteConfig(local));
+    return { activeMinutes: config.activeIntervalMinutes, idleMinutes: config.idleIntervalMinutes };
+  };
+
+  /**
+   * Seven days without Sulo opened (popup or dashboard): SIKOLA's watch and
+   * Sipakamase's keeper stop, with one notification. Opening Sulo starts the
+   * watch again; Sipakamase asks to connect again.
+   */
+  const checkIdle = async () => {
+    if (!(await pauseIfIdle(local, clock.now()))) return;
+    await ensureAlarms();
+    await sipakamase.idle();
+    const prefs = await readPrefs(local);
+    const w = watchWords(resolveLocale(prefs.locale, browser.i18n.getUILanguage()));
+    await notifier.show('idle', { icon: 'sleepy', title: w.idleTitle, message: w.idleBody, buttons: [] }).catch(() => undefined);
+  };
+
+  /** "Pantau tugas baru" switched: stored, the alarm follows, and turning it on checks once at once. */
+  const setWatch = async (enabled: boolean) => {
+    await setExtensionWatch(local, enabled, clock.now());
+    await ensureAlarms();
+    if (enabled && watchInForce(await readExtensionWatch(local), await readRemoteConfig(local)).on) void sync('popup');
+    return { ok: true };
   };
 
   // ---------- Reminders: one rolling alarm ----------
@@ -195,6 +252,15 @@ export default defineBackground(() => {
       // The phone's full morning summary (Tahap 2): overdue, today, tomorrow and today's calendar events; none when all are empty.
       const result = await runNotifyCycle({ store: local, now, timeZone: timeZone(), uiLanguage: browser.i18n.getUILanguage(), morningStyle: 'full', notifier });
       await countShown(result.shownKinds ?? []);
+      // MKPK (1.1.0): courses near the grade deadline or in the KRS window, and Sipakamase news.
+      const prefs = await readPrefs(local);
+      await runMkpkNotices({
+        store: local,
+        now,
+        timeZone: timeZone(),
+        locale: resolveLocale(prefs.locale, browser.i18n.getUILanguage()),
+        show: (id, title, body) => notifier.show(id, { icon: 'idle', title, message: body, buttons: [] }),
+      }).catch(() => 0);
       if (result.nextAt === null) await browser.alarms.clear(NOTIFY_ALARM);
       else await browser.alarms.create(NOTIFY_ALARM, { when: result.nextAt * 1000 });
       return result;
@@ -243,7 +309,8 @@ export default defineBackground(() => {
     } else if (kind === 'nudge') {
       // The user clicked the notification: open the NEOSIA page it names. Sulo never touches that tab.
       await browser.tabs.create({ url: nudgeTarget(id) });
-    } else if (kind === 'krs') {
+    } else if (kind === 'krs' || kind === 'mkpk' || kind === 'idle') {
+      // MKPK notices (1.1.0) open the overview, where the MKPK card is.
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('ringkasan')) });
     } else if (kind === 'calendar') {
       await browser.tabs.create({ url: browser.runtime.getURL(dashboardPath('kalender')) });
@@ -304,7 +371,7 @@ export default defineBackground(() => {
 
   const syncOnceGuarded = async ({ trigger, forceCourseList = false }: SyncRequest): Promise<SyncOutcome> => {
     await refreshConfig();
-    const unattended = trigger === 'background' || CATCHUP_TRIGGERS.has(trigger);
+    const unattended = trigger === 'background' || trigger === 'watch' || CATCHUP_TRIGGERS.has(trigger);
     const idleState: IdleState | undefined = unattended ? ((await browser.idle.queryState(IDLE_THRESHOLD_SEC)) as IdleState) : undefined;
     await recoverSesskeyIfAllowed(trigger);
     // The onboarding's "Menyiapkan Sulo" follows the real stages as they finish (Tahap 2): each
@@ -318,7 +385,8 @@ export default defineBackground(() => {
           }
         : undefined;
     if (onStage) await session.set(ONBOARDING_STAGES_KEY, { at: Date.now(), stages: [] });
-    const outcome = await runSync({ client, store: local, clock, trigger, idleState, forceCourseList, onStage });
+    const watch = trigger === 'watch' ? await watchIntervals() : undefined;
+    const outcome = await runSync({ client, store: local, clock, trigger, idleState, forceCourseList, onStage, watch });
     if (outcome.status === 'invalid_sesskey') await session.remove(SESSKEY_KEY);
     await updateBadge();
     return outcome;
@@ -404,8 +472,11 @@ export default defineBackground(() => {
 
   const useNew = async () => {
     const ok = await useNewAccount({ store: local, clearNotifications: clearAllNotifications, openSetup });
-    // The new account's owner has not agreed to the NEOSIA module.
-    if (ok) await disableModule(neosia);
+    // The new account's owner has not agreed to the NEOSIA or Sipakamase module.
+    if (ok) {
+      await disableModule(neosia);
+      await sipakamase.disable();
+    }
     await updateBadge();
     return { ok };
   };
@@ -422,7 +493,10 @@ export default defineBackground(() => {
       sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
       clearAlarms: async () => void (await browser.alarms.clearAll()),
       // NEOSIA scripts off and permissions removed before the data goes.
-      beforeClear: () => disableModule(neosia),
+      beforeClear: async () => {
+        await disableModule(neosia);
+        await sipakamase.disable();
+      },
       clearNotifications: clearAllNotifications,
       clearLocal: () => browser.storage.local.clear(),
       clearSession: () => browser.storage.session.clear(),
@@ -452,10 +526,18 @@ export default defineBackground(() => {
       case 'status/get':
         return status();
       // Local only: counts the open for the "baru" markers. No request.
+      // With "Pantau tugas baru" on, opening the popup also checks once (runSync skips it
+      // when the last check is younger than 2 minutes); the popup shows stored data at once.
       case 'popup/opened':
-        return countOpen()
+        return markOpened(local, clock.now())
+          .then(countOpen)
           .then(() => bumpUsage(local, today(), 'popupOpens'))
+          .then(async () => {
+            if (watchInForce(await readExtensionWatch(local), await readRemoteConfig(local)).on) void sync('popup');
+          })
           .then(status);
+      case 'watch/set':
+        return setWatch(message.enabled);
       case 'sync/request':
         // A request that arrives while a cycle runs shares that cycle's result.
         return sync(message.trigger, message.forceCourseList ?? false);
@@ -469,10 +551,26 @@ export default defineBackground(() => {
         return sendTestNotification();
       case 'presensi/refresh':
         return refreshPresensi(message.target, message.courseId ?? null, message.force);
+      // "Lihat nilai": one GET of the assignment page, only on the user's tap, through the same client.
+      case 'task/grade':
+        return taskGradeForCurrent({ client, store: local, clock }, message.cmid, message.again);
+      case 'course/grades':
+        return courseGradesForCurrent({ client, store: local, clock }, message.courseId, message.again);
+      case 'grades/sweep':
+        return gradeSweep({ client, store: local, clock }, SWEEP_OPEN);
       case 'neosia/enable':
         return enableModule(neosia);
       case 'neosia/disable':
         return disableModule(neosia).then(() => ({ ok: true }));
+      case 'sipakamase/enable':
+        return sipakamase.enable();
+      case 'sipakamase/disable':
+        return sipakamase.disable();
+      case 'sipakamase/refresh':
+        return sipakamase.refresh();
+      case 'neosia/refresh':
+        // From the click on "Perbarui dari NEOSIA": the page in a new tab, watched for its data (core neosia/refresh-tab.ts).
+        return startRefresh(session, async () => (await browser.tabs.create({ url: NEOSIA_REFRESH_PAGES[message.page], active: true })).id, clock.now()).then((ok) => ({ ok }));
       default:
         return null;
     }
@@ -517,11 +615,16 @@ export default defineBackground(() => {
 
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SYNC_ALARM) void sync('background');
+    if (alarm.name === WATCH_ALARM) void sync('watch');
+    if (alarm.name === SIPAKAMASE_ALARM) void sipakamase.keep();
     if (alarm.name.startsWith(CATCHUP_ALARM_PREFIX)) {
       const trigger = alarm.name.slice(CATCHUP_ALARM_PREFIX.length) as SyncTrigger;
       if (CATCHUP_TRIGGERS.has(trigger)) void sync(trigger);
     }
-    if (alarm.name === BADGE_ALARM) void updateBadge();
+    if (alarm.name === BADGE_ALARM) {
+      void updateBadge();
+      void checkIdle();
+    }
     if (alarm.name === NOTIFY_ALARM) runReminders();
   });
 
@@ -535,8 +638,9 @@ export default defineBackground(() => {
     if (pendingChange?.newValue && (pendingChange.newValue as AccountPending).userId !== (pendingChange.oldValue as AccountPending | undefined)?.userId) {
       void clearAllNotifications();
     }
-    if ('global:remoteConfig' in changes) void ensureAlarms();
-    if (keys.some((k) => REMINDER_INPUTS.test(k))) runReminders();
+    if ('global:remoteConfig' in changes || EXTENSION_WATCH_KEY in changes || IDLE_PAUSE_KEY in changes) void ensureAlarms();
+    if ('global:remoteConfig' in changes) void sipakamase.ensureAlarm();
+    if (keys.some((k) => REMINDER_INPUTS.test(k) || k === SIPAKAMASE_NEWS_KEY)) runReminders();
     const account = changes[CURRENT_USER_KEY];
     if (account && account.oldValue !== undefined && account.oldValue !== account.newValue) void onAccountChanged();
   });
@@ -554,6 +658,8 @@ export default defineBackground(() => {
 
   // A NEOSIA permission removed in Chrome's settings turns the module off and deletes its data.
   browser.permissions.onRemoved.addListener(reconcileNeosia);
+  // The same for Sipakamase.
+  browser.permissions.onRemoved.addListener(() => void sipakamase.reconcile());
 
   browser.notifications.onClicked.addListener((id) => void onNotificationClick(id));
 
@@ -571,6 +677,7 @@ export default defineBackground(() => {
   // earlier account are removed first.
   void pruneOrphanUserKeys(local).then(runReminders);
   reconcileNeosia();
+  void sipakamase.reconcile();
   // Endpoints dropped from the allowlist leave no data behind.
   void pruneUnlistedSnapshots(local).catch(() => undefined);
 
@@ -605,6 +712,17 @@ export default defineBackground(() => {
       // Only the bridge on a NEOSIA page; anything else is dropped unread.
       if (!isContentScriptOn(sender, extensionId, NEOSIA_APP_ORIGIN)) return false;
       onNeosiaCapture(message.capture);
+      // The refresh tab Sulo opened from the user's click closes once its data came in.
+      const tabId = sender.tab?.id;
+      void captureFrom(session, tabId, clock.now()).then((close) => {
+        if (close && tabId !== undefined) setTimeout(() => void browser.tabs.remove(tabId).catch(() => undefined), REFRESH_SETTLE_MS);
+      });
+      return false;
+    }
+    if (message.type === 'sipakamase/passive') {
+      // Only the reader on a Sipakamase page; validated again before anything is stored.
+      if (!isContentScriptOn(sender, extensionId, SIPAKAMASE_ORIGIN)) return false;
+      void sipakamase.passive(message.message);
       return false;
     }
     if (message.type === 'presensi/seenCmid') {

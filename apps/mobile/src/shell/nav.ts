@@ -89,3 +89,17 @@ export function back(state: NavState): NavState | 'exit' {
   if (previous === undefined) return state.tab === 'ringkasan' ? 'exit' : { tab: 'ringkasan', stack: [], history: [] };
   return { tab: previous, stack: [], history: state.history.slice(0, -1) };
 }
+
+/**
+ * How the screen changes (styles.css m-push, m-pop): a detail opening, from any tab, comes in from the right; one
+ * closing in the same tab brings the screen below in from the left; switching tabs, and a tab's first screen
+ * reached from another tab, have no motion.
+ */
+export function motionBetween(prev: NavState, next: NavState): 'push' | 'pop' | null {
+  const before = current(prev);
+  const after = current(next);
+  if (before.name === after.name && before.detail === after.detail && prev.tab === next.tab) return null;
+  if (next.stack.length > 0 && (prev.tab !== next.tab || next.stack.length >= prev.stack.length)) return 'push';
+  if (prev.tab === next.tab && next.stack.length < prev.stack.length) return 'pop';
+  return null;
+}

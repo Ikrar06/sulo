@@ -19,10 +19,19 @@ const words = (locale: 'id' | 'en') => extOnboardingWords(locale);
 
 export type RowState = 'waiting' | 'running' | 'done' | 'failed';
 
-/** Each row's state from the stages so far; the first unfinished one runs, or fails when the sync failed. */
-export function preparingRows(stages: OnboardingStages['stages'], failed: boolean): Record<'connected' | SyncStage, RowState> {
+/**
+ * Each row's state from the stages so far; the first unfinished one runs, or fails when the sync failed.
+ * `connected` is ticked only once SIKOLA could answer: offline it fails, and while the request limits pause
+ * the setup it waits (with nothing marked failed: `failed` is false then).
+ */
+export function preparingRows(stages: OnboardingStages['stages'], failed: boolean, connected: RowState = 'done'): Record<'connected' | SyncStage, RowState> {
   const results = stageResults(stages);
-  const out: Record<'connected' | SyncStage, RowState> = { connected: 'done', tasks: 'waiting', courses: 'waiting', attendance: 'waiting' };
+  // A stage that ended well means SIKOLA did answer: then it is ticked whatever stopped the setup later. A failed
+  // one proves nothing (a refused or unsent request also fails "tasks", run-sync.ts).
+  const reached = STAGE_ROWS.some((r) => results[r] === 'ok');
+  const out: Record<'connected' | SyncStage, RowState> = { connected: reached ? 'done' : connected, tasks: 'waiting', courses: 'waiting', attendance: 'waiting' };
+  // Nothing reached SIKOLA: the later rows wait instead of running.
+  if (out.connected !== 'done') return out;
   let running = false;
   for (const r of STAGE_ROWS) {
     const res = results[r];
@@ -89,10 +98,10 @@ function Row({ state, label, value }: { state: RowState; label: string; value: s
   );
 }
 
-export function ScenePreparing({ stages, counts, failed = false }: { stages: OnboardingStages['stages']; counts: { tasks: number; courses: number }; failed?: boolean }) {
+export function ScenePreparing({ stages, counts, failed = false, connectedRow = 'done' }: { stages: OnboardingStages['stages']; counts: { tasks: number; courses: number }; failed?: boolean; connectedRow?: RowState }) {
   const { locale } = useI18n();
   const { phone, ext } = words(locale);
-  const rows = preparingRows(stages, failed);
+  const rows = preparingRows(stages, failed, connectedRow);
   const tasks = useCountUp(rows.tasks === 'done' ? counts.tasks : null);
   const courses = useCountUp(rows.courses === 'done' ? counts.courses : null);
   const narrow = useNarrow();

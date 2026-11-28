@@ -72,13 +72,14 @@
 
 /* Buttons are matched by their variant and size, not data-slot: a Radix
    trigger rendered asChild (menus, tooltips) passes its own data-slot down. */
+/* Fields (inputs, select triggers) keep the control radius: they hold a value. */
 [data-slot="input"],
-[data-slot="select-trigger"],
-:is(button, a)[data-size]:is([data-variant="outline"], [data-variant="secondary"], [data-variant="ghost"], [data-variant="destructive"], [data-variant="destructive-outline"]) {
+[data-slot="select-trigger"] {
   border-radius: var(--radius-ctl);
 }
-/* Primary actions are pills; icon buttons are circles. */
-:is(button, a)[data-size]:is([data-variant="default"], [data-variant="destructive-solid"]),
+/* Every button is a pill and an icon button a circle, as on the phone (1.1.0):
+   a primary pill next to a square-cornered secondary read as two systems. */
+:is(button, a)[data-size]:is([data-variant="default"], [data-variant="destructive-solid"], [data-variant="outline"], [data-variant="secondary"], [data-variant="ghost"], [data-variant="destructive"], [data-variant="destructive-outline"]),
 :is(a, button).bg-primary,
 :is(button, a)[data-variant][data-size^="icon"] {
   border-radius: 9999px;

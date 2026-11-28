@@ -26,7 +26,9 @@ object WatchRemote {
 
     data class KeepAlive(val enabled: Boolean, val dayIntervalMinutes: Int, val nightIntervalMinutes: Int, val radarEvery: Int)
     /** minVersionCode: from a valid mobile.release only, 0 when none (core remote/release.ts). */
-    data class Config(val globalEnabled: Boolean, val keepAlive: KeepAlive, val minVersionCode: Int = 0)
+    /** sipakamaseKeep: false only when sources.sipakamase is off or its keeper stopped (core watch/remote.ts). */
+    /** minVersionFrom: when minVersionCode applies (mobile.release.requiredFrom, unix seconds; 0: at once). */
+    data class Config(val globalEnabled: Boolean, val keepAlive: KeepAlive, val minVersionCode: Int = 0, val sipakamaseKeep: Boolean = true, val minVersionFrom: Long = 0)
 
     sealed class Read {
         data class Ok(val config: Config) : Read()
@@ -64,15 +66,32 @@ object WatchRemote {
         }
         // The switch's path, when present, is readable (the schema's refine).
         if (!switchReadable(root)) return Read.Failed
-        return Read.Ok(Config(enabled, keepAlive(root.opt("mobile")), releaseMin(root.opt("mobile"))))
+        val required = releaseMin(root.opt("mobile"))
+        return Read.Ok(Config(enabled, keepAlive(root.opt("mobile")), required, sipakamaseKeep(root.opt("sources")), if (required > 0) releaseFrom(root.opt("mobile")) else 0))
     }
 
-    private fun switchReadable(root: JSONObject): Boolean {
-        if (!root.has("mobile")) return true
-        val mobile = root.opt("mobile") as? JSONObject ?: return false
-        if (!mobile.has("backgroundKeepAlive")) return true
-        val k = mobile.opt("backgroundKeepAlive") as? JSONObject ?: return false
-        return !k.has("enabled") || k.opt("enabled") is Boolean
+    /** core remote/sources.ts: sources.sipakamase.enabled and .keep, each true unless a boolean false (the switch rule already refused a non-boolean). */
+    private fun sipakamaseKeep(sources: Any?): Boolean {
+        val s = (sources as? JSONObject)?.optJSONObject("sipakamase") ?: return true
+        return s.opt("enabled") != false && s.opt("keep") != false
+    }
+
+    /** core remote/switches.ts CONFIG_SWITCHES: the same paths, the same rule. */
+    private val SWITCHES = listOf(
+        Triple("mobile", "backgroundKeepAlive", "enabled"),
+        Triple("extension", "backgroundWatch", "enabled"),
+        Triple("sources", "sipakamase", "enabled"),
+        Triple("sources", "sipakamase", "keep"),
+        Triple("sources", "neosia", "scheduledVisit"),
+    )
+
+    /** Every switch path, where present, is readable: its sections objects, the switch a boolean. */
+    private fun switchReadable(root: JSONObject): Boolean = SWITCHES.all { (section, group, name) ->
+        if (!root.has(section) || root.isNull(section)) return@all !root.has(section)
+        val s = root.opt(section) as? JSONObject ?: return@all false
+        if (!s.has(group)) return@all true
+        val g = s.opt(group) as? JSONObject ?: return@all false
+        !g.has(name) || g.opt(name) is Boolean
     }
 
     /** keep-alive.ts parseKeepAlive: each field its default when missing, of the wrong type or out of range. */
@@ -111,6 +130,7 @@ object WatchRemote {
         val min = if (r.has("minVersionCode")) r.opt("minVersionCode") else 0
         val minOk = (isInteger(min) && (min as Number).toDouble() == 0.0) || isCode(min)
         if (!minOk || (min as Number).toDouble() > (code as Number).toDouble()) return 0
+        if (r.has("requiredFrom") && !isCode(r.opt("requiredFrom"))) return 0
         if (r.has("notes")) {
             val n = r.opt("notes") as? JSONObject ?: return 0
             val id = (n.opt("id") as? String)?.trim() ?: return 0
@@ -118,6 +138,12 @@ object WatchRemote {
             if (id.isEmpty() || en.isEmpty() || id.length > NOTES_MAX || en.length > NOTES_MAX) return 0
         }
         return min.toInt()
+    }
+
+    /** mobile.release.requiredFrom of a valid section (checked by [releaseMin]); 0 when absent. */
+    private fun releaseFrom(mobile: Any?): Long {
+        val r = (mobile as? JSONObject)?.opt("release") as? JSONObject ?: return 0
+        return if (r.has("requiredFrom")) (r.opt("requiredFrom") as Number).toLong() else 0
     }
 
     /** A JSON number with no fraction (JavaScript's Number.isInteger). */
@@ -136,7 +162,7 @@ object WatchRemote {
         if (c == null || s.configOkAt <= 0) return Decision.Hold("no_config")
         if (s.now - s.configOkAt >= MAX_AGE_SEC) return Decision.Hold("stale_config")
         // A required update: nothing to SIKOLA until Sulo is updated (the chain still reads the config).
-        if (c.minVersionCode > 0 && s.installedCode != null && s.installedCode < c.minVersionCode) return Decision.Hold("update_required")
+        if (c.minVersionCode > 0 && s.installedCode != null && s.installedCode < c.minVersionCode && s.now >= c.minVersionFrom) return Decision.Hold("update_required")
         if (!c.globalEnabled) return Decision.Hold("global_off")
         if (!c.keepAlive.enabled) return Decision.Hold("keepalive_off")
         val k = c.keepAlive
@@ -160,11 +186,13 @@ object WatchRemote {
         .put("globalEnabled", c.globalEnabled)
         .put("keepAlive", JSONObject().put("enabled", c.keepAlive.enabled).put("dayIntervalMinutes", c.keepAlive.dayIntervalMinutes).put("nightIntervalMinutes", c.keepAlive.nightIntervalMinutes).put("radarEvery", c.keepAlive.radarEvery))
         .apply { if (c.minVersionCode > 0) put("minVersionCode", c.minVersionCode) }
+        .apply { if (c.minVersionFrom > 0) put("minVersionFrom", c.minVersionFrom) }
+        .apply { if (!c.sipakamaseKeep) put("sipakamaseKeep", false) }
 
     /** From the plan's or the store's JSON; anything unreadable is null (no config). */
     fun fromJson(o: JSONObject?): Config? = runCatching {
         val k = o!!.getJSONObject("keepAlive")
-        Config(o.getBoolean("globalEnabled"), KeepAlive(k.getBoolean("enabled"), k.getInt("dayIntervalMinutes"), k.getInt("nightIntervalMinutes"), k.getInt("radarEvery")), o.optInt("minVersionCode", 0))
+        Config(o.getBoolean("globalEnabled"), KeepAlive(k.getBoolean("enabled"), k.getInt("dayIntervalMinutes"), k.getInt("nightIntervalMinutes"), k.getInt("radarEvery")), o.optInt("minVersionCode", 0), o.optBoolean("sipakamaseKeep", true), o.optLong("minVersionFrom", 0))
     }.getOrNull()
 }
 

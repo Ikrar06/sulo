@@ -15,6 +15,8 @@ const ALLOWED_HOSTS = new Set([
   // Data: the only hosts Sulo requests.
   'sikola-v2.unhas.ac.id',
   'ikrar06.github.io',
+  // Sipakamase (1.1.0, hard rule 17): five read paths, GET only, once the student connects it (optional host).
+  'sipakamase.unhas.ac.id',
   // Plain links opened by a click (docs/UI.md, "Tautan ke luar").
   'www.unhas.ac.id',
   'teer.id',

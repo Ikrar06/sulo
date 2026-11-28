@@ -78,6 +78,8 @@ export const id = {
       noDue: 'tanpa tenggat',
     },
     row: {
+      /** A task the student added without a course (tasks/own.ts), where a course name goes. */
+      ownTask: 'Tugas sendiri',
       doneShort: 'Selesai',
       undo: 'Urungkan',
       menu: (name: string) => `Pilihan untuk ${name}`,
@@ -179,6 +181,7 @@ export const id = {
       test: 'Kirim notifikasi uji',
       testSent: 'Notifikasi uji sudah dikirim.',
       testHelp: 'Kalau tidak muncul, nyalakan notifikasi untuk Chrome di pengaturan sistem komputermu.',
+      notShowing: 'Notifikasi tidak muncul?',
       macSteps: 'macOS: Pengaturan Sistem > Notifikasi > Google Chrome > Izinkan notifikasi.',
       winSteps: 'Windows: Pengaturan > Sistem > Notifikasi > nyalakan untuk Google Chrome.',
       sessionNote: 'Kalau kamu perlu masuk lagi ke SIKOLA, Sulo memberi tahu sekali saja.',
@@ -260,6 +263,8 @@ export const id = {
     sessionTitle: 'Tugasmu belum bisa diperbarui',
     sessionRepeatTitle: 'Tugasmu belum diperbarui sejak kemarin',
     sessionBody: 'Masuk lagi ke SIKOLA supaya Sulo bisa memperbarui tugasmu.',
+    morningRelogin: (sources: readonly string[]) =>
+      `Masuk lagi ke ${sources.length > 1 ? `${sources.slice(0, -1).join(', ')} dan ${sources[sources.length - 1]}` : sources[0]} supaya Sulo bisa memperbarui.`,
     reloginTitle: 'Tugasmu sudah diperbarui',
     reloginBody: 'Sulo memperbaruinya begitu kamu masuk lagi ke SIKOLA.',
     snoozeButton: 'Tunda 1 jam',

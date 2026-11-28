@@ -11,17 +11,52 @@
 @source "../../../packages/core/src";
 
 html, body, #root { height: 100%; }
+/* The tab bar: its height, its side margins, and what it keeps clear at the bottom (it sits 12 px above that).
+   Android: 64 dp tall, Material 3 Expressive's flexible navigation bar, over the gesture bar's inset. iPhone: as
+   iOS 26's own floating tab bars, measured on the owner's iPhone in Claude, WhatsApp and Instagram (27 Nov 2026):
+   62 pt tall, 21 pt from the sides and 21 pt above the screen's edge, into the home indicator's area as theirs.
+   data-os is set at start (main.tsx). */
+:root { --m-bar-h: 64px; --m-bar-side: 16px; --m-bar-inset: env(safe-area-inset-bottom); }
+:root[data-os="ios"] { --m-bar-h: 62px; --m-bar-side: 21px; --m-bar-inset: max(0px, calc(env(safe-area-inset-bottom) - 25px)); }
+/* iPhone: the page itself never scrolls (SuloBridgeViewController: the keyboard must not lift it), so the root
+   scrolls the screens that are taller than the phone and do not scroll inside (the debug and Diagnostik screens,
+   the lock and update screens at large text sizes). */
+:root[data-os="ios"] #root { overflow-y: auto; overscroll-behavior: contain; }
 /* Sizes are the tokens' own: no browser font boosting (text autosizing), only the app's text zoom. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Like any phone app, a long press selects nothing on the screen itself, the tab bar and buttons included
+   (owner, 27 Nov 2026), and shows no link preview. Fields stay selectable and editable, and text that is there
+   to be copied (the bug report's info) opts back in with .m-pilih. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input,
+textarea,
+[contenteditable="true"],
+.m-pilih {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+/* Like any phone app: nothing shows a scrollbar (owner, 27 Nov 2026); scrolling itself is unchanged. */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
 body {
   background: var(--m-screen);
   color: var(--text);
   font-size: calc(15px * var(--m-tz));
   line-height: calc(20px * var(--m-tz));
-  /* Clear of the status bar and notch (edge-to-edge on Android 15+); the
-     tab bar adds the gesture bar's inset itself. */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
   -webkit-tap-highlight-color: transparent;
+}
+/* Clear of the status bar and notch (edge-to-edge on Android 15+); the tab bar adds the gesture bar's inset itself.
+   A sheet (Radix Dialog) locks the page while it is open, and the lock (react-remove-scroll-bar) rewrites the body's
+   padding to its margins, 0, with body[data-scroll-locked]: the header slid under the clock until the sheet closed
+   (owner's iPhone, 27 Nov 2026; every sheet, on Android 15+ too). The second selector is one step more specific. */
+body,
+html body[data-scroll-locked] {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
 
 /* The dashboard's variables (category colors, accent text) without its
@@ -48,13 +83,20 @@ body {
   box-shadow: 0 0 0 1px var(--m-card-edge), var(--m-card-shadow);
 }
 
-/* Entering a detail slides in from the right (220 ms, ease-out); switching
-   tabs has no motion. */
+/* Entering a detail slides in from the right (220 ms, ease-out); closing it
+   brings the screen below in from the left, the same distance and time
+   (shell/nav.ts motionBetween). Switching tabs has no motion. */
 .m-push {
   animation: m-push 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes m-push {
   from { opacity: 0.6; transform: translateX(24px); }
+}
+.m-pop {
+  animation: m-pop 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes m-pop {
+  from { opacity: 0.6; transform: translateX(-24px); }
 }
 /* Bottom sheets rise in 240 ms and leave in 200 ms with a smooth ease-in
    (packages/ui/src/mobile/sheet.tsx). Only the sheet's transform and the
@@ -96,16 +138,19 @@ body {
 @keyframes m-snack {
   from { opacity: 0; transform: translateY(8px); }
 }
-/* Carousels snap card by card. */
+/* Carousels snap card by card, and move on one axis only (owner, 27 Nov 2026): overflow-x alone lets the row
+   scroll up and down by the few pixels its content is taller; a vertical swipe on it now scrolls the page. */
 .m-carousel {
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 16px;
   scrollbar-width: none;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
 }
 .m-carousel > * { scroll-snap-align: start; }
 .m-carousel::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .m-push, .sulo-toast { animation: none !important; }
+  .m-push, .m-pop, .sulo-toast { animation: none !important; }
   /* Sheets: no sliding, opacity only, 120 ms (beats the global 0.01 ms). */
   .m-sheet[data-state], .m-scrim[data-state] { transform: none !important; }
   .m-sheet[data-state="open"], .m-scrim[data-state="open"] { animation: m-fade-in 120ms linear !important; animation-duration: 120ms !important; }
@@ -178,7 +223,19 @@ body {
 /* Ringkasan's 7-day bars grow once: 240 ms ease-out, 20 ms apart. */
 .m-bar-grow { transform-origin: bottom; animation: m-bar-grow 240ms ease-out both; animation-delay: calc(var(--i, 0) * 20ms); }
 @keyframes m-bar-grow { from { transform: scaleY(0); } }
-@media (prefers-reduced-motion: reduce) { .m-bar-grow { animation: none; } }
+/* The same for a level bar (attendance, the MKPK card): its fill grows from the left once, as the screen opens. */
+.m-fill-grow { transform-origin: left; animation: m-fill-grow 240ms ease-out both; }
+@keyframes m-fill-grow { from { transform: scaleX(0); } }
+/* A check circle the finger just ticked lands with the onboarding's small spring (controls.tsx); never on
+   a list that merely shows done tasks. */
+.m-check-pop { animation: m-check-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes m-check-pop { from { transform: scale(0.8); } }
+/* The segmented control's card glides to the chosen option, as the system's own does. */
+.m-seg-thumb { transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .m-bar-grow, .m-fill-grow, .m-check-pop { animation: none; }
+  .m-seg-thumb { transition: none; }
+}
 
 /* Onboarding (M8c.2, onboarding/). Transform and opacity only; nothing
    starts from scale(0); no blur. */
@@ -267,12 +324,14 @@ body {
 :root[data-perf="lite"] .m-fade-top { background: var(--m-line); height: 1px; }
 :root[data-perf="lite"] .m-fade-bottom { background: linear-gradient(to top, var(--m-screen) calc(100% - 32px), var(--m-line) calc(100% - 32px), var(--m-line) calc(100% - 31px), transparent calc(100% - 31px)); } /* lint-ui-allow: hard stops only, a solid band under a 1 px edge (no fade) */
 :root[data-perf="lite"] .m-press, :root[data-perf="lite"] .m-press-host { transition-duration: 80ms; }
-:root[data-perf="lite"] .m-push { animation-duration: 176ms; }
+:root[data-perf="lite"] .m-push, :root[data-perf="lite"] .m-pop { animation-duration: 176ms; }
 :root[data-perf="lite"] .m-sheet[data-state="open"], :root[data-perf="lite"] .m-scrim[data-state="open"] { animation-duration: 192ms; }
 :root[data-perf="lite"] .m-sheet[data-state="closed"], :root[data-perf="lite"] .m-scrim[data-state="closed"] { animation-duration: calc(var(--m-sheet-dur, 200ms) * 0.8); }
 :root[data-perf="lite"] .sulo-toast { animation-duration: 120ms; }
 :root[data-perf="lite"] .m-mascot-enter { animation-duration: 256ms; }
-:root[data-perf="lite"] .m-bar-grow { animation-duration: 192ms; }
+:root[data-perf="lite"] .m-bar-grow, :root[data-perf="lite"] .m-fill-grow { animation-duration: 192ms; }
+:root[data-perf="lite"] .m-check-pop { animation-duration: 256ms; }
+:root[data-perf="lite"] .m-seg-thumb { transition-duration: 160ms; }
 :root[data-perf="lite"] .onb-press, :root[data-perf="lite"] .onb-row { transition-duration: 224ms; }
 :root[data-perf="lite"] .onb-letter { animation-duration: 256ms; }
 :root[data-perf="lite"] .onb-in-fwd [data-onb-content], :root[data-perf="lite"] .onb-in-back [data-onb-content] { animation-duration: 208ms; animation-delay: 88ms; }

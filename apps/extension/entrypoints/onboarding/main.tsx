@@ -25,6 +25,9 @@ import { messagesFor, resolveLocale, type Messages } from '@sulo/core/i18n';
 import { readPrefs } from '@sulo/core/prefs';
 import type { Message } from '@/lib/messages';
 import { readSession } from '@sulo/core/moodle/session';
+import { BUDGET_KEY, restKind } from '@sulo/core/moodle/budget';
+import type { BudgetState } from '@sulo/core/types';
+import type { SetupRest } from '@/components/onboarding/journey-connect';
 import { isValidSesskey } from '@sulo/core/sesskey';
 import { CURRENT_USER_KEY, currentUser, NOTICE_KEY, NOTICE_VERSION, readUser, writeUserIfCurrent } from '@sulo/core/storage';
 import { hasCourseChanges, mergeDraft, toggleDraft } from '@sulo/core/onboarding/course-draft';
@@ -97,6 +100,10 @@ function App() {
   const [whatsNew, setWhatsNew] = useState<WhatsNewEntry[]>([]);
   const [connect, setConnect] = useState<ConnectStatus>('checking');
   const [failedReason, setFailedReason] = useState('');
+  // The request limits stopped the setup before SIKOLA answered: a pause with its end, or the day's limit.
+  const [rest, setRest] = useState<SetupRest | null>(null);
+  // SIKOLA never answered (offline, or the limits): "Terhubung ke SIKOLA" is not ticked.
+  const [unreached, setUnreached] = useState<'paused' | 'offline' | null>(null);
   // The stored list and the draft the user edits; only "Simpan" writes.
   const [storedCourses, setStoredCourses] = useState<CourseRecord[]>([]);
   const [courses, setCourses] = useState<CourseRecord[]>([]);
@@ -203,6 +210,8 @@ function App() {
         autoTriedFor.current = key;
       }
       connecting.current = true;
+      setRest(null);
+      setUnreached(null);
       setConnect(key ? 'connected' : 'checking');
       const [outcome] = await Promise.all([
         sendMessage<SyncOutcome>({ type: 'sync/request', trigger: 'onboarding' }),
@@ -224,6 +233,15 @@ function App() {
       ) {
         setConnect('need_login');
       } else {
+        if (outcome?.status === 'skipped' && outcome.reason === 'BUDGET_EXHAUSTED') {
+          // Which limit refused it (moodle/budget.ts): the loop guard's pause ends at a known time, the day's at midnight.
+          const budget = await local.get<BudgetState>(BUDGET_KEY);
+          const now = Math.floor(Date.now() / 1000);
+          setRest(budget && restKind(budget, now) === 'short' && budget.pausedUntil !== undefined ? { kind: 'short', until: budget.pausedUntil } : { kind: 'day' });
+          setUnreached('paused');
+        } else if (outcome?.status === 'offline') {
+          setUnreached('offline');
+        }
         setFailedReason(outcomeText(outcome, m));
         setConnect('failed');
       }
@@ -444,7 +462,7 @@ function App() {
     screen === 'intro' ? (
       introScene(introPage)
     ) : screen === 'connect' ? (
-      preparing ? <ScenePreparing stages={stages} counts={counts} failed={connect === 'failed'} /> : <SceneConnect />
+      preparing ? <ScenePreparing stages={stages} counts={counts} failed={connect === 'failed' && rest === null} connectedRow={unreached === 'paused' ? 'waiting' : unreached === 'offline' ? 'failed' : 'done'} /> : <SceneConnect />
     ) : screen === 'courses' ? (
       <SceneCourses courses={courses} onToggle={onToggle} />
     ) : (
@@ -470,6 +488,7 @@ function App() {
           preparing={preparing}
           stages={stages}
           failedReason={failedReason}
+          rest={rest}
           switching={mode === 'switch-account'}
           onOpen={() => {
             setConnect('waiting');
@@ -481,7 +500,7 @@ function App() {
         />
       )}
       {screen === 'courses' && <CoursesText selected={selected} saving={saving} onNext={() => void onSave()} />}
-      {screen === 'done' && <DoneText tasks={ownView?.pendingCount ?? 0} courses={selected} onOpen={() => location.assign(browser.runtime.getURL('/dashboard.html#ringkasan'))} />}
+      {screen === 'done' && <DoneText watch={mode !== 'switch-account'} tasks={ownView?.pendingCount ?? 0} courses={selected} onOpen={() => location.assign(browser.runtime.getURL('/dashboard.html#ringkasan'))} />}
       <WhyDialog
         open={whyOpen}
         onOpenChange={setWhyOpen}

@@ -1,6 +1,7 @@
 // Renders the privacy policy from lib/privacy/content.ts. Uses explicit .ts
 // imports so `node scripts/build-privacy.ts` runs without a build step.
 import { PRIVACY_INTRO, PRIVACY_SECTIONS, PRIVACY_TITLE, PRIVACY_UPDATED, type Block, type Lang, type Section, type Text } from './content.ts';
+import { IPHONE_PRIVACY_SECTIONS } from './iphone.ts';
 import { MOBILE_PRIVACY_SECTIONS } from './mobile.ts';
 
 const LAST_UPDATED: Record<Lang, string> = { id: 'Terakhir diperbarui', en: 'Last updated' };
@@ -81,14 +82,14 @@ ${sections}
 // ---- The public page for both apps (M8e E4) ----
 
 /** The public page's own date: set when it is published. */
-export const PUBLIC_PRIVACY_UPDATED: Text = { id: '22 November 2026', en: '22 November 2026' };
+export const PUBLIC_PRIVACY_UPDATED: Text = { id: '27 November 2026', en: '27 November 2026' };
 
 const PUBLIC_INTRO: Block[] = [
   {
     kind: 'p',
     text: {
-      id: 'Sulo adalah pendamping akademik tidak resmi untuk mahasiswa Universitas Hasanuddin, berupa ekstensi browser (Chrome dan Edge) dan aplikasi Android. Sulo bukan aplikasi resmi Unhas, tidak berafiliasi dengan, dan tidak didukung oleh Universitas Hasanuddin.',
-      en: 'Sulo is an unofficial academic companion for Universitas Hasanuddin students, as a browser extension (Chrome and Edge) and an Android app. Sulo is not an official Unhas app, and is not affiliated with or endorsed by Universitas Hasanuddin.',
+      id: 'Sulo adalah pendamping akademik tidak resmi untuk mahasiswa Universitas Hasanuddin, berupa ekstensi browser (Chrome dan Edge), aplikasi Android, dan aplikasi iPhone. Sulo bukan aplikasi resmi Unhas, tidak berafiliasi dengan, dan tidak didukung oleh Universitas Hasanuddin.',
+      en: 'Sulo is an unofficial academic companion for Universitas Hasanuddin students, as a browser extension (Chrome and Edge), an Android app and an iPhone app. Sulo is not an official Unhas app, and is not affiliated with or endorsed by Universitas Hasanuddin.',
     },
   },
   {
@@ -100,9 +101,10 @@ const PUBLIC_INTRO: Block[] = [
   },
 ];
 
-const PART: Record<'extension' | 'android', Text> = {
+const PART: Record<'extension' | 'android' | 'iphone', Text> = {
   extension: { id: 'Ekstensi browser (Chrome dan Edge)', en: 'Browser extension (Chrome and Edge)' },
   android: { id: 'Aplikasi Android', en: 'Android app' },
+  iphone: { id: 'Aplikasi iPhone', en: 'iPhone app' },
 };
 /** Sections that apply to both apps: kept for the end of the page. */
 const SHARED_HEADINGS = new Set(['Perubahan kebijakan', 'Kontak']);
@@ -113,9 +115,9 @@ function sectionsHtml(sections: readonly Section[], lang: Lang, level: 'h2' | 'h
 
 /**
  * The public page (https://ikrar06.github.io/sulo-data/{privasi,privacy}.html)
- * for both apps: a shared introduction, the extension's sections, the
- * Android app's (the same text as its in-app notice, privacy/mobile.ts),
- * then the changes and contact sections. Static: no script, system fonts.
+ * for every app: a shared introduction, the extension's sections, the
+ * Android app's and the iPhone app's (the same text as their in-app notices,
+ * privacy/mobile.ts and privacy/iphone.ts), then the changes and contact sections. Static: no script, system fonts.
  */
 export function renderPublicPrivacyHtml(lang: Lang): string {
   const other: Lang = lang === 'id' ? 'en' : 'id';
@@ -124,7 +126,7 @@ export function renderPublicPrivacyHtml(lang: Lang): string {
   const shared = PRIVACY_SECTIONS.filter((s) => SHARED_HEADINGS.has(s.heading.id));
   const contents = lang === 'id' ? 'Isi' : 'Contents';
   return `<!doctype html>
-<!-- Generated from packages/core/src/privacy/content.ts and mobile.ts by apps/extension/scripts/build-public-privacy.ts. Do not edit by hand. -->
+<!-- Generated from packages/core/src/privacy/content.ts, mobile.ts and iphone.ts by apps/extension/scripts/build-public-privacy.ts. Do not edit by hand. -->
 <html lang="${lang}">
 <head>
 <meta charset="utf-8">
@@ -149,11 +151,13 @@ ul, ol { padding-left: 24px; }
 <h1>Sulo: ${escapeHtml(PRIVACY_TITLE[lang])}</h1>
 <p class="meta">${LAST_UPDATED[lang]}: ${escapeHtml(PUBLIC_PRIVACY_UPDATED[lang])}</p>
 ${PUBLIC_INTRO.map((b) => blockToHtml(b, lang)).join('\n')}
-<nav aria-label="${contents}"><a href="#ekstensi">${escapeHtml(PART.extension[lang])}</a> · <a href="#android">${escapeHtml(PART.android[lang])}</a></nav>
+<nav aria-label="${contents}"><a href="#ekstensi">${escapeHtml(PART.extension[lang])}</a> · <a href="#android">${escapeHtml(PART.android[lang])}</a> · <a href="#iphone">${escapeHtml(PART.iphone[lang])}</a></nav>
 <h2 id="ekstensi">${escapeHtml(PART.extension[lang])}</h2>
 ${sectionsHtml(extension, lang, 'h3')}
 <h2 id="android">${escapeHtml(PART.android[lang])}</h2>
 ${sectionsHtml(MOBILE_PRIVACY_SECTIONS, lang, 'h3')}
+<h2 id="iphone">${escapeHtml(PART.iphone[lang])}</h2>
+${sectionsHtml(IPHONE_PRIVACY_SECTIONS, lang, 'h3')}
 ${sectionsHtml(shared, lang, 'h2')}
 </main>
 </body>

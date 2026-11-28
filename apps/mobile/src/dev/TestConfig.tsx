@@ -1,4 +1,5 @@
-// Debug build only: load a test config from Sulo's data repository (dev/test-config.ts).
+// Debug build only: load a test config from Sulo's data repository, or write a made-up release for the
+// update screens (dev/test-config.ts).
 import { useEffect, useState } from 'react';
 import type { Platform } from '@sulo/core/platform';
 import { Card } from '@sulo/ui/mobile/cards';
@@ -6,7 +7,7 @@ import { PillButton } from '@sulo/ui/mobile/controls';
 import { Input } from '@sulo/ui/ui/input';
 import { refreshPublicData } from '../public-data';
 import { applyWatchPlan } from '../watch-native';
-import { applyTestConfig, clearTestConfig, readTestConfig, TEST_CONFIG_PREFIX } from './test-config';
+import { applyFakeRelease, applyTestConfig, clearTestConfig, FAKE_RELEASE_URL, readTestConfig, TEST_CONFIG_PREFIX } from './test-config';
 
 const REASONS = {
   prefix: `URL ditolak: harus diawali ${TEST_CONFIG_PREFIX}`,
@@ -28,6 +29,11 @@ export function TestConfig({ platform }: { platform: Platform }) {
     await applyWatchPlan(platform);
     setLine('Config uji dipakai; paket rencana pemantauan ditulis ulang.');
   };
+  const fake = async (kind: 'available' | 'required') => {
+    await applyFakeRelease(platform, kind);
+    setActive(FAKE_RELEASE_URL(kind));
+    setLine('Rilis palsu 9.1.0 ditulis. Tutup Sulo lalu buka lagi untuk melihat layarnya.');
+  };
   const reset = async () => {
     await clearTestConfig(platform);
     setActive(null);
@@ -44,6 +50,12 @@ export function TestConfig({ platform }: { platform: Platform }) {
       <div className="flex flex-wrap gap-2">
         <PillButton small kind="primary" onPress={() => void apply()}>
           Muat config uji
+        </PillButton>
+        <PillButton small onPress={() => void fake('available')}>
+          Rilis palsu: tersedia
+        </PillButton>
+        <PillButton small onPress={() => void fake('required')}>
+          Rilis palsu: wajib
         </PillButton>
         {active && (
           <PillButton small onPress={() => void reset()}>

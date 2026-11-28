@@ -16,9 +16,17 @@ export interface NeosiaNative {
   storeKeys(o: { user: number; prefix: string }): Promise<{ keys: string[] }>;
 }
 
-const isNeosia = (key: string) => key.startsWith(NEOSIA_DATA_PREFIX);
+/** NEOSIA's keys in its encrypted store (the wrapper below, with NEOSIA's prefix). */
+export const createNeosiaStore = (main: KeyValueStore, native: NeosiaNative): KeyValueStore => createEncryptedStore(main, native, NEOSIA_DATA_PREFIX);
 
-export function createNeosiaStore(main: KeyValueStore, native: NeosiaNative): KeyValueStore {
+/**
+ * Keys under `prefix` go to a native encrypted store, one file per SIKOLA
+ * account; every other key stays in `main`. Sipakamase (1.1.0) uses the same
+ * wrapper with its own prefix and its own native store and key.
+ */
+export function createEncryptedStore(main: KeyValueStore, native: NeosiaNative, prefix: string): KeyValueStore {
+  const isNeosia = (key: string) => key.startsWith(prefix);
+  const NEOSIA_DATA_PREFIX = prefix;
   const user = () => currentUser(main);
   return {
     async get<T>(key: string): Promise<T | undefined> {

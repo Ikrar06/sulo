@@ -13,7 +13,7 @@ import { CHECKLIST_SOURCES } from '@sulo/core/neosia/sources';
 import { dismissInvite, readInvite, showInvite, type InviteState } from '@sulo/core/neosia/invite';
 import { nextClass } from '@sulo/core/neosia/today';
 import { classMeetings, DEFAULT_SKS_TARGET, krsWindow, profile, readiness, showKrsCard } from '@sulo/core/neosia/view';
-import { itemText, STATE_CLASS, STATE_ICON } from '@sulo/ui/dashboard/NeosiaParts';
+import { itemRow, RowValue } from '@sulo/ui/dashboard/NeosiaParts';
 import { CheckIcon } from '@sulo/ui/icons';
 import { Card } from '@sulo/ui/mobile/cards';
 import { PillButton } from '@sulo/ui/mobile/controls';
@@ -218,22 +218,23 @@ export function KrsReadinessCard() {
   return (
     <Card className="mb-4" inner="space-y-3">
       <p className="text-m15 font-semibold">{n.krs.title}</p>
-      <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={item.id} className="flex items-start gap-3 text-m13">
-            {(() => {
-              const Icon = STATE_ICON[item.state];
-              // As tall as the first line of text, so the icon sits on it.
-              return (
-                <span className="flex h-5 shrink-0 items-center">
-                  <Icon aria-label={n.krs.states[item.state]} role="img" className={`size-4 ${STATE_CLASS[item.state]}`} />
-                </span>
-              );
-            })()}
-            <span className="min-w-0 flex-1">{itemText(item, n, m)}</span>
-          </li>
-        ))}
-      </ul>
+      {/* Label and value rows: read down the right edge; only what needs doing is colored. */}
+      <dl>
+        {items.map((item) => {
+          const row = itemRow(item, n, m);
+          return (
+            <div key={item.id} className="border-t border-m-line py-2 first:border-t-0 first:pt-0">
+              <div className="flex min-h-6 items-center justify-between gap-3 text-m13">
+                <dt className="shrink-0 text-muted-foreground">{row.label}</dt>
+                <dd className="min-w-0">
+                  <RowValue item={item} row={row} />
+                </dd>
+              </div>
+              {row.note && <p className="mt-1 text-right text-m12 text-muted-foreground">{row.note}</p>}
+            </div>
+          );
+        })}
+      </dl>
       <p className="text-m12 text-muted-foreground">{n.krs.sourceCalendar}</p>
       <PillButton small onPress={() => void neo.open('krs')}>
         {n.openInNeosia}

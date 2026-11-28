@@ -25,12 +25,16 @@ import { refreshPublicData } from './public-data';
 import { releaseState } from './release';
 import type { ReleaseInfo } from '@sulo/core/remote/release';
 import { UpdateRequiredScreen } from './screens/ReleaseNotice';
+import { enterReadOnly, isReadOnly } from './read-only';
+import { iosUpdateGuide } from '@sulo/core/links';
 import { readRemoteConfig } from '@sulo/core/remote/remote-config';
 import { applyWatchPlan, processWatchQueue } from './watch-native';
 import { markChangesHandled } from '@sulo/core/watch/queue';
 import { scheduleIfNoneScheduled, scheduleReminders } from './reminders';
 import { LockScreen } from './screens/Gate';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
+import { markWhatsNewRead, WhatsNewSheet } from './WhatsNew';
+import { SipakamaseProvider } from './sipakamase/SipakamaseProvider';
 import { SwitchAccount } from './onboarding/SwitchAccount';
 import { holdWatching, keepPreviousAccount, switchPending, useOtherAccount } from './switch-account';
 import { readSavedFlow, saveFlow } from './onboarding/data';
@@ -39,7 +43,7 @@ import { resume, start, type FlowState } from '@sulo/core/onboarding/mobile-flow
 import { SuloSession, type SessionStatus } from './session';
 import { AppShell } from './shell/AppShell';
 import { MobileDataProvider, useMobileData } from './shell/data';
-import { lastSyncAt, manualFresh, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
+import { checkNow, lastSyncAt, manualFresh, resumeNeedsCheck, resumeNeedsSync, sikolaClient, syncAfterLogin, syncNow } from './sync';
 import type { SyncDeps } from '@sulo/core/sync/run-sync';
 import { calls } from '@sulo/core/moodle/calls';
 import { TEST_BUDGET_FLAG, TEST_CHECK_GAP_MS, testCheckLimit } from './dev/test-budget';
@@ -49,6 +53,8 @@ import { afterStage, DONE_MS, holdLeft, IDLE, running, type SyncUi } from './she
 
 /** The debug screen: loaded only in debug builds; a release build has no trace of it (scripts/check-no-dev-code.mjs). */
 const DevScreen = __SULO_DEV__ ? lazy(() => import('./DevScreen').then((m) => ({ default: m.DevScreen }))) : null;
+/** Every build: seven taps on the version (screens/Diagnostik.tsx). */
+const Diagnostik = lazy(() => import('./screens/Diagnostik').then((m) => ({ default: m.Diagnostik })));
 
 export { NOTIFY_ASKED_KEY } from './onboarding/OnboardingFlow';
 
@@ -110,6 +116,8 @@ export function App({ platform }: { platform: Platform }) {
   const [locked, setLocked] = useState(false);
   /** Below a required update (config.json mobile.release.minVersionCode): the whole app is one screen. */
   const [required, setRequired] = useState<ReleaseInfo | null>(null);
+  /** iPhone, "Lihat data terakhir" chosen on the required-update screen: the kept data, read-only (read-only.ts). */
+  const [readOnlyView, setReadOnlyView] = useState(false);
   const checkRequired = useCallback(async () => {
     const n = await releaseState(platform.store, platform.clock.now()).catch(() => ({ kind: 'none' as const }));
     setRequired(n.kind === 'required' ? n.release : null);
@@ -165,6 +173,8 @@ export function App({ platform }: { platform: Platform }) {
    */
   const sync = useCallback(
     async (run: (onStage: SyncDeps['onStage']) => Promise<SyncOutcome>): Promise<string> => {
+      // "Lihat data terakhir": no sync of any kind (read-only.ts).
+      if (isReadOnly()) return '';
       const startedAt = performance.now();
       if (doneTimer.current !== null) window.clearTimeout(doneTimer.current);
       setSyncUi(running());
@@ -272,7 +282,7 @@ export function App({ platform }: { platform: Platform }) {
       const held = now === 'connected' ? await SuloSession.suspect().catch(() => ({ suspect: false, deferred: false })) : { suspect: false, deferred: false };
       if ((held.suspect || held.deferred === true) && !(__SULO_DEV__ && devHoldResume())) void refreshRef.current();
     })();
-    const onDev = () => __SULO_DEV__ && setDev(true);
+    const onDev = () => setDev(true);
     // Debug builds: the scenes' pace chosen on the dev screen, and a replay of the onboarding from the first screen.
     const onReplay = () => {
       if (!__SULO_DEV__) return;
@@ -312,7 +322,10 @@ export function App({ platform }: { platform: Platform }) {
       const suspect = held.suspect || held.deferred === true;
       // Debug builds: the staged tests can hold the sync on open, to check the session before it runs.
       if (__SULO_DEV__ && devHoldResume()) return;
-      if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(await lastSyncAt(platform), platform.clock.now()))) void refresh();
+      const last = await lastSyncAt(platform);
+      if (s === 'connected' && (suspect || queue.fullSync || resumeNeedsSync(last, platform.clock.now()))) void refresh();
+      // Data from 5 to 15 minutes ago: one light check, quietly (no spinner); the screen updates from storage.
+      else if (s === 'connected' && resumeNeedsCheck(last, platform.clock.now())) void checkNow(platform).finally(() => void applyWatchPlan(platform));
       else void applyWatchPlan(platform);
     };
     document.addEventListener('visibilitychange', onVisible);
@@ -345,6 +358,8 @@ export function App({ platform }: { platform: Platform }) {
       await sync((onStage) => syncAfterLogin(platform, false, onStage));
       // Kept as finished, so a reload opens Ringkasan (a cold open with data, scripts/perf-measure.mjs).
       await saveFlow(platform, { step: 'finished', mode: 'first' });
+      // Like a new install's own "Buka Sulo": nothing "new" to read.
+      await markWhatsNewRead(platform.store);
       setFlow((f) => (f ? { ...f, step: 'finished' } : f));
     };
   }, [platform, sync]);
@@ -365,6 +380,7 @@ export function App({ platform }: { platform: Platform }) {
   const shell = (
     <MobileDataProvider platform={platform}>
       <NeosiaProvider platform={platform}>
+      <SipakamaseProvider platform={platform}>
       <Shell
         expired={status === 'expired'}
         busy={busy}
@@ -373,7 +389,9 @@ export function App({ platform }: { platform: Platform }) {
         onRetry={() => void refresh()}
         lastSyncAt={last}
         onRefresh={refresh}
-        onSignIn={() => void signIn()}
+        onSignIn={() => signIn()}
+        readOnly={readOnlyView}
+        onUpdateHelp={() => void window.open(iosUpdateGuide(locale), '_blank', 'noopener,noreferrer')}
         onSignedOut={async () => {
           setNote('');
           await refreshState();
@@ -381,6 +399,9 @@ export function App({ platform }: { platform: Platform }) {
           setFlow(resume(await readSavedFlow(platform), { signedIn: false, hasData: false }));
         }}
       />
+      {/* Once after an update that brought something new; never during the onboarding or its landing. */}
+      {flow.step === 'finished' && !landing && <WhatsNewSheet store={platform.store} />}
+      </SipakamaseProvider>
       </NeosiaProvider>
     </MobileDataProvider>
   );
@@ -388,9 +409,18 @@ export function App({ platform }: { platform: Platform }) {
   return (
     <I18nProvider locale={locale}>
       <MascotScopeContext.Provider value={{ lite }}>
-      {required ? (
+      {required && !readOnlyView ? (
         // No SIKOLA request (the client refuses), no sign-in, the worker holds; the data stays.
-        <UpdateRequiredScreen release={required} openExternal={(url) => void window.open(url, '_blank', 'noopener,noreferrer')} />
+        <UpdateRequiredScreen
+          release={required}
+          openExternal={(url) => void window.open(url, '_blank', 'noopener,noreferrer')}
+          onReadOnly={() => {
+            // iPhone: the kept data, with no request anywhere, until the next start (read-only.ts).
+            enterReadOnly();
+            setReadOnlyView(true);
+            void applyWatchPlan(platform);
+          }}
+        />
       ) : locked ? (
         <LockScreen
           w={w}
@@ -412,6 +442,10 @@ export function App({ platform }: { platform: Platform }) {
               void refreshState();
             }}
           />
+        </Suspense>
+      ) : dev ? (
+        <Suspense fallback={null}>
+          <Diagnostik platform={platform} w={w} onBack={() => setDev(false)} />
         </Suspense>
       ) : switching ? (
         <SwitchAccount
@@ -455,6 +489,8 @@ export function App({ platform }: { platform: Platform }) {
                 // "Buka Sulo": the onboarding is finished on disk now, before any landing motion
                 // (a process ended during it would otherwise come back on "Semua siap").
                 void saveFlow(platform, { step: 'finished', mode: flow.mode });
+                // A new install has nothing "new" to read: this version counts as read.
+                void markWhatsNewRead(platform.store);
                 const land = () => {
                   // The hero greets with the same happy face the flying mascot wears (its own 1.5 s cheer), so the hand-over shows nothing.
                   window.dispatchEvent(new CustomEvent(REFRESHED_EVENT, { detail: { fresh: true } }));
@@ -487,7 +523,7 @@ function Shell(props: Parameters<typeof AppShell>[0]) {
   const { data } = useMobileData();
   return (
     <PrivacyProvider value={data?.prefs.privacyMode ?? false}>
-      <ToastProvider viewportClassName="bottom-[calc(72px+env(safe-area-inset-bottom))]">
+      <ToastProvider viewportClassName="bottom-[calc(var(--m-bar-h)+20px+var(--m-bar-inset))]">
         <AppShell {...props} />
       </ToastProvider>
     </PrivacyProvider>
