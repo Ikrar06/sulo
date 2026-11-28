@@ -10,6 +10,7 @@ import { formatAgo } from '@sulo/core/format/time';
 import { yAxisRange } from '@sulo/core/grades/axis';
 import { GRADE_LETTERS } from '@sulo/core/grades/scale';
 import { bySemester, computeIpk, improvable, passedSks, readSemesters, readTranscript, semesterLabeler, simulateIpk, type TranscriptRow } from '@sulo/core/grades/transcript';
+import { mobileWords } from '@sulo/core/i18n/mobile';
 import { neosiaWords } from '@sulo/core/i18n/neosia';
 import { dataOf, DEFAULT_SKS_TARGET, profile } from '@sulo/core/neosia/view';
 import type { Projected } from '@sulo/core/neosia/project';
@@ -121,6 +122,7 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const { locale, m } = useI18n();
   const n = neosiaWords(locale);
   const t = n.nilai;
+  const simWords = mobileWords(locale).sim;
   const neo = useNeosia();
   const { data } = useMobileData();
   const hide = usePrivacy();
@@ -132,6 +134,8 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const [includeC, setIncludeC] = useState(false);
   const [sim, setSim] = useState<Record<string, string>>({});
   const [picking, setPicking] = useState<TranscriptRow | null>(null);
+  const [simOpen, setSimOpen] = useState(false);
+  const simPanel = useId();
   // The newest semester starts open (undefined); then one open at a time, or none.
   const [openSemester, setOpenSemester] = useState<string | null | undefined>(undefined);
 
@@ -167,7 +171,8 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
   const points = [...groups].reverse().filter((g) => g.ips !== null && g.semester !== '-').map((g) => ({ label: t.semesterShort(label(g.semester).index), ips: g.ips! }));
   const target = prefs.sksTarget || DEFAULT_SKS_TARGET;
   const mine = computeIpk(rows);
-  const simulated = Object.keys(sim).length ? simulateIpk(rows, sim) : null;
+  const changed = Object.keys(sim).length;
+  const simulated = changed ? simulateIpk(rows, sim) : null;
   const fixable = improvable(rows, includeC);
   const seenAt = grades.getTranskripMahasiswa?.seenAt ?? null;
 
@@ -210,39 +215,56 @@ export function NilaiScreen({ go }: { go: (s: Screen) => void }) {
 
       <section aria-labelledby="sim-title">
         <SectionHead id="sim-title" title={t.sim} />
+        {/* The estimate stays in view; the courses are a drawer, closed at first, as the dashboard's simulation and
+            this screen's semesters open (a whole transcript made the screen two or three screens long). */}
         <Card inner="space-y-3">
           <p className="text-m12 text-muted-foreground">{t.simNote}</p>
           <p className="text-m13">
             {t.simNow}: <Private>{two(mine)}</Private> ({t.estimate})
           </p>
           {simulated !== null && (
-            <p className="text-m15 font-semibold">
-              {t.simIpk}: <Private>{two(simulated)}</Private> ({t.estimate})
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+              <p className="text-m15 font-semibold">
+                {t.simIpk}: <Private>{two(simulated)}</Private> ({t.estimate})
+              </p>
+              <PillButton small onPress={() => setSim({})}>
+                {n.mobile.reset}
+              </PillButton>
+            </div>
           )}
-          <ul className="space-y-1">
-            {rows
-              .filter((r) => r.used && r.letter !== null)
-              .slice(0, 40)
-              .map((r) => (
-                <li key={r.key}>
-                  <button type="button" onClick={() => setPicking(r)} className="m-press -mx-2 flex min-h-11 w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-1 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
-                    <span className="min-w-0 flex-1 truncate text-m13">
-                      <Private>{r.name}</Private>
-                    </span>
-                    {/* The letter as a small pill: tapping it opens the letters. */}
-                    <span className="flex h-8 min-w-11 shrink-0 items-center justify-center rounded-lg bg-m-inset px-2 text-m13 font-semibold tabular-nums">
-                      <Private>{sim[r.key] ? `${r.letter} → ${sim[r.key]}` : r.letter}</Private>
-                    </span>
-                  </button>
-                </li>
-              ))}
-          </ul>
-          {Object.keys(sim).length > 0 && (
-            <PillButton small onPress={() => setSim({})}>
-              {n.mobile.reset}
-            </PillButton>
-          )}
+          <div className="border-t border-m-line pt-1">
+            <button type="button" aria-expanded={simOpen} aria-controls={simPanel} onClick={() => setSimOpen((o) => !o)} className="-mx-2 flex min-h-11 w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-1 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
+              <span className="min-w-0 flex-1">
+                <span className="block text-m13 font-semibold">{simWords.edit}</span>
+                {changed > 0 && <span className="block text-m12 text-muted-foreground">{simWords.changed(changed)}</span>}
+              </span>
+              <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-m-inset">
+                <ChevronDownIcon className={`size-4 transition-transform duration-200 ease-out motion-reduce:transition-none ${simOpen ? 'rotate-180' : ''}`} />
+              </span>
+            </button>
+            {/* Eases open like a semester: the grid row from 0fr to 1fr. */}
+            <div id={simPanel} role="region" aria-label={simWords.edit} aria-hidden={!simOpen} className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${simOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+              <div className="overflow-hidden">
+                <ul inert={!simOpen}>
+                  {rows
+                    .filter((r) => r.used && r.letter !== null)
+                    .map((r) => (
+                      <li key={r.key} className="[&:not(:last-child)]:border-b [&:not(:last-child)]:border-m-line">
+                        <button type="button" onClick={() => setPicking(r)} className="m-press -mx-2 flex min-h-11 w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-1 text-left outline-none focus-ring:ring-2 focus-ring:ring-focus">
+                          <span className="min-w-0 flex-1 truncate text-m13">
+                            <Private>{r.name}</Private>
+                          </span>
+                          {/* The letter as a small pill: tapping it opens the letters. */}
+                          <span className="flex h-8 min-w-11 shrink-0 items-center justify-center rounded-lg bg-m-inset px-2 text-m13 font-semibold tabular-nums">
+                            <Private>{sim[r.key] ? `${r.letter} → ${sim[r.key]}` : r.letter}</Private>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </Card>
       </section>
 

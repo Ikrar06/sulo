@@ -40,8 +40,9 @@ export default function RadarDiagnosis({ data }: { data: DashboardData }) {
         <p>Putaran Radar terakhir: {run ? `${time(run.at)} · direncanakan ${run.planned} · disimpan ${run.stored} · notifikasi ${run.notifications} · galat ${JSON.stringify(run.errors)}${run.failure ? ` · ${run.failure}` : ''}` : 'belum tercatat'}</p>
         <p className="pt-2 text-muted-foreground">Batch terakhir (log teknis):</p>
         <ul>
-          {log.map((e) => (
-            <li key={`${e.at}-${e.fn}`}>
+          {/* Two reads in one second share time and kind (the grades pages, one after another): the place keeps keys apart. */}
+          {log.map((e, i) => (
+            <li key={`${e.at}-${e.fn}-${i}`}>
               {time(e.at)} · {short(e.fn)} · {e.status}
             </li>
           ))}

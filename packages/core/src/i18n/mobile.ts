@@ -285,6 +285,11 @@ const id = {
     neosiaHours: (list: string) => `Umur sesi (jam): ${list}`,
     back: 'Kembali',
   },
+  /** Nilai's GPA simulation drawer, the phone only (here, not in neosia.ts, so the extension's bundle stays as it is). */
+  sim: {
+    edit: 'Ubah nilai mata kuliah',
+    changed: (count: number) => `${count} mata kuliah diubah`,
+  },
   iphone: {
     refreshTitle: 'Sulo perlu disegarkan besok',
     refreshBody: 'Buka Sideloadly di laptopmu dengan iPhone tersambung, supaya Sulo tetap bisa dibuka setelah besok.',
@@ -557,6 +562,10 @@ const en: MobileWords = {
     cookie: (expires: boolean, maxAge: number | null) => (maxAge !== null ? `The session cookie lasts ${maxAge} seconds.` : expires ? 'The session cookie has an expiry date.' : 'The session cookie has no expiry date.'),
     neosiaHours: (list: string) => `Session length (hours): ${list}`,
     back: 'Back',
+  },
+  sim: {
+    edit: 'Change course grades',
+    changed: (count: number) => (count === 1 ? '1 course changed' : `${count} courses changed`),
   },
   iphone: {
     refreshTitle: 'Sulo needs a refresh tomorrow',
