@@ -102,6 +102,10 @@
   background: var(--kartu);
   font-size: 0.9375rem;
 }
+/* The iPhone's difference right under the section's own note: one pair, closer together. */
+.pakai .panduan-penting + .pakai-iphone {
+  margin-top: 10px;
+}
 /* What you can do: one action a line, a small quiet mark before each. */
 .pakai-bisa {
   margin: 16px 0 0;
@@ -416,7 +420,7 @@
   .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks:has(> .pakai-kepala) {
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     column-gap: 48px;
     max-width: none;
   }
@@ -429,9 +433,13 @@
     grid-row: 2;
     align-self: start;
   }
+  /* The iPhone's difference (the phone guide) on its own row, right under the section's note. */
+  .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks > .pakai-iphone {
+    grid-row: 3;
+  }
   .pakai-bagian:not(.pakai-bagian--samping) > .pakai-teks > :is(.pakai-bisa, .pakai-uraian) {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 3;
     /* As tall as its own lines, however tall the left column is (stretched, its lines drifted apart). */
     align-self: start;
     /* Level with the title's first line. */

@@ -21,7 +21,7 @@ interface Props {
   judul: string;
   kenapa: string;
   deskripsi: string;
-  ringkas?: { waktu: string; butuh: readonly string[]; penting?: string };
+  ringkas?: { waktu: string; butuh: readonly string[]; penting?: string; /** A link after the note, to where it is told in full. */ pentingTautan?: { teks: string; href: string } };
 }
 const { bahasa, perangkat, judul, kenapa, deskripsi, ringkas } = Astro.props;
 const t = panduan[bahasa];
@@ -67,7 +67,12 @@ const nama: Record<Perangkat, string> = { android: t.daftar.android.nama, chrome
               </dd>
             </div>
           </dl>
-          {ringkas.penting && <p class="panduan-penting">{ringkas.penting}</p>}
+          {ringkas.penting && (
+            <p class="panduan-penting">
+              {ringkas.penting}
+              {ringkas.pentingTautan && <> <a class="tautan" href={ringkas.pentingTautan.href}>{ringkas.pentingTautan.teks}</a></>}
+            </p>
+          )}
         </section>
       )}
       <slot />

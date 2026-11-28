@@ -1,7 +1,8 @@
 ---
-// The guide of one app (the extension or the Android app): every section with
-// its words, what you can do there, the app's own screens, and the one note
-// that matters. All of it comes from teks/pakai.ts.
+// The guide of one app (the extension, or the phone app for Android and
+// iPhone): every section with its words, what you can do there, the app's own
+// screens, the one note that matters, and what differs on the iPhone. All of it
+// comes from teks/pakai.ts.
 import type { Aplikasi } from '../data/alamat';
 import { pakai } from '../teks/pakai-semua';
 import type { Bahasa } from '../teks';
@@ -32,6 +33,7 @@ const samping = (b: (typeof h.bagian)[number]) => b.gambar?.length === 1 && b.ga
           </ul>
         )}
         {b.catatan && <p class="panduan-penting">{b.catatan}</p>}
+        {b.iphone && <p class="panduan-penting pakai-iphone">{b.iphone}</p>}
       </div>
       {b.gambar && (
         <div class:list={['pakai-gambar', `pakai-gambar--${b.gambar[0]!.jenis}`]}>

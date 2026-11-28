@@ -16,7 +16,7 @@ export function getStaticPaths() {
 }
 const { bahasa, halaman } = Astro.params as { bahasa: Bahasa; halaman: LayarDasbor };
 const layar = dasbor(halaman);
-const data = await dataContoh(bahasa, layar.neosia);
+const data = await dataContoh(bahasa, layar.neosia, 'baru' in layar && layar.baru === true);
 const rincian = rincianDari(data, layar.rincian);
 ---
 <html lang={bahasa}>
@@ -31,6 +31,15 @@ const rincian = rincianDari(data, layar.rincian);
       var t = localStorage.getItem('sulo-landing:tema');
       if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
     } catch (e) {}
+    // The app scrolls what it points at into view (an opened task, a section). Inside this frame that also scrolled
+    // the page around it: /yang-baru/ jumped down to its graded task by itself (27 Nov 2026). Here it scrolls this
+    // screen only, to the same place.
+    Element.prototype.scrollIntoView = function (arg) {
+      var block = arg && typeof arg === 'object' ? arg.block || 'start' : arg === false ? 'end' : 'start';
+      var r = this.getBoundingClientRect();
+      var dy = block === 'center' ? r.top - (window.innerHeight - r.height) / 2 : block === 'end' ? r.bottom - window.innerHeight : block === 'nearest' ? (r.top < 0 ? r.top : r.bottom > window.innerHeight ? r.bottom - window.innerHeight : 0) : r.top;
+      window.scrollBy(0, dy);
+    };
     </script>
   </head>
   <body data-ke={layar.ke} style="overflow: visible">

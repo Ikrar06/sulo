@@ -8,7 +8,8 @@ for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-tombol-utam
     const wadah = a.closest<HTMLElement>('[data-unduh-wadah]');
     const baris = wadah?.querySelector<HTMLElement>('[data-unduh-baris]');
     if (!wadah || !baris) return;
-    baris.textContent = (a.dataset.menit === '2' ? baris.dataset.teks2 : baris.dataset.teks3) ?? '';
+    // data-teks-<minutes> next to the line: read by its attribute name (a dash before a digit stays in dataset's key).
+    baris.textContent = baris.getAttribute(`data-teks-${a.dataset.menit ?? '3'}`) ?? '';
     wadah.setAttribute('data-unduh', '');
   });
 }

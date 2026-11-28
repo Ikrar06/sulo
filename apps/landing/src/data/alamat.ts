@@ -30,5 +30,9 @@ export const pathPasang = (bahasa: Bahasa, perangkat?: Perangkat) => `${awal(bah
 /** The user guide: its first page, or the guide of one app. */
 export type Aplikasi = 'ekstensi' | 'android';
 export const pathPakai = (bahasa: Bahasa, aplikasi?: Aplikasi) => `${awal(bahasa)}/panduan/${aplikasi ? `${aplikasi}/` : ''}`;
+/** "Yang baru di Sulo": what each version changed (1.1.0). */
+export const pathYangBaru = (bahasa: Bahasa) => `${awal(bahasa)}/yang-baru/`;
+/** The technical list of a version, on GitHub (the release's page). */
+export const rilisGithub = (versi: string) => `${REPO}/releases/tag/v${versi}`;
 /** The same page in the other language. */
 export const pathLain = (path: string, bahasa: Bahasa) => (bahasa === 'en' ? path.replace(/^\/en(\/|$)/, '/') : `/en${path}`);

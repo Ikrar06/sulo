@@ -228,7 +228,24 @@ html[data-gulir] .nav-pil {
   .nav-menu {
     display: none;
   }
+  /* The links in the middle of the page, not of the space between the logo and the wider group on the right
+     (owner, 27 Nov 2026: they sat about 60 px left of centre). Each side keeps at least its own width, so on a
+     tight row the links give way rather than run into either side. */
+  .nav-pil {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  }
+  .nav-merek {
+    justify-self: start;
+  }
+  .nav-tautan {
+    justify-self: center;
+    margin-inline: 0;
+    /* The pill's padding is 16 px on the left and 8 on the right (concentric corners): back by half the gap. */
+    translate: -4px 0;
+  }
   .nav-ujung {
+    justify-self: end;
     margin-left: 0;
   }
 }

@@ -15,7 +15,7 @@ export function getStaticPaths() {
 }
 const { bahasa, layar } = Astro.params as { bahasa: Bahasa; layar: LayarHpNama };
 const apa = hp(layar);
-const data = await dataContoh(bahasa, apa.neosia);
+const data = await dataContoh(bahasa, apa.neosia, apa.baru === true);
 ---
 <html lang={bahasa}>
   <head>

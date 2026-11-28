@@ -6,7 +6,6 @@
 // note on this page itself. Its visual: the map of where data goes.
 import { CheckIcon, ChevronDownIcon } from '@sulo/ui/icons';
 import { PRIVASI_APLIKASI, REPO } from '../data/alamat';
-import rilis from '../data/rilis.json';
 import { rumah2 } from '../teks/rumah-2';
 import { pecah } from '../komponen/utuh';
 import type { Bahasa } from '../teks';
@@ -18,7 +17,6 @@ interface Props {
 }
 const { bahasa } = Astro.props;
 const t = rumah2[bahasa].privasi;
-const minat = rilis.minatIos.aktif;
 ---
 <section class="bagian privasi" id="privasi" aria-labelledby="judul-privasi">
   <div class="isi privasi-panel">
@@ -74,6 +72,7 @@ const minat = rilis.minatIos.aktif;
       {[
         { judul: t.izin.ekstensi, daftar: t.izin.daftarEkstensi },
         { judul: t.izin.android, daftar: t.izin.daftarAndroid },
+        { judul: t.izin.iphone, daftar: t.izin.daftarIphone },
       ].map((g) => (
         <details class="privasi-lipat">
           <summary><span>{g.judul}</span><ChevronDownIcon className="privasi-panah" aria-hidden="true" /></summary>
@@ -95,7 +94,7 @@ const minat = rilis.minatIos.aktif;
         <p>{t.hapus.isi}</p>
       </div>
     </div>
-    <p class="privasi-halaman">{t.halaman}{minat && <> {t.minat}</>}</p>
+    <p class="privasi-halaman">{t.halaman}</p>
     </div>
   </div>
 </section>

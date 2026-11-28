@@ -14,7 +14,6 @@ const NAIK = [
   ['.panduan-bagian', 'satu'],
   ['.panduan-dua', 'anak'],
   ['.panduan-periksa', 'satu'],
-  ['.panduan-minat', 'satu'],
   ['.panduan-lain', 'satu'],
 ] as const;
 

@@ -1,28 +1,35 @@
 ---
-// Install (brief 6.8): two cards of one build and a slim row for iPhone, on
-// the plain page; the download right on the card (from src/data/rilis.json,
-// like every button). The visitor's own device comes first, with the one loud
-// button; the other device's button is quiet. Each card: the moment it leads
-// to, its name, what it is (version, size, time) as quiet chips, one line,
-// then the button and its two links on one line at the card's foot. On a wide
-// screen the Android card's picture carries a QR code to the Android guide.
-// SHA-256 lives on the guide pages, not here.
+// Install (brief 6.8; three equal cards since 1.1.0, owner 27 Nov 2026: the
+// iPhone was a slim row without a picture), on the plain page; the download
+// right on the card (from src/data/rilis.json, like every button). The
+// visitor's own device comes first, with the one loud button; the others'
+// buttons are quiet. Each card: the moment it leads to, its name, what it is
+// (version, size, time, requirement) as quiet chips, one line, then the button
+// and its two links at the card's foot. On a wide screen the Android card's
+// picture carries a QR code to the Android guide. SHA-256 lives on the guide
+// pages, not here.
+//
+// The iPhone is installed from a laptop: on an iPhone its button is the guide
+// (which says to open it on the laptop), elsewhere the .ipa itself.
 //
 // Once a browser's store has Sulo (rilis.json toko), the extension card leads
 // there for that browser and keeps the zip for the other one: Edge's button
 // and guide show in Edge, Chrome's everywhere else.
 //
-// Each of the two main cards opens with the moment it leads to, drawn as the
-// guides draw it (the section's rich visual, brief 4.2): Android asking to
-// install Sulo, and Sulo pinned in the browser on SIKOLA. A line under each
-// leads to why a warning appears while installing (brief 2: said as it is).
+// Each card opens with the moment it leads to, drawn as the guides draw it
+// (the section's rich visual, brief 4.2): Sulo pinned in the browser on
+// SIKOLA, Android asking to install Sulo, and the iPhone's Developer App
+// screen where Sulo is trusted. A line under each leads to why a warning
+// appears while installing, or why the iPhone app is not in the App Store
+// (brief 2: said as it is).
 import flame from '../../../extension/assets/brand/flame-full.svg?url';
 import { alamatToko, berkas, NAMA_TOKO, type Browser } from '../data/unduhan';
-import { pathPasang } from '../data/alamat';
+import { pathPasang, pathYangBaru } from '../data/alamat';
+import { version as VERSI } from '../../../mobile/package.json';
 import { buatQr } from '../data/qr';
 import { alamatSitus } from '../data/situs';
 import { rumah2 } from '../teks/rumah-2';
-import { layarOs } from '../teks/panduan';
+import { layarOs, panduan } from '../teks/panduan';
 import { teks, type Bahasa } from '../teks';
 import Hp from '../ilustrasi/Hp.astro';
 import Jendela from '../ilustrasi/Jendela.astro';
@@ -35,8 +42,10 @@ interface Props {
 const { bahasa } = Astro.props;
 const t = rumah2[bahasa].pasang;
 const os = layarOs[bahasa];
+const ios = panduan[bahasa].iphone.layar;
 const zip = berkas('ekstensi', bahasa);
 const apk = berkas('android', bahasa);
+const ipa = berkas('iphone', bahasa);
 const situs = alamatSitus(Astro.site);
 const qr = situs ? buatQr(`${situs}${pathPasang(bahasa, 'android')}`) : null;
 const meta = (b: typeof zip, waktu: string) => [b.versi ? t.versi(b.versi) : '', b.aktif ? b.ukuran : '', waktu].filter(Boolean);
@@ -128,14 +137,40 @@ const mulai = teks[bahasa].unduhMulai;
           </p>
         </div>
       </article>
-      <article class="pasang-iphone" data-pasang="iphone">
-        <div>
-          <h3>{t.iphone.judul}</h3>
-          <p>{t.iphone.isi}</p>
+      <article class="pasang-kartu" data-pasang="iphone" data-unduh-wadah>
+        <div class="pasang-gambar" aria-hidden="true">
+          <Hp atas>
+            <div class="il-setelan">
+              <p class="il-judul-besar">{ios.appPengembang}</p>
+              <p class="il-redup">{ios.appleId}</p>
+              <p class="il-baris">
+                <span class="il-aplikasi"><img src={flame} alt="" width="24" height="24" />Sulo</span>
+                <span class="il-aksi-utama">{ios.percayai}</span>
+              </p>
+            </div>
+          </Hp>
         </div>
-        <a class="tombol tombol--kedua tombol--kecil" href={pathPasang(bahasa, 'iphone')}>{t.iphone.tautan}</a>
+        <div class="pasang-isi">
+          <h3>{t.iphone.judul}</h3>
+          <ul class="pasang-meta" role="list">{meta(ipa, t.iphone.waktu).map((m) => <li>{m}</li>)}<li>{t.iphone.syarat}</li></ul>
+          <p class="pasang-catatan">{t.iphone.isi}</p>
+        </div>
+        <div class="pasang-aksi">
+          <a class="tombol tombol--utama tombol--penuh" href={pathPasang(bahasa, 'iphone')} data-untuk="ios">{t.iphone.tautan}</a>
+          {ipa.aktif ? (
+            <a class="tombol tombol--utama tombol--penuh" href={ipa.href} download={ipa.unduhan ? '' : undefined} data-tombol-utama data-menit="10" data-untuk="tanpa-js android chrome edge desktop-lain">{t.iphone.unduh}</a>
+          ) : (
+            <span class="tombol tombol--utama tombol--penuh" aria-disabled="true" data-untuk="tanpa-js android chrome edge desktop-lain">{ipa.ukuran}</span>
+          )}
+          <p class="pasang-unduh" data-unduh-baris aria-live="polite" data-teks-10={mulai(10)}></p>
+          <p class="pasang-tautan">
+            <a class="tautan" href={pathPasang(bahasa, 'iphone')} data-untuk="tanpa-js android chrome edge desktop-lain">{t.iphone.tautan}</a>
+            <a class="tautan" href="#tanya-iphone">{t.iphone.tanya}</a>
+          </p>
+        </div>
       </article>
     </div>
+    <p class="pasang-baru"><a class="tautan" href={pathYangBaru(bahasa)}>{t.baru(VERSI)}</a></p>
   </div>
 </section>
 <script>

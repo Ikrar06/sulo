@@ -1,0 +1,94 @@
+/* The Windows and Mac switch of a guide step (komponen/PilihanOs.astro): two pill buttons on the page's inset,
+   the chosen one in ink, then that system's steps as a short numbered list. */
+.pilihan-os {
+  margin-top: 16px;
+  max-width: 34rem;
+}
+/* Never wider than its column: at a large text size the two buttons wrap instead of pushing the page sideways. */
+.pilihan-os-saklar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 26px;
+  background: var(--m-inset);
+}
+.pilihan-os-saklar[hidden] {
+  display: none;
+}
+.pilihan-os-saklar button {
+  min-height: 44px;
+  min-width: min(6.5rem, 100%);
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--abu);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms ease-out, color 160ms ease-out;
+}
+/* The chosen one in ink, like the navigation's Pasang: the page's raised surface is the inset's own colour. */
+.pilihan-os-saklar button[aria-selected="true"] {
+  background: var(--tinta);
+  color: var(--kartu);
+}
+.pilihan-os-saklar button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.pilihan-os-isi {
+  margin-top: 16px;
+}
+.pilihan-os-isi[hidden] {
+  display: none;
+}
+/* With the switch, its buttons name the list; without script, each list says whose it is. */
+.pilihan-os.is-saklar .pilihan-os-nama {
+  display: none;
+}
+.pilihan-os-nama {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+.pilihan-os-isi ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: os;
+}
+.pilihan-os-isi li {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  color: var(--abu);
+  line-height: 1.6;
+  text-wrap: pretty;
+  counter-increment: os;
+}
+.pilihan-os-isi li > p {
+  margin: 0;
+}
+.pilihan-os-isi li::before {
+  content: counter(os);
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-top: 0.15em;
+  border-radius: 50%;
+  background: var(--m-inset);
+  color: var(--tinta);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pilihan-os-saklar button {
+    transition: none;
+  }
+}

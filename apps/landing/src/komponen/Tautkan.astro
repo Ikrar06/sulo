@@ -1,0 +1,10 @@
+---
+// A guide's sentence with its outside sites as links (data/tautan-teks.ts): plain text otherwise.
+import { potongTautan } from '../data/tautan-teks';
+
+interface Props {
+  teks: string;
+}
+const { teks } = Astro.props;
+---
+{potongTautan(teks).map((p) => ('href' in p ? <a class="tautan" href={p.href} target="_blank" rel="noopener noreferrer">{p.teks}</a> : p.teks))}
