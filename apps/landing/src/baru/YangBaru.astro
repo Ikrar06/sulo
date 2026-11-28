@@ -54,7 +54,7 @@ const fitur = [...t.fitur.filter((f) => f.sorot), ...t.fitur.filter((f) => !f.so
 
       <section class="baru-versi" aria-labelledby="judul-versi">
         <div class="baru-versi-teks">
-          <p class="baru-versi-cap">{t.belumTerbit}</p>
+          <p class="baru-versi-cap">{t.tanggal(t.terbit)}</p>
           <h2 id="judul-versi">{t.versi(VERSI)}</h2>
           <p>{t.ringkas}</p>
         </div>

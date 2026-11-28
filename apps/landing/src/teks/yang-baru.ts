@@ -34,7 +34,8 @@ interface Halaman {
   untuk: string;
   versi: (v: string) => string;
   tanggal: (t: string) => string;
-  belumTerbit: string;
+  /** The day this version came out, as the card's cap says it. */
+  terbit: string;
   ringkas: string;
   /** The version card's other half: where this version runs. */
   tersedia: { judul: string; ket: Record<PerangkatBaru, string> };
@@ -59,7 +60,7 @@ export const yangBaru: Record<Bahasa, Halaman> = {
     untuk: 'Untuk',
     versi: (v) => `Versi ${v}`,
     tanggal: (t) => `Terbit ${t}`,
-    belumTerbit: 'Segera terbit',
+    terbit: '28 November 2026',
     ringkas: 'Dua yang paling banyak diminta akhirnya ada: Sulo untuk iPhone, dan Sipakamase untuk MKPK. Ditambah nilai tugas dari SIKOLA, tugas yang kamu catat sendiri, dan tambah ke kalender perangkatmu.',
     tersedia: { judul: 'Tersedia untuk', ket: { ekstensi: 'Chrome dan Edge, di laptop', android: 'Android 8 ke atas', iphone: 'iOS 16.4 ke atas, lewat Sideloadly' } },
     fitur: [
@@ -210,7 +211,7 @@ export const yangBaru: Record<Bahasa, Halaman> = {
     untuk: 'For',
     versi: (v) => `Version ${v}`,
     tanggal: (t) => `Released ${t}`,
-    belumTerbit: 'Coming soon',
+    terbit: '28 November 2026',
     ringkas: 'The two most requested are finally here: Sulo for iPhone, and Sipakamase for MKPK. Plus task grades from SIKOLA, tasks you note down yourself, and adding to your device’s calendar.',
     tersedia: { judul: 'Available for', ket: { ekstensi: 'Chrome and Edge, on a laptop', android: 'Android 8 or later', iphone: 'iOS 16.4 or later, with Sideloadly' } },
     fitur: [
