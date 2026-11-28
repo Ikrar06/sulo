@@ -1,19 +1,19 @@
 {
   "android": {
     "tersedia": true,
-    "versi": "1.0.0",
-    "url": "https://github.com/Ikrar06/sulo/releases/download/v1.0.0/sulo-1.0.0-android.apk",
-    "ukuranByte": 1609895,
-    "sha256": "5cd8ae8ff5401d9c0cb3944dbf47a27794ecac695a6a72912b8120c2127188ce",
+    "versi": "1.1.0",
+    "url": "https://github.com/Ikrar06/sulo/releases/download/v1.1.0/sulo-1.1.0-android.apk",
+    "ukuranByte": 1668765,
+    "sha256": "7a79d772f9023f80ff1e94a8d783a9cafe881a76976e82e1df6cf85106d86425",
     "sidikSertifikat": "43:BF:DB:C7:4D:C1:82:C7:55:97:74:27:FA:E9:C4:95:C5:5C:CA:00:5C:AE:87:05:5D:F2:BB:65:1D:87:82:7F",
     "androidMin": "8.0"
   },
   "ekstensi": {
     "tersedia": true,
-    "versi": "1.0.0",
-    "url": "https://github.com/Ikrar06/sulo/releases/download/v1.0.0/sulo-1.0.0-ekstensi.zip",
-    "ukuranByte": 6644460,
-    "sha256": "c814029105c3386962089701a9dbe51e660ebf0515f541f24954debcbb2629b3"
+    "versi": "1.1.0",
+    "url": "https://github.com/Ikrar06/sulo/releases/download/v1.1.0/sulo-1.1.0-ekstensi.zip",
+    "ukuranByte": 6444866,
+    "sha256": "88ed8768fb3b13ac954648c5ac81558e4a7e28fdb451b2cb0a5c256d58790c03"
   },
   "toko": {
     "chrome": {
@@ -26,7 +26,11 @@
     }
   },
   "iphone": {
-    "tersedia": false,
+    "tersedia": true,
+    "versi": "1.1.0",
+    "url": "https://github.com/Ikrar06/sulo/releases/download/v1.1.0/sulo-1.1.0-ios.ipa",
+    "ukuranByte": 1513829,
+    "sha256": "53e9ecc7cdf815cbc15fd8528aff0e650a13125b7379b947e43e3089c2b0f481",
     "iosMin": "16.4"
   }
 }
