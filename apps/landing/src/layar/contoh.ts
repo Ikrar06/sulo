@@ -10,7 +10,7 @@ import { demoSipakamase } from '../../../extension/scripts/lib/demo-sipakamase.m
 import { setDone, type TaskStateMap } from '@sulo/core/tasks/local-state';
 import type { TaskGrades } from '@sulo/core/tasks/grade-service';
 import type { OwnTask } from '@sulo/core/tasks/own';
-import type { Course, Task } from '@sulo/core/types';
+import type { CourseRecord, Task } from '@sulo/core/types';
 import { livelyTasks } from '../../../../scripts/lib/mockup-data.mjs';
 import { memoryStore } from './ganti/memory-store';
 import type { Bahasa } from '../teks';
@@ -49,7 +49,7 @@ const NILAI = ['88,00 (A)', '91,00 (A)', '84,00 (A-)'];
  * Sipakamase connected with its synthetic demo data. The home page's screens never get any of it.
  */
 async function tambahBaru(store: ReturnType<typeof memoryStore>, bahasa: Bahasa, neosia: boolean): Promise<void> {
-  const courses = (await store.get<Course[]>('u:1:courses')) ?? [];
+  const courses = (await store.get<CourseRecord[]>('u:1:courses')) ?? [];
   const tasks = (await store.get<Task[]>('u:1:tasks')) ?? [];
   const nama = bahasa === 'id' ? ['Tugas pekan 2', 'Laporan praktikum 1', 'Kuis esai pekan 3'] : ['Week 2 assignment', 'Lab report 1', 'Week 3 essay quiz'];
   const lama: Task[] = nama.map((name, i) => {
