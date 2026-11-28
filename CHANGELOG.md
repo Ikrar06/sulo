@@ -4,7 +4,7 @@ User-facing changes to Sulo. The format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
-## [1.1.0] - 2026-11-27
+## [1.1.0] - 2026-11-28
 
 ### Added
 
